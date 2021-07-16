@@ -19,7 +19,7 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 			rank, wc := tsQuery(*where.Search)
 			q = q.Column(rank).Where(wc)
 		}
-		if where.Merged != nil && *where.Merged == true {
+		if where.Merged != nil && *where.Merged {
 			q = q.Distinct().Options("on (onestop_id)")
 		} else {
 			q = q.OrderBy("id asc")

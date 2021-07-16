@@ -7,7 +7,6 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/interline-io/transitland-lib/tldb"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
@@ -17,6 +16,13 @@ var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
 // TODO: replace with middleware or configuration
+
+type canBeginx interface {
+	sqlx.Ext
+	sqlx.Preparer
+	Beginx() (*sqlx.Tx, error)
+}
+
 var DB canBeginx
 
 func MustOpenDB(url string) canBeginx {
@@ -32,16 +38,12 @@ func MustOpenDB(url string) canBeginx {
 	}
 	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
 	db = db.Unsafe()
-	return tldb.NewQueryLogger(db)
+	// return tldb.NewQueryLogger(db)
+	return db
 }
 
 func Sqrl(db sqlx.Ext) sq.StatementBuilderType {
 	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(db)
-}
-
-type canBeginx interface {
-	sqlx.Ext
-	Beginx() (*sqlx.Tx, error)
 }
 
 func Tx(cb func(sqlx.Ext) error) error {
