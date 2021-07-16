@@ -1,6 +1,6 @@
 #!/bin/sh
 
-REPO="github.com/interline-io/transitland-lib/internal/server/model"
+REPO="github.com/interline-io/transitland-server/model"
 
 rm dataloader/*_gen.go
 
