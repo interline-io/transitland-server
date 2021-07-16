@@ -1,6 +1,6 @@
 # Interline Transitland Server <!-- omit in toc -->
 
-[![GoDoc](https://godoc.org/github.com/interline-io/transitland-server/tl?status.svg)](https://godoc.org/github.com/interline-io/transitland-server) ![Go Report Card](https://goreportcard.com/badge/github.com/interline-io/transitland-server)
+[![GoDoc](https://godoc.org/github.com/interline-io/transitland-server?status.svg)](https://godoc.org/github.com/interline-io/transitland-server) ![Go Report Card](https://goreportcard.com/badge/github.com/interline-io/transitland-server)
 
 ## Table of Contents <!-- omit in toc -->
 <!-- to update use https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one -->
