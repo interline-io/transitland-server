@@ -18,12 +18,12 @@ func FeedVersionSelect(limit *int, after *int, ids []int, where *model.FeedVersi
 		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
 		JoinClause("left join tl_feed_version_geometries on tl_feed_version_geometries.feed_version_id = t.id").
 		Limit(checkLimit(limit)).
-		OrderBy("t.id")
+		OrderBy("t.fetched_at desc")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
+	if after != nil && *after > 0 {
+		q = q.Where(sq.Expr("fetched_at < (select fetched_at from feed_versions where id = ?)", *after))
 	}
 	if where != nil {
 		if where.Sha1 != nil {
@@ -49,7 +49,7 @@ func FeedVersionServiceLevelSelect(limit *int, after *int, ids []int, where *mod
 	} else {
 		q = q.OrderBy("id")
 	}
-	if where.AllRoutes != nil && *where.AllRoutes == true {
+	if where.AllRoutes != nil && *where.AllRoutes {
 		// default
 	} else if len(where.RouteIds) > 0 {
 		q = q.Where(sq.Eq{"route_id": where.RouteIds})
