@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ type Command struct {
 	DisableGraphql   bool
 	DisableRest      bool
 	EnablePlayground bool
+	EnableProfiler   bool
 	config.Config
 }
 
@@ -46,6 +48,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
 	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
 	fl.BoolVar(&cmd.EnablePlayground, "playground", false, "Enable GraphQL playground")
+	fl.BoolVar(&cmd.EnableProfiler, "profile", false, "Enable profiling")
 	fl.Parse(args)
 	if cmd.DBURL == "" {
 		cmd.DBURL = os.Getenv("TL_DATABASE_URL")
@@ -70,6 +73,14 @@ func (cmd *Command) Run(args []string) error {
 	)
 	root.Use(cors)
 	root.Use(loggingMiddleware)
+
+	// Profiling
+	if cmd.EnableProfiler {
+		root.HandleFunc("/debug/pprof/", pprof.Index)
+		root.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		root.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		root.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	}
 
 	// Add servers
 	graphqlServer, err := resolvers.NewServer(cmd.Config)
