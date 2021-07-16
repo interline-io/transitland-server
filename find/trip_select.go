@@ -26,7 +26,6 @@ func TripSelect(limit *int, after *int, ids []int, where *model.TripFilter) sq.S
 		From("gtfs_trips").
 		Join("feed_versions ON feed_versions.id = gtfs_trips.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_trips.id`).
 		JoinClause(`LEFT JOIN feed_states ON feed_states.feed_version_id = gtfs_trips.feed_version_id`).
 		OrderBy("gtfs_trips.id")
 
