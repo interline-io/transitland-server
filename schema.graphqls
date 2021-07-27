@@ -161,6 +161,9 @@ type Operator {
   operator_website: String
   operator_tags: Any
   operator_associated_feeds: Any
+  city_name: String
+  adm1name: String
+  adm0name: String
   search_rank: String # only for search results
   agency: Agency
 }

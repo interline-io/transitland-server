@@ -38,7 +38,6 @@ func MustOpenDB(url string) canBeginx {
 	}
 	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
 	return db.Unsafe()
-	// return tldb.NewQueryLogger(db.Unsafe())
 }
 
 func Sqrl(db sqlx.Ext) sq.StatementBuilderType {
