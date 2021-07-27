@@ -146,6 +146,7 @@ type ComplexityRoot struct {
 		OnestopID           func(childComplexity int) int
 		SearchRank          func(childComplexity int) int
 		Spec                func(childComplexity int) int
+		Tags                func(childComplexity int) int
 		Urls                func(childComplexity int) int
 	}
 
@@ -303,27 +304,15 @@ type ComplexityRoot struct {
 	}
 
 	Operator struct {
-		Adm0name                func(childComplexity int) int
-		Adm1name                func(childComplexity int) int
 		Agency                  func(childComplexity int) int
-		AgencyID                func(childComplexity int) int
-		AgencyName              func(childComplexity int) int
-		AgencyOnestopID         func(childComplexity int) int
-		CityName                func(childComplexity int) int
-		FeedID                  func(childComplexity int) int
-		FeedNamespaceID         func(childComplexity int) int
-		FeedOnestopID           func(childComplexity int) int
-		FeedVersionID           func(childComplexity int) int
-		FeedVersionSha1         func(childComplexity int) int
 		ID                      func(childComplexity int) int
 		OnestopID               func(childComplexity int) int
 		OperatorAssociatedFeeds func(childComplexity int) int
 		OperatorID              func(childComplexity int) int
 		OperatorName            func(childComplexity int) int
-		OperatorOnestopID       func(childComplexity int) int
 		OperatorShortName       func(childComplexity int) int
 		OperatorTags            func(childComplexity int) int
-		PlacesCache             func(childComplexity int) int
+		OperatorWebsite         func(childComplexity int) int
 		SearchRank              func(childComplexity int) int
 	}
 
@@ -552,6 +541,7 @@ type CensusValueResolver interface {
 type FeedResolver interface {
 	Languages(ctx context.Context, obj *model.Feed) ([]string, error)
 	AssociatedFeeds(ctx context.Context, obj *model.Feed) ([]string, error)
+
 	Authorization(ctx context.Context, obj *model.Feed) (*model.FeedAuthorization, error)
 	Urls(ctx context.Context, obj *model.Feed) (*model.FeedUrls, error)
 	License(ctx context.Context, obj *model.Feed) (*model.FeedLicense, error)
@@ -594,8 +584,6 @@ type MutationResolver interface {
 type OperatorResolver interface {
 	OperatorTags(ctx context.Context, obj *model.Operator) (interface{}, error)
 	OperatorAssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error)
-
-	PlacesCache(ctx context.Context, obj *model.Operator) ([]string, error)
 
 	Agency(ctx context.Context, obj *model.Operator) (*model.Agency, error)
 }
@@ -1153,6 +1141,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Feed.Spec(childComplexity), true
+
+	case "Feed.tags":
+		if e.complexity.Feed.Tags == nil {
+			break
+		}
+
+		return e.complexity.Feed.Tags(childComplexity), true
 
 	case "Feed.urls":
 		if e.complexity.Feed.Urls == nil {
@@ -1961,89 +1956,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ValidateGtfs(childComplexity, args["file"].(*graphql.Upload), args["url"].(*string), args["realtime_urls"].([]string)), true
 
-	case "Operator.adm0name":
-		if e.complexity.Operator.Adm0name == nil {
-			break
-		}
-
-		return e.complexity.Operator.Adm0name(childComplexity), true
-
-	case "Operator.adm1name":
-		if e.complexity.Operator.Adm1name == nil {
-			break
-		}
-
-		return e.complexity.Operator.Adm1name(childComplexity), true
-
 	case "Operator.agency":
 		if e.complexity.Operator.Agency == nil {
 			break
 		}
 
 		return e.complexity.Operator.Agency(childComplexity), true
-
-	case "Operator.agency_id":
-		if e.complexity.Operator.AgencyID == nil {
-			break
-		}
-
-		return e.complexity.Operator.AgencyID(childComplexity), true
-
-	case "Operator.agency_name":
-		if e.complexity.Operator.AgencyName == nil {
-			break
-		}
-
-		return e.complexity.Operator.AgencyName(childComplexity), true
-
-	case "Operator.agency_onestop_id":
-		if e.complexity.Operator.AgencyOnestopID == nil {
-			break
-		}
-
-		return e.complexity.Operator.AgencyOnestopID(childComplexity), true
-
-	case "Operator.city_name":
-		if e.complexity.Operator.CityName == nil {
-			break
-		}
-
-		return e.complexity.Operator.CityName(childComplexity), true
-
-	case "Operator.feed_id":
-		if e.complexity.Operator.FeedID == nil {
-			break
-		}
-
-		return e.complexity.Operator.FeedID(childComplexity), true
-
-	case "Operator.feed_namespace_id":
-		if e.complexity.Operator.FeedNamespaceID == nil {
-			break
-		}
-
-		return e.complexity.Operator.FeedNamespaceID(childComplexity), true
-
-	case "Operator.feed_onestop_id":
-		if e.complexity.Operator.FeedOnestopID == nil {
-			break
-		}
-
-		return e.complexity.Operator.FeedOnestopID(childComplexity), true
-
-	case "Operator.feed_version_id":
-		if e.complexity.Operator.FeedVersionID == nil {
-			break
-		}
-
-		return e.complexity.Operator.FeedVersionID(childComplexity), true
-
-	case "Operator.feed_version_sha1":
-		if e.complexity.Operator.FeedVersionSha1 == nil {
-			break
-		}
-
-		return e.complexity.Operator.FeedVersionSha1(childComplexity), true
 
 	case "Operator.id":
 		if e.complexity.Operator.ID == nil {
@@ -2080,13 +1998,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Operator.OperatorName(childComplexity), true
 
-	case "Operator.operator_onestop_id":
-		if e.complexity.Operator.OperatorOnestopID == nil {
-			break
-		}
-
-		return e.complexity.Operator.OperatorOnestopID(childComplexity), true
-
 	case "Operator.operator_short_name":
 		if e.complexity.Operator.OperatorShortName == nil {
 			break
@@ -2101,12 +2012,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Operator.OperatorTags(childComplexity), true
 
-	case "Operator.places_cache":
-		if e.complexity.Operator.PlacesCache == nil {
+	case "Operator.operator_website":
+		if e.complexity.Operator.OperatorWebsite == nil {
 			break
 		}
 
-		return e.complexity.Operator.PlacesCache(childComplexity), true
+		return e.complexity.Operator.OperatorWebsite(childComplexity), true
 
 	case "Operator.search_rank":
 		if e.complexity.Operator.SearchRank == nil {
@@ -3448,6 +3359,7 @@ type Feed {
   spec: String!
   languages: [String!]
   associated_feeds: [String!]
+  tags: Tags
   authorization: FeedAuthorization
   urls: FeedUrls
   license: FeedLicense
@@ -3563,25 +3475,13 @@ type FeedVersionServiceLevel {
 
 type Operator {
   id: Int!
-  agency_id: Int     
-  agency_name: String
-  agency_onestop_id: String 
-  feed_id: Int
-  feed_version_id: Int    
-  feed_version_sha1: String
-  feed_onestop_id: String  
-  feed_namespace_id: String
   onestop_id: String
   operator_id: Int
-  operator_onestop_id: String
   operator_name: String
   operator_short_name: String
-  operator_tags: Any # use map? 'any' is for pass through.
+  operator_website: String
+  operator_tags: Any
   operator_associated_feeds: Any
-  city_name: String
-  adm1name: String
-  adm0name: String
-  places_cache: [String!]
   search_rank: String # only for search results
   agency: Agency
 }
@@ -4044,6 +3944,7 @@ input PointRadius {
 
 # Scalar types
 
+scalar Tags
 scalar Geometry
 scalar Time
 scalar Date
@@ -4053,7 +3954,8 @@ scalar Seconds
 scalar Polygon
 scalar Map
 scalar Any
-scalar Upload`, BuiltIn: false},
+scalar Upload
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -7228,6 +7130,38 @@ func (ec *executionContext) _Feed_associated_feeds(ctx context.Context, field gr
 	res := resTmp.([]string)
 	fc.Result = res
 	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Feed_tags(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Feed",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tags, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Tags)
+	fc.Result = res
+	return ec.marshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Feed_authorization(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
@@ -11331,262 +11265,6 @@ func (ec *executionContext) _Operator_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Operator_agency_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AgencyID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_agency_name(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AgencyName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_agency_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AgencyOnestopID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_feed_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FeedID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_feed_version_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FeedVersionID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_feed_version_sha1(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FeedVersionSha1, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_feed_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FeedOnestopID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_feed_namespace_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FeedNamespaceID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Operator_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11651,38 +11329,6 @@ func (ec *executionContext) _Operator_operator_id(ctx context.Context, field gra
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Operator_operator_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.OperatorOnestopID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Operator_operator_name(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11734,6 +11380,38 @@ func (ec *executionContext) _Operator_operator_short_name(ctx context.Context, f
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.OperatorShortName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Operator_operator_website(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Operator",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OperatorWebsite, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11809,134 +11487,6 @@ func (ec *executionContext) _Operator_operator_associated_feeds(ctx context.Cont
 	res := resTmp.(interface{})
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_city_name(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CityName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_adm1name(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Adm1name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_adm0name(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Adm0name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_places_cache(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Operator().PlacesCache(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_search_rank(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -19902,6 +19452,8 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 				res = ec._Feed_associated_feeds(ctx, field, obj)
 				return res
 			})
+		case "tags":
+			out.Values[i] = ec._Feed_tags(ctx, field, obj)
 		case "authorization":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20947,32 +20499,16 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "agency_id":
-			out.Values[i] = ec._Operator_agency_id(ctx, field, obj)
-		case "agency_name":
-			out.Values[i] = ec._Operator_agency_name(ctx, field, obj)
-		case "agency_onestop_id":
-			out.Values[i] = ec._Operator_agency_onestop_id(ctx, field, obj)
-		case "feed_id":
-			out.Values[i] = ec._Operator_feed_id(ctx, field, obj)
-		case "feed_version_id":
-			out.Values[i] = ec._Operator_feed_version_id(ctx, field, obj)
-		case "feed_version_sha1":
-			out.Values[i] = ec._Operator_feed_version_sha1(ctx, field, obj)
-		case "feed_onestop_id":
-			out.Values[i] = ec._Operator_feed_onestop_id(ctx, field, obj)
-		case "feed_namespace_id":
-			out.Values[i] = ec._Operator_feed_namespace_id(ctx, field, obj)
 		case "onestop_id":
 			out.Values[i] = ec._Operator_onestop_id(ctx, field, obj)
 		case "operator_id":
 			out.Values[i] = ec._Operator_operator_id(ctx, field, obj)
-		case "operator_onestop_id":
-			out.Values[i] = ec._Operator_operator_onestop_id(ctx, field, obj)
 		case "operator_name":
 			out.Values[i] = ec._Operator_operator_name(ctx, field, obj)
 		case "operator_short_name":
 			out.Values[i] = ec._Operator_operator_short_name(ctx, field, obj)
+		case "operator_website":
+			out.Values[i] = ec._Operator_operator_website(ctx, field, obj)
 		case "operator_tags":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20993,23 +20529,6 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._Operator_operator_associated_feeds(ctx, field, obj)
-				return res
-			})
-		case "city_name":
-			out.Values[i] = ec._Operator_city_name(ctx, field, obj)
-		case "adm1name":
-			out.Values[i] = ec._Operator_adm1name(ctx, field, obj)
-		case "adm0name":
-			out.Values[i] = ec._Operator_adm0name(ctx, field, obj)
-		case "places_cache":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Operator_places_cache(ctx, field, obj)
 				return res
 			})
 		case "search_rank":
@@ -24980,6 +24499,16 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) unmarshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx context.Context, v interface{}) (tl.Tags, error) {
+	var res tl.Tags
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx context.Context, sel ast.SelectionSet, v tl.Tags) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOTime(ctx context.Context, v interface{}) (tl.OTime, error) {

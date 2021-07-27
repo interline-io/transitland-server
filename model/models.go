@@ -71,6 +71,7 @@ type Operator struct {
 	OperatorOnestopID       *string          `json:"operator_onestop_id"`
 	OperatorName            *string          `json:"operator_name"`
 	OperatorShortName       *string          `json:"operator_short_name"`
+	OperatorWebsite         *string          `json:"operator_website"`
 	OperatorTags            *json.RawMessage `json:"operator_tags"` // json map[string]string
 	OperatorAssociatedFeeds *json.RawMessage `json:"operator_associated_feeds"`
 	PlacesCache             *pq.StringArray  `json:"places_cache"`

@@ -299,7 +299,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 				Fetch: func(ids []int) (ents []*model.Operator, errs []error) {
 					MustSelect(
 						atx,
-						quickSelect("tl_mv_active_agency_operators", nil, nil, nil).Where(sq.Eq{"feed_id": ids}),
+						OperatorSelect(nil, nil, nil, nil).Where(sq.Eq{"agency_id": ids}),
 						&ents,
 					)
 					byid := map[int]*model.Operator{}

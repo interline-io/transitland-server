@@ -18,6 +18,7 @@ const MAXLIMIT = 1000
 func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
 	qstr, qargs := q.MustSql()
 	qstrRebind := db.Rebind(qstr)
+	fmt.Println(qstrRebind)
 	if a, ok := db.(sqlx.Preparer); ok {
 		stmt, err := sqlx.Preparex(a, qstrRebind)
 		if err != nil {

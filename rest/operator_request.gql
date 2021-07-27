@@ -1,10 +1,9 @@
 query($limit: Int, $after: Int, $where: OperatorFilter) {
   operators(after: $after, limit: $limit, where: $where) {
     id
-    agency_name
+    onestop_id
     operator_name
     operator_short_name
-    onestop_id
     city_name
     adm1name
     adm0name
@@ -13,7 +12,6 @@ query($limit: Int, $after: Int, $where: OperatorFilter) {
       id
       agency_id
       agency_name
-	  onestop_id
       places(where: { min_rank: 0.2 }) {
         city_name: name
         adm0name
