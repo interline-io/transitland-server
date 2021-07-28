@@ -28,7 +28,7 @@ func TestFeedResolver(t *testing.T) {
 			"urls",
 			`query($onestop_id:String!) { feeds(where:{onestop_id:$onestop_id}) {urls { static_current static_historic }}}`,
 			hw{"onestop_id": "CT"},
-			`{"feeds":[{"urls":{"static_current":"../test/data/external/caltrain.zip","static_historic":["https://caltrain.com/old_feed.zip"]}}]}`,
+			`{"feeds":[{"urls":{"static_current":"test/data/external/caltrain.zip","static_historic":["https://caltrain.com/old_feed.zip"]}}]}`,
 			"",
 			nil,
 		},
