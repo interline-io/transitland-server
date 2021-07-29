@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
@@ -11,24 +12,15 @@ import (
 
 type operatorResolver struct{ *Resolver }
 
-func (r *operatorResolver) Agency(ctx context.Context, obj *model.Operator) (*model.Agency, error) {
-	if obj.AgencyID != nil {
-		return find.For(ctx).AgenciesByID.Load(*obj.AgencyID)
-	}
-	return nil, nil
+func (r *operatorResolver) Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error) {
+	a := obj.OnestopID.String
+	return find.For(ctx).AgenciesByOnestopID.Load(model.AgencyParam{OnestopID: &a})
 }
 
-func (r *operatorResolver) OperatorTags(ctx context.Context, obj *model.Operator) (interface{}, error) {
-	return obj.OperatorTags, nil
+func (r *operatorResolver) Tags(ctx context.Context, obj *model.Operator) (interface{}, error) {
+	return obj.Tags, nil
 }
 
-func (r *operatorResolver) OperatorAssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error) {
-	return obj.OperatorAssociatedFeeds, nil
-}
-
-func (r *operatorResolver) PlacesCache(ctx context.Context, obj *model.Operator) ([]string, error) {
-	if obj.PlacesCache != nil {
-		return *obj.PlacesCache, nil
-	}
-	return []string{}, nil
+func (r *operatorResolver) AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error) {
+	return json.Marshal(obj.AssociatedFeeds)
 }
