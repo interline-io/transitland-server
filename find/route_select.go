@@ -24,7 +24,7 @@ func RouteSelect(limit *int, after *int, ids []int, where *model.RouteFilter) sq
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
-		"tl_agency_onestop_ids.onestop_id AS operator_onestop_id",
+		"coif.resolved_onestop_id AS operator_onestop_id",
 		"tl_route_onestop_ids.onestop_id",
 		"feed_states.feed_version_id AS active",
 		"rh.headway_seconds_weekday_morning",
@@ -32,9 +32,10 @@ func RouteSelect(limit *int, after *int, ids []int, where *model.RouteFilter) sq
 		From("gtfs_routes").
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		JoinClause("LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id").
-		JoinClause("LEFT JOIN tl_agency_onestop_ids ON tl_agency_onestop_ids.agency_id = gtfs_routes.agency_id").
+		Join("gtfs_agencies ON gtfs_agencies.id = gtfs_routes.agency_id").
 		JoinClause("LEFT JOIN feed_states ON feed_states.feed_version_id = gtfs_routes.feed_version_id").
+		JoinClause("LEFT JOIN current_operators_in_feed coif ON coif.feed_id = feed_states.feed_id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
+		JoinClause("LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id").
 		JoinClause(`LEFT JOIN LATERAL ( SELECT tl_route_geometries.route_id,
             tl_route_geometries.feed_version_id,
             tl_route_geometries.shape_id,
