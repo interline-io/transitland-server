@@ -38,10 +38,16 @@ func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
 }
 
 func checkLimit(limit *int) uint64 {
+	return checkRange(limit, 0, MAXLIMIT)
+}
+
+func checkRange(limit *int, min, max int) uint64 {
 	if limit == nil {
-		return MAXLIMIT
-	} else if *limit >= MAXLIMIT {
-		return MAXLIMIT
+		return uint64(max)
+	} else if *limit >= max {
+		return uint64(max)
+	} else if *limit < min {
+		return uint64(min)
 	}
 	return uint64(*limit)
 }

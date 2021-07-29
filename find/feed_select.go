@@ -12,8 +12,18 @@ func FindFeeds(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.Fee
 }
 
 func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.SelectBuilder {
-	q := quickSelect("current_feeds", limit, after, ids)
-	q = q.Where(sq.Eq{"deleted_at": nil})
+	q := sq.StatementBuilder.
+		Select("*").
+		From("current_feeds t").
+		OrderBy("t.id asc").
+		Limit(checkRange(limit, 0, 10_000)).
+		Where(sq.Eq{"deleted_at": nil})
+	if len(ids) > 0 {
+		q = q.Where(sq.Eq{"t.id": ids})
+	}
+	if after != nil {
+		q = q.Where(sq.Gt{"t.id": *after})
+	}
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)
