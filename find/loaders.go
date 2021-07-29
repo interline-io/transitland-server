@@ -35,7 +35,8 @@ type Loaders struct {
 	TripsByID        dl.TripLoader
 	// Other ID loaders
 	FeedStatesByFeedID  dl.FeedStateLoader
-	OperatorsByAgencyID dl.OperatorLoader
+	OperatorsByCOIF     dl.OperatorLoader
+	AgenciesByOnestopID dl.AgencyWhereLoader
 	// FeedVersionID Loaders
 	FeedVersionGtfsImportsByFeedVersionID   dl.FeedVersionGtfsImportLoader
 	FeedVersionServiceLevelsByFeedVersionID dl.FeedVersionServiceLevelWhereLoader
@@ -293,18 +294,48 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					return ents2, nil
 				},
 			}),
-			OperatorsByAgencyID: *dl.NewOperatorLoader(dl.OperatorLoaderConfig{
+			OperatorsByFeedID: *dl.NewOperatorWhereLoader(dl.OperatorWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch: func(params []model.OperatorParam) (ents [][]*model.Operator, errs []error) {
+					if len(params) == 0 {
+						return nil, nil
+					}
+					ids := []int{}
+					for _, p := range params {
+						ids = append(ids, p.FeedID)
+					}
+					qents := []*model.Operator{}
+					MustSelect(
+						atx,
+						lateralWrap(OperatorSelect(params[0].Limit, nil, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
+						&qents,
+					)
+					group := map[int][]*model.Operator{}
+					for _, ent := range qents {
+						if v := ent.FeedID; v != nil {
+							group[*v] = append(group[*v], ent)
+						}
+
+					}
+					for _, id := range ids {
+						ents = append(ents, group[id])
+					}
+					return ents, nil
+				},
+			}),
+			OperatorsByCOIF: *dl.NewOperatorLoader(dl.OperatorLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
 				Fetch: func(ids []int) (ents []*model.Operator, errs []error) {
 					MustSelect(
 						atx,
-						OperatorSelect(nil, nil, nil, nil).Where(sq.Eq{"agency_id": ids}),
+						OperatorSelect(nil, nil, ids, nil),
 						&ents,
 					)
 					byid := map[int]*model.Operator{}
 					for _, ent := range ents {
-						byid[*ent.AgencyID] = ent
+						byid[ent.ID] = ent
 					}
 					ents2 := make([]*model.Operator, len(ids))
 					for i, id := range ids {
@@ -313,7 +344,6 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					return ents2, nil
 				},
 			}),
-
 			// Where loaders
 			FrequenciesByTripID: *dl.NewFrequencyWhereLoader(dl.FrequencyWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
@@ -711,6 +741,33 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					return ents, nil
 				},
 			}),
+			AgenciesByOnestopID: *dl.NewAgencyWhereLoader(dl.AgencyWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch: func(params []model.AgencyParam) (ents [][]*model.Agency, errs []error) {
+					if len(params) == 0 {
+						return nil, nil
+					}
+					ids := []string{}
+					for _, p := range params {
+						ids = append(ids, *p.OnestopID)
+					}
+					qents := []*model.Agency{}
+					MustSelect(
+						atx,
+						AgencySelect(params[0].Limit, nil, nil, params[0].Where).Where(sq.Eq{"onestop_id": ids}),
+						&qents,
+					)
+					group := map[string][]*model.Agency{}
+					for _, ent := range qents {
+						group[ent.OnestopID] = append(group[ent.OnestopID], ent)
+					}
+					for _, id := range ids {
+						ents = append(ents, group[id])
+					}
+					return ents, nil
+				},
+			}),
 			StopsByFeedVersionID: *dl.NewStopWhereLoader(dl.StopWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
@@ -839,36 +896,6 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					group := map[int][]*model.FeedVersionServiceLevel{}
 					for _, ent := range qents {
 						group[ent.FeedVersionID] = append(group[ent.FeedVersionID], ent)
-					}
-					for _, id := range ids {
-						ents = append(ents, group[id])
-					}
-					return ents, nil
-				},
-			}),
-			OperatorsByFeedID: *dl.NewOperatorWhereLoader(dl.OperatorWhereLoaderConfig{
-				MaxBatch: MAXBATCH,
-				Wait:     WAIT,
-				Fetch: func(params []model.OperatorParam) (ents [][]*model.Operator, errs []error) {
-					if len(params) == 0 {
-						return nil, nil
-					}
-					ids := []int{}
-					for _, p := range params {
-						ids = append(ids, p.FeedID)
-					}
-					qents := []*model.Operator{}
-					MustSelect(
-						atx,
-						lateralWrap(OperatorSelect(params[0].Limit, nil, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
-						&qents,
-					)
-					group := map[int][]*model.Operator{}
-					for _, ent := range qents {
-						if v := ent.FeedID; v != nil {
-							group[*v] = append(group[*v], ent)
-						}
-
 					}
 					for _, id := range ids {
 						ents = append(ents, group[id])
