@@ -20,31 +20,18 @@ func AgencySelect(limit *int, after *int, ids []int, where *model.AgencyFilter) 
 		Select(
 			"gtfs_agencies.*",
 			"tl_agency_geometries.geometry",
-			"current_feeds.onestop_id AS feed_onestop_id",
 			"feed_versions.sha1 AS feed_version_sha1",
-			`COALESCE(
-				coif.onestop_id, 
-				tl_agency_onestop_ids.onestop_id::character varying, 
-				(
-					(('o-'::text || "right"(current_feeds.onestop_id::text, length(current_feeds.onestop_id::text) - 2)) || 
-					'-'::text) || 
-					regexp_replace(regexp_replace(lower(gtfs_agencies.agency_name), '[\-\:\&\@\/]', '~', 'g'), '[^[:alnum:]\~\>\<]', '', 'g')
-				)::character varying
-			) AS onestop_id`,
+			"current_feeds.onestop_id AS feed_onestop_id",
+			"coalesce (coif.resolved_onestop_id, '') as onestop_id",
 			"feed_states.feed_version_id AS active",
+			"coif.id as coif_id",
 		).
 		From("gtfs_agencies").
 		Join("feed_versions ON feed_versions.id = gtfs_agencies.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		JoinClause("LEFT JOIN tl_agency_geometries ON tl_agency_geometries.agency_id = gtfs_agencies.id").
-		JoinClause("LEFT JOIN tl_agency_onestop_ids ON tl_agency_onestop_ids.agency_id = gtfs_agencies.id").
-		JoinClause("LEFT JOIN feed_states ON feed_states.feed_version_id = gtfs_agencies.feed_version_id").
-		JoinClause(`LEFT JOIN (
-			select co.onestop_id, coif.feed_id, gtfs_agencies.agency_id
-			from current_operators co
-			inner join current_operators_in_feed coif on coif.operator_id = co.id
-			inner join gtfs_agencies on gtfs_agencies.id = coif.agency_id
-		) coif on coif.feed_id = current_feeds.id and coif.agency_id = gtfs_agencies.agency_id`).
+		JoinClause("left join tl_agency_geometries ON tl_agency_geometries.agency_id = gtfs_agencies.id").
+		JoinClause("left join feed_states ON feed_states.feed_version_id = gtfs_agencies.feed_version_id").
+		JoinClause("left join current_operators_in_feed coif ON coif.feed_id = current_feeds.id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_agencies.id")
 

@@ -15,49 +15,25 @@ func FindOperators(atx sqlx.Ext, limit *int, after *int, ids []int, where *model
 func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.
 		Select(
-			"coalesce(co.id, a2.id + 100000000) as id",
-			"coalesce(co.onestop_id, a2.onestop_id, a2.backup_onestop_id) as onestop_id",
+			"coif.id as id",
+			"coif.resolved_name as name",
+			"coif.resolved_short_name as short_name",
+			"coif.resolved_onestop_id as onestop_id",
+			"coif.textsearch as textsearch",
 			"current_feeds.onestop_id as feed_onestop_id",
-			"a2.id as agency_id",
-			"a2.feed_version_sha1 as feed_version_sha1",
-			"co.id as operator_id",
-			"co.name as operator_name",
-			"co.short_name as operator_short_name",
-			"co.website as operator_website",
-			"co.operator_tags as operator_tags",
-			"co.associated_feeds as operator_associated_feeds",
-			"co.textsearch as textsearch",
+			"co.website as website",
+			"co.operator_tags as tags",
+			"co.associated_feeds as associated_feeds",
 		).
-		From("current_operators co").
-		Join("current_operators_in_feed coif on coif.operator_id = co.id").
+		From("current_operators_in_feed coif").
 		Join("current_feeds on current_feeds.id = coif.feed_id").
-		JoinClause("left join gtfs_agencies a1 on a1.id = coif.agency_id").
-		JoinClause(`full outer join (
-			select 
-				a2.id, 
-				a2.agency_id, 
-				a2.agency_name,
-				feed_states.feed_id,
-				fv.sha1 as feed_version_sha1,			
-				tlao.onestop_id,
-				(
-					('o-'::text || "right"(cf.onestop_id::text, length(cf.onestop_id::text) - 2)) || 
-					('-'::text) || 
-					regexp_replace(regexp_replace(lower(a2.agency_name), '[\-\:\&\@\/]', '~', 'g'), '[^[:alnum:]\~\>\<]', '', 'g')
-				) as backup_onestop_id
-			from gtfs_agencies a2 
-			inner join feed_states on feed_states.feed_version_id = a2.feed_version_id			
-			inner join feed_versions fv on fv.id = feed_states.feed_version_id
-			inner join current_feeds cf on cf.id = feed_states.feed_id
-			left join tl_agency_onestop_ids tlao on tlao.agency_id = a2.id    
-			) a2 on a2.agency_id = a1.agency_id and a2.feed_id = coif.feed_id`).
+		JoinClause("left join current_operators co on co.id = coif.operator_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		Where(sq.Eq{"co.deleted_at": nil}) // not present, or present but not deleted
-
+		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
+		OrderBy("coif.resolved_onestop_id, coif.operator_id")
 	if where != nil && where.Merged != nil && *where.Merged {
 		qView = qView.Distinct().Options("on (onestop_id)")
 	}
-
 	q := sq.StatementBuilder.Select("*").FromSelect(qView, "t")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
@@ -72,14 +48,11 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 			rank, wc := tsQuery(*where.Search)
 			q = q.Column(rank).Where(wc)
 		}
-		if where.FeedVersionSha1 != nil {
-			q = q.Where(sq.Eq{"feed_version_sha1": *where.FeedVersionSha1})
-		}
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"feed_onestop_id": *where.FeedOnestopID})
 		}
 		if where.AgencyID != nil {
-			q = q.Where(sq.Eq{"agency_id": *where.AgencyID})
+			q = q.Where(sq.Eq{"resolved_gtfs_agency_id": *where.AgencyID})
 		}
 		if where.OnestopID != nil {
 			q = q.Where(sq.Eq{"onestop_id": where.OnestopID})
