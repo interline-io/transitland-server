@@ -13,13 +13,10 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: AgencyFilter) {
     geometry
     operator {
       onestop_id
-      operator_name
-      operator_short_name
-      operator_tags
-      operator_associated_feeds
-      city_name
-      adm1name
-      adm0name
+      name
+      short_name
+      tags
+      associated_feeds
     }
     places(where: { min_rank: 0.2 }) {
       city_name: name
