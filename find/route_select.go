@@ -19,7 +19,6 @@ func RouteSelect(limit *int, after *int, ids []int, where *model.RouteFilter) sq
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
 		"g.geometry",
-		"g.centroid AS geometry_centroid",
 		"g.generated AS geometry_generated",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
@@ -41,8 +40,7 @@ func RouteSelect(limit *int, after *int, ids []int, where *model.RouteFilter) sq
             tl_route_geometries.shape_id,
             tl_route_geometries.direction_id,
             tl_route_geometries.generated,
-            tl_route_geometries.geometry,
-            tl_route_geometries.centroid
+            tl_route_geometries.geometry
            FROM tl_route_geometries
           WHERE tl_route_geometries.route_id = gtfs_routes.id
           ORDER BY tl_route_geometries.route_id, tl_route_geometries.direction_id
