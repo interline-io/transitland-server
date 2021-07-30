@@ -57,7 +57,6 @@ type Operator struct {
 	ID            int
 	Generated     bool
 	FeedID        int
-	File          string
 	FeedOnestopID *string
 	SearchRank    *string
 	tl.Operator
