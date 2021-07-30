@@ -93,6 +93,10 @@ github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0/go.mod h1:OA
 github.com/imdario/mergo v0.3.9/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
 github.com/interline-io/transitland-lib v0.8.5-0.20210727061933-3bf78b287f2a h1:xGCWdSeOoaPVVHBuYKsk3Ai/+sFrvpqZE2WyjXym4Cw=
 github.com/interline-io/transitland-lib v0.8.5-0.20210727061933-3bf78b287f2a/go.mod h1:8P+TsnsNpyf0BC7G9HLfDRbUbPivEK5V6E0EA2ESoHg=
+github.com/interline-io/transitland-lib v0.8.5-0.20210729222336-c0c2e8a7f3b0 h1:SGq3QiK3U41X21A7aGUeMG8VUnze+Uk9wUacARX1cQ4=
+github.com/interline-io/transitland-lib v0.8.5-0.20210729222336-c0c2e8a7f3b0/go.mod h1:8P+TsnsNpyf0BC7G9HLfDRbUbPivEK5V6E0EA2ESoHg=
+github.com/interline-io/transitland-lib v0.8.5-0.20210730013709-8e2e585834f5 h1:2jR92SbFY++5x404RwNqdv35YWv0avi7ma0Mc33JGNc=
+github.com/interline-io/transitland-lib v0.8.5-0.20210730013709-8e2e585834f5/go.mod h1:8P+TsnsNpyf0BC7G9HLfDRbUbPivEK5V6E0EA2ESoHg=
 github.com/interline-io/transitland-lib v0.9.0 h1:j64hmd8vFzz8PhhP34vkGiMV7oDdeX9w/Nxr+tf6BWI=
 github.com/interline-io/transitland-lib v0.9.0/go.mod h1:qkS1Je3MO0b7jLtdi/DPPECCxPgltaS65zuGZhRQF5k=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=

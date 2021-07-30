@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/transitland-lib v0.8.5-0.20210727061933-3bf78b287f2a
+	github.com/interline-io/transitland-lib v0.8.5-0.20210730013709-8e2e585834f5
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.8.0
 	github.com/stretchr/testify v1.7.0
@@ -20,3 +20,5 @@ require (
 	github.com/twpayne/go-geom v1.3.6
 	github.com/vektah/gqlparser/v2 v2.1.0
 )
+
+// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
