@@ -103,6 +103,8 @@ github.com/interline-io/transitland-lib v0.8.5-0.20210730230959-2d1f5cfb7fbd h1:
 github.com/interline-io/transitland-lib v0.8.5-0.20210730230959-2d1f5cfb7fbd/go.mod h1:8P+TsnsNpyf0BC7G9HLfDRbUbPivEK5V6E0EA2ESoHg=
 github.com/interline-io/transitland-lib v0.8.5-0.20210730231841-7e44c787d169 h1:08w2msJ1TGUJYmk8kWy2iPK+JYh1PFUMZeMtPai6dJw=
 github.com/interline-io/transitland-lib v0.8.5-0.20210730231841-7e44c787d169/go.mod h1:8P+TsnsNpyf0BC7G9HLfDRbUbPivEK5V6E0EA2ESoHg=
+github.com/interline-io/transitland-lib v0.8.5-0.20210730235741-247315f022f3 h1:3XCR6yESpWEL/+ACEhGj2KQbHQP8Xw8BABx2QodqY6U=
+github.com/interline-io/transitland-lib v0.8.5-0.20210730235741-247315f022f3/go.mod h1:8P+TsnsNpyf0BC7G9HLfDRbUbPivEK5V6E0EA2ESoHg=
 github.com/interline-io/transitland-lib v0.9.0 h1:j64hmd8vFzz8PhhP34vkGiMV7oDdeX9w/Nxr+tf6BWI=
 github.com/interline-io/transitland-lib v0.9.0/go.mod h1:qkS1Je3MO0b7jLtdi/DPPECCxPgltaS65zuGZhRQF5k=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
