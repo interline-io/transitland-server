@@ -12,9 +12,9 @@ query($limit: Int, $after: Int, $where: OperatorFilter) {
       agency_id
       agency_name
       places(where: { min_rank: 0.2 }) {
-        city_name: name
-        adm0name
-        adm1name
+        city_name
+        adm0_name
+        adm1_name
       }
     }
   }

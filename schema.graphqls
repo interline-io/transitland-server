@@ -154,6 +154,8 @@ type FeedVersionServiceLevel {
 
 type Operator {
   id: Int!
+  generated: Boolean!
+  file: String
   onestop_id: String
   name: String
   short_name: String
@@ -341,9 +343,9 @@ type FeedInfo {
 # GTFS Support Entities
 
 type AgencyPlace {
-  name: String
-  adm0name: String
-  adm1name: String
+  city_name: String
+  adm1_name: String
+  adm0_name: String
   rank: Float
 }
 

@@ -16,13 +16,16 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 	qView := sq.StatementBuilder.
 		Select(
 			"coif.id as id",
+			"coif.feed_id as feed_id",
 			"coif.resolved_name as name",
 			"coif.resolved_short_name as short_name",
 			"coif.resolved_onestop_id as onestop_id",
 			"coif.textsearch as textsearch",
 			"current_feeds.onestop_id as feed_onestop_id",
+			"co.file as file",
+			"co.id as operator_id",
 			"co.website as website",
-			"co.operator_tags as tags",
+			"co.operator_tags as operator_tags",
 			"co.associated_feeds as associated_feeds",
 		).
 		From("current_operators_in_feed coif").

@@ -22,5 +22,13 @@ func (r *operatorResolver) Tags(ctx context.Context, obj *model.Operator) (inter
 }
 
 func (r *operatorResolver) AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error) {
-	return json.Marshal(obj.AssociatedFeeds)
+	a, err := json.Marshal(obj.AssociatedFeeds)
+	return json.RawMessage(a), err
+}
+
+func (r *operatorResolver) Generated(ctx context.Context, obj *model.Operator) (bool, error) {
+	if obj.Generated {
+		return true, nil
+	}
+	return false, nil
 }

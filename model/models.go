@@ -55,8 +55,10 @@ type FeedVersion struct {
 
 type Operator struct {
 	ID            int
-	FeedID        *int    `json:"feed_id"`
-	FeedOnestopID *string `json:"feed_onestop_id"`
+	Generated     bool
+	FeedID        int
+	File          string
+	FeedOnestopID *string
 	SearchRank    *string
 	tl.Operator
 }
@@ -181,9 +183,9 @@ type RouteGeometry struct {
 
 type AgencyPlace struct {
 	AgencyID int      `json:"agency_id"`
-	Name     *string  `json:"name"`
-	Adm0name *string  `json:"adm0name"`
-	Adm1name *string  `json:"adm1name"`
+	CityName *string  `json:"city_name" db:"name" `
+	Adm0Name *string  `json:"adm0_name" db:"adm0name" `
+	Adm1Name *string  `json:"adm1_name" db:"adm1name" `
 	Rank     *float64 `json:"rank"`
 }
 

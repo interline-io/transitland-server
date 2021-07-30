@@ -313,8 +313,8 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					)
 					group := map[int][]*model.Operator{}
 					for _, ent := range qents {
-						if v := ent.FeedID; v != nil {
-							group[*v] = append(group[*v], ent)
+						if v := ent.FeedID; v > 0 {
+							group[v] = append(group[v], ent)
 						}
 
 					}

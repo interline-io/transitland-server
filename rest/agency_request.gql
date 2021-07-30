@@ -19,9 +19,9 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: AgencyFilter) {
       associated_feeds
     }
     places(where: { min_rank: 0.2 }) {
-      city_name: name
-      adm0name
-      adm1name
+      city_name
+      adm0_name
+      adm1_name
     }
     feed_version {
       id

@@ -86,9 +86,9 @@ type ComplexityRoot struct {
 	}
 
 	AgencyPlace struct {
-		Adm0name func(childComplexity int) int
-		Adm1name func(childComplexity int) int
-		Name     func(childComplexity int) int
+		Adm0Name func(childComplexity int) int
+		Adm1Name func(childComplexity int) int
+		CityName func(childComplexity int) int
 		Rank     func(childComplexity int) int
 	}
 
@@ -306,6 +306,8 @@ type ComplexityRoot struct {
 	Operator struct {
 		Agencies        func(childComplexity int) int
 		AssociatedFeeds func(childComplexity int) int
+		File            func(childComplexity int) int
+		Generated       func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Name            func(childComplexity int) int
 		OnestopID       func(childComplexity int) int
@@ -806,26 +808,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Agency.SearchRank(childComplexity), true
 
-	case "AgencyPlace.adm0name":
-		if e.complexity.AgencyPlace.Adm0name == nil {
+	case "AgencyPlace.adm0_name":
+		if e.complexity.AgencyPlace.Adm0Name == nil {
 			break
 		}
 
-		return e.complexity.AgencyPlace.Adm0name(childComplexity), true
+		return e.complexity.AgencyPlace.Adm0Name(childComplexity), true
 
-	case "AgencyPlace.adm1name":
-		if e.complexity.AgencyPlace.Adm1name == nil {
+	case "AgencyPlace.adm1_name":
+		if e.complexity.AgencyPlace.Adm1Name == nil {
 			break
 		}
 
-		return e.complexity.AgencyPlace.Adm1name(childComplexity), true
+		return e.complexity.AgencyPlace.Adm1Name(childComplexity), true
 
-	case "AgencyPlace.name":
-		if e.complexity.AgencyPlace.Name == nil {
+	case "AgencyPlace.city_name":
+		if e.complexity.AgencyPlace.CityName == nil {
 			break
 		}
 
-		return e.complexity.AgencyPlace.Name(childComplexity), true
+		return e.complexity.AgencyPlace.CityName(childComplexity), true
 
 	case "AgencyPlace.rank":
 		if e.complexity.AgencyPlace.Rank == nil {
@@ -1968,6 +1970,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Operator.AssociatedFeeds(childComplexity), true
+
+	case "Operator.file":
+		if e.complexity.Operator.File == nil {
+			break
+		}
+
+		return e.complexity.Operator.File(childComplexity), true
+
+	case "Operator.generated":
+		if e.complexity.Operator.Generated == nil {
+			break
+		}
+
+		return e.complexity.Operator.Generated(childComplexity), true
 
 	case "Operator.id":
 		if e.complexity.Operator.ID == nil {
@@ -3467,6 +3483,8 @@ type FeedVersionServiceLevel {
 
 type Operator {
   id: Int!
+  generated: Boolean!
+  file: String
   onestop_id: String
   name: String
   short_name: String
@@ -3654,9 +3672,9 @@ type FeedInfo {
 # GTFS Support Entities
 
 type AgencyPlace {
-  name: String
-  adm0name: String
-  adm1name: String
+  city_name: String
+  adm1_name: String
+  adm0_name: String
   rank: Float
 }
 
@@ -5773,7 +5791,7 @@ func (ec *executionContext) _Agency_census_geographies(ctx context.Context, fiel
 	return ec.marshalOCensusGeography2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusGeographyᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _AgencyPlace_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
+func (ec *executionContext) _AgencyPlace_city_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5791,7 +5809,7 @@ func (ec *executionContext) _AgencyPlace_name(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
+		return obj.CityName, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5805,7 +5823,7 @@ func (ec *executionContext) _AgencyPlace_name(ctx context.Context, field graphql
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _AgencyPlace_adm0name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
+func (ec *executionContext) _AgencyPlace_adm1_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5823,7 +5841,7 @@ func (ec *executionContext) _AgencyPlace_adm0name(ctx context.Context, field gra
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Adm0name, nil
+		return obj.Adm1Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5837,7 +5855,7 @@ func (ec *executionContext) _AgencyPlace_adm0name(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _AgencyPlace_adm1name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
+func (ec *executionContext) _AgencyPlace_adm0_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5855,7 +5873,7 @@ func (ec *executionContext) _AgencyPlace_adm1name(ctx context.Context, field gra
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Adm1name, nil
+		return obj.Adm0Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11254,6 +11272,73 @@ func (ec *executionContext) _Operator_id(ctx context.Context, field graphql.Coll
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Operator_generated(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Operator",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Generated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Operator_file(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Operator",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.File, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -19061,12 +19146,12 @@ func (ec *executionContext) _AgencyPlace(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AgencyPlace")
-		case "name":
-			out.Values[i] = ec._AgencyPlace_name(ctx, field, obj)
-		case "adm0name":
-			out.Values[i] = ec._AgencyPlace_adm0name(ctx, field, obj)
-		case "adm1name":
-			out.Values[i] = ec._AgencyPlace_adm1name(ctx, field, obj)
+		case "city_name":
+			out.Values[i] = ec._AgencyPlace_city_name(ctx, field, obj)
+		case "adm1_name":
+			out.Values[i] = ec._AgencyPlace_adm1_name(ctx, field, obj)
+		case "adm0_name":
+			out.Values[i] = ec._AgencyPlace_adm0_name(ctx, field, obj)
 		case "rank":
 			out.Values[i] = ec._AgencyPlace_rank(ctx, field, obj)
 		default:
@@ -20458,6 +20543,13 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "generated":
+			out.Values[i] = ec._Operator_generated(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "file":
+			out.Values[i] = ec._Operator_file(ctx, field, obj)
 		case "onestop_id":
 			out.Values[i] = ec._Operator_onestop_id(ctx, field, obj)
 		case "name":
