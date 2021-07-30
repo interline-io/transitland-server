@@ -36,6 +36,8 @@ models:
     model:
       - "github.com/99designs/gqlgen/graphql.String"
       - "github.com/interline-io/transitland-lib/tl.OString"
+  Tags:
+    model: "github.com/interline-io/transitland-lib/tl.Tags"
   Polygon:
     model: "github.com/interline-io/transitland-lib/tl.Polygon"
   LineString:

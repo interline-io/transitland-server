@@ -7,7 +7,6 @@ import (
 
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/lib/pq"
 )
 
 type Feed struct {
@@ -37,6 +36,7 @@ type Agency struct {
 	FeedVersionSHA1 string      `json:"feed_version_sha1"`
 	Geometry        *tl.Polygon `json:"geometry"`
 	SearchRank      *string
+	CoifID          *int
 	tl.Agency
 }
 
@@ -54,27 +54,13 @@ type FeedVersion struct {
 }
 
 type Operator struct {
-	ID                      int
-	AgencyID                *int             `json:"agency_id"`
-	AgencyName              *string          `json:"agency_name"`
-	AgencyOnestopID         *string          `json:"agency_onestop_id"`
-	FeedID                  *int             `json:"feed_id"`
-	FeedVersionID           *int             `json:"feed_version_id"`
-	FeedVersionSha1         *string          `json:"feed_version_sha1"`
-	FeedOnestopID           *string          `json:"feed_onestop_id"`
-	FeedNamespaceID         *string          `json:"feed_namespace_id"`
-	CityName                *string          `json:"city_name"`
-	Adm1name                *string          `json:"adm1name"`
-	Adm0name                *string          `json:"adm0name"`
-	OnestopID               *string          `json:"onestop_id"`
-	OperatorID              *int             `json:"operator_id"`
-	OperatorOnestopID       *string          `json:"operator_onestop_id"`
-	OperatorName            *string          `json:"operator_name"`
-	OperatorShortName       *string          `json:"operator_short_name"`
-	OperatorTags            *json.RawMessage `json:"operator_tags"` // json map[string]string
-	OperatorAssociatedFeeds *json.RawMessage `json:"operator_associated_feeds"`
-	PlacesCache             *pq.StringArray  `json:"places_cache"`
-	SearchRank              *string
+	ID            int
+	Generated     bool
+	FeedID        int
+	File          string
+	FeedOnestopID *string
+	SearchRank    *string
+	tl.Operator
 }
 
 type Route struct {
@@ -197,9 +183,9 @@ type RouteGeometry struct {
 
 type AgencyPlace struct {
 	AgencyID int      `json:"agency_id"`
-	Name     *string  `json:"name"`
-	Adm0name *string  `json:"adm0name"`
-	Adm1name *string  `json:"adm1name"`
+	CityName *string  `json:"city_name" db:"name" `
+	Adm0Name *string  `json:"adm0_name" db:"adm0name" `
+	Adm1Name *string  `json:"adm1_name" db:"adm1name" `
 	Rank     *float64 `json:"rank"`
 }
 

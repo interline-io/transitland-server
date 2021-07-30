@@ -38,6 +38,7 @@ type Feed {
   spec: String!
   languages: [String!]
   associated_feeds: [String!]
+  tags: Tags
   authorization: FeedAuthorization
   urls: FeedUrls
   license: FeedLicense
@@ -153,27 +154,16 @@ type FeedVersionServiceLevel {
 
 type Operator {
   id: Int!
-  agency_id: Int     
-  agency_name: String
-  agency_onestop_id: String 
-  feed_id: Int
-  feed_version_id: Int    
-  feed_version_sha1: String
-  feed_onestop_id: String  
-  feed_namespace_id: String
+  generated: Boolean!
+  file: String
   onestop_id: String
-  operator_id: Int
-  operator_onestop_id: String
-  operator_name: String
-  operator_short_name: String
-  operator_tags: Any # use map? 'any' is for pass through.
-  operator_associated_feeds: Any
-  city_name: String
-  adm1name: String
-  adm0name: String
-  places_cache: [String!]
+  name: String
+  short_name: String
+  website: String
+  tags: Any
+  associated_feeds: Any
   search_rank: String # only for search results
-  agency: Agency
+  agencies: [Agency!]
 }
 
 # GTFS Entities
@@ -353,9 +343,9 @@ type FeedInfo {
 # GTFS Support Entities
 
 type AgencyPlace {
-  name: String
-  adm0name: String
-  adm1name: String
+  city_name: String
+  adm1_name: String
+  adm0_name: String
   rank: Float
 }
 
@@ -634,6 +624,7 @@ input PointRadius {
 
 # Scalar types
 
+scalar Tags
 scalar Geometry
 scalar Time
 scalar Date

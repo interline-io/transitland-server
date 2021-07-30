@@ -24,5 +24,6 @@ func (r *agencyResolver) Places(ctx context.Context, obj *model.Agency, limit *i
 }
 
 func (r *agencyResolver) Operator(ctx context.Context, obj *model.Agency) (*model.Operator, error) {
-	return find.For(ctx).OperatorsByAgencyID.Load(obj.ID)
+	return find.For(ctx).OperatorsByCOIF.Load(*obj.CoifID)
+
 }

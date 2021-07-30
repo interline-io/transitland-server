@@ -13,25 +13,49 @@ func FindOperators(atx sqlx.Ext, limit *int, after *int, ids []int, where *model
 }
 
 func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilter) sq.SelectBuilder {
-	q := quickSelectOrder("tl_mv_active_agency_operators", limit, after, ids, "")
+	qView := sq.StatementBuilder.
+		Select(
+			"coif.id as id",
+			"coif.feed_id as feed_id",
+			"coif.resolved_name as name",
+			"coif.resolved_short_name as short_name",
+			"coif.resolved_onestop_id as onestop_id",
+			"coif.textsearch as textsearch",
+			"current_feeds.onestop_id as feed_onestop_id",
+			"co.file as file",
+			"co.id as operator_id",
+			"co.website as website",
+			"co.operator_tags as operator_tags",
+			"co.associated_feeds as associated_feeds",
+		).
+		From("current_operators_in_feed coif").
+		Join("current_feeds on current_feeds.id = coif.feed_id").
+		JoinClause("left join current_operators co on co.id = coif.operator_id").
+		Where(sq.Eq{"current_feeds.deleted_at": nil}).
+		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
+		OrderBy("coif.resolved_onestop_id, coif.operator_id")
+	if where != nil && where.Merged != nil && *where.Merged {
+		qView = qView.Distinct().Options("on (onestop_id)")
+	}
+	q := sq.StatementBuilder.Select("*").FromSelect(qView, "t")
+	if len(ids) > 0 {
+		q = q.Where(sq.Eq{"t.id": ids})
+	}
+	if after != nil {
+		q = q.Where(sq.Gt{"t.id": *after})
+	}
+	q = q.OrderBy("id")
+	q = q.Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 0 {
 			rank, wc := tsQuery(*where.Search)
 			q = q.Column(rank).Where(wc)
 		}
-		if where.Merged != nil && *where.Merged {
-			q = q.Distinct().Options("on (onestop_id)")
-		} else {
-			q = q.OrderBy("id asc")
-		}
-		if where.FeedVersionSha1 != nil {
-			q = q.Where(sq.Eq{"feed_version_sha1": *where.FeedVersionSha1})
-		}
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"feed_onestop_id": *where.FeedOnestopID})
 		}
 		if where.AgencyID != nil {
-			q = q.Where(sq.Eq{"agency_id": *where.AgencyID})
+			q = q.Where(sq.Eq{"resolved_gtfs_agency_id": *where.AgencyID})
 		}
 		if where.OnestopID != nil {
 			q = q.Where(sq.Eq{"onestop_id": where.OnestopID})

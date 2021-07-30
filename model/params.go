@@ -49,6 +49,7 @@ type AgencyParam struct {
 	FeedVersionID int
 	Limit         *int
 	Where         *AgencyFilter
+	OnestopID     *string
 }
 
 type RouteParam struct {

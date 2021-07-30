@@ -20,43 +20,18 @@ func AgencySelect(limit *int, after *int, ids []int, where *model.AgencyFilter) 
 		Select(
 			"gtfs_agencies.*",
 			"tl_agency_geometries.geometry",
-			"tl_agency_geometries.centroid",
-			"tlp.name AS city_name",
-			"tlp.adm1name AS adm1name",
-			"tlp.adm0name AS adm0name",
-			"current_feeds.id AS feed_id",
-			"current_feeds.onestop_id AS feed_onestop_id",
 			"feed_versions.sha1 AS feed_version_sha1",
-			`COALESCE(
-				coif.onestop_id, 
-				tl_agency_onestop_ids.onestop_id::character varying, 
-				(
-					(('o-'::text || "right"(current_feeds.onestop_id::text, length(current_feeds.onestop_id::text) - 2)) || 
-					'-'::text) || 
-					regexp_replace(regexp_replace(lower(gtfs_agencies.agency_name), '[\-\:\&\@\/]', '~', 'g'), '[^[:alnum:]\~\>\<]', '', 'g')
-				)::character varying
-			) AS onestop_id`,
+			"current_feeds.onestop_id AS feed_onestop_id",
+			"coalesce (coif.resolved_onestop_id, '') as onestop_id",
 			"feed_states.feed_version_id AS active",
+			"coif.id as coif_id",
 		).
 		From("gtfs_agencies").
 		Join("feed_versions ON feed_versions.id = gtfs_agencies.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		JoinClause("LEFT JOIN tl_agency_geometries ON tl_agency_geometries.agency_id = gtfs_agencies.id").
-		JoinClause("LEFT JOIN tl_agency_onestop_ids ON tl_agency_onestop_ids.agency_id = gtfs_agencies.id").
-		JoinClause("LEFT JOIN feed_states ON feed_states.feed_version_id = gtfs_agencies.feed_version_id").
-		JoinClause(`LEFT JOIN LATERAL (
-			SELECT co.onestop_id
-			FROM current_operators co
-			JOIN current_operators_in_feed coif_1 ON coif_1.operator_id = co.id
-			WHERE co.deleted_at IS NULL AND coif_1.feed_id = current_feeds.id AND coif_1.gtfs_agency_id::text = gtfs_agencies.agency_id::text
-			ORDER BY co.onestop_id
-			LIMIT 1) coif ON true`).
-		JoinClause(`LEFT JOIN LATERAL ( 
-			SELECT tlp_1.name, tlp_1.adm1name, tlp_1.adm0name
-			FROM tl_agency_places tlp_1
-			WHERE tlp_1.agency_id = gtfs_agencies.id AND tlp_1.rank > 0.2::double precision
-			ORDER BY tlp_1.rank DESC
-			LIMIT 1) tlp ON true`).
+		JoinClause("left join tl_agency_geometries ON tl_agency_geometries.agency_id = gtfs_agencies.id").
+		JoinClause("left join feed_states ON feed_states.feed_version_id = gtfs_agencies.feed_version_id").
+		JoinClause("left join current_operators_in_feed coif ON coif.feed_id = current_feeds.id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_agencies.id")
 
@@ -100,7 +75,7 @@ func AgencySelect(limit *int, after *int, ids []int, where *model.AgencyFilter) 
 }
 
 func AgencyPlaceSelect(limit *int, after *int, ids []int, where *model.AgencyPlaceFilter) sq.SelectBuilder {
-	q := quickSelect("tl_agency_places", limit, after, ids)
+	q := quickSelectOrder("tl_agency_places", limit, after, ids, "rank desc")
 	if where != nil {
 		// if where.Search != nil && len(*where.Search) > 1 {
 		// 	q = q.Where(tsQuery(*where.Search))
