@@ -37,7 +37,7 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 	if where != nil && where.Merged != nil && *where.Merged {
 		qView = qView.Distinct().Options("on (onestop_id)")
 	}
-	q := sq.StatementBuilder.Select("*").FromSelect(qView, "t")
+	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}

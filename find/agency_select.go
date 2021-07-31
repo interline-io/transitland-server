@@ -9,7 +9,7 @@ import (
 func FindAgencies(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.AgencyFilter) (ents []*model.Agency, err error) {
 	q := AgencySelect(limit, after, ids, where)
 	if len(ids) == 0 && (where == nil || where.FeedVersionSha1 == nil) {
-		q = q.Where(sq.NotEq{"active": nil})
+		q = q.Join("feed_states on feed_states.feed_version_id = t.feed_version_id")
 	}
 	MustSelect(model.DB, q, &ents)
 	return ents, nil
@@ -23,19 +23,17 @@ func AgencySelect(limit *int, after *int, ids []int, where *model.AgencyFilter) 
 			"feed_versions.sha1 AS feed_version_sha1",
 			"current_feeds.onestop_id AS feed_onestop_id",
 			"coalesce (coif.resolved_onestop_id, '') as onestop_id",
-			"feed_states.feed_version_id AS active",
 			"coif.id as coif_id",
 		).
 		From("gtfs_agencies").
 		Join("feed_versions ON feed_versions.id = gtfs_agencies.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
 		JoinClause("left join tl_agency_geometries ON tl_agency_geometries.agency_id = gtfs_agencies.id").
-		JoinClause("left join feed_states ON feed_states.feed_version_id = gtfs_agencies.feed_version_id").
 		JoinClause("left join current_operators_in_feed coif ON coif.feed_id = current_feeds.id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_agencies.id")
 
-	q := sq.StatementBuilder.Select("*").FromSelect(qView, "t")
+	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}

@@ -13,7 +13,7 @@ func FindFeeds(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.Fee
 
 func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
-		Select("*").
+		Select("t.*").
 		From("current_feeds t").
 		OrderBy("t.id asc").
 		Limit(checkRange(limit, 0, 10_000)).

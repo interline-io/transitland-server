@@ -755,7 +755,9 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Agency{}
 					MustSelect(
 						atx,
-						AgencySelect(params[0].Limit, nil, nil, params[0].Where).Where(sq.Eq{"onestop_id": ids}),
+						AgencySelect(params[0].Limit, nil, nil, nil).
+							Join("feed_states on feed_states.feed_version_id = t.feed_version_id").
+							Where(sq.Eq{"onestop_id": ids}),
 						&qents,
 					)
 					group := map[string][]*model.Agency{}
