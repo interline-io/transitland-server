@@ -6,12 +6,19 @@ import (
 	"log"
 	"os"
 
-	dmfr "github.com/interline-io/transitland-lib/dmfr/cmd"
+	"github.com/interline-io/transitland-lib/dmfr/fetch"
+	"github.com/interline-io/transitland-lib/dmfr/importer"
+	"github.com/interline-io/transitland-lib/dmfr/sync"
 	"github.com/interline-io/transitland-lib/tl"
 	server "github.com/interline-io/transitland-server"
 )
 
 ///////////////
+
+type runnable interface {
+	Parse([]string) error
+	Run() error
+}
 
 func main() {
 	quietFlag := false
@@ -40,22 +47,25 @@ func main() {
 		flag.Usage()
 		return
 	}
-	type runnable interface {
-		Run([]string) error
-	}
 	var r runnable
-	var err error
 	switch subc {
-	case "dmfr":
-		r = &dmfr.Command{}
+	case "sync":
+		r = &sync.Command{}
+	case "import":
+		r = &importer.Command{}
+	case "fetch":
+		r = &fetch.Command{}
 	case "server":
 		r = &server.Command{}
 	default:
 		fmt.Printf("%q is not valid command.", subc)
 		return
 	}
-	err = r.Run(args[1:]) // consume first arg
-	if err != nil {
+	if err := r.Parse(args[1:]); err != nil {
+		fmt.Println("Error: ", err)
+		os.Exit(1)
+	}
+	if err := r.Run(); err != nil {
 		fmt.Printf("Error: %s", err.Error())
 		os.Exit(1)
 	}
