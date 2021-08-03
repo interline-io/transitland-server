@@ -32,8 +32,11 @@ func main() {
 	flag.Usage = func() {
 		log.Printf("Usage of %s:", os.Args[0])
 		log.Printf("Commands:")
-		log.Printf("  dmfr")
+		log.Printf("  sync")
+		log.Printf("  fetch")
+		log.Printf("  import")
 		log.Printf("  server")
+
 	}
 	flag.Parse()
 	if versionFlag {
