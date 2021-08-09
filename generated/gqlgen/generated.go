@@ -3847,7 +3847,6 @@ input FeedVersionSetInput {
 input OperatorFilter {
   merged: Boolean
   onestop_id: String
-  feed_version_sha1: String
   feed_onestop_id: String
   agency_id: String
   search: String
@@ -3877,6 +3876,7 @@ input AgencyFilter {
   onestop_id: String
   feed_version_sha1: String
   feed_onestop_id: String
+  active: Boolean
   agency_id: String
   agency_name: String
   within: Polygon
@@ -3888,6 +3888,7 @@ input RouteFilter {
   onestop_id: String
   feed_version_sha1: String
   feed_onestop_id: String
+  active: Boolean
   route_id: String
   route_type: Int
   within: Polygon
@@ -3901,6 +3902,7 @@ input StopFilter {
   onestop_id: String
   feed_version_sha1: String
   feed_onestop_id: String
+  active: Boolean
   stop_id: String
   agency_ids: [Int!] # keep?
   within: Polygon
@@ -3925,6 +3927,7 @@ input TripFilter {
   route_onestop_ids: [String!] # keep?
   feed_version_sha1: String
   feed_onestop_id: String
+  active: Boolean
 }
 
 input FeedVersionServiceLevelFilter {
@@ -18336,6 +18339,14 @@ func (ec *executionContext) unmarshalInputAgencyFilter(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
+		case "active":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+			it.Active, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "agency_id":
 			var err error
 
@@ -18628,14 +18639,6 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
-		case "feed_version_sha1":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_version_sha1"))
-			it.FeedVersionSha1, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "feed_onestop_id":
 			var err error
 
@@ -18752,6 +18755,14 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 			if err != nil {
 				return it, err
 			}
+		case "active":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+			it.Active, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "route_id":
 			var err error
 
@@ -18841,6 +18852,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_onestop_id"))
 			it.FeedOnestopID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "active":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+			it.Active, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18977,6 +18996,14 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_onestop_id"))
 			it.FeedOnestopID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "active":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+			it.Active, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
