@@ -59,6 +59,9 @@ func StopSelect(limit *int, after *int, ids []int, where *model.StopFilter) sq.S
 		if len(where.AgencyIds) > 0 {
 			q = q.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Where(sq.Eq{"tl_route_stops.agency_id": where.AgencyIds}).Distinct().Options("on (t.id)")
 		}
+		if len(where.ServedByRouteTypes) > 0 {
+			// TODO
+		}
 		if where.Within != nil && where.Within.Valid {
 			q = q.Where("ST_Intersects(t.geometry, ?)", where.Within)
 		}
