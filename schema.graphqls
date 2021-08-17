@@ -547,7 +547,6 @@ input AgencyFilter {
   onestop_id: String
   feed_version_sha1: String
   feed_onestop_id: String
-  active: Boolean
   agency_id: String
   agency_name: String
   within: Polygon
@@ -559,7 +558,6 @@ input RouteFilter {
   onestop_id: String
   feed_version_sha1: String
   feed_onestop_id: String
-  active: Boolean
   route_id: String
   route_type: Int
   within: Polygon
@@ -573,7 +571,6 @@ input StopFilter {
   onestop_id: String
   feed_version_sha1: String
   feed_onestop_id: String
-  active: Boolean
   stop_id: String
   agency_ids: [Int!] # keep?
   within: Polygon
@@ -598,7 +595,6 @@ input TripFilter {
   route_onestop_ids: [String!] # keep?
   feed_version_sha1: String
   feed_onestop_id: String
-  active: Boolean
 }
 
 input FeedVersionServiceLevelFilter {

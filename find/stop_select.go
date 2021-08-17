@@ -7,15 +7,16 @@ import (
 )
 
 func FindStops(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.StopFilter) (ents []*model.Stop, err error) {
-	q := StopSelect(limit, after, ids, where)
-	if len(ids) == 0 && (where == nil || where.FeedVersionSha1 == nil) {
-		q = q.Join("feed_states on feed_states.feed_version_id = t.feed_version_id")
+	active := false
+	if where != nil && where.FeedVersionSha1 == nil {
+		active = true
 	}
+	q := StopSelect(limit, after, ids, active, where)
 	MustSelect(model.DB, q, &ents)
 	return ents, nil
 }
 
-func StopSelect(limit *int, after *int, ids []int, where *model.StopFilter) sq.SelectBuilder {
+func StopSelect(limit *int, after *int, ids []int, active bool, where *model.StopFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_stops.*",
 		"current_feeds.id AS feed_id",
@@ -29,6 +30,9 @@ func StopSelect(limit *int, after *int, ids []int, where *model.StopFilter) sq.S
 		JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_stops.id")
+	if active {
+		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
+	}
 
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {

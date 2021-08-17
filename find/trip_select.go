@@ -7,15 +7,16 @@ import (
 )
 
 func FindTrips(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.TripFilter) (ents []*model.Trip, err error) {
-	q := TripSelect(limit, after, ids, where)
-	if len(ids) == 0 && (where == nil || where.FeedVersionSha1 == nil) {
-		q = q.Join("feed_states on feed_states.feed_version_id = t.feed_version_id")
+	active := false
+	if where != nil && where.FeedVersionSha1 == nil {
+		active = true
 	}
+	q := TripSelect(limit, after, ids, active, where)
 	MustSelect(model.DB, q, &ents)
 	return ents, nil
 }
 
-func TripSelect(limit *int, after *int, ids []int, where *model.TripFilter) sq.SelectBuilder {
+func TripSelect(limit *int, after *int, ids []int, active bool, where *model.TripFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_trips.*",
 		"current_feeds.id AS feed_id",
@@ -26,6 +27,9 @@ func TripSelect(limit *int, after *int, ids []int, where *model.TripFilter) sq.S
 		Join("feed_versions ON feed_versions.id = gtfs_trips.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
 		OrderBy("gtfs_trips.id")
+	if active {
+		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
+	}
 
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {

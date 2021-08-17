@@ -8,7 +8,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func StopTimeSelect(limit *int, after *int, ids []int, where *model.StopTimeFilter) sq.SelectBuilder {
+func StopTimeSelect(limit *int, after *int, ids []int, tripids []int, stopids []int, where *model.StopTimeFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
@@ -27,23 +27,26 @@ func StopTimeSelect(limit *int, after *int, ids []int, where *model.StopTimeFilt
 	).
 		From("gtfs_trips").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
-		Join("gtfs_stop_times st ON st.trip_id = t2.id")
-
-	q := sq.StatementBuilder.Select("*").
-		FromSelect(qView, "t").
-		Limit(checkLimit(limit))
-	q = q.OrderBy("id asc, stop_sequence asc")
-	return q
+		Join("gtfs_stop_times st ON st.trip_id = t2.id").
+		Limit(checkLimit(limit)).
+		OrderBy("id asc, stop_sequence asc")
+	if len(tripids) > 0 {
+		qView = qView.Where(sq.Eq{"trip_id": tripids})
+	}
+	if len(stopids) > 0 {
+		qView = qView.Where(sq.Eq{"stop_id": stopids})
+	}
+	return qView
 }
 
-func StopDeparturesSelect(limit *int, after *int, ids []int, where *model.StopTimeFilter) sq.SelectBuilder {
+func StopDeparturesSelect(limit *int, after *int, stopids []int, where *model.StopTimeFilter) sq.SelectBuilder {
 	// TODO: support journey patterns properly
 	serviceDate := time.Now()
 	if where != nil && where.ServiceDate != nil {
 		serviceDate = where.ServiceDate.Time
 	}
 	q := sq.StatementBuilder.Select("sts.*").
-		Prefix(`WITH fvids as (select distinct on(feed_version_id) feed_version_id id from gtfs_stops where id = ANY(?))`, pq.Array(ids)).
+		Prefix(`WITH fvids as (select distinct on(feed_version_id) feed_version_id id from gtfs_stops where id = ANY(?))`, pq.Array(stopids)).
 		From("gtfs_stops").
 		Join("gtfs_stop_times sts on gtfs_stops.id = sts.stop_id and sts.feed_version_id = gtfs_stops.feed_version_id").
 		Join("gtfs_trips on gtfs_trips.id = sts.trip_id").
@@ -85,7 +88,7 @@ func StopDeparturesSelect(limit *int, after *int, ids []int, where *model.StopTi
 			serviceDate,
 			serviceDate,
 			serviceDate).
-		Where(sq.Eq{"gtfs_stops.id": ids})
+		Where(sq.Eq{"gtfs_stops.id": stopids})
 		// AND sts.feed_version_id IN (select id from fvids)
 	if where != nil {
 		if where.StartTime != nil {

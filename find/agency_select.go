@@ -7,12 +7,16 @@ import (
 )
 
 func FindAgencies(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.AgencyFilter) (ents []*model.Agency, err error) {
-	q := AgencySelect(limit, after, ids, where)
+	active := false
+	if where != nil && where.FeedVersionSha1 == nil {
+		active = true
+	}
+	q := AgencySelect(limit, after, ids, active, where)
 	MustSelect(model.DB, q, &ents)
 	return ents, nil
 }
 
-func AgencySelect(limit *int, after *int, ids []int, where *model.AgencyFilter) sq.SelectBuilder {
+func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.AgencyFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.
 		Select(
 			"gtfs_agencies.*",
@@ -29,18 +33,17 @@ func AgencySelect(limit *int, after *int, ids []int, where *model.AgencyFilter) 
 		JoinClause("left join current_operators_in_feed coif ON coif.feed_id = current_feeds.id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_agencies.id")
-
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
+	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
-	}
-	if len(ids) > 0 {
-		qView = qView.Where(sq.Eq{"t.id": ids})
-	}
-	if after != nil {
-		qView = qView.Where(sq.Gt{"t.id": *after})
 	}
 
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t").Limit(checkLimit(limit))
+	if len(ids) > 0 {
+		q = q.Where(sq.Eq{"t.id": ids})
+	}
+	if after != nil {
+		q = q.Where(sq.Gt{"t.id": *after})
+	}
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)
