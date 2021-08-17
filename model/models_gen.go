@@ -67,12 +67,11 @@ type FeedVersionUnimportResult struct {
 }
 
 type OperatorFilter struct {
-	Merged          *bool   `json:"merged"`
-	OnestopID       *string `json:"onestop_id"`
-	FeedVersionSha1 *string `json:"feed_version_sha1"`
-	FeedOnestopID   *string `json:"feed_onestop_id"`
-	AgencyID        *string `json:"agency_id"`
-	Search          *string `json:"search"`
+	Merged        *bool   `json:"merged"`
+	OnestopID     *string `json:"onestop_id"`
+	FeedOnestopID *string `json:"feed_onestop_id"`
+	AgencyID      *string `json:"agency_id"`
+	Search        *string `json:"search"`
 }
 
 type PathwayFilter struct {

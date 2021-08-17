@@ -3847,7 +3847,6 @@ input FeedVersionSetInput {
 input OperatorFilter {
   merged: Boolean
   onestop_id: String
-  feed_version_sha1: String
   feed_onestop_id: String
   agency_id: String
   search: String
@@ -18625,14 +18624,6 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onestop_id"))
 			it.OnestopID, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "feed_version_sha1":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_version_sha1"))
-			it.FeedVersionSha1, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

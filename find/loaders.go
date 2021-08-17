@@ -199,7 +199,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 				Fetch: func(ids []int) (ents []*model.Agency, errs []error) {
 					MustSelect(
 						atx,
-						AgencySelect(nil, nil, ids, nil),
+						AgencySelect(nil, nil, ids, false, nil),
 						&ents,
 					)
 					byid := map[int]*model.Agency{}
@@ -219,7 +219,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 				Fetch: func(ids []int) (ents []*model.Stop, errs []error) {
 					MustSelect(
 						atx,
-						StopSelect(nil, nil, ids, nil),
+						StopSelect(nil, nil, ids, false, nil),
 						&ents,
 					)
 					byid := map[int]*model.Stop{}
@@ -239,7 +239,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 				Fetch: func(ids []int) (ents []*model.Route, errs []error) {
 					MustSelect(
 						atx,
-						RouteSelect(nil, nil, ids, nil),
+						RouteSelect(nil, nil, ids, false, nil),
 						&ents,
 					)
 					byid := map[int]*model.Route{}
@@ -386,7 +386,9 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.StopTime{}
 					MustSelect(
 						atx,
-						lateralWrap(StopTimeSelect(params[0].Limit, nil, nil, params[0].Where).Where(sq.Eq{"id": ids}), "gtfs_trips", "id", "trip_id", ids),
+						lateralWrap(
+							StopTimeSelect(params[0].Limit, nil, nil, ids, nil, params[0].Where),
+							"gtfs_trips", "id", "trip_id", ids),
 						&qents,
 					)
 					group := map[int][]*model.StopTime{}
@@ -424,7 +426,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 						// Otherwise get all stop_times for stop
 						MustSelect(
 							atx,
-							lateralWrap(StopTimeSelect(params[0].Limit, nil, nil, params[0].Where), "gtfs_stops", "id", "stop_id", ids),
+							lateralWrap(StopTimeSelect(params[0].Limit, nil, nil, nil, ids, params[0].Where), "gtfs_stops", "id", "stop_id", ids),
 							&qents,
 						)
 					}
@@ -561,7 +563,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Stop{}
 					MustSelect(
 						atx,
-						lateralWrap(StopSelect(params[0].Limit, nil, nil, params[0].Where), "gtfs_stops", "id", "parent_station", ids),
+						lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_stops", "id", "parent_station", ids),
 						&qents,
 					)
 					group := map[int][]*model.Stop{}
@@ -674,7 +676,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Trip{}
 					MustSelect(
 						atx,
-						lateralWrap(TripSelect(params[0].Limit, nil, nil, params[0].Where), "gtfs_routes", "id", "route_id", ids),
+						lateralWrap(TripSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_routes", "id", "route_id", ids),
 						&qents,
 					)
 					group := map[int][]*model.Trip{}
@@ -701,7 +703,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Route{}
 					MustSelect(
 						atx,
-						lateralWrap(RouteSelect(params[0].Limit, nil, nil, params[0].Where), "gtfs_agencies", "id", "agency_id", ids),
+						lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_agencies", "id", "agency_id", ids),
 						&qents,
 					)
 					group := map[int][]*model.Route{}
@@ -728,7 +730,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Agency{}
 					MustSelect(
 						atx,
-						lateralWrap(AgencySelect(params[0].Limit, nil, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+						lateralWrap(AgencySelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 						&qents,
 					)
 					group := map[int][]*model.Agency{}
@@ -755,9 +757,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Agency{}
 					MustSelect(
 						atx,
-						AgencySelect(params[0].Limit, nil, nil, nil).
-							Join("feed_states on feed_states.feed_version_id = t.feed_version_id").
-							Where(sq.Eq{"onestop_id": ids}),
+						AgencySelect(params[0].Limit, nil, nil, true, nil).Where(sq.Eq{"onestop_id": ids}), // active=true
 						&qents,
 					)
 					group := map[string][]*model.Agency{}
@@ -784,7 +784,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Stop{}
 					MustSelect(
 						atx,
-						lateralWrap(StopSelect(params[0].Limit, nil, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+						lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 						&qents,
 					)
 					group := map[int][]*model.Stop{}
@@ -811,7 +811,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Trip{}
 					MustSelect(
 						atx,
-						lateralWrap(TripSelect(params[0].Limit, nil, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+						lateralWrap(TripSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 						&qents,
 					)
 					group := map[int][]*model.Trip{}
@@ -865,7 +865,7 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					qents := []*model.Route{}
 					MustSelect(
 						atx,
-						lateralWrap(RouteSelect(params[0].Limit, nil, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+						lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 						&qents,
 					)
 					group := map[int][]*model.Route{}

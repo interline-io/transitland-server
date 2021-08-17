@@ -518,7 +518,6 @@ input FeedVersionSetInput {
 input OperatorFilter {
   merged: Boolean
   onestop_id: String
-  feed_version_sha1: String
   feed_onestop_id: String
   agency_id: String
   search: String
