@@ -31,7 +31,7 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_stops.id")
 	if active {
-		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
+		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
 	}
 
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")

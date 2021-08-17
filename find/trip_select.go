@@ -28,7 +28,7 @@ func TripSelect(limit *int, after *int, ids []int, active bool, where *model.Tri
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
 		OrderBy("gtfs_trips.id")
 	if active {
-		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
+		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
 
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")

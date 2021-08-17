@@ -50,7 +50,7 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_routes.id")
 	if active {
-		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
+		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
 	}
 
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")

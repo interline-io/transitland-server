@@ -29,14 +29,16 @@ func StopTimeSelect(limit *int, after *int, ids []int, tripids []int, stopids []
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times st ON st.trip_id = t2.id").
 		Limit(checkLimit(limit)).
-		OrderBy("id asc, stop_sequence asc")
+		OrderBy("gtfs_trips.id asc, stop_sequence asc")
 	if len(tripids) > 0 {
-		qView = qView.Where(sq.Eq{"trip_id": tripids})
+		qView = qView.Where(sq.Eq{"gtfs_trips.id": tripids})
 	}
 	if len(stopids) > 0 {
-		qView = qView.Where(sq.Eq{"stop_id": stopids})
+		qView = qView.Where(sq.Eq{"st.stop_id": stopids})
 	}
-	return qView
+	// Still need to wrap for lateral joins
+	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
+	return q
 }
 
 func StopDeparturesSelect(limit *int, after *int, stopids []int, where *model.StopTimeFilter) sq.SelectBuilder {
