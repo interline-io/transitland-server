@@ -57,8 +57,7 @@ func StopSelect(limit *int, after *int, ids []int, where *model.StopFilter) sq.S
 			q = q.Where(sq.Eq{"stop_id": *where.StopID})
 		}
 		if len(where.ServedByRouteTypes) > 0 {
-			// TODO: check the following query
-			q = q.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Join("gtfs_routes on tl_route_stops.route_id = t.id").Where(sq.Eq{"gtfs_routes.route_type": where.ServedByRouteTypes}).Distinct().Options("on (t.id)")
+			q = q.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Join("gtfs_routes on tl_route_stops.route_id = gtfs_routes.id").Where(sq.Eq{"gtfs_routes.route_type": where.ServedByRouteTypes}).Distinct().Options("on (t.id)")
 		}
 		if len(where.ServedByOnestopIds) > 0 {
 			// TODO handle both operator and route Onestop IDs
