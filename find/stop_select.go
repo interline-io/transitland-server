@@ -30,16 +30,18 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 		JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_stops.id")
+	distinct := false
 	if where != nil {
 		if len(where.ServedByRouteTypes) > 0 {
+			distinct = true
 			qView = qView.
 				Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").
 				Join("gtfs_routes on tl_route_stops.route_id = gtfs_routes.id").
-				Where(sq.Eq{"gtfs_routes.route_type": where.ServedByRouteTypes}).
-				Distinct().
-				Options("on (gtfs_stops.id)")
+				Where(sq.Eq{"gtfs_routes.route_type": where.ServedByRouteTypes})
 		}
 		if len(where.ServedByOnestopIds) > 0 {
+			// accepts both route and operator Onestop IDs
+			distinct = true
 			agencies := []string{}
 			routes := []string{}
 			for _, osid := range where.ServedByOnestopIds {
@@ -50,25 +52,28 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 					routes = append(routes, osid)
 				}
 			}
-			// accepts both route and operator Onestop IDs
-			qView = qView.
-				Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").
-				Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id").
-				Join("gtfs_agencies on gtfs_agencies.id = tl_route_stops.agency_id").
-				Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id").
-				Distinct().
-				Options("on (gtfs_stops.id)")
-			if len(agencies) > 0 {
-				qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
+			qView = qView.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id")
+			if len(routes) > 0 {
+				qView = qView.
+					Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id").
+					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
 			}
 			if len(agencies) > 0 {
-				qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
+				qView = qView.
+					Join("gtfs_agencies on gtfs_agencies.id = tl_route_stops.agency_id").
+					Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id").
+					Where(sq.Eq{"coif.resolved_onestop_id": agencies})
 			}
 		}
+	}
+	if distinct {
+		qView = qView.Distinct().Options("on (gtfs_stops.id)")
+	}
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
 	}
 
+	// Other filters
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
