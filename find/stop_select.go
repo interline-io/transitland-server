@@ -60,8 +60,8 @@ func StopSelect(limit *int, after *int, ids []int, where *model.StopFilter) sq.S
 			q = q.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Join("gtfs_routes on tl_route_stops.route_id = gtfs_routes.id").Where(sq.Eq{"gtfs_routes.route_type": where.ServedByRouteTypes}).Distinct().Options("on (t.id)")
 		}
 		if len(where.ServedByOnestopIds) > 0 {
-			// TODO handle both operator and route Onestop IDs
-			// q = q.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Where(sq.Eq{"tl_route_stops.agency_id": where.AgencyIds}).Distinct().Options("on (t.id)")
+			// accepts both route and operator Onestop IDs
+			q = q.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id").Join("tl_agency_onestop_ids on tl_route_stops.agency_id = tl_agency_onestop_ids.agency_id").Where(sq.Or{ sq.Eq{"tl_agency_onestop_ids.onestop_id": where.ServedByOnestopIds}, sq.Eq{"tl_route_onestop_ids.onestop_id": where.ServedByOnestopIds}}).Distinct().Options("on (t.id)")
 		}
 		if where.Within != nil && where.Within.Valid {
 			q = q.Where("ST_Intersects(t.geometry, ?)", where.Within)
