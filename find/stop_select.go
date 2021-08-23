@@ -40,7 +40,7 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 				Where(sq.Eq{"gtfs_routes.route_type": where.ServedByRouteTypes})
 		}
 		if len(where.ServedByOnestopIds) > 0 {
-			// accepts both route and operator Onestop IDs
+			// Accepts both route and operator Onestop IDs
 			distinct = true
 			agencies := []string{}
 			routes := []string{}
@@ -52,17 +52,21 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 					routes = append(routes, osid)
 				}
 			}
-			qView = qView.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id")
+			qView = qView.Join("tl_route_stops tlrs2 on tlrs2.stop_id = gtfs_stops.id")
 			if len(routes) > 0 {
-				qView = qView.
-					Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id").
-					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
+				qView = qView.Join("tl_route_onestop_ids on tlrs2.route_id = tl_route_onestop_ids.route_id")
 			}
 			if len(agencies) > 0 {
 				qView = qView.
-					Join("gtfs_agencies on gtfs_agencies.id = tl_route_stops.agency_id").
-					Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id").
-					Where(sq.Eq{"coif.resolved_onestop_id": agencies})
+					Join("gtfs_agencies on gtfs_agencies.id = tlrs2.agency_id").
+					Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id")
+			}
+			if len(routes) > 0 && len(agencies) > 0 {
+				qView = qView.Where(sq.Or{sq.Eq{"tl_route_onestop_ids.onestop_id": routes}, sq.Eq{"coif.resolved_onestop_id": agencies}})
+			} else if len(routes) > 0 {
+				qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
+			} else if len(agencies) > 0 {
+				qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
 			}
 		}
 	}
