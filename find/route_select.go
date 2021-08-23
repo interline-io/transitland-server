@@ -7,15 +7,16 @@ import (
 )
 
 func FindRoutes(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.RouteFilter) (ents []*model.Route, err error) {
-	q := RouteSelect(limit, after, ids, where)
-	if len(ids) == 0 && (where == nil || where.FeedVersionSha1 == nil) {
-		q = q.Join("feed_states on feed_states.feed_version_id = t.feed_version_id")
+	active := false
+	if where != nil && where.FeedVersionSha1 == nil {
+		active = true
 	}
+	q := RouteSelect(limit, after, ids, active, where)
 	MustSelect(model.DB, q, &ents)
 	return ents, nil
 }
 
-func RouteSelect(limit *int, after *int, ids []int, where *model.RouteFilter) sq.SelectBuilder {
+func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
 		"g.geometry",
@@ -48,6 +49,9 @@ func RouteSelect(limit *int, after *int, ids []int, where *model.RouteFilter) sq
           WHERE rh_1.dow_category = 1 AND rh_1.route_id = gtfs_routes.id) rh ON true`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_routes.id")
+	if active {
+		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
+	}
 
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {

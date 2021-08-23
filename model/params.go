@@ -48,8 +48,8 @@ type StopTimeParam struct {
 type AgencyParam struct {
 	FeedVersionID int
 	Limit         *int
-	Where         *AgencyFilter
 	OnestopID     *string
+	Where         *AgencyFilter
 }
 
 type RouteParam struct {
