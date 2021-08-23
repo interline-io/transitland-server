@@ -98,14 +98,14 @@ type RouteFilter struct {
 }
 
 type StopFilter struct {
-	OnestopID       *string      `json:"onestop_id"`
-	FeedVersionSha1 *string      `json:"feed_version_sha1"`
-	FeedOnestopID   *string      `json:"feed_onestop_id"`
-	StopID          *string      `json:"stop_id"`
-	AgencyIds       []int        `json:"agency_ids"`
-	Within          *tl.Polygon  `json:"within"`
-	Near            *PointRadius `json:"near"`
-	Search          *string      `json:"search"`
+	OnestopID          *string      `json:"onestop_id"`
+	FeedVersionSha1    *string      `json:"feed_version_sha1"`
+	FeedOnestopID      *string      `json:"feed_onestop_id"`
+	StopID             *string      `json:"stop_id"`
+	Within             *tl.Polygon  `json:"within"`
+	Near               *PointRadius `json:"near"`
+	Search             *string      `json:"search"`
+	ServedByOnestopIds []string     `json:"served_by_onestop_ids"`
 }
 
 type StopTimeFilter struct {

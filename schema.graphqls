@@ -572,10 +572,10 @@ input StopFilter {
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
-  agency_ids: [Int!] # keep?
   within: Polygon
   near: PointRadius
   search: String
+  served_by_onestop_ids: [String!]
 }
 
 input StopTimeFilter {

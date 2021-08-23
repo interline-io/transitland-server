@@ -3901,10 +3901,10 @@ input StopFilter {
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
-  agency_ids: [Int!] # keep?
   within: Polygon
   near: PointRadius
   search: String
+  served_by_onestop_ids: [String!]
 }
 
 input StopTimeFilter {
@@ -18843,14 +18843,6 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
-		case "agency_ids":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agency_ids"))
-			it.AgencyIds, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "within":
 			var err error
 
@@ -18872,6 +18864,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
 			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "served_by_onestop_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("served_by_onestop_ids"))
+			it.ServedByOnestopIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

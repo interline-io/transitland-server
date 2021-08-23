@@ -10,18 +10,19 @@ var stopQuery string
 
 // StopRequest holds options for a /stops request
 type StopRequest struct {
-	StopKey         string  `json:"stop_key"`
-	ID              int     `json:"id,string"`
-	Limit           int     `json:"limit,string"`
-	After           int     `json:"after,string"`
-	StopID          string  `json:"stop_id"`
-	OnestopID       string  `json:"onestop_id"`
-	FeedVersionSHA1 string  `json:"feed_version_sha1"`
-	FeedOnestopID   string  `json:"feed_onestop_id"`
-	Search          string  `json:"search"`
-	Lat             float64 `json:"lat,string"`
-	Lon             float64 `json:"lon,string"`
-	Radius          float64 `json:"radius,string"`
+	StopKey            string   `json:"stop_key"`
+	ID                 int      `json:"id,string"`
+	Limit              int      `json:"limit,string"`
+	After              int      `json:"after,string"`
+	StopID             string   `json:"stop_id"`
+	OnestopID          string   `json:"onestop_id"`
+	FeedVersionSHA1    string   `json:"feed_version_sha1"`
+	FeedOnestopID      string   `json:"feed_onestop_id"`
+	Search             string   `json:"search"`
+	Lat                float64  `json:"lat,string"`
+	Lon                float64  `json:"lon,string"`
+	Radius             float64  `json:"radius,string"`
+	ServedByOnestopIds []string `json:"served_by_onestop_ids,string"`
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -54,6 +55,9 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Search != "" {
 		where["search"] = r.Search
+	}
+	if len(r.ServedByOnestopIds) > 0 {
+		where["served_by_onestop_ids"] = r.ServedByOnestopIds
 	}
 	return stopQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }
