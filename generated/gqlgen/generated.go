@@ -3904,7 +3904,6 @@ input StopFilter {
   within: Polygon
   near: PointRadius
   search: String
-  served_by_route_types: [Int!]
   served_by_onestop_ids: [String!]
 }
 
@@ -18865,14 +18864,6 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
 			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "served_by_route_types":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("served_by_route_types"))
-			it.ServedByRouteTypes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

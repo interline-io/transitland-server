@@ -22,7 +22,6 @@ type StopRequest struct {
 	Lat                float64  `json:"lat,string"`
 	Lon                float64  `json:"lon,string"`
 	Radius             float64  `json:"radius,string"`
-	ServedByRouteTypes []int    `json:"served_by_route_types,string"`
 	ServedByOnestopIds []string `json:"served_by_onestop_ids,string"`
 }
 
@@ -56,9 +55,6 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Search != "" {
 		where["search"] = r.Search
-	}
-	if len(r.ServedByRouteTypes) > 0 {
-		where["served_by_route_types"] = r.ServedByRouteTypes
 	}
 	if len(r.ServedByOnestopIds) > 0 {
 		where["served_by_onestop_ids"] = r.ServedByOnestopIds

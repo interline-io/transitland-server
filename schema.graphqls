@@ -575,7 +575,6 @@ input StopFilter {
   within: Polygon
   near: PointRadius
   search: String
-  served_by_route_types: [Int!]
   served_by_onestop_ids: [String!]
 }
 

@@ -105,7 +105,6 @@ type StopFilter struct {
 	Within             *tl.Polygon  `json:"within"`
 	Near               *PointRadius `json:"near"`
 	Search             *string      `json:"search"`
-	ServedByRouteTypes []int        `json:"served_by_route_types"`
 	ServedByOnestopIds []string     `json:"served_by_onestop_ids"`
 }
 
