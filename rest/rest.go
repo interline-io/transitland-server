@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/gorilla/mux"
@@ -111,6 +112,17 @@ type hasResponseKey interface {
 
 // Alias for map string interface
 type hw = map[string]interface{}
+
+func commaSplit(v string) []string {
+	var ret []string
+	for _, i := range strings.Split(v, ",") {
+		b := strings.TrimSpace(i)
+		if b != "" {
+			ret = append(ret, b)
+		}
+	}
+	return ret
+}
 
 // checkIds returns a id as a []int{id} slice if >0, otherwise nil.
 func checkIds(id int) []int {
