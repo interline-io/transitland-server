@@ -34,7 +34,7 @@ func TestAgencyResolver(t *testing.T) {
 		},
 		{
 			"near 100m",
-			`query {agencies(where:{near:{lat:-122.407974,lon:37.784471,radius:100.0}}) {agency_id}}`,
+			`query {agencies(where:{near:{lon:-122.407974,lat:37.784471,radius:100.0}}) {agency_id}}`,
 			hw{},
 			``,
 			"agencies.#.agency_id",
@@ -42,7 +42,7 @@ func TestAgencyResolver(t *testing.T) {
 		},
 		{
 			"near 10000m",
-			`query {agencies(where:{near:{lat:-122.407974,lon:37.784471,radius:10000.0}}) {agency_id}}`,
+			`query {agencies(where:{near:{lon:-122.407974,lat:37.784471,radius:10000.0}}) {agency_id}}`,
 			hw{},
 			``,
 			"agencies.#.agency_id",

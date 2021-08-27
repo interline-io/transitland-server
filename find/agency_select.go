@@ -69,7 +69,7 @@ func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.A
 		}
 		if where.Near != nil {
 			radius := checkFloat(&where.Near.Radius, 0, 10_000)
-			q = q.Where("ST_DWithin(t.geometry, ST_MakePoint(?,?), ?)", where.Near.Lat, where.Near.Lon, radius)
+			q = q.Where("ST_DWithin(t.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
 	}
 	return q

@@ -59,7 +59,7 @@ func TestStopResolver(t *testing.T) {
 		},
 		{
 			"where near 10m",
-			`query {stops(where:{near:{lat:-122.407974,lon:37.784471,radius:10.0}}) {stop_id onestop_id geometry}}`,
+			`query {stops(where:{near:{lon:-122.407974,lat:37.784471,radius:10.0}}) {stop_id onestop_id geometry}}`,
 			vars,
 			``,
 			"stops.#.stop_id",
@@ -67,7 +67,7 @@ func TestStopResolver(t *testing.T) {
 		},
 		{
 			"where near 2000m",
-			`query {stops(where:{near:{lat:-122.407974,lon:37.784471,radius:2000.0}}) {stop_id onestop_id geometry}}`,
+			`query {stops(where:{near:{lon:-122.407974,lat:37.784471,radius:2000.0}}) {stop_id onestop_id geometry}}`,
 			vars,
 			``,
 			"stops.#.stop_id",

@@ -25,8 +25,8 @@ type RouteRequest struct {
 	AgencyID          int     `json:"agency_id,string"`
 	FeedVersionSHA1   string  `json:"feed_version_sha1"`
 	FeedOnestopID     string  `json:"feed_onestop_id"`
-	Lat               float64 `json:"lat,string"`
 	Lon               float64 `json:"lon,string"`
+	Lat               float64 `json:"lat,string"`
 	Radius            float64 `json:"radius,string"`
 }
 

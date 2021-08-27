@@ -30,8 +30,8 @@ func TestStopRequest(t *testing.T) {
 		{"served_by_onestop_ids=o-9q9-bayarearapidtransit", StopRequest{ServedByOnestopIds: "o-9q9-bayarearapidtransit", Limit: 100}, "", "stops.#.stop_id", bartstops, 0},
 		{"served_by_onestop_ids=o-9q9-bayarearapidtransit,o-9q9-caltrain", StopRequest{ServedByOnestopIds: "o-9q9-bayarearapidtransit,o-9q9-caltrain", Limit: 1000}, "", "stops.#.stop_id", nil, 114},
 		// {"served_by_onestop_ids=o-9q9-caltrain,served_by_route_types=3", StopRequest{ServedByOnestopIds: []string{"o-9q9-caltrain"}, ServedByRouteTypes: []int{3}, Limit: 100}, "", "stops.#.stop_id", caltrainBusStops, 0},
-		{"lat,lon,radius 10m", StopRequest{Lat: -122.407974, Lon: 37.784471, Radius: 10}, "", "stops.#.stop_id", []string{"POWL"}, 0},
-		{"lat,lon,radius 2000m", StopRequest{Lat: -122.407974, Lon: 37.784471, Radius: 2000}, "", "stops.#.stop_id", []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"}, 0},
+		{"lat,lon,radius 10m", StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 10}, "", "stops.#.stop_id", []string{"POWL"}, 0},
+		{"lat,lon,radius 2000m", StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000}, "", "stops.#.stop_id", []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"}, 0},
 		{"search", StopRequest{Search: "macarthur"}, "", "stops.#.stop_id", []string{"MCAR", "MCAR_S"}, 0}, // default
 	}
 	for _, tc := range testcases {

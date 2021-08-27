@@ -14,8 +14,6 @@ func TestFeedRequest(t *testing.T) {
 		{"search", &FeedRequest{Search: "ba"}, "", "feeds.#.onestop_id", []string{"BA~rt", "BA"}, 0},
 		{"fetch_error true", &FeedRequest{FetchError: "true"}, "", "feeds.#.onestop_id", []string{"test"}, 0},
 		{"fetch_error false", &FeedRequest{FetchError: "false"}, "", "feeds.#.onestop_id", []string{"BA", "CT"}, 0},
-		// {"lat,lon,r:100,limit:100", "feeds", &FeedRequest{Limit: 100, Lon: LON, Lat: LAT, Radius: 100.0}, "", 2, bartosid},
-		// {"lat,lon,r:1000,limit:100", "feeds", &FeedRequest{Limit: 100, Lon: LON, Lat: LAT, Radius: 1000.0}, "", 5, bartosid},
 	}
 	for _, tc := range testcases {
 		testquery(t, cfg, tc)

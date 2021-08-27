@@ -19,8 +19,8 @@ func TestRouteRequest(t *testing.T) {
 		{"feed_onestop_id,route_id", RouteRequest{FeedOnestopID: "BA", RouteID: "19"}, "", "routes.#.route_id", []string{"19"}, 0},
 		{"feed_version_sha1", RouteRequest{FeedVersionSHA1: fv}, "", "routes.#.feed_version.sha1", []string{fv, fv, fv, fv, fv, fv}, 0},
 		{"operator_onestop_id", RouteRequest{OperatorOnestopID: "o-9q9-bayarearapidtransit"}, "", "routes.#.route_id", []string{"01", "03", "05", "07", "11", "19"}, 0},
-		{"lat,lon,radius 100m", RouteRequest{Lat: -122.407974, Lon: 37.784471, Radius: 100}, "", "routes.#.route_id", []string{"01", "05", "07", "11"}, 0},
-		{"lat,lon,radius 2000m", RouteRequest{Lat: -122.407974, Lon: 37.784471, Radius: 2000}, "", "routes.#.route_id", []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130", "01", "05", "07", "11"}, 0},
+		{"lat,lon,radius 100m", RouteRequest{Lon: -122.407974, Lat: 37.784471, Radius: 100}, "", "routes.#.route_id", []string{"01", "05", "07", "11"}, 0},
+		{"lat,lon,radius 2000m", RouteRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000}, "", "routes.#.route_id", []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130", "01", "05", "07", "11"}, 0},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

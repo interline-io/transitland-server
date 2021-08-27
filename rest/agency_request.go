@@ -20,8 +20,8 @@ type AgencyRequest struct {
 	FeedVersionSHA1 string  `json:"feed_version_sha1"`
 	FeedOnestopID   string  `json:"feed_onestop_id"`
 	Search          string  `json:"search"`
-	Lat             float64 `json:"lat,string"`
 	Lon             float64 `json:"lon,string"`
+	Lat             float64 `json:"lat,string"`
 	Radius          float64 `json:"radius,string"`
 }
 
