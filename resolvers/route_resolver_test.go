@@ -156,7 +156,7 @@ func TestRouteResolver(t *testing.T) {
 		// just ensure geometry queries complete successfully; checking coordinates is a pain and flaky.
 		{
 			"where near 100m",
-			`query {routes(where:{near:{lat:-122.407974,lon:37.784471,radius:100.0}}) {route_id route_long_name}}`,
+			`query {routes(where:{near:{lon:-122.407974,lat:37.784471,radius:100.0}}) {route_id route_long_name}}`,
 			hw{},
 			``,
 			"routes.#.route_id",
@@ -164,7 +164,7 @@ func TestRouteResolver(t *testing.T) {
 		},
 		{
 			"where near 10000m",
-			`query {routes(where:{near:{lat:-122.407974,lon:37.784471,radius:10000.0}}) {route_id route_long_name}}`,
+			`query {routes(where:{near:{lon:-122.407974,lat:37.784471,radius:10000.0}}) {route_id route_long_name}}`,
 			hw{},
 			``,
 			"routes.#.route_id",
