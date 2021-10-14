@@ -35,6 +35,14 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 		if len(where.Spec) > 0 {
 			q = q.Where(sq.Eq{"spec": where.Spec})
 		}
+		// Tags
+		if where.Tags != nil {
+			for _, k := range where.Tags.Keys() {
+				if v, ok := where.Tags.Get(k); ok {
+					q = q.Where(sq.Expr("feed_tags->>? = ?", k, v))
+				}
+			}
+		}
 		// Fetch error
 		if v := where.FetchError; v == nil {
 			// nothing

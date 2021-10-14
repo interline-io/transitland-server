@@ -60,6 +60,14 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 		if where.OnestopID != nil {
 			q = q.Where(sq.Eq{"onestop_id": where.OnestopID})
 		}
+		// Tags
+		if where.Tags != nil {
+			for _, k := range where.Tags.Keys() {
+				if v, ok := where.Tags.Get(k); ok {
+					q = q.Where(sq.Expr("operator_tags->>? = ?", k, v))
+				}
+			}
+		}
 	}
 	return q
 }
