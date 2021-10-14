@@ -3850,6 +3850,7 @@ input OperatorFilter {
   feed_onestop_id: String
   agency_id: String
   search: String
+  tags: Tags
 }
 
 input FeedVersionFilter {
@@ -3870,6 +3871,7 @@ input FeedFilter {
   fetch_error: Boolean
   import_status: ImportStatus
   search: String
+  tags: Tags
 }
 
 input AgencyFilter {
@@ -3905,6 +3907,7 @@ input StopFilter {
   near: PointRadius
   search: String
   served_by_onestop_ids: [String!]
+  agency_ids: [Int!] # keep?
 }
 
 input StopTimeFilter {
@@ -18483,6 +18486,14 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
+		case "tags":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			it.Tags, err = ec.unmarshalOTags2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -18648,6 +18659,14 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
 			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tags":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			it.Tags, err = ec.unmarshalOTags2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18872,6 +18891,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("served_by_onestop_ids"))
 			it.ServedByOnestopIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "agency_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agency_ids"))
+			it.AgencyIds, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -24581,6 +24608,22 @@ func (ec *executionContext) unmarshalOTags2githubᚗcomᚋinterlineᚑioᚋtrans
 }
 
 func (ec *executionContext) marshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx context.Context, sel ast.SelectionSet, v tl.Tags) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOTags2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx context.Context, v interface{}) (*tl.Tags, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(tl.Tags)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTags2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx context.Context, sel ast.SelectionSet, v *tl.Tags) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
 	return v
 }
 

@@ -521,6 +521,7 @@ input OperatorFilter {
   feed_onestop_id: String
   agency_id: String
   search: String
+  tags: Tags
 }
 
 input FeedVersionFilter {
@@ -541,6 +542,7 @@ input FeedFilter {
   fetch_error: Boolean
   import_status: ImportStatus
   search: String
+  tags: Tags
 }
 
 input AgencyFilter {
@@ -576,6 +578,7 @@ input StopFilter {
   near: PointRadius
   search: String
   served_by_onestop_ids: [String!]
+  agency_ids: [Int!] # keep?
 }
 
 input StopTimeFilter {
