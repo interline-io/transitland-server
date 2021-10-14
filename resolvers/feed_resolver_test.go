@@ -161,6 +161,14 @@ func TestFeedResolver(t *testing.T) {
 			"feeds.#.onestop_id",
 			[]string{"BA"},
 		},
+		{
+			"where tags test is present",
+			`query { feeds(where:{tags:{test:""}}) {onestop_id}}`,
+			hw{},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"BA"},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {

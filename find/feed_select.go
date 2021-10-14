@@ -39,7 +39,11 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 		if where.Tags != nil {
 			for _, k := range where.Tags.Keys() {
 				if v, ok := where.Tags.Get(k); ok {
-					q = q.Where(sq.Expr("feed_tags->>? = ?", k, v))
+					if v == "" {
+						q = q.Where("feed_tags ?? ?", k)
+					} else {
+						q = q.Where("feed_tags->>? = ?", k, v)
+					}
 				}
 			}
 		}
