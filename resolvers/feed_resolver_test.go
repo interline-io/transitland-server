@@ -137,6 +137,30 @@ func TestFeedResolver(t *testing.T) {
 			"feeds.#.onestop_id",
 			[]string{"BA", "BA~rt"},
 		},
+		{
+			"where tags test=ok",
+			`query { feeds(where:{tags:{test:"ok"}}) {onestop_id}}`,
+			hw{},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"BA"},
+		},
+		{
+			"where tags test=ok foo=fail",
+			`query { feeds(where:{tags:{test:"ok", foo:"fail"}}) {onestop_id}}`,
+			hw{},
+			``,
+			"feeds.#.onestop_id",
+			[]string{},
+		},
+		{
+			"where tags test=ok foo=bar",
+			`query { feeds(where:{tags:{test:"ok", foo:"bar"}}) {onestop_id}}`,
+			hw{},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"BA"},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {

@@ -37,6 +37,7 @@ type FeedFilter struct {
 	FetchError   *bool         `json:"fetch_error"`
 	ImportStatus *ImportStatus `json:"import_status"`
 	Search       *string       `json:"search"`
+	Tags         *tl.Tags      `json:"tags"`
 }
 
 type FeedVersionDeleteResult struct {
@@ -67,11 +68,12 @@ type FeedVersionUnimportResult struct {
 }
 
 type OperatorFilter struct {
-	Merged        *bool   `json:"merged"`
-	OnestopID     *string `json:"onestop_id"`
-	FeedOnestopID *string `json:"feed_onestop_id"`
-	AgencyID      *string `json:"agency_id"`
-	Search        *string `json:"search"`
+	Merged        *bool    `json:"merged"`
+	OnestopID     *string  `json:"onestop_id"`
+	FeedOnestopID *string  `json:"feed_onestop_id"`
+	AgencyID      *string  `json:"agency_id"`
+	Search        *string  `json:"search"`
+	Tags          *tl.Tags `json:"tags"`
 }
 
 type PathwayFilter struct {
@@ -106,6 +108,7 @@ type StopFilter struct {
 	Near               *PointRadius `json:"near"`
 	Search             *string      `json:"search"`
 	ServedByOnestopIds []string     `json:"served_by_onestop_ids"`
+	AgencyIds          []int        `json:"agency_ids"`
 }
 
 type StopTimeFilter struct {

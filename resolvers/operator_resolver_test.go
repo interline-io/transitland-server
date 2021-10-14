@@ -14,6 +14,22 @@ func TestOperatorResolver(t *testing.T) {
 			"",
 			nil,
 		},
+		{
+			"tags us_ntd_id=90134",
+			`query{operators(where:{tags:{us_ntd_id:"90134"}}) {onestop_id}}`,
+			hw{},
+			`{"operators":[{"onestop_id":"o-9q9-caltrain"}]}`,
+			"",
+			nil,
+		},
+		{
+			"tags us_ntd_id=12345",
+			`query{operators(where:{tags:{us_ntd_id:"12345"}}) {onestop_id}}`,
+			hw{},
+			`{"operators":[]}`,
+			"",
+			nil,
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {
