@@ -64,7 +64,11 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 		if where.Tags != nil {
 			for _, k := range where.Tags.Keys() {
 				if v, ok := where.Tags.Get(k); ok {
-					q = q.Where(sq.Expr("operator_tags->>? = ?", k, v))
+					if v == "" {
+						q = q.Where("operator_tags ?? ?", k)
+					} else {
+						q = q.Where("operator_tags->>? = ?", k, v)
+					}
 				}
 			}
 		}

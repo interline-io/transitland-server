@@ -17,13 +17,13 @@ const MAXLIMIT = 1000
 
 // MustSelect runs a query or panics.
 func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
+	q = q.PlaceholderFormat(sq.Dollar)
 	qstr, qargs := q.MustSql()
-	qstrRebind := db.Rebind(qstr)
 	if os.Getenv("TL_LOG_SQL") == "true" {
-		fmt.Println(qstrRebind)
+		fmt.Println(qstr)
 	}
 	if a, ok := db.(sqlx.Preparer); ok {
-		stmt, err := sqlx.Preparex(a, qstrRebind)
+		stmt, err := sqlx.Preparex(a, qstr)
 		if err != nil {
 			panic(err)
 		}
@@ -31,7 +31,7 @@ func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
 			panic(err)
 		}
 	} else {
-		if err := sqlx.Select(db, dest, qstrRebind, qargs...); err != nil {
+		if err := sqlx.Select(db, dest, qstr, qargs...); err != nil {
 			panic(err)
 		}
 	}
