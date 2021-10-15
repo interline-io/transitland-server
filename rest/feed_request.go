@@ -18,6 +18,8 @@ type FeedRequest struct {
 	Spec       string `json:"spec"`
 	Search     string `json:"search"`
 	FetchError string `json:"fetch_error"`
+	TagKey     string `json:"tag_key"`
+	TagValue   string `json:"tag_value"`
 	// Lat       float64 `json:"lat,string"`
 	// Lon       float64 `json:"lon,string"`
 	// Radius    float64 `json:"radius,string"`
@@ -46,6 +48,9 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Search != "" {
 		where["search"] = r.Search
+	}
+	if r.TagKey != "" {
+		where["tags"] = hw{r.TagKey: r.TagValue}
 	}
 	if r.FetchError == "true" {
 		where["fetch_error"] = true

@@ -583,7 +583,6 @@ type MutationResolver interface {
 	FeedVersionDelete(ctx context.Context, id int) (*model.FeedVersionDeleteResult, error)
 }
 type OperatorResolver interface {
-	Tags(ctx context.Context, obj *model.Operator) (interface{}, error)
 	AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error)
 
 	Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error)
@@ -3489,7 +3488,7 @@ type Operator {
   name: String
   short_name: String
   website: String
-  tags: Any
+  tags: Tags
   associated_feeds: Any
   search_rank: String # only for search results
   agencies: [Agency!]
@@ -11482,14 +11481,14 @@ func (ec *executionContext) _Operator_tags(ctx context.Context, field graphql.Co
 		Object:     "Operator",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Operator().Tags(rctx, obj)
+		return obj.Tags, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11498,9 +11497,9 @@ func (ec *executionContext) _Operator_tags(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(tl.Tags)
 	fc.Result = res
-	return ec.marshalOAny2interface(ctx, field.Selections, res)
+	return ec.marshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_associated_feeds(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -20577,16 +20576,7 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 		case "website":
 			out.Values[i] = ec._Operator_website(ctx, field, obj)
 		case "tags":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Operator_tags(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._Operator_tags(ctx, field, obj)
 		case "associated_feeds":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

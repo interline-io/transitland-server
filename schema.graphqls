@@ -160,7 +160,7 @@ type Operator {
   name: String
   short_name: String
   website: String
-  tags: Any
+  tags: Tags
   associated_feeds: Any
   search_rank: String # only for search results
   agencies: [Agency!]

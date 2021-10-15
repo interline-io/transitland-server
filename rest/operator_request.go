@@ -17,6 +17,8 @@ type OperatorRequest struct {
 	OnestopID     string `json:"onestop_id"`
 	FeedOnestopID string `json:"feed_onestop_id"`
 	Search        string `json:"search"`
+	TagKey        string `json:"tag_key"`
+	TagValue      string `json:"tag_value"`
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -41,6 +43,9 @@ func (r OperatorRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Search != "" {
 		where["search"] = r.Search
+	}
+	if r.TagKey != "" {
+		where["tags"] = hw{r.TagKey: r.TagValue}
 	}
 	return operatorQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }
