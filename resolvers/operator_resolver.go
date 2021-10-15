@@ -17,10 +17,6 @@ func (r *operatorResolver) Agencies(ctx context.Context, obj *model.Operator) ([
 	return find.For(ctx).AgenciesByOnestopID.Load(model.AgencyParam{OnestopID: &a})
 }
 
-func (r *operatorResolver) Tags(ctx context.Context, obj *model.Operator) (interface{}, error) {
-	return obj.Tags, nil
-}
-
 func (r *operatorResolver) AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error) {
 	a, err := json.Marshal(obj.AssociatedFeeds)
 	return json.RawMessage(a), err
