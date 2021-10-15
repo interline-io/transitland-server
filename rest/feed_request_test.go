@@ -14,6 +14,8 @@ func TestFeedRequest(t *testing.T) {
 		{"search", &FeedRequest{Search: "ba"}, "", "feeds.#.onestop_id", []string{"BA~rt", "BA"}, 0},
 		{"fetch_error true", &FeedRequest{FetchError: "true"}, "", "feeds.#.onestop_id", []string{"test"}, 0},
 		{"fetch_error false", &FeedRequest{FetchError: "false"}, "", "feeds.#.onestop_id", []string{"BA", "CT"}, 0},
+		{"tags test=ok", &FeedRequest{TagKey: "test", TagValue: "ok"}, "", "feeds.#.onestop_id", []string{"BA"}, 0},
+		{"tags foo present", &FeedRequest{TagKey: "foo", TagValue: ""}, "", "feeds.#.onestop_id", []string{"BA"}, 0},
 	}
 	for _, tc := range testcases {
 		testquery(t, cfg, tc)
