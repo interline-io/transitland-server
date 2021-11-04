@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 
+	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -52,6 +53,15 @@ type routeHeadwayResolver struct{ *Resolver }
 
 func (r *routeHeadwayResolver) Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error) {
 	return find.For(ctx).StopsByID.Load(obj.SelectedStopID)
+}
+
+func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tl.WideTime, error) {
+	var ret []*tl.WideTime
+	for _, v := range obj.Departures.Ints {
+		w := tl.NewWideTimeFromSeconds(v)
+		ret = append(ret, &w)
+	}
+	return ret, nil
 }
 
 // ROUTE STOP

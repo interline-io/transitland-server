@@ -58,11 +58,11 @@ func TestRouteResolver(t *testing.T) {
 		{
 			// computations are not stable so just check success
 			"geometries",
-			`query($route_id: String!) {  routes(where:{route_id:$route_id}) {geometries {direction_id}} }`,
+			`query($route_id: String!) {  routes(where:{route_id:$route_id}) {geometries {generated}} }`,
 			vars,
 			``,
-			"routes.0.geometries.#.direction_id",
-			[]string{"0"},
+			"routes.0.geometries.#.generated",
+			[]string{"false"},
 		},
 		{
 			"route_stop_buffer stop_points 10m",
@@ -91,11 +91,11 @@ func TestRouteResolver(t *testing.T) {
 		{
 			// only check dow_category explicitly it's not a stable computation
 			"headways",
-			`query($route_id: String!) {  routes(where:{route_id:$route_id}) {headways{dow_category direction_id headway_secs service_date service_seconds stop_trip_count headway_seconds_morning_mid stop{stop_id}}} }`,
+			`query($route_id: String!) {  routes(where:{route_id:$route_id}) {headways{dow_category departures service_date stop_trip_count stop{stop_id}}} }`,
 			vars,
 			``,
 			"routes.0.headways.#.dow_category",
-			[]string{"1", "6", "7"},
+			[]string{"1", "6", "7", "1", "6", "7"}, // now includes one for each direction and dow category
 		},
 		{
 			"where onestop_id",

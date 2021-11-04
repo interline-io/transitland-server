@@ -371,35 +371,18 @@ type ComplexityRoot struct {
 	}
 
 	RouteGeometry struct {
-		DirectionID func(childComplexity int) int
-		Generated   func(childComplexity int) int
-		Geometry    func(childComplexity int) int
+		Generated func(childComplexity int) int
+		Geometry  func(childComplexity int) int
 	}
 
 	RouteHeadway struct {
-		DirectionID                  func(childComplexity int) int
-		DowCategory                  func(childComplexity int) int
-		HeadwaySecondsAfternoonCount func(childComplexity int) int
-		HeadwaySecondsAfternoonMax   func(childComplexity int) int
-		HeadwaySecondsAfternoonMid   func(childComplexity int) int
-		HeadwaySecondsAfternoonMin   func(childComplexity int) int
-		HeadwaySecondsMiddayCount    func(childComplexity int) int
-		HeadwaySecondsMiddayMax      func(childComplexity int) int
-		HeadwaySecondsMiddayMid      func(childComplexity int) int
-		HeadwaySecondsMiddayMin      func(childComplexity int) int
-		HeadwaySecondsMorningCount   func(childComplexity int) int
-		HeadwaySecondsMorningMax     func(childComplexity int) int
-		HeadwaySecondsMorningMid     func(childComplexity int) int
-		HeadwaySecondsMorningMin     func(childComplexity int) int
-		HeadwaySecondsNightCount     func(childComplexity int) int
-		HeadwaySecondsNightMax       func(childComplexity int) int
-		HeadwaySecondsNightMid       func(childComplexity int) int
-		HeadwaySecondsNightMin       func(childComplexity int) int
-		HeadwaySecs                  func(childComplexity int) int
-		ServiceDate                  func(childComplexity int) int
-		ServiceSeconds               func(childComplexity int) int
-		Stop                         func(childComplexity int) int
-		StopTripCount                func(childComplexity int) int
+		Departures    func(childComplexity int) int
+		DirectionID   func(childComplexity int) int
+		DowCategory   func(childComplexity int) int
+		HeadwaySecs   func(childComplexity int) int
+		ServiceDate   func(childComplexity int) int
+		Stop          func(childComplexity int) int
+		StopTripCount func(childComplexity int) int
 	}
 
 	RouteStop struct {
@@ -613,6 +596,8 @@ type RouteResolver interface {
 }
 type RouteHeadwayResolver interface {
 	Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error)
+
+	Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tl.WideTime, error)
 }
 type RouteStopResolver interface {
 	Route(ctx context.Context, obj *model.RouteStop) (*model.Route, error)
@@ -2406,13 +2391,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Route.Trips(childComplexity, args["limit"].(*int), args["where"].(*model.TripFilter)), true
 
-	case "RouteGeometry.direction_id":
-		if e.complexity.RouteGeometry.DirectionID == nil {
-			break
-		}
-
-		return e.complexity.RouteGeometry.DirectionID(childComplexity), true
-
 	case "RouteGeometry.generated":
 		if e.complexity.RouteGeometry.Generated == nil {
 			break
@@ -2426,6 +2404,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RouteGeometry.Geometry(childComplexity), true
+
+	case "RouteHeadway.departures":
+		if e.complexity.RouteHeadway.Departures == nil {
+			break
+		}
+
+		return e.complexity.RouteHeadway.Departures(childComplexity), true
 
 	case "RouteHeadway.direction_id":
 		if e.complexity.RouteHeadway.DirectionID == nil {
@@ -2441,118 +2426,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RouteHeadway.DowCategory(childComplexity), true
 
-	case "RouteHeadway.headway_seconds_afternoon_count":
-		if e.complexity.RouteHeadway.HeadwaySecondsAfternoonCount == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsAfternoonCount(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_afternoon_max":
-		if e.complexity.RouteHeadway.HeadwaySecondsAfternoonMax == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsAfternoonMax(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_afternoon_mid":
-		if e.complexity.RouteHeadway.HeadwaySecondsAfternoonMid == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsAfternoonMid(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_afternoon_min":
-		if e.complexity.RouteHeadway.HeadwaySecondsAfternoonMin == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsAfternoonMin(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_midday_count":
-		if e.complexity.RouteHeadway.HeadwaySecondsMiddayCount == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsMiddayCount(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_midday_max":
-		if e.complexity.RouteHeadway.HeadwaySecondsMiddayMax == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsMiddayMax(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_midday_mid":
-		if e.complexity.RouteHeadway.HeadwaySecondsMiddayMid == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsMiddayMid(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_midday_min":
-		if e.complexity.RouteHeadway.HeadwaySecondsMiddayMin == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsMiddayMin(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_morning_count":
-		if e.complexity.RouteHeadway.HeadwaySecondsMorningCount == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsMorningCount(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_morning_max":
-		if e.complexity.RouteHeadway.HeadwaySecondsMorningMax == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsMorningMax(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_morning_mid":
-		if e.complexity.RouteHeadway.HeadwaySecondsMorningMid == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsMorningMid(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_morning_min":
-		if e.complexity.RouteHeadway.HeadwaySecondsMorningMin == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsMorningMin(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_night_count":
-		if e.complexity.RouteHeadway.HeadwaySecondsNightCount == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsNightCount(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_night_max":
-		if e.complexity.RouteHeadway.HeadwaySecondsNightMax == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsNightMax(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_night_mid":
-		if e.complexity.RouteHeadway.HeadwaySecondsNightMid == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsNightMid(childComplexity), true
-
-	case "RouteHeadway.headway_seconds_night_min":
-		if e.complexity.RouteHeadway.HeadwaySecondsNightMin == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.HeadwaySecondsNightMin(childComplexity), true
-
 	case "RouteHeadway.headway_secs":
 		if e.complexity.RouteHeadway.HeadwaySecs == nil {
 			break
@@ -2566,13 +2439,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RouteHeadway.ServiceDate(childComplexity), true
-
-	case "RouteHeadway.service_seconds":
-		if e.complexity.RouteHeadway.ServiceSeconds == nil {
-			break
-		}
-
-		return e.complexity.RouteHeadway.ServiceSeconds(childComplexity), true
 
 	case "RouteHeadway.stop":
 		if e.complexity.RouteHeadway.Stop == nil {
@@ -3646,8 +3512,8 @@ type Frequency {
 }
 
 type StopTime {
-  arrival_time: Int!
-  departure_time: Int!
+  arrival_time: Seconds!
+  departure_time: Seconds!
   stop_sequence: Int!
   stop_headsign: String
   pickup_type: Int
@@ -3688,7 +3554,6 @@ type RouteStop {
 }
 
 type RouteGeometry {
-  direction_id: Int!
   generated: Boolean!
   geometry: LineString!
 }
@@ -3699,24 +3564,8 @@ type RouteHeadway {
   direction_id: Int
   headway_secs: Int
   service_date: Date
-  service_seconds: Int
   stop_trip_count: Int
-  headway_seconds_morning_count: Int
-  headway_seconds_morning_min: Int
-  headway_seconds_morning_mid: Int
-  headway_seconds_morning_max: Int
-  headway_seconds_midday_count: Int
-  headway_seconds_midday_min: Int
-  headway_seconds_midday_mid: Int
-  headway_seconds_midday_max: Int
-  headway_seconds_afternoon_count: Int
-  headway_seconds_afternoon_min: Int
-  headway_seconds_afternoon_mid: Int
-  headway_seconds_afternoon_max: Int
-  headway_seconds_night_count: Int
-  headway_seconds_night_min: Int
-  headway_seconds_night_mid: Int
-  headway_seconds_night_max: Int
+  departures: [Seconds!]
 }
 
 # Census entities
@@ -3964,8 +3813,7 @@ scalar Seconds
 scalar Polygon
 scalar Map
 scalar Any
-scalar Upload
-`, BuiltIn: false},
+scalar Upload`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -13288,41 +13136,6 @@ func (ec *executionContext) _Route_route_stop_buffer(ctx context.Context, field 
 	return ec.marshalNRouteStopBuffer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopBuffer(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RouteGeometry_direction_id(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteGeometry",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DirectionID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _RouteGeometry_generated(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13556,38 +13369,6 @@ func (ec *executionContext) _RouteHeadway_service_date(ctx context.Context, fiel
 	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RouteHeadway_service_seconds(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ServiceSeconds, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _RouteHeadway_stop_trip_count(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13620,7 +13401,7 @@ func (ec *executionContext) _RouteHeadway_stop_trip_count(ctx context.Context, f
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RouteHeadway_headway_seconds_morning_count(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
+func (ec *executionContext) _RouteHeadway_departures(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13631,14 +13412,14 @@ func (ec *executionContext) _RouteHeadway_headway_seconds_morning_count(ctx cont
 		Object:     "RouteHeadway",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsMorningCount, nil
+		return ec.resolvers.RouteHeadway().Departures(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13647,489 +13428,9 @@ func (ec *executionContext) _RouteHeadway_headway_seconds_morning_count(ctx cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.([]*tl.WideTime)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_morning_min(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsMorningMin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_morning_mid(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsMorningMid, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_morning_max(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsMorningMax, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_midday_count(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsMiddayCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_midday_min(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsMiddayMin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_midday_mid(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsMiddayMid, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_midday_max(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsMiddayMax, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_afternoon_count(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsAfternoonCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_afternoon_min(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsAfternoonMin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_afternoon_mid(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsAfternoonMid, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_afternoon_max(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsAfternoonMax, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_night_count(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsNightCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_night_min(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsNightMin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_night_mid(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsNightMid, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RouteHeadway_headway_seconds_night_max(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RouteHeadway",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsNightMax, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTimeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RouteStop_id(ctx context.Context, field graphql.CollectedField, obj *model.RouteStop) (ret graphql.Marshaler) {
@@ -15510,9 +14811,9 @@ func (ec *executionContext) _StopTime_arrival_time(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tl.WideTime)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_departure_time(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -15545,9 +14846,9 @@ func (ec *executionContext) _StopTime_departure_time(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tl.WideTime)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_stop_sequence(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -21058,11 +20359,6 @@ func (ec *executionContext) _RouteGeometry(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("RouteGeometry")
-		case "direction_id":
-			out.Values[i] = ec._RouteGeometry_direction_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "generated":
 			out.Values[i] = ec._RouteGeometry_generated(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -21117,42 +20413,19 @@ func (ec *executionContext) _RouteHeadway(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._RouteHeadway_headway_secs(ctx, field, obj)
 		case "service_date":
 			out.Values[i] = ec._RouteHeadway_service_date(ctx, field, obj)
-		case "service_seconds":
-			out.Values[i] = ec._RouteHeadway_service_seconds(ctx, field, obj)
 		case "stop_trip_count":
 			out.Values[i] = ec._RouteHeadway_stop_trip_count(ctx, field, obj)
-		case "headway_seconds_morning_count":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_morning_count(ctx, field, obj)
-		case "headway_seconds_morning_min":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_morning_min(ctx, field, obj)
-		case "headway_seconds_morning_mid":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_morning_mid(ctx, field, obj)
-		case "headway_seconds_morning_max":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_morning_max(ctx, field, obj)
-		case "headway_seconds_midday_count":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_midday_count(ctx, field, obj)
-		case "headway_seconds_midday_min":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_midday_min(ctx, field, obj)
-		case "headway_seconds_midday_mid":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_midday_mid(ctx, field, obj)
-		case "headway_seconds_midday_max":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_midday_max(ctx, field, obj)
-		case "headway_seconds_afternoon_count":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_afternoon_count(ctx, field, obj)
-		case "headway_seconds_afternoon_min":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_afternoon_min(ctx, field, obj)
-		case "headway_seconds_afternoon_mid":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_afternoon_mid(ctx, field, obj)
-		case "headway_seconds_afternoon_max":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_afternoon_max(ctx, field, obj)
-		case "headway_seconds_night_count":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_night_count(ctx, field, obj)
-		case "headway_seconds_night_min":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_night_min(ctx, field, obj)
-		case "headway_seconds_night_mid":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_night_mid(ctx, field, obj)
-		case "headway_seconds_night_max":
-			out.Values[i] = ec._RouteHeadway_headway_seconds_night_max(ctx, field, obj)
+		case "departures":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RouteHeadway_departures(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23331,6 +22604,22 @@ func (ec *executionContext) marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtran
 	return v
 }
 
+func (ec *executionContext) unmarshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx context.Context, v interface{}) (*tl.WideTime, error) {
+	var res = new(tl.WideTime)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx context.Context, sel ast.SelectionSet, v *tl.WideTime) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalNStop2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx context.Context, sel ast.SelectionSet, v model.Stop) graphql.Marshaler {
 	return ec._Stop(ctx, sel, &v)
 }
@@ -24442,6 +23731,42 @@ func (ec *executionContext) unmarshalORouteFilter2ᚖgithubᚗcomᚋinterlineᚑ
 	}
 	res, err := ec.unmarshalInputRouteFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTimeᚄ(ctx context.Context, v interface{}) ([]*tl.WideTime, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*tl.WideTime, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTimeᚄ(ctx context.Context, sel ast.SelectionSet, v []*tl.WideTime) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOShape2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐShape(ctx context.Context, sel ast.SelectionSet, v *model.Shape) graphql.Marshaler {
