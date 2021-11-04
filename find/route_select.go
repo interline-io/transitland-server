@@ -26,7 +26,6 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 		"feed_versions.sha1 AS feed_version_sha1",
 		"coif.resolved_onestop_id AS operator_onestop_id",
 		"tl_route_onestop_ids.onestop_id",
-		"rh.headway_seconds_weekday_morning",
 	).
 		From("gtfs_routes").
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
@@ -39,14 +38,11 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
             tl_route_geometries.shape_id,
             tl_route_geometries.direction_id,
             tl_route_geometries.generated,
-            tl_route_geometries.geometry
+            tl_route_geometries.combined_geometry AS geometry
            FROM tl_route_geometries
           WHERE tl_route_geometries.route_id = gtfs_routes.id
           ORDER BY tl_route_geometries.route_id, tl_route_geometries.direction_id
          LIMIT 1) g ON true`).
-		JoinClause(`LEFT JOIN LATERAL ( SELECT rh_1.headway_seconds_morning_mid AS headway_seconds_weekday_morning
-           FROM tl_route_headways rh_1
-          WHERE rh_1.dow_category = 1 AND rh_1.route_id = gtfs_routes.id) rh ON true`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_routes.id")
 	if active {
