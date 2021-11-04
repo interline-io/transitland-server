@@ -8,7 +8,7 @@ import (
 
 func FindStops(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.StopFilter) (ents []*model.Stop, err error) {
 	active := false
-	if where != nil && where.FeedVersionSha1 == nil {
+	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
 		active = true
 	}
 	q := StopSelect(limit, after, ids, active, where)

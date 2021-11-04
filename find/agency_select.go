@@ -8,7 +8,7 @@ import (
 
 func FindAgencies(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.AgencyFilter) (ents []*model.Agency, err error) {
 	active := false
-	if where != nil && where.FeedVersionSha1 == nil {
+	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
 		active = true
 	}
 	q := AgencySelect(limit, after, ids, active, where)

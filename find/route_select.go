@@ -8,7 +8,7 @@ import (
 
 func FindRoutes(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.RouteFilter) (ents []*model.Route, err error) {
 	active := false
-	if where != nil && where.FeedVersionSha1 == nil {
+	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
 		active = true
 	}
 	q := RouteSelect(limit, after, ids, active, where)
