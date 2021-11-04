@@ -318,8 +318,8 @@ type Frequency {
 }
 
 type StopTime {
-  arrival_time: Int!
-  departure_time: Int!
+  arrival_time: Seconds!
+  departure_time: Seconds!
   stop_sequence: Int!
   stop_headsign: String
   pickup_type: Int
