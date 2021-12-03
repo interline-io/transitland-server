@@ -88,6 +88,7 @@ type StopParam struct {
 	AgencyID      int
 	Limit         *int
 	Where         *StopFilter
+	RouteID       int
 }
 
 type AgencyPlaceParam struct {

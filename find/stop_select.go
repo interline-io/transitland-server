@@ -90,7 +90,10 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 			q = q.Where(sq.Eq{"feed_version_sha1": *where.FeedVersionSha1})
 		}
 		if where.OnestopID != nil {
-			q = q.Where(sq.Eq{"onestop_id": *where.OnestopID})
+			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
+		}
+		if len(where.OnestopIds) > 0 {
+			q = q.Where(sq.Eq{"onestop_id": where.OnestopIds})
 		}
 		if where.StopID != nil {
 			q = q.Where(sq.Eq{"stop_id": *where.StopID})

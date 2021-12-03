@@ -2,6 +2,7 @@ package find
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -47,6 +48,7 @@ type Loaders struct {
 	TripsByFeedVersionID                    dl.TripWhereLoader
 	FeedInfosByFeedVersionID                dl.FeedInfoWhereLoader
 	// Where Loaders
+	StopsByRouteID           dl.StopWhereLoader
 	StopsByParentStopID      dl.StopWhereLoader
 	AgencyPlacesByAgencyID   dl.AgencyPlaceWhereLoader
 	RouteGeometriesByRouteID dl.RouteGeometryWhereLoader
@@ -413,7 +415,13 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					for _, p := range params {
 						ids = append(ids, p.StopID)
 					}
-					if p := params[0].Where; p != nil && p.ServiceDate != nil {
+					if p := params[0].Where; p != nil && (p.ServiceDate != nil || p.Next != nil) {
+						// require a valid timezone
+						if p.Timezone != nil {
+							if _, err := time.LoadLocation(*p.Timezone); err != nil {
+								return nil, []error{fmt.Errorf("invalid timezone: '%s'", *p.Timezone)}
+							}
+						}
 						q := StopDeparturesSelect(nil, nil, ids, p)
 						qstr, qargs, err := q.ToSql()
 						if err != nil {
@@ -462,6 +470,39 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 						group[ent.StopID] = append(group[ent.StopID], ent)
 					}
 					for _, id := range ids {
+						ents = append(ents, group[id])
+					}
+					return ents, nil
+				},
+			}),
+			StopsByRouteID: *dl.NewStopWhereLoader(dl.StopWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch: func(params []model.StopParam) (ents [][]*model.Stop, errs []error) {
+					type qEnt struct {
+						RouteID int
+						model.Stop
+					}
+					if len(params) == 0 {
+						return nil, nil
+					}
+					routeIds := []int{}
+					for _, p := range params {
+						routeIds = append(routeIds, p.RouteID)
+					}
+					qents := []*qEnt{}
+					qso := StopSelect(params[0].Limit, nil, nil, false, params[0].Where)
+					qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Where(sq.Eq{"route_id": routeIds}).Column("route_id")
+					MustSelect(
+						atx,
+						qso,
+						&qents,
+					)
+					group := map[int][]*model.Stop{}
+					for _, ent := range qents {
+						group[ent.RouteID] = append(group[ent.RouteID], &ent.Stop)
+					}
+					for _, id := range routeIds {
 						ents = append(ents, group[id])
 					}
 					return ents, nil

@@ -211,6 +211,7 @@ type Route {
   headway_seconds_weekday_morning: Int
   search_rank: String # only for search results
   trips(limit: Int, where: TripFilter): [Trip!]!
+  stops(limit: Int, where: StopFilter): [Stop!]!
   route_stops(limit: Int): [RouteStop!]!
   headways(limit: Int): [RouteHeadway!]!
   geometries(limit: Int): [RouteGeometry!]!
@@ -328,6 +329,12 @@ type StopTime {
   interpolated: Int
   stop: Stop!
   trip: Trip!
+  rt: StopTimeUpdate
+}
+
+type StopTimeUpdate {
+  arrival_time: Seconds!
+  departure_time: Seconds!
 }
 
 type FeedInfo {
@@ -541,6 +548,7 @@ input AgencyFilter {
 
 input RouteFilter {
   onestop_id: String
+  onestop_ids: [String!]
   feed_version_sha1: String
   feed_onestop_id: String
   route_id: String
@@ -554,6 +562,7 @@ input RouteFilter {
 
 input StopFilter {
   onestop_id: String
+  onestop_ids: [String!]
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
@@ -568,6 +577,8 @@ input StopTimeFilter {
   service_date: Date
   start_time: Int
   end_time: Int
+  timezone: String
+  next: Int
 }
 
 input PathwayFilter {

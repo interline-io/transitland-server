@@ -47,5 +47,4 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
 	return find.For(ctx).StopTimesByStopID.Load(model.StopTimeParam{StopID: obj.ID, Limit: limit, Where: where})
-
 }

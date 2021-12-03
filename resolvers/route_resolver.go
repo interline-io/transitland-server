@@ -28,6 +28,10 @@ func (r *routeResolver) FeedVersion(ctx context.Context, obj *model.Route) (*mod
 	return find.For(ctx).FeedVersionsByID.Load(obj.FeedVersionID)
 }
 
+func (r *routeResolver) Stops(ctx context.Context, obj *model.Route, limit *int, where *model.StopFilter) ([]*model.Stop, error) {
+	return find.For(ctx).StopsByRouteID.Load(model.StopParam{RouteID: obj.ID, Limit: limit, Where: where})
+}
+
 func (r *routeResolver) RouteStops(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteStop, error) {
 	return find.For(ctx).RouteStopsByRouteID.Load(model.RouteStopParam{RouteID: obj.ID, Limit: limit})
 }
