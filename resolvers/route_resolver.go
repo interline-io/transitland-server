@@ -6,6 +6,7 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/rt"
 )
 
 // ROUTE
@@ -34,6 +35,35 @@ func (r *routeResolver) Stops(ctx context.Context, obj *model.Route, limit *int,
 
 func (r *routeResolver) RouteStops(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteStop, error) {
 	return find.For(ctx).RouteStopsByRouteID.Load(model.RouteStopParam{RouteID: obj.ID, Limit: limit})
+}
+
+func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route) ([]*model.Alert, error) {
+	fsid := "f-9q9-actransit"
+	rid := obj.RouteID
+	msg, ok := rt.MC.Get(fsid, "alerts")
+	if !ok {
+		return nil, nil
+	}
+	var ret []*model.Alert
+	for _, fent := range msg.Entity {
+		v := fent.Alert
+		if v == nil {
+			continue
+		}
+		found := false
+		for _, i := range v.InformedEntity {
+			if i.GetRouteId() == rid {
+				found = true
+			}
+		}
+		if found {
+			a := model.Alert{}
+			a.DescriptionText = makeRTT(v.DescriptionText)
+			a.HeaderText = makeRTT(v.HeaderText)
+			ret = append(ret, &a)
+		}
+	}
+	return ret, nil
 }
 
 func (r *routeResolver) Headways(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteHeadway, error) {
