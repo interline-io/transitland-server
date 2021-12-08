@@ -208,7 +208,6 @@ type Route {
   feed_version: FeedVersion!
   feed_version_sha1: String!
   feed_onestop_id: String!
-  headway_seconds_weekday_morning: Int
   search_rank: String # only for search results
   trips(limit: Int, where: TripFilter): [Trip!]!
   route_stops(limit: Int): [RouteStop!]!
