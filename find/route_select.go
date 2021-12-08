@@ -42,7 +42,7 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
 				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
 				WHERE ST_Intersects(gtfs_stops.geometry, ?)
-			) tlrs on tlrs.route_id = gtfs_routes.id`, where.Near.Lon, where.Near.Lat, where.Within)
+			) tlrs on tlrs.route_id = gtfs_routes.id`, where.Within)
 		}
 		if where.Near != nil {
 			radius := checkFloat(&where.Near.Radius, 0, 10_000)
