@@ -401,32 +401,31 @@ type ComplexityRoot struct {
 	}
 
 	Route struct {
-		Agency                       func(childComplexity int) int
-		Alerts                       func(childComplexity int) int
-		CensusGeographies            func(childComplexity int, layer string, radius *float64, limit *int) int
-		FeedOnestopID                func(childComplexity int) int
-		FeedVersion                  func(childComplexity int) int
-		FeedVersionSHA1              func(childComplexity int) int
-		Geometries                   func(childComplexity int, limit *int) int
-		Geometry                     func(childComplexity int) int
-		HeadwaySecondsWeekdayMorning func(childComplexity int) int
-		Headways                     func(childComplexity int, limit *int) int
-		ID                           func(childComplexity int) int
-		OnestopID                    func(childComplexity int) int
-		RouteColor                   func(childComplexity int) int
-		RouteDesc                    func(childComplexity int) int
-		RouteID                      func(childComplexity int) int
-		RouteLongName                func(childComplexity int) int
-		RouteShortName               func(childComplexity int) int
-		RouteSortOrder               func(childComplexity int) int
-		RouteStopBuffer              func(childComplexity int, radius *float64) int
-		RouteStops                   func(childComplexity int, limit *int) int
-		RouteTextColor               func(childComplexity int) int
-		RouteType                    func(childComplexity int) int
-		RouteURL                     func(childComplexity int) int
-		SearchRank                   func(childComplexity int) int
-		Stops                        func(childComplexity int, limit *int, where *model.StopFilter) int
-		Trips                        func(childComplexity int, limit *int, where *model.TripFilter) int
+		Agency            func(childComplexity int) int
+		Alerts            func(childComplexity int) int
+		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
+		FeedOnestopID     func(childComplexity int) int
+		FeedVersion       func(childComplexity int) int
+		FeedVersionSHA1   func(childComplexity int) int
+		Geometries        func(childComplexity int, limit *int) int
+		Geometry          func(childComplexity int) int
+		Headways          func(childComplexity int, limit *int) int
+		ID                func(childComplexity int) int
+		OnestopID         func(childComplexity int) int
+		RouteColor        func(childComplexity int) int
+		RouteDesc         func(childComplexity int) int
+		RouteID           func(childComplexity int) int
+		RouteLongName     func(childComplexity int) int
+		RouteShortName    func(childComplexity int) int
+		RouteSortOrder    func(childComplexity int) int
+		RouteStopBuffer   func(childComplexity int, radius *float64) int
+		RouteStops        func(childComplexity int, limit *int) int
+		RouteTextColor    func(childComplexity int) int
+		RouteType         func(childComplexity int) int
+		RouteURL          func(childComplexity int) int
+		SearchRank        func(childComplexity int) int
+		Stops             func(childComplexity int, limit *int, where *model.StopFilter) int
+		Trips             func(childComplexity int, limit *int, where *model.TripFilter) int
 	}
 
 	RouteGeometry struct {
@@ -2584,13 +2583,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Route.Geometry(childComplexity), true
 
-	case "Route.headway_seconds_weekday_morning":
-		if e.complexity.Route.HeadwaySecondsWeekdayMorning == nil {
-			break
-		}
-
-		return e.complexity.Route.HeadwaySecondsWeekdayMorning(childComplexity), true
-
 	case "Route.headways":
 		if e.complexity.Route.Headways == nil {
 			break
@@ -3900,7 +3892,6 @@ type Route {
   feed_version: FeedVersion!
   feed_version_sha1: String!
   feed_onestop_id: String!
-  headway_seconds_weekday_morning: Int
   search_rank: String # only for search results
   trips(limit: Int, where: TripFilter): [Trip!]!
   stops(limit: Int, where: StopFilter): [Stop!]!
@@ -14510,38 +14501,6 @@ func (ec *executionContext) _Route_feed_onestop_id(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Route_headway_seconds_weekday_morning(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Route",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeadwaySecondsWeekdayMorning, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Route_search_rank(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23003,8 +22962,6 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "headway_seconds_weekday_morning":
-			out.Values[i] = ec._Route_headway_seconds_weekday_morning(ctx, field, obj)
 		case "search_rank":
 			out.Values[i] = ec._Route_search_rank(ctx, field, obj)
 		case "trips":
