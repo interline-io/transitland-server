@@ -19,7 +19,7 @@ func FindRoutes(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.Ro
 func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
-		"tlrg.combined_geometry as geometry",
+		"COALESCE(tlrg.combined_geometry, tlrg.geometry) as geometry", // TODO: remove after this is populated
 		"tlrg.generated AS geometry_generated",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
