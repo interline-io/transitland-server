@@ -14,7 +14,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/transitland-lib v0.8.9-0.20211216234925-e4bdf75eddbd
+	github.com/interline-io/transitland-lib v0.8.9-0.20211217043551-19812da76501
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.8.0
 	github.com/stretchr/testify v1.7.0
