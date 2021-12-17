@@ -17,7 +17,7 @@ require (
 	github.com/lib/pq v1.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.12.1
-	github.com/twpayne/go-geom v1.3.6
+	github.com/twpayne/go-geom v1.4.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 )
 
