@@ -26,7 +26,3 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-
-replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
-
-replace github.com/interline-io/transitland-lib/rt/pb => /Users/irees/src/interline-io/transitland-lib/rt/pb

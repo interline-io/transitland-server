@@ -3,10 +3,8 @@ package resolvers
 import (
 	"context"
 
-	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/interline-io/transitland-server/rt"
 )
 
 // STOP
@@ -49,48 +47,4 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
 	return find.For(ctx).StopTimesByStopID.Load(model.StopTimeParam{StopID: obj.ID, Limit: limit, Where: where})
-}
-
-func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error) {
-	fsid := "f-9q9-actransit"
-	sid := obj.StopID
-	msg, ok := rt.MC.Get(fsid, "alerts")
-	if !ok {
-		return nil, nil
-	}
-	var ret []*model.Alert
-	for _, fent := range msg.Entity {
-		v := fent.Alert
-		if v == nil {
-			continue
-		}
-		found := false
-		for _, i := range v.InformedEntity {
-			if i.GetStopId() == sid {
-				found = true
-			}
-		}
-		if found {
-			a := model.Alert{}
-			a.DescriptionText = makeRTT(v.DescriptionText)
-			a.HeaderText = makeRTT(v.HeaderText)
-			ret = append(ret, &a)
-		}
-	}
-	return ret, nil
-}
-
-func makeRTT(v *pb.TranslatedString) *model.RTTranslatedString {
-	ret := model.RTTranslatedString{}
-	ts := []*model.RTTranslation{}
-	for _, t := range v.Translation {
-		a := model.RTTranslation{}
-		a.Text = t.GetText()
-		if t.Language != nil {
-			a.Language = t.Language
-		}
-		ts = append(ts, &a)
-	}
-	ret.Translation = ts
-	return &ret
 }

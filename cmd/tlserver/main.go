@@ -11,7 +11,6 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr/sync"
 	"github.com/interline-io/transitland-lib/tl"
 	server "github.com/interline-io/transitland-server"
-	"github.com/interline-io/transitland-server/rt"
 )
 
 ///////////////
@@ -22,7 +21,6 @@ type runnable interface {
 }
 
 func main() {
-	rt.MC.StartDebug() // debug rt
 	quietFlag := false
 	debugFlag := false
 	traceFlag := false
