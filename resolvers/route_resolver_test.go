@@ -29,7 +29,7 @@ func TestRouteResolver(t *testing.T) {
 			vars,
 			``,
 			"routes.0.geometry.type",
-			[]string{"LineString"},
+			[]string{"MultiLineString"},
 		},
 		{
 			"feed_version",

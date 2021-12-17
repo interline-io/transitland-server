@@ -87,7 +87,7 @@ func TestAgencyResolver(t *testing.T) {
 			vars,
 			``,
 			"agencies.0.places.#.city_name",
-			[]string{"San Mateo", "San Francisco", "San Jose", "", "Salinas"},
+			[]string{"San Mateo", "San Francisco", "San Jose", ""},
 		},
 		{
 			"places rank 0.25",
@@ -98,8 +98,8 @@ func TestAgencyResolver(t *testing.T) {
 			[]string{"San Mateo", "San Jose", ""},
 		},
 		{
-			"places rank 0.5",
-			`query($agency_id:String!) { agencies(where:{agency_id:$agency_id}) {places(where:{min_rank:0.5}) {adm0_name adm1_name city_name}}}`,
+			"places rank 0.75",
+			`query($agency_id:String!) { agencies(where:{agency_id:$agency_id}) {places(where:{min_rank:0.75}) {adm0_name adm1_name city_name}}}`,
 			vars,
 			``,
 			"agencies.0.places.#.adm1_name",
