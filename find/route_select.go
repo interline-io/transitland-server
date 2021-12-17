@@ -85,7 +85,10 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 			q = q.Where(sq.Eq{"route_id": *where.RouteID})
 		}
 		if where.OnestopID != nil {
-			q = q.Where(sq.Eq{"onestop_id": *where.OnestopID})
+			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
+		}
+		if len(where.OnestopIds) > 0 {
+			q = q.Where(sq.Eq{"onestop_id": where.OnestopIds})
 		}
 		if where.RouteType != nil {
 			q = q.Where(sq.Eq{"route_type": where.RouteType})

@@ -42,11 +42,22 @@ func StopTimeSelect(limit *int, after *int, ids []int, tripids []int, stopids []
 }
 
 func StopDeparturesSelect(limit *int, after *int, stopids []int, where *model.StopTimeFilter) sq.SelectBuilder {
-	// TODO: support journey patterns properly
 	serviceDate := time.Now()
+	if where != nil && where.Next != nil && where.Timezone != nil {
+		// Require a valid timezone
+		if loc, err := time.LoadLocation(*where.Timezone); err == nil {
+			serviceDate = serviceDate.In(loc)
+			st, et := 0, 0
+			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
+			et = st + *where.Next
+			where.StartTime = &st
+			where.EndTime = &et
+		}
+	}
 	if where != nil && where.ServiceDate != nil {
 		serviceDate = where.ServiceDate.Time
 	}
+	// TODO: support journey patterns properly
 	q := sq.StatementBuilder.Select("sts.*").
 		Prefix(`WITH fvids as (select distinct on(feed_version_id) feed_version_id id from gtfs_stops where id = ANY(?))`, pq.Array(stopids)).
 		From("gtfs_stops").

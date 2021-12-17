@@ -88,6 +88,7 @@ type PointRadius struct {
 
 type RouteFilter struct {
 	OnestopID         *string      `json:"onestop_id"`
+	OnestopIds        []string     `json:"onestop_ids"`
 	FeedVersionSha1   *string      `json:"feed_version_sha1"`
 	FeedOnestopID     *string      `json:"feed_onestop_id"`
 	RouteID           *string      `json:"route_id"`
@@ -101,6 +102,7 @@ type RouteFilter struct {
 
 type StopFilter struct {
 	OnestopID          *string      `json:"onestop_id"`
+	OnestopIds         []string     `json:"onestop_ids"`
 	FeedVersionSha1    *string      `json:"feed_version_sha1"`
 	FeedOnestopID      *string      `json:"feed_onestop_id"`
 	StopID             *string      `json:"stop_id"`
@@ -115,6 +117,8 @@ type StopTimeFilter struct {
 	ServiceDate *tl.ODate `json:"service_date"`
 	StartTime   *int      `json:"start_time"`
 	EndTime     *int      `json:"end_time"`
+	Timezone    *string   `json:"timezone"`
+	Next        *int      `json:"next"`
 }
 
 type TripFilter struct {

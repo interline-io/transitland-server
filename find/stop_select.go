@@ -31,6 +31,15 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_stops.id")
 	distinct := false
+	if where != nil {
+		if where.Within != nil && where.Within.Valid {
+			qView = qView.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
+		}
+		if where.Near != nil {
+			radius := checkFloat(&where.Near.Radius, 0, 10_000)
+			qView = qView.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+		}
+	}
 	if where != nil && len(where.ServedByOnestopIds) > 0 {
 		// Accepts both route and operator Onestop IDs
 		distinct = true
@@ -90,17 +99,13 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 			q = q.Where(sq.Eq{"feed_version_sha1": *where.FeedVersionSha1})
 		}
 		if where.OnestopID != nil {
-			q = q.Where(sq.Eq{"onestop_id": *where.OnestopID})
+			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
+		}
+		if len(where.OnestopIds) > 0 {
+			q = q.Where(sq.Eq{"onestop_id": where.OnestopIds})
 		}
 		if where.StopID != nil {
 			q = q.Where(sq.Eq{"stop_id": *where.StopID})
-		}
-		if where.Within != nil && where.Within.Valid {
-			q = q.Where("ST_Intersects(t.geometry, ?)", where.Within)
-		}
-		if where.Near != nil {
-			radius := checkFloat(&where.Near.Radius, 0, 10_000)
-			q = q.Where("ST_DWithin(t.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
 	}
 	return q

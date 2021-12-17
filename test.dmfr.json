@@ -1,0 +1,12 @@
+{
+  "$schema": "https://dmfr.transit.land/json-schema/dmfr.schema.json",
+  "feeds": [
+    {
+      "spec": "gtfs",
+      "name": "test",
+      "id": "test",
+      "urls": {}
+    }
+  ],
+  "license_spdx_identifier": "CC0-1.0"
+}
