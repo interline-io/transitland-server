@@ -30,6 +30,39 @@ func TripSelect(limit *int, after *int, ids []int, active bool, where *model.Tri
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
+	if where != nil {
+		if len(where.RouteOnestopIds) > 0 {
+			qView = qView.Join("tl_route_onestop_ids tlros on tlros.route_id = gtfs_trips.route_id")
+			qView = qView.Where(sq.Eq{"tlros.onestop_id": where.RouteOnestopIds})
+		}
+		if where.ServiceDate != nil {
+			serviceDate := where.ServiceDate.Time
+			qView = qView.JoinClause(`
+			join lateral (
+				select gc.id
+				from gtfs_calendars gc 
+				left join gtfs_calendar_dates gcda on gcda.service_id = gc.id and gcda.exception_type = 1 and gcda.date = ?::date
+				left join gtfs_calendar_dates gcdb on gcdb.service_id = gc.id and gcdb.exception_type = 2 and gcdb.date = ?::date
+				where 
+					gc.id = gtfs_trips.service_id 
+					AND ((
+						gc.start_date <= ?::date AND gc.end_date >= ?::date
+						AND (CASE EXTRACT(isodow FROM ?::date)
+						WHEN 1 THEN monday = 1
+						WHEN 2 THEN tuesday = 1
+						WHEN 3 THEN wednesday = 1
+						WHEN 4 THEN thursday = 1
+						WHEN 5 THEN friday = 1
+						WHEN 6 THEN saturday = 1
+						WHEN 7 THEN sunday = 1
+						END)
+					) OR gcda.date IS NOT NULL)
+					AND gcdb.date is null
+				LIMIT 1
+			) gc on true
+			`, serviceDate, serviceDate, serviceDate, serviceDate, serviceDate)
+		}
+	}
 
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {
@@ -49,39 +82,8 @@ func TripSelect(limit *int, after *int, ids []int, active bool, where *model.Tri
 		if len(where.RouteIds) > 0 {
 			q = q.Where(sq.Eq{"route_id": where.RouteIds})
 		}
-		if len(where.RouteOnestopIds) > 0 {
-			q = q.Join("tl_route_onestop_ids tlros on tlros.route_id = t.route_id")
-			q = q.Where(sq.Eq{"tlros.onestop_id": where.RouteOnestopIds})
-		}
 		if where.TripID != nil {
 			q = q.Where(sq.Eq{"trip_id": *where.TripID})
-		}
-		if where.ServiceDate != nil {
-			serviceDate := where.ServiceDate.Time
-			q = q.JoinClause(`
-			inner join lateral (
-				select gc.id
-				from gtfs_calendars gc 
-				left join gtfs_calendar_dates gcda on gcda.service_id = gc.id and gcda.exception_type = 1 and gcda.date = ?::date
-				left join gtfs_calendar_dates gcdb on gcdb.service_id = gc.id and gcdb.exception_type = 2 and gcdb.date = ?::date
-				where 
-					gc.id = t.service_id 
-					AND ((
-						gc.start_date <= ?::date AND gc.end_date >= ?::date
-						AND (CASE EXTRACT(isodow FROM ?::date)
-						WHEN 1 THEN monday = 1
-						WHEN 2 THEN tuesday = 1
-						WHEN 3 THEN wednesday = 1
-						WHEN 4 THEN thursday = 1
-						WHEN 5 THEN friday = 1
-						WHEN 6 THEN saturday = 1
-						WHEN 7 THEN sunday = 1
-						END)
-					) OR gcda.date IS NOT NULL)
-					AND gcdb.date is null
-				LIMIT 1
-			) gc on true
-			`, serviceDate, serviceDate, serviceDate, serviceDate, serviceDate)
 		}
 	}
 	return q

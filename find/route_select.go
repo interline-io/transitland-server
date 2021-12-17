@@ -19,36 +19,46 @@ func FindRoutes(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.Ro
 func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
-		"g.geometry",
-		"g.generated AS geometry_generated",
+		"tlrg.geometry",
+		"tlrg.generated AS geometry_generated",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
-		"coif.resolved_onestop_id AS operator_onestop_id",
 		"tl_route_onestop_ids.onestop_id",
 	).
 		From("gtfs_routes").
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		Join("gtfs_agencies ON gtfs_agencies.id = gtfs_routes.agency_id").
-		JoinClause("LEFT JOIN current_operators_in_feed coif ON coif.feed_id = feed_versions.feed_id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 		JoinClause("LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id").
-		JoinClause(`LEFT JOIN LATERAL ( SELECT tl_route_geometries.route_id,
-            tl_route_geometries.feed_version_id,
-            tl_route_geometries.shape_id,
-            tl_route_geometries.direction_id,
-            tl_route_geometries.generated,
-            tl_route_geometries.combined_geometry AS geometry
-           FROM tl_route_geometries
-          WHERE tl_route_geometries.route_id = gtfs_routes.id
-          ORDER BY tl_route_geometries.route_id, tl_route_geometries.direction_id
-         LIMIT 1) g ON true`).
+		JoinClause(`LEFT JOIN tl_route_geometries tlrg ON tlrg.route_id = gtfs_routes.id`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_routes.id")
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
 	}
-
+	if where != nil {
+		if where.Within != nil && where.Within.Valid {
+			qView = qView.JoinClause(`JOIN (
+				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
+				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
+				WHERE ST_Intersects(gtfs_stops.geometry, ?)
+			) tlrs on tlrs.route_id = gtfs_routes.id`, where.Within)
+		}
+		if where.Near != nil {
+			radius := checkFloat(&where.Near.Radius, 0, 10_000)
+			qView = qView.JoinClause(`JOIN (
+				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
+				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
+				WHERE ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)
+			) tlrs on tlrs.route_id = gtfs_routes.id`, where.Near.Lon, where.Near.Lat, radius)
+		}
+		if where.OperatorOnestopID != nil {
+			qView = qView.
+				Join("gtfs_agencies ON gtfs_agencies.id = gtfs_routes.agency_id").
+				JoinClause("LEFT JOIN current_operators_in_feed coif ON coif.feed_id = feed_versions.feed_id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
+				Where(sq.Eq{"coif.resolved_onestop_id": *where.OperatorOnestopID})
+		}
+	}
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
@@ -77,18 +87,8 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 		if where.OnestopID != nil {
 			q = q.Where(sq.Eq{"onestop_id": *where.OnestopID})
 		}
-		if where.OperatorOnestopID != nil {
-			q = q.Where(sq.Eq{"operator_onestop_id": *where.OperatorOnestopID})
-		}
 		if where.RouteType != nil {
 			q = q.Where(sq.Eq{"route_type": where.RouteType})
-		}
-		if where.Within != nil && where.Within.Valid {
-			q = q.Where("ST_Intersects(t.geometry, ?)", where.Within)
-		}
-		if where.Near != nil {
-			radius := checkFloat(&where.Near.Radius, 0, 10_000)
-			q = q.Where("ST_DWithin(t.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
 	}
 	return q
