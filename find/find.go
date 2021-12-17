@@ -87,21 +87,22 @@ func az09(v string) string {
 }
 
 func escapeWordsWithSuffix(v string, sfx string) []string {
-	f := strings.Fields(v)
-	for i, s := range f {
-		f[i] = alphanumeric(s) + sfx
+	var ret []string
+	for _, s := range strings.Fields(v) {
+		aa := alphanumeric(s)
+		// Minimum length 2 characters
+		if len(aa) > 1 {
+			ret = append(ret, aa+sfx)
+		}
 	}
-	return f
+	return ret
 }
 
 func tsQueryWords(s string) string {
 	s = strings.TrimSpace(s)
 	words := []string{}
 	for _, v := range escapeWordsWithSuffix(s, ":*") {
-		// Minimum length 2 characters
-		if len(v) > 1 {
-			words = append(words, v)
-		}
+		words = append(words, v)
 	}
 	wordstsq := strings.Join(words, " & ")
 	return wordstsq
