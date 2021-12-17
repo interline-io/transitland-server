@@ -39,35 +39,50 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 			radius := checkFloat(&where.Near.Radius, 0, 10_000)
 			qView = qView.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
-	}
-	if where != nil && len(where.ServedByOnestopIds) > 0 {
+		if where.FeedOnestopID != nil {
+			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
+		}
+		if where.FeedVersionSha1 != nil {
+			qView = qView.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
+		}
+		if where.OnestopID != nil {
+			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
+		}
+		if len(where.OnestopIds) > 0 {
+			qView = qView.Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds})
+		}
+		if where.StopID != nil {
+			qView = qView.Where(sq.Eq{"gtfs_stops.stop_id": *where.StopID})
+		}
 		// Accepts both route and operator Onestop IDs
-		distinct = true
-		agencies := []string{}
-		routes := []string{}
-		for _, osid := range where.ServedByOnestopIds {
-			if len(osid) == 0 {
-			} else if osid[0] == 'o' {
-				agencies = append(agencies, osid)
-			} else if osid[0] == 'r' {
-				routes = append(routes, osid)
+		if len(where.ServedByOnestopIds) > 0 {
+			distinct = true
+			agencies := []string{}
+			routes := []string{}
+			for _, osid := range where.ServedByOnestopIds {
+				if len(osid) == 0 {
+				} else if osid[0] == 'o' {
+					agencies = append(agencies, osid)
+				} else if osid[0] == 'r' {
+					routes = append(routes, osid)
+				}
 			}
-		}
-		qView = qView.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id")
-		if len(routes) > 0 {
-			qView = qView.Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id")
-		}
-		if len(agencies) > 0 {
-			qView = qView.
-				Join("gtfs_agencies on gtfs_agencies.id = tl_route_stops.agency_id").
-				Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id")
-		}
-		if len(routes) > 0 && len(agencies) > 0 {
-			qView = qView.Where(sq.Or{sq.Eq{"tl_route_onestop_ids.onestop_id": routes}, sq.Eq{"coif.resolved_onestop_id": agencies}})
-		} else if len(routes) > 0 {
-			qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
-		} else if len(agencies) > 0 {
-			qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
+			qView = qView.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id")
+			if len(routes) > 0 {
+				qView = qView.Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id")
+			}
+			if len(agencies) > 0 {
+				qView = qView.
+					Join("gtfs_agencies on gtfs_agencies.id = tl_route_stops.agency_id").
+					Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id")
+			}
+			if len(routes) > 0 && len(agencies) > 0 {
+				qView = qView.Where(sq.Or{sq.Eq{"tl_route_onestop_ids.onestop_id": routes}, sq.Eq{"coif.resolved_onestop_id": agencies}})
+			} else if len(routes) > 0 {
+				qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
+			} else if len(agencies) > 0 {
+				qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
+			}
 		}
 	}
 	if distinct {
@@ -76,36 +91,19 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
 	}
-
-	// Other filters
-	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"t.id": ids})
+		qView = qView.Where(sq.Eq{"gtfs_stops.id": ids})
 	}
 	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
+		qView = qView.Where(sq.Gt{"gtfs_stops.id": *after})
 	}
-	q = q.Limit(checkLimit(limit))
-
+	qView = qView.Limit(checkLimit(limit))
+	// Other filters
+	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)
 			q = q.Column(rank).Where(wc)
-		}
-		if where.FeedOnestopID != nil {
-			q = q.Where(sq.Eq{"feed_onestop_id": *where.FeedOnestopID})
-		}
-		if where.FeedVersionSha1 != nil {
-			q = q.Where(sq.Eq{"feed_version_sha1": *where.FeedVersionSha1})
-		}
-		if where.OnestopID != nil {
-			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
-		}
-		if len(where.OnestopIds) > 0 {
-			q = q.Where(sq.Eq{"onestop_id": where.OnestopIds})
-		}
-		if where.StopID != nil {
-			q = q.Where(sq.Eq{"stop_id": *where.StopID})
 		}
 	}
 	return q
