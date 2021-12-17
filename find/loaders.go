@@ -410,10 +410,15 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					if len(params) == 0 {
 						return nil, nil
 					}
+					limit := checkLimit(params[0].Limit)
 					ids := []int{}
 					qents := []*model.StopTime{}
 					for _, p := range params {
 						ids = append(ids, p.StopID)
+					}
+					var spairs []StopFVPair
+					for _, p := range params {
+						spairs = append(spairs, StopFVPair{StopID: p.StopID, FeedVersionID: 239470})
 					}
 					if p := params[0].Where; p != nil && (p.ServiceDate != nil || p.Next != nil) {
 						// require a valid timezone
@@ -422,25 +427,28 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 								return nil, []error{fmt.Errorf("invalid timezone: '%s'", *p.Timezone)}
 							}
 						}
-						q := StopDeparturesSelect(nil, nil, ids, p)
-						qstr, qargs, err := q.ToSql()
-						if err != nil {
-							panic(err)
-						}
-						if err := sqlx.Select(atx, &qents, atx.Rebind(qstr), qargs...); err != nil {
-							panic(err)
-						}
+						q := StopDeparturesSelect(nil, nil, spairs, p)
+						MustSelect(
+							atx,
+							q,
+							&qents,
+						)
 					} else {
 						// Otherwise get all stop_times for stop
 						MustSelect(
 							atx,
-							lateralWrap(StopTimeSelect(params[0].Limit, nil, nil, nil, ids, params[0].Where), "gtfs_stops", "id", "stop_id", ids),
+							StopTimeSelect(nil, nil, nil, nil, ids, params[0].Where),
 							&qents,
 						)
 					}
 					group := map[int][]*model.StopTime{}
 					for _, ent := range qents {
 						group[atoi(ent.StopID)] = append(group[atoi(ent.StopID)], ent)
+					}
+					for k, ents := range group {
+						if uint64(len(ents)) > limit {
+							group[k] = ents[0:limit]
+						}
 					}
 					for _, id := range ids {
 						ents = append(ents, group[id])
