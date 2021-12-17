@@ -140,31 +140,16 @@ type RouteStop struct {
 }
 
 type RouteHeadway struct {
-	ID                           int      `json:"id"`
-	RouteID                      int      `json:"route_id"`
-	SelectedStopID               int      `json:"selected_stop_id"`
-	DirectionID                  int      `json:"direction_id"`
-	HeadwaySecs                  *int     `json:"headway_secs"`
-	DowCategory                  *int     `json:"dow_category"`
-	ServiceDate                  tl.ODate `json:"service_date"`
-	ServiceSeconds               *int     `json:"service_seconds"`
-	StopTripCount                *int     `json:"stop_trip_count"`
-	HeadwaySecondsMorningCount   *int     `json:"headway_seconds_morning_count"`
-	HeadwaySecondsMorningMin     *int     `json:"headway_seconds_morning_min"`
-	HeadwaySecondsMorningMid     *int     `json:"headway_seconds_morning_mid"`
-	HeadwaySecondsMorningMax     *int     `json:"headway_seconds_morning_max"`
-	HeadwaySecondsMiddayCount    *int     `json:"headway_seconds_midday_count"`
-	HeadwaySecondsMiddayMin      *int     `json:"headway_seconds_midday_min"`
-	HeadwaySecondsMiddayMid      *int     `json:"headway_seconds_midday_mid"`
-	HeadwaySecondsMiddayMax      *int     `json:"headway_seconds_midday_max"`
-	HeadwaySecondsAfternoonCount *int     `json:"headway_seconds_afternoon_count"`
-	HeadwaySecondsAfternoonMin   *int     `json:"headway_seconds_afternoon_min"`
-	HeadwaySecondsAfternoonMid   *int     `json:"headway_seconds_afternoon_mid"`
-	HeadwaySecondsAfternoonMax   *int     `json:"headway_seconds_afternoon_max"`
-	HeadwaySecondsNightCount     *int     `json:"headway_seconds_night_count"`
-	HeadwaySecondsNightMin       *int     `json:"headway_seconds_night_min"`
-	HeadwaySecondsNightMid       *int     `json:"headway_seconds_night_mid"`
-	HeadwaySecondsNightMax       *int     `json:"headway_seconds_night_max"`
+	ID             int      `json:"id"`
+	RouteID        int      `json:"route_id"`
+	SelectedStopID int      `json:"selected_stop_id"`
+	DirectionID    int      `json:"direction_id"`
+	HeadwaySecs    *int     `json:"headway_secs"`
+	DowCategory    *int     `json:"dow_category"`
+	ServiceDate    tl.ODate `json:"service_date"`
+	ServiceSeconds *int     `json:"service_seconds"`
+	StopTripCount  *int     `json:"stop_trip_count"`
+	Departures     tl.IntSlice
 }
 
 type RouteStopBuffer struct {
@@ -174,10 +159,9 @@ type RouteStopBuffer struct {
 }
 
 type RouteGeometry struct {
-	RouteID     int           `json:"route_id"`
-	DirectionID int           `json:"direction_id"`
-	Generated   bool          `json:"generated"`
-	Geometry    tl.LineString `json:"geometry"`
+	RouteID   int           `json:"route_id"`
+	Generated bool          `json:"generated"`
+	Geometry  tl.LineString `json:"geometry"`
 }
 
 type AgencyPlace struct {

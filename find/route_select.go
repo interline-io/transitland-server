@@ -8,7 +8,7 @@ import (
 
 func FindRoutes(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.RouteFilter) (ents []*model.Route, err error) {
 	active := false
-	if where != nil && where.FeedVersionSha1 == nil {
+	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
 		active = true
 	}
 	q := RouteSelect(limit, after, ids, active, where)
@@ -19,7 +19,7 @@ func FindRoutes(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.Ro
 func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
-		"tlrg.geometry",
+		"tlrg.combined_geometry as geometry",
 		"tlrg.generated AS geometry_generated",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",

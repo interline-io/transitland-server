@@ -317,8 +317,8 @@ type Frequency {
 }
 
 type StopTime {
-  arrival_time: Int!
-  departure_time: Int!
+  arrival_time: Seconds!
+  departure_time: Seconds!
   stop_sequence: Int!
   stop_headsign: String
   pickup_type: Int
@@ -359,7 +359,6 @@ type RouteStop {
 }
 
 type RouteGeometry {
-  direction_id: Int!
   generated: Boolean!
   geometry: LineString!
 }
@@ -370,24 +369,8 @@ type RouteHeadway {
   direction_id: Int
   headway_secs: Int
   service_date: Date
-  service_seconds: Int
   stop_trip_count: Int
-  headway_seconds_morning_count: Int
-  headway_seconds_morning_min: Int
-  headway_seconds_morning_mid: Int
-  headway_seconds_morning_max: Int
-  headway_seconds_midday_count: Int
-  headway_seconds_midday_min: Int
-  headway_seconds_midday_mid: Int
-  headway_seconds_midday_max: Int
-  headway_seconds_afternoon_count: Int
-  headway_seconds_afternoon_min: Int
-  headway_seconds_afternoon_mid: Int
-  headway_seconds_afternoon_max: Int
-  headway_seconds_night_count: Int
-  headway_seconds_night_min: Int
-  headway_seconds_night_mid: Int
-  headway_seconds_night_max: Int
+  departures: [Seconds!]
 }
 
 # Census entities
