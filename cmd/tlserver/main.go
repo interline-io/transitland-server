@@ -9,6 +9,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/dmfr/importer"
 	"github.com/interline-io/transitland-lib/dmfr/sync"
+	"github.com/interline-io/transitland-lib/dmfr/unimporter"
 	"github.com/interline-io/transitland-lib/tl"
 	server "github.com/interline-io/transitland-server"
 )
@@ -35,6 +36,7 @@ func main() {
 		log.Printf("  sync")
 		log.Printf("  fetch")
 		log.Printf("  import")
+		log.Printf("  unimport")
 		log.Printf("  server")
 
 	}
@@ -56,6 +58,8 @@ func main() {
 		r = &sync.Command{}
 	case "import":
 		r = &importer.Command{}
+	case "unimport":
+		r = &unimporter.Command{}
 	case "fetch":
 		r = &fetch.Command{}
 	case "server":
