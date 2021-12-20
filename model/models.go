@@ -159,9 +159,10 @@ type RouteStopBuffer struct {
 }
 
 type RouteGeometry struct {
-	RouteID   int           `json:"route_id"`
-	Generated bool          `json:"generated"`
-	Geometry  tl.LineString `json:"geometry"`
+	RouteID          int           `json:"route_id"`
+	Generated        bool          `json:"generated"`
+	Geometry         tl.LineString `json:"geometry"`
+	CombinedGeometry tl.Geometry   `json:"combined_geometry"`
 }
 
 type AgencyPlace struct {

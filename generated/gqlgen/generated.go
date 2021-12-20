@@ -51,7 +51,6 @@ type ResolverRoot interface {
 	Pathway() PathwayResolver
 	Query() QueryResolver
 	Route() RouteResolver
-	RouteGeometry() RouteGeometryResolver
 	RouteHeadway() RouteHeadwayResolver
 	RouteStop() RouteStopResolver
 	Stop() StopResolver
@@ -596,9 +595,6 @@ type RouteResolver interface {
 	Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error)
 	CensusGeographies(ctx context.Context, obj *model.Route, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error)
-}
-type RouteGeometryResolver interface {
-	CombinedGeometry(ctx context.Context, obj *model.RouteGeometry) (*tl.Geometry, error)
 }
 type RouteHeadwayResolver interface {
 	Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error)
@@ -13269,14 +13265,14 @@ func (ec *executionContext) _RouteGeometry_combined_geometry(ctx context.Context
 		Object:     "RouteGeometry",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.RouteGeometry().CombinedGeometry(rctx, obj)
+		return obj.CombinedGeometry, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13285,9 +13281,9 @@ func (ec *executionContext) _RouteGeometry_combined_geometry(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tl.Geometry)
+	res := resTmp.(tl.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx, field.Selections, res)
+	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RouteHeadway_stop(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
@@ -20487,21 +20483,12 @@ func (ec *executionContext) _RouteGeometry(ctx context.Context, sel ast.Selectio
 		case "generated":
 			out.Values[i] = ec._RouteGeometry_generated(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "geometry":
 			out.Values[i] = ec._RouteGeometry_geometry(ctx, field, obj)
 		case "combined_geometry":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._RouteGeometry_combined_geometry(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._RouteGeometry_combined_geometry(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
