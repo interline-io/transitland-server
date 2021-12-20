@@ -203,7 +203,7 @@ type Route {
   route_sort_order: Int!
   route_url: String!
   route_desc: String!
-  geometry: Geometry!
+  geometry: Geometry
   agency: Agency!
   feed_version: FeedVersion!
   feed_version_sha1: String!
@@ -362,7 +362,8 @@ type RouteStop {
 
 type RouteGeometry {
   generated: Boolean!
-  geometry: LineString!
+  geometry: LineString
+  combined_geometry: Geometry
 }
 
 type RouteHeadway {
