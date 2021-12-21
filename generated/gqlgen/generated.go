@@ -246,6 +246,7 @@ type ComplexityRoot struct {
 		ID                        func(childComplexity int) int
 		InProgress                func(childComplexity int) int
 		InterpolatedStopTimeCount func(childComplexity int) int
+		ScheduleRemoved           func(childComplexity int) int
 		SkipEntityErrorCount      func(childComplexity int) int
 		SkipEntityFilterCount     func(childComplexity int) int
 		SkipEntityMarkedCount     func(childComplexity int) int
@@ -371,8 +372,9 @@ type ComplexityRoot struct {
 	}
 
 	RouteGeometry struct {
-		Generated func(childComplexity int) int
-		Geometry  func(childComplexity int) int
+		CombinedGeometry func(childComplexity int) int
+		Generated        func(childComplexity int) int
+		Geometry         func(childComplexity int) int
 	}
 
 	RouteHeadway struct {
@@ -1653,6 +1655,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FeedVersionGtfsImport.InterpolatedStopTimeCount(childComplexity), true
 
+	case "FeedVersionGtfsImport.schedule_removed":
+		if e.complexity.FeedVersionGtfsImport.ScheduleRemoved == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionGtfsImport.ScheduleRemoved(childComplexity), true
+
 	case "FeedVersionGtfsImport.skip_entity_error_count":
 		if e.complexity.FeedVersionGtfsImport.SkipEntityErrorCount == nil {
 			break
@@ -2396,6 +2405,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Route.Trips(childComplexity, args["limit"].(*int), args["where"].(*model.TripFilter)), true
+
+	case "RouteGeometry.combined_geometry":
+		if e.complexity.RouteGeometry.CombinedGeometry == nil {
+			break
+		}
+
+		return e.complexity.RouteGeometry.CombinedGeometry(childComplexity), true
 
 	case "RouteGeometry.generated":
 		if e.complexity.RouteGeometry.Generated == nil {
@@ -3322,6 +3338,7 @@ type FeedVersionGtfsImport {
   id: Int!
   in_progress: Boolean!
   success: Boolean!
+  schedule_removed: Boolean!
   exception_log: String!
   skip_entity_error_count: Any
   entity_count: Any
@@ -3403,7 +3420,7 @@ type Route {
   route_sort_order: Int!
   route_url: String!
   route_desc: String!
-  geometry: Geometry!
+  geometry: Geometry
   agency: Agency!
   feed_version: FeedVersion!
   feed_version_sha1: String!
@@ -3562,7 +3579,8 @@ type RouteStop {
 
 type RouteGeometry {
   generated: Boolean!
-  geometry: LineString!
+  geometry: LineString
+  combined_geometry: Geometry
 }
 
 type RouteHeadway {
@@ -9576,6 +9594,41 @@ func (ec *executionContext) _FeedVersionGtfsImport_success(ctx context.Context, 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FeedVersionGtfsImport_schedule_removed(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionGtfsImport) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedVersionGtfsImport",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduleRemoved, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FeedVersionGtfsImport_exception_log(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionGtfsImport) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12708,14 +12761,11 @@ func (ec *executionContext) _Route_geometry(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tl.Geometry)
 	fc.Result = res
-	return ec.marshalNGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx, field.Selections, res)
+	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Route_agency(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
@@ -13241,14 +13291,43 @@ func (ec *executionContext) _RouteGeometry_geometry(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tl.LineString)
 	fc.Result = res
-	return ec.marshalNLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐLineString(ctx, field.Selections, res)
+	return ec.marshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐLineString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RouteGeometry_combined_geometry(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RouteGeometry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CombinedGeometry, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Geometry)
+	fc.Result = res
+	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RouteHeadway_stop(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
@@ -19560,6 +19639,11 @@ func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "schedule_removed":
+			out.Values[i] = ec._FeedVersionGtfsImport_schedule_removed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "exception_log":
 			out.Values[i] = ec._FeedVersionGtfsImport_exception_log(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -20288,9 +20372,6 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "geometry":
 			out.Values[i] = ec._Route_geometry(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "agency":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20455,9 +20536,8 @@ func (ec *executionContext) _RouteGeometry(ctx context.Context, sel ast.Selectio
 			}
 		case "geometry":
 			out.Values[i] = ec._RouteGeometry_geometry(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "combined_geometry":
+			out.Values[i] = ec._RouteGeometry_combined_geometry(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22276,16 +22356,6 @@ func (ec *executionContext) marshalNFrequency2ᚖgithubᚗcomᚋinterlineᚑio�
 	return ec._Frequency(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx context.Context, v interface{}) (tl.Geometry, error) {
-	var res tl.Geometry
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx context.Context, sel ast.SelectionSet, v tl.Geometry) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -23626,6 +23696,16 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return graphql.MarshalFloat(*v)
 }
 
+func (ec *executionContext) unmarshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx context.Context, v interface{}) (tl.Geometry, error) {
+	var res tl.Geometry
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx context.Context, sel ast.SelectionSet, v tl.Geometry) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx context.Context, v interface{}) (*tl.Geometry, error) {
 	if v == nil {
 		return nil, nil
@@ -23733,6 +23813,16 @@ func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtra
 		return graphql.Null
 	}
 	return ec._Level(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐLineString(ctx context.Context, v interface{}) (tl.LineString, error) {
+	var res tl.LineString
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐLineString(ctx context.Context, sel ast.SelectionSet, v tl.LineString) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalOOperator2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐOperatorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Operator) graphql.Marshaler {

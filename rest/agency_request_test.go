@@ -9,7 +9,7 @@ func TestAgencyRequest(t *testing.T) {
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
 	testcases := []testRest{
 		{"basic", AgencyRequest{}, "", "agencies.#.agency_id", []string{"caltrain-ca-us", "BART"}, 0},
-		{"limit:1", AgencyRequest{Limit: 1}, "", "agencies.#.agency_id", []string{"caltrain-ca-us"}, 0},
+		{"limit:1", AgencyRequest{Limit: 1}, "", "agencies.#.agency_id", []string{"BART"}, 0}, // this used to be caltrain but now bart is imported first.
 		{"feed_version_sha1", AgencyRequest{FeedVersionSHA1: fv}, "", "agencies.#.agency_id", []string{"BART"}, 0},
 		{"feed_onestop_id", AgencyRequest{FeedOnestopID: "BA"}, "", "agencies.#.agency_id", []string{"BART"}, 0},
 		{"feed_onestop_id,agency_id", AgencyRequest{FeedOnestopID: "BA", AgencyID: "BART"}, "", "agencies.#.agency_id", []string{"BART"}, 0},
