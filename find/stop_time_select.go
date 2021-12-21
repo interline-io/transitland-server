@@ -8,7 +8,12 @@ import (
 	"github.com/lib/pq"
 )
 
-func StopTimeSelect(limit *int, after *int, ids []int, tripids []int, stopids []int, where *model.StopTimeFilter) sq.SelectBuilder {
+type FVPair struct {
+	EntityID      int
+	FeedVersionID int
+}
+
+func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
@@ -28,42 +33,20 @@ func StopTimeSelect(limit *int, after *int, ids []int, tripids []int, stopids []
 		From("gtfs_trips").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times st ON st.trip_id = t2.id").
-		Limit(checkLimit(limit)).
-		OrderBy("gtfs_trips.id asc, stop_sequence asc")
-	if len(tripids) > 0 {
-		qView = qView.Where(sq.Eq{"gtfs_trips.id": tripids})
+		OrderBy("gtfs_trips.id asc, st.stop_sequence asc")
+
+	if len(tpairs) > 0 {
+		eids, fvids := pairKeys(tpairs)
+		qView = qView.Where(sq.Eq{"gtfs_trips.id": eids, "gtfs_trips.feed_version_id": fvids})
 	}
-	if len(stopids) > 0 {
-		qView = qView.Where(sq.Eq{"st.stop_id": stopids})
+	if len(spairs) > 0 {
+		eids, fvids := pairKeys(spairs)
+		qView = qView.Where(sq.Eq{"st.stop_id": eids, "st.feed_version_id": fvids})
 	}
-	// Still need to wrap for lateral joins
-	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
-	return q
+	return qView
 }
 
-type StopFVPair struct {
-	FeedVersionID int
-	StopID        int
-}
-
-func StopDeparturesSelect2(limit *int, after *int, stopids []StopFVPair, where *model.StopTimeFilter) sq.SelectBuilder {
-	var sids []int
-	fvidMap := map[int]bool{}
-	for _, p := range stopids {
-		sids = append(sids, p.StopID)
-		fvidMap[p.FeedVersionID] = true
-	}
-	var fvids []int
-	for k := range fvidMap {
-		fvids = append(fvids, k)
-	}
-	q := sq.StatementBuilder.
-		Select("sts.*").From("gtfs_stop_times sts").
-		Where(sq.Eq{"stop_id": sids, "feed_version_id": fvids})
-	return q
-}
-
-func StopDeparturesSelect(limit *int, after *int, stopids []StopFVPair, where *model.StopTimeFilter) sq.SelectBuilder {
+func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
 	serviceDate := time.Now()
 	if where != nil && where.Next != nil && where.Timezone != nil {
 		// Require a valid timezone
@@ -79,16 +62,7 @@ func StopDeparturesSelect(limit *int, after *int, stopids []StopFVPair, where *m
 	if where != nil && where.ServiceDate != nil {
 		serviceDate = where.ServiceDate.Time
 	}
-	var sids []int
-	fvidMap := map[int]bool{}
-	for _, p := range stopids {
-		sids = append(sids, p.StopID)
-		fvidMap[p.FeedVersionID] = true
-	}
-	var fvids []int
-	for k := range fvidMap {
-		fvids = append(fvids, k)
-	}
+	sids, fvids := pairKeys(spairs)
 	pqfvids := pq.Array(fvids)
 	// TODO: support journey patterns properly
 	q := sq.StatementBuilder.Select("gtfs_stop_times.*").
@@ -145,4 +119,22 @@ func StopDeparturesSelect(limit *int, after *int, stopids []StopFVPair, where *m
 		}
 	}
 	return q
+}
+
+func pairKeys(spairs []FVPair) ([]int, []int) {
+	eids := map[int]bool{}
+	fvids := map[int]bool{}
+	for _, v := range spairs {
+		eids[v.EntityID] = true
+		fvids[v.FeedVersionID] = true
+	}
+	var ueids []int
+	for k := range eids {
+		ueids = append(ueids, k)
+	}
+	var ufvids []int
+	for k := range fvids {
+		ufvids = append(ufvids, k)
+	}
+	return ueids, ufvids
 }

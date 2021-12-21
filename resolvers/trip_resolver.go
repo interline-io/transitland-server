@@ -31,7 +31,7 @@ func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Ca
 }
 
 func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int) ([]*model.StopTime, error) {
-	return find.For(ctx).StopTimesByTripID.Load(model.StopTimeParam{TripID: obj.ID, Limit: limit})
+	return find.For(ctx).StopTimesByTripID.Load(model.StopTimeParam{FeedVersionID: obj.FeedVersionID, TripID: obj.ID, Limit: limit})
 }
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {
