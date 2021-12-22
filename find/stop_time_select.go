@@ -19,29 +19,29 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilte
 		"gtfs_trips.journey_pattern_offset",
 		"gtfs_trips.id AS trip_id",
 		"gtfs_trips.feed_version_id",
-		"st.stop_id",
-		"st.arrival_time + gtfs_trips.journey_pattern_offset AS arrival_time",
-		"st.departure_time + gtfs_trips.journey_pattern_offset AS departure_time",
-		"st.stop_sequence",
-		"st.shape_dist_traveled",
-		"st.pickup_type",
-		"st.drop_off_type",
-		"st.timepoint",
-		"st.interpolated",
-		"st.stop_headsign",
+		"sts.stop_id",
+		"sts.arrival_time + gtfs_trips.journey_pattern_offset AS arrival_time",
+		"sts.departure_time + gtfs_trips.journey_pattern_offset AS departure_time",
+		"sts.stop_sequence",
+		"sts.shape_dist_traveled",
+		"sts.pickup_type",
+		"sts.drop_off_type",
+		"sts.timepoint",
+		"sts.interpolated",
+		"sts.stop_headsign",
 	).
 		From("gtfs_trips").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
-		Join("gtfs_stop_times st ON st.trip_id = t2.id").
-		OrderBy("gtfs_trips.id asc, st.stop_sequence asc")
+		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
+		OrderBy("sts.stop_id, sts.arrival_time asc")
 
 	if len(tpairs) > 0 {
 		eids, fvids := pairKeys(tpairs)
-		qView = qView.Where(sq.Eq{"gtfs_trips.id": eids, "gtfs_trips.feed_version_id": fvids})
+		qView = qView.Where(sq.Eq{"gtfs_trips.id": eids, "sts.feed_version_id": fvids, "gtfs_trips.feed_version_id": fvids})
 	}
 	if len(spairs) > 0 {
 		eids, fvids := pairKeys(spairs)
-		qView = qView.Where(sq.Eq{"st.stop_id": eids, "st.feed_version_id": fvids})
+		qView = qView.Where(sq.Eq{"sts.stop_id": eids, "sts.feed_version_id": fvids})
 	}
 	return qView
 }
@@ -64,10 +64,25 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 	}
 	sids, fvids := pairKeys(spairs)
 	pqfvids := pq.Array(fvids)
-	// TODO: support journey patterns properly
-	q := sq.StatementBuilder.Select("gtfs_stop_times.*").
-		From("gtfs_stop_times").
-		Join("gtfs_trips on gtfs_trips.id = gtfs_stop_times.trip_id").
+	q := sq.StatementBuilder.Select(
+		"gtfs_trips.journey_pattern_id",
+		"gtfs_trips.journey_pattern_offset",
+		"gtfs_trips.id AS trip_id",
+		"gtfs_trips.feed_version_id",
+		"sts.stop_id",
+		"sts.arrival_time + gtfs_trips.journey_pattern_offset AS arrival_time",
+		"sts.departure_time + gtfs_trips.journey_pattern_offset AS departure_time",
+		"sts.stop_sequence",
+		"sts.shape_dist_traveled",
+		"sts.pickup_type",
+		"sts.drop_off_type",
+		"sts.timepoint",
+		"sts.interpolated",
+		"sts.stop_headsign",
+	).
+		From("gtfs_trips").
+		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
+		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
 		JoinClause(`inner join (
 			SELECT
 				id
@@ -109,13 +124,14 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			pqfvids,
 			serviceDate,
 			pqfvids).
-		Where(sq.Eq{"gtfs_stop_times.stop_id": sids, "gtfs_stop_times.feed_version_id": fvids})
+		Where(sq.Eq{"sts.stop_id": sids, "sts.feed_version_id": fvids}).
+		OrderBy("sts.stop_id, sts.arrival_time asc")
 	if where != nil {
 		if where.StartTime != nil {
-			q = q.Where(sq.GtOrEq{"gtfs_stop_times.departure_time": where.StartTime})
+			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.StartTime})
 		}
 		if where.EndTime != nil {
-			q = q.Where(sq.LtOrEq{"gtfs_stop_times.departure_time": where.EndTime})
+			q = q.Where(sq.LtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.EndTime})
 		}
 	}
 	return q
