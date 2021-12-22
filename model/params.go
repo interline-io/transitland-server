@@ -39,10 +39,11 @@ type PathwayParam struct {
 }
 
 type StopTimeParam struct {
-	TripID int
-	StopID int
-	Limit  *int
-	Where  *StopTimeFilter
+	TripID        int
+	StopID        int
+	FeedVersionID int
+	Limit         *int
+	Where         *StopTimeFilter
 }
 
 type AgencyParam struct {

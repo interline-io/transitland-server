@@ -562,6 +562,7 @@ input StopFilter {
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
+  stop_code: String
   within: Polygon
   near: PointRadius
   search: String

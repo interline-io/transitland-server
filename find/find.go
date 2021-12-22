@@ -100,10 +100,7 @@ func escapeWordsWithSuffix(v string, sfx string) []string {
 
 func tsQuery(s string) (rank sq.Sqlizer, wc sq.Sqlizer) {
 	s = strings.TrimSpace(s)
-	words := []string{}
-	for _, v := range escapeWordsWithSuffix(s, ":*") {
-		words = append(words, v)
-	}
+	words := append([]string{}, escapeWordsWithSuffix(s, ":*")...)
 	wordstsq := strings.Join(words, " & ")
 	rank = sq.Expr("ts_rank_cd(t.textsearch,to_tsquery('tl',?)) as search_rank", wordstsq)
 	wc = sq.Expr("t.textsearch @@ to_tsquery('tl',?)", wordstsq)
