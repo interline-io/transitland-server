@@ -33,10 +33,28 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 		JoinClause(`LEFT JOIN tl_route_geometries tlrg ON tlrg.route_id = gtfs_routes.id`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_routes.id")
-	if active {
-		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
-	}
 	if where != nil {
+		if len(where.AgencyIds) > 0 {
+			qView = qView.Where(sq.Eq{"gtfs_routes.agency_id": where.AgencyIds})
+		}
+		if where.RouteID != nil {
+			qView = qView.Where(sq.Eq{"gtfs_routes.route_id": *where.RouteID})
+		}
+		if where.RouteType != nil {
+			qView = qView.Where(sq.Eq{"gtfs_routes.route_type": where.RouteType})
+		}
+		if where.OnestopID != nil {
+			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
+		}
+		if len(where.OnestopIds) > 0 {
+			qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
+		}
+		if where.FeedVersionSha1 != nil {
+			qView = qView.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
+		}
+		if where.FeedOnestopID != nil {
+			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
+		}
 		if where.Within != nil && where.Within.Valid {
 			qView = qView.JoinClause(`JOIN (
 				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
@@ -59,39 +77,22 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 				Where(sq.Eq{"coif.resolved_onestop_id": *where.OperatorOnestopID})
 		}
 	}
-	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
+	if active {
+		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
+	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"t.id": ids})
+		qView = qView.Where(sq.Eq{"gtfs_routes.id": ids})
 	}
 	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
+		qView = qView.Where(sq.Gt{"gtfs_routes.id": *after})
 	}
+	// Outer query
+	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	q = q.Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 0 {
 			rank, wc := tsQuery(*where.Search)
 			q = q.Column(rank).Where(wc)
-		}
-		if len(where.AgencyIds) > 0 {
-			q = q.Where(sq.Eq{"agency_id": where.AgencyIds})
-		}
-		if where.FeedVersionSha1 != nil {
-			q = q.Where(sq.Eq{"feed_version_sha1": *where.FeedVersionSha1})
-		}
-		if where.FeedOnestopID != nil {
-			q = q.Where(sq.Eq{"feed_onestop_id": *where.FeedOnestopID})
-		}
-		if where.RouteID != nil {
-			q = q.Where(sq.Eq{"route_id": *where.RouteID})
-		}
-		if where.OnestopID != nil {
-			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
-		}
-		if len(where.OnestopIds) > 0 {
-			q = q.Where(sq.Eq{"onestop_id": where.OnestopIds})
-		}
-		if where.RouteType != nil {
-			q = q.Where(sq.Eq{"route_type": where.RouteType})
 		}
 	}
 	return q

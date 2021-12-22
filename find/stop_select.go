@@ -97,9 +97,9 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 	if after != nil {
 		qView = qView.Where(sq.Gt{"gtfs_stops.id": *after})
 	}
-	qView = qView.Limit(checkLimit(limit))
-	// Other filters
+	// Outer query
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
+	q = q.Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)
