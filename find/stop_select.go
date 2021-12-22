@@ -39,6 +39,9 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 			radius := checkFloat(&where.Near.Radius, 0, 10_000)
 			qView = qView.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
+		if where.StopCode != nil {
+			qView = qView.Where(sq.Eq{"gtfs_stops.stop_code": where.StopCode})
+		}
 		if where.FeedOnestopID != nil {
 			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}

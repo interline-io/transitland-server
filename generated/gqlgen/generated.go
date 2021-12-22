@@ -3778,6 +3778,7 @@ input StopFilter {
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
+  stop_code: String
   within: Polygon
   near: PointRadius
   search: String
@@ -18299,6 +18300,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_id"))
 			it.StopID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stop_code":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_code"))
+			it.StopCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
