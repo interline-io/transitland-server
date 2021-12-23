@@ -1,6 +1,5 @@
 query(
   $include_geometry: Boolean!
-  $include_route: Boolean!
   $limit: Int
   $ids: [Int!]
   $after: Int
@@ -44,27 +43,13 @@ query(
           geometry @include(if: $include_geometry)
           generated
         }
-        calendar {
-          service_id
-          start_date
-          end_date
-          monday
-          tuesday
-          wednesday
-          thursday
-          friday
-          saturday
-          sunday
-          added_dates
-          removed_dates
-        }
         frequencies {
           start_time
           end_time
           headway_secs
           exact_times
         }
-        route @include(if: $include_route) {
+        route {
           id
           onestop_id
           route_id

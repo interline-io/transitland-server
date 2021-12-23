@@ -42,6 +42,7 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	routeHandler := makeHandler(restcfg, func() apiHandler { return &RouteRequest{} })
 	tripHandler := makeHandler(restcfg, func() apiHandler { return &TripRequest{} })
 	stopHandler := makeHandler(restcfg, func() apiHandler { return &StopRequest{} })
+	stopDepartureHandler := makeHandler(restcfg, func() apiHandler { return &StopDepartureRequest{} })
 	operatorHandler := makeHandler(restcfg, func() apiHandler { return &OperatorRequest{} })
 
 	r.HandleFunc("/feeds.{format}", feedHandler)
@@ -83,7 +84,7 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	r.HandleFunc("/operators", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}.{format}", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}", operatorHandler)
-	// r.HandleFunc("/stops/{stop_id}/departures", stopTimeHandler)
+	r.HandleFunc("/stops/{stop_key}/departures", stopDepartureHandler)
 
 	return r, nil
 }
