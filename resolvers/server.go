@@ -23,7 +23,7 @@ func NewServer(cfg config.Config) (http.Handler, error) {
 			user = &auth.User{}
 		}
 		if !user.HasRole(role) {
-			return nil, fmt.Errorf("Access denied")
+			return nil, fmt.Errorf("access denied")
 		}
 		return next(ctx)
 	}

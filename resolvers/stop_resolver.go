@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"time"
 
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
@@ -47,4 +48,29 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
 	return find.For(ctx).StopTimesByStopID.Load(model.StopTimeParam{FeedVersionID: obj.FeedVersionID, StopID: obj.ID, Limit: limit, Where: where})
+}
+
+func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *model.WaypointInput, to *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error) {
+	oc := obj.Coordinates()
+	swp := model.Waypoint{
+		Lon:  oc[0],
+		Lat:  oc[1],
+		Name: &obj.StopName,
+	}
+	p := directionsRequest{}
+	if from != nil {
+		p.Origin = model.Waypoint{
+			Lon: from.Lon,
+			Lat: from.Lat,
+		}
+		p.Destination = swp
+	} else if to != nil {
+		p.Origin = swp
+		p.Destination = model.Waypoint{
+			Lon: to.Lon,
+			Lat: to.Lat,
+		}
+	}
+	ret, err := demoValhallaRequest(p)
+	return ret, err
 }
