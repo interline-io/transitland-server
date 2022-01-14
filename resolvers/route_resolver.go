@@ -51,6 +51,11 @@ func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, r
 	return nil, nil
 }
 
+func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route) ([]*model.Alert, error) {
+	// TODO
+	return nil, nil
+}
+
 // ROUTE HEADWAYS
 
 type routeHeadwayResolver struct{ *Resolver }
