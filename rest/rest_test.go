@@ -30,7 +30,8 @@ func TestMain(m *testing.M) {
 
 func testRestConfig() restConfig {
 	cfg := config.Config{}
-	srv, _ := resolvers.NewServer(cfg)
+	db := model.DB
+	srv, _ := resolvers.NewServer(db, cfg)
 	return restConfig{srv: srv, Config: cfg}
 }
 

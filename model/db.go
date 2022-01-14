@@ -17,15 +17,15 @@ var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
 // TODO: replace with middleware or configuration
 
-type canBeginx interface {
+type DBX interface {
 	sqlx.Ext
 	sqlx.Preparer
 	Beginx() (*sqlx.Tx, error)
 }
 
-var DB canBeginx
+var DB DBX
 
-func MustOpenDB(url string) canBeginx {
+func MustOpenDB(url string) DBX {
 	db, err := sqlx.Open("postgres", url)
 	if err != nil {
 		log.Fatal(err)

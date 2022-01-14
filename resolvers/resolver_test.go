@@ -26,7 +26,8 @@ func TestMain(m *testing.M) {
 // Test helpers
 
 func newTestClient() *client.Client {
-	srv, _ := NewServer(config.Config{})
+	db := model.DB
+	srv, _ := NewServer(db, config.Config{})
 	return client.New(srv)
 }
 

@@ -7,16 +7,18 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 )
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
+	db := model.DB
 	g := os.Getenv("TL_TEST_GTFSDIR")
 	if g == "" {
 		t.Skip("TL_TEST_GTFSDIR not set - skipping")
 	}
 	cfg := config.Config{GtfsDir: g}
-	srv, _ := resolvers.NewServer(cfg)
+	srv, _ := resolvers.NewServer(db, cfg)
 	restSrv, _ := NewServer(cfg, srv)
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feed_versions/e535eb2b3b9ac3ef15d82c56575e914575e732e0/download", nil)
@@ -48,12 +50,13 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 }
 
 func TestFeedDownloadLatestRequest(t *testing.T) {
+	db := model.DB
 	g := os.Getenv("TL_TEST_GTFSDIR")
 	if g == "" {
 		t.Skip("TL_TEST_GTFSDIR not set - skipping")
 	}
 	cfg := config.Config{GtfsDir: g}
-	srv, _ := resolvers.NewServer(cfg)
+	srv, _ := resolvers.NewServer(db, cfg)
 	restSrv, _ := NewServer(cfg, srv)
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feeds/BA/download_latest_feed_version", nil)
