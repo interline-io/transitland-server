@@ -44,21 +44,10 @@ type JobQueue interface {
 }
 
 type Job struct {
-	JobType string `json:"job_type"`
-	Feed    string `json:"feed"`
-	URL     string `json:"url"`
-}
-
-//////
-
-type jobChan struct {
-	listener chan Job
-}
-
-func newJobChan() *jobChan {
-	return &jobChan{
-		listener: make(chan Job, 1),
-	}
+	JobType string   `json:"job_type"`
+	Feed    string   `json:"feed"`
+	URL     string   `json:"url"`
+	Args    []string `json:"args"`
 }
 
 //////

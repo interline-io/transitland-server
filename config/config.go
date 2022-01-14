@@ -7,6 +7,7 @@ type Config struct {
 	Port               string
 	UseAuth            string
 	DBURL              string
+	RedisURL           string
 	JwtAudience        string
 	JwtIssuer          string
 	JwtPublicKeyFile   string

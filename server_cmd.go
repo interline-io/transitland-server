@@ -11,18 +11,23 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
+	"github.com/interline-io/transitland-server/workers"
 )
 
 type Command struct {
 	DisableGraphql   bool
 	DisableRest      bool
 	EnablePlayground bool
+	EnableJobsApi    bool
+	EnableWorkers    bool
 	EnableProfiler   bool
 	config.Config
 }
@@ -34,6 +39,7 @@ func (cmd *Command) Parse(args []string) error {
 		fl.PrintDefaults()
 	}
 	fl.StringVar(&cmd.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
+	fl.StringVar(&cmd.RedisURL, "redisurl", "localhost:6379", "Redis URL")
 	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
 	fl.StringVar(&cmd.Port, "port", "8080", "")
 	fl.StringVar(&cmd.JwtAudience, "jwt-audience", "", "JWT Audience")
@@ -47,8 +53,10 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
 	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
 	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
-	fl.BoolVar(&cmd.EnablePlayground, "playground", false, "Enable GraphQL playground")
-	fl.BoolVar(&cmd.EnableProfiler, "profile", false, "Enable profiling")
+	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
+	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
+	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
+	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
 	fl.Parse(args)
 	if cmd.DBURL == "" {
 		cmd.DBURL = os.Getenv("TL_DATABASE_URL")
@@ -58,7 +66,8 @@ func (cmd *Command) Parse(args []string) error {
 
 func (cmd *Command) Run() error {
 	// Open database
-	model.DB = model.MustOpenDB(cmd.DBURL)
+	db := model.MustOpenDB(cmd.DBURL)
+	model.DB = db
 
 	// Setup CORS and logging
 	root := mux.NewRouter()
@@ -69,6 +78,29 @@ func (cmd *Command) Run() error {
 	)
 	root.Use(cors)
 	root.Use(loggingMiddleware)
+	root.Use(auth.GetUserMiddleware(cmd.Config))
+
+	// Workers
+	if cmd.EnableJobsApi || cmd.EnableWorkers {
+		wcfg := workers.Config{
+			QueueName: "tlv2-default",
+			Workers:   1,
+			Config:    cmd.Config,
+		}
+		client := redis.NewClient(&redis.Options{Addr: cmd.Config.RedisURL})
+		if cmd.EnableWorkers {
+			jr, _ := workers.NewJobRunner(client, db, wcfg)
+			go jr.RunWorkers()
+		}
+		if cmd.EnableJobsApi {
+			jobServer, err := workers.NewServer(client, db, wcfg)
+			if err != nil {
+				return err
+			}
+			// Mount with admin permissions required
+			mount(root, "/jobs", auth.AdminRequired(jobServer))
+		}
+	}
 
 	// Profiling
 	if cmd.EnableProfiler {
@@ -78,14 +110,22 @@ func (cmd *Command) Run() error {
 		root.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
 
-	// Add servers
-	graphqlServer, err := resolvers.NewServer(cmd.Config)
+	// GraphQL API
+	graphqlServer, err := resolvers.NewServer(db, cmd.Config)
 	if err != nil {
 		return err
 	}
 	if !cmd.DisableGraphql {
-		mount(root, "/query", graphqlServer)
+		// Mount with user permissions required
+		mount(root, "/query", auth.UserRequired(graphqlServer))
 	}
+
+	// GraphQL Playground
+	if cmd.EnablePlayground && !cmd.DisableGraphql {
+		root.Handle("/", playground.Handler("GraphQL playground", "/query/"))
+	}
+
+	// REST API
 	if !cmd.DisableRest {
 		restServer, err := rest.NewServer(cmd.Config, graphqlServer)
 		if err != nil {
@@ -93,9 +133,7 @@ func (cmd *Command) Run() error {
 		}
 		mount(root, "/rest", restServer)
 	}
-	if cmd.EnablePlayground && !cmd.DisableGraphql {
-		root.Handle("/", playground.Handler("GraphQL playground", "/query/"))
-	}
+
 	// Start server
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
 	fmt.Println("listening on:", addr)

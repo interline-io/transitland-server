@@ -12,8 +12,7 @@ import (
 func TestRedisJobs(t *testing.T) {
 	redisUrl := "localhost:6379"
 	client := redis.NewClient(&redis.Options{Addr: redisUrl})
-	rtJobs := NewRedisJobs(client)
-	rtJobs.jobQueueTopic = fmt.Sprintf("queue:%d:%d", os.Getpid(), time.Now().UnixNano())
+	rtJobs := NewRedisJobs(client, fmt.Sprintf("queue:%d:%d", os.Getpid(), time.Now().UnixNano()))
 	testJobs(t, rtJobs)
 }
 
@@ -30,7 +29,6 @@ func TestRedisConsumers(t *testing.T) {
 	redisUrl := "localhost:6379"
 	client := redis.NewClient(&redis.Options{Addr: redisUrl})
 	rtCache := NewRedisCache(client)
-	rtJobs := NewRedisJobs(client)
-	rtJobs.jobQueueTopic = fmt.Sprintf("queue:%d:%d", os.Getpid(), time.Now().UnixNano())
+	rtJobs := NewRedisJobs(client, fmt.Sprintf("queue:%d:%d", os.Getpid(), time.Now().UnixNano()))
 	testConsumers(t, rtCache, rtJobs)
 }
