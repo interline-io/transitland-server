@@ -122,6 +122,7 @@ type FeedVersionGtfsImport {
   id: Int!
   in_progress: Boolean!
   success: Boolean!
+  schedule_removed: Boolean!
   exception_log: String!
   skip_entity_error_count: Any
   entity_count: Any
@@ -203,7 +204,7 @@ type Route {
   route_sort_order: Int!
   route_url: String!
   route_desc: String!
-  geometry: Geometry!
+  geometry: Geometry
   agency: Agency!
   feed_version: FeedVersion!
   feed_version_sha1: String!
@@ -362,7 +363,8 @@ type RouteStop {
 
 type RouteGeometry {
   generated: Boolean!
-  geometry: LineString!
+  geometry: LineString
+  combined_geometry: Geometry
 }
 
 type RouteHeadway {
@@ -648,6 +650,7 @@ input StopFilter {
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
+  stop_code: String
   within: Polygon
   near: PointRadius
   search: String

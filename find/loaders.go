@@ -381,24 +381,28 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					if len(params) == 0 {
 						return nil, nil
 					}
-					ids := []int{}
+					limit := checkLimit(params[0].Limit)
+					tpairs := []FVPair{}
 					for _, p := range params {
-						ids = append(ids, p.TripID)
+						tpairs = append(tpairs, FVPair{EntityID: p.TripID, FeedVersionID: p.FeedVersionID})
 					}
 					qents := []*model.StopTime{}
 					MustSelect(
 						atx,
-						lateralWrap(
-							StopTimeSelect(params[0].Limit, nil, nil, ids, nil, params[0].Where),
-							"gtfs_trips", "id", "trip_id", ids),
+						StopTimeSelect(tpairs, nil, params[0].Where),
 						&qents,
 					)
 					group := map[int][]*model.StopTime{}
 					for _, ent := range qents {
 						group[atoi(ent.TripID)] = append(group[atoi(ent.TripID)], ent)
 					}
-					for _, id := range ids {
-						ents = append(ents, group[id])
+					for k, ents := range group {
+						if uint64(len(ents)) > limit {
+							group[k] = ents[0:limit]
+						}
+					}
+					for _, tp := range tpairs {
+						ents = append(ents, group[tp.EntityID])
 					}
 					return ents, nil
 				},
@@ -410,10 +414,11 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					if len(params) == 0 {
 						return nil, nil
 					}
-					ids := []int{}
+					limit := checkLimit(params[0].Limit)
 					qents := []*model.StopTime{}
+					var spairs []FVPair
 					for _, p := range params {
-						ids = append(ids, p.StopID)
+						spairs = append(spairs, FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
 					}
 					if p := params[0].Where; p != nil && (p.ServiceDate != nil || p.Next != nil) {
 						// require a valid timezone
@@ -422,19 +427,16 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 								return nil, []error{fmt.Errorf("invalid timezone: '%s'", *p.Timezone)}
 							}
 						}
-						q := StopDeparturesSelect(nil, nil, ids, p)
-						qstr, qargs, err := q.ToSql()
-						if err != nil {
-							panic(err)
-						}
-						if err := sqlx.Select(atx, &qents, atx.Rebind(qstr), qargs...); err != nil {
-							panic(err)
-						}
+						MustSelect(
+							atx,
+							StopDeparturesSelect(spairs, p),
+							&qents,
+						)
 					} else {
 						// Otherwise get all stop_times for stop
 						MustSelect(
 							atx,
-							lateralWrap(StopTimeSelect(params[0].Limit, nil, nil, nil, ids, params[0].Where), "gtfs_stops", "id", "stop_id", ids),
+							StopTimeSelect(nil, spairs, params[0].Where),
 							&qents,
 						)
 					}
@@ -442,8 +444,13 @@ func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
 					for _, ent := range qents {
 						group[atoi(ent.StopID)] = append(group[atoi(ent.StopID)], ent)
 					}
-					for _, id := range ids {
-						ents = append(ents, group[id])
+					for k, ents := range group {
+						if uint64(len(ents)) > limit {
+							group[k] = ents[0:limit]
+						}
+					}
+					for _, sp := range spairs {
+						ents = append(ents, group[sp.EntityID])
 					}
 					return ents, nil
 				},

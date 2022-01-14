@@ -63,7 +63,7 @@ func TripSelect(limit *int, after *int, ids []int, active bool, where *model.Tri
 			`, serviceDate, serviceDate, serviceDate, serviceDate, serviceDate)
 		}
 	}
-
+	// Outer query
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})

@@ -14,7 +14,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/transitland-lib v0.8.9-0.20211216234925-e4bdf75eddbd
+	github.com/interline-io/transitland-lib v0.8.9-0.20211220200944-3932c1e3b5da
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.8.0
 	github.com/stretchr/testify v1.7.0
@@ -26,3 +26,5 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
