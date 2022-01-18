@@ -26,8 +26,6 @@ type Command struct {
 	DisableGraphql   bool
 	DisableRest      bool
 	EnablePlayground bool
-	EnableJobsApi    bool
-	EnableWorkers    bool
 	EnableProfiler   bool
 	UseAuth          string
 	auth.AuthConfig
@@ -57,8 +55,6 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
 	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
 	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
-	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
-	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
 	fl.Parse(args)
 	if cmd.DB.DBURL == "" {
 		cmd.DB.DBURL = os.Getenv("TL_DATABASE_URL")
