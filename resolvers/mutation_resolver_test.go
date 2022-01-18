@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,6 +34,7 @@ func RelPath(p string) string {
 }
 
 func TestFetchResolver(t *testing.T) {
+	// dbCfg := config.DBConfig{DB: TestDB}
 	expectFile := RelPath("test/data/external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
@@ -42,7 +44,9 @@ func TestFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		srv, _ := NewServer(config.Config{UseAuth: "admin"})
+		srv, _ := NewServer(config.Config{})
+		srv = auth.AdminDefaultMiddleware(nil)(srv) // Run all requests as admin
+		// Run all requests as admin
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {feed_version_fetch(feed_onestop_id:"BA",url:$url){found_sha1 feed_version{sha1}}}`, &resp, client.Var("url", ts200.URL))
@@ -52,7 +56,8 @@ func TestFetchResolver(t *testing.T) {
 		assert.JSONEq(t, `{"feed_version_fetch":{"found_sha1":true,"feed_version":{"sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0"}}}`, toJson(resp))
 	})
 	t.Run("requires admin access", func(t *testing.T) {
-		srv, _ := NewServer(config.Config{UseAuth: "user"})
+		srv, _ := NewServer(config.Config{})
+		srv = auth.UserDefaultMiddleware(nil)(srv) // Run all requests as regular user
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {feed_version_fetch(feed_onestop_id:"BA",url:$url){found_sha1}}`, &resp, client.Var("url", ts200.URL))
@@ -63,6 +68,7 @@ func TestFetchResolver(t *testing.T) {
 }
 
 func TestValidationResolver(t *testing.T) {
+	// dbCfg := config.DBConfig{DB: TestDB}
 	expectFile := RelPath("test/data/external/caltrain.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
@@ -71,7 +77,8 @@ func TestValidationResolver(t *testing.T) {
 		}
 		w.Write(buf)
 	}))
-	srv, _ := NewServer(config.Config{UseAuth: "user"})
+	srv, _ := NewServer(config.Config{})
+	srv = auth.UserDefaultMiddleware(nil)(srv) // Run all requests as user
 	c := client.New(srv)
 	vars := hw{"url": ts200.URL}
 	testcases := []testcase{
@@ -154,7 +161,7 @@ func TestValidationResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		srv, _ := NewServer(config.Config{UseAuth: ""})
+		srv, _ := NewServer(config.Config{}) // all requests run as anonymous context by default
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))

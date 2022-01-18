@@ -9,15 +9,11 @@ import (
 	"strings"
 
 	"github.com/form3tech-oss/jwt-go"
-	"github.com/interline-io/transitland-server/config"
 )
 
 // JWTMiddleware checks and pulls user information from JWT in Authorization header.
-func JWTMiddleware(cfg config.Config) (func(http.Handler) http.Handler, error) {
+func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (func(http.Handler) http.Handler, error) {
 	var verifyKey *rsa.PublicKey
-	jwtAudience := cfg.JwtAudience
-	jwtIssuer := cfg.JwtIssuer
-	pubKeyPath := cfg.JwtPublicKeyFile
 	verifyBytes, err := ioutil.ReadFile(pubKeyPath)
 	if err != nil {
 		return nil, err
