@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -76,14 +77,16 @@ type Route struct {
 
 type Trip struct {
 	tl.Trip
+	Timestamp            time.Time
 	ScheduleRelationship *ScheduleRelationship
-	Timestamp            *int
-	RTTrip               *pb.TripUpdate // realtime trip, if available
 }
 
 type StopTime struct {
 	tl.StopTime
-	RTTrip *pb.TripUpdate // realtime trip, if available
+	Arrival              *StopTimeEvent
+	Departure            *StopTimeEvent
+	ScheduleRelationship *ScheduleRelationship
+	RTTrip               *pb.TripUpdate // internal use: realtime trip
 }
 
 type Stop struct {

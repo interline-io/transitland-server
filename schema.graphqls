@@ -287,7 +287,7 @@ type Trip {
   frequencies(limit: Int): [Frequency!]!
   # rt
   schedule_relationship: ScheduleRelationship
-  timestamp: Int
+  timestamp: Time
 }
 
 type Calendar {
@@ -332,9 +332,9 @@ type StopTime {
   interpolated: Int
   stop: Stop!
   trip: Trip!
-  # rt: StopTimeUpdate
-  # arrival: RTStopTimeEvent
-  # departure: RTStopTimeEvent
+  arrival: StopTimeEvent!
+  departure: StopTimeEvent!
+  schedule_relationship: ScheduleRelationship!
 }
 
 
@@ -394,13 +394,11 @@ type CensusGeography {
   awater: Float
   geometry: Polygon
   values(table_names: [String!]!, limit: Int): [CensusValue]! 
-  # source: CensusSource!
 }
 
 type CensusValue {
   table: CensusTable!
   values: Any! # json blob
-  # geography: CensusGeography!
 }
 
 type CensusTable {
@@ -408,41 +406,16 @@ type CensusTable {
   table_name: String!
   table_title: String!
   table_group: String!
-  # dataset: CensusDataset!
 }
-
-# type CensusDataset {
-#   id: Int!
-#   dataset_name: String!
-#   year_min: Int!
-#   year_max: Int!
-#   url: String!
-# }
-
-# type CensusField {
-#   id: Int!
-#   field_name: String!
-#   field_title: String!
-#   table: CensusTable!
-# }
-
-# type CensusSource {
-#   id: Int!
-#   source_name: String!
-#   url: String!
-#   sha1: String!
-#   dataset: CensusDataset!
-# }
 
 # Realtime updates
 
 enum ScheduleRelationship {
-  scheduled
-  added
-  unscheduled
-  canceled
+  SCHEDULED
+  ADDED
+  UNSCHEDULED
+  CANCELED
 }
-
 
 type StopTimeEvent {
   scheduled: Seconds
@@ -457,7 +430,7 @@ type VehiclePosition {
   current_stop_sequence: Int
   stop_id: Stop
   current_status: String
-  timestamp: Int
+  timestamp: Time
   congestion_level: String
 }
 

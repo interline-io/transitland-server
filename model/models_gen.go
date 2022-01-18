@@ -196,7 +196,7 @@ type VehiclePosition struct {
 	CurrentStopSequence *int                 `json:"current_stop_sequence"`
 	StopID              *Stop                `json:"stop_id"`
 	CurrentStatus       *string              `json:"current_status"`
-	Timestamp           *int                 `json:"timestamp"`
+	Timestamp           *time.Time           `json:"timestamp"`
 	CongestionLevel     *string              `json:"congestion_level"`
 }
 
@@ -289,10 +289,10 @@ func (e Role) MarshalGQL(w io.Writer) {
 type ScheduleRelationship string
 
 const (
-	ScheduleRelationshipScheduled   ScheduleRelationship = "scheduled"
-	ScheduleRelationshipAdded       ScheduleRelationship = "added"
-	ScheduleRelationshipUnscheduled ScheduleRelationship = "unscheduled"
-	ScheduleRelationshipCanceled    ScheduleRelationship = "canceled"
+	ScheduleRelationshipScheduled   ScheduleRelationship = "SCHEDULED"
+	ScheduleRelationshipAdded       ScheduleRelationship = "ADDED"
+	ScheduleRelationshipUnscheduled ScheduleRelationship = "UNSCHEDULED"
+	ScheduleRelationshipCanceled    ScheduleRelationship = "CANCELED"
 )
 
 var AllScheduleRelationship = []ScheduleRelationship{

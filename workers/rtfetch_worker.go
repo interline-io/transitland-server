@@ -10,8 +10,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-//
-
 type RTFetchWorker struct{}
 
 func (w *RTFetchWorker) Run(ctx context.Context, opts JobOptions, job rtcache.Job) error {
