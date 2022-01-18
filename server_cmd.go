@@ -19,16 +19,21 @@ import (
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
+	"github.com/interline-io/transitland-server/rtcache"
 	"github.com/interline-io/transitland-server/workers"
 )
 
 type Command struct {
+	Timeout          int
+	Port             string
 	DisableGraphql   bool
 	DisableRest      bool
 	EnablePlayground bool
 	EnableJobsApi    bool
 	EnableWorkers    bool
 	EnableProfiler   bool
+	UseAuth          string
+	auth.AuthConfig
 	config.Config
 }
 
@@ -38,8 +43,8 @@ func (cmd *Command) Parse(args []string) error {
 		log.Print("Usage: server")
 		fl.PrintDefaults()
 	}
-	fl.StringVar(&cmd.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
-	fl.StringVar(&cmd.RedisURL, "redisurl", "localhost:6379", "Redis URL")
+	fl.StringVar(&cmd.DB.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
+	fl.StringVar(&cmd.RT.RedisURL, "redisurl", "localhost:6379", "Redis URL")
 	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
 	fl.StringVar(&cmd.Port, "port", "8080", "")
 	fl.StringVar(&cmd.JwtAudience, "jwt-audience", "", "JWT Audience")
@@ -58,16 +63,16 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
 	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
 	fl.Parse(args)
-	if cmd.DBURL == "" {
-		cmd.DBURL = os.Getenv("TL_DATABASE_URL")
+	if cmd.DB.DBURL == "" {
+		cmd.DB.DBURL = os.Getenv("TL_DATABASE_URL")
 	}
 	return nil
 }
 
 func (cmd *Command) Run() error {
 	// Open database
-	db := model.MustOpenDB(cmd.DBURL)
-	model.DB = db
+	cfg := cmd.Config
+	cfg.DB.DB = model.MustOpenDB(cfg.DB.DBURL)
 
 	// Setup CORS and logging
 	root := mux.NewRouter()
@@ -78,22 +83,28 @@ func (cmd *Command) Run() error {
 	)
 	root.Use(cors)
 	root.Use(loggingMiddleware)
-	root.Use(auth.GetUserMiddleware(cmd.Config))
+
+	// Setup user middleware
+	userMiddleware, err := auth.GetUserMiddleware(cmd.UseAuth, cmd.AuthConfig)
+	if err != nil {
+		return err
+	}
+	root.Use(userMiddleware)
 
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
-		wcfg := workers.Config{
-			QueueName: "tlv2-default",
-			Workers:   1,
-			Config:    cmd.Config,
-		}
-		client := redis.NewClient(&redis.Options{Addr: cmd.Config.RedisURL})
+		// Open Redis
+		queueName := "tlv2-default"
+		cfg.RT.Redis = redis.NewClient(&redis.Options{Addr: cfg.RT.RedisURL})
+		cfg.RT.Cache = rtcache.NewRedisCache(cfg.RT.Redis)
+		cfg.RT.JobQueue = rtcache.NewRedisJobs(cfg.RT.Redis, queueName)
+		jobWorkers := 1
 		if cmd.EnableWorkers {
-			jr, _ := workers.NewJobRunner(client, db, wcfg)
+			jr, _ := workers.NewJobRunner(cfg, queueName, jobWorkers)
 			go jr.RunWorkers()
 		}
 		if cmd.EnableJobsApi {
-			jobServer, err := workers.NewServer(client, db, wcfg)
+			jobServer, err := workers.NewServer(cfg, queueName, jobWorkers)
 			if err != nil {
 				return err
 			}
@@ -111,7 +122,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// GraphQL API
-	graphqlServer, err := resolvers.NewServer(db, cmd.Config)
+	graphqlServer, err := resolvers.NewServer(cfg)
 	if err != nil {
 		return err
 	}
@@ -127,7 +138,7 @@ func (cmd *Command) Run() error {
 
 	// REST API
 	if !cmd.DisableRest {
-		restServer, err := rest.NewServer(cmd.Config, graphqlServer)
+		restServer, err := rest.NewServer(cfg, graphqlServer)
 		if err != nil {
 			return err
 		}

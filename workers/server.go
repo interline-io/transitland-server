@@ -3,21 +3,22 @@ package workers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/rtcache"
 )
 
 // NewServer creates a simple api for submitting and running jobs.
-func NewServer(client *redis.Client, db model.DBX, cfg Config) (http.Handler, error) {
+func NewServer(cfg config.Config, queueName string, workers int) (http.Handler, error) {
 	r := mux.NewRouter()
-	runner, err := NewJobRunner(client, db, cfg)
+	runner, err := NewJobRunner(cfg, queueName, workers)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	fmt.Println("new runner:", runner)
 	r.HandleFunc("/add", wrapHandler(addJobRequest, runner))
 	r.HandleFunc("/run", wrapHandler(runJobRequest, runner))
 	return r, nil

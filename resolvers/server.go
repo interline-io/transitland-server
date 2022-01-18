@@ -15,8 +15,8 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func NewServer(db model.DBX, cfg config.Config) (http.Handler, error) {
-	c := generated.Config{Resolvers: &Resolver{}}
+func NewServer(cfg config.Config) (http.Handler, error) {
+	c := generated.Config{Resolvers: &Resolver{cfg: cfg}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := auth.ForContext(ctx)
 		if user == nil {
@@ -29,7 +29,7 @@ func NewServer(db model.DBX, cfg config.Config) (http.Handler, error) {
 	}
 	// Setup server
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
-	graphqlServer := find.Middleware(model.DB, srv)
+	graphqlServer := find.Middleware(cfg, srv)
 	root := mux.NewRouter()
 	root.Handle("/", graphqlServer).Methods(http.MethodGet, http.MethodPost, http.MethodOptions)
 	return root, nil

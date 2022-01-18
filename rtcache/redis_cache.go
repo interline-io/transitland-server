@@ -8,6 +8,18 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
+type listenChan struct {
+	listener chan []byte
+	done     chan bool
+}
+
+func newListenChan() *listenChan {
+	return &listenChan{
+		listener: make(chan []byte, 100),
+		done:     make(chan bool),
+	}
+}
+
 type RedisCache struct {
 	client    *redis.Client
 	listeners []*listenChan

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 
 	"github.com/interline-io/transitland-lib/tl"
 )
@@ -108,12 +109,6 @@ type RTEntitySelector struct {
 	Trip        *RTTripDescriptor `json:"trip"`
 }
 
-type RTStopTimeEvent struct {
-	Delay       *int `json:"delay"`
-	Time        *int `json:"time"`
-	Uncertainty *int `json:"uncertainty"`
-}
-
 type RTTimeRange struct {
 	Start *int `json:"start"`
 	End   *int `json:"end"`
@@ -171,22 +166,19 @@ type StopFilter struct {
 	AgencyIds          []int        `json:"agency_ids"`
 }
 
+type StopTimeEvent struct {
+	Scheduled   *tl.WideTime `json:"scheduled"`
+	Estimated   *time.Time   `json:"estimated"`
+	Delay       *int         `json:"delay"`
+	Uncertainty *int         `json:"uncertainty"`
+}
+
 type StopTimeFilter struct {
 	ServiceDate *tl.ODate `json:"service_date"`
 	StartTime   *int      `json:"start_time"`
 	EndTime     *int      `json:"end_time"`
 	Timezone    *string   `json:"timezone"`
 	Next        *int      `json:"next"`
-}
-
-type StopTimeUpdate struct {
-	StopSequence         *int             `json:"stop_sequence"`
-	StopID               *int             `json:"stop_id"`
-	Arrival              *RTStopTimeEvent `json:"arrival"`
-	Departure            *RTStopTimeEvent `json:"departure"`
-	ScheduleRelationship *string          `json:"schedule_relationship"`
-	ArrivalTime          *tl.WideTime     `json:"arrival_time"`
-	DepartureTime        *tl.WideTime     `json:"departure_time"`
 }
 
 type TripFilter struct {
@@ -198,20 +190,11 @@ type TripFilter struct {
 	FeedOnestopID   *string   `json:"feed_onestop_id"`
 }
 
-type TripUpdate struct {
-	Trip           *RTTripDescriptor    `json:"trip"`
-	Vehicle        *RTVehicleDescriptor `json:"vehicle"`
-	StopTimeUpdate []*StopTimeUpdate    `json:"stop_time_update"`
-	Timestamp      *int                 `json:"timestamp"`
-	Delay          *int                 `json:"delay"`
-}
-
 type VehiclePosition struct {
-	Trip                *RTTripDescriptor    `json:"trip"`
 	Vehicle             *RTVehicleDescriptor `json:"vehicle"`
 	Position            *tl.Point            `json:"position"`
 	CurrentStopSequence *int                 `json:"current_stop_sequence"`
-	StopID              *string              `json:"stop_id"`
+	StopID              *Stop                `json:"stop_id"`
 	CurrentStatus       *string              `json:"current_status"`
 	Timestamp           *int                 `json:"timestamp"`
 	CongestionLevel     *string              `json:"congestion_level"`
@@ -300,5 +283,50 @@ func (e *Role) UnmarshalGQL(v interface{}) error {
 }
 
 func (e Role) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ScheduleRelationship string
+
+const (
+	ScheduleRelationshipScheduled   ScheduleRelationship = "scheduled"
+	ScheduleRelationshipAdded       ScheduleRelationship = "added"
+	ScheduleRelationshipUnscheduled ScheduleRelationship = "unscheduled"
+	ScheduleRelationshipCanceled    ScheduleRelationship = "canceled"
+)
+
+var AllScheduleRelationship = []ScheduleRelationship{
+	ScheduleRelationshipScheduled,
+	ScheduleRelationshipAdded,
+	ScheduleRelationshipUnscheduled,
+	ScheduleRelationshipCanceled,
+}
+
+func (e ScheduleRelationship) IsValid() bool {
+	switch e {
+	case ScheduleRelationshipScheduled, ScheduleRelationshipAdded, ScheduleRelationshipUnscheduled, ScheduleRelationshipCanceled:
+		return true
+	}
+	return false
+}
+
+func (e ScheduleRelationship) String() string {
+	return string(e)
+}
+
+func (e *ScheduleRelationship) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ScheduleRelationship(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ScheduleRelationship", str)
+	}
+	return nil
+}
+
+func (e ScheduleRelationship) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

@@ -51,7 +51,9 @@
     {
       "spec": "gtfs-rt",
       "id": "BA~rt",
-      "urls": {}
+      "urls": {
+        "realtime_trip_updates": "https://rg-api.511.org/rgrt/rt/BA/trip_updates.pb?apikey=QVNLTERqbGthamQgQVNMS0RKQVNE"
+      }
     },
     {
       "spec": "gtfs",

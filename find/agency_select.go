@@ -12,7 +12,7 @@ func FindAgencies(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.
 		active = true
 	}
 	q := AgencySelect(limit, after, ids, active, where)
-	MustSelect(model.DB, q, &ents)
+	MustSelect(atx, q, &ents)
 	return ents, nil
 }
 

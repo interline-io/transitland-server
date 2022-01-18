@@ -285,6 +285,9 @@ type Trip {
   feed_version: FeedVersion!
   stop_times(limit: Int): [StopTime]!
   frequencies(limit: Int): [Frequency!]!
+  # rt
+  schedule_relationship: ScheduleRelationship
+  timestamp: Int
 }
 
 type Calendar {
@@ -329,6 +332,9 @@ type StopTime {
   interpolated: Int
   stop: Stop!
   trip: Trip!
+  # rt: StopTimeUpdate
+  # arrival: RTStopTimeEvent
+  # departure: RTStopTimeEvent
 }
 
 
@@ -428,32 +434,28 @@ type CensusTable {
 #   dataset: CensusDataset!
 # }
 
-# GTFS Realtime entities
+# Realtime updates
 
-type TripUpdate {
-  trip: RTTripDescriptor
-  vehicle: RTVehicleDescriptor
-  stop_time_update: [StopTimeUpdate!]
-  timestamp: Int
-  delay: Int
+enum ScheduleRelationship {
+  scheduled
+  added
+  unscheduled
+  canceled
 }
 
-type StopTimeUpdate {
-  stop_sequence: Int
-  stop_id: Int
-  arrival: RTStopTimeEvent
-  departure: RTStopTimeEvent
-  schedule_relationship: String
-  arrival_time: Seconds # simplified value for consumers
-  departure_time: Seconds # simplified value for consumers
+
+type StopTimeEvent {
+  scheduled: Seconds
+  estimated: Time
+  delay: Int
+  uncertainty: Int
 }
 
 type VehiclePosition {
-  trip: RTTripDescriptor
   vehicle: RTVehicleDescriptor
   position: Point
   current_stop_sequence: Int
-  stop_id: String
+  stop_id: Stop
   current_status: String
   timestamp: Int
   congestion_level: String
@@ -477,6 +479,12 @@ type RTTimeRange {
   end: Int
 }
 
+type RTVehicleDescriptor {
+  id: String
+  label: String
+  license_plate: String
+}
+
 type RTTripDescriptor {
   trip_id: String
   route_id: String
@@ -484,12 +492,6 @@ type RTTripDescriptor {
   start_time: Seconds
   start_date: Date
   schedule_relationship: String
-}
-
-type RTVehicleDescriptor {
-  id: String
-  label: String
-  license_plate: String
 }
 
 type RTEntitySelector {
@@ -510,11 +512,6 @@ type RTTranslation {
   language: String
 }
 
-type RTStopTimeEvent {
-  delay: Int
-  time: Int
-  uncertainty: Int
-}
 
 # Analysis tools
 

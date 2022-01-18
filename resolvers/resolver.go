@@ -7,6 +7,7 @@ import (
 
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/generated/gqlgen"
+	"github.com/interline-io/transitland-server/rtcache"
 )
 
 func atoi(v string) int {
@@ -16,7 +17,15 @@ func atoi(v string) int {
 
 // Resolver .
 type Resolver struct {
-	cfg config.Config
+	cfg  config.Config
+	rtcm *rtcache.RTConsumerManager
+}
+
+func (r *Resolver) getConsumerManager() *rtcache.RTConsumerManager {
+	if r.rtcm == nil {
+		r.rtcm = rtcache.NewRTConsumerManager(r.cfg.RT.Cache, r.cfg.DB.DB)
+	}
+	return r.rtcm
 }
 
 // Query .

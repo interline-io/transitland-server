@@ -4,69 +4,68 @@ import (
 	"context"
 	"errors"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/rtcache"
+	"github.com/jmoiron/sqlx"
 )
 
-type Config struct {
-	QueueName string
-	Workers   int
-	config.Config
-}
-
-// configuration to pass to wrapped handler function.
-type JobOptions struct {
-	jobs  rtcache.JobQueue
-	cache rtcache.Cache
-	db    model.DBX
-}
-
-///////
-
+// JobWorker defines a job worker
 type JobWorker interface {
 	Run(context.Context, JobOptions, rtcache.Job) error
 }
 
-type JobRunner struct {
-	client *redis.Client
-	args   JobOptions
-	config Config
+// JobOptions is configuration passed to worker.
+type JobOptions struct {
+	jobs  rtcache.JobQueue
+	cache rtcache.Cache
+	db    sqlx.Ext
 }
 
-func NewJobRunner(client *redis.Client, db model.DBX, cfg Config) (*JobRunner, error) {
+// JobRunner works with JobQueue to run jobs with local configuration options.
+type JobRunner struct {
+	QueueName string
+	Workers   int
+	cfg       config.Config
+}
+
+// NewJobRunner returns a new configured JobRunner listening to the specified queue.
+func NewJobRunner(cfg config.Config, queueName string, workers int) (*JobRunner, error) {
 	j := JobRunner{
-		client: client,
-		config: cfg,
-		args: JobOptions{
-			db:    db,
-			cache: rtcache.NewRedisCache(client),
-			jobs:  rtcache.NewRedisJobs(client, cfg.QueueName),
-		}}
+		QueueName: queueName,
+		Workers:   workers,
+		cfg:       cfg,
+	}
 	return &j, nil
 }
 
+// AddJob adds a job to the queue.
 func (j *JobRunner) AddJob(job rtcache.Job) error {
-	return j.args.jobs.AddJob(job)
+	return j.cfg.RT.JobQueue.AddJob(job)
 }
 
+// RunJob runs a job immediately.
 func (j *JobRunner) RunJob(job rtcache.Job) error {
 	r, err := GetWorker(job)
 	if err != nil {
 		return err
 	}
 	ctx := context.TODO()
-	return r.Run(ctx, j.args, job)
+	args := JobOptions{
+		db:    j.cfg.DB.DB,
+		jobs:  j.cfg.RT.JobQueue,
+		cache: j.cfg.RT.Cache,
+	}
+	return r.Run(ctx, args, job)
 }
 
 func (j *JobRunner) RunWorkers() error {
-	// get a new queue
-	rtJobs := rtcache.NewRedisJobs(j.client, j.config.QueueName)
-	rtJobs.AddWorker(j.RunJob, j.config.Workers)
+	// Create a new instance each time this is called.
+	rtJobs := rtcache.NewRedisJobs(j.cfg.RT.Redis, j.QueueName)
+	rtJobs.AddWorker(j.RunJob, 1)
 	return rtJobs.Run()
 }
 
+// GetWorker returns the correct worker type for this job.
 func GetWorker(job rtcache.Job) (JobWorker, error) {
 	var r JobWorker
 	class := job.JobType

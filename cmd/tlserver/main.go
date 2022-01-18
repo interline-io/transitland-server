@@ -66,7 +66,7 @@ func main() {
 	case "server":
 		r = &server.Command{}
 	case "workers":
-		r = &workers.Command{Config: workers.Config{QueueName: "tlv2-default"}}
+		r = &workers.Command{} // ??
 	default:
 		fmt.Printf("%q is not valid command.", subc)
 		return

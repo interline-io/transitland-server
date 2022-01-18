@@ -5,12 +5,32 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/jmoiron/sqlx"
 )
 
-// AdminAuthMiddleware stores the user context, but always as admin
-func AdminAuthMiddleware(db sqlx.Ext) (func(http.Handler) http.Handler, error) {
+type AuthConfig struct {
+	JwtAudience      string
+	JwtIssuer        string
+	JwtPublicKeyFile string
+}
+
+// GetUserMiddleware returns a middleware that sets user details.
+func GetUserMiddleware(authType string, cfg AuthConfig) (mux.MiddlewareFunc, error) {
+	// Setup auth; default is all users will be anonymous.
+	if authType == "admin" {
+		return AdminDefaultMiddleware(nil), nil
+	} else if authType == "user" {
+		return UserDefaultMiddleware(nil), nil
+	} else if authType == "jwt" {
+		return JWTMiddleware(cfg.JwtAudience, cfg.JwtIssuer, cfg.JwtPublicKeyFile)
+	}
+	return func(next http.Handler) http.Handler {
+		return next
+	}, nil
+}
+
+// AdminDefaultMiddleware uses a default "admin" context.
+func AdminDefaultMiddleware(db sqlx.Ext) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := &User{
@@ -23,11 +43,11 @@ func AdminAuthMiddleware(db sqlx.Ext) (func(http.Handler) http.Handler, error) {
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
-	}, nil
+	}
 }
 
-// UserAuthMiddleware stores a user context.
-func UserAuthMiddleware(db sqlx.Ext) (func(http.Handler) http.Handler, error) {
+// UserDefaultMiddleware uses a default "user" context.
+func UserDefaultMiddleware(db sqlx.Ext) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := &User{
@@ -40,7 +60,7 @@ func UserAuthMiddleware(db sqlx.Ext) (func(http.Handler) http.Handler, error) {
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
-	}, nil
+	}
 }
 
 // AdminRequired limits a request to admin privileges.
@@ -67,31 +87,4 @@ func UserRequired(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
-}
-
-// GetUserMiddleware returns an authentication middleware for the given configuration.
-func GetUserMiddleware(cfg config.Config) mux.MiddlewareFunc {
-	// Setup auth; default is all users will be anonymous.
-	if cfg.UseAuth == "admin" {
-		a, err := AdminAuthMiddleware(nil)
-		if err != nil {
-			panic(err)
-		}
-		return a
-	} else if cfg.UseAuth == "user" {
-		a, err := UserAuthMiddleware(nil)
-		if err != nil {
-			panic(err)
-		}
-		return a
-	} else if cfg.UseAuth == "jwt" {
-		a, err := JWTMiddleware(cfg)
-		if err != nil {
-			panic(err)
-		}
-		return a
-	}
-	return func(next http.Handler) http.Handler {
-		return next
-	}
 }

@@ -2,10 +2,12 @@ package rtcache
 
 import (
 	"fmt"
+	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -71,7 +73,7 @@ func testCache(t *testing.T, rtCache Cache) {
 
 func testConsumers(t *testing.T, rtCache Cache, rtJobs JobQueue) {
 	// Start consumers
-	rtManager := NewRTConsumerManager(rtCache)
+	rtManager := NewRTConsumerManager(rtCache, nil)
 	var foundTrips []*pb.TripUpdate
 	for i := 0; i < consumerWorkers; i++ {
 		for _, feed := range feeds {
@@ -136,4 +138,17 @@ func testConsumers(t *testing.T, rtCache Cache, rtJobs JobQueue) {
 	rtJobs.Close()
 	rtCache.Close()
 	fmt.Println("got trips:", len(foundTrips))
+}
+
+//////
+
+func fetchFile(u string) ([]byte, error) {
+	pbdata, err := ioutil.ReadFile(u)
+	if err != nil {
+		panic(err)
+	}
+	msg := pb.FeedMessage{}
+	proto.Unmarshal(pbdata, &msg)
+	fmt.Printf("fetched: '%s' %d bytes, entities %d\n", u, len(pbdata), len(msg.Entity))
+	return pbdata, nil
 }

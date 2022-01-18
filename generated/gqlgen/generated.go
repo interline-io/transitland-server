@@ -366,12 +366,6 @@ type ComplexityRoot struct {
 		Trip        func(childComplexity int) int
 	}
 
-	RTStopTimeEvent struct {
-		Delay       func(childComplexity int) int
-		Time        func(childComplexity int) int
-		Uncertainty func(childComplexity int) int
-	}
-
 	RTTimeRange struct {
 		End   func(childComplexity int) int
 		Start func(childComplexity int) int
@@ -507,14 +501,11 @@ type ComplexityRoot struct {
 		Trip          func(childComplexity int) int
 	}
 
-	StopTimeUpdate struct {
-		Arrival              func(childComplexity int) int
-		ArrivalTime          func(childComplexity int) int
-		Departure            func(childComplexity int) int
-		DepartureTime        func(childComplexity int) int
-		ScheduleRelationship func(childComplexity int) int
-		StopID               func(childComplexity int) int
-		StopSequence         func(childComplexity int) int
+	StopTimeEvent struct {
+		Delay       func(childComplexity int) int
+		Estimated   func(childComplexity int) int
+		Scheduled   func(childComplexity int) int
+		Uncertainty func(childComplexity int) int
 	}
 
 	Trip struct {
@@ -526,21 +517,15 @@ type ComplexityRoot struct {
 		Frequencies          func(childComplexity int, limit *int) int
 		ID                   func(childComplexity int) int
 		Route                func(childComplexity int) int
+		ScheduleRelationship func(childComplexity int) int
 		Shape                func(childComplexity int) int
 		StopPatternID        func(childComplexity int) int
 		StopTimes            func(childComplexity int, limit *int) int
+		Timestamp            func(childComplexity int) int
 		TripHeadsign         func(childComplexity int) int
 		TripID               func(childComplexity int) int
 		TripShortName        func(childComplexity int) int
 		WheelchairAccessible func(childComplexity int) int
-	}
-
-	TripUpdate struct {
-		Delay          func(childComplexity int) int
-		StopTimeUpdate func(childComplexity int) int
-		Timestamp      func(childComplexity int) int
-		Trip           func(childComplexity int) int
-		Vehicle        func(childComplexity int) int
 	}
 
 	ValidationResult struct {
@@ -583,7 +568,6 @@ type ComplexityRoot struct {
 		Position            func(childComplexity int) int
 		StopID              func(childComplexity int) int
 		Timestamp           func(childComplexity int) int
-		Trip                func(childComplexity int) int
 		Vehicle             func(childComplexity int) int
 	}
 }
@@ -2401,27 +2385,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RTEntitySelector.Trip(childComplexity), true
 
-	case "RTStopTimeEvent.delay":
-		if e.complexity.RTStopTimeEvent.Delay == nil {
-			break
-		}
-
-		return e.complexity.RTStopTimeEvent.Delay(childComplexity), true
-
-	case "RTStopTimeEvent.time":
-		if e.complexity.RTStopTimeEvent.Time == nil {
-			break
-		}
-
-		return e.complexity.RTStopTimeEvent.Time(childComplexity), true
-
-	case "RTStopTimeEvent.uncertainty":
-		if e.complexity.RTStopTimeEvent.Uncertainty == nil {
-			break
-		}
-
-		return e.complexity.RTStopTimeEvent.Uncertainty(childComplexity), true
-
 	case "RTTimeRange.end":
 		if e.complexity.RTTimeRange.End == nil {
 			break
@@ -3159,54 +3122,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StopTime.Trip(childComplexity), true
 
-	case "StopTimeUpdate.arrival":
-		if e.complexity.StopTimeUpdate.Arrival == nil {
+	case "StopTimeEvent.delay":
+		if e.complexity.StopTimeEvent.Delay == nil {
 			break
 		}
 
-		return e.complexity.StopTimeUpdate.Arrival(childComplexity), true
+		return e.complexity.StopTimeEvent.Delay(childComplexity), true
 
-	case "StopTimeUpdate.arrival_time":
-		if e.complexity.StopTimeUpdate.ArrivalTime == nil {
+	case "StopTimeEvent.estimated":
+		if e.complexity.StopTimeEvent.Estimated == nil {
 			break
 		}
 
-		return e.complexity.StopTimeUpdate.ArrivalTime(childComplexity), true
+		return e.complexity.StopTimeEvent.Estimated(childComplexity), true
 
-	case "StopTimeUpdate.departure":
-		if e.complexity.StopTimeUpdate.Departure == nil {
+	case "StopTimeEvent.scheduled":
+		if e.complexity.StopTimeEvent.Scheduled == nil {
 			break
 		}
 
-		return e.complexity.StopTimeUpdate.Departure(childComplexity), true
+		return e.complexity.StopTimeEvent.Scheduled(childComplexity), true
 
-	case "StopTimeUpdate.departure_time":
-		if e.complexity.StopTimeUpdate.DepartureTime == nil {
+	case "StopTimeEvent.uncertainty":
+		if e.complexity.StopTimeEvent.Uncertainty == nil {
 			break
 		}
 
-		return e.complexity.StopTimeUpdate.DepartureTime(childComplexity), true
-
-	case "StopTimeUpdate.schedule_relationship":
-		if e.complexity.StopTimeUpdate.ScheduleRelationship == nil {
-			break
-		}
-
-		return e.complexity.StopTimeUpdate.ScheduleRelationship(childComplexity), true
-
-	case "StopTimeUpdate.stop_id":
-		if e.complexity.StopTimeUpdate.StopID == nil {
-			break
-		}
-
-		return e.complexity.StopTimeUpdate.StopID(childComplexity), true
-
-	case "StopTimeUpdate.stop_sequence":
-		if e.complexity.StopTimeUpdate.StopSequence == nil {
-			break
-		}
-
-		return e.complexity.StopTimeUpdate.StopSequence(childComplexity), true
+		return e.complexity.StopTimeEvent.Uncertainty(childComplexity), true
 
 	case "Trip.bikes_allowed":
 		if e.complexity.Trip.BikesAllowed == nil {
@@ -3269,6 +3211,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Trip.Route(childComplexity), true
 
+	case "Trip.schedule_relationship":
+		if e.complexity.Trip.ScheduleRelationship == nil {
+			break
+		}
+
+		return e.complexity.Trip.ScheduleRelationship(childComplexity), true
+
 	case "Trip.shape":
 		if e.complexity.Trip.Shape == nil {
 			break
@@ -3294,6 +3243,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Trip.StopTimes(childComplexity, args["limit"].(*int)), true
+
+	case "Trip.timestamp":
+		if e.complexity.Trip.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.Trip.Timestamp(childComplexity), true
 
 	case "Trip.trip_headsign":
 		if e.complexity.Trip.TripHeadsign == nil {
@@ -3322,41 +3278,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Trip.WheelchairAccessible(childComplexity), true
-
-	case "TripUpdate.delay":
-		if e.complexity.TripUpdate.Delay == nil {
-			break
-		}
-
-		return e.complexity.TripUpdate.Delay(childComplexity), true
-
-	case "TripUpdate.stop_time_update":
-		if e.complexity.TripUpdate.StopTimeUpdate == nil {
-			break
-		}
-
-		return e.complexity.TripUpdate.StopTimeUpdate(childComplexity), true
-
-	case "TripUpdate.timestamp":
-		if e.complexity.TripUpdate.Timestamp == nil {
-			break
-		}
-
-		return e.complexity.TripUpdate.Timestamp(childComplexity), true
-
-	case "TripUpdate.trip":
-		if e.complexity.TripUpdate.Trip == nil {
-			break
-		}
-
-		return e.complexity.TripUpdate.Trip(childComplexity), true
-
-	case "TripUpdate.vehicle":
-		if e.complexity.TripUpdate.Vehicle == nil {
-			break
-		}
-
-		return e.complexity.TripUpdate.Vehicle(childComplexity), true
 
 	case "ValidationResult.agencies":
 		if e.complexity.ValidationResult.Agencies == nil {
@@ -3592,13 +3513,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.VehiclePosition.Timestamp(childComplexity), true
-
-	case "VehiclePosition.trip":
-		if e.complexity.VehiclePosition.Trip == nil {
-			break
-		}
-
-		return e.complexity.VehiclePosition.Trip(childComplexity), true
 
 	case "VehiclePosition.vehicle":
 		if e.complexity.VehiclePosition.Vehicle == nil {
@@ -3958,6 +3872,9 @@ type Trip {
   feed_version: FeedVersion!
   stop_times(limit: Int): [StopTime]!
   frequencies(limit: Int): [Frequency!]!
+  # rt
+  schedule_relationship: ScheduleRelationship
+  timestamp: Int
 }
 
 type Calendar {
@@ -4002,6 +3919,9 @@ type StopTime {
   interpolated: Int
   stop: Stop!
   trip: Trip!
+  # rt: StopTimeUpdate
+  # arrival: RTStopTimeEvent
+  # departure: RTStopTimeEvent
 }
 
 
@@ -4101,32 +4021,28 @@ type CensusTable {
 #   dataset: CensusDataset!
 # }
 
-# GTFS Realtime entities
+# Realtime updates
 
-type TripUpdate {
-  trip: RTTripDescriptor
-  vehicle: RTVehicleDescriptor
-  stop_time_update: [StopTimeUpdate!]
-  timestamp: Int
-  delay: Int
+enum ScheduleRelationship {
+  scheduled
+  added
+  unscheduled
+  canceled
 }
 
-type StopTimeUpdate {
-  stop_sequence: Int
-  stop_id: Int
-  arrival: RTStopTimeEvent
-  departure: RTStopTimeEvent
-  schedule_relationship: String
-  arrival_time: Seconds # simplified value for consumers
-  departure_time: Seconds # simplified value for consumers
+
+type StopTimeEvent {
+  scheduled: Seconds
+  estimated: Time
+  delay: Int
+  uncertainty: Int
 }
 
 type VehiclePosition {
-  trip: RTTripDescriptor
   vehicle: RTVehicleDescriptor
   position: Point
   current_stop_sequence: Int
-  stop_id: String
+  stop_id: Stop
   current_status: String
   timestamp: Int
   congestion_level: String
@@ -4150,6 +4066,12 @@ type RTTimeRange {
   end: Int
 }
 
+type RTVehicleDescriptor {
+  id: String
+  label: String
+  license_plate: String
+}
+
 type RTTripDescriptor {
   trip_id: String
   route_id: String
@@ -4157,12 +4079,6 @@ type RTTripDescriptor {
   start_time: Seconds
   start_date: Date
   schedule_relationship: String
-}
-
-type RTVehicleDescriptor {
-  id: String
-  label: String
-  license_plate: String
 }
 
 type RTEntitySelector {
@@ -4183,11 +4099,6 @@ type RTTranslation {
   language: String
 }
 
-type RTStopTimeEvent {
-  delay: Int
-  time: Int
-  uncertainty: Int
-}
 
 # Analysis tools
 
@@ -13418,102 +13329,6 @@ func (ec *executionContext) _RTEntitySelector_trip(ctx context.Context, field gr
 	return ec.marshalORTTripDescriptor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTripDescriptor(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RTStopTimeEvent_delay(ctx context.Context, field graphql.CollectedField, obj *model.RTStopTimeEvent) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RTStopTimeEvent",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Delay, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RTStopTimeEvent_time(ctx context.Context, field graphql.CollectedField, obj *model.RTStopTimeEvent) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RTStopTimeEvent",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Time, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RTStopTimeEvent_uncertainty(ctx context.Context, field graphql.CollectedField, obj *model.RTStopTimeEvent) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RTStopTimeEvent",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Uncertainty, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _RTTimeRange_start(ctx context.Context, field graphql.CollectedField, obj *model.RTTimeRange) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16854,7 +16669,7 @@ func (ec *executionContext) _StopTime_trip(ctx context.Context, field graphql.Co
 	return ec.marshalNTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTrip(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _StopTimeUpdate_stop_sequence(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeUpdate) (ret graphql.Marshaler) {
+func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16862,7 +16677,7 @@ func (ec *executionContext) _StopTimeUpdate_stop_sequence(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "StopTimeUpdate",
+		Object:     "StopTimeEvent",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -16872,167 +16687,7 @@ func (ec *executionContext) _StopTimeUpdate_stop_sequence(ctx context.Context, f
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.StopSequence, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _StopTimeUpdate_stop_id(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeUpdate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "StopTimeUpdate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.StopID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _StopTimeUpdate_arrival(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeUpdate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "StopTimeUpdate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Arrival, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.RTStopTimeEvent)
-	fc.Result = res
-	return ec.marshalORTStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTStopTimeEvent(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _StopTimeUpdate_departure(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeUpdate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "StopTimeUpdate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Departure, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.RTStopTimeEvent)
-	fc.Result = res
-	return ec.marshalORTStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTStopTimeEvent(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _StopTimeUpdate_schedule_relationship(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeUpdate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "StopTimeUpdate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ScheduleRelationship, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _StopTimeUpdate_arrival_time(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeUpdate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "StopTimeUpdate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ArrivalTime, nil
+		return obj.Scheduled, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17046,7 +16701,7 @@ func (ec *executionContext) _StopTimeUpdate_arrival_time(ctx context.Context, fi
 	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _StopTimeUpdate_departure_time(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeUpdate) (ret graphql.Marshaler) {
+func (ec *executionContext) _StopTimeEvent_estimated(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17054,7 +16709,7 @@ func (ec *executionContext) _StopTimeUpdate_departure_time(ctx context.Context, 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "StopTimeUpdate",
+		Object:     "StopTimeEvent",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -17064,7 +16719,7 @@ func (ec *executionContext) _StopTimeUpdate_departure_time(ctx context.Context, 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DepartureTime, nil
+		return obj.Estimated, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17073,9 +16728,73 @@ func (ec *executionContext) _StopTimeUpdate_departure_time(ctx context.Context, 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tl.WideTime)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTimeEvent_delay(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Delay, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTimeEvent_uncertainty(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Uncertainty, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Trip_id(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
@@ -17614,7 +17333,7 @@ func (ec *executionContext) _Trip_frequencies(ctx context.Context, field graphql
 	return ec.marshalNFrequency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFrequencyᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TripUpdate_trip(ctx context.Context, field graphql.CollectedField, obj *model.TripUpdate) (ret graphql.Marshaler) {
+func (ec *executionContext) _Trip_schedule_relationship(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17622,7 +17341,7 @@ func (ec *executionContext) _TripUpdate_trip(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "TripUpdate",
+		Object:     "Trip",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -17632,7 +17351,7 @@ func (ec *executionContext) _TripUpdate_trip(ctx context.Context, field graphql.
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Trip, nil
+		return obj.ScheduleRelationship, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17641,12 +17360,12 @@ func (ec *executionContext) _TripUpdate_trip(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.RTTripDescriptor)
+	res := resTmp.(*model.ScheduleRelationship)
 	fc.Result = res
-	return ec.marshalORTTripDescriptor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTripDescriptor(ctx, field.Selections, res)
+	return ec.marshalOScheduleRelationship2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐScheduleRelationship(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TripUpdate_vehicle(ctx context.Context, field graphql.CollectedField, obj *model.TripUpdate) (ret graphql.Marshaler) {
+func (ec *executionContext) _Trip_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17654,71 +17373,7 @@ func (ec *executionContext) _TripUpdate_vehicle(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "TripUpdate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Vehicle, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.RTVehicleDescriptor)
-	fc.Result = res
-	return ec.marshalORTVehicleDescriptor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTVehicleDescriptor(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TripUpdate_stop_time_update(ctx context.Context, field graphql.CollectedField, obj *model.TripUpdate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "TripUpdate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.StopTimeUpdate, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.StopTimeUpdate)
-	fc.Result = res
-	return ec.marshalOStopTimeUpdate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeUpdateᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TripUpdate_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.TripUpdate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "TripUpdate",
+		Object:     "Trip",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -17729,38 +17384,6 @@ func (ec *executionContext) _TripUpdate_timestamp(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Timestamp, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TripUpdate_delay(ctx context.Context, field graphql.CollectedField, obj *model.TripUpdate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "TripUpdate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Delay, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18643,38 +18266,6 @@ func (ec *executionContext) _ValidationResultErrorGroup_errors(ctx context.Conte
 	return ec.marshalNValidationResultError2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResultErrorᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VehiclePosition_trip(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "VehiclePosition",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trip, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.RTTripDescriptor)
-	fc.Result = res
-	return ec.marshalORTTripDescriptor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTripDescriptor(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _VehiclePosition_vehicle(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18798,9 +18389,9 @@ func (ec *executionContext) _VehiclePosition_stop_id(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Stop)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _VehiclePosition_current_status(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
@@ -22651,34 +22242,6 @@ func (ec *executionContext) _RTEntitySelector(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var rTStopTimeEventImplementors = []string{"RTStopTimeEvent"}
-
-func (ec *executionContext) _RTStopTimeEvent(ctx context.Context, sel ast.SelectionSet, obj *model.RTStopTimeEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, rTStopTimeEventImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("RTStopTimeEvent")
-		case "delay":
-			out.Values[i] = ec._RTStopTimeEvent_delay(ctx, field, obj)
-		case "time":
-			out.Values[i] = ec._RTStopTimeEvent_time(ctx, field, obj)
-		case "uncertainty":
-			out.Values[i] = ec._RTStopTimeEvent_uncertainty(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var rTTimeRangeImplementors = []string{"RTTimeRange"}
 
 func (ec *executionContext) _RTTimeRange(ctx context.Context, sel ast.SelectionSet, obj *model.RTTimeRange) graphql.Marshaler {
@@ -23559,31 +23122,25 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var stopTimeUpdateImplementors = []string{"StopTimeUpdate"}
+var stopTimeEventImplementors = []string{"StopTimeEvent"}
 
-func (ec *executionContext) _StopTimeUpdate(ctx context.Context, sel ast.SelectionSet, obj *model.StopTimeUpdate) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, stopTimeUpdateImplementors)
+func (ec *executionContext) _StopTimeEvent(ctx context.Context, sel ast.SelectionSet, obj *model.StopTimeEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stopTimeEventImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("StopTimeUpdate")
-		case "stop_sequence":
-			out.Values[i] = ec._StopTimeUpdate_stop_sequence(ctx, field, obj)
-		case "stop_id":
-			out.Values[i] = ec._StopTimeUpdate_stop_id(ctx, field, obj)
-		case "arrival":
-			out.Values[i] = ec._StopTimeUpdate_arrival(ctx, field, obj)
-		case "departure":
-			out.Values[i] = ec._StopTimeUpdate_departure(ctx, field, obj)
-		case "schedule_relationship":
-			out.Values[i] = ec._StopTimeUpdate_schedule_relationship(ctx, field, obj)
-		case "arrival_time":
-			out.Values[i] = ec._StopTimeUpdate_arrival_time(ctx, field, obj)
-		case "departure_time":
-			out.Values[i] = ec._StopTimeUpdate_departure_time(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("StopTimeEvent")
+		case "scheduled":
+			out.Values[i] = ec._StopTimeEvent_scheduled(ctx, field, obj)
+		case "estimated":
+			out.Values[i] = ec._StopTimeEvent_estimated(ctx, field, obj)
+		case "delay":
+			out.Values[i] = ec._StopTimeEvent_delay(ctx, field, obj)
+		case "uncertainty":
+			out.Values[i] = ec._StopTimeEvent_uncertainty(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23732,38 +23289,10 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var tripUpdateImplementors = []string{"TripUpdate"}
-
-func (ec *executionContext) _TripUpdate(ctx context.Context, sel ast.SelectionSet, obj *model.TripUpdate) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, tripUpdateImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TripUpdate")
-		case "trip":
-			out.Values[i] = ec._TripUpdate_trip(ctx, field, obj)
-		case "vehicle":
-			out.Values[i] = ec._TripUpdate_vehicle(ctx, field, obj)
-		case "stop_time_update":
-			out.Values[i] = ec._TripUpdate_stop_time_update(ctx, field, obj)
+		case "schedule_relationship":
+			out.Values[i] = ec._Trip_schedule_relationship(ctx, field, obj)
 		case "timestamp":
-			out.Values[i] = ec._TripUpdate_timestamp(ctx, field, obj)
-		case "delay":
-			out.Values[i] = ec._TripUpdate_delay(ctx, field, obj)
+			out.Values[i] = ec._Trip_timestamp(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23966,8 +23495,6 @@ func (ec *executionContext) _VehiclePosition(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("VehiclePosition")
-		case "trip":
-			out.Values[i] = ec._VehiclePosition_trip(ctx, field, obj)
 		case "vehicle":
 			out.Values[i] = ec._VehiclePosition_vehicle(ctx, field, obj)
 		case "position":
@@ -25650,16 +25177,6 @@ func (ec *executionContext) marshalNStopTime2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 	return ec._StopTime(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNStopTimeUpdate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeUpdate(ctx context.Context, sel ast.SelectionSet, v *model.StopTimeUpdate) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._StopTimeUpdate(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -26669,13 +26186,6 @@ func (ec *executionContext) marshalORTEntitySelector2ᚕᚖgithubᚗcomᚋinterl
 	return ret
 }
 
-func (ec *executionContext) marshalORTStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTStopTimeEvent(ctx context.Context, sel ast.SelectionSet, v *model.RTStopTimeEvent) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._RTStopTimeEvent(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalORTTimeRange2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTimeRangeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RTTimeRange) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -26743,6 +26253,22 @@ func (ec *executionContext) unmarshalORouteFilter2ᚖgithubᚗcomᚋinterlineᚑ
 	}
 	res, err := ec.unmarshalInputRouteFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOScheduleRelationship2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐScheduleRelationship(ctx context.Context, v interface{}) (*model.ScheduleRelationship, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ScheduleRelationship)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOScheduleRelationship2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐScheduleRelationship(ctx context.Context, sel ast.SelectionSet, v *model.ScheduleRelationship) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTimeᚄ(ctx context.Context, v interface{}) ([]*tl.WideTime, error) {
@@ -26874,46 +26400,6 @@ func (ec *executionContext) unmarshalOStopTimeFilter2ᚖgithubᚗcomᚋinterline
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOStopTimeUpdate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeUpdateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.StopTimeUpdate) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNStopTimeUpdate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeUpdate(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) unmarshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx context.Context, v interface{}) (tl.OString, error) {
 	var res tl.OString
 	err := res.UnmarshalGQL(v)
@@ -27027,6 +26513,21 @@ func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v in
 
 func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
 	return graphql.MarshalTime(v)
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalTime(*v)
 }
 
 func (ec *executionContext) unmarshalOTripFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripFilter(ctx context.Context, v interface{}) (*model.TripFilter, error) {

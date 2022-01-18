@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
@@ -46,7 +47,41 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 }
 
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
-	return find.For(ctx).StopTimesByStopID.Load(model.StopTimeParam{FeedVersionID: obj.FeedVersionID, StopID: obj.ID, Limit: limit, Where: where})
+	sts, err := find.For(ctx).StopTimesByStopID.Load(model.StopTimeParam{FeedVersionID: obj.FeedVersionID, StopID: obj.ID, Limit: limit, Where: where})
+	if err != nil {
+		return nil, err
+	}
+	// Merge scheduled stop times with rt stop times
+	// TODO: handle StopTimeFilter
+	rtcm := r.getConsumerManager()
+	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)
+	for _, st := range sts {
+		rtTrip, ok := rtcm.GetTrip2(st.FeedVersionID, atoi(st.TripID))
+		if !ok {
+			continue
+		}
+		fmt.Println("FOUND SCHEDULED TRIP:", rtTrip)
+	}
+	// Handle added trips; these must specify stop_id in StopTimeUpdates
+	fmt.Println("looking for added rt for stop:", obj.FeedOnestopID, obj.StopID)
+	for _, rtTrip := range rtcm.GetAddedTripsForStop(obj.FeedOnestopID, obj.StopID) {
+		fmt.Println("FOUND ADDED RT:", rtTrip)
+		for _, stu := range rtTrip.StopTimeUpdate {
+			if stu.GetStopId() != obj.StopID {
+				continue
+			}
+			rtst := &model.StopTime{}
+			if rtst == nil {
+				continue
+			}
+			rtst.RTTrip = rtTrip
+			rtst.FeedVersionID = obj.FeedVersionID
+			rtst.StopID = obj.StopID
+			rtst.TripID = "0"
+			sts = append(sts, rtst)
+		}
+	}
+	return sts, nil
 }
 
 func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error) {
