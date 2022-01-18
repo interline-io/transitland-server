@@ -1,14 +1,11 @@
 package rtcache
 
 import (
-	"time"
-
 	"github.com/interline-io/transitland-server/config"
 )
 
 var (
-	pulsarConnectionTimeout = 30 * time.Second
-	JobSchema               = `
+	JobSchema = `
 	{
 		"type": "record",
 		"name": "Job",

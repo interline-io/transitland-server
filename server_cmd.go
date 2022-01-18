@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -73,6 +74,10 @@ func (cmd *Command) Run() error {
 	// Open database
 	cfg := cmd.Config
 	cfg.DB.DB = model.MustOpenDB(cfg.DB.DBURL)
+
+	// Default caching strategy
+	cfg.RT.Cache = rtcache.NewLocalCache(context.TODO())
+	cfg.RT.JobQueue = rtcache.NewLocalJobs(context.TODO())
 
 	// Setup CORS and logging
 	root := mux.NewRouter()

@@ -17,7 +17,7 @@ func TestRedisJobs(t *testing.T) {
 }
 
 func TestRedisCache(t *testing.T) {
-	// pulsar jobs and cache
+	// redis jobs and cache
 	redisUrl := "localhost:6379"
 	client := redis.NewClient(&redis.Options{Addr: redisUrl})
 	rtCache := NewRedisCache(client)
@@ -25,7 +25,7 @@ func TestRedisCache(t *testing.T) {
 }
 
 func TestRedisConsumers(t *testing.T) {
-	// pulsar jobs and cache
+	// redis jobs and cache
 	redisUrl := "localhost:6379"
 	client := redis.NewClient(&redis.Options{Addr: redisUrl})
 	rtCache := NewRedisCache(client)
