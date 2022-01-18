@@ -34,7 +34,7 @@ func RelPath(p string) string {
 }
 
 func TestFetchResolver(t *testing.T) {
-	// dbCfg := config.DBConfig{DB: TestDB}
+	dbCfg := config.DBConfig{DB: TestDB}
 	expectFile := RelPath("test/data/external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
@@ -44,7 +44,7 @@ func TestFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		srv, _ := NewServer(config.Config{})
+		srv, _ := NewServer(config.Config{DB: dbCfg})
 		srv = auth.AdminDefaultMiddleware(nil)(srv) // Run all requests as admin
 		// Run all requests as admin
 		c := client.New(srv)
@@ -56,7 +56,7 @@ func TestFetchResolver(t *testing.T) {
 		assert.JSONEq(t, `{"feed_version_fetch":{"found_sha1":true,"feed_version":{"sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0"}}}`, toJson(resp))
 	})
 	t.Run("requires admin access", func(t *testing.T) {
-		srv, _ := NewServer(config.Config{})
+		srv, _ := NewServer(config.Config{DB: dbCfg})
 		srv = auth.UserDefaultMiddleware(nil)(srv) // Run all requests as regular user
 		c := client.New(srv)
 		resp := make(map[string]interface{})

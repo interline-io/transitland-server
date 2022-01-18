@@ -83,7 +83,7 @@ func Fetch(cfg config.Config, src io.Reader, feedURL *string, feed string, user 
 		opts.FeedURL = *feedURL
 	}
 	// Run fetch command in txn
-	adapter := tldb.NewPostgresAdapterFromDBX(model.DB)
+	adapter := tldb.NewPostgresAdapterFromDBX(cfg.DB.DB)
 	var fr fetch.Result
 	err := adapter.Tx(func(atx tldb.Adapter) error {
 		var fe error

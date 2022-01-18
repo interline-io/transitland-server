@@ -7,7 +7,7 @@ import (
 )
 
 func FindFeeds(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.FeedFilter) (ents []*model.Feed, err error) {
-	MustSelect(model.DB, FeedSelect(limit, after, ids, where), &ents)
+	MustSelect(atx, FeedSelect(limit, after, ids, where), &ents)
 	return ents, nil
 }
 

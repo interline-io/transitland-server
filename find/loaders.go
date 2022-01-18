@@ -7,9 +7,9 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-server/config"
 	dl "github.com/interline-io/transitland-server/generated/dataloader"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
 // MAXBATCH is maximum batch size
@@ -72,7 +72,8 @@ type Loaders struct {
 }
 
 // Middleware .
-func Middleware(atx sqlx.Ext, next http.Handler) http.Handler {
+func Middleware(cfg config.Config, next http.Handler) http.Handler {
+	atx := cfg.DB.DB
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), loadersKey, &Loaders{
 			LevelsByID: *dl.NewLevelLoader(dl.LevelLoaderConfig{

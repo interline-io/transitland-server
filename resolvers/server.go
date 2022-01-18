@@ -29,7 +29,7 @@ func NewServer(cfg config.Config) (http.Handler, error) {
 	}
 	// Setup server
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
-	graphqlServer := find.Middleware(model.DB, srv)
+	graphqlServer := find.Middleware(cfg, srv)
 	root := mux.NewRouter()
 	root.Handle("/", graphqlServer).Methods(http.MethodGet, http.MethodPost, http.MethodOptions)
 	return root, nil

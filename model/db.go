@@ -17,15 +17,7 @@ var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
 // TODO: replace with middleware or configuration
 
-type canBeginx interface {
-	sqlx.Ext
-	sqlx.Preparer
-	Beginx() (*sqlx.Tx, error)
-}
-
-var DB canBeginx
-
-func MustOpenDB(url string) canBeginx {
+func MustOpenDB(url string) sqlx.Ext {
 	db, err := sqlx.Open("postgres", url)
 	if err != nil {
 		log.Fatal(err)
@@ -42,20 +34,6 @@ func MustOpenDB(url string) canBeginx {
 
 func Sqrl(db sqlx.Ext) sq.StatementBuilderType {
 	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(db)
-}
-
-func Tx(cb func(sqlx.Ext) error) error {
-	tx, err := DB.Beginx()
-	if err != nil {
-		panic(err)
-	}
-	if err := cb(tx); err != nil {
-		if errTx := tx.Rollback(); errTx != nil {
-			panic(errTx)
-		}
-		return err
-	}
-	return tx.Commit()
 }
 
 func toSnakeCase(str string) string {
