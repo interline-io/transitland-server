@@ -15,7 +15,7 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 	if g == "" {
 		t.Skip("TL_TEST_GTFSDIR not set - skipping")
 	}
-	dbCfg := config.DBConfig{}
+	dbCfg := config.DBConfig{DB: TestDB}
 	cfg := config.Config{DB: dbCfg, GtfsDir: g}
 	srv, _ := resolvers.NewServer(cfg)
 	restSrv, _ := NewServer(cfg, srv)

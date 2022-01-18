@@ -24,7 +24,7 @@ type DBConfig struct {
 	DB    sqlx.Ext
 }
 
-// RT holder
+// Redis and RT cache/job holder
 
 type RTConfig struct {
 	RedisURL string
