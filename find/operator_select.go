@@ -8,7 +8,7 @@ import (
 
 func FindOperators(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.OperatorFilter) (ents []*model.Operator, err error) {
 	q := OperatorSelect(limit, after, ids, where)
-	MustSelect(model.DB, q, &ents)
+	MustSelect(atx, q, &ents)
 	return ents, nil
 }
 

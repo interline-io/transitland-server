@@ -9,9 +9,12 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
+
+var TestDB sqlx.Ext
 
 func TestMain(m *testing.M) {
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
@@ -19,14 +22,14 @@ func TestMain(m *testing.M) {
 		fmt.Println("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		return
 	}
-	model.DB = model.MustOpenDB(g)
+	TestDB = model.MustOpenDB(g)
 	os.Exit(m.Run())
 }
 
 // Test helpers
 
 func newTestClient() *client.Client {
-	srv, _ := NewServer(config.Config{})
+	srv, _ := NewServer(config.Config{DB: config.DBConfig{DB: TestDB}})
 	return client.New(srv)
 }
 

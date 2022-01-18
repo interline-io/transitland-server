@@ -12,7 +12,7 @@ func FindRoutes(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.Ro
 		active = true
 	}
 	q := RouteSelect(limit, after, ids, active, where)
-	MustSelect(model.DB, q, &ents)
+	MustSelect(atx, q, &ents)
 	return ents, nil
 }
 

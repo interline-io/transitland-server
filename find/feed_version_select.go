@@ -7,7 +7,7 @@ import (
 )
 
 func FindFeedVersions(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.FeedVersionFilter) (ents []*model.FeedVersion, err error) {
-	MustSelect(model.DB, FeedVersionSelect(limit, after, ids, where), &ents)
+	MustSelect(atx, FeedVersionSelect(limit, after, ids, where), &ents)
 	return ents, nil
 }
 
