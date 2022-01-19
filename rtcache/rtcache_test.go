@@ -73,7 +73,7 @@ func testCache(t *testing.T, rtCache Cache) {
 
 func testConsumers(t *testing.T, rtCache Cache, rtJobs JobQueue) {
 	// Start consumers
-	rtManager := NewRTConsumerManager(rtCache, nil)
+	rtManager := NewRTConsumerManager(rtCache)
 	var foundTrips []*pb.TripUpdate
 	for i := 0; i < consumerWorkers; i++ {
 		for _, feed := range feeds {

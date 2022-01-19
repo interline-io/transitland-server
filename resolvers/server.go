@@ -13,10 +13,15 @@ import (
 	"github.com/interline-io/transitland-server/find"
 	generated "github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/rtcache"
 )
 
 func NewServer(cfg config.Config) (http.Handler, error) {
-	c := generated.Config{Resolvers: &Resolver{cfg: cfg}}
+	c := generated.Config{Resolvers: &Resolver{
+		cfg:  cfg,
+		rtcm: rtcache.NewRTConsumerManager(cfg.RT.Cache),
+		lc:   rtcache.NewLookupCache(cfg.DB.DB),
+	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := auth.ForContext(ctx)
 		if user == nil {

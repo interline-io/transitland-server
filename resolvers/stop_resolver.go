@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/interline-io/transitland-server/find"
@@ -52,32 +53,47 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 		return nil, err
 	}
 	// Merge scheduled stop times with rt stop times
-	// TODO: handle StopTimeFilter
-	rtcm := r.getConsumerManager()
+	// TODO: handle StopTimeFilter in RT
+	_, ok := r.lc.StopTimezone(obj.ID, obj.StopTimezone)
+	if !ok {
+		return nil, errors.New("timezone not available for stop 0")
+	}
 	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)
 	for _, st := range sts {
-		rtTrip, ok := rtcm.GetTrip2(st.FeedVersionID, atoi(st.TripID))
-		if !ok {
+		a, aok := r.lc.FeedVersionOnestopID(st.FeedVersionID)
+		b, bok := r.lc.TripGTFSTripID(atoi(st.TripID))
+		if !aok || !bok {
+			fmt.Println("could not get onestop id or trip gtfs id, skipping")
 			continue
 		}
-		fmt.Println("FOUND SCHEDULED TRIP:", rtTrip)
+		rtTrip, rtok := r.rtcm.GetTrip(a, b)
+		if !rtok {
+			fmt.Println("no trip for:", a, b)
+			continue
+		}
+		for _, ste := range rtTrip.StopTimeUpdate {
+			// Must match on StopSequence
+			// TODO: allow matching on stop_id if stop_sequence is not provided
+			if int(ste.GetStopSequence()) == st.StopSequence {
+				st.RTStopTimeUpdate = ste
+				break
+			}
+		}
 	}
 	// Handle added trips; these must specify stop_id in StopTimeUpdates
 	fmt.Println("looking for added rt for stop:", obj.FeedOnestopID, obj.StopID)
-	for _, rtTrip := range rtcm.GetAddedTripsForStop(obj.FeedOnestopID, obj.StopID) {
-		fmt.Println("FOUND ADDED RT:", rtTrip)
+	for _, rtTrip := range r.rtcm.GetAddedTripsForStop(obj.FeedOnestopID, obj.StopID) {
 		for _, stu := range rtTrip.StopTimeUpdate {
 			if stu.GetStopId() != obj.StopID {
 				continue
 			}
 			rtst := &model.StopTime{}
-			if rtst == nil {
-				continue
-			}
-			rtst.RTTrip = rtTrip
+			rtst.RTStopTimeUpdate = stu
 			rtst.FeedVersionID = obj.FeedVersionID
-			rtst.StopID = obj.StopID
+			// create a new StopTime
 			rtst.TripID = "0"
+			rtst.StopID = obj.StopID
+			rtst.StopSequence = int(stu.GetStopSequence())
 			sts = append(sts, rtst)
 		}
 	}

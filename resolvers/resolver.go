@@ -19,13 +19,7 @@ func atoi(v string) int {
 type Resolver struct {
 	cfg  config.Config
 	rtcm *rtcache.RTConsumerManager
-}
-
-func (r *Resolver) getConsumerManager() *rtcache.RTConsumerManager {
-	if r.rtcm == nil {
-		r.rtcm = rtcache.NewRTConsumerManager(r.cfg.RT.Cache, r.cfg.DB.DB)
-	}
-	return r.rtcm
+	lc   *rtcache.LookupCache
 }
 
 // Query .

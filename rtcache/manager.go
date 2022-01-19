@@ -5,27 +5,22 @@ import (
 	"sync"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
-	"github.com/jmoiron/sqlx"
 )
 
-type RTConsumerManager struct {
-	cache         Cache
-	fetchers      map[string]*RTConsumer
-	lock          sync.Mutex
-	db            sqlx.Ext
-	fvidFeedCache *rtEntityIDCache
-	stopIdCache   *rtEntityIDCache
-	tripIdCache   *rtEntityIDCache
+func GetTopicKey(topic string, t string) string {
+	return fmt.Sprintf("rtdata:%s:%s", topic, t)
 }
 
-func NewRTConsumerManager(cache Cache, db sqlx.Ext) *RTConsumerManager {
+type RTConsumerManager struct {
+	cache    Cache
+	fetchers map[string]*RTConsumer
+	lock     sync.Mutex
+}
+
+func NewRTConsumerManager(cache Cache) *RTConsumerManager {
 	return &RTConsumerManager{
-		cache:         cache,
-		fetchers:      map[string]*RTConsumer{},
-		db:            db,
-		fvidFeedCache: newRTEntityIDCache(),
-		stopIdCache:   newRTEntityIDCache(),
-		tripIdCache:   newRTEntityIDCache(),
+		cache:    cache,
+		fetchers: map[string]*RTConsumer{},
 	}
 }
 
@@ -52,7 +47,7 @@ func (f *RTConsumerManager) getListener(topicKey string) (*RTConsumer, error) {
 
 func (f *RTConsumerManager) GetTripIDs(topic string) ([]string, error) {
 	var ret []string
-	a, err := f.getListener(fmt.Sprintf("rtdata:%s:trip_updates", topic))
+	a, err := f.getListener(GetTopicKey(topic, "trip_updates"))
 	if err != nil {
 		return nil, err
 	}
@@ -62,12 +57,8 @@ func (f *RTConsumerManager) GetTripIDs(topic string) ([]string, error) {
 	return ret, nil
 }
 
-func (f *RTConsumerManager) GetTrip2(fvid int, id int) (*pb.TripUpdate, bool) {
-	return f.GetTrip(f.getFvidTopic(fvid), f.getTripId(id))
-}
-
 func (f *RTConsumerManager) GetTrip(topic string, tid string) (*pb.TripUpdate, bool) {
-	a, err := f.getListener(fmt.Sprintf("rtdata:%s:trip_updates", topic))
+	a, err := f.getListener(GetTopicKey(topic, "trip_updates"))
 	if err != nil {
 		return nil, false
 	}
@@ -77,7 +68,7 @@ func (f *RTConsumerManager) GetTrip(topic string, tid string) (*pb.TripUpdate, b
 
 // TODO: put this method on consumer and wrap, as with GetTrip
 func (f *RTConsumerManager) GetAddedTripsForStop(topic string, sid string) []*pb.TripUpdate {
-	a, err := f.getListener(fmt.Sprintf("rtdata:%s:trip_updates", topic))
+	a, err := f.getListener(GetTopicKey(topic, "trip_updates"))
 	if err != nil {
 		return nil
 	}
@@ -94,69 +85,4 @@ func (f *RTConsumerManager) GetAddedTripsForStop(topic string, sid string) []*pb
 		}
 	}
 	return ret
-}
-
-// caching
-
-func (f *RTConsumerManager) getFvidTopic(id int) string {
-	if a, ok := f.fvidFeedCache.Get(id); ok {
-		return a
-	}
-	eid := ""
-	err := sqlx.Get(
-		f.db,
-		&eid,
-		"select current_feeds.onestop_id from feed_versions join current_feeds on current_feeds.id = feed_versions.feed_id where feed_versions.id = $1",
-		id,
-	)
-	_ = err
-	f.fvidFeedCache.Set(id, eid)
-	return eid
-}
-
-func (f *RTConsumerManager) getStopId(id int) string {
-	if a, ok := f.stopIdCache.Get(id); ok {
-		return a
-	}
-	eid := ""
-	err := sqlx.Get(f.db, &eid, "select stop_id from gtfs_stops where id = $1", id)
-	_ = err
-	f.stopIdCache.Set(id, eid)
-	return eid
-}
-
-func (f *RTConsumerManager) getTripId(id int) string {
-	if a, ok := f.tripIdCache.Get(id); ok {
-		return a
-	}
-	eid := ""
-	err := sqlx.Get(f.db, &eid, "select trip_id from gtfs_trips where id = $1", id)
-	_ = err
-	f.tripIdCache.Set(id, eid)
-	return eid
-}
-
-/////
-type rtEntityIDCache struct {
-	lock   sync.Mutex
-	values map[int]string
-}
-
-func (c *rtEntityIDCache) Get(key int) (string, bool) {
-	c.lock.Lock()
-	a, ok := c.values[key]
-	c.lock.Unlock()
-	return a, ok
-}
-
-func (c *rtEntityIDCache) Set(key int, value string) {
-	c.lock.Lock()
-	c.values[key] = value
-	c.lock.Unlock()
-}
-
-func newRTEntityIDCache() *rtEntityIDCache {
-	return &rtEntityIDCache{
-		values: map[int]string{},
-	}
 }

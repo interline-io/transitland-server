@@ -166,13 +166,6 @@ type StopFilter struct {
 	AgencyIds          []int        `json:"agency_ids"`
 }
 
-type StopTimeEvent struct {
-	Scheduled   *tl.WideTime `json:"scheduled"`
-	Estimated   *time.Time   `json:"estimated"`
-	Delay       *int         `json:"delay"`
-	Uncertainty *int         `json:"uncertainty"`
-}
-
 type StopTimeFilter struct {
 	ServiceDate *tl.ODate `json:"service_date"`
 	StartTime   *int      `json:"start_time"`

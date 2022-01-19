@@ -28,7 +28,6 @@ func (w *RTFetchWorker) Run(ctx context.Context, opts JobOptions, job rtcache.Jo
 	if err != nil {
 		return err
 	}
-
 	key := fmt.Sprintf("rtdata:%s:%s", feed, ftype)
 	return opts.cache.AddData(key, rtdata)
 }

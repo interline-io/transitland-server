@@ -334,7 +334,7 @@ type StopTime {
   trip: Trip!
   arrival: StopTimeEvent!
   departure: StopTimeEvent!
-  schedule_relationship: ScheduleRelationship!
+  # schedule_relationship: ScheduleRelationship!
 }
 
 
@@ -418,8 +418,10 @@ enum ScheduleRelationship {
 }
 
 type StopTimeEvent {
+  stop_timezone: String!
   scheduled: Seconds
-  estimated: Time
+  estimated: Seconds
+  estimated_utc: Time
   delay: Int
   uncertainty: Int
 }

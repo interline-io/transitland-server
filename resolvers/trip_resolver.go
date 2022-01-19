@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"time"
 
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
@@ -36,4 +37,12 @@ func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *in
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {
 	return find.For(ctx).FrequenciesByTripID.Load(model.FrequencyParam{TripID: obj.ID, Limit: limit})
+}
+
+func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
+	return nil, nil
+}
+
+func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error) {
+	return nil, nil
 }
