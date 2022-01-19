@@ -21,9 +21,7 @@ func NewLocalCache(ctx context.Context) *LocalCache {
 
 func (f *LocalCache) Listen(topic string) (chan []byte, error) {
 	c := make(chan []byte, 1000)
-	if a, ok := f.lastData[topic]; ok {
-		c <- a
-	}
+	c <- f.lastData[topic]
 	f.lock.Lock()
 	f.listeners[topic] = append(f.listeners[topic], c)
 	f.lock.Unlock()

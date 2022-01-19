@@ -42,7 +42,7 @@ func (f *RedisCache) Listen(topic string) (chan []byte, error) {
 		// get the first message and send
 		lastData := client.Get(context.TODO(), lastKey(topic))
 		if err := lastData.Err(); err == redis.Nil {
-			// ok
+			ch.listener <- nil
 		} else if err != nil {
 			panic(err)
 		} else {

@@ -1,6 +1,7 @@
 package resolvers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/rtcache"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -29,7 +31,7 @@ func TestMain(m *testing.M) {
 // Test helpers
 
 func newTestClient() *client.Client {
-	srv, _ := NewServer(config.Config{DB: config.DBConfig{DB: TestDB}})
+	srv, _ := NewServer(config.Config{DB: config.DBConfig{DB: TestDB}, RT: config.RTConfig{Cache: rtcache.NewLocalCache(context.TODO())}})
 	return client.New(srv)
 }
 

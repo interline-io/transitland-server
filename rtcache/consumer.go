@@ -73,6 +73,10 @@ func (f *RTConsumer) Start(ch chan []byte) error {
 }
 
 func (f *RTConsumer) process(rtdata []byte) error {
+	if len(rtdata) == 0 {
+		fmt.Printf("consumer '%s': received no data\n", f.feed)
+		return nil
+	}
 	rtmsg := pb.FeedMessage{}
 	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
 		return err
