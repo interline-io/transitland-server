@@ -9,10 +9,8 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/graphql"
-	sq "github.com/Masterminds/squirrel"
 
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
-	"github.com/interline-io/transitland-lib/dmfr/importer"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/causes"
 	"github.com/interline-io/transitland-lib/tlcsv"
@@ -20,9 +18,7 @@ import (
 	"github.com/interline-io/transitland-lib/validator"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
 // mutation root
@@ -42,27 +38,27 @@ func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.U
 	if file != nil {
 		src = file.File
 	}
-	return Fetch(r.cfg, src, url, feed, auth.ForContext(ctx))
+	return Fetch(r.cfg, r.finder, src, url, feed, auth.ForContext(ctx))
 }
 
 func (r *mutationResolver) FeedVersionImport(ctx context.Context, sha1 string) (*model.FeedVersionImportResult, error) {
-	return Import(r.cfg, sha1, auth.ForContext(ctx))
+	return nil, errors.New("temporarily unavailable")
 }
 
 func (r *mutationResolver) FeedVersionUpdate(ctx context.Context, id int, values model.FeedVersionSetInput) (*model.FeedVersion, error) {
-	return UpdateFeedVersion(id, values, auth.ForContext(ctx))
+	return nil, errors.New("temporarily unavailable")
 }
 
 func (r *mutationResolver) FeedVersionUnimport(ctx context.Context, id int) (*model.FeedVersionUnimportResult, error) {
-	return UnimportFeedVersion(id)
+	return nil, errors.New("temporarily unavailable")
 }
 
 func (r *mutationResolver) FeedVersionDelete(ctx context.Context, id int) (*model.FeedVersionDeleteResult, error) {
-	return FeedVersionDelete(id)
+	return nil, errors.New("temporarily unavailable")
 }
 
 // Fetch adds a feed version to the database.
-func Fetch(cfg config.Config, src io.Reader, feedURL *string, feed string, user *auth.User) (*model.FeedVersionFetchResult, error) {
+func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *string, feed string, user *auth.User) (*model.FeedVersionFetchResult, error) {
 	if user == nil {
 		return nil, errors.New("no user")
 	}
@@ -87,7 +83,7 @@ func Fetch(cfg config.Config, src io.Reader, feedURL *string, feed string, user 
 		opts.FeedURL = *feedURL
 	}
 	// Run fetch command in txn
-	adapter := tldb.NewPostgresAdapterFromDBX(model.DB)
+	adapter := tldb.NewPostgresAdapterFromDBX(finder.DBX())
 	var fr fetch.Result
 	err := adapter.Tx(func(atx tldb.Adapter) error {
 		var fe error
@@ -108,202 +104,6 @@ func Fetch(cfg config.Config, src io.Reader, feedURL *string, feed string, user 
 		return nil, fr.FetchError
 	}
 	return &mr, nil
-}
-
-// Import loads a feed version into the database.
-func Import(cfg config.Config, feedVersionSHA1 string, user *auth.User) (*model.FeedVersionImportResult, error) {
-	adapter := tldb.NewPostgresAdapterFromDBX(model.DB)
-	fvid := 0
-	if err := adapter.Get(&fvid, "SELECT id FROM feed_versions WHERE sha1 = ?", feedVersionSHA1); err != nil {
-		return nil, err
-	}
-	if err := checkEditableFv(model.DB, fvid); err != nil {
-		return nil, err
-	}
-	// Run import command in txn
-	opts := importer.Options{
-		FeedVersionID: fvid,
-		Directory:     cfg.GtfsDir,
-		S3:            cfg.GtfsS3Bucket,
-	}
-	var fr importer.Result
-	err := adapter.Tx(func(atx tldb.Adapter) error {
-		var fe error
-		fr, fe = importer.MainImportFeedVersion(adapter, opts)
-		return fe
-	})
-	if err != nil {
-		return nil, err
-	}
-	mr := model.FeedVersionImportResult{
-		Success: fr.FeedVersionImport.Success,
-	}
-	return &mr, nil
-}
-
-func UpdateFeedVersion(id int, values model.FeedVersionSetInput, user *auth.User) (*model.FeedVersion, error) {
-	// Update fv in txn
-	ret := &model.FeedVersion{}
-	err := model.Tx(func(db sqlx.Ext) error {
-		if err := checkEditableFv(db, id); err != nil {
-			return err
-		}
-		ents, err := find.FindFeedVersions(model.DB, nil, nil, []int{id}, nil)
-		if err != nil {
-			return err
-		}
-		fv := ents[0]
-		if values.Name != nil {
-			fv.Name = tl.NewOString(*values.Name)
-		} else {
-			fv.Name.Valid = false
-		}
-		if values.Description != nil {
-			fv.Description = tl.NewOString(*values.Description)
-		} else {
-			fv.Description.Valid = false
-		}
-		if _, err := model.Sqrl(model.DB).Update("feed_versions").Set("name", fv.Name).Set("description", fv.Description).Where(sq.Eq{"id": id}).Exec(); err != nil {
-			return err
-		}
-		ret = fv
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return ret, nil
-}
-
-// UnimportFeedVersion
-func UnimportFeedVersion(id int) (*model.FeedVersionUnimportResult, error) {
-	// Set of tables to delete where feed_version_id = fvid
-	tables := []string{
-		// derived entities
-		"tl_agency_geometries",
-		"tl_agency_places",
-		"tl_route_geometries",
-		"tl_route_stops",
-		"tl_route_headways",
-		"tl_feed_version_geometries",
-		"tl_agency_onestop_ids",
-		"tl_route_onestop_ids",
-		"tl_stop_onestop_ids",
-		// stop times
-		"gtfs_stop_times",
-		// anonymous entities
-		"gtfs_transfers",
-		"gtfs_calendar_dates",
-		"gtfs_feed_infos",
-		"gtfs_frequencies",
-		"gtfs_pathways",
-		// extensions
-		"ext_faresv2_fare_capping",
-		"ext_faresv2_fare_containers",
-		"ext_faresv2_fare_leg_rules",
-		"ext_faresv2_fare_products",
-		"ext_faresv2_fare_timeframes",
-		"ext_faresv2_fare_transfer_rules",
-		"ext_faresv2_rider_categories",
-		"ext_plus_calendar_attributes",
-		"ext_plus_directions",
-		"ext_plus_fare_rider_categories",
-		"ext_plus_farezone_attributes",
-		"ext_plus_realtime_routes",
-		"ext_plus_realtime_stops",
-		"ext_plus_realtime_trips",
-		"ext_plus_rider_categories",
-		"ext_plus_stop_attributes",
-		"ext_plus_timepoints",
-		// named entities
-		"gtfs_fare_rules",
-		"gtfs_fare_attributes",
-		"gtfs_trips",
-		"gtfs_shapes",
-		"gtfs_calendars",
-		"gtfs_routes",
-		"gtfs_stops",
-		"gtfs_agencies",
-		"gtfs_levels",
-		// editor records
-		"tl_stop_external_references",
-		"tl_ext_fare_networks",
-		"tl_ext_gtfs_stops",
-	}
-	// Run in txn
-	err := model.Tx(func(db sqlx.Ext) error {
-		if err := checkEditableFv(db, id); err != nil {
-			return err
-		}
-		where := sq.Eq{"feed_version_id": id}
-		for _, table := range tables {
-			_, err := model.Sqrl(db).Delete(table).Where(where).Exec()
-			if err != nil {
-				return err
-			}
-		}
-		if _, err := model.Sqrl(db).Delete("feed_version_gtfs_imports").Where(where).Exec(); err != nil {
-			return err
-		}
-		if _, err := model.Sqrl(db).Update("feed_states").Set("feed_version_id", nil).Where(where).Exec(); err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &model.FeedVersionUnimportResult{Success: true}, nil
-}
-
-func FeedVersionDelete(id int) (*model.FeedVersionDeleteResult, error) {
-	tables := []string{
-		"feed_version_file_infos",
-		"feed_version_service_levels",
-	}
-	err := model.Tx(func(db sqlx.Ext) error {
-		if err := checkEditableFv(db, id); err != nil {
-			return err
-		}
-		where := sq.Eq{"feed_version_id": id}
-		checkid := 0
-		if err := model.Sqrl(db).Select("id").From("feed_version_gtfs_imports").Where(where).QueryRow().Scan(&checkid); err == nil {
-			return errors.New("must unimport before deleting")
-		}
-		for _, table := range tables {
-			if _, err := model.Sqrl(db).Delete(table).Where(where).Exec(); err != nil {
-				return err
-			}
-		}
-		if _, err := model.Sqrl(db).Delete("feed_versions").Where(sq.Eq{"id": id}).Exec(); err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return &model.FeedVersionDeleteResult{Success: false}, err
-	}
-	return &model.FeedVersionDeleteResult{Success: true}, nil
-}
-
-func checkEditableFv(db sqlx.Ext, id int) error {
-	ents, err := find.FindFeedVersions(db, nil, nil, []int{id}, nil)
-	if err != nil {
-		return err
-	} else if len(ents) != 1 {
-		return errors.New("no such feed version")
-	} else {
-		feedId := ents[0].FeedID
-		if feedEnts, err := find.FindFeeds(db, nil, nil, []int{feedId}, nil); err != nil {
-			return err
-		} else if len(feedEnts) != 1 {
-			return errors.New("no such feed")
-		}
-		//  else if feedEnts[0].FeedID != "user" {
-		// 	return errors.New("only user feeds may be modified")
-		// }
-	}
-	return nil
 }
 
 type hasContext interface {

@@ -4,11 +4,32 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/gorilla/mux"
 )
 
-// AdminAuthMiddleware stores the user context, but always as admin
-func AdminAuthMiddleware(db sqlx.Ext) (func(http.Handler) http.Handler, error) {
+type AuthConfig struct {
+	JwtAudience      string
+	JwtIssuer        string
+	JwtPublicKeyFile string
+}
+
+// GetUserMiddleware returns a middleware that sets user details.
+func GetUserMiddleware(authType string, cfg AuthConfig) (mux.MiddlewareFunc, error) {
+	// Setup auth; default is all users will be anonymous.
+	if authType == "admin" {
+		return AdminDefaultMiddleware(), nil
+	} else if authType == "user" {
+		return UserDefaultMiddleware(), nil
+	} else if authType == "jwt" {
+		return JWTMiddleware(cfg.JwtAudience, cfg.JwtIssuer, cfg.JwtPublicKeyFile)
+	}
+	return func(next http.Handler) http.Handler {
+		return next
+	}, nil
+}
+
+// AdminDefaultMiddleware uses a default "admin" context.
+func AdminDefaultMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := &User{
@@ -21,11 +42,11 @@ func AdminAuthMiddleware(db sqlx.Ext) (func(http.Handler) http.Handler, error) {
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
-	}, nil
+	}
 }
 
-// UserAuthMiddleware stores the user context, but always as admin
-func UserAuthMiddleware(db sqlx.Ext) (func(http.Handler) http.Handler, error) {
+// UserDefaultMiddleware uses a default "user" context.
+func UserDefaultMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := &User{
@@ -38,5 +59,31 @@ func UserAuthMiddleware(db sqlx.Ext) (func(http.Handler) http.Handler, error) {
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
-	}, nil
+	}
+}
+
+// AdminRequired limits a request to admin privileges.
+func AdminRequired(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		user := ForContext(ctx)
+		if user == nil || !user.IsAdmin {
+			http.Error(w, "permission denied", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// UserRequired limits a request to user privileges.
+func UserRequired(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		user := ForContext(ctx)
+		if user == nil || !user.IsUser {
+			http.Error(w, "permission denied", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

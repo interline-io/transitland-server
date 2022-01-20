@@ -16,7 +16,7 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 		t.Skip("TL_TEST_GTFSDIR not set - skipping")
 	}
 	cfg := config.Config{GtfsDir: g}
-	srv, _ := resolvers.NewServer(cfg)
+	srv, _ := resolvers.NewServer(cfg, TestDBFinder, TestRTFinder)
 	restSrv, _ := NewServer(cfg, srv)
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feed_versions/e535eb2b3b9ac3ef15d82c56575e914575e732e0/download", nil)
@@ -53,7 +53,7 @@ func TestFeedDownloadLatestRequest(t *testing.T) {
 		t.Skip("TL_TEST_GTFSDIR not set - skipping")
 	}
 	cfg := config.Config{GtfsDir: g}
-	srv, _ := resolvers.NewServer(cfg)
+	srv, _ := resolvers.NewServer(cfg, TestDBFinder, TestRTFinder)
 	restSrv, _ := NewServer(cfg, srv)
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feeds/BA/download_latest_feed_version", nil)

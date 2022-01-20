@@ -3,14 +3,7 @@ package find
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
-
-func FindOperators(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.OperatorFilter) (ents []*model.Operator, err error) {
-	q := OperatorSelect(limit, after, ids, where)
-	MustSelect(model.DB, q, &ents)
-	return ents, nil
-}
 
 func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.

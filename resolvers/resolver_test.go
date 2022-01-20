@@ -8,10 +8,14 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
+
+var TestDBFinder model.Finder
+var TestRTFinder model.RTFinder
 
 func TestMain(m *testing.M) {
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
@@ -19,14 +23,17 @@ func TestMain(m *testing.M) {
 		fmt.Println("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		return
 	}
-	model.DB = model.MustOpenDB(g)
+	db := find.MustOpenDB(g)
+	TestDBFinder = find.NewDBFinder(db)
+	// TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	os.Exit(m.Run())
 }
 
 // Test helpers
 
 func newTestClient() *client.Client {
-	srv, _ := NewServer(config.Config{})
+	cfg := config.Config{}
+	srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
 	return client.New(srv)
 }
 

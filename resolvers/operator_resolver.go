@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -14,7 +13,7 @@ type operatorResolver struct{ *Resolver }
 
 func (r *operatorResolver) Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error) {
 	a := obj.OnestopID.String
-	return find.For(ctx).AgenciesByOnestopID.Load(model.AgencyParam{OnestopID: &a})
+	return For(ctx).AgenciesByOnestopID.Load(model.AgencyParam{OnestopID: &a})
 }
 
 func (r *operatorResolver) AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error) {

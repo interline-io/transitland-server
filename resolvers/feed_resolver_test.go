@@ -12,7 +12,7 @@ func TestFeedResolver(t *testing.T) {
 			hw{},
 			``,
 			"feeds.#.onestop_id",
-			[]string{"BA", "CT", "BA~rt", "test"},
+			[]string{"BA", "CT", "BA~rt", "CT~rt", "test"},
 		},
 		{
 			"basic fields",
@@ -79,7 +79,7 @@ func TestFeedResolver(t *testing.T) {
 			hw{},
 			``,
 			"feeds.#.onestop_id",
-			[]string{"BA~rt"},
+			[]string{"BA~rt", "CT~rt"},
 		},
 		{
 			"where fetch_error=true",

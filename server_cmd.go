@@ -11,19 +11,28 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
 )
 
 type Command struct {
+	Timeout          int
+	Port             string
 	DisableGraphql   bool
 	DisableRest      bool
 	EnablePlayground bool
+	EnableJobsApi    bool
+	EnableWorkers    bool
 	EnableProfiler   bool
+	UseAuth          string
+	auth.AuthConfig
 	config.Config
 }
 
@@ -34,6 +43,7 @@ func (cmd *Command) Parse(args []string) error {
 		fl.PrintDefaults()
 	}
 	fl.StringVar(&cmd.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
+	fl.StringVar(&cmd.RedisURL, "redisurl", "", "Redis URL (default: $TL_REDIS_URL)")
 	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
 	fl.StringVar(&cmd.Port, "port", "8080", "")
 	fl.StringVar(&cmd.JwtAudience, "jwt-audience", "", "JWT Audience")
@@ -47,18 +57,34 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
 	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
 	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
-	fl.BoolVar(&cmd.EnablePlayground, "playground", false, "Enable GraphQL playground")
-	fl.BoolVar(&cmd.EnableProfiler, "profile", false, "Enable profiling")
+	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
+	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
+	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
+	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
 	fl.Parse(args)
 	if cmd.DBURL == "" {
 		cmd.DBURL = os.Getenv("TL_DATABASE_URL")
+	}
+	if cmd.RedisURL == "" {
+		cmd.RedisURL = os.Getenv("TL_REDIS_URL")
 	}
 	return nil
 }
 
 func (cmd *Command) Run() error {
 	// Open database
-	model.DB = model.MustOpenDB(cmd.DBURL)
+	cfg := cmd.Config
+	dbx := find.MustOpenDB(cfg.DBURL)
+
+	// Default finders and job queue
+	var dbFinder model.Finder
+	var rtFinder model.RTFinder
+	dbFinder = find.NewDBFinder(dbx)
+
+	if cmd.Config.RedisURL != "" {
+		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
+		_ = redisClient
+	}
 
 	// Setup CORS and logging
 	root := mux.NewRouter()
@@ -70,6 +96,17 @@ func (cmd *Command) Run() error {
 	root.Use(cors)
 	root.Use(loggingMiddleware)
 
+	// Setup user middleware
+	userMiddleware, err := auth.GetUserMiddleware(cmd.UseAuth, cmd.AuthConfig)
+	if err != nil {
+		return err
+	}
+	root.Use(userMiddleware)
+
+	// Workers
+	if cmd.EnableJobsApi || cmd.EnableWorkers {
+	}
+
 	// Profiling
 	if cmd.EnableProfiler {
 		root.HandleFunc("/debug/pprof/", pprof.Index)
@@ -78,24 +115,30 @@ func (cmd *Command) Run() error {
 		root.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
 
-	// Add servers
-	graphqlServer, err := resolvers.NewServer(cmd.Config)
+	// GraphQL API
+	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder)
 	if err != nil {
 		return err
 	}
 	if !cmd.DisableGraphql {
-		mount(root, "/query", graphqlServer)
+		// Mount with user permissions required
+		mount(root, "/query", auth.UserRequired(graphqlServer))
 	}
+
+	// GraphQL Playground
+	if cmd.EnablePlayground && !cmd.DisableGraphql {
+		root.Handle("/", playground.Handler("GraphQL playground", "/query/"))
+	}
+
+	// REST API
 	if !cmd.DisableRest {
-		restServer, err := rest.NewServer(cmd.Config, graphqlServer)
+		restServer, err := rest.NewServer(cfg, graphqlServer)
 		if err != nil {
 			return err
 		}
 		mount(root, "/rest", restServer)
 	}
-	if cmd.EnablePlayground && !cmd.DisableGraphql {
-		root.Handle("/", playground.Handler("GraphQL playground", "/query/"))
-	}
+
 	// Start server
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
 	fmt.Println("listening on:", addr)

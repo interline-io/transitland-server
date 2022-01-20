@@ -7,11 +7,15 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
+
+var TestDBFinder model.Finder
+var TestRTFinder model.RTFinder
 
 const LON = 37.803613
 const LAT = -122.271556
@@ -22,7 +26,9 @@ func TestMain(m *testing.M) {
 		fmt.Println("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		return
 	}
-	model.DB = model.MustOpenDB(g)
+	db := find.MustOpenDB(g)
+	TestDBFinder = find.NewDBFinder(db)
+	// TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	os.Exit(m.Run())
 }
 
@@ -30,7 +36,7 @@ func TestMain(m *testing.M) {
 
 func testRestConfig() restConfig {
 	cfg := config.Config{}
-	srv, _ := resolvers.NewServer(cfg)
+	srv, _ := resolvers.NewServer(cfg, TestDBFinder, TestRTFinder)
 	return restConfig{srv: srv, Config: cfg}
 }
 

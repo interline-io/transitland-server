@@ -3,18 +3,7 @@ package find
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
-
-func FindTrips(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.TripFilter) (ents []*model.Trip, err error) {
-	active := false
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
-		active = true
-	}
-	q := TripSelect(limit, after, ids, active, where)
-	MustSelect(model.DB, q, &ents)
-	return ents, nil
-}
 
 func TripSelect(limit *int, after *int, ids []int, active bool, where *model.TripFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
