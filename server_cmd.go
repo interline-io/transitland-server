@@ -17,6 +17,7 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
 	"github.com/interline-io/transitland-server/rtcache"
@@ -70,11 +71,25 @@ func (cmd *Command) Parse(args []string) error {
 }
 
 func (cmd *Command) Run() error {
+	queueName := "tlv2-default"
+
 	// Open database
 	cfg := cmd.Config
 	dbx := find.MustOpenDB(cfg.DB.DBURL)
-	dbFinder := find.NewDBFinder(dbx)
-	rtFinder := rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
+
+	// Default finders and job queue
+	var dbFinder model.Finder
+	var rtFinder model.RTFinder
+	var jobQueue workers.JobQueue
+	dbFinder = find.NewDBFinder(dbx)
+	rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
+	jobQueue = workers.NewLocalJobs()
+
+	if cmd.Config.RT.RedisURL != "" {
+		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RT.RedisURL})
+		rtFinder = rtcache.NewRTFinder((rtcache.NewRedisCache(redisClient)), dbx)
+		workers.NewRedisJobs(redisClient, queueName)
+	}
 
 	// Setup CORS and logging
 	root := mux.NewRouter()
@@ -96,9 +111,6 @@ func (cmd *Command) Run() error {
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
 		// Open Redis
-		queueName := "tlv2-default"
-		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RT.RedisURL})
-		jobQueue := workers.NewRedisJobs(redisClient, queueName)
 		jobWorkers := 1
 		if cmd.EnableWorkers {
 			jr, _ := workers.NewJobRunner(cfg, dbFinder, rtFinder, jobQueue, queueName, jobWorkers)

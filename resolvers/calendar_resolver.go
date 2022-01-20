@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -25,7 +24,7 @@ func (r *calendarResolver) EndDate(ctx context.Context, obj *model.Calendar) (*t
 }
 
 func (r *calendarResolver) AddedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.ODate, error) {
-	ents, err := find.For(ctx).CalendarDatesByServiceID.Load(model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})
+	ents, err := For(ctx).CalendarDatesByServiceID.Load(model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +39,7 @@ func (r *calendarResolver) AddedDates(ctx context.Context, obj *model.Calendar, 
 }
 
 func (r *calendarResolver) RemovedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.ODate, error) {
-	ents, err := find.For(ctx).CalendarDatesByServiceID.Load(model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})
+	ents, err := For(ctx).CalendarDatesByServiceID.Load(model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})
 	if err != nil {
 		return nil, err
 	}

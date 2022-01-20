@@ -7,7 +7,6 @@ import (
 
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -18,11 +17,11 @@ type stopTimeResolver struct {
 }
 
 func (r *stopTimeResolver) Stop(ctx context.Context, obj *model.StopTime) (*model.Stop, error) {
-	return find.For(ctx).StopsByID.Load(atoi(obj.StopID))
+	return For(ctx).StopsByID.Load(atoi(obj.StopID))
 }
 
 func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*model.Trip, error) {
-	return find.For(ctx).TripsByID.Load(atoi(obj.TripID))
+	return For(ctx).TripsByID.Load(atoi(obj.TripID))
 }
 
 func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {

@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/find"
 	generated "github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -33,7 +32,7 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 	}
 	// Setup server
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
-	graphqlServer := find.Middleware(cfg, dbfinder, srv)
+	graphqlServer := Middleware(cfg, dbfinder, srv)
 	root := mux.NewRouter()
 	root.Handle("/", graphqlServer).Methods(http.MethodGet, http.MethodPost, http.MethodOptions)
 	return root, nil

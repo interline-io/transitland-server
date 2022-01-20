@@ -24,8 +24,9 @@ func TestMain(m *testing.M) {
 		fmt.Println("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		return
 	}
-	TestDBFinder = find.NewDBFinder(find.MustOpenDB(g))
-	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDBFinder.DBX())
+	db := find.MustOpenDB(g)
+	TestDBFinder = find.NewDBFinder(db)
+	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	os.Exit(m.Run())
 }
 
