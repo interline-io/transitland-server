@@ -7,21 +7,34 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/interline-io/transitland-server/rtcache"
 )
-
-type Job = config.Job
 
 // JobWorker defines a job worker
 type JobWorker interface {
-	Run(context.Context, JobOptions, rtcache.Job) error
+	Run(context.Context, JobOptions, Job) error
+}
+
+// Job queue
+type JobQueue interface {
+	AddJob(Job) error
+	AddWorker(func(Job) error, int) error
+	Run() error
+	Stop() error
+}
+
+// Job defines a single job
+type Job struct {
+	JobType string   `json:"job_type"`
+	Feed    string   `json:"feed"`
+	URL     string   `json:"url"`
+	Args    []string `json:"args"`
 }
 
 // JobOptions is configuration passed to worker.
 type JobOptions struct {
 	finder   model.Finder
 	rtfinder model.RTFinder
-	jobs     config.JobQueue
+	jobs     JobQueue
 }
 
 // JobRunner works with JobQueue to run jobs with local configuration options.
@@ -29,13 +42,13 @@ type JobRunner struct {
 	QueueName string
 	Workers   int
 	cfg       config.Config
-	jq        config.JobQueue
+	jq        JobQueue
 	finder    model.Finder
 	rtfinder  model.RTFinder
 }
 
 // NewJobRunner returns a new configured JobRunner listening to the specified queue.
-func NewJobRunner(cfg config.Config, finder model.Finder, rtfinder model.RTFinder, jq config.JobQueue, queueName string, workers int) (*JobRunner, error) {
+func NewJobRunner(cfg config.Config, finder model.Finder, rtfinder model.RTFinder, jq JobQueue, queueName string, workers int) (*JobRunner, error) {
 	j := JobRunner{
 		QueueName: queueName,
 		Workers:   workers,
@@ -48,12 +61,12 @@ func NewJobRunner(cfg config.Config, finder model.Finder, rtfinder model.RTFinde
 }
 
 // AddJob adds a job to the queue.
-func (j *JobRunner) AddJob(job rtcache.Job) error {
+func (j *JobRunner) AddJob(job Job) error {
 	return j.jq.AddJob(job)
 }
 
 // RunJob runs a job immediately.
-func (j *JobRunner) RunJob(job rtcache.Job) error {
+func (j *JobRunner) RunJob(job Job) error {
 	r, err := GetWorker(job)
 	if err != nil {
 		return err
@@ -75,7 +88,7 @@ func (j *JobRunner) RunWorkers() error {
 }
 
 // GetWorker returns the correct worker type for this job.
-func GetWorker(job rtcache.Job) (JobWorker, error) {
+func GetWorker(job Job) (JobWorker, error) {
 	var r JobWorker
 	class := job.JobType
 	switch class {

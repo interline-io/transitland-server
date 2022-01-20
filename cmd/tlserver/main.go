@@ -12,7 +12,6 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr/unimporter"
 	"github.com/interline-io/transitland-lib/tl"
 	server "github.com/interline-io/transitland-server"
-	"github.com/interline-io/transitland-server/workers"
 )
 
 ///////////////
@@ -65,8 +64,6 @@ func main() {
 		r = &fetch.Command{}
 	case "server":
 		r = &server.Command{}
-	case "workers":
-		r = &workers.Command{} // ??
 	default:
 		fmt.Printf("%q is not valid command.", subc)
 		return

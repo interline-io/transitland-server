@@ -23,18 +23,3 @@ type DBConfig struct {
 type RTConfig struct {
 	RedisURL string
 }
-
-// Job queue
-type JobQueue interface {
-	AddJob(Job) error
-	AddWorker(func(Job) error, int) error
-	Run() error
-	Stop() error
-}
-
-type Job struct {
-	JobType string   `json:"job_type"`
-	Feed    string   `json:"feed"`
-	URL     string   `json:"url"`
-	Args    []string `json:"args"`
-}

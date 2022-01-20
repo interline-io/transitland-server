@@ -9,11 +9,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/interline-io/transitland-server/rtcache"
 )
 
 // NewServer creates a simple api for submitting and running jobs.
-func NewServer(cfg config.Config, finder model.Finder, rtFinder model.RTFinder, jq config.JobQueue, queueName string, workers int) (http.Handler, error) {
+func NewServer(cfg config.Config, finder model.Finder, rtFinder model.RTFinder, jq JobQueue, queueName string, workers int) (http.Handler, error) {
 	r := mux.NewRouter()
 	runner, err := NewJobRunner(cfg, finder, rtFinder, jq, queueName, workers)
 	if err != nil {
@@ -33,10 +32,10 @@ func wrapHandler(next func(*JobRunner, http.ResponseWriter, *http.Request), jr *
 
 // job response
 type jobResponse struct {
-	Status  string      `json:"status"`
-	Success bool        `json:"success"`
-	Error   string      `json:"error,omitempty"`
-	Job     rtcache.Job `json:"job"`
+	Status  string `json:"status"`
+	Success bool   `json:"success"`
+	Error   string `json:"error,omitempty"`
+	Job     Job    `json:"job"`
 }
 
 // addJobRequest adds the request to the appropriate queue
@@ -84,8 +83,8 @@ func runJobRequest(jr *JobRunner, w http.ResponseWriter, req *http.Request) {
 }
 
 // requestGetJob parses job from request body
-func requestGetJob(req *http.Request) (rtcache.Job, error) {
-	var job rtcache.Job
+func requestGetJob(req *http.Request) (Job, error) {
+	var job Job
 	err := json.NewDecoder(req.Body).Decode(&job)
 	if err != nil {
 		return job, errors.New("error parsing body")

@@ -6,13 +6,12 @@ import (
 	"fmt"
 
 	"github.com/interline-io/transitland-lib/rt"
-	"github.com/interline-io/transitland-server/rtcache"
 	"google.golang.org/protobuf/proto"
 )
 
 type RTFetchWorker struct{}
 
-func (w *RTFetchWorker) Run(ctx context.Context, opts JobOptions, job rtcache.Job) error {
+func (w *RTFetchWorker) Run(ctx context.Context, opts JobOptions, job Job) error {
 	fmt.Printf("fetch worker! job: %#v\n", job)
 	if len(job.Args) != 3 {
 		return errors.New("feed, type and url required")

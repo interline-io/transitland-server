@@ -3,15 +3,13 @@ package workers
 import (
 	"fmt"
 	"testing"
-
-	"github.com/interline-io/transitland-server/config"
 )
 
 var (
 	feeds = []string{"BA", "SF", "AC", "CT"}
 )
 
-func testJobs(t *testing.T, rtJobs config.JobQueue) {
+func testJobs(t *testing.T, rtJobs JobQueue) {
 	foundJobs := make([]Job, 0, len(feeds))
 	jobfunc := func(job Job) error {
 		fmt.Println("got job:", job)
