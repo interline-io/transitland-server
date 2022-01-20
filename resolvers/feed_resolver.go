@@ -3,7 +3,6 @@ package resolvers
 import (
 	"context"
 
-	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -12,11 +11,11 @@ import (
 type feedResolver struct{ *Resolver }
 
 func (r *feedResolver) FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error) {
-	return find.For(ctx).FeedStatesByFeedID.Load(obj.ID)
+	return For(ctx).FeedStatesByFeedID.Load(obj.ID)
 }
 
 func (r *feedResolver) FeedVersions(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
-	return find.For(ctx).FeedVersionsByFeedID.Load(model.FeedVersionParam{
+	return For(ctx).FeedVersionsByFeedID.Load(model.FeedVersionParam{
 		FeedID: obj.ID,
 		Limit:  limit,
 		Where:  where,
@@ -40,7 +39,7 @@ func (r *feedResolver) Urls(ctx context.Context, obj *model.Feed) (*model.FeedUr
 }
 
 func (r *feedResolver) AssociatedOperators(ctx context.Context, obj *model.Feed) ([]*model.Operator, error) {
-	return find.For(ctx).OperatorsByFeedID.Load(model.OperatorParam{FeedID: obj.ID})
+	return For(ctx).OperatorsByFeedID.Load(model.OperatorParam{FeedID: obj.ID})
 }
 
 func (r *feedResolver) Authorization(ctx context.Context, obj *model.Feed) (*model.FeedAuthorization, error) {

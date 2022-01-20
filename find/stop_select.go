@@ -3,18 +3,7 @@ package find
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
-
-func FindStops(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.StopFilter) (ents []*model.Stop, err error) {
-	active := false
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
-		active = true
-	}
-	q := StopSelect(limit, after, ids, active, where)
-	MustSelect(atx, q, &ents)
-	return ents, nil
-}
 
 func StopSelect(limit *int, after *int, ids []int, active bool, where *model.StopFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
@@ -107,16 +96,6 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)
 			q = q.Column(rank).Where(wc)
-		}
-	}
-	return q
-}
-
-func PathwaySelect(limit *int, after *int, ids []int, where *model.PathwayFilter) sq.SelectBuilder {
-	q := quickSelectOrder("gtfs_pathways", limit, after, ids, "")
-	if where != nil {
-		if where.PathwayMode != nil {
-			q = q.Where(sq.Eq{"pathway_mode": where.PathwayMode})
 		}
 	}
 	return q

@@ -38,7 +38,7 @@ func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.U
 	if file != nil {
 		src = file.File
 	}
-	return Fetch(r.cfg, src, url, feed, auth.ForContext(ctx))
+	return Fetch(r.cfg, r.finder, src, url, feed, auth.ForContext(ctx))
 }
 
 func (r *mutationResolver) FeedVersionImport(ctx context.Context, sha1 string) (*model.FeedVersionImportResult, error) {
@@ -58,7 +58,7 @@ func (r *mutationResolver) FeedVersionDelete(ctx context.Context, id int) (*mode
 }
 
 // Fetch adds a feed version to the database.
-func Fetch(cfg config.Config, src io.Reader, feedURL *string, feed string, user *auth.User) (*model.FeedVersionFetchResult, error) {
+func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *string, feed string, user *auth.User) (*model.FeedVersionFetchResult, error) {
 	if user == nil {
 		return nil, errors.New("no user")
 	}
@@ -83,7 +83,7 @@ func Fetch(cfg config.Config, src io.Reader, feedURL *string, feed string, user 
 		opts.FeedURL = *feedURL
 	}
 	// Run fetch command in txn
-	adapter := tldb.NewPostgresAdapterFromDBX(cfg.DB.DB)
+	adapter := tldb.NewPostgresAdapterFromDBX(finder.DBX())
 	var fr fetch.Result
 	err := adapter.Tx(func(atx tldb.Adapter) error {
 		var fe error
