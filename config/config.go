@@ -8,18 +8,6 @@ type Config struct {
 	ValidateLargeFiles bool
 	DisableImage       bool
 	RestPrefix         string
-	DB                 DBConfig
-	RT                 RTConfig
-}
-
-// Connection holder
-
-type DBConfig struct {
-	DBURL string
-}
-
-// Redis and RT cache/job holder
-
-type RTConfig struct {
-	RedisURL string
+	DBURL              string
+	RedisURL           string
 }

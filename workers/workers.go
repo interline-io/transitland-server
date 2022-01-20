@@ -81,7 +81,7 @@ func (j *JobRunner) RunJob(job Job) error {
 
 func (j *JobRunner) RunWorkers() error {
 	// Create a new instance each time this is called.
-	redisClient := redis.NewClient(&redis.Options{Addr: j.cfg.RT.RedisURL})
+	redisClient := redis.NewClient(&redis.Options{Addr: j.cfg.RedisURL})
 	rtJobs := NewRedisJobs(redisClient, j.QueueName)
 	rtJobs.AddWorker(j.RunJob, 1)
 	return rtJobs.Run()

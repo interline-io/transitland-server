@@ -44,8 +44,8 @@ func (cmd *Command) Parse(args []string) error {
 		log.Print("Usage: server")
 		fl.PrintDefaults()
 	}
-	fl.StringVar(&cmd.DB.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
-	fl.StringVar(&cmd.RT.RedisURL, "redisurl", "localhost:6379", "Redis URL")
+	fl.StringVar(&cmd.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
+	fl.StringVar(&cmd.RedisURL, "redisurl", "", "Redis URL (default: $TL_REDIS_URL)")
 	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
 	fl.StringVar(&cmd.Port, "port", "8080", "")
 	fl.StringVar(&cmd.JwtAudience, "jwt-audience", "", "JWT Audience")
@@ -64,8 +64,11 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
 	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
 	fl.Parse(args)
-	if cmd.DB.DBURL == "" {
-		cmd.DB.DBURL = os.Getenv("TL_DATABASE_URL")
+	if cmd.DBURL == "" {
+		cmd.DBURL = os.Getenv("TL_DATABASE_URL")
+	}
+	if cmd.RedisURL == "" {
+		cmd.RedisURL = os.Getenv("TL_REDIS_URL")
 	}
 	return nil
 }
@@ -75,7 +78,7 @@ func (cmd *Command) Run() error {
 
 	// Open database
 	cfg := cmd.Config
-	dbx := find.MustOpenDB(cfg.DB.DBURL)
+	dbx := find.MustOpenDB(cfg.DBURL)
 
 	// Default finders and job queue
 	var dbFinder model.Finder
@@ -85,8 +88,8 @@ func (cmd *Command) Run() error {
 	rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
 	jobQueue = workers.NewLocalJobs()
 
-	if cmd.Config.RT.RedisURL != "" {
-		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RT.RedisURL})
+	if cmd.Config.RedisURL != "" {
+		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
 		rtFinder = rtcache.NewRTFinder((rtcache.NewRedisCache(redisClient)), dbx)
 		workers.NewRedisJobs(redisClient, queueName)
 	}
