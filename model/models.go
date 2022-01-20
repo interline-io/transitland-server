@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/interline-io/transitland-lib/dmfr"
+	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
 )
 
@@ -30,6 +31,7 @@ type FeedUrls struct {
 type FeedAuthorization struct {
 	tl.FeedAuthorization
 }
+
 type Agency struct {
 	OnestopID       string      `json:"onestop_id"`
 	FeedOnestopID   string      `json:"feed_onestop_id"`
@@ -74,10 +76,23 @@ type Route struct {
 
 type Trip struct {
 	tl.Trip
+	RTTripID string         // internal: for ADDED trips
+	RTTrip   *pb.TripUpdate // internal
 }
 
 type StopTime struct {
 	tl.StopTime
+	RTTripID         string                        // internal: for ADDED trips
+	RTStopTimeUpdate *pb.TripUpdate_StopTimeUpdate // internal
+}
+
+type StopTimeEvent struct {
+	StopTimezone string      `json:"stop_timezone"`
+	Scheduled    tl.WideTime `json:"scheduled"`
+	Estimated    tl.WideTime `json:"estimated"`
+	EstimatedUtc tl.OTime    `json:"estimated_utc"`
+	Delay        *int        `json:"delay"`
+	Uncertainty  *int        `json:"uncertainty"`
 }
 
 type Stop struct {

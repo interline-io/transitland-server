@@ -7,6 +7,7 @@ import (
 
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/generated/gqlgen"
+	"github.com/interline-io/transitland-server/model"
 )
 
 func atoi(v string) int {
@@ -16,7 +17,9 @@ func atoi(v string) int {
 
 // Resolver .
 type Resolver struct {
-	cfg config.Config
+	cfg    config.Config
+	rtcm   model.RTFinder
+	finder model.Finder
 }
 
 // Query .
