@@ -27,6 +27,19 @@ type AgencyPlaceFilter struct {
 	Search  *string  `json:"search"`
 }
 
+type Alert struct {
+	ActivePeriod       []*RTTimeRange      `json:"active_period"`
+	InformedEntity     []*RTEntitySelector `json:"informed_entity"`
+	Cause              *string             `json:"cause"`
+	Effect             *string             `json:"effect"`
+	HeaderText         *RTTranslatedString `json:"header_text"`
+	DescriptionText    *RTTranslatedString `json:"description_text"`
+	TtsHeaderText      *RTTranslatedString `json:"tts_header_text"`
+	TtsDescriptionText *RTTranslatedString `json:"tts_description_text"`
+	URL                *RTTranslatedString `json:"url"`
+	SeverityLevel      *string             `json:"severity_level"`
+}
+
 type CalendarDateFilter struct {
 	Date          *tl.ODate `json:"date"`
 	ExceptionType *int      `json:"exception_type"`
@@ -124,6 +137,50 @@ type PointRadius struct {
 	Radius float64 `json:"radius"`
 }
 
+type RTEntitySelector struct {
+	AgencyID    *string           `json:"agency_id"`
+	RouteID     *string           `json:"route_id"`
+	RouteType   *int              `json:"route_type"`
+	DirectionID *int              `json:"direction_id"`
+	StopID      *string           `json:"stop_id"`
+	Trip        *RTTripDescriptor `json:"trip"`
+}
+
+type RTStopTimeEvent struct {
+	Delay       *int `json:"delay"`
+	Time        *int `json:"time"`
+	Uncertainty *int `json:"uncertainty"`
+}
+
+type RTTimeRange struct {
+	Start *int `json:"start"`
+	End   *int `json:"end"`
+}
+
+type RTTranslatedString struct {
+	Translation []*RTTranslation `json:"translation"`
+}
+
+type RTTranslation struct {
+	Text     string  `json:"text"`
+	Language *string `json:"language"`
+}
+
+type RTTripDescriptor struct {
+	TripID               *string      `json:"trip_id"`
+	RouteID              *string      `json:"route_id"`
+	DirectionID          *int         `json:"direction_id"`
+	StartTime            *tl.WideTime `json:"start_time"`
+	StartDate            *tl.ODate    `json:"start_date"`
+	ScheduleRelationship *string      `json:"schedule_relationship"`
+}
+
+type RTVehicleDescriptor struct {
+	ID           *string `json:"id"`
+	Label        *string `json:"label"`
+	LicensePlate *string `json:"license_plate"`
+}
+
 type RouteFilter struct {
 	OnestopID         *string      `json:"onestop_id"`
 	OnestopIds        []string     `json:"onestop_ids"`
@@ -169,6 +226,16 @@ type StopTimeFilter struct {
 	RouteOnestopIds []string  `json:"route_onestop_ids"`
 }
 
+type StopTimeUpdate struct {
+	StopSequence         *int             `json:"stop_sequence"`
+	StopID               *int             `json:"stop_id"`
+	Arrival              *RTStopTimeEvent `json:"arrival"`
+	Departure            *RTStopTimeEvent `json:"departure"`
+	ScheduleRelationship *string          `json:"schedule_relationship"`
+	ArrivalTime          *tl.WideTime     `json:"arrival_time"`
+	DepartureTime        *tl.WideTime     `json:"departure_time"`
+}
+
 type TripFilter struct {
 	ServiceDate     *tl.ODate `json:"service_date"`
 	TripID          *string   `json:"trip_id"`
@@ -176,6 +243,25 @@ type TripFilter struct {
 	RouteOnestopIds []string  `json:"route_onestop_ids"`
 	FeedVersionSha1 *string   `json:"feed_version_sha1"`
 	FeedOnestopID   *string   `json:"feed_onestop_id"`
+}
+
+type TripUpdate struct {
+	Trip           *RTTripDescriptor    `json:"trip"`
+	Vehicle        *RTVehicleDescriptor `json:"vehicle"`
+	StopTimeUpdate []*StopTimeUpdate    `json:"stop_time_update"`
+	Timestamp      *int                 `json:"timestamp"`
+	Delay          *int                 `json:"delay"`
+}
+
+type VehiclePosition struct {
+	Trip                *RTTripDescriptor    `json:"trip"`
+	Vehicle             *RTVehicleDescriptor `json:"vehicle"`
+	Position            *tl.Point            `json:"position"`
+	CurrentStopSequence *int                 `json:"current_stop_sequence"`
+	StopID              *string              `json:"stop_id"`
+	CurrentStatus       *string              `json:"current_status"`
+	Timestamp           *int                 `json:"timestamp"`
+	CongestionLevel     *string              `json:"congestion_level"`
 }
 
 type Waypoint struct {
