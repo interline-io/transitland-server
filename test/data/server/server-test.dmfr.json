@@ -51,7 +51,9 @@
     {
       "spec": "gtfs-rt",
       "id": "BA~rt",
-      "associated_feeds": ["BA"],
+      "associated_feeds": [
+        "BA"
+      ],
       "urls": {
         "realtime_trip_updates": "test/data/rt/BA.json"
       }
@@ -59,7 +61,9 @@
     {
       "spec": "gtfs-rt",
       "id": "CT~rt",
-      "associated_feeds": ["CT"],
+      "associated_feeds": [
+        "CT"
+      ],
       "urls": {
         "realtime_trip_updates": "test/data/rt/CT.json"
       }

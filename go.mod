@@ -14,15 +14,20 @@ require (
 	github.com/golang/geo v0.0.0-20210108004804-a63082ebfb66
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/transitland-lib v0.8.9-0.20220120001539-4f0f05c4ec47
 	github.com/jmoiron/sqlx v1.3.1
+	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.8.0
+	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.12.1
 	github.com/twpayne/go-geom v1.4.1
 	github.com/vektah/gqlparser/v2 v2.1.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.27.1 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210105161348-2e78108cf5f8 // indirect
 )
 
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
