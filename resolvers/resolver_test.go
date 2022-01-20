@@ -1,7 +1,6 @@
 package resolvers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -31,7 +30,7 @@ func TestMain(m *testing.M) {
 // Test helpers
 
 func newTestClient() *client.Client {
-	srv, _ := NewServer(config.Config{DB: config.DBConfig{DB: TestDB}, RT: config.RTConfig{Cache: rtcache.NewLocalCache(context.TODO())}})
+	srv, _ := NewServer(config.Config{DB: config.DBConfig{DB: TestDB}, RT: config.RTConfig{Cache: rtcache.NewLocalCache()}})
 	return client.New(srv)
 }
 

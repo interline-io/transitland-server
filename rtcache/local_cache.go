@@ -1,7 +1,6 @@
 package rtcache
 
 import (
-	"context"
 	"fmt"
 	"sync"
 )
@@ -12,7 +11,7 @@ type LocalCache struct {
 	listeners map[string][]chan []byte
 }
 
-func NewLocalCache(ctx context.Context) *LocalCache {
+func NewLocalCache() *LocalCache {
 	return &LocalCache{
 		lastData:  map[string][]byte{},
 		listeners: make(map[string][]chan []byte),

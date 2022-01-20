@@ -1,25 +1,21 @@
 package rtcache
 
 import (
-	"context"
 	"testing"
 )
 
 func TestLocalJobs(t *testing.T) {
-	ctx := context.Background()
-	rtJobs := NewLocalJobs(ctx)
+	rtJobs := NewLocalJobs()
 	testJobs(t, rtJobs)
 }
 
 func TestLocalCache(t *testing.T) {
-	ctx := context.Background()
-	rtCache := NewLocalCache(ctx)
+	rtCache := NewLocalCache()
 	testCache(t, rtCache)
 }
 
 func TestLocalConsumers(t *testing.T) {
-	ctx := context.Background()
-	rtJobs := NewLocalJobs(ctx)
-	rtCache := NewLocalCache(ctx)
+	rtJobs := NewLocalJobs()
+	rtCache := NewLocalCache()
 	testConsumers(t, rtCache, rtJobs)
 }

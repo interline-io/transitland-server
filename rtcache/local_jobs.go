@@ -1,7 +1,6 @@
 package rtcache
 
 import (
-	"context"
 	"fmt"
 )
 
@@ -9,7 +8,7 @@ type LocalJobs struct {
 	jobs chan Job
 }
 
-func NewLocalJobs(ctx context.Context) *LocalJobs {
+func NewLocalJobs() *LocalJobs {
 	return &LocalJobs{
 		jobs: make(chan Job, 1000),
 	}

@@ -20,11 +20,12 @@ func (w *RTFetchWorker) Run(ctx context.Context, opts JobOptions, job rtcache.Jo
 	feed := job.Args[0]
 	ftype := job.Args[1]
 	url := job.Args[2]
+	var rtdata []byte
 	msg, err := rt.ReadURL(url)
 	if err != nil {
 		return err
 	}
-	rtdata, err := proto.Marshal(msg)
+	rtdata, err = proto.Marshal(msg)
 	if err != nil {
 		return err
 	}
