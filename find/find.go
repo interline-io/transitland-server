@@ -2,16 +2,69 @@ package find
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/reflectx"
 )
 
 // MAXLIMIT .
 const MAXLIMIT = 1000
+
+var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+
+func toSnakeCase(str string) string {
+	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	return strings.ToLower(snake)
+}
+
+func MustOpenDB(url string) sqlx.Ext {
+	db, err := sqlx.Open("postgres", url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+	db.SetConnMaxLifetime(time.Hour)
+	if err := db.Ping(); err != nil {
+		log.Fatal(err)
+	}
+	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
+	return db.Unsafe()
+}
+
+// MustSelect runs a query or panics.
+func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
+	q = q.PlaceholderFormat(sq.Dollar)
+	qstr, qargs := q.MustSql()
+	if os.Getenv("TL_LOG_SQL") == "true" {
+		fmt.Println(qstr)
+	}
+	if a, ok := db.(sqlx.Preparer); ok {
+		stmt, err := sqlx.Preparex(a, qstr)
+		if err != nil {
+			panic(err)
+		}
+		if err := stmt.Select(dest, qargs...); err != nil {
+			panic(err)
+		}
+	} else {
+		if err := sqlx.Select(db, dest, qstr, qargs...); err != nil {
+			panic(err)
+		}
+	}
+}
+
+// helpers
 
 func checkLimit(limit *int) uint64 {
 	return checkRange(limit, 0, MAXLIMIT)

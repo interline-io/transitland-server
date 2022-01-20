@@ -23,20 +23,18 @@ type loadersKey struct{}
 // Loaders .
 type Loaders struct {
 	// ID Loaders
-	AgenciesByID     dl.AgencyLoader
-	CalendarsByID    dl.CalendarLoader
-	FeedsByID        dl.FeedLoader
-	RoutesByID       dl.RouteLoader
-	ShapesByID       dl.ShapeLoader
-	StopsByID        dl.StopLoader
-	FeedVersionsByID dl.FeedVersionLoader
-	LevelsByID       dl.LevelLoader
-	TripsByID        dl.TripLoader
-	// Other ID loaders
-	FeedStatesByFeedID  dl.FeedStateLoader
-	OperatorsByCOIF     dl.OperatorLoader
-	AgenciesByOnestopID dl.AgencyWhereLoader
-	// FeedVersionID Loaders
+	AgenciesByID                            dl.AgencyLoader
+	CalendarsByID                           dl.CalendarLoader
+	FeedsByID                               dl.FeedLoader
+	RoutesByID                              dl.RouteLoader
+	ShapesByID                              dl.ShapeLoader
+	StopsByID                               dl.StopLoader
+	FeedVersionsByID                        dl.FeedVersionLoader
+	LevelsByID                              dl.LevelLoader
+	TripsByID                               dl.TripLoader
+	FeedStatesByFeedID                      dl.FeedStateLoader
+	OperatorsByCOIF                         dl.OperatorLoader
+	AgenciesByOnestopID                     dl.AgencyWhereLoader
 	FeedVersionGtfsImportsByFeedVersionID   dl.FeedVersionGtfsImportLoader
 	FeedVersionServiceLevelsByFeedVersionID dl.FeedVersionServiceLevelWhereLoader
 	FeedVersionFileInfosByFeedVersionID     dl.FeedVersionFileInfoWhereLoader
@@ -45,31 +43,29 @@ type Loaders struct {
 	StopsByFeedVersionID                    dl.StopWhereLoader
 	TripsByFeedVersionID                    dl.TripWhereLoader
 	FeedInfosByFeedVersionID                dl.FeedInfoWhereLoader
-	// Where Loaders
-	StopsByRouteID           dl.StopWhereLoader
-	StopsByParentStopID      dl.StopWhereLoader
-	AgencyPlacesByAgencyID   dl.AgencyPlaceWhereLoader
-	RouteGeometriesByRouteID dl.RouteGeometryWhereLoader
-	TripsByRouteID           dl.TripWhereLoader
-	FrequenciesByTripID      dl.FrequencyWhereLoader
-	StopTimesByTripID        dl.StopTimeWhereLoader
-	StopTimesByStopID        dl.StopTimeWhereLoader
-	RouteStopsByRouteID      dl.RouteStopWhereLoader
-	RouteStopsByStopID       dl.RouteStopWhereLoader
-	RouteHeadwaysByRouteID   dl.RouteHeadwayWhereLoader
-	RoutesByAgencyID         dl.RouteWhereLoader
-	FeedVersionsByFeedID     dl.FeedVersionWhereLoader
-	OperatorsByFeedID        dl.OperatorWhereLoader
-	PathwaysByFromStopID     dl.PathwayWhereLoader
-	PathwaysByToStopID       dl.PathwayWhereLoader
-	CalendarDatesByServiceID dl.CalendarDateWhereLoader
-	// Census
-	CensusTableByID             dl.CensusTableLoader
-	CensusGeographiesByEntityID dl.CensusGeographyWhereLoader
-	CensusValuesByGeographyID   dl.CensusValueWhereLoader
+	StopsByRouteID                          dl.StopWhereLoader
+	StopsByParentStopID                     dl.StopWhereLoader
+	AgencyPlacesByAgencyID                  dl.AgencyPlaceWhereLoader
+	RouteGeometriesByRouteID                dl.RouteGeometryWhereLoader
+	TripsByRouteID                          dl.TripWhereLoader
+	FrequenciesByTripID                     dl.FrequencyWhereLoader
+	StopTimesByTripID                       dl.StopTimeWhereLoader
+	StopTimesByStopID                       dl.StopTimeWhereLoader
+	RouteStopsByRouteID                     dl.RouteStopWhereLoader
+	RouteStopsByStopID                      dl.RouteStopWhereLoader
+	RouteHeadwaysByRouteID                  dl.RouteHeadwayWhereLoader
+	RoutesByAgencyID                        dl.RouteWhereLoader
+	FeedVersionsByFeedID                    dl.FeedVersionWhereLoader
+	OperatorsByFeedID                       dl.OperatorWhereLoader
+	PathwaysByFromStopID                    dl.PathwayWhereLoader
+	PathwaysByToStopID                      dl.PathwayWhereLoader
+	CalendarDatesByServiceID                dl.CalendarDateWhereLoader
+	CensusTableByID                         dl.CensusTableLoader
+	CensusGeographiesByEntityID             dl.CensusGeographyWhereLoader
+	CensusValuesByGeographyID               dl.CensusValueWhereLoader
 }
 
-// Middleware .
+// Middleware provides context local request batching
 func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), loadersKey{}, &Loaders{
