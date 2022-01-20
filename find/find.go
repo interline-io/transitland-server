@@ -2,40 +2,16 @@ package find
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jmoiron/sqlx"
 )
 
 // MAXLIMIT .
 const MAXLIMIT = 1000
-
-// MustSelect runs a query or panics.
-func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
-	q = q.PlaceholderFormat(sq.Dollar)
-	qstr, qargs := q.MustSql()
-	if os.Getenv("TL_LOG_SQL") == "true" {
-		fmt.Println(qstr)
-	}
-	if a, ok := db.(sqlx.Preparer); ok {
-		stmt, err := sqlx.Preparex(a, qstr)
-		if err != nil {
-			panic(err)
-		}
-		if err := stmt.Select(dest, qargs...); err != nil {
-			panic(err)
-		}
-	} else {
-		if err := sqlx.Select(db, dest, qstr, qargs...); err != nil {
-			panic(err)
-		}
-	}
-}
 
 func checkLimit(limit *int) uint64 {
 	return checkRange(limit, 0, MAXLIMIT)

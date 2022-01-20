@@ -54,14 +54,14 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 	}
 	// Merge scheduled stop times with rt stop times
 	// TODO: handle StopTimeFilter in RT
-	_, ok := r.lc.StopTimezone(obj.ID, obj.StopTimezone)
+	_, ok := r.rtcm.StopTimezone(obj.ID, obj.StopTimezone)
 	if !ok {
 		return nil, errors.New("timezone not available for stop 0")
 	}
 	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)
 	for _, st := range sts {
-		a, aok := r.lc.FeedVersionOnestopID(st.FeedVersionID)
-		b, bok := r.lc.TripGTFSTripID(atoi(st.TripID))
+		a, aok := r.rtcm.FeedVersionOnestopID(st.FeedVersionID)
+		b, bok := r.rtcm.TripGTFSTripID(atoi(st.TripID))
 		if !aok || !bok {
 			fmt.Println("could not get onestop id or trip gtfs id, skipping")
 			continue

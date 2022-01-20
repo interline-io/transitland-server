@@ -1,43 +1,31 @@
 package model
 
 import (
-	"log"
-	"regexp"
-	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/rt/pb"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/jmoiron/sqlx/reflectx"
 )
 
-var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
-// TODO: replace with middleware or configuration
-
-func MustOpenDB(url string) sqlx.Ext {
-	db, err := sqlx.Open("postgres", url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-	db.SetConnMaxLifetime(time.Hour)
-	if err := db.Ping(); err != nil {
-		log.Fatal(err)
-	}
-	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
-	return db.Unsafe()
+type Finder interface {
+	FindAgencies(limit *int, after *int, ids []int, where *AgencyFilter) ([]*Agency, error)
+	FindRoutes(limit *int, after *int, ids []int, where *RouteFilter) ([]*Route, error)
+	FindStops(limit *int, after *int, ids []int, where *StopFilter) ([]*Stop, error)
+	FindTrips(limit *int, after *int, ids []int, where *TripFilter) ([]*Trip, error)
+	FindFeedVersions(limit *int, after *int, ids []int, where *FeedVersionFilter) ([]*FeedVersion, error)
+	FindFeeds(limit *int, after *int, ids []int, where *FeedFilter) ([]*Feed, error)
+	FindOperators(limit *int, after *int, ids []int, where *OperatorFilter) ([]*Operator, error)
+	RouteStopBuffer(*RouteStopBufferParam) ([]*RouteStopBuffer, error)
+	DBX() sqlx.Ext // escape hatch, for now
 }
 
-func Sqrl(db sqlx.Ext) sq.StatementBuilderType {
-	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(db)
-}
-
-func toSnakeCase(str string) string {
-	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
-	return strings.ToLower(snake)
+// RTFinder manages and looks up RT data
+type RTFinder interface {
+	AddData(string, []byte) error
+	GetTrip(string, string) (*pb.TripUpdate, bool)
+	GetAddedTripsForStop(string, string) []*pb.TripUpdate
+	TripGTFSTripID(int) (string, bool)
+	FeedVersionOnestopID(int) (string, bool)
+	StopTimezone(id int, known string) (*time.Location, bool)
 }

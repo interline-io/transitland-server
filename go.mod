@@ -10,7 +10,7 @@ require (
 	github.com/flopp/go-staticmaps v0.0.0-20210425143944-2e6e19a99c28
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/go-redis/redis/v8 v8.11.4
-	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/gogo/protobuf v1.3.2
 	github.com/golang/geo v0.0.0-20210108004804-a63082ebfb66
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0

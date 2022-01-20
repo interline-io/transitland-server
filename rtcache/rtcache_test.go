@@ -2,12 +2,11 @@ package rtcache
 
 import (
 	"fmt"
-	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
-	"google.golang.org/protobuf/proto"
+	"github.com/interline-io/transitland-server/config"
 )
 
 var (
@@ -17,30 +16,6 @@ var (
 	consumerWorkers  = 2
 	consumerInterval = 10 * time.Second
 )
-
-func testJobs(t *testing.T, rtJobs JobQueue) {
-	for _, feed := range feeds {
-		url := fmt.Sprintf("test/%s.pb", feed)
-		rtJobs.AddJob(Job{Feed: feed, URL: url})
-	}
-	var foundJobs []Job
-	go func() {
-		// Get first item and then return
-		ch, err := rtJobs.Listen()
-		if err != nil {
-			t.Error(err)
-		}
-		for job := range ch {
-			t.Log("got job:", job)
-			foundJobs = append(foundJobs, job)
-		}
-	}()
-	time.Sleep(200 * time.Millisecond)
-	rtJobs.Close()
-	if len(foundJobs) != len(feeds) {
-		t.Errorf("got %d jobs, expected %d", len(foundJobs), len(feeds))
-	}
-}
 
 func testCache(t *testing.T, rtCache Cache) {
 	var topics []string
@@ -71,9 +46,9 @@ func testCache(t *testing.T, rtCache Cache) {
 	}
 }
 
-func testConsumers(t *testing.T, rtCache Cache, rtJobs JobQueue) {
+func testConsumers(t *testing.T, rtCache Cache, rtJobs config.JobQueue) {
 	// Start consumers
-	rtManager := NewRTConsumerManager(rtCache)
+	rtManager := NewRTFinder(rtCache, nil) // todo: DB
 	var foundTrips []*pb.TripUpdate
 	for i := 0; i < consumerWorkers; i++ {
 		for _, feed := range feeds {
@@ -116,39 +91,15 @@ func testConsumers(t *testing.T, rtCache Cache, rtJobs JobQueue) {
 	for i := 0; i < fetchWorkers; i++ {
 		go func(wid int) {
 			fmt.Printf("worker %d: start\n", wid)
-			jobQueue, err := rtJobs.Listen()
+			jobfunc := func(job Job) error { return nil }
+			err := rtJobs.AddWorker(jobfunc, 1)
 			if err != nil {
 				t.Error(err)
-			}
-			for job := range jobQueue {
-				fmt.Printf("worker %d: received job: %s\n", wid, job.Feed)
-				rtdata, err := fetchFile(job.URL)
-				if err != nil {
-					t.Error(err)
-					break
-				}
-				if err := rtCache.AddData(job.Feed, rtdata); err != nil {
-					t.Error(err)
-					break
-				}
 			}
 		}(i)
 	}
 	time.Sleep(100 * time.Millisecond)
-	rtJobs.Close()
+	rtJobs.Stop()
 	rtCache.Close()
 	fmt.Println("got trips:", len(foundTrips))
-}
-
-//////
-
-func fetchFile(u string) ([]byte, error) {
-	pbdata, err := ioutil.ReadFile(u)
-	if err != nil {
-		panic(err)
-	}
-	msg := pb.FeedMessage{}
-	proto.Unmarshal(pbdata, &msg)
-	fmt.Printf("fetched: '%s' %d bytes, entities %d\n", u, len(pbdata), len(msg.Entity))
-	return pbdata, nil
 }

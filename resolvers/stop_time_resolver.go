@@ -27,7 +27,7 @@ func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*mode
 
 func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
 	// lookup timezone
-	loc, ok := r.lc.StopTimezone(atoi(obj.StopID), "")
+	loc, ok := r.rtcm.StopTimezone(atoi(obj.StopID), "")
 	if !ok {
 		return nil, errors.New("timezone not available for stop 1")
 	}
@@ -43,7 +43,7 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 
 func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
 	// lookup timezone
-	loc, ok := r.lc.StopTimezone(atoi(obj.StopID), "")
+	loc, ok := r.rtcm.StopTimezone(atoi(obj.StopID), "")
 	if !ok {
 		return nil, errors.New("timezone not available for stop 2")
 	}

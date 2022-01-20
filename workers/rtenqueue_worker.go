@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
-	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/rtcache"
 )
@@ -14,9 +12,10 @@ type RTEnqueueWorker struct{}
 
 func (w *RTEnqueueWorker) Run(ctx context.Context, opts JobOptions, job rtcache.Job) error {
 	fmt.Println("enqueue worker!")
-	q := model.Sqrl(opts.db).Select("*").From("current_feeds").Where(sq.Eq{"spec": "gtfs-rt"})
-	var qents []*model.Feed
-	find.MustSelect(opts.db, q, &qents)
+	qents, err := opts.finder.FindFeeds(nil, nil, nil, &model.FeedFilter{Spec: []string{"gtfs-rt"}})
+	if err != nil {
+		return err
+	}
 	var jobs []rtcache.Job
 	for _, ent := range qents {
 		for _, target := range ent.AssociatedFeeds {

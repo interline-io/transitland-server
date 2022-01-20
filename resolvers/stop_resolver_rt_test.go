@@ -9,7 +9,7 @@ import (
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/rtcache"
+	"github.com/interline-io/transitland-server/model"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -17,7 +17,7 @@ import (
 
 // rtFetchJson fetches test protobuf in JSON format
 // URL is relative to project root
-func rtFetchJson(feed string, ftype string, url string, cache config.Cache) error {
+func rtFetchJson(feed string, ftype string, url string, rtfinder model.RTFinder) error {
 	var rtdata []byte
 	var msg pb.FeedMessage
 	jdata, err := os.Open(RelPath(url))
@@ -32,7 +32,7 @@ func rtFetchJson(feed string, ftype string, url string, cache config.Cache) erro
 		return err
 	}
 	key := fmt.Sprintf("rtdata:%s:%s", feed, ftype)
-	return cache.AddData(key, rtdata)
+	return rtfinder.AddData(key, rtdata)
 }
 
 func TestStopRTResolver(t *testing.T) {
@@ -82,15 +82,15 @@ func TestStopRTResolver(t *testing.T) {
 		},
 	}
 
-	cfg := config.Config{DB: config.DBConfig{DB: TestDB}, RT: config.RTConfig{Cache: rtcache.NewLocalCache()}}
-	srv, _ := NewServer(cfg)
+	cfg := config.Config{}
+	srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
 	c := client.New(srv)
 
 	// Load RT data for test
-	if err := rtFetchJson("BA", "trip_updates", "test/data/rt/BA.json", cfg.RT.Cache); err != nil {
+	if err := rtFetchJson("BA", "trip_updates", "test/data/rt/BA.json", TestRTFinder); err != nil {
 		t.Fatal(err)
 	}
-	if err := rtFetchJson("CT", "trip_updates", "test/data/rt/CT.json", cfg.RT.Cache); err != nil {
+	if err := rtFetchJson("CT", "trip_updates", "test/data/rt/CT.json", TestRTFinder); err != nil {
 		t.Fatal(err)
 	}
 	for _, tc := range testcases {

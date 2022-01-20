@@ -72,8 +72,8 @@ type Loaders struct {
 }
 
 // Middleware .
-func Middleware(cfg config.Config, next http.Handler) http.Handler {
-	atx := cfg.DB.DB
+func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.Handler {
+	atx := finder.DBX()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), loadersKey, &Loaders{
 			LevelsByID: *dl.NewLevelLoader(dl.LevelLoaderConfig{

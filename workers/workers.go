@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/rtcache"
-	"github.com/jmoiron/sqlx"
 )
+
+type Job = config.Job
 
 // JobWorker defines a job worker
 type JobWorker interface {
@@ -16,9 +19,9 @@ type JobWorker interface {
 
 // JobOptions is configuration passed to worker.
 type JobOptions struct {
-	jobs  rtcache.JobQueue
-	cache rtcache.Cache
-	db    sqlx.Ext
+	finder   model.Finder
+	rtfinder model.RTFinder
+	jobs     config.JobQueue
 }
 
 // JobRunner works with JobQueue to run jobs with local configuration options.
@@ -26,21 +29,27 @@ type JobRunner struct {
 	QueueName string
 	Workers   int
 	cfg       config.Config
+	jq        config.JobQueue
+	finder    model.Finder
+	rtfinder  model.RTFinder
 }
 
 // NewJobRunner returns a new configured JobRunner listening to the specified queue.
-func NewJobRunner(cfg config.Config, queueName string, workers int) (*JobRunner, error) {
+func NewJobRunner(cfg config.Config, finder model.Finder, rtfinder model.RTFinder, jq config.JobQueue, queueName string, workers int) (*JobRunner, error) {
 	j := JobRunner{
 		QueueName: queueName,
 		Workers:   workers,
 		cfg:       cfg,
+		jq:        jq,
+		finder:    finder,
+		rtfinder:  rtfinder,
 	}
 	return &j, nil
 }
 
 // AddJob adds a job to the queue.
 func (j *JobRunner) AddJob(job rtcache.Job) error {
-	return j.cfg.RT.JobQueue.AddJob(job)
+	return j.jq.AddJob(job)
 }
 
 // RunJob runs a job immediately.
@@ -51,16 +60,16 @@ func (j *JobRunner) RunJob(job rtcache.Job) error {
 	}
 	ctx := context.TODO()
 	args := JobOptions{
-		db:    j.cfg.DB.DB,
-		jobs:  j.cfg.RT.JobQueue,
-		cache: j.cfg.RT.Cache,
+		finder: j.finder,
+		jobs:   j.jq,
 	}
 	return r.Run(ctx, args, job)
 }
 
 func (j *JobRunner) RunWorkers() error {
 	// Create a new instance each time this is called.
-	rtJobs := rtcache.NewRedisJobs(j.cfg.RT.Redis, j.QueueName)
+	redisClient := redis.NewClient(&redis.Options{Addr: j.cfg.RT.RedisURL})
+	rtJobs := NewRedisJobs(redisClient, j.QueueName)
 	rtJobs.AddWorker(j.RunJob, 1)
 	return rtJobs.Run()
 }

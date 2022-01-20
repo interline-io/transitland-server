@@ -10,21 +10,21 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type RTConsumer struct {
+type rtConsumer struct {
 	feed         string
 	done         chan bool
 	entityByTrip map[string]*pb.TripUpdate
 }
 
-func NewRTConsumer() (*RTConsumer, error) {
-	f := RTConsumer{
+func newRTConsumer() (*rtConsumer, error) {
+	f := rtConsumer{
 		done:         make(chan bool),
 		entityByTrip: map[string]*pb.TripUpdate{},
 	}
 	return &f, nil
 }
 
-func (f *RTConsumer) GetTrip(tid string) (*pb.TripUpdate, bool) {
+func (f *rtConsumer) GetTrip(tid string) (*pb.TripUpdate, bool) {
 	// fmt.Printf("consumer '%s': get trip '%s'\n", f.feed, tid)
 	a, ok := f.entityByTrip[tid]
 	if ok {
@@ -33,7 +33,7 @@ func (f *RTConsumer) GetTrip(tid string) (*pb.TripUpdate, bool) {
 	return nil, false
 }
 
-func (f *RTConsumer) Start(ch chan []byte) error {
+func (f *rtConsumer) Start(ch chan []byte) error {
 	fmt.Printf("consumer '%s': start\n", f.feed)
 	f.entityByTrip = map[string]*pb.TripUpdate{}
 	timeout := make(chan bool)
@@ -72,7 +72,7 @@ func (f *RTConsumer) Start(ch chan []byte) error {
 	}
 }
 
-func (f *RTConsumer) process(rtdata []byte) error {
+func (f *rtConsumer) process(rtdata []byte) error {
 	if len(rtdata) == 0 {
 		fmt.Printf("consumer '%s': received no data\n", f.feed)
 		return nil

@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type LookupCache struct {
+type lookupCache struct {
 	db            sqlx.Ext
 	fvidFeedCache *simpleCache
 	stopIdCache   *simpleCache
@@ -16,8 +16,8 @@ type LookupCache struct {
 	tzCache       *tzCache
 }
 
-func NewLookupCache(db sqlx.Ext) *LookupCache {
-	return &LookupCache{
+func newLookupCache(db sqlx.Ext) *lookupCache {
+	return &lookupCache{
 		db:            db,
 		fvidFeedCache: newSimpleCache(),
 		stopIdCache:   newSimpleCache(),
@@ -26,7 +26,7 @@ func NewLookupCache(db sqlx.Ext) *LookupCache {
 	}
 }
 
-func (f *LookupCache) StopGTFSStopID(id int) (string, bool) {
+func (f *lookupCache) StopGTFSStopID(id int) (string, bool) {
 	if a, ok := f.stopIdCache.Get(id); ok {
 		return a, ok
 	}
@@ -37,7 +37,7 @@ func (f *LookupCache) StopGTFSStopID(id int) (string, bool) {
 	return eid, err == nil
 }
 
-func (f *LookupCache) TripGTFSTripID(id int) (string, bool) {
+func (f *lookupCache) TripGTFSTripID(id int) (string, bool) {
 	if a, ok := f.tripIdCache.Get(id); ok {
 		return a, ok
 	}
@@ -48,7 +48,7 @@ func (f *LookupCache) TripGTFSTripID(id int) (string, bool) {
 	return eid, err == nil
 }
 
-func (f *LookupCache) FeedVersionOnestopID(id int) (string, bool) {
+func (f *lookupCache) FeedVersionOnestopID(id int) (string, bool) {
 	if a, ok := f.fvidFeedCache.Get(id); ok {
 		return a, ok
 	}
@@ -73,7 +73,7 @@ func (f *LookupCache) FeedVersionOnestopID(id int) (string, bool) {
 }
 
 // StopTimezone looks up the timezone for a stop
-func (f *LookupCache) StopTimezone(id int, known string) (*time.Location, bool) {
+func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) {
 	// If a timezone is provided, save it and return immediately
 	if known != "" {
 		// fmt.Println("tz using known timezone:", id, known)
@@ -107,7 +107,7 @@ func (f *LookupCache) StopTimezone(id int, known string) (*time.Location, bool) 
 }
 
 // Lookup time.Location by name
-func (f *LookupCache) Location(tz string) (*time.Location, bool) {
+func (f *lookupCache) Location(tz string) (*time.Location, bool) {
 	return f.tzCache.Location(tz)
 }
 

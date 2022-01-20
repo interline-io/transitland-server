@@ -3,7 +3,8 @@ package workers
 import (
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/rtcache"
 )
 
 type Command struct {
@@ -19,13 +20,11 @@ func (cmd *Command) Parse(args []string) error {
 }
 
 func (cmd *Command) Run() error {
-	cmd.Config.DB = config.DBConfig{
-		DB: model.MustOpenDB(cmd.DB.DBURL),
-	}
-	cmd.Config.RT = config.RTConfig{
-		Redis: redis.NewClient(&redis.Options{Addr: cmd.RT.RedisURL}),
-	}
-	jr, err := NewJobRunner(cmd.Config, cmd.QueueName, cmd.Workers)
+	redisClient := redis.NewClient(&redis.Options{Addr: cmd.RT.RedisURL})
+	finder := find.NewDBFinder(find.MustOpenDB(cmd.DB.DBURL))
+	rtFinder := rtcache.NewRTFinder(rtcache.NewRedisCache(redisClient), finder.DBX())
+	jq := NewRedisJobs(redisClient, cmd.QueueName)
+	jr, err := NewJobRunner(cmd.Config, finder, rtFinder, jq, cmd.QueueName, cmd.Workers)
 	if err != nil {
 		return err
 	}

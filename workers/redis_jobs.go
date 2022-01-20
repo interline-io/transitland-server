@@ -1,6 +1,7 @@
-package rtcache
+package workers
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -64,6 +65,7 @@ func (f *RedisJobs) AddWorker(jobfunc func(Job) error, count int) error {
 }
 
 func (f *RedisJobs) Run() error {
+	fmt.Println("jobs: running")
 	manager, err := f.getManager()
 	if err == nil {
 		// Blocks
@@ -73,18 +75,10 @@ func (f *RedisJobs) Run() error {
 }
 
 func (f *RedisJobs) Stop() error {
+	fmt.Println("jobs: stopping")
 	manager, err := f.getManager()
 	if err == nil {
 		manager.Stop()
 	}
 	return err
-}
-
-func (f *RedisJobs) Listen() (chan Job, error) {
-	jobch := make(chan Job)
-	return jobch, nil
-}
-
-func (f *RedisJobs) Close() error {
-	return nil
 }

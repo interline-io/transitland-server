@@ -3,13 +3,7 @@ package find
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
-
-func FindFeeds(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.FeedFilter) (ents []*model.Feed, err error) {
-	MustSelect(atx, FeedSelect(limit, after, ids, where), &ents)
-	return ents, nil
-}
 
 func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.

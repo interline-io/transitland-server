@@ -16,7 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
 	"github.com/interline-io/transitland-server/rtcache"
@@ -72,11 +72,9 @@ func (cmd *Command) Parse(args []string) error {
 func (cmd *Command) Run() error {
 	// Open database
 	cfg := cmd.Config
-	cfg.DB.DB = model.MustOpenDB(cfg.DB.DBURL)
-
-	// Default caching strategy
-	cfg.RT.Cache = rtcache.NewLocalCache()
-	cfg.RT.JobQueue = rtcache.NewLocalJobs()
+	dbx := find.MustOpenDB(cfg.DB.DBURL)
+	dbFinder := find.NewDBFinder(dbx)
+	rtFinder := rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
 
 	// Setup CORS and logging
 	root := mux.NewRouter()
@@ -99,16 +97,15 @@ func (cmd *Command) Run() error {
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
 		// Open Redis
 		queueName := "tlv2-default"
-		cfg.RT.Redis = redis.NewClient(&redis.Options{Addr: cfg.RT.RedisURL})
-		cfg.RT.Cache = rtcache.NewRedisCache(cfg.RT.Redis)
-		cfg.RT.JobQueue = rtcache.NewRedisJobs(cfg.RT.Redis, queueName)
+		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RT.RedisURL})
+		jobQueue := workers.NewRedisJobs(redisClient, queueName)
 		jobWorkers := 1
 		if cmd.EnableWorkers {
-			jr, _ := workers.NewJobRunner(cfg, queueName, jobWorkers)
+			jr, _ := workers.NewJobRunner(cfg, dbFinder, rtFinder, jobQueue, queueName, jobWorkers)
 			go jr.RunWorkers()
 		}
 		if cmd.EnableJobsApi {
-			jobServer, err := workers.NewServer(cfg, queueName, jobWorkers)
+			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jobQueue, queueName, jobWorkers)
 			if err != nil {
 				return err
 			}
@@ -126,7 +123,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// GraphQL API
-	graphqlServer, err := resolvers.NewServer(cfg)
+	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder)
 	if err != nil {
 		return err
 	}

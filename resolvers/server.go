@@ -13,14 +13,13 @@ import (
 	"github.com/interline-io/transitland-server/find"
 	generated "github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/interline-io/transitland-server/rtcache"
 )
 
-func NewServer(cfg config.Config) (http.Handler, error) {
+func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder) (http.Handler, error) {
 	c := generated.Config{Resolvers: &Resolver{
-		cfg:  cfg,
-		rtcm: rtcache.NewRTConsumerManager(cfg.RT.Cache),
-		lc:   rtcache.NewLookupCache(cfg.DB.DB),
+		cfg:    cfg,
+		finder: dbfinder,
+		rtcm:   rtfinder,
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := auth.ForContext(ctx)
@@ -34,7 +33,7 @@ func NewServer(cfg config.Config) (http.Handler, error) {
 	}
 	// Setup server
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
-	graphqlServer := find.Middleware(cfg, srv)
+	graphqlServer := find.Middleware(cfg, dbfinder, srv)
 	root := mux.NewRouter()
 	root.Handle("/", graphqlServer).Methods(http.MethodGet, http.MethodPost, http.MethodOptions)
 	return root, nil

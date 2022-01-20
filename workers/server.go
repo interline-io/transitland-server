@@ -8,13 +8,14 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/rtcache"
 )
 
 // NewServer creates a simple api for submitting and running jobs.
-func NewServer(cfg config.Config, queueName string, workers int) (http.Handler, error) {
+func NewServer(cfg config.Config, finder model.Finder, rtFinder model.RTFinder, jq config.JobQueue, queueName string, workers int) (http.Handler, error) {
 	r := mux.NewRouter()
-	runner, err := NewJobRunner(cfg, queueName, workers)
+	runner, err := NewJobRunner(cfg, finder, rtFinder, jq, queueName, workers)
 	if err != nil {
 		return nil, err
 	}

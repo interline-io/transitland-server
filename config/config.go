@@ -1,10 +1,5 @@
 package config
 
-import (
-	"github.com/go-redis/redis/v8"
-	"github.com/jmoiron/sqlx"
-)
-
 // Config is in a separate package to avoid import cycles.
 
 type Config struct {
@@ -21,30 +16,20 @@ type Config struct {
 
 type DBConfig struct {
 	DBURL string
-	DB    sqlx.Ext
 }
 
 // Redis and RT cache/job holder
 
 type RTConfig struct {
 	RedisURL string
-	Redis    *redis.Client
-	Cache    Cache
-	JobQueue JobQueue
 }
 
-// RT interfaces
-
-type Cache interface {
-	AddData(string, []byte) error
-	Listen(string) (chan []byte, error)
-	Close() error
-}
-
+// Job queue
 type JobQueue interface {
 	AddJob(Job) error
-	Listen() (chan Job, error)
-	Close() error
+	AddWorker(func(Job) error, int) error
+	Run() error
+	Stop() error
 }
 
 type Job struct {

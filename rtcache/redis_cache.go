@@ -26,7 +26,6 @@ type RedisCache struct {
 }
 
 func NewRedisCache(client *redis.Client) *RedisCache {
-
 	f := RedisCache{
 		client: client,
 	}

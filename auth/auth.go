@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jmoiron/sqlx"
 )
 
 type AuthConfig struct {
@@ -18,9 +17,9 @@ type AuthConfig struct {
 func GetUserMiddleware(authType string, cfg AuthConfig) (mux.MiddlewareFunc, error) {
 	// Setup auth; default is all users will be anonymous.
 	if authType == "admin" {
-		return AdminDefaultMiddleware(nil), nil
+		return AdminDefaultMiddleware(), nil
 	} else if authType == "user" {
-		return UserDefaultMiddleware(nil), nil
+		return UserDefaultMiddleware(), nil
 	} else if authType == "jwt" {
 		return JWTMiddleware(cfg.JwtAudience, cfg.JwtIssuer, cfg.JwtPublicKeyFile)
 	}
@@ -30,7 +29,7 @@ func GetUserMiddleware(authType string, cfg AuthConfig) (mux.MiddlewareFunc, err
 }
 
 // AdminDefaultMiddleware uses a default "admin" context.
-func AdminDefaultMiddleware(db sqlx.Ext) func(http.Handler) http.Handler {
+func AdminDefaultMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := &User{
@@ -47,7 +46,7 @@ func AdminDefaultMiddleware(db sqlx.Ext) func(http.Handler) http.Handler {
 }
 
 // UserDefaultMiddleware uses a default "user" context.
-func UserDefaultMiddleware(db sqlx.Ext) func(http.Handler) http.Handler {
+func UserDefaultMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := &User{
