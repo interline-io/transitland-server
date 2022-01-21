@@ -16,6 +16,7 @@ type Query {
   stops(limit: Int, after: Int, ids: [Int!], where: StopFilter): [Stop!]!
   trips(limit: Int, after: Int, ids: [Int!], where: TripFilter): [Trip!]!
   operators(limit: Int, after: Int, ids: [Int!], where: OperatorFilter): [Operator!]!
+  directions(where: DirectionRequest!): Directions!
 }
 
 type Mutation {
@@ -380,6 +381,13 @@ type RouteHeadway {
 
 # Directions API
 
+input DirectionRequest {
+  to: WaypointInput!
+  from: WaypointInput!
+  mode: StepMode!
+  depart_at: Time
+}
+
 input WaypointInput {
   lon: Float!
   lat: Float!
@@ -393,39 +401,52 @@ type Waypoint {
 }
 
 type Directions {
+  # metadata
   success: Boolean!
   exception: String
-  origin: Waypoint!
-  destination: Waypoint!
+  data_source: String
+  # input
+  origin: Waypoint
+  destination: Waypoint
+  # first itin summary
   duration: Duration
   distance: Distance
   start_time: Time
   end_time: Time
+  # itineraries
   itineraries: [Itinerary!]
 }
-
 
 type Itinerary {
   duration: Duration!
   distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  from: Waypoint!
+  to: Waypoint!
   legs: [Leg!]
 }
 
 type Leg {
-  shape: LineString!
-  start: Waypoint!
-  end: Waypoint!
+  duration: Duration!
+  distance: Distance!
   start_time: Time!
   end_time: Time!
+  from: Waypoint
+  to: Waypoint
   steps: [Step!]
+  geometry: LineString!
 }
 
 type Step {
-  to: Waypoint
-  mode: StepMode!
   duration: Duration!
   distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  to: Waypoint
+  mode: StepMode!
   instruction: String!
+  geometry_offset: Int!
 }
 
 type Distance {
@@ -453,7 +474,6 @@ enum StepMode {
   BICYCLE
   TRANSIT
 }
-
 
 # Census entities
 

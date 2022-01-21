@@ -3,6 +3,7 @@
 package resolvers
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/interline-io/transitland-server/config"
@@ -84,4 +85,10 @@ func (r *Resolver) CensusValue() gqlgen.CensusValueResolver {
 // Pathway .
 func (r *Resolver) Pathway() gqlgen.PathwayResolver {
 	return &pathwayResolver{r}
+}
+
+// Directions .
+func (r *Resolver) Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error) {
+	dr := directionsResolver{r}
+	return dr.Directions(ctx, where)
 }

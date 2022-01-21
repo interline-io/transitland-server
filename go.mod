@@ -5,7 +5,10 @@ go 1.16
 require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/Masterminds/squirrel v1.5.0
-	github.com/aws/aws-sdk-go v1.38.54
+	github.com/aws/aws-sdk-go v1.42.38
+	github.com/aws/aws-sdk-go-v2 v1.13.0 // indirect
+	github.com/aws/aws-sdk-go-v2/config v1.13.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/location v1.12.0 // indirect
 	github.com/flopp/go-staticmaps v0.0.0-20210425143944-2e6e19a99c28
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/go-redis/redis/v8 v8.11.4

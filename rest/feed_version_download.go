@@ -159,9 +159,7 @@ func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 func generatePresignedURLForFeedVersion(s3bucket string, fvHash string) (string, error) {
 	// Initialize a session in that the SDK will use to load
 	// credentials from the shared credentials file ~/.aws/credentials.
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("us-east-1")},
-	)
+	sess, err := session.NewSession(&aws.Config{})
 	if err != nil {
 		return "", err
 	}

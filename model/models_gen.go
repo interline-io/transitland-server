@@ -45,9 +45,17 @@ type CalendarDateFilter struct {
 	ExceptionType *int      `json:"exception_type"`
 }
 
+type DirectionRequest struct {
+	To       *WaypointInput `json:"to"`
+	From     *WaypointInput `json:"from"`
+	Mode     StepMode       `json:"mode"`
+	DepartAt *time.Time     `json:"depart_at"`
+}
+
 type Directions struct {
 	Success     bool         `json:"success"`
 	Exception   *string      `json:"exception"`
+	DataSource  *string      `json:"data_source"`
 	Origin      *Waypoint    `json:"origin"`
 	Destination *Waypoint    `json:"destination"`
 	Duration    *Duration    `json:"duration"`
@@ -104,18 +112,24 @@ type FeedVersionUnimportResult struct {
 }
 
 type Itinerary struct {
-	Duration *Duration `json:"duration"`
-	Distance *Distance `json:"distance"`
-	Legs     []*Leg    `json:"legs"`
+	Duration  *Duration `json:"duration"`
+	Distance  *Distance `json:"distance"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+	From      *Waypoint `json:"from"`
+	To        *Waypoint `json:"to"`
+	Legs      []*Leg    `json:"legs"`
 }
 
 type Leg struct {
-	Shape     tl.LineString `json:"shape"`
-	Start     *Waypoint     `json:"start"`
-	End       *Waypoint     `json:"end"`
+	Duration  *Duration     `json:"duration"`
+	Distance  *Distance     `json:"distance"`
 	StartTime time.Time     `json:"start_time"`
 	EndTime   time.Time     `json:"end_time"`
+	From      *Waypoint     `json:"from"`
+	To        *Waypoint     `json:"to"`
 	Steps     []*Step       `json:"steps"`
+	Geometry  tl.LineString `json:"geometry"`
 }
 
 type OperatorFilter struct {
@@ -196,11 +210,14 @@ type RouteFilter struct {
 }
 
 type Step struct {
-	To          *Waypoint `json:"to"`
-	Mode        StepMode  `json:"mode"`
-	Duration    *Duration `json:"duration"`
-	Distance    *Distance `json:"distance"`
-	Instruction string    `json:"instruction"`
+	Duration       *Duration `json:"duration"`
+	Distance       *Distance `json:"distance"`
+	StartTime      time.Time `json:"start_time"`
+	EndTime        time.Time `json:"end_time"`
+	To             *Waypoint `json:"to"`
+	Mode           StepMode  `json:"mode"`
+	Instruction    string    `json:"instruction"`
+	GeometryOffset int       `json:"geometry_offset"`
 }
 
 type StopFilter struct {
