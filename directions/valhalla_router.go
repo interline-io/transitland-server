@@ -15,32 +15,45 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-type valhallaHandler struct {
-	Client *http.Client
+func init() {
+	endpoint := os.Getenv("VALHALLA_ENDPOINT")
+	apikey := os.Getenv("VALHALLA_API_KEY")
+	if endpoint == "" {
+		return
+	}
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	if err := RegisterRouter("valhalla", func() Handler {
+		return newValhallaRouter(client, endpoint, apikey)
+	}); err != nil {
+		panic(err)
+	}
 }
 
-func newValhallaHandler(client *http.Client) *valhallaHandler {
+type valhallaRouter struct {
+	client   *http.Client
+	endpoint string
+	apikey   string
+}
+
+func newValhallaRouter(client *http.Client, endpoint string, apikey string) *valhallaRouter {
 	if client == nil {
 		client = http.DefaultClient
 	}
-	return &valhallaHandler{
-		Client: client,
+	return &valhallaRouter{
+		client:   client,
+		endpoint: endpoint,
+		apikey:   apikey,
 	}
 }
 
-func (h *valhallaHandler) Request(req model.DirectionRequest) (*model.Directions, error) {
-	// Prepare response
-	ret := model.Directions{
-		Origin:      wpiWaypoint(req.From),
-		Destination: wpiWaypoint(req.To),
-		Success:     true,
-		Exception:   nil,
-	}
+func (h *valhallaRouter) Request(req model.DirectionRequest) (*model.Directions, error) {
 	if err := validateDirectionRequest(req); err != nil {
-		ret.Success = false
-		ret.Exception = aws.String("invalid input")
-		return &ret, nil
+		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
 	}
+
+	// Prepare request
 	input := valhallaRequest{}
 	input.Locations = append(input.Locations, valhallaLocation{Lon: req.From.Lon, Lat: req.From.Lat})
 	input.Locations = append(input.Locations, valhallaLocation{Lon: req.To.Lon, Lat: req.To.Lat})
@@ -51,11 +64,8 @@ func (h *valhallaHandler) Request(req model.DirectionRequest) (*model.Directions
 	} else if req.Mode == model.StepModeWalk {
 		input.Costing = "pedestrian"
 	} else {
-		ret.Success = false
-		ret.Exception = aws.String("unsupported travel mode")
-		return &ret, nil
+		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
-
 	departAt := time.Now().In(time.UTC)
 	if req.DepartAt == nil {
 		departAt = time.Now().In(time.UTC)
@@ -64,13 +74,52 @@ func (h *valhallaHandler) Request(req model.DirectionRequest) (*model.Directions
 		departAt = *req.DepartAt
 	}
 
-	res, err := makeValhallaRequest(h.Client, input)
+	// Make request
+	res, err := makeValRequest(input, h.client, h.endpoint, h.apikey)
 	if err != nil || len(res.Trip.Legs) == 0 {
-		ret.Success = false
-		ret.Exception = aws.String("could not calculate route")
-		return &ret, nil
+		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
+
 	}
 
+	// Prepare response
+	ret := makeValDirections(res, departAt)
+	ret.Origin = wpiWaypoint(req.From)
+	ret.Destination = wpiWaypoint(req.To)
+	ret.Success = true
+	ret.Exception = nil
+	return ret, nil
+}
+
+func makeValRequest(req valhallaRequest, client *http.Client, endpoint string, apikey string) (*valhallaResponse, error) {
+	reqUrl := fmt.Sprintf("%s/route", endpoint)
+	hreq, err := http.NewRequest("GET", reqUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	reqJson, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+	hreq.Body = io.NopCloser(bytes.NewReader(reqJson))
+	hreq.Header.Add("api_key", apikey)
+	resp, err := client.Do(hreq)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	// fmt.Println("response:", string(body))
+	res := valhallaResponse{}
+	if err := json.Unmarshal(body, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func makeValDirections(res *valhallaResponse, departAt time.Time) *model.Directions {
+	ret := model.Directions{}
 	// Create itinerary summary
 	itin := model.Itinerary{}
 	itin.Duration = valDuration(res.Trip.Summary.Time)
@@ -113,7 +162,7 @@ func (h *valhallaHandler) Request(req model.DirectionRequest) (*model.Directions
 	if len(itin.Legs) > 0 {
 		ret.Itineraries = append(ret.Itineraries, &itin)
 	}
-	return &ret, nil
+	return &ret
 }
 
 type valhallaRequest struct {
@@ -153,34 +202,6 @@ type valhallaManeuver struct {
 	TravelMode      string  `json:"travel_mode"`
 	Instruction     string  `json:"instruction"`
 	BeginShapeIndex int     `json:"begin_shape_index"`
-}
-
-func makeValhallaRequest(client *http.Client, req valhallaRequest) (*valhallaResponse, error) {
-	reqUrl := fmt.Sprintf("%s/route", os.Getenv("VALHALLA_ENDPOINT"))
-	hreq, err := http.NewRequest("GET", reqUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-	reqJson, err := json.Marshal(req)
-	if err != nil {
-		return nil, err
-	}
-	hreq.Body = io.NopCloser(bytes.NewReader(reqJson))
-	hreq.Header.Add("api_key", os.Getenv("VALHALLA_API_KEY"))
-	resp, err := client.Do(hreq)
-	if err != nil {
-		return nil, err
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	// fmt.Println("response:", string(body))
-	res := valhallaResponse{}
-	if err := json.Unmarshal(body, &res); err != nil {
-		return nil, err
-	}
-	return &res, nil
 }
 
 func valDuration(t int) *model.Duration {

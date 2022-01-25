@@ -13,7 +13,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func Test_awsHandler(t *testing.T) {
+func Test_awsRouter(t *testing.T) {
 	tcs := []testCase{
 		{"ped", basicTests["ped"], true, 4215, 4.100, "../test/fixtures/response/aws_ped.json"},
 		{"bike", basicTests["bike"], false, 0, 0, ""}, // unsupported mode
@@ -26,7 +26,7 @@ func Test_awsHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			recorder := testutil.NewRecorder(filepath.Join("../test/fixtures/aws/location", tc.name), "directions://aws")
 			defer recorder.Stop()
-			h, err := makeTestAwsHandler(recorder)
+			h, err := makeTestawsRouter(recorder)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -35,8 +35,9 @@ func Test_awsHandler(t *testing.T) {
 	}
 }
 
-func makeTestAwsHandler(tr http.RoundTripper) (*awsHandler, error) {
+func makeTestawsRouter(tr http.RoundTripper) (*awsRouter, error) {
 	// Use custom client/transport
+	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
 	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return nil, err
@@ -46,5 +47,5 @@ func makeTestAwsHandler(tr http.RoundTripper) (*awsHandler, error) {
 	}
 	cfg.HTTPClient = hcl
 	lc := location.NewFromConfig(cfg)
-	return newAWSHandler(lc, os.Getenv("TL_AWS_LOCATION_CALCULATOR")), nil
+	return newawsRouter(lc, cn), nil
 }

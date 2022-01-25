@@ -9,10 +9,18 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-// lineHandler is a simple point-to-point handler for testing purposes
-type lineHandler struct{}
+func init() {
+	if err := RegisterRouter("line", func() Handler {
+		return &lineRouter{}
+	}); err != nil {
+		panic(err)
+	}
+}
 
-func (h *lineHandler) Request(req model.DirectionRequest) (*model.Directions, error) {
+// lineRouter is a simple point-to-point handler for testing purposes
+type lineRouter struct{}
+
+func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, error) {
 	// Prepare response
 	ret := model.Directions{
 		Origin:      wpiWaypoint(req.From),

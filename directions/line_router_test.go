@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_lineHandler(t *testing.T) {
+func Test_lineRouter(t *testing.T) {
 	tcs := []testCase{
 		{"ped", basicTests["ped"], true, 4116, 4.116, "../test/fixtures/response/line_ped.json"},
 		{"bike", basicTests["bike"], true, 1029, 4.116, ""},
@@ -14,7 +14,7 @@ func Test_lineHandler(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			h := &lineHandler{}
+			h := &lineRouter{}
 			testHandler(t, h, tc)
 		})
 	}

@@ -2,7 +2,8 @@ package directions
 
 import (
 	"errors"
-	"os"
+	"fmt"
+	"sync"
 
 	"github.com/interline-io/transitland-server/model"
 )
@@ -11,15 +12,34 @@ type Handler interface {
 	Request(model.DirectionRequest) (*model.Directions, error)
 }
 
+type handlerFunc func() Handler
+
+var handlersLock sync.Mutex
+var handlers = map[string]handlerFunc{}
+
+func RegisterRouter(name string, f handlerFunc) error {
+	handlersLock.Lock()
+	defer handlersLock.Unlock()
+	if _, ok := handlers[name]; ok {
+		return fmt.Errorf("handler '%s' already registered", name)
+	}
+	fmt.Println("registering routing handler:", name)
+	handlers[name] = f
+	return nil
+}
+
+func getHandler(name string) (handlerFunc, bool) {
+	handlersLock.Lock()
+	defer handlersLock.Unlock()
+	a, ok := handlers[name]
+	return a, ok
+}
+
 func HandleRequest(preferredHandler string, req model.DirectionRequest) (*model.Directions, error) {
 	var handler Handler
-	switch preferredHandler {
-	case "valhalla":
-		handler = &valhallaHandler{}
-	case "aws":
-		handler = newAWSHandler(nil, os.Getenv("TL_AWS_LOCATION_CALCULATOR"))
-	default:
-		handler = &lineHandler{}
+	handler = &lineRouter{}
+	if hf, ok := getHandler(preferredHandler); ok {
+		handler = hf()
 	}
 	return handler.Request(req)
 }

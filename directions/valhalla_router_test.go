@@ -2,13 +2,15 @@ package directions
 
 import (
 	"net/http"
+	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
-func Test_valhallaHandler(t *testing.T) {
+func Test_valhallaRouter(t *testing.T) {
 	fdir := "../test/fixtures/valhalla"
 	tcs := []testCase{
 		{"ped", basicTests["ped"], true, 3130, 4.387, "../test/fixtures/response/val_ped.json"},
@@ -22,11 +24,21 @@ func Test_valhallaHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			recorder := testutil.NewRecorder(filepath.Join(fdir, tc.name), "directions://valhalla")
 			defer recorder.Stop()
-			hcl := &http.Client{
-				Transport: recorder,
+			h, err := makeTestvalhallaRouter(recorder)
+			if err != nil {
+				t.Fatal(err)
 			}
-			h := newValhallaHandler(hcl)
 			testHandler(t, h, tc)
 		})
 	}
+}
+
+func makeTestvalhallaRouter(tr http.RoundTripper) (*valhallaRouter, error) {
+	endpoint := os.Getenv("VALHALLA_ENDPOINT")
+	apikey := os.Getenv("VALHALLA_API_KEY")
+	client := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: tr,
+	}
+	return newValhallaRouter(client, endpoint, apikey), nil
 }

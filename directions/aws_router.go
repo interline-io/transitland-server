@@ -3,41 +3,59 @@ package directions
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/location"
 	"github.com/aws/aws-sdk-go-v2/service/location/types"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/model"
 )
 
-type awsHandler struct {
+func init() {
+	// Get AWS config and register handler factory
+	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
+	if cn == "" {
+		return
+	}
+	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return
+	}
+	hcl := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	cfg.HTTPClient = hcl
+	lc := location.NewFromConfig(cfg)
+	if err := RegisterRouter("aws", func() Handler {
+		return newawsRouter(lc, cn)
+	}); err != nil {
+		panic(err)
+	}
+}
+
+type awsRouter struct {
 	CalculatorName string
 	locationClient *location.Client
 }
 
-func newAWSHandler(lc *location.Client, calculator string) *awsHandler {
-	return &awsHandler{
+func newawsRouter(lc *location.Client, calculator string) *awsRouter {
+	return &awsRouter{
 		CalculatorName: calculator,
 		locationClient: lc,
 	}
 }
 
-func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, error) {
-	// Prepare response
-	ret := model.Directions{
-		Origin:      wpiWaypoint(req.From),
-		Destination: wpiWaypoint(req.To),
-		Success:     true,
-		Exception:   nil,
-	}
+func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, error) {
+	// Input validation
 	if err := validateDirectionRequest(req); err != nil {
-		ret.Success = false
-		ret.Exception = aws.String("invalid input")
-		return &ret, nil
+		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
 	}
 
+	// Prepare request
 	input := location.CalculateRouteInput{
 		CalculatorName:      aws.String(h.CalculatorName),
 		DeparturePosition:   []float64{req.From.Lon, req.From.Lat},
@@ -50,11 +68,8 @@ func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, err
 	} else if req.Mode == model.StepModeWalk {
 		input.TravelMode = types.TravelMode("Walking")
 	} else {
-		ret.Success = false
-		ret.Exception = aws.String("unsupported travel mode")
-		return &ret, nil
+		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
-
 	// Departure time
 	now := time.Now().In(time.UTC)
 	var departAt time.Time
@@ -73,15 +88,25 @@ func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, err
 		input.DepartureTime = nil
 	}
 
+	// Make request
 	res, err := h.locationClient.CalculateRoute(context.TODO(), &input)
 	if err != nil || res.Summary == nil {
 		fmt.Println("aws location services error:", err)
-		ret.Success = false
-		ret.Exception = aws.String("could not calculate route")
-		return &ret, nil
+		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
 	}
 
+	// Prepare response
+	ret := makeAwsResponse(res, departAt)
+	ret.Origin = wpiWaypoint(req.From)
+	ret.Destination = wpiWaypoint(req.To)
+	ret.Success = true
+	ret.Exception = nil
+	return ret, nil
+}
+
+func makeAwsResponse(res *location.CalculateRouteOutput, departAt time.Time) *model.Directions {
 	// Create itinerary summary
+	ret := model.Directions{}
 	itin := model.Itinerary{}
 	distUnits := res.Summary.DistanceUnit
 	itin.Duration = awsDuration(res.Summary.DurationSeconds)
@@ -101,9 +126,7 @@ func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, err
 	prevLegDepartAt := departAt
 	for _, awsleg := range res.Legs {
 		if awsleg.DurationSeconds == nil {
-			ret.Success = false
-			ret.Exception = aws.String("invalid route response")
-			return &ret, nil
+			return &model.Directions{Success: false, Exception: aws.String("invalid route response")}
 		}
 		leg := model.Leg{}
 		prevStepDepartAt := prevLegDepartAt
@@ -133,7 +156,7 @@ func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, err
 	if len(itin.Legs) > 0 {
 		ret.Itineraries = append(ret.Itineraries, &itin)
 	}
-	return &ret, nil
+	return &ret
 }
 
 func awsInt(v *int32) int {
