@@ -11,9 +11,12 @@ import (
 func Test_valhallaHandler(t *testing.T) {
 	fdir := "../test/fixtures/valhalla"
 	tcs := []testCase{
-		{"ped", basicTests["ped"], 3130, 4.387, "../test/fixtures/response/val_ped.json"},
-		{"bike", basicTests["bike"], 1132, 4.912, ""},
-		{"auto", basicTests["auto"], 1037, 5.133, ""},
+		{"ped", basicTests["ped"], true, 3130, 4.387, "../test/fixtures/response/val_ped.json"},
+		{"bike", basicTests["bike"], true, 1132, 4.912, ""},
+		{"auto", basicTests["auto"], true, 1037, 5.133, ""},
+		{"transit", basicTests["transit"], false, 0, 0, ""}, // unsupported mode
+		{"no_dest_fail", basicTests["no_dest_fail"], false, 0, 0, ""},
+		{"no_routable_dest_fail", basicTests["no_routable_dest_fail"], false, 0, 0, ""},
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {

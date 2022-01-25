@@ -15,9 +15,12 @@ import (
 
 func Test_awsHandler(t *testing.T) {
 	tcs := []testCase{
-		{"ped", basicTests["ped"], 4215, 4.100, "../test/fixtures/response/aws_ped.json"},
-		{"auto", basicTests["auto"], 671, 5.452, ""},
-		{"depart_now", model.DirectionRequest{Mode: model.StepModeAuto, From: &baseFrom, To: &baseTo, DepartAt: nil}, 1, 1, ""},
+		{"ped", basicTests["ped"], true, 4215, 4.100, "../test/fixtures/response/aws_ped.json"},
+		{"bike", basicTests["bike"], false, 0, 0, ""}, // unsupported mode
+		{"auto", basicTests["auto"], true, 671, 5.452, ""},
+		{"depart_now", model.DirectionRequest{Mode: model.StepModeAuto, From: &baseFrom, To: &baseTo, DepartAt: nil}, true, 671, 4.1, ""}, // at LEAST 671s
+		{"no_dest_fail", basicTests["no_dest_fail"], false, 0, 0, ""},
+		{"no_routable_dest_fail", basicTests["no_routable_dest_fail"], false, 0, 0, ""},
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {

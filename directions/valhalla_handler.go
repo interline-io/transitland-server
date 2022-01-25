@@ -15,8 +15,6 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-// PROOF OF CONCEPT
-
 type valhallaHandler struct {
 	Client *http.Client
 }
@@ -31,8 +29,17 @@ func newValhallaHandler(client *http.Client) *valhallaHandler {
 }
 
 func (h *valhallaHandler) Request(req model.DirectionRequest) (*model.Directions, error) {
+	// Prepare response
+	ret := model.Directions{
+		Origin:      wpiWaypoint(req.From),
+		Destination: wpiWaypoint(req.To),
+		Success:     true,
+		Exception:   nil,
+	}
 	if err := validateDirectionRequest(req); err != nil {
-		return nil, err
+		ret.Success = false
+		ret.Exception = aws.String("invalid input")
+		return &ret, nil
 	}
 	input := valhallaRequest{}
 	input.Locations = append(input.Locations, valhallaLocation{Lon: req.From.Lon, Lat: req.From.Lat})
@@ -43,6 +50,10 @@ func (h *valhallaHandler) Request(req model.DirectionRequest) (*model.Directions
 		input.Costing = "bicycle"
 	} else if req.Mode == model.StepModeWalk {
 		input.Costing = "pedestrian"
+	} else {
+		ret.Success = false
+		ret.Exception = aws.String("unsupported travel mode")
+		return &ret, nil
 	}
 
 	departAt := time.Now().In(time.UTC)
@@ -51,14 +62,6 @@ func (h *valhallaHandler) Request(req model.DirectionRequest) (*model.Directions
 		req.DepartAt = &departAt
 	} else {
 		departAt = *req.DepartAt
-	}
-
-	// Prepare response
-	ret := model.Directions{
-		Origin:      wpiWaypoint(req.From),
-		Destination: wpiWaypoint(req.To),
-		Success:     true,
-		Exception:   nil,
 	}
 
 	res, err := makeValhallaRequest(h.Client, input)

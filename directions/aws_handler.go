@@ -25,9 +25,19 @@ func newAWSHandler(lc *location.Client, calculator string) *awsHandler {
 }
 
 func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, error) {
-	if err := validateDirectionRequest(req); err != nil {
-		return nil, err
+	// Prepare response
+	ret := model.Directions{
+		Origin:      wpiWaypoint(req.From),
+		Destination: wpiWaypoint(req.To),
+		Success:     true,
+		Exception:   nil,
 	}
+	if err := validateDirectionRequest(req); err != nil {
+		ret.Success = false
+		ret.Exception = aws.String("invalid input")
+		return &ret, nil
+	}
+
 	input := location.CalculateRouteInput{
 		CalculatorName:      aws.String(h.CalculatorName),
 		DeparturePosition:   []float64{req.From.Lon, req.From.Lat},
@@ -39,7 +49,12 @@ func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, err
 		input.TravelMode = types.TravelMode("Car")
 	} else if req.Mode == model.StepModeWalk {
 		input.TravelMode = types.TravelMode("Walking")
+	} else {
+		ret.Success = false
+		ret.Exception = aws.String("unsupported travel mode")
+		return &ret, nil
 	}
+
 	// Departure time
 	now := time.Now().In(time.UTC)
 	var departAt time.Time
@@ -57,13 +72,7 @@ func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, err
 		input.DepartNow = nil
 		input.DepartureTime = nil
 	}
-	// Prepare response
-	ret := model.Directions{
-		Origin:      wpiWaypoint(req.From),
-		Destination: wpiWaypoint(req.To),
-		Success:     true,
-		Exception:   nil,
-	}
+
 	res, err := h.locationClient.CalculateRoute(context.TODO(), &input)
 	if err != nil || res.Summary == nil {
 		fmt.Println("aws location services error:", err)
@@ -125,14 +134,6 @@ func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, err
 		ret.Itineraries = append(ret.Itineraries, &itin)
 	}
 	return &ret, nil
-}
-
-func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
-	return &model.Waypoint{
-		Lon:  w.Lon,
-		Lat:  w.Lat,
-		Name: w.Name,
-	}
 }
 
 func awsInt(v *int32) int {
