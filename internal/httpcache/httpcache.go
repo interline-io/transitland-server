@@ -1,7 +1,6 @@
 package httpcache
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -63,10 +62,10 @@ func (h *HTTPCache) check(key string) (*http.Response, error) {
 func (h *HTTPCache) RoundTrip(req *http.Request) (*http.Response, error) {
 	key := h.key(req)
 	if a, err := h.check(key); a != nil {
-		fmt.Println("httpcache: got cached:", key)
+		// fmt.Println("httpcache: got cached:", key)
 		return a, err
 	}
 	rr, err := h.makeRequest(req, key)
-	fmt.Println("httpcache: saved to cache:", key)
+	// fmt.Println("httpcache: saved to cache:", key)
 	return rr, err
 }
