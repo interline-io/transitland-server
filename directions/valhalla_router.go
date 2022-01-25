@@ -26,7 +26,7 @@ func init() {
 		Timeout: 10 * time.Second,
 	}
 	if os.Getenv("VALHALLA_ENABLE_CACHE") != "" {
-		client.Transport = httpcache.NewHTTPCache(nil, nil)
+		client.Transport = httpcache.NewHTTPCache(nil, nil, nil)
 	}
 	if err := RegisterRouter("valhalla", func() Handler {
 		return newValhallaRouter(client, endpoint, apikey)

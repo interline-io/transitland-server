@@ -1,109 +1,42 @@
 package httpcache
 
 import (
-	"bytes"
-	"crypto/sha1"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-
-	"github.com/tidwall/tinylru"
 )
 
-type cacheResponse struct {
-	Headers    map[string][]string
-	Body       []byte
-	StatusCode int
-}
-
-func newCacheResponse(res *http.Response) (*cacheResponse, error) {
-	// Save and restore body
-	var bodyB []byte
-	if res.Body != nil {
-		bodyB, _ = ioutil.ReadAll(res.Body)
-		res.Body = ioutil.NopCloser(bytes.NewBuffer(bodyB))
-	}
-
-	c := cacheResponse{}
-	c.Body = bodyB
-	c.Headers = map[string][]string{}
-	for k, v := range res.Header {
-		c.Headers[k] = v
-	}
-	c.StatusCode = res.StatusCode
-	return &c, nil
-}
-
-func fromCacheResponse(a *cacheResponse) (*http.Response, error) {
-	rr := http.Response{}
-	rr.Body = io.NopCloser(bytes.NewReader(a.Body))
-	rr.ContentLength = int64(len(a.Body))
-	rr.StatusCode = a.StatusCode
-	rr.Header = http.Header{}
-	for k, v := range a.Headers {
-		for _, vv := range v {
-			rr.Header.Add(k, vv)
-		}
-	}
-	return &rr, nil
-}
-
-type HTTPKey func(*http.Request) string
-
-func DefaultKey(req *http.Request) string {
-	// Save and restore body
-	var bodyB []byte
-	if req.Body != nil {
-		bodyB, _ = ioutil.ReadAll(req.Body)
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyB))
-	}
-
-	// Key
-	s := sha1.New()
-	s.Write([]byte(req.Method))
-	s.Write([]byte(req.URL.String()))
-	s.Write(bodyB)
-	for k, v := range req.Header {
-		s.Write([]byte(k))
-		for _, vv := range v {
-			s.Write([]byte(vv))
-		}
-	}
-	return fmt.Sprintf("%x", s.Sum(nil))
-}
-
 type Cache interface {
-	Get(interface{}) (interface{}, bool)
-	Set(interface{}, interface{}) (interface{}, bool)
+	Get(string) (interface{}, bool)
+	Set(string, interface{}) error
 	Len() int
+	Close() error
 }
 
 type HTTPCache struct {
-	Key          HTTPKey
-	RoundTripper http.RoundTripper
+	key          HTTPKey
+	roundTripper http.RoundTripper
 	cache        Cache
 }
 
-func NewHTTPCache(rt http.RoundTripper, key HTTPKey) *HTTPCache {
+func NewHTTPCache(rt http.RoundTripper, key HTTPKey, cache Cache) *HTTPCache {
 	if key == nil {
 		key = DefaultKey
 	}
 	if rt == nil {
 		rt = http.DefaultTransport
 	}
-	lrucache := tinylru.LRU{}
-	lrucache.Resize(16 * 1024)
+	if cache == nil {
+		cache = NewLRUCache(16 * 1024)
+	}
 	return &HTTPCache{
-		RoundTripper: rt,
-		Key:          key,
-		cache:        &lrucache,
+		roundTripper: rt,
+		key:          key,
+		cache:        cache,
 	}
 }
 
 func (h *HTTPCache) makeRequest(req *http.Request, key string) (*http.Response, error) {
 	// Make request
-	res, err := h.RoundTripper.RoundTrip(req)
+	res, err := h.roundTripper.RoundTrip(req)
 	if err != nil {
 		return res, err
 	}
@@ -113,12 +46,6 @@ func (h *HTTPCache) makeRequest(req *http.Request, key string) (*http.Response, 
 		return nil, err
 	}
 	h.cache.Set(key, rr)
-	// _, _, evictedKey, _, evicted := h.lrucache.Set(key, rr)
-	// if evicted {
-	// 	fmt.Println("lru cache evicted:", evictedKey)
-	// }
-	// fmt.Println("roundtrip: saved value for ", key)
-	// Return
 	return res, nil
 }
 
@@ -135,7 +62,7 @@ func (h *HTTPCache) check(key string) (*http.Response, error) {
 
 func (h *HTTPCache) RoundTrip(req *http.Request) (*http.Response, error) {
 	// fmt.Println("roundtrip:", req.URL)
-	key := h.Key(req)
+	key := h.key(req)
 	if a, err := h.check(key); a != nil {
 		return a, err
 	}

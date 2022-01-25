@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/tinylru"
 )
 
 func TestHTTPCache(t *testing.T) {
@@ -57,7 +57,6 @@ func TestHTTPCache(t *testing.T) {
 			res.Body.Close()
 		}
 		assert.Equal(t, a*5, requests)
-
 	}
 
 	t.Run("no cache", func(t *testing.T) {
@@ -65,22 +64,20 @@ func TestHTTPCache(t *testing.T) {
 	})
 
 	t.Run("with cache", func(t *testing.T) {
-		c := NewHTTPCache(nil, nil)
+		c := NewHTTPCache(nil, nil, nil)
 		testClient(t, &http.Client{Transport: c}, 100, 1)
 	})
 
 	t.Run("with cache test lru", func(t *testing.T) {
 		csize := 10
-		c := NewHTTPCache(nil, nil)
+		c := NewHTTPCache(nil, nil, nil)
 		// manually resize...
-		cache := tinylru.LRU{}
-		cache.Resize(csize)
-		c.cache = &cache
+		c.cache = NewLRUCache(csize)
 		// test
 		client := &http.Client{Transport: c}
 		// First pass to fill up cache
 		for i := 0; i < csize; i++ {
-			assert.Equal(t, i, cache.Len())
+			assert.Equal(t, i, c.cache.Len())
 			req, _ := http.NewRequest("POST", ts200.URL, nil)
 			req.Header.Add("foo", fmt.Sprintf("%d", i))
 			res, _ := client.Do(req)
@@ -88,11 +85,29 @@ func TestHTTPCache(t *testing.T) {
 		}
 		// Second cache to evict and stay same size
 		for i := 0; i < csize*2; i++ {
-			assert.Equal(t, 10, cache.Len())
+			assert.Equal(t, 10, c.cache.Len())
 			req, _ := http.NewRequest("POST", ts200.URL, nil)
 			req.Header.Add("foo", fmt.Sprintf("%d", i))
 			res, _ := client.Do(req)
 			res.Body.Close()
 		}
+	})
+
+	t.Run("with cache test ttl", func(t *testing.T) {
+		csize := 10
+		tc := NewTTLCache(csize, 100*time.Millisecond)
+		c := NewHTTPCache(nil, nil, tc)
+		client := &http.Client{Transport: c}
+		// Fill up cache
+		for i := 0; i < csize; i++ {
+			req, _ := http.NewRequest("GET", ts200.URL, nil)
+			req.Header.Add("foo", fmt.Sprintf("%d", i))
+			res, _ := client.Do(req)
+			res.Body.Close()
+		}
+		assert.Equal(t, csize, c.cache.Len())
+		// Wait to expire
+		time.Sleep(120 * time.Millisecond)
+		assert.Equal(t, 0, c.cache.Len())
 	})
 }
