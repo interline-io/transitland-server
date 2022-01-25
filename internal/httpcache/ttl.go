@@ -33,3 +33,7 @@ func (c *TTLCache) Len() int {
 func (c *TTLCache) Close() error {
 	return c.cache.Close()
 }
+
+func (c *TTLCache) SkipExtension(ok bool) {
+	c.cache.SkipTTLExtensionOnHit(ok)
+}

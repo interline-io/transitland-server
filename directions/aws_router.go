@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/location"
 	"github.com/aws/aws-sdk-go-v2/service/location/types"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -25,10 +26,17 @@ func init() {
 	if err != nil {
 		return
 	}
-	hcl := &http.Client{
+	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
-	cfg.HTTPClient = hcl
+	if os.Getenv("TL_DIRECTIONS_ENABLE_CACHE") != "" {
+		// By default use a 1 minute TTL cache
+		cache := httpcache.NewTTLCache(16*1024, 1*time.Minute)
+		cache.SkipExtension(true) // don't refresh values on get
+		client.Transport = httpcache.NewHTTPCache(nil, httpcache.NoHeadersKey, cache)
+
+	}
+	cfg.HTTPClient = client
 	lc := location.NewFromConfig(cfg)
 	if err := RegisterRouter("aws", func() Handler {
 		return newAWSRouter(lc, cn)
