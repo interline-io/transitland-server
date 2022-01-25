@@ -47,5 +47,5 @@ func makeTestawsRouter(tr http.RoundTripper) (*awsRouter, error) {
 	}
 	cfg.HTTPClient = hcl
 	lc := location.NewFromConfig(cfg)
-	return newawsRouter(lc, cn), nil
+	return newAWSRouter(lc, cn), nil
 }

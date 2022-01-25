@@ -31,7 +31,7 @@ func init() {
 	cfg.HTTPClient = hcl
 	lc := location.NewFromConfig(cfg)
 	if err := RegisterRouter("aws", func() Handler {
-		return newawsRouter(lc, cn)
+		return newAWSRouter(lc, cn)
 	}); err != nil {
 		panic(err)
 	}
@@ -42,7 +42,7 @@ type awsRouter struct {
 	locationClient *location.Client
 }
 
-func newawsRouter(lc *location.Client, calculator string) *awsRouter {
+func newAWSRouter(lc *location.Client, calculator string) *awsRouter {
 	return &awsRouter{
 		CalculatorName: calculator,
 		locationClient: lc,

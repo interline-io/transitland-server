@@ -11,5 +11,5 @@ type directionsResolver struct{ *Resolver }
 
 // Note: where is not a pointer
 func (r *directionsResolver) Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error) {
-	return directions.HandleRequest("aws", where)
+	return directions.HandleRequest("line", where)
 }
