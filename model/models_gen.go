@@ -466,6 +466,7 @@ const (
 	StepModeAuto    StepMode = "AUTO"
 	StepModeBicycle StepMode = "BICYCLE"
 	StepModeTransit StepMode = "TRANSIT"
+	StepModeLine    StepMode = "LINE"
 )
 
 var AllStepMode = []StepMode{
@@ -473,11 +474,12 @@ var AllStepMode = []StepMode{
 	StepModeAuto,
 	StepModeBicycle,
 	StepModeTransit,
+	StepModeLine,
 }
 
 func (e StepMode) IsValid() bool {
 	switch e {
-	case StepModeWalk, StepModeAuto, StepModeBicycle, StepModeTransit:
+	case StepModeWalk, StepModeAuto, StepModeBicycle, StepModeTransit, StepModeLine:
 		return true
 	}
 	return false

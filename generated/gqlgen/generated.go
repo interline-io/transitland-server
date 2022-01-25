@@ -4515,6 +4515,7 @@ enum StepMode {
   AUTO
   BICYCLE
   TRANSIT
+  LINE
 }
 
 # Census entities

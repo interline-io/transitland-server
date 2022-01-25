@@ -25,6 +25,7 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.12.1
+	github.com/tidwall/tinylru v1.1.0 // indirect
 	github.com/twpayne/go-geom v1.4.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	google.golang.org/protobuf v1.27.1 // indirect

@@ -3,6 +3,7 @@ package directions
 import (
 	"errors"
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/interline-io/transitland-server/model"
@@ -35,10 +36,23 @@ func getHandler(name string) (handlerFunc, bool) {
 	return a, ok
 }
 
-func HandleRequest(preferredHandler string, req model.DirectionRequest) (*model.Directions, error) {
+func HandleRequest(pref string, req model.DirectionRequest) (*model.Directions, error) {
 	var handler Handler
 	handler = &lineRouter{}
-	if hf, ok := getHandler(preferredHandler); ok {
+	// Always use line
+	if req.Mode == model.StepModeLine {
+		pref = "line"
+	}
+	// Realtime auto requires aws
+	if req.Mode == model.StepModeAuto && req.DepartAt == nil {
+		pref = "aws"
+	}
+	// Default
+	if pref == "" {
+		pref = os.Getenv("TL_DEFAULT_ROUTER")
+		// will default to line if invalid or empty
+	}
+	if hf, ok := getHandler(pref); ok {
 		handler = hf()
 	}
 	return handler.Request(req)

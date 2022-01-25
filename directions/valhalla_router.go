@@ -12,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -23,6 +24,9 @@ func init() {
 	}
 	client := &http.Client{
 		Timeout: 10 * time.Second,
+	}
+	if os.Getenv("VALHALLA_ENABLE_CACHE") != "" {
+		client.Transport = httpcache.NewHTTPCache(nil, nil)
 	}
 	if err := RegisterRouter("valhalla", func() Handler {
 		return newValhallaRouter(client, endpoint, apikey)
@@ -106,6 +110,7 @@ func makeValRequest(req valhallaRequest, client *http.Client, endpoint string, a
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

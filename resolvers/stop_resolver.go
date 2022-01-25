@@ -69,5 +69,5 @@ func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *mo
 		p.From = swp
 		p.To = to
 	}
-	return directions.HandleRequest("valhalla", p)
+	return directions.HandleRequest("", p)
 }
