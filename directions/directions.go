@@ -22,9 +22,16 @@ func HandleRequest(preferredHandler string, req model.DirectionRequest) (*model.
 	case "valhalla":
 		handler = &valhallaHandler{}
 	case "aws":
-		handler = newAWSHandler("us-east-1", os.Getenv("TL_AWS_ROUTE_CALCULATOR_NAME"))
+		handler = newAWSHandler(nil, os.Getenv("TL_AWS_ROUTE_CALCULATOR_NAME"))
 	default:
 		return nil, errors.New("unknown handler")
 	}
 	return handler.Request(req)
+}
+
+func validateDirectionRequest(req model.DirectionRequest) error {
+	if req.From == nil || req.To == nil {
+		return errors.New("from and to waypoints required")
+	}
+	return nil
 }

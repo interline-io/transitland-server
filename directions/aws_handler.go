@@ -1,64 +1,62 @@
 package directions
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/locationservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/location"
+	"github.com/aws/aws-sdk-go-v2/service/location/types"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/model"
 )
 
 type awsHandler struct {
-	Region         string
 	CalculatorName string
+	locationClient *location.Client
 }
 
-func newAWSHandler(region string, calculator string) *awsHandler {
+func newAWSHandler(lc *location.Client, calculator string) *awsHandler {
 	return &awsHandler{
-		Region:         region,
 		CalculatorName: calculator,
+		locationClient: lc,
 	}
 }
 
 func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, error) {
-	sess, err := session.NewSession(&aws.Config{Region: aws.String(h.Region)})
-	if err != nil {
+	if err := validateDirectionRequest(req); err != nil {
 		return nil, err
 	}
-	ls := locationservice.New(sess)
-
-	// Prepare input
-	input := locationservice.CalculateRouteInput{
+	input := location.CalculateRouteInput{
 		CalculatorName:      aws.String(h.CalculatorName),
-		DeparturePosition:   aws.Float64Slice([]float64{req.From.Lon, req.From.Lat}),
-		DestinationPosition: aws.Float64Slice([]float64{req.To.Lon, req.To.Lat}),
-		DistanceUnit:        aws.String("Kilometers"),
+		DeparturePosition:   []float64{req.From.Lon, req.From.Lat},
+		DestinationPosition: []float64{req.To.Lon, req.To.Lat},
+		DistanceUnit:        types.DistanceUnit("Kilometers"),
 		IncludeLegGeometry:  aws.Bool(true),
 	}
 	if req.Mode == model.StepModeAuto {
-		input.TravelMode = aws.String("Car")
+		input.TravelMode = types.TravelMode("Car")
 	} else if req.Mode == model.StepModeWalk {
-		input.TravelMode = aws.String("Walking")
+		input.TravelMode = types.TravelMode("Walking")
 	}
-
-	departAt := time.Now().In(time.UTC)
+	// Departure time
+	now := time.Now().In(time.UTC)
+	var departAt time.Time
 	if req.DepartAt == nil {
-		departAt = time.Now().In(time.UTC)
-		req.DepartAt = &departAt
+		departAt = now
 		input.DepartNow = aws.Bool(true)
 	} else {
-		t2 := departAt
-		input.DepartureTime = &t2
+		departAt = *req.DepartAt
+		input.DepartureTime = req.DepartAt
+		input.DepartNow = nil
 	}
-	if err := input.Validate(); err != nil {
-		fmt.Println("error:", err)
-		return nil, errors.New("could not validate route input")
+	// Ugly hack for testing
+	// If departAt is in the past, don't send any time info to request
+	if departAt.Before(now) {
+		input.DepartNow = nil
+		input.DepartureTime = nil
 	}
-
 	// Prepare response
 	ret := model.Directions{
 		Origin:      wpiWaypoint(req.From),
@@ -66,17 +64,17 @@ func (h *awsHandler) Request(req model.DirectionRequest) (*model.Directions, err
 		Success:     true,
 		Exception:   nil,
 	}
-	res, err := ls.CalculateRoute(&input)
+	res, err := h.locationClient.CalculateRoute(context.TODO(), &input)
 	if err != nil || res.Summary == nil {
+		fmt.Println("aws location services error:", err)
 		ret.Success = false
 		ret.Exception = aws.String("could not calculate route")
 		return &ret, nil
 	}
 
 	// Create itinerary summary
-	var distUnits *string
 	itin := model.Itinerary{}
-	distUnits = res.Summary.DistanceUnit
+	distUnits := res.Summary.DistanceUnit
 	itin.Duration = awsDuration(res.Summary.DurationSeconds)
 	itin.Distance = awsDistance(res.Summary.Distance, distUnits)
 	itin.StartTime = departAt
@@ -137,30 +135,30 @@ func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
 	}
 }
 
-func awsInt(v *int64) int {
+func awsInt(v *int32) int {
 	if v == nil {
 		return 0
 	}
 	return int(*v)
 }
 
-func awsLineString(v [][]*float64) tl.LineString {
+func awsLineString(v [][]float64) tl.LineString {
 	coords := []float64{}
 	for _, coord := range v {
-		if len(coord) == 2 && coord[0] != nil && coord[1] != nil {
-			coords = append(coords, *coord[0], *coord[1], 0)
+		if len(coord) == 2 {
+			coords = append(coords, coord[0], coord[1], 0)
 		}
 	}
 	return tl.NewLineStringFromFlatCoords(coords)
 }
 
-func awsWaypoint(v []*float64) *model.Waypoint {
-	if len(v) != 2 || v[0] == nil || v[1] == nil {
+func awsWaypoint(v []float64) *model.Waypoint {
+	if len(v) != 2 {
 		return nil
 	}
 	return &model.Waypoint{
-		Lon: *v[0],
-		Lat: *v[1],
+		Lon: v[0],
+		Lat: v[1],
 	}
 }
 
@@ -175,15 +173,15 @@ func awsDuration(v *float64) *model.Duration {
 	return &r
 }
 
-func awsDistance(v *float64, units *string) *model.Distance {
-	if v == nil || units == nil {
+func awsDistance(v *float64, units types.DistanceUnit) *model.Distance {
+	if v == nil || units == "" {
 		return nil
 	}
 	r := model.Distance{}
-	switch *units {
-	case locationservice.DistanceUnitKilometers:
+	switch units {
+	case "Kilometers":
 		r.Units = model.DistanceUnitKilometers
-	case locationservice.DistanceUnitMiles:
+	case "Miles":
 		r.Units = model.DistanceUnitMiles
 	default:
 		return nil

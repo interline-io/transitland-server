@@ -1,11 +1,12 @@
 package directions
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -16,52 +17,23 @@ import (
 
 // PROOF OF CONCEPT
 
-type valhallaHandler struct{}
+type valhallaHandler struct {
+	Client *http.Client
+}
+
+func newValhallaHandler(client *http.Client) *valhallaHandler {
+	if client == nil {
+		client = http.DefaultClient
+	}
+	return &valhallaHandler{
+		Client: client,
+	}
+}
 
 func (h *valhallaHandler) Request(req model.DirectionRequest) (*model.Directions, error) {
-	return demoValhallaRequest(req)
-}
-
-type valhallaRequest struct {
-	Locations []valhallaLocation `json:"locations"`
-	Costing   string             `json:"costing"`
-}
-
-type valhallaLocation struct {
-	Lat float64 `json:"lat"`
-	Lon float64 `json:"lon"`
-}
-
-type valhallaResponse struct {
-	Trip  valhallaTrip `json:"trip"`
-	Units string       `json:"units"`
-}
-
-type valhallaTrip struct {
-	Legs    []valhallaLeg   `json:"legs"`
-	Summary valhallaSummary `json:"summary"`
-}
-
-type valhallaSummary struct {
-	Time   int     `json:"time"`
-	Length float64 `json:"length"`
-}
-
-type valhallaLeg struct {
-	Shape     string             `json:"shape"`
-	Maneuvers []valhallaManeuver `json:"maneuvers"`
-	Summary   valhallaSummary    `json:"summary"`
-}
-
-type valhallaManeuver struct {
-	Length          float64 `json:"length"`
-	Time            int     `json:"time"`
-	TravelMode      string  `json:"travel_mode"`
-	Instruction     string  `json:"instruction"`
-	BeginShapeIndex int     `json:"begin_shape_index"`
-}
-
-func demoValhallaRequest(req model.DirectionRequest) (*model.Directions, error) {
+	if err := validateDirectionRequest(req); err != nil {
+		return nil, err
+	}
 	input := valhallaRequest{}
 	input.Locations = append(input.Locations, valhallaLocation{Lon: req.From.Lon, Lat: req.From.Lat})
 	input.Locations = append(input.Locations, valhallaLocation{Lon: req.To.Lon, Lat: req.To.Lat})
@@ -77,6 +49,8 @@ func demoValhallaRequest(req model.DirectionRequest) (*model.Directions, error) 
 	if req.DepartAt == nil {
 		departAt = time.Now().In(time.UTC)
 		req.DepartAt = &departAt
+	} else {
+		departAt = *req.DepartAt
 	}
 
 	// Prepare response
@@ -87,7 +61,7 @@ func demoValhallaRequest(req model.DirectionRequest) (*model.Directions, error) 
 		Exception:   nil,
 	}
 
-	res, err := makeValhallaRequest(input)
+	res, err := makeValhallaRequest(h.Client, input)
 	if err != nil || len(res.Trip.Legs) == 0 {
 		ret.Success = false
 		ret.Exception = aws.String("could not calculate route")
@@ -137,52 +111,60 @@ func demoValhallaRequest(req model.DirectionRequest) (*model.Directions, error) 
 		ret.Itineraries = append(ret.Itineraries, &itin)
 	}
 	return &ret, nil
-
-	// duration := model.Duration{Duration: float64(res.Trip.Summary.Time), Units: model.DurationUnitSeconds}
-	// distance := model.Distance{Distance: res.Trip.Summary.Length, Units: model.DistanceUnitKilometers}
-	// endTime := t.Add(time.Duration(duration.Duration) * time.Second)
-
-	// itin := model.Itinerary{}
-	// for _, leg := range res.Trip.Legs {
-	// 	ll := model.Leg{}
-	// 	for _, m := range leg.Maneuvers {
-	// 		_ = m
-	// 		step := model.Step{}
-	// 		if m.TravelMode == "pedestrian" {
-	// 			step.Mode = model.StepModeWalk
-	// 		}
-	// 		step.To = &model.Waypoint{}
-	// 		step.Distance = &model.Distance{Distance: m.Length, Units: model.DistanceUnitKilometers}
-	// 		step.Duration = &model.Duration{Duration: float64(m.Time), Units: model.DurationUnitSeconds}
-	// 		step.Instruction = m.Instruction
-	// 		ll.Steps = append(ll.Steps, &step)
-	// 	}
-	// 	if len(ll.Steps) == 0 {
-	// 		continue
-	// 	}
-	// 	// ll.Start = &p.Origin
-	// 	// ll.End = &p.Destination
-	// 	ll.StartTime = t
-	// 	itin.Legs = append(itin.Legs, &ll)
-	// }
-	// ret.Itineraries = append(ret.Itineraries, &itin)
-	// return &ret, nil
 }
 
-func makeValhallaRequest(req valhallaRequest) (*valhallaResponse, error) {
+type valhallaRequest struct {
+	Locations []valhallaLocation `json:"locations"`
+	Costing   string             `json:"costing"`
+}
+
+type valhallaLocation struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
+
+type valhallaResponse struct {
+	Trip  valhallaTrip `json:"trip"`
+	Units string       `json:"units"`
+}
+
+type valhallaTrip struct {
+	Legs    []valhallaLeg   `json:"legs"`
+	Summary valhallaSummary `json:"summary"`
+}
+
+type valhallaSummary struct {
+	Time   int     `json:"time"`
+	Length float64 `json:"length"`
+}
+
+type valhallaLeg struct {
+	Shape     string             `json:"shape"`
+	Maneuvers []valhallaManeuver `json:"maneuvers"`
+	Summary   valhallaSummary    `json:"summary"`
+}
+
+type valhallaManeuver struct {
+	Length          float64 `json:"length"`
+	Time            int     `json:"time"`
+	TravelMode      string  `json:"travel_mode"`
+	Instruction     string  `json:"instruction"`
+	BeginShapeIndex int     `json:"begin_shape_index"`
+}
+
+func makeValhallaRequest(client *http.Client, req valhallaRequest) (*valhallaResponse, error) {
+	reqUrl := fmt.Sprintf("%s/route", os.Getenv("VALHALLA_ENDPOINT"))
+	hreq, err := http.NewRequest("GET", reqUrl, nil)
+	if err != nil {
+		return nil, err
+	}
 	reqJson, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
-	reqUrl := fmt.Sprintf(
-		"%s/route?json=%s&apikey=%s",
-		os.Getenv("VALHALLA_ENDPOINT"),
-		url.QueryEscape(string(reqJson)),
-		os.Getenv("VALHALLA_API_KEY"),
-	)
-	fmt.Println(reqUrl)
-	res := valhallaResponse{}
-	resp, err := http.Get(reqUrl)
+	hreq.Body = io.NopCloser(bytes.NewReader(reqJson))
+	hreq.Header.Add("api_key", os.Getenv("VALHALLA_API_KEY"))
+	resp, err := client.Do(hreq)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +172,8 @@ func makeValhallaRequest(req valhallaRequest) (*valhallaResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("response:", string(body))
+	// fmt.Println("response:", string(body))
+	res := valhallaResponse{}
 	if err := json.Unmarshal(body, &res); err != nil {
 		return nil, err
 	}
