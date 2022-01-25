@@ -23,7 +23,7 @@ func RegisterRouter(name string, f handlerFunc) error {
 	if _, ok := handlers[name]; ok {
 		return fmt.Errorf("handler '%s' already registered", name)
 	}
-	fmt.Println("registering routing handler:", name)
+	// fmt.Println("registering routing handler:", name)
 	handlers[name] = f
 	return nil
 }
