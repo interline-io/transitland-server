@@ -16,6 +16,7 @@ type Query {
   stops(limit: Int, after: Int, ids: [Int!], where: StopFilter): [Stop!]!
   trips(limit: Int, after: Int, ids: [Int!], where: TripFilter): [Trip!]!
   operators(limit: Int, after: Int, ids: [Int!], where: OperatorFilter): [Operator!]!
+  directions(where: DirectionRequest!): Directions!
 }
 
 type Mutation {
@@ -244,6 +245,7 @@ type Stop {
   stop_times(limit: Int, where: StopTimeFilter): [StopTime!]!
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
 }
 
 type Pathway {
@@ -375,6 +377,103 @@ type RouteHeadway {
   service_date: Date
   stop_trip_count: Int
   departures: [Seconds!]
+}
+
+# Directions API
+
+input DirectionRequest {
+  to: WaypointInput!
+  from: WaypointInput!
+  mode: StepMode!
+  depart_at: Time
+}
+
+input WaypointInput {
+  lon: Float!
+  lat: Float!
+  name: String
+}
+
+type Waypoint {
+  lon: Float!
+  lat: Float!
+  name: String
+}
+
+type Directions {
+  # metadata
+  success: Boolean!
+  exception: String
+  data_source: String
+  # input
+  origin: Waypoint
+  destination: Waypoint
+  # first itin summary
+  duration: Duration
+  distance: Distance
+  start_time: Time
+  end_time: Time
+  # itineraries
+  itineraries: [Itinerary!]
+}
+
+type Itinerary {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  from: Waypoint!
+  to: Waypoint!
+  legs: [Leg!]
+}
+
+type Leg {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  from: Waypoint
+  to: Waypoint
+  steps: [Step!]
+  geometry: LineString!
+}
+
+type Step {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  to: Waypoint
+  mode: StepMode!
+  instruction: String!
+  geometry_offset: Int!
+}
+
+type Distance {
+  distance: Float!
+  units: DistanceUnit!
+}
+
+type Duration {
+  duration: Float!
+  units: DurationUnit!
+}
+
+enum DurationUnit {
+  SECONDS
+}
+
+enum DistanceUnit {
+  KILOMETERS
+  MILES
+}
+
+enum StepMode {
+  WALK
+  AUTO
+  BICYCLE
+  TRANSIT
+  LINE
 }
 
 # Census entities
@@ -664,6 +763,7 @@ input StopTimeFilter {
   end_time: Int
   timezone: String
   next: Int
+  route_onestop_ids: [String!] # keep?
 }
 
 input PathwayFilter {

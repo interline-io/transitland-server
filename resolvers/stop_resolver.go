@@ -2,7 +2,9 @@ package resolvers
 
 import (
 	"context"
+	"time"
 
+	"github.com/interline-io/transitland-server/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -50,4 +52,22 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 		return nil, err
 	}
 	return sts, nil
+}
+
+func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *model.WaypointInput, to *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error) {
+	oc := obj.Coordinates()
+	swp := &model.WaypointInput{
+		Lon:  oc[0],
+		Lat:  oc[1],
+		Name: &obj.StopName,
+	}
+	p := model.DirectionRequest{}
+	if from != nil {
+		p.From = from
+		p.To = swp
+	} else if to != nil {
+		p.From = swp
+		p.To = to
+	}
+	return directions.HandleRequest("", p)
 }
