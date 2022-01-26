@@ -45,6 +45,36 @@ type CalendarDateFilter struct {
 	ExceptionType *int      `json:"exception_type"`
 }
 
+type DirectionRequest struct {
+	To       *WaypointInput `json:"to"`
+	From     *WaypointInput `json:"from"`
+	Mode     StepMode       `json:"mode"`
+	DepartAt *time.Time     `json:"depart_at"`
+}
+
+type Directions struct {
+	Success     bool         `json:"success"`
+	Exception   *string      `json:"exception"`
+	DataSource  *string      `json:"data_source"`
+	Origin      *Waypoint    `json:"origin"`
+	Destination *Waypoint    `json:"destination"`
+	Duration    *Duration    `json:"duration"`
+	Distance    *Distance    `json:"distance"`
+	StartTime   *time.Time   `json:"start_time"`
+	EndTime     *time.Time   `json:"end_time"`
+	Itineraries []*Itinerary `json:"itineraries"`
+}
+
+type Distance struct {
+	Distance float64      `json:"distance"`
+	Units    DistanceUnit `json:"units"`
+}
+
+type Duration struct {
+	Duration float64      `json:"duration"`
+	Units    DurationUnit `json:"units"`
+}
+
 type FeedFilter struct {
 	OnestopID    *string       `json:"onestop_id"`
 	Spec         []string      `json:"spec"`
@@ -81,6 +111,27 @@ type FeedVersionUnimportResult struct {
 	Success bool `json:"success"`
 }
 
+type Itinerary struct {
+	Duration  *Duration `json:"duration"`
+	Distance  *Distance `json:"distance"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+	From      *Waypoint `json:"from"`
+	To        *Waypoint `json:"to"`
+	Legs      []*Leg    `json:"legs"`
+}
+
+type Leg struct {
+	Duration  *Duration     `json:"duration"`
+	Distance  *Distance     `json:"distance"`
+	StartTime time.Time     `json:"start_time"`
+	EndTime   time.Time     `json:"end_time"`
+	From      *Waypoint     `json:"from"`
+	To        *Waypoint     `json:"to"`
+	Steps     []*Step       `json:"steps"`
+	Geometry  tl.LineString `json:"geometry"`
+}
+
 type OperatorFilter struct {
 	Merged        *bool    `json:"merged"`
 	OnestopID     *string  `json:"onestop_id"`
@@ -107,6 +158,12 @@ type RTEntitySelector struct {
 	DirectionID *int              `json:"direction_id"`
 	StopID      *string           `json:"stop_id"`
 	Trip        *RTTripDescriptor `json:"trip"`
+}
+
+type RTStopTimeEvent struct {
+	Delay       *int `json:"delay"`
+	Time        *int `json:"time"`
+	Uncertainty *int `json:"uncertainty"`
 }
 
 type RTTimeRange struct {
@@ -152,6 +209,17 @@ type RouteFilter struct {
 	AgencyIds         []int        `json:"agency_ids"`
 }
 
+type Step struct {
+	Duration       *Duration `json:"duration"`
+	Distance       *Distance `json:"distance"`
+	StartTime      time.Time `json:"start_time"`
+	EndTime        time.Time `json:"end_time"`
+	To             *Waypoint `json:"to"`
+	Mode           StepMode  `json:"mode"`
+	Instruction    string    `json:"instruction"`
+	GeometryOffset int       `json:"geometry_offset"`
+}
+
 type StopFilter struct {
 	OnestopID          *string      `json:"onestop_id"`
 	OnestopIds         []string     `json:"onestop_ids"`
@@ -167,11 +235,22 @@ type StopFilter struct {
 }
 
 type StopTimeFilter struct {
-	ServiceDate *tl.ODate `json:"service_date"`
-	StartTime   *int      `json:"start_time"`
-	EndTime     *int      `json:"end_time"`
-	Timezone    *string   `json:"timezone"`
-	Next        *int      `json:"next"`
+	ServiceDate     *tl.ODate `json:"service_date"`
+	StartTime       *int      `json:"start_time"`
+	EndTime         *int      `json:"end_time"`
+	Timezone        *string   `json:"timezone"`
+	Next            *int      `json:"next"`
+	RouteOnestopIds []string  `json:"route_onestop_ids"`
+}
+
+type StopTimeUpdate struct {
+	StopSequence         *int             `json:"stop_sequence"`
+	StopID               *int             `json:"stop_id"`
+	Arrival              *RTStopTimeEvent `json:"arrival"`
+	Departure            *RTStopTimeEvent `json:"departure"`
+	ScheduleRelationship *string          `json:"schedule_relationship"`
+	ArrivalTime          *tl.WideTime     `json:"arrival_time"`
+	DepartureTime        *tl.WideTime     `json:"departure_time"`
 }
 
 type TripFilter struct {
@@ -183,14 +262,115 @@ type TripFilter struct {
 	FeedOnestopID   *string   `json:"feed_onestop_id"`
 }
 
+type TripUpdate struct {
+	Trip           *RTTripDescriptor    `json:"trip"`
+	Vehicle        *RTVehicleDescriptor `json:"vehicle"`
+	StopTimeUpdate []*StopTimeUpdate    `json:"stop_time_update"`
+	Timestamp      *int                 `json:"timestamp"`
+	Delay          *int                 `json:"delay"`
+}
+
 type VehiclePosition struct {
+	Trip                *RTTripDescriptor    `json:"trip"`
 	Vehicle             *RTVehicleDescriptor `json:"vehicle"`
 	Position            *tl.Point            `json:"position"`
 	CurrentStopSequence *int                 `json:"current_stop_sequence"`
-	StopID              *Stop                `json:"stop_id"`
+	StopID              *string              `json:"stop_id"`
 	CurrentStatus       *string              `json:"current_status"`
-	Timestamp           *time.Time           `json:"timestamp"`
+	Timestamp           *int                 `json:"timestamp"`
 	CongestionLevel     *string              `json:"congestion_level"`
+}
+
+type Waypoint struct {
+	Lon  float64 `json:"lon"`
+	Lat  float64 `json:"lat"`
+	Name *string `json:"name"`
+}
+
+type WaypointInput struct {
+	Lon  float64 `json:"lon"`
+	Lat  float64 `json:"lat"`
+	Name *string `json:"name"`
+}
+
+type DistanceUnit string
+
+const (
+	DistanceUnitKilometers DistanceUnit = "KILOMETERS"
+	DistanceUnitMiles      DistanceUnit = "MILES"
+)
+
+var AllDistanceUnit = []DistanceUnit{
+	DistanceUnitKilometers,
+	DistanceUnitMiles,
+}
+
+func (e DistanceUnit) IsValid() bool {
+	switch e {
+	case DistanceUnitKilometers, DistanceUnitMiles:
+		return true
+	}
+	return false
+}
+
+func (e DistanceUnit) String() string {
+	return string(e)
+}
+
+func (e *DistanceUnit) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DistanceUnit(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DistanceUnit", str)
+	}
+	return nil
+}
+
+func (e DistanceUnit) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DurationUnit string
+
+const (
+	DurationUnitSeconds DurationUnit = "SECONDS"
+)
+
+var AllDurationUnit = []DurationUnit{
+	DurationUnitSeconds,
+}
+
+func (e DurationUnit) IsValid() bool {
+	switch e {
+	case DurationUnitSeconds:
+		return true
+	}
+	return false
+}
+
+func (e DurationUnit) String() string {
+	return string(e)
+}
+
+func (e *DurationUnit) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DurationUnit(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DurationUnit", str)
+	}
+	return nil
+}
+
+func (e DurationUnit) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type ImportStatus string
@@ -279,47 +459,49 @@ func (e Role) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type ScheduleRelationship string
+type StepMode string
 
 const (
-	ScheduleRelationshipScheduled   ScheduleRelationship = "SCHEDULED"
-	ScheduleRelationshipAdded       ScheduleRelationship = "ADDED"
-	ScheduleRelationshipUnscheduled ScheduleRelationship = "UNSCHEDULED"
-	ScheduleRelationshipCanceled    ScheduleRelationship = "CANCELED"
+	StepModeWalk    StepMode = "WALK"
+	StepModeAuto    StepMode = "AUTO"
+	StepModeBicycle StepMode = "BICYCLE"
+	StepModeTransit StepMode = "TRANSIT"
+	StepModeLine    StepMode = "LINE"
 )
 
-var AllScheduleRelationship = []ScheduleRelationship{
-	ScheduleRelationshipScheduled,
-	ScheduleRelationshipAdded,
-	ScheduleRelationshipUnscheduled,
-	ScheduleRelationshipCanceled,
+var AllStepMode = []StepMode{
+	StepModeWalk,
+	StepModeAuto,
+	StepModeBicycle,
+	StepModeTransit,
+	StepModeLine,
 }
 
-func (e ScheduleRelationship) IsValid() bool {
+func (e StepMode) IsValid() bool {
 	switch e {
-	case ScheduleRelationshipScheduled, ScheduleRelationshipAdded, ScheduleRelationshipUnscheduled, ScheduleRelationshipCanceled:
+	case StepModeWalk, StepModeAuto, StepModeBicycle, StepModeTransit, StepModeLine:
 		return true
 	}
 	return false
 }
 
-func (e ScheduleRelationship) String() string {
+func (e StepMode) String() string {
 	return string(e)
 }
 
-func (e *ScheduleRelationship) UnmarshalGQL(v interface{}) error {
+func (e *StepMode) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = ScheduleRelationship(str)
+	*e = StepMode(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ScheduleRelationship", str)
+		return fmt.Errorf("%s is not a valid StepMode", str)
 	}
 	return nil
 }
 
-func (e ScheduleRelationship) MarshalGQL(w io.Writer) {
+func (e StepMode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
