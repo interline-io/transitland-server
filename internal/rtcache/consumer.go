@@ -2,8 +2,6 @@ package rtcache
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -34,7 +32,7 @@ func (f *rtConsumer) GetTrip(tid string) (*pb.TripUpdate, bool) {
 }
 
 func (f *rtConsumer) Start(ch chan []byte) error {
-	fmt.Printf("consumer '%s': start\n", f.feed)
+	// fmt.Printf("consumer '%s': start\n", f.feed)
 	f.entityByTrip = map[string]*pb.TripUpdate{}
 	timeout := make(chan bool)
 	go func() {
@@ -46,10 +44,10 @@ func (f *rtConsumer) Start(ch chan []byte) error {
 		for {
 			select {
 			case <-f.done:
-				fmt.Printf("consumer '%s': done\n", f.feed)
+				// fmt.Printf("consumer '%s': done\n", f.feed)
 				return
 			case rtdata := <-ch:
-				fmt.Printf("consumer '%s': received %d bytes\n", f.feed, len(rtdata))
+				// fmt.Printf("consumer '%s': received %d bytes\n", f.feed, len(rtdata))
 				if err := f.process(rtdata); err != nil {
 					panic(err)
 				}
@@ -64,17 +62,17 @@ func (f *rtConsumer) Start(ch chan []byte) error {
 	// wait for first entity
 	select {
 	case <-timeout:
-		fmt.Printf("consumer '%s': timeout waiting for first entity\n", f.feed)
+		// fmt.Printf("consumer '%s': timeout waiting for first entity\n", f.feed)
 		return errors.New("timeout waiting for first entity")
 	case <-ready:
-		fmt.Printf("consumer '%s': ready!\n", f.feed)
+		// fmt.Printf("consumer '%s': ready!\n", f.feed)
 		return nil
 	}
 }
 
 func (f *rtConsumer) process(rtdata []byte) error {
 	if len(rtdata) == 0 {
-		fmt.Printf("consumer '%s': received no data\n", f.feed)
+		// fmt.Printf("consumer '%s': received no data\n", f.feed)
 		return nil
 	}
 	rtmsg := pb.FeedMessage{}
@@ -91,7 +89,7 @@ func (f *rtConsumer) process(rtdata []byte) error {
 		}
 		// todo: handle alerts and vehicle positions...
 	}
-	fmt.Printf("consumer '%s': processed trips: %s\n", f.feed, strings.Join(tids, ","))
+	// fmt.Printf("consumer '%s': processed trips: %s\n", f.feed, strings.Join(tids, ","))
 	f.entityByTrip = a
 	return nil
 }

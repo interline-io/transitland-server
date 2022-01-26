@@ -93,14 +93,14 @@ func (f *RTFinder) getListener(topicKey string) (*rtConsumer, error) {
 		ch, err := f.cache.Listen(topicKey)
 		// Failed to create listener
 		if err != nil {
-			fmt.Printf("manager: '%s' failed to create listener\n", topicKey)
+			// fmt.Printf("manager: '%s' failed to create listener\n", topicKey)
 			return nil, err
 		}
-		fmt.Printf("manager: '%s' listener created\n", topicKey)
+		// fmt.Printf("manager: '%s' listener created\n", topicKey)
 		a, _ = newRTConsumer()
 		a.feed = topicKey
 		a.Start(ch)
-		fmt.Printf("manager: '%s' consumer started\n", topicKey)
+		// fmt.Printf("manager: '%s' consumer started\n", topicKey)
 		f.fetchers[topicKey] = a
 	}
 	f.lock.Unlock()

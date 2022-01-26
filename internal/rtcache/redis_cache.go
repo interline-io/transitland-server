@@ -55,16 +55,16 @@ func (f *RedisCache) Listen(topic string) (chan []byte, error) {
 		for {
 			select {
 			case <-lch.done:
-				fmt.Printf("cache '%s': done\n", topic)
+				// fmt.Printf("cache '%s': done\n", topic)
 				return
 			case rmsg := <-subch:
-				fmt.Printf("cache '%s': sending %d bytes\n", topic, len(rmsg.Payload))
+				// fmt.Printf("cache '%s': sending %d bytes\n", topic, len(rmsg.Payload))
 				b := []byte(rmsg.Payload)
 				ch.listener <- b
 			}
 		}
 	}(f.client, lch)
-	fmt.Printf("cache: '%s' listener created\n", topic)
+	// fmt.Printf("cache: '%s' listener created\n", topic)
 	return lch.listener, nil
 }
 
@@ -77,13 +77,13 @@ func (f *RedisCache) AddData(topic string, data []byte) error {
 	if err := f.client.Publish(context.TODO(), subKey(topic), data).Err(); err != nil {
 		return err
 	}
-	fmt.Printf("cache '%s': added %d bytes\n", topic, len(data))
+	// fmt.Printf("cache '%s': added %d bytes\n", topic, len(data))
 	return nil
 }
 
 func (f *RedisCache) Close() error {
 	for _, ch := range f.listeners {
-		fmt.Println("closing ch:", ch)
+		// fmt.Println("closing ch:", ch)
 		ch.done <- true
 	}
 	return nil

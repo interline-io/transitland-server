@@ -1,7 +1,6 @@
 package rtcache
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -100,7 +99,7 @@ func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) 
 		limit 1`
 	tz := ""
 	if err := sqlx.Get(f.db, &tz, q, id); err != nil {
-		fmt.Println("tz lookup error:", err)
+		// fmt.Println("tz lookup error:", err)
 	}
 	// fmt.Println("found:", id, "tz:", tz)
 	return f.tzCache.Add(id, tz)
