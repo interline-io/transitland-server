@@ -1,4 +1,4 @@
-package workers
+package jobs
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestRedisJobs(t *testing.T) {
-	redisUrl := "localhost:6379"
+	redisUrl := os.Getenv("TL_REDIS_URL")
 	client := redis.NewClient(&redis.Options{Addr: redisUrl})
 	rtJobs := NewRedisJobs(client, fmt.Sprintf("queue:%d:%d", os.Getpid(), time.Now().UnixNano()))
 	testJobs(t, rtJobs)

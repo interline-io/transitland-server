@@ -6,12 +6,13 @@ import (
 	"fmt"
 
 	"github.com/interline-io/transitland-lib/rt"
+	"github.com/interline-io/transitland-server/internal/jobs"
 	"google.golang.org/protobuf/proto"
 )
 
 type RTFetchWorker struct{}
 
-func (w *RTFetchWorker) Run(ctx context.Context, opts JobOptions, job Job) error {
+func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	// fmt.Printf("fetch worker! job: %#v\n", job)
 	if len(job.Args) != 3 {
 		return errors.New("feed, type and url required")
@@ -29,5 +30,5 @@ func (w *RTFetchWorker) Run(ctx context.Context, opts JobOptions, job Job) error
 		return err
 	}
 	key := fmt.Sprintf("rtdata:%s:%s", feed, ftype)
-	return opts.rtfinder.AddData(key, rtdata)
+	return job.Opts.RTFinder.AddData(key, rtdata)
 }

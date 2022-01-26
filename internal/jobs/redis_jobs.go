@@ -1,6 +1,7 @@
-package workers
+package jobs
 
 import (
+	"context"
 	"os"
 	"strconv"
 
@@ -10,8 +11,7 @@ import (
 
 // RedisJobs is a simple wrapper around go-workers
 type RedisJobs struct {
-	QueueName string
-	jobs      chan Job
+	queueName string
 	producer  *workers.Producer
 	manager   *workers.Manager
 	client    *redis.Client
@@ -19,9 +19,8 @@ type RedisJobs struct {
 
 func NewRedisJobs(client *redis.Client, queueName string) *RedisJobs {
 	f := RedisJobs{
-		QueueName: queueName,
+		queueName: queueName,
 		client:    client,
-		jobs:      make(chan Job),
 	}
 	return &f
 }
@@ -36,7 +35,7 @@ func (f *RedisJobs) AddJob(job Job) error {
 			return err
 		}
 	}
-	_, err := f.producer.Enqueue(f.QueueName, job.JobType, job.Args)
+	_, err := f.producer.Enqueue(f.queueName, job.JobType, job.Args)
 	return err
 }
 
@@ -50,16 +49,23 @@ func (f *RedisJobs) getManager() (*workers.Manager, error) {
 	return f.manager, err
 }
 
-func (f *RedisJobs) AddWorker(jobfunc func(Job) error, count int) error {
+func (f *RedisJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) error {
 	manager, err := f.getManager()
 	if err != nil {
 		return err
 	}
 	processMessage := func(msg *workers.Msg) error {
 		jargs, _ := msg.Args().StringArray()
-		return jobfunc(Job{JobType: msg.Class(), Args: jargs})
+		job := Job{JobType: msg.Class(), Args: jargs}
+		w, err := getWorker(job)
+		if err != nil {
+			return err
+		}
+		job.Opts = jo
+		return w.Run(context.TODO(), job)
+
 	}
-	manager.AddWorker(f.QueueName, 1, processMessage)
+	manager.AddWorker(f.queueName, 1, processMessage)
 	return nil
 }
 

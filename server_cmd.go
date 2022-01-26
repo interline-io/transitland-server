@@ -17,7 +17,9 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/rtcache"
+	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
@@ -73,6 +75,8 @@ func (cmd *Command) Parse(args []string) error {
 }
 
 func (cmd *Command) Run() error {
+	queueName := "tlv2-default"
+
 	// Open database
 	cfg := cmd.Config
 	dbx := find.MustOpenDB(cfg.DBURL)
@@ -82,11 +86,6 @@ func (cmd *Command) Run() error {
 	var rtFinder model.RTFinder
 	dbFinder = find.NewDBFinder(dbx)
 	rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
-
-	if cmd.Config.RedisURL != "" {
-		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
-		_ = redisClient
-	}
 
 	// Setup CORS and logging
 	root := mux.NewRouter()
@@ -107,6 +106,24 @@ func (cmd *Command) Run() error {
 
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
+		// Open Redis
+		jobWorkers := 10
+		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
+		jq := jobs.NewRedisJobs(redisClient, queueName)
+		if cmd.EnableWorkers {
+			fmt.Println("jobs workers")
+			jq.AddWorker(workers.GetWorker, jobs.JobOptions{JobQueue: jq, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
+			go jq.Run()
+		}
+		if cmd.EnableJobsApi {
+			fmt.Println("jobs api")
+			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jq, queueName, jobWorkers)
+			if err != nil {
+				return err
+			}
+			// Mount with admin permissions required
+			mount(root, "/jobs", auth.AdminRequired(jobServer))
+		}
 	}
 
 	// Profiling

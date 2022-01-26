@@ -1,6 +1,7 @@
-package workers
+package jobs
 
 import (
+	"context"
 	"errors"
 	"sync"
 )
@@ -26,13 +27,21 @@ func (f *LocalJobs) AddJob(job Job) error {
 	return nil
 }
 
-func (f *LocalJobs) AddWorker(jobfunc func(Job) error, workers int) error {
+func (f *LocalJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) error {
 	if f.running {
 		return errors.New("already running")
 	}
+	processMessage := func(job Job) error {
+		w, err := getWorker(job)
+		if err != nil {
+			return err
+		}
+		job.Opts = jo
+		return w.Run(context.TODO(), job)
+	}
 	// fmt.Printf("jobs: created job listener\n")
-	for i := 0; i < workers; i++ {
-		f.jobfuncs = append(f.jobfuncs, jobfunc)
+	for i := 0; i < count; i++ {
+		f.jobfuncs = append(f.jobfuncs, processMessage)
 	}
 	return nil
 }
