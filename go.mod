@@ -10,9 +10,11 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.13.0 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.13.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/location v1.12.0 // indirect
+	github.com/digitalocean/go-workers2 v0.10.3 // indirect
 	github.com/dnaeon/go-vcr/v2 v2.0.1 // indirect
 	github.com/flopp/go-staticmaps v0.0.0-20210425143944-2e6e19a99c28
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
+	github.com/go-redis/redis v6.15.6+incompatible // indirect
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang/geo v0.0.0-20210108004804-a63082ebfb66
 	github.com/gorilla/handlers v1.5.1
