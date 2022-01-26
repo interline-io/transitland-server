@@ -17,6 +17,7 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/rtcache"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
@@ -80,6 +81,7 @@ func (cmd *Command) Run() error {
 	var dbFinder model.Finder
 	var rtFinder model.RTFinder
 	dbFinder = find.NewDBFinder(dbx)
+	rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
 
 	if cmd.Config.RedisURL != "" {
 		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})

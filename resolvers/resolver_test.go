@@ -9,6 +9,7 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/rtcache"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -25,7 +26,7 @@ func TestMain(m *testing.M) {
 	}
 	db := find.MustOpenDB(g)
 	TestDBFinder = find.NewDBFinder(db)
-	// TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
+	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	os.Exit(m.Run())
 }
 
