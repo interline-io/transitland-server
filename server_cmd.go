@@ -17,7 +17,9 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/rtcache"
+	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
@@ -33,6 +35,7 @@ type Command struct {
 	EnableWorkers    bool
 	EnableProfiler   bool
 	UseAuth          string
+	DefaultQueue     string
 	auth.AuthConfig
 	config.Config
 }
@@ -54,6 +57,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.GtfsDir, "gtfsdir", "", "Directory to store GTFS files")
 	fl.StringVar(&cmd.GtfsS3Bucket, "s3", "", "S3 bucket for GTFS files")
 	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
+	fl.StringVar(&cmd.DefaultQueue, "queue", "tlv2-default", "Job queue name")
 	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
 	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
 	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
@@ -83,11 +87,6 @@ func (cmd *Command) Run() error {
 	dbFinder = find.NewDBFinder(dbx)
 	rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
 
-	if cmd.Config.RedisURL != "" {
-		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
-		_ = redisClient
-	}
-
 	// Setup CORS and logging
 	root := mux.NewRouter()
 	cors := handlers.CORS(
@@ -107,6 +106,24 @@ func (cmd *Command) Run() error {
 
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
+		// Open Redis
+		jobWorkers := 10
+		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
+		jq := jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
+		if cmd.EnableWorkers {
+			// fmt.Println("jobs workers")
+			jq.AddWorker(workers.GetWorker, jobs.JobOptions{JobQueue: jq, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
+			go jq.Run()
+		}
+		if cmd.EnableJobsApi {
+			// fmt.Println("jobs api")
+			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jq, cmd.DefaultQueue, jobWorkers)
+			if err != nil {
+				return err
+			}
+			// Mount with admin permissions required
+			mount(root, "/jobs", auth.AdminRequired(jobServer))
+		}
 	}
 
 	// Profiling

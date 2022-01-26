@@ -2,6 +2,7 @@ package rtcache
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -49,7 +50,7 @@ func (f *rtConsumer) Start(ch chan []byte) error {
 			case rtdata := <-ch:
 				// fmt.Printf("consumer '%s': received %d bytes\n", f.feed, len(rtdata))
 				if err := f.process(rtdata); err != nil {
-					panic(err)
+					fmt.Println("error processing rt data")
 				}
 				if ready != nil {
 					ready <- true
