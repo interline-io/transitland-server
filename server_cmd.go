@@ -35,6 +35,7 @@ type Command struct {
 	EnableWorkers    bool
 	EnableProfiler   bool
 	UseAuth          string
+	DefaultQueue     string
 	auth.AuthConfig
 	config.Config
 }
@@ -56,6 +57,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.GtfsDir, "gtfsdir", "", "Directory to store GTFS files")
 	fl.StringVar(&cmd.GtfsS3Bucket, "s3", "", "S3 bucket for GTFS files")
 	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
+	fl.StringVar(&cmd.DefaultQueue, "queue", "tlv2-default", "Job queue name")
 	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
 	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
 	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
@@ -75,8 +77,6 @@ func (cmd *Command) Parse(args []string) error {
 }
 
 func (cmd *Command) Run() error {
-	queueName := "tlv2-default"
-
 	// Open database
 	cfg := cmd.Config
 	dbx := find.MustOpenDB(cfg.DBURL)
@@ -109,15 +109,15 @@ func (cmd *Command) Run() error {
 		// Open Redis
 		jobWorkers := 10
 		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
-		jq := jobs.NewRedisJobs(redisClient, queueName)
+		jq := jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
 		if cmd.EnableWorkers {
-			fmt.Println("jobs workers")
+			// fmt.Println("jobs workers")
 			jq.AddWorker(workers.GetWorker, jobs.JobOptions{JobQueue: jq, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
 			go jq.Run()
 		}
 		if cmd.EnableJobsApi {
-			fmt.Println("jobs api")
-			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jq, queueName, jobWorkers)
+			// fmt.Println("jobs api")
+			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jq, cmd.DefaultQueue, jobWorkers)
 			if err != nil {
 				return err
 			}
