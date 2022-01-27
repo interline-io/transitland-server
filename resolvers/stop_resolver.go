@@ -3,7 +3,6 @@ package resolvers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/interline-io/transitland-server/directions"
@@ -53,45 +52,31 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 	if err != nil {
 		return nil, err
 	}
-	// Merge scheduled stop times with rt stop times
-	// TODO: handle StopTimeFilter in RT
 	_, ok := r.rtcm.StopTimezone(obj.ID, obj.StopTimezone)
 	if !ok {
-		return nil, errors.New("timezone not available for stop 0")
+		return nil, errors.New("timezone not available for stop")
 	}
+
+	// Merge scheduled stop times with rt stop times
+	// TODO: handle StopTimeFilter in RT
 	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)
 	for _, st := range sts {
-		a, aok := r.rtcm.FeedVersionOnestopID(st.FeedVersionID)
-		b, bok := r.rtcm.TripGTFSTripID(atoi(st.TripID))
-		if !aok || !bok {
-			fmt.Println("could not get onestop id or trip gtfs id, skipping")
-			continue
-		}
-		rtTrip, rtok := r.rtcm.GetTrip(a, b)
-		if !rtok {
-			fmt.Println("no trip for:", a, b)
-			continue
-		}
-		for _, ste := range rtTrip.StopTimeUpdate {
-			// Must match on StopSequence
-			// TODO: allow matching on stop_id if stop_sequence is not provided
-			if int(ste.GetStopSequence()) == st.StopSequence {
-				st.RTStopTimeUpdate = ste
-				break
-			}
+		tid, _ := r.rtcm.GetGtfsTripID(atoi(st.TripID))
+		if ste, ok := r.rtcm.FindStopTimeUpdate(obj.FeedOnestopID, tid, obj.StopID, st.StopSequence); ok {
+			st.RTStopTimeUpdate = ste
 		}
 	}
 	// Handle added trips; these must specify stop_id in StopTimeUpdates
-	fmt.Println("looking for added rt for stop:", obj.FeedOnestopID, obj.StopID)
 	for _, rtTrip := range r.rtcm.GetAddedTripsForStop(obj.FeedOnestopID, obj.StopID) {
 		for _, stu := range rtTrip.StopTimeUpdate {
 			if stu.GetStopId() != obj.StopID {
 				continue
 			}
+			// create a new StopTime
 			rtst := &model.StopTime{}
+			rtst.RTTripID = rtTrip.Trip.GetTripId()
 			rtst.RTStopTimeUpdate = stu
 			rtst.FeedVersionID = obj.FeedVersionID
-			// create a new StopTime
 			rtst.TripID = "0"
 			rtst.StopID = obj.StopID
 			rtst.StopSequence = int(stu.GetStopSequence())

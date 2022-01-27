@@ -39,7 +39,24 @@ func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
-	return nil, nil
+	topic, _ := r.rtcm.GetFeedVersionOnestopID(obj.FeedVersionID)
+	msr := model.ScheduleRelationshipScheduled
+	if rtt, ok := r.rtcm.GetTrip(topic, obj.TripID); rtt != nil && ok {
+		sr := rtt.GetTrip().GetScheduleRelationship().String()
+		switch sr {
+		case "SCHEDULED":
+			msr = model.ScheduleRelationshipScheduled
+		case "ADDED":
+			msr = model.ScheduleRelationshipAdded
+		case "CANCELED":
+			msr = model.ScheduleRelationshipCanceled
+		case "UNSCHEDULED":
+			msr = model.ScheduleRelationshipUnscheduled
+		default:
+			return nil, nil
+		}
+	}
+	return &msr, nil
 }
 
 func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error) {

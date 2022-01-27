@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -21,6 +22,20 @@ func (r *stopTimeResolver) Stop(ctx context.Context, obj *model.StopTime) (*mode
 }
 
 func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*model.Trip, error) {
+	if obj.TripID == "0" && obj.RTTripID != "" {
+		topic, _ := r.rtcm.GetFeedVersionOnestopID(obj.FeedVersionID)
+		if rtTrip, ok := r.rtcm.GetTrip(topic, obj.RTTripID); ok && rtTrip.Trip != nil {
+			rtt := rtTrip.Trip
+			rid, _ := r.rtcm.GetRouteID(obj.FeedVersionID, rtt.GetRouteId())
+			ret := model.Trip{}
+			ret.RTTripID = obj.RTTripID
+			ret.FeedVersionID = obj.FeedVersionID
+			ret.TripID = obj.RTTripID
+			ret.RouteID = strconv.Itoa(rid)
+			ret.DirectionID = int(rtt.GetDirectionId())
+			return &ret, nil
+		}
+	}
 	return For(ctx).TripsByID.Load(atoi(obj.TripID))
 }
 
@@ -28,7 +43,7 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 	// lookup timezone
 	loc, ok := r.rtcm.StopTimezone(atoi(obj.StopID), "")
 	if !ok {
-		return nil, errors.New("timezone not available for stop 1")
+		return nil, errors.New("timezone not available for stop")
 	}
 	// create departure
 	a := model.StopTimeEvent{}
@@ -44,7 +59,7 @@ func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (
 	// lookup timezone
 	loc, ok := r.rtcm.StopTimezone(atoi(obj.StopID), "")
 	if !ok {
-		return nil, errors.New("timezone not available for stop 2")
+		return nil, errors.New("timezone not available for stop")
 	}
 	// create departure
 	a := model.StopTimeEvent{}
