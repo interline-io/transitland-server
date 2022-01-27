@@ -8,46 +8,42 @@ import (
 )
 
 type lookupCache struct {
-	db            sqlx.Ext
-	fvidFeedCache *simpleCache
-	stopIdCache   *simpleCache
-	tripIdCache   *simpleCache
-	tzCache       *tzCache
+	db              sqlx.Ext
+	fvidFeedCache   simpleCache
+	gtfsTripIdCache simpleCache
+	routeIdCache    skeyCache
+	tzCache         tzCache
 }
 
 func newLookupCache(db sqlx.Ext) *lookupCache {
 	return &lookupCache{
-		db:            db,
-		fvidFeedCache: newSimpleCache(),
-		stopIdCache:   newSimpleCache(),
-		tripIdCache:   newSimpleCache(),
-		tzCache:       newTzCache(),
+		db: db,
 	}
 }
 
-func (f *lookupCache) StopGTFSStopID(id int) (string, bool) {
-	if a, ok := f.stopIdCache.Get(id); ok {
+func (f *lookupCache) GetRouteID(fvid int, tid string) (int, bool) {
+	sk := skey{fvid, tid}
+	if a, ok := f.routeIdCache.Get(sk); ok {
 		return a, ok
 	}
-	q := `select stop_id from gtfs_stops where id = $1 limit 1`
-	eid := ""
-	err := sqlx.Get(f.db, &eid, q, id)
-	f.stopIdCache.Set(id, eid)
+	eid := 0
+	err := sqlx.Get(f.db, &eid, "select id from gtfs_routes where feed_version_id = $1 and route_id = $2", fvid, tid)
+	f.routeIdCache.Set(sk, eid)
 	return eid, err == nil
 }
 
-func (f *lookupCache) TripGTFSTripID(id int) (string, bool) {
-	if a, ok := f.tripIdCache.Get(id); ok {
+func (f *lookupCache) GetGtfsTripID(id int) (string, bool) {
+	if a, ok := f.gtfsTripIdCache.Get(id); ok {
 		return a, ok
 	}
 	q := `select trip_id from gtfs_trips where id = $1 limit 1`
 	eid := ""
 	err := sqlx.Get(f.db, &eid, q, id)
-	f.tripIdCache.Set(id, eid)
+	f.gtfsTripIdCache.Set(id, eid)
 	return eid, err == nil
 }
 
-func (f *lookupCache) FeedVersionOnestopID(id int) (string, bool) {
+func (f *lookupCache) GetFeedVersionOnestopID(id int) (string, bool) {
 	if a, ok := f.fvidFeedCache.Get(id); ok {
 		return a, ok
 	}
@@ -112,6 +108,34 @@ func (f *lookupCache) Location(tz string) (*time.Location, bool) {
 
 /////
 
+type skey struct {
+	fvid int
+	eid  string
+}
+
+type skeyCache struct {
+	lock   sync.Mutex
+	values map[skey]int
+}
+
+func (c *skeyCache) Get(key skey) (int, bool) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	a, ok := c.values[key]
+	return a, ok
+}
+
+func (c *skeyCache) Set(key skey, value int) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	if c.values == nil {
+		c.values = map[skey]int{}
+	}
+	c.values[key] = value
+}
+
+///
+
 type simpleCache struct {
 	lock   sync.Mutex
 	values map[int]string
@@ -127,6 +151,9 @@ func (c *simpleCache) Get(key int) (string, bool) {
 func (c *simpleCache) Set(key int, value string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	if c.values == nil {
+		c.values = map[int]string{}
+	}
 	c.values[key] = value
 }
 
@@ -175,6 +202,12 @@ func (c *tzCache) Add(key int, tz string) (*time.Location, bool) {
 	var loc *time.Location
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	if c.values == nil {
+		c.values = map[int]string{}
+	}
+	if c.tzs == nil {
+		c.tzs = map[string]*time.Location{}
+	}
 	c.values[key] = tz
 	loc, ok := c.tzs[tz]
 	if !ok {

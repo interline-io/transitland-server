@@ -79,7 +79,10 @@ type RTFinder interface {
 	AddData(string, []byte) error
 	GetTrip(string, string) (*pb.TripUpdate, bool)
 	GetAddedTripsForStop(string, string) []*pb.TripUpdate
-	TripGTFSTripID(int) (string, bool)
-	FeedVersionOnestopID(int) (string, bool)
+	FindStopTimeUpdate(string, string, string, int) (*pb.TripUpdate_StopTimeUpdate, bool)
+	// lookup cache methods
 	StopTimezone(id int, known string) (*time.Location, bool)
+	GetFeedVersionOnestopID(int) (string, bool)
+	GetGtfsTripID(int) (string, bool)
+	GetRouteID(int, string) (int, bool)
 }

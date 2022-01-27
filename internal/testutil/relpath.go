@@ -20,6 +20,9 @@ func RootPath() string {
 }
 
 // RelPath returns the absolute path relative to the project root.
-func RelPath(p string) string {
-	return filepath.Join(RootPath(), p)
+func RelPath(p ...string) string {
+	var a []string
+	a = append(a, RootPath())
+	a = append(a, p...)
+	return filepath.Join(a...)
 }
