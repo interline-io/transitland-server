@@ -77,13 +77,15 @@ type EntityLoader interface {
 // RTFinder manages and looks up RT data
 type RTFinder interface {
 	AddData(string, []byte) error
-	GetTrip(string, string) (*pb.TripUpdate, bool)
-	GetAddedTripsForStop(string, string) []*pb.TripUpdate
-	FindStopTimeUpdate(string, string, string, int) (*pb.TripUpdate_StopTimeUpdate, bool)
+	FindTrip(t *Trip) *pb.TripUpdate
+	FindMakeTrip(t *Trip) (*Trip, error)
+	FindAlertsForTrip(*Trip) []*Alert
+	FindAlertsForStop(*Stop) []*Alert
+	FindAlertsForRoute(*Route) []*Alert
+	FindAlertsForAgency(*Agency) []*Alert
+	GetAddedTripsForStop(*Stop) []*pb.TripUpdate
+	FindStopTimeUpdate(*Trip, *StopTime) (*pb.TripUpdate_StopTimeUpdate, bool)
 	// lookup cache methods
-	StopTimezone(id int, known string) (*time.Location, bool)
-	GetFeedVersionOnestopID(int) (string, bool)
+	StopTimezone(int, string) (*time.Location, bool)
 	GetGtfsTripID(int) (string, bool)
-	GetRouteID(int, string) (int, bool)
-	FindAlertsForTrip(t *Trip) []*Alert
 }

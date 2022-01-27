@@ -3,7 +3,6 @@ package resolvers
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -23,18 +22,11 @@ func (r *stopTimeResolver) Stop(ctx context.Context, obj *model.StopTime) (*mode
 
 func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*model.Trip, error) {
 	if obj.TripID == "0" && obj.RTTripID != "" {
-		topic, _ := r.rtcm.GetFeedVersionOnestopID(obj.FeedVersionID)
-		if rtTrip, ok := r.rtcm.GetTrip(topic, obj.RTTripID); ok && rtTrip.Trip != nil {
-			rtt := rtTrip.Trip
-			rid, _ := r.rtcm.GetRouteID(obj.FeedVersionID, rtt.GetRouteId())
-			ret := model.Trip{}
-			ret.RTTripID = obj.RTTripID
-			ret.FeedVersionID = obj.FeedVersionID
-			ret.TripID = obj.RTTripID
-			ret.RouteID = strconv.Itoa(rid)
-			ret.DirectionID = int(rtt.GetDirectionId())
-			return &ret, nil
-		}
+		t := model.Trip{}
+		t.FeedVersionID = obj.FeedVersionID
+		t.TripID = obj.RTTripID
+		a, err := r.rtcm.FindMakeTrip(&t)
+		return a, err
 	}
 	return For(ctx).TripsByID.Load(atoi(obj.TripID))
 }

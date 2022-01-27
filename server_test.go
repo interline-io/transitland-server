@@ -22,8 +22,8 @@ func Test_getRedisOpts(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, opts.Addr, tc.addr)
-		assert.Equal(t, opts.DB, tc.db)
+		assert.Equal(t, tc.addr, opts.Addr)
+		assert.Equal(t, tc.db, opts.DB)
 	}
 
 }

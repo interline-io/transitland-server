@@ -83,6 +83,7 @@ func (f *rtConsumer) process(rtdata []byte) error {
 	}
 	defaultTimestamp := rtmsg.GetHeader().GetTimestamp()
 	a := map[string]*pb.TripUpdate{}
+	var alerts []*pb.Alert
 	for _, ent := range rtmsg.Entity {
 		if v := ent.TripUpdate; v != nil {
 			// Set default timestamp
@@ -93,11 +94,12 @@ func (f *rtConsumer) process(rtdata []byte) error {
 			a[tid] = v
 		}
 		if v := ent.Alert; v != nil {
-			f.alerts = append(f.alerts, v)
+			alerts = append(alerts, v)
 		}
 		// todo: vehicle positions...
 	}
 	// fmt.Printf("consumer '%s': processed trips: %s\n", f.feed, strings.Join(tids, ","))
 	f.entityByTrip = a
+	f.alerts = alerts
 	return nil
 }

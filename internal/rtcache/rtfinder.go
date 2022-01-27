@@ -1,7 +1,11 @@
 package rtcache
 
 import (
+	"errors"
+	"fmt"
+	"strconv"
 	"sync"
+	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/model"
@@ -12,14 +16,14 @@ type RTFinder struct {
 	cache    Cache
 	fetchers map[string]*rtConsumer
 	lock     sync.Mutex
-	*lookupCache
+	lc       *lookupCache
 }
 
 func NewRTFinder(cache Cache, db sqlx.Ext) *RTFinder {
 	return &RTFinder{
-		cache:       cache,
-		lookupCache: newLookupCache(db),
-		fetchers:    map[string]*rtConsumer{},
+		cache:    cache,
+		lc:       newLookupCache(db),
+		fetchers: map[string]*rtConsumer{},
 	}
 }
 
@@ -27,16 +31,22 @@ func (f *RTFinder) AddData(topic string, data []byte) error {
 	return f.cache.AddData(topic, data)
 }
 
-func (f *RTFinder) GetTrip(topic string, tid string) (*pb.TripUpdate, bool) {
-	a, err := f.getListener(getTopicKey(topic, "trip_updates"))
-	if err != nil {
-		return nil, false
-	}
-	trip, ok := a.GetTrip(tid)
-	return trip, ok
+func (f *RTFinder) GetGtfsTripID(id int) (string, bool) {
+	return f.lc.GetGtfsTripID(id)
 }
 
-func (f *RTFinder) FindAlerts(topic string, agencyId string, routeId string, routeType int, tripId string, tripDirection int, stopId string) []*model.Alert {
+func (f *RTFinder) StopTimezone(id int, known string) (*time.Location, bool) {
+	return f.lc.StopTimezone(id, known)
+}
+
+func (f *RTFinder) FindTrip(t *model.Trip) *pb.TripUpdate {
+	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
+	a, _ := f.getTrip(topic, t.TripID)
+	return a
+}
+
+func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
+	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
 	a, err := f.getListener(getTopicKey(topic, "alerts"))
 	if err != nil {
 		return nil
@@ -44,32 +54,10 @@ func (f *RTFinder) FindAlerts(topic string, agencyId string, routeId string, rou
 	var foundAlerts []*model.Alert
 	for _, alert := range a.alerts {
 		for _, s := range alert.GetInformedEntity() {
-			// fmt.Println("checking informed entity:", s)
-			// fmt.Printf("filter: topic '%s' agency '%s' route '%s' route_type '%d' trip '%s' dir '%d' stop '%s'\n", topic, agencyId, routeId, routeType, tripId, tripDirection, stopId)
-			found := true
-			if (tripId != "" || s.Trip != nil) && s.Trip.GetTripId() != tripId {
-				// fmt.Println("exclude trip")
-				found = false
+			if s.Trip == nil {
+				continue
 			}
-			if s.AgencyId != nil && s.GetAgencyId() != agencyId {
-				// fmt.Println("exclude agency")
-				found = false
-			}
-			if s.RouteId != nil && s.GetRouteId() != routeId {
-				// fmt.Println("exclude route")
-				found = false
-			}
-			if s.StopId != nil && s.GetStopId() != stopId {
-				// fmt.Println("exclude stop")
-				found = false
-			}
-			if s.DirectionId != nil && int(s.GetDirectionId()) != tripDirection {
-				// fmt.Println("exclude trip direction")
-				found = false
-			}
-			// fmt.Println("found:", found)
-			// TODO: route type
-			if found {
+			if s.Trip.GetTripId() == t.TripID {
 				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
@@ -77,28 +65,71 @@ func (f *RTFinder) FindAlerts(topic string, agencyId string, routeId string, rou
 	return foundAlerts
 }
 
-type tripAgencyRoute struct {
-	RouteID  string
-	AgencyID string
+func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
+	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
+	a, err := f.getListener(getTopicKey(topic, "alerts"))
+	if err != nil {
+		return nil
+	}
+	var foundAlerts []*model.Alert
+	for _, alert := range a.alerts {
+		for _, s := range alert.GetInformedEntity() {
+			if s.Trip != nil {
+				continue
+			}
+			if s.GetRouteId() == t.RouteID {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
+			}
+		}
+	}
+	return foundAlerts
 }
 
-func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
-	topic, _ := f.GetFeedVersionOnestopID(t.FeedVersionID)
-	v := tripAgencyRoute{}
-	sqlx.Get(f.db, &v, "select r.route_id,a.agency_id from gtfs_routes r join gtfs_agencies a on a.id = r.agency_id where r.id = $1 limit 1", t.RouteID)
-	return f.FindAlerts(
-		topic,
-		v.AgencyID,
-		v.RouteID,
-		0,
-		t.TripID,
-		t.DirectionID,
-		"",
-	)
+func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
+	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
+	a, err := f.getListener(getTopicKey(topic, "alerts"))
+	if err != nil {
+		return nil
+	}
+	var foundAlerts []*model.Alert
+	for _, alert := range a.alerts {
+		for _, s := range alert.GetInformedEntity() {
+			if s.Trip != nil {
+				continue
+			}
+			if s.GetAgencyId() == t.AgencyID {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
+			}
+		}
+	}
+	return foundAlerts
 }
 
-func (f *RTFinder) FindStopTimeUpdate(topic string, tid string, sid string, seq int) (*pb.TripUpdate_StopTimeUpdate, bool) {
-	rtTrip, rtok := f.GetTrip(topic, tid)
+func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
+	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
+	a, err := f.getListener(getTopicKey(topic, "alerts"))
+	if err != nil {
+		return nil
+	}
+	var foundAlerts []*model.Alert
+	for _, alert := range a.alerts {
+		for _, s := range alert.GetInformedEntity() {
+			if s.StopId == nil {
+				continue
+			}
+			if s.GetStopId() == t.StopID {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
+			}
+		}
+	}
+	return foundAlerts
+}
+
+func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.TripUpdate_StopTimeUpdate, bool) {
+	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
+	tid := t.TripID
+	seq := st.StopSequence
+	rtTrip, rtok := f.getTrip(topic, tid)
 	if !rtok {
 		return nil, false
 	}
@@ -113,7 +144,9 @@ func (f *RTFinder) FindStopTimeUpdate(topic string, tid string, sid string, seq 
 }
 
 // TODO: put this method on consumer and wrap, as with GetTrip
-func (f *RTFinder) GetAddedTripsForStop(topic string, sid string) []*pb.TripUpdate {
+func (f *RTFinder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
+	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
+	sid := t.StopID
 	a, err := f.getListener(getTopicKey(topic, "trip_updates"))
 	if err != nil {
 		return nil
@@ -132,6 +165,34 @@ func (f *RTFinder) GetAddedTripsForStop(topic string, sid string) []*pb.TripUpda
 		}
 	}
 	return ret
+}
+
+func (f *RTFinder) FindMakeTrip(obj *model.Trip) (*model.Trip, error) {
+	t := model.Trip{}
+	t.FeedVersionID = obj.FeedVersionID
+	t.TripID = obj.TripID
+	t.RTTripID = obj.RTTripID
+	if rtTrip := f.FindTrip(&t); rtTrip != nil {
+		rtt := rtTrip.Trip
+		rid, _ := f.lc.GetRouteID(obj.FeedVersionID, rtt.GetRouteId())
+		t.RouteID = strconv.Itoa(rid)
+		t.DirectionID = int(rtt.GetDirectionId())
+		return &t, nil
+	}
+	return nil, errors.New("not found")
+}
+
+func (f *RTFinder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
+	if tid == "" {
+		panic("no tid")
+	}
+	a, err := f.getListener(getTopicKey(topic, "trip_updates"))
+	if err != nil {
+		return nil, false
+	}
+	trip, ok := a.GetTrip(tid)
+	fmt.Println("get trip?", topic, tid, "->", trip, ok)
+	return trip, ok
 }
 
 func (f *RTFinder) getListener(topicKey string) (*rtConsumer, error) {

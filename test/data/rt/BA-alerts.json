@@ -18,7 +18,7 @@
                     {
                         "agency_id": "BART",
                         "trip": {
-                            "trip_id": "2211533WKDY"
+                            "trip_id": "1031527WKDY"
                         }
                     }
                 ],
@@ -106,6 +106,41 @@
                     "translation": [
                         {
                             "text": "Test stop description",
+                            "language": "en"
+                        }
+                    ]
+                },
+                "severity_level": 1
+            }
+        },
+        {
+            "id": "4",
+            "alert": {
+                "active_period": [
+                    {
+                        "start": 1527719250,
+                        "end": 1527729250
+                    }
+                ],
+                "informed_entity": [
+                    {
+                        "route_id": "05"
+                    }
+                ],
+                "cause": 1,
+                "effect": 8,
+                "header_text": {
+                    "translation": [
+                        {
+                            "text": "Test route header",
+                            "language": "en"
+                        }
+                    ]
+                },
+                "descriptionText": {
+                    "translation": [
+                        {
+                            "text": "Test route description",
                             "language": "en"
                         }
                     ]

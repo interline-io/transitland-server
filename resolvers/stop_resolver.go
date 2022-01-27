@@ -61,13 +61,15 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 	// TODO: handle StopTimeFilter in RT
 	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)
 	for _, st := range sts {
-		tid, _ := r.rtcm.GetGtfsTripID(atoi(st.TripID))
-		if ste, ok := r.rtcm.FindStopTimeUpdate(obj.FeedOnestopID, tid, obj.StopID, st.StopSequence); ok {
+		ft := model.Trip{}
+		ft.FeedVersionID = obj.FeedVersionID
+		ft.TripID, _ = r.rtcm.GetGtfsTripID(atoi(st.TripID)) // TODO!
+		if ste, ok := r.rtcm.FindStopTimeUpdate(&ft, st); ok {
 			st.RTStopTimeUpdate = ste
 		}
 	}
 	// Handle added trips; these must specify stop_id in StopTimeUpdates
-	for _, rtTrip := range r.rtcm.GetAddedTripsForStop(obj.FeedOnestopID, obj.StopID) {
+	for _, rtTrip := range r.rtcm.GetAddedTripsForStop(obj) {
 		for _, stu := range rtTrip.StopTimeUpdate {
 			if stu.GetStopId() != obj.StopID {
 				continue
@@ -87,8 +89,8 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 }
 
 func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error) {
-	// TODO
-	return nil, nil
+	rtAlerts := r.rtcm.FindAlertsForStop(obj)
+	return rtAlerts, nil
 }
 
 func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *model.WaypointInput, to *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error) {

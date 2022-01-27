@@ -190,6 +190,7 @@ type Agency {
   places(limit: Int, where: AgencyPlaceFilter): [AgencyPlace!]
   routes(limit: Int, where: RouteFilter): [Route!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  alerts: [Alert!]
 }
 
 
@@ -218,6 +219,7 @@ type Route {
   geometries(limit: Int): [RouteGeometry!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   route_stop_buffer(radius: Float): RouteStopBuffer!
+  alerts: [Alert!]
 }
 
 type Stop {
@@ -246,6 +248,7 @@ type Stop {
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
+  alerts: [Alert!]
 }
 
 type Pathway {

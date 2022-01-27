@@ -72,6 +72,7 @@ type ComplexityRoot struct {
 		AgencyPhone       func(childComplexity int) int
 		AgencyTimezone    func(childComplexity int) int
 		AgencyURL         func(childComplexity int) int
+		Alerts            func(childComplexity int) int
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
 		FeedOnestopID     func(childComplexity int) int
 		FeedVersion       func(childComplexity int) int
@@ -428,6 +429,7 @@ type ComplexityRoot struct {
 
 	Route struct {
 		Agency            func(childComplexity int) int
+		Alerts            func(childComplexity int) int
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
 		FeedOnestopID     func(childComplexity int) int
 		FeedVersion       func(childComplexity int) int
@@ -504,6 +506,7 @@ type ComplexityRoot struct {
 	}
 
 	Stop struct {
+		Alerts             func(childComplexity int) int
 		CensusGeographies  func(childComplexity int, layer string, radius *float64, limit *int) int
 		Children           func(childComplexity int, limit *int) int
 		Directions         func(childComplexity int, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) int
@@ -633,6 +636,7 @@ type AgencyResolver interface {
 	Places(ctx context.Context, obj *model.Agency, limit *int, where *model.AgencyPlaceFilter) ([]*model.AgencyPlace, error)
 	Routes(ctx context.Context, obj *model.Agency, limit *int, where *model.RouteFilter) ([]*model.Route, error)
 	CensusGeographies(ctx context.Context, obj *model.Agency, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
+	Alerts(ctx context.Context, obj *model.Agency) ([]*model.Alert, error)
 }
 type CalendarResolver interface {
 	StartDate(ctx context.Context, obj *model.Calendar) (*tl.ODate, error)
@@ -721,6 +725,7 @@ type RouteResolver interface {
 	Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error)
 	CensusGeographies(ctx context.Context, obj *model.Route, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error)
+	Alerts(ctx context.Context, obj *model.Route) ([]*model.Alert, error)
 }
 type RouteHeadwayResolver interface {
 	Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error)
@@ -744,6 +749,7 @@ type StopResolver interface {
 
 	CensusGeographies(ctx context.Context, obj *model.Stop, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	Directions(ctx context.Context, obj *model.Stop, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error)
+	Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error)
 }
 type StopTimeResolver interface {
 	Stop(ctx context.Context, obj *model.StopTime) (*model.Stop, error)
@@ -833,6 +839,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Agency.AgencyURL(childComplexity), true
+
+	case "Agency.alerts":
+		if e.complexity.Agency.Alerts == nil {
+			break
+		}
+
+		return e.complexity.Agency.Alerts(childComplexity), true
 
 	case "Agency.census_geographies":
 		if e.complexity.Agency.CensusGeographies == nil {
@@ -2710,6 +2723,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Route.Agency(childComplexity), true
 
+	case "Route.alerts":
+		if e.complexity.Route.Alerts == nil {
+			break
+		}
+
+		return e.complexity.Route.Alerts(childComplexity), true
+
 	case "Route.census_geographies":
 		if e.complexity.Route.CensusGeographies == nil {
 			break
@@ -3129,6 +3149,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Step.To(childComplexity), true
+
+	case "Stop.alerts":
+		if e.complexity.Stop.Alerts == nil {
+			break
+		}
+
+		return e.complexity.Stop.Alerts(childComplexity), true
 
 	case "Stop.census_geographies":
 		if e.complexity.Stop.CensusGeographies == nil {
@@ -4121,6 +4148,7 @@ type Agency {
   places(limit: Int, where: AgencyPlaceFilter): [AgencyPlace!]
   routes(limit: Int, where: RouteFilter): [Route!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  alerts: [Alert!]
 }
 
 
@@ -4149,6 +4177,7 @@ type Route {
   geometries(limit: Int): [RouteGeometry!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   route_stop_buffer(radius: Float): RouteStopBuffer!
+  alerts: [Alert!]
 }
 
 type Stop {
@@ -4177,6 +4206,7 @@ type Stop {
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
+  alerts: [Alert!]
 }
 
 type Pathway {
@@ -6612,6 +6642,38 @@ func (ec *executionContext) _Agency_census_geographies(ctx context.Context, fiel
 	res := resTmp.([]*model.CensusGeography)
 	fc.Result = res
 	return ec.marshalOCensusGeography2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusGeographyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agency_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Agency) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agency",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Agency().Alerts(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Alert)
+	fc.Result = res
+	return ec.marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlertᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AgencyPlace_city_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
@@ -15883,6 +15945,38 @@ func (ec *executionContext) _Route_route_stop_buffer(ctx context.Context, field 
 	return ec.marshalNRouteStopBuffer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopBuffer(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Route_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Route().Alerts(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Alert)
+	fc.Result = res
+	return ec.marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlertᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _RouteGeometry_generated(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17874,6 +17968,38 @@ func (ec *executionContext) _Stop_directions(ctx context.Context, field graphql.
 	res := resTmp.(*model.Directions)
 	fc.Result = res
 	return ec.marshalNDirections2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirections(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Alerts(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Alert)
+	fc.Result = res
+	return ec.marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlertᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_arrival_time(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -22352,6 +22478,17 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 				res = ec._Agency_census_geographies(ctx, field, obj)
 				return res
 			})
+		case "alerts":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Agency_alerts(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -24654,6 +24791,17 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 				}
 				return res
 			})
+		case "alerts":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Route_alerts(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -25175,6 +25323,17 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "alerts":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_alerts(ctx, field, obj)
 				return res
 			})
 		default:
