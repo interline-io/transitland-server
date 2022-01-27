@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/interline-io/transitland-server/directions"
@@ -51,7 +52,45 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 	if err != nil {
 		return nil, err
 	}
+	_, ok := r.rtcm.StopTimezone(obj.ID, obj.StopTimezone)
+	if !ok {
+		return nil, errors.New("timezone not available for stop")
+	}
+
+	// Merge scheduled stop times with rt stop times
+	// TODO: handle StopTimeFilter in RT
+	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)
+	for _, st := range sts {
+		ft := model.Trip{}
+		ft.FeedVersionID = obj.FeedVersionID
+		ft.TripID, _ = r.rtcm.GetGtfsTripID(atoi(st.TripID)) // TODO!
+		if ste, ok := r.rtcm.FindStopTimeUpdate(&ft, st); ok {
+			st.RTStopTimeUpdate = ste
+		}
+	}
+	// Handle added trips; these must specify stop_id in StopTimeUpdates
+	for _, rtTrip := range r.rtcm.GetAddedTripsForStop(obj) {
+		for _, stu := range rtTrip.StopTimeUpdate {
+			if stu.GetStopId() != obj.StopID {
+				continue
+			}
+			// create a new StopTime
+			rtst := &model.StopTime{}
+			rtst.RTTripID = rtTrip.Trip.GetTripId()
+			rtst.RTStopTimeUpdate = stu
+			rtst.FeedVersionID = obj.FeedVersionID
+			rtst.TripID = "0"
+			rtst.StopID = obj.StopID
+			rtst.StopSequence = int(stu.GetStopSequence())
+			sts = append(sts, rtst)
+		}
+	}
 	return sts, nil
+}
+
+func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error) {
+	rtAlerts := r.rtcm.FindAlertsForStop(obj)
+	return rtAlerts, nil
 }
 
 func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *model.WaypointInput, to *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error) {

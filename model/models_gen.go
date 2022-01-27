@@ -28,16 +28,15 @@ type AgencyPlaceFilter struct {
 }
 
 type Alert struct {
-	ActivePeriod       []*RTTimeRange      `json:"active_period"`
-	InformedEntity     []*RTEntitySelector `json:"informed_entity"`
-	Cause              *string             `json:"cause"`
-	Effect             *string             `json:"effect"`
-	HeaderText         *RTTranslatedString `json:"header_text"`
-	DescriptionText    *RTTranslatedString `json:"description_text"`
-	TtsHeaderText      *RTTranslatedString `json:"tts_header_text"`
-	TtsDescriptionText *RTTranslatedString `json:"tts_description_text"`
-	URL                *RTTranslatedString `json:"url"`
-	SeverityLevel      *string             `json:"severity_level"`
+	ActivePeriod       []*RTTimeRange   `json:"active_period"`
+	Cause              *string          `json:"cause"`
+	Effect             *string          `json:"effect"`
+	HeaderText         []*RTTranslation `json:"header_text"`
+	DescriptionText    []*RTTranslation `json:"description_text"`
+	TtsHeaderText      []*RTTranslation `json:"tts_header_text"`
+	TtsDescriptionText []*RTTranslation `json:"tts_description_text"`
+	URL                []*RTTranslation `json:"url"`
+	SeverityLevel      *string          `json:"severity_level"`
 }
 
 type CalendarDateFilter struct {
@@ -151,28 +150,9 @@ type PointRadius struct {
 	Radius float64 `json:"radius"`
 }
 
-type RTEntitySelector struct {
-	AgencyID    *string           `json:"agency_id"`
-	RouteID     *string           `json:"route_id"`
-	RouteType   *int              `json:"route_type"`
-	DirectionID *int              `json:"direction_id"`
-	StopID      *string           `json:"stop_id"`
-	Trip        *RTTripDescriptor `json:"trip"`
-}
-
-type RTStopTimeEvent struct {
-	Delay       *int `json:"delay"`
-	Time        *int `json:"time"`
-	Uncertainty *int `json:"uncertainty"`
-}
-
 type RTTimeRange struct {
 	Start *int `json:"start"`
 	End   *int `json:"end"`
-}
-
-type RTTranslatedString struct {
-	Translation []*RTTranslation `json:"translation"`
 }
 
 type RTTranslation struct {
@@ -243,16 +223,6 @@ type StopTimeFilter struct {
 	RouteOnestopIds []string  `json:"route_onestop_ids"`
 }
 
-type StopTimeUpdate struct {
-	StopSequence         *int             `json:"stop_sequence"`
-	StopID               *int             `json:"stop_id"`
-	Arrival              *RTStopTimeEvent `json:"arrival"`
-	Departure            *RTStopTimeEvent `json:"departure"`
-	ScheduleRelationship *string          `json:"schedule_relationship"`
-	ArrivalTime          *tl.WideTime     `json:"arrival_time"`
-	DepartureTime        *tl.WideTime     `json:"departure_time"`
-}
-
 type TripFilter struct {
 	ServiceDate     *tl.ODate `json:"service_date"`
 	TripID          *string   `json:"trip_id"`
@@ -262,22 +232,13 @@ type TripFilter struct {
 	FeedOnestopID   *string   `json:"feed_onestop_id"`
 }
 
-type TripUpdate struct {
-	Trip           *RTTripDescriptor    `json:"trip"`
-	Vehicle        *RTVehicleDescriptor `json:"vehicle"`
-	StopTimeUpdate []*StopTimeUpdate    `json:"stop_time_update"`
-	Timestamp      *int                 `json:"timestamp"`
-	Delay          *int                 `json:"delay"`
-}
-
 type VehiclePosition struct {
-	Trip                *RTTripDescriptor    `json:"trip"`
 	Vehicle             *RTVehicleDescriptor `json:"vehicle"`
 	Position            *tl.Point            `json:"position"`
 	CurrentStopSequence *int                 `json:"current_stop_sequence"`
-	StopID              *string              `json:"stop_id"`
+	StopID              *Stop                `json:"stop_id"`
 	CurrentStatus       *string              `json:"current_status"`
-	Timestamp           *int                 `json:"timestamp"`
+	Timestamp           *time.Time           `json:"timestamp"`
 	CongestionLevel     *string              `json:"congestion_level"`
 }
 
@@ -456,6 +417,51 @@ func (e *Role) UnmarshalGQL(v interface{}) error {
 }
 
 func (e Role) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ScheduleRelationship string
+
+const (
+	ScheduleRelationshipScheduled   ScheduleRelationship = "SCHEDULED"
+	ScheduleRelationshipAdded       ScheduleRelationship = "ADDED"
+	ScheduleRelationshipUnscheduled ScheduleRelationship = "UNSCHEDULED"
+	ScheduleRelationshipCanceled    ScheduleRelationship = "CANCELED"
+)
+
+var AllScheduleRelationship = []ScheduleRelationship{
+	ScheduleRelationshipScheduled,
+	ScheduleRelationshipAdded,
+	ScheduleRelationshipUnscheduled,
+	ScheduleRelationshipCanceled,
+}
+
+func (e ScheduleRelationship) IsValid() bool {
+	switch e {
+	case ScheduleRelationshipScheduled, ScheduleRelationshipAdded, ScheduleRelationshipUnscheduled, ScheduleRelationshipCanceled:
+		return true
+	}
+	return false
+}
+
+func (e ScheduleRelationship) String() string {
+	return string(e)
+}
+
+func (e *ScheduleRelationship) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ScheduleRelationship(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ScheduleRelationship", str)
+	}
+	return nil
+}
+
+func (e ScheduleRelationship) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

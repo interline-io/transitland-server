@@ -76,8 +76,7 @@ type Route struct {
 
 type Trip struct {
 	tl.Trip
-	RTTripID string         // internal: for ADDED trips
-	RTTrip   *pb.TripUpdate // internal
+	RTTripID string // internal: for ADDED trips
 }
 
 type StopTime struct {

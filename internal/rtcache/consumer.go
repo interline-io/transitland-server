@@ -13,6 +13,7 @@ type rtConsumer struct {
 	feed         string
 	done         chan bool
 	entityByTrip map[string]*pb.TripUpdate
+	alerts       []*pb.Alert
 }
 
 func newRTConsumer() (*rtConsumer, error) {
@@ -80,17 +81,25 @@ func (f *rtConsumer) process(rtdata []byte) error {
 	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
 		return err
 	}
+	defaultTimestamp := rtmsg.GetHeader().GetTimestamp()
 	a := map[string]*pb.TripUpdate{}
-	tids := []string{}
+	var alerts []*pb.Alert
 	for _, ent := range rtmsg.Entity {
 		if v := ent.TripUpdate; v != nil {
+			// Set default timestamp
+			if v.Timestamp == nil {
+				v.Timestamp = &defaultTimestamp
+			}
 			tid := v.GetTrip().GetTripId()
-			tids = append(tids, tid)
 			a[tid] = v
 		}
-		// todo: handle alerts and vehicle positions...
+		if v := ent.Alert; v != nil {
+			alerts = append(alerts, v)
+		}
+		// todo: vehicle positions...
 	}
 	// fmt.Printf("consumer '%s': processed trips: %s\n", f.feed, strings.Join(tids, ","))
 	f.entityByTrip = a
+	f.alerts = alerts
 	return nil
 }

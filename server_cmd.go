@@ -1,12 +1,15 @@
 package server
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/pprof"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,6 +41,31 @@ type Command struct {
 	DefaultQueue     string
 	auth.AuthConfig
 	config.Config
+}
+
+func getRedisOpts(v string) (*redis.Options, error) {
+	a, err := url.Parse(v)
+	if err != nil {
+		return nil, err
+	}
+	if a.Scheme != "redis" {
+		return nil, errors.New("redis URL must begin with redis://")
+	}
+	port := a.Port()
+	if port == "" {
+		port = "6379"
+	}
+	addr := fmt.Sprintf("%s:%s", a.Hostname(), port)
+	dbNo := 0
+	if len(a.Path) > 0 {
+		var err error
+		f := a.Path[1:len(a.Path)]
+		dbNo, err = strconv.Atoi(f)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &redis.Options{Addr: addr, DB: dbNo}, nil
 }
 
 func (cmd *Command) Parse(args []string) error {
@@ -107,8 +135,12 @@ func (cmd *Command) Run() error {
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
 		// Open Redis
+		rOpts, err := getRedisOpts(cfg.RedisURL)
+		if err != nil {
+			return err
+		}
+		redisClient := redis.NewClient(rOpts)
 		jobWorkers := 10
-		redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
 		jq := jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
 		if cmd.EnableWorkers {
 			// fmt.Println("jobs workers")

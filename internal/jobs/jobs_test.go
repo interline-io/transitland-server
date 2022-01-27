@@ -33,5 +33,5 @@ func testJobs(t *testing.T, rtJobs JobQueue) {
 		rtJobs.Stop()
 	}()
 	rtJobs.Run()
-	assert.Equal(t, w.count, len(feeds))
+	assert.Equal(t, len(feeds), w.count)
 }

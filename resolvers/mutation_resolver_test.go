@@ -4,40 +4,20 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
-
-var (
-	_, b, _, _ = runtime.Caller(0)
-	basepath   = filepath.Dir(b)
-)
-
-// RootPath returns the project root directory, e.g. two directories up from internal/testutil.
-func RootPath() string {
-	a, err := filepath.Abs(filepath.Join(basepath, ".."))
-	if err != nil {
-		panic(err)
-	}
-	return a
-}
-
-// RelPath returns the absolute path relative to the project root.
-func RelPath(p string) string {
-	return filepath.Join(RootPath(), p)
-}
 
 func TestFetchResolver(t *testing.T) {
 	cfg := config.Config{}
 	// dbFinder := find.NewDBFinder(TestDB)
 	// rtFinder := rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDB)
-	expectFile := RelPath("test/data/external/bart.zip")
+	expectFile := testutil.RelPath("test/data/external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
 		if err != nil {
@@ -71,7 +51,7 @@ func TestFetchResolver(t *testing.T) {
 
 func TestValidationResolver(t *testing.T) {
 	cfg := config.Config{}
-	expectFile := RelPath("test/data/external/caltrain.zip")
+	expectFile := testutil.RelPath("test/data/external/caltrain.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
 		if err != nil {

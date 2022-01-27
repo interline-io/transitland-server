@@ -190,6 +190,7 @@ type Agency {
   places(limit: Int, where: AgencyPlaceFilter): [AgencyPlace!]
   routes(limit: Int, where: RouteFilter): [Route!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  alerts: [Alert!]
 }
 
 
@@ -218,6 +219,7 @@ type Route {
   geometries(limit: Int): [RouteGeometry!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   route_stop_buffer(radius: Float): RouteStopBuffer!
+  alerts: [Alert!]
 }
 
 type Stop {
@@ -246,6 +248,7 @@ type Stop {
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
+  alerts: [Alert!]
 }
 
 type Pathway {
@@ -287,6 +290,10 @@ type Trip {
   feed_version: FeedVersion!
   stop_times(limit: Int): [StopTime]!
   frequencies(limit: Int): [Frequency!]!
+  # rt
+  schedule_relationship: ScheduleRelationship
+  timestamp: Time
+  alerts: [Alert!]
 }
 
 type Calendar {
@@ -331,6 +338,9 @@ type StopTime {
   interpolated: Int
   stop: Stop!
   trip: Trip!
+  arrival: StopTimeEvent!
+  departure: StopTimeEvent!
+  # schedule_relationship: ScheduleRelationship!
 }
 
 
@@ -487,13 +497,11 @@ type CensusGeography {
   awater: Float
   geometry: Polygon
   values(table_names: [String!]!, limit: Int): [CensusValue]! 
-  # source: CensusSource!
 }
 
 type CensusValue {
   table: CensusTable!
   values: Any! # json blob
-  # geography: CensusGeography!
 }
 
 type CensusTable {
@@ -501,79 +509,57 @@ type CensusTable {
   table_name: String!
   table_title: String!
   table_group: String!
-  # dataset: CensusDataset!
 }
 
-# type CensusDataset {
-#   id: Int!
-#   dataset_name: String!
-#   year_min: Int!
-#   year_max: Int!
-#   url: String!
-# }
+# Realtime updates
 
-# type CensusField {
-#   id: Int!
-#   field_name: String!
-#   field_title: String!
-#   table: CensusTable!
-# }
+enum ScheduleRelationship {
+  SCHEDULED
+  ADDED
+  UNSCHEDULED
+  CANCELED
+}
 
-# type CensusSource {
-#   id: Int!
-#   source_name: String!
-#   url: String!
-#   sha1: String!
-#   dataset: CensusDataset!
-# }
-
-# GTFS Realtime entities
-
-type TripUpdate {
-  trip: RTTripDescriptor
-  vehicle: RTVehicleDescriptor
-  stop_time_update: [StopTimeUpdate!]
-  timestamp: Int
+type StopTimeEvent {
+  stop_timezone: String!
+  scheduled: Seconds
+  estimated: Seconds
+  estimated_utc: Time
   delay: Int
-}
-
-type StopTimeUpdate {
-  stop_sequence: Int
-  stop_id: Int
-  arrival: RTStopTimeEvent
-  departure: RTStopTimeEvent
-  schedule_relationship: String
-  arrival_time: Seconds # simplified value for consumers
-  departure_time: Seconds # simplified value for consumers
+  uncertainty: Int
 }
 
 type VehiclePosition {
-  trip: RTTripDescriptor
   vehicle: RTVehicleDescriptor
   position: Point
   current_stop_sequence: Int
-  stop_id: String
+  stop_id: Stop
   current_status: String
-  timestamp: Int
+  timestamp: Time
   congestion_level: String
 }
 
 type Alert {
   active_period: [RTTimeRange!]
-  informed_entity: [RTEntitySelector!]
   cause: String
   effect: String
-  header_text: RTTranslatedString!
-  description_text: RTTranslatedString!
-  tts_header_text: RTTranslatedString
-  tts_description_text: RTTranslatedString
-  url: RTTranslatedString
+  header_text: [RTTranslation!]!
+  description_text: [RTTranslation!]!
+  tts_header_text: [RTTranslation!]
+  tts_description_text: [RTTranslation!]
+  url: [RTTranslation!]
   severity_level: String
 }
 
 type RTTimeRange {
   start: Int
   end: Int
+}
+
+type RTVehicleDescriptor {
+  id: String
+  label: String
+  license_plate: String
 }
 
 type RTTripDescriptor {
@@ -585,35 +571,12 @@ type RTTripDescriptor {
   schedule_relationship: String
 }
 
-type RTVehicleDescriptor {
-  id: String
-  label: String
-  license_plate: String
-}
-
-type RTEntitySelector {
-  agency_id: String
-  route_id: String
-  route_type: Int
-  direction_id: Int
-  stop_id: String
-  trip: RTTripDescriptor
-}
-
-type RTTranslatedString {
-  translation: [RTTranslation!]!
-}
 
 type RTTranslation {
   text: String!
   language: String
 }
 
-type RTStopTimeEvent {
-  delay: Int
-  time: Int
-  uncertainty: Int
-}
 
 # Analysis tools
 

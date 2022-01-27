@@ -26,3 +26,8 @@ func (r *agencyResolver) Operator(ctx context.Context, obj *model.Agency) (*mode
 	return For(ctx).OperatorsByCOIF.Load(*obj.CoifID)
 
 }
+
+func (r *agencyResolver) Alerts(ctx context.Context, obj *model.Agency) ([]*model.Alert, error) {
+	rtAlerts := r.rtcm.FindAlertsForAgency(obj)
+	return rtAlerts, nil
+}

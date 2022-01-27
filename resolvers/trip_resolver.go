@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"time"
 
 	"github.com/interline-io/transitland-server/model"
 )
@@ -35,4 +36,37 @@ func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *in
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {
 	return For(ctx).FrequenciesByTripID.Load(model.FrequencyParam{TripID: obj.ID, Limit: limit})
+}
+
+func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
+	msr := model.ScheduleRelationshipScheduled
+	if rtt := r.rtcm.FindTrip(obj); rtt != nil {
+		sr := rtt.GetTrip().GetScheduleRelationship().String()
+		switch sr {
+		case "SCHEDULED":
+			msr = model.ScheduleRelationshipScheduled
+		case "ADDED":
+			msr = model.ScheduleRelationshipAdded
+		case "CANCELED":
+			msr = model.ScheduleRelationshipCanceled
+		case "UNSCHEDULED":
+			msr = model.ScheduleRelationshipUnscheduled
+		default:
+			return nil, nil
+		}
+	}
+	return &msr, nil
+}
+
+func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error) {
+	if rtt := r.rtcm.FindTrip(obj); rtt != nil {
+		t := time.Unix(int64(rtt.GetTimestamp()), 0).In(time.UTC)
+		return &t, nil
+	}
+	return nil, nil
+}
+
+func (r *tripResolver) Alerts(ctx context.Context, obj *model.Trip) ([]*model.Alert, error) {
+	rtAlerts := r.rtcm.FindAlertsForTrip(obj)
+	return rtAlerts, nil
 }
