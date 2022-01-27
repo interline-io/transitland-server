@@ -1,0 +1,118 @@
+{
+    "header": {
+        "gtfs_realtime_version": "1.0",
+        "incrementality": 0,
+        "timestamp": 1527719250
+    },
+    "entity": [
+        {
+            "id": "1",
+            "alert": {
+                "active_period": [
+                    {
+                        "start": 1527719250,
+                        "end": 1527729250
+                    }
+                ],
+                "informed_entity": [
+                    {
+                        "agency_id": "BART",
+                        "trip": {
+                            "trip_id": "2211533WKDY"
+                        }
+                    }
+                ],
+                "cause": 1,
+                "effect": 8,
+                "header_text": {
+                    "translation": [
+                        {
+                            "text": "Test trip header",
+                            "language": "en"
+                        }
+                    ]
+                },
+                "descriptionText": {
+                    "translation": [
+                        {
+                            "text": "Test trip description",
+                            "language": "en"
+                        }
+                    ]
+                },
+                "severity_level": 1
+            }
+        },
+        {
+            "id": "2",
+            "alert": {
+                "active_period": [
+                    {
+                        "start": 1527719250,
+                        "end": 1527729250
+                    }
+                ],
+                "informed_entity": [
+                    {
+                        "agency_id": "BART"
+                    }
+                ],
+                "cause": 1,
+                "effect": 8,
+                "header_text": {
+                    "translation": [
+                        {
+                            "text": "Test agency header",
+                            "language": "en"
+                        }
+                    ]
+                },
+                "descriptionText": {
+                    "translation": [
+                        {
+                            "text": "Test agency description",
+                            "language": "en"
+                        }
+                    ]
+                },
+                "severity_level": 1
+            }
+        },
+        {
+            "id": "3",
+            "alert": {
+                "active_period": [
+                    {
+                        "start": 1527719250,
+                        "end": 1527729250
+                    }
+                ],
+                "informed_entity": [
+                    {
+                        "stop_id": "FTVL"
+                    }
+                ],
+                "cause": 1,
+                "effect": 8,
+                "header_text": {
+                    "translation": [
+                        {
+                            "text": "Test stop header",
+                            "language": "en"
+                        }
+                    ]
+                },
+                "descriptionText": {
+                    "translation": [
+                        {
+                            "text": "Test stop description",
+                            "language": "en"
+                        }
+                    ]
+                },
+                "severity_level": 1
+            }
+        }
+
+    ]
+}

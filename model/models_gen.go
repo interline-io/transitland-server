@@ -28,16 +28,15 @@ type AgencyPlaceFilter struct {
 }
 
 type Alert struct {
-	ActivePeriod       []*RTTimeRange      `json:"active_period"`
-	InformedEntity     []*RTEntitySelector `json:"informed_entity"`
-	Cause              *string             `json:"cause"`
-	Effect             *string             `json:"effect"`
-	HeaderText         *RTTranslatedString `json:"header_text"`
-	DescriptionText    *RTTranslatedString `json:"description_text"`
-	TtsHeaderText      *RTTranslatedString `json:"tts_header_text"`
-	TtsDescriptionText *RTTranslatedString `json:"tts_description_text"`
-	URL                *RTTranslatedString `json:"url"`
-	SeverityLevel      *string             `json:"severity_level"`
+	ActivePeriod       []*RTTimeRange   `json:"active_period"`
+	Cause              *string          `json:"cause"`
+	Effect             *string          `json:"effect"`
+	HeaderText         []*RTTranslation `json:"header_text"`
+	DescriptionText    []*RTTranslation `json:"description_text"`
+	TtsHeaderText      []*RTTranslation `json:"tts_header_text"`
+	TtsDescriptionText []*RTTranslation `json:"tts_description_text"`
+	URL                []*RTTranslation `json:"url"`
+	SeverityLevel      *string          `json:"severity_level"`
 }
 
 type CalendarDateFilter struct {
@@ -151,22 +150,9 @@ type PointRadius struct {
 	Radius float64 `json:"radius"`
 }
 
-type RTEntitySelector struct {
-	AgencyID    *string           `json:"agency_id"`
-	RouteID     *string           `json:"route_id"`
-	RouteType   *int              `json:"route_type"`
-	DirectionID *int              `json:"direction_id"`
-	StopID      *string           `json:"stop_id"`
-	Trip        *RTTripDescriptor `json:"trip"`
-}
-
 type RTTimeRange struct {
 	Start *int `json:"start"`
 	End   *int `json:"end"`
-}
-
-type RTTranslatedString struct {
-	Translation []*RTTranslation `json:"translation"`
 }
 
 type RTTranslation struct {

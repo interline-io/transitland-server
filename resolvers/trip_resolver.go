@@ -60,5 +60,16 @@ func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip
 }
 
 func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error) {
+	topic, _ := r.rtcm.GetFeedVersionOnestopID(obj.FeedVersionID)
+	if rtt, ok := r.rtcm.GetTrip(topic, obj.TripID); rtt != nil && ok {
+		t := time.Unix(int64(rtt.GetTimestamp()), 0).In(time.UTC)
+		return &t, nil
+	}
 	return nil, nil
+
+}
+
+func (r *tripResolver) Alerts(ctx context.Context, obj *model.Trip) ([]*model.Alert, error) {
+	rtAlerts := r.rtcm.FindAlertsForTrip(obj)
+	return rtAlerts, nil
 }

@@ -85,4 +85,5 @@ type RTFinder interface {
 	GetFeedVersionOnestopID(int) (string, bool)
 	GetGtfsTripID(int) (string, bool)
 	GetRouteID(int, string) (int, bool)
+	FindAlertsForTrip(t *Trip) []*Alert
 }

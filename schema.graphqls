@@ -290,6 +290,7 @@ type Trip {
   # rt
   schedule_relationship: ScheduleRelationship
   timestamp: Time
+  alerts: [Alert!]
 }
 
 type Calendar {
@@ -537,14 +538,13 @@ type VehiclePosition {
 
 type Alert {
   active_period: [RTTimeRange!]
-  informed_entity: [RTEntitySelector!]
   cause: String
   effect: String
-  header_text: RTTranslatedString!
-  description_text: RTTranslatedString!
-  tts_header_text: RTTranslatedString
-  tts_description_text: RTTranslatedString
-  url: RTTranslatedString
+  header_text: [RTTranslation!]!
+  description_text: [RTTranslation!]!
+  tts_header_text: [RTTranslation!]
+  tts_description_text: [RTTranslation!]
+  url: [RTTranslation!]
   severity_level: String
 }
 
@@ -568,18 +568,6 @@ type RTTripDescriptor {
   schedule_relationship: String
 }
 
-type RTEntitySelector {
-  agency_id: String
-  route_id: String
-  route_type: Int
-  direction_id: Int
-  stop_id: String
-  trip: RTTripDescriptor
-}
-
-type RTTranslatedString {
-  translation: [RTTranslation!]!
-}
 
 type RTTranslation {
   text: String!
