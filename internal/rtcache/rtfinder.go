@@ -2,7 +2,6 @@ package rtcache
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -167,7 +166,7 @@ func (f *RTFinder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
 	return ret
 }
 
-func (f *RTFinder) FindMakeTrip(obj *model.Trip) (*model.Trip, error) {
+func (f *RTFinder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
 	t := model.Trip{}
 	t.FeedVersionID = obj.FeedVersionID
 	t.TripID = obj.TripID
@@ -191,7 +190,6 @@ func (f *RTFinder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
 		return nil, false
 	}
 	trip, ok := a.GetTrip(tid)
-	fmt.Println("get trip?", topic, tid, "->", trip, ok)
 	return trip, ok
 }
 

@@ -25,7 +25,7 @@ func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*mode
 		t := model.Trip{}
 		t.FeedVersionID = obj.FeedVersionID
 		t.TripID = obj.RTTripID
-		a, err := r.rtcm.FindMakeTrip(&t)
+		a, err := r.rtcm.MakeTrip(&t)
 		return a, err
 	}
 	return For(ctx).TripsByID.Load(atoi(obj.TripID))

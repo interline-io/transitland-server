@@ -78,7 +78,7 @@ type EntityLoader interface {
 type RTFinder interface {
 	AddData(string, []byte) error
 	FindTrip(t *Trip) *pb.TripUpdate
-	FindMakeTrip(t *Trip) (*Trip, error)
+	MakeTrip(t *Trip) (*Trip, error)
 	FindAlertsForTrip(*Trip) []*Alert
 	FindAlertsForStop(*Stop) []*Alert
 	FindAlertsForRoute(*Route) []*Alert
