@@ -17,8 +17,8 @@ import (
 )
 
 func init() {
-	endpoint := os.Getenv("VALHALLA_ENDPOINT")
-	apikey := os.Getenv("VALHALLA_API_KEY")
+	endpoint := os.Getenv("TL_VALHALLA_ENDPOINT")
+	apikey := os.Getenv("TL_VALHALLA_API_KEY")
 	if endpoint == "" {
 		return
 	}

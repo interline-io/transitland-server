@@ -34,8 +34,8 @@ func Test_valhallaRouter(t *testing.T) {
 }
 
 func makeTestvalhallaRouter(tr http.RoundTripper) (*valhallaRouter, error) {
-	endpoint := os.Getenv("VALHALLA_ENDPOINT")
-	apikey := os.Getenv("VALHALLA_API_KEY")
+	endpoint := os.Getenv("TL_VALHALLA_ENDPOINT")
+	apikey := os.Getenv("TL_VALHALLA_API_KEY")
 	client := &http.Client{
 		Timeout:   10 * time.Second,
 		Transport: tr,
