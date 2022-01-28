@@ -50,15 +50,15 @@ func testHandler(t *testing.T, h Handler, tc testCase) *model.Directions {
 	if ret.Success != tc.success {
 		t.Errorf("got success '%t', expected '%t'", ret.Success, tc.success)
 	} else if ret.Success {
-		assert.GreaterOrEqual(t, ret.Duration.Duration, tc.duration)
-		assert.GreaterOrEqual(t, ret.Distance.Distance, tc.distance)
+		assert.GreaterOrEqual(t, ret.Duration.Duration, tc.duration, "duration")
+		assert.GreaterOrEqual(t, ret.Distance.Distance, tc.distance, "distance")
 	}
 	if tc.resJson != "" {
 		a, err := ioutil.ReadFile(tc.resJson)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !assert.JSONEq(t, string(resJson), string(a)) {
+		if !assert.JSONEq(t, string(a), string(resJson)) {
 			fmt.Println("json response was:")
 			fmt.Println(string(resJson))
 		}
