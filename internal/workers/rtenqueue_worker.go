@@ -2,9 +2,11 @@ package workers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/jmoiron/sqlx"
 )
 
 type RTEnqueueWorker struct{}
@@ -12,21 +14,58 @@ type RTEnqueueWorker struct{}
 func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	// fmt.Println("enqueue worker!")
 	opts := job.Opts
-	qents, err := opts.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{Spec: []string{"gtfs-rt"}})
+	// Get all operators
+	type skey struct {
+		RT     string
+		Static string
+	}
+	q := `
+	select
+		cf2.onestop_id as rt,
+		cf1.onestop_id as static
+	from current_operators_in_feed coif1
+	join current_operators_in_feed coif2 on coif2.resolved_onestop_id = coif1.resolved_onestop_id
+	join current_feeds cf1 on cf1.id = coif1.feed_id
+	join current_feeds cf2 on cf2.id = coif2.feed_id
+	where 
+		cf1.spec = 'gtfs'
+		and cf2.spec = 'gtfs-rt'
+	group by rt,static
+	order by rt`
+	targets := []skey{}
+	if err := sqlx.Select(opts.Finder.DBX(), &targets, q); err != nil {
+		return err
+	}
+	// Get all RT feeds
+	rtfeeds, err := opts.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{Spec: []string{"gtfs-rt"}})
 	if err != nil {
 		return err
 	}
 	var jj []jobs.Job
-	for _, ent := range qents {
-		for _, target := range ent.AssociatedFeeds {
+	for _, ent := range rtfeeds {
+		fid := ent.FeedID
+		fmt.Println("feed:", ent.FeedID)
+		if ent.Authorization.Type != "" {
+			fmt.Println("\trequire auth, skipping")
+			continue
+		}
+		var uniq []string
+		for _, sk := range targets {
+			if sk.RT == fid {
+				uniq = append(uniq, sk.Static)
+			}
+		}
+		fmt.Println("\ttargets:", uniq)
+		fmt.Println("\turls:", ent.URLs)
+		for _, target := range uniq {
 			if ent.URLs.RealtimeAlerts != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "alerts", ent.URLs.RealtimeAlerts}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "alerts", ent.URLs.RealtimeAlerts, fid}})
 			}
 			if ent.URLs.RealtimeTripUpdates != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "trip_updates", ent.URLs.RealtimeTripUpdates}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "trip_updates", ent.URLs.RealtimeTripUpdates, fid}})
 			}
 			if ent.URLs.RealtimeVehiclePositions != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "vehicle_positions", ent.URLs.RealtimeVehiclePositions}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "vehicle_positions", ent.URLs.RealtimeVehiclePositions, fid}})
 			}
 		}
 	}

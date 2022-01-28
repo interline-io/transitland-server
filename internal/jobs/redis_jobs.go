@@ -65,7 +65,7 @@ func (f *RedisJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 		return w.Run(context.TODO(), job)
 
 	}
-	manager.AddWorker(f.queueName, 1, processMessage)
+	manager.AddWorker(f.queueName, count, processMessage)
 	return nil
 }
 
