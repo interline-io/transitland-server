@@ -105,15 +105,33 @@ func (cmd *Command) Parse(args []string) error {
 }
 
 func (cmd *Command) Run() error {
-	// Open database
-	cfg := cmd.Config
-	dbx := find.MustOpenDB(cfg.DBURL)
-
 	// Default finders and job queue
 	var dbFinder model.Finder
 	var rtFinder model.RTFinder
+	var jobQueue jobs.JobQueue
+
+	// Create Finder
+	cfg := cmd.Config
+	dbx := find.MustOpenDB(cfg.DBURL)
 	dbFinder = find.NewDBFinder(dbx)
-	rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
+
+	// Create RTFinder
+	var redisClient *redis.Client
+	if cmd.RedisURL != "" {
+		// Redis backed RTFinder
+		rOpts, err := getRedisOpts(cfg.RedisURL)
+		if err != nil {
+			return err
+		}
+		redisClient = redis.NewClient(rOpts)
+		// Replace RTFinder; use redis backed cache now
+		rtFinder = rtcache.NewRTFinder(rtcache.NewRedisCache(redisClient), dbx)
+		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
+	} else {
+		// Default to in-memory cache
+		rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
+		jobQueue = jobs.NewLocalJobs()
+	}
 
 	// Setup CORS and logging
 	root := mux.NewRouter()
@@ -131,32 +149,6 @@ func (cmd *Command) Run() error {
 		return err
 	}
 	root.Use(userMiddleware)
-
-	// Workers
-	if cmd.EnableJobsApi || cmd.EnableWorkers {
-		// Open Redis
-		rOpts, err := getRedisOpts(cfg.RedisURL)
-		if err != nil {
-			return err
-		}
-		redisClient := redis.NewClient(rOpts)
-		jobWorkers := 10
-		jq := jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
-		if cmd.EnableWorkers {
-			// fmt.Println("jobs workers")
-			jq.AddWorker(workers.GetWorker, jobs.JobOptions{JobQueue: jq, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
-			go jq.Run()
-		}
-		if cmd.EnableJobsApi {
-			// fmt.Println("jobs api")
-			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jq, cmd.DefaultQueue, jobWorkers)
-			if err != nil {
-				return err
-			}
-			// Mount with admin permissions required
-			mount(root, "/jobs", auth.AdminRequired(jobServer))
-		}
-	}
 
 	// Profiling
 	if cmd.EnableProfiler {
@@ -188,6 +180,25 @@ func (cmd *Command) Run() error {
 			return err
 		}
 		mount(root, "/rest", restServer)
+	}
+
+	// Workers
+	if cmd.EnableJobsApi || cmd.EnableWorkers {
+		jobWorkers := 10
+		if cmd.EnableWorkers {
+			// fmt.Println("jobs workers")
+			jobQueue.AddWorker(workers.GetWorker, jobs.JobOptions{JobQueue: jobQueue, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
+			go jobQueue.Run()
+		}
+		if cmd.EnableJobsApi {
+			// fmt.Println("jobs api")
+			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jobQueue, cmd.DefaultQueue, jobWorkers)
+			if err != nil {
+				return err
+			}
+			// Mount with admin permissions required
+			mount(root, "/jobs", auth.AdminRequired(jobServer))
+		}
 	}
 
 	// Start server
