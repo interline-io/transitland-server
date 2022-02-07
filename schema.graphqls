@@ -752,7 +752,9 @@ input FeedVersionServiceLevelFilter {
 
 input AgencyPlaceFilter {
   min_rank: Float
-  search: String
+  search: String,
+  iso_3166_2: String,
+  iso_a2: String
 }
 
 input CalendarDateFilter {

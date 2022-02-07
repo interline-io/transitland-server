@@ -23,8 +23,10 @@ type AgencyFilter struct {
 }
 
 type AgencyPlaceFilter struct {
-	MinRank *float64 `json:"min_rank"`
-	Search  *string  `json:"search"`
+	MinRank   *float64 `json:"min_rank"`
+	Search    *string  `json:"search"`
+	Iso3166_2 *string  `json:"iso_3166_2"`
+	IsoA2     *string  `json:"iso_a2"`
 }
 
 type Alert struct {

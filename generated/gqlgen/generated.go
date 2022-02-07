@@ -4710,7 +4710,9 @@ input FeedVersionServiceLevelFilter {
 
 input AgencyPlaceFilter {
   min_rank: Float
-  search: String
+  search: String,
+  iso_3166_2: String,
+  iso_a2: String
 }
 
 input CalendarDateFilter {
@@ -21611,6 +21613,22 @@ func (ec *executionContext) unmarshalInputAgencyPlaceFilter(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
 			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "iso_3166_2":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iso_3166_2"))
+			it.Iso3166_2, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "iso_a2":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iso_a2"))
+			it.IsoA2, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

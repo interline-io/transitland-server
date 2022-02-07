@@ -67,9 +67,16 @@ func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.A
 func AgencyPlaceSelect(limit *int, after *int, ids []int, where *model.AgencyPlaceFilter) sq.SelectBuilder {
 	q := quickSelectOrder("tl_agency_places", limit, after, ids, "rank desc")
 	if where != nil {
-		// if where.Search != nil && len(*where.Search) > 1 {
-		// 	q = q.Where(tsQuery(*where.Search))
-		// }
+		if where.Search != nil && len(*where.Search) > 1 {
+			q = q.Where(tsQuery(*where.Search))
+		}
+		if where.Iso3166_2 != nil && len(*where.Iso3166_2) > 1 {
+			q = q.Where(sq.Eq{"iso_3166_2": *where.Iso3166_2})
+		}
+		if where.IsoA2 != nil && len(*where.IsoA2) > 1 {
+			q = q.Where(sq.Eq{"iso_a2": *where.IsoA2})
+		}
+		
 		if where.MinRank != nil {
 			q = q.Where(sq.GtOrEq{"rank": where.MinRank})
 		}
