@@ -690,6 +690,12 @@ input AgencyFilter {
   within: Polygon
   near: PointRadius
   search: String
+  city_name: String
+  adm0_name: String
+  adm1_name: String
+  adm0_iso: String
+  adm1_iso: String
+
 }
 
 input RouteFilter {
@@ -752,9 +758,6 @@ input FeedVersionServiceLevelFilter {
 
 input AgencyPlaceFilter {
   min_rank: Float
-  search: String,
-  iso_3166_2: String,
-  iso_a2: String
 }
 
 input CalendarDateFilter {

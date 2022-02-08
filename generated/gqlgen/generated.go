@@ -4648,6 +4648,12 @@ input AgencyFilter {
   within: Polygon
   near: PointRadius
   search: String
+  city_name: String
+  adm0_name: String
+  adm1_name: String
+  adm0_iso: String
+  adm1_iso: String
+
 }
 
 input RouteFilter {
@@ -4710,9 +4716,6 @@ input FeedVersionServiceLevelFilter {
 
 input AgencyPlaceFilter {
   min_rank: Float
-  search: String,
-  iso_3166_2: String,
-  iso_a2: String
 }
 
 input CalendarDateFilter {
@@ -21588,6 +21591,46 @@ func (ec *executionContext) unmarshalInputAgencyFilter(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
+		case "city_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city_name"))
+			it.CityName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_name"))
+			it.Adm0Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_name"))
+			it.Adm1Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_iso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_iso"))
+			it.Adm0Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_iso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_iso"))
+			it.Adm1Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -21605,30 +21648,6 @@ func (ec *executionContext) unmarshalInputAgencyPlaceFilter(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_rank"))
 			it.MinRank, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "search":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "iso_3166_2":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iso_3166_2"))
-			it.Iso3166_2, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "iso_a2":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iso_a2"))
-			it.IsoA2, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

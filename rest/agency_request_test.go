@@ -21,6 +21,14 @@ func TestAgencyRequest(t *testing.T) {
 		{"lat,lon,radius 10m", AgencyRequest{Lon: -122.407974, Lat: 37.784471, Radius: 10}, "", "agencies.#.agency_id", []string{"BART"}, 0},
 		{"lat,lon,radius 2000m", AgencyRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000}, "", "agencies.#.agency_id", []string{"caltrain-ca-us", "BART"}, 0},
 		{"search", AgencyRequest{Search: "caltrain"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us"}, 0},
+		{"adm0name", AgencyRequest{Adm0Name: "united states of america"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us", "BART"}, 0},
+		{"adm1name", AgencyRequest{Adm1Name: "california"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us", "BART"}, 0},
+		{"adm0iso", AgencyRequest{Adm0Iso: "us"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us", "BART"}, 0},
+		{"adm1iso:us-ca", AgencyRequest{Adm1Iso: "us-ca"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us", "BART"}, 0},
+		{"adm1iso:us-ny", AgencyRequest{Adm1Iso: "us-ny"}, "", "agencies.#.agency_id", []string{}, 0},
+		{"city_name:san jose", AgencyRequest{CityName: "san jose"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us"}, 0},
+		{"city_name:oakland", AgencyRequest{CityName: "berkeley"}, "", "agencies.#.agency_id", []string{"BART"}, 0},
+		{"city_name:new york city", AgencyRequest{CityName: "new york city"}, "", "agencies.#.agency_id", []string{}, 0},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
