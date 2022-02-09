@@ -20,11 +20,15 @@ type AgencyFilter struct {
 	Within          *tl.Polygon  `json:"within"`
 	Near            *PointRadius `json:"near"`
 	Search          *string      `json:"search"`
+	CityName        *string      `json:"city_name"`
+	Adm0Name        *string      `json:"adm0_name"`
+	Adm1Name        *string      `json:"adm1_name"`
+	Adm0Iso         *string      `json:"adm0_iso"`
+	Adm1Iso         *string      `json:"adm1_iso"`
 }
 
 type AgencyPlaceFilter struct {
 	MinRank *float64 `json:"min_rank"`
-	Search  *string  `json:"search"`
 }
 
 type Alert struct {

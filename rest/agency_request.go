@@ -23,6 +23,11 @@ type AgencyRequest struct {
 	Lon             float64 `json:"lon,string"`
 	Lat             float64 `json:"lat,string"`
 	Radius          float64 `json:"radius,string"`
+	Adm0Name        string  `json:"adm0_name"`
+	Adm0Iso         string  `json:"adm0_iso"`
+	Adm1Name        string  `json:"adm1_name"`
+	Adm1Iso         string  `json:"adm1_iso"`
+	CityName        string  `json:"city_name"`
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -59,5 +64,21 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 	if r.Lat != 0.0 && r.Lon != 0.0 {
 		where["near"] = hw{"lat": r.Lat, "lon": r.Lon, "radius": r.Radius}
 	}
+	if r.Adm0Name != "" {
+		where["adm0_name"] = r.Adm0Name
+	}
+	if r.Adm1Name != "" {
+		where["adm1_name"] = r.Adm1Name
+	}
+	if r.Adm0Iso != "" {
+		where["adm0_iso"] = r.Adm0Iso
+	}
+	if r.Adm1Iso != "" {
+		where["adm1_iso"] = r.Adm1Iso
+	}
+	if r.CityName != "" {
+		where["city_name"] = r.CityName
+	}
+
 	return agencyQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }
