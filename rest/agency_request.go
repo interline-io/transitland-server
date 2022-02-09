@@ -79,6 +79,5 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 	if r.CityName != "" {
 		where["city_name"] = r.CityName
 	}
-
 	return agencyQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }
