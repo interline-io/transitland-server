@@ -4616,6 +4616,11 @@ input OperatorFilter {
   agency_id: String
   search: String
   tags: Tags
+  city_name: String
+  adm0_name: String
+  adm1_name: String
+  adm0_iso: String
+  adm1_iso: String
 }
 
 input FeedVersionFilter {
@@ -4653,7 +4658,6 @@ input AgencyFilter {
   adm1_name: String
   adm0_iso: String
   adm1_iso: String
-
 }
 
 input RouteFilter {
@@ -21956,6 +21960,46 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
 			it.Tags, err = ec.unmarshalOTags2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "city_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city_name"))
+			it.CityName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_name"))
+			it.Adm0Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_name"))
+			it.Adm1Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_iso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_iso"))
+			it.Adm0Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_iso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_iso"))
+			it.Adm1Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

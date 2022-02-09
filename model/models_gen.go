@@ -142,6 +142,11 @@ type OperatorFilter struct {
 	AgencyID      *string  `json:"agency_id"`
 	Search        *string  `json:"search"`
 	Tags          *tl.Tags `json:"tags"`
+	CityName      *string  `json:"city_name"`
+	Adm0Name      *string  `json:"adm0_name"`
+	Adm1Name      *string  `json:"adm1_name"`
+	Adm0Iso       *string  `json:"adm0_iso"`
+	Adm1Iso       *string  `json:"adm1_iso"`
 }
 
 type PathwayFilter struct {

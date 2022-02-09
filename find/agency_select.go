@@ -40,6 +40,7 @@ func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.A
 		if where.OnestopID != nil {
 			qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": *where.OnestopID})
 		}
+		// Spatial
 		if where.Within != nil && where.Within.Valid {
 			qView = qView.Where("ST_Intersects(tl_agency_geometries.geometry, ?)", where.Within)
 		}
@@ -47,25 +48,17 @@ func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.A
 			radius := checkFloat(&where.Near.Radius, 0, 10_000)
 			qView = qView.Where("ST_DWithin(tl_agency_geometries.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
+		// Places
 		if where.Adm0Iso != nil || where.Adm1Iso != nil || where.Adm0Name != nil || where.Adm1Name != nil || where.CityName != nil {
 			distinct = true
-			qView = qView.JoinClause(`
-			JOIN (
-				SELECT
-					tlap.agency_id,
-					tlap.name,
-					tlap.adm1name,
-					tlap.adm0name,
-					ne_admin.iso_3166_2 as adm1iso,
-					ne_admin.iso_a2 as adm0iso
-				FROM tl_agency_places tlap
-				JOIN ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tlap.adm1name and ne_admin.admin = tlap.adm0name
-			) tlap on tlap.agency_id = gtfs_agencies.id`)
+			qView = qView.
+				Join("tl_agency_places tlap ON tlap.agency_id = gtfs_agencies.id").
+				Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tlap.adm1name and ne_admin.admin = tlap.adm0name")
 			if where.Adm0Iso != nil {
-				qView = qView.Where(sq.ILike{"tlap.adm0iso": *where.Adm0Iso})
+				qView = qView.Where(sq.ILike{"ne_admin.iso_a2": *where.Adm0Iso})
 			}
 			if where.Adm1Iso != nil {
-				qView = qView.Where(sq.ILike{"tlap.adm1iso": *where.Adm1Iso})
+				qView = qView.Where(sq.ILike{"ne_admin.iso_3166_2": *where.Adm1Iso})
 			}
 			if where.Adm0Name != nil {
 				qView = qView.Where(sq.ILike{"tlap.adm0name": *where.Adm0Name})

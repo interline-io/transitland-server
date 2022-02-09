@@ -6,6 +6,7 @@ import (
 )
 
 func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilter) sq.SelectBuilder {
+	distinct := false
 	qView := sq.StatementBuilder.
 		Select(
 			"coif.id as id",
@@ -27,44 +28,73 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
 		OrderBy("coif.resolved_onestop_id, coif.operator_id")
-	if where != nil && where.Merged != nil && *where.Merged {
-		qView = qView.Distinct().Options("on (onestop_id)")
-	}
-	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
-	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"t.id": ids})
-	}
-	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
-	}
-	q = q.OrderBy("id")
-	q = q.Limit(checkLimit(limit))
+
 	if where != nil {
-		if where.Search != nil && len(*where.Search) > 0 {
-			rank, wc := tsQuery(*where.Search)
-			q = q.Column(rank).Where(wc)
+		if where.Merged != nil && *where.Merged {
+			distinct = true
 		}
 		if where.FeedOnestopID != nil {
-			q = q.Where(sq.Eq{"feed_onestop_id": *where.FeedOnestopID})
+			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
 		if where.AgencyID != nil {
-			q = q.Where(sq.Eq{"resolved_gtfs_agency_id": *where.AgencyID})
+			qView = qView.Where(sq.Eq{"coif.resolved_gtfs_agency_id": *where.AgencyID})
 		}
 		if where.OnestopID != nil {
-			q = q.Where(sq.Eq{"onestop_id": where.OnestopID})
+			qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": where.OnestopID})
 		}
 		// Tags
 		if where.Tags != nil {
 			for _, k := range where.Tags.Keys() {
 				if v, ok := where.Tags.Get(k); ok {
 					if v == "" {
-						q = q.Where("operator_tags ?? ?", k)
+						qView = qView.Where("co.operator_tags ?? ?", k)
 					} else {
-						q = q.Where("operator_tags->>? = ?", k, v)
+						qView = qView.Where("co.operator_tags->>? = ?", k, v)
 					}
 				}
 			}
 		}
+		// Places
+		if where.Adm0Iso != nil || where.Adm1Iso != nil || where.Adm0Name != nil || where.Adm1Name != nil || where.CityName != nil {
+			distinct = true
+			qView = qView.
+				Join("feed_states ON feed_states.feed_id = coif.feed_id").
+				Join("gtfs_agencies ON gtfs_agencies.feed_version_id = feed_states.feed_version_id AND gtfs_agencies.agency_id = coif.resolved_gtfs_agency_id").
+				Join("tl_agency_places tlap ON tlap.agency_id = gtfs_agencies.id").
+				Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tlap.adm1name and ne_admin.admin = tlap.adm0name")
+			if where.Adm0Iso != nil {
+				qView = qView.Where(sq.ILike{"ne_admin.iso_a2": *where.Adm0Iso})
+			}
+			if where.Adm1Iso != nil {
+				qView = qView.Where(sq.ILike{"ne_admin.iso_3166_2": *where.Adm1Iso})
+			}
+			if where.Adm0Name != nil {
+				qView = qView.Where(sq.ILike{"tlap.adm0name": *where.Adm0Name})
+			}
+			if where.Adm1Name != nil {
+				qView = qView.Where(sq.ILike{"tlap.adm1name": *where.Adm1Name})
+			}
+			if where.CityName != nil {
+				qView = qView.Where(sq.ILike{"tlap.name": *where.CityName})
+			}
+		}
 	}
+	if distinct {
+		qView = qView.Distinct().Options("on (coif.resolved_onestop_id)")
+	}
+	if len(ids) > 0 {
+		qView = qView.Where(sq.Eq{"coif.id": ids})
+	}
+	if after != nil {
+		qView = qView.Where(sq.Gt{"coif.id": *after})
+	}
+	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t").Limit(checkLimit(limit))
+	if where != nil {
+		if where.Search != nil && len(*where.Search) > 0 {
+			rank, wc := tsQuery(*where.Search)
+			q = q.Column(rank).Where(wc)
+		}
+	}
+	q = q.OrderBy("id")
 	return q
 }
