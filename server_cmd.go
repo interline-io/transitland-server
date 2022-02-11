@@ -26,8 +26,6 @@ import (
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -46,22 +44,6 @@ type Command struct {
 	auth.AuthConfig
 	config.Config
 }
-
-// TODO: replace with real info
-func recordPromMetrics() {
-	go func() {
-		for {
-			opsProcessed.Inc()
-			time.Sleep(2 * time.Second)
-		}
-	}()
-}
-var (
-	opsProcessed = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "myapp_processed_ops_total",
-		Help: "The total number of processed events",
-	})
-)
 
 func getRedisOpts(v string) (*redis.Options, error) {
 	a, err := url.Parse(v)
@@ -180,7 +162,8 @@ func (cmd *Command) Run() error {
 	}
 
 	if cmd.EnableMetrics {
-		recordPromMetrics()
+		// TODO: turn on when meaningful metrics added
+		// metrics.RecordPromMetrics()
 		root.Handle("/metrics", promhttp.Handler())
 	}
 
