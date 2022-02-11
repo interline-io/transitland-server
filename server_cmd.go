@@ -26,6 +26,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Command struct {
@@ -37,6 +38,7 @@ type Command struct {
 	EnableJobsApi    bool
 	EnableWorkers    bool
 	EnableProfiler   bool
+	EnableMetrics    bool
 	UseAuth          string
 	DefaultQueue     string
 	auth.AuthConfig
@@ -92,6 +94,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
 	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
 	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
+	fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", true, "Enable metrics endpoint for Prometheus")
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
 	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
 	fl.Parse(args)
@@ -156,6 +159,12 @@ func (cmd *Command) Run() error {
 		root.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		root.HandleFunc("/debug/pprof/profile", pprof.Profile)
 		root.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	}
+
+	if cmd.EnableMetrics {
+		// TODO: turn on when meaningful metrics added
+		// metrics.RecordPromMetrics()
+		root.Handle("/metrics", promhttp.Handler())
 	}
 
 	// GraphQL API
