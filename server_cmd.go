@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
+
 	"net/http"
 	"net/http/pprof"
 	"net/url"
@@ -17,6 +17,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
@@ -186,12 +187,12 @@ func (cmd *Command) Run() error {
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
 		jobWorkers := 10
 		if cmd.EnableWorkers {
-			// fmt.Println("jobs workers")
+			log.Print("enabling workers")
 			jobQueue.AddWorker(workers.GetWorker, jobs.JobOptions{JobQueue: jobQueue, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
 			go jobQueue.Run()
 		}
 		if cmd.EnableJobsApi {
-			// fmt.Println("jobs api")
+			log.Print("enabling jobs api")
 			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jobQueue, cmd.DefaultQueue, jobWorkers)
 			if err != nil {
 				return err
@@ -203,7 +204,7 @@ func (cmd *Command) Run() error {
 
 	// Start server
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
-	fmt.Println("listening on:", addr)
+	log.Print("listening on:", addr)
 	timeOut := time.Duration(cmd.Timeout)
 	srv := &http.Server{
 		Handler:      root,
@@ -229,7 +230,7 @@ func mount(r *mux.Router, path string, handler http.Handler) {
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.RequestURI)
+		log.Print(r.RequestURI)
 		next.ServeHTTP(w, r)
 	})
 }

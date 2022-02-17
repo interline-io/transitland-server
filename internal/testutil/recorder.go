@@ -3,12 +3,12 @@ package testutil
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 
 	"github.com/dnaeon/go-vcr/v2/cassette"
 	"github.com/dnaeon/go-vcr/v2/recorder"
+	"github.com/interline-io/transitland-lib/log"
 )
 
 // NewRecorder returns a configured recorder.
@@ -18,7 +18,7 @@ func NewRecorder(path string, replaceUrl string) *recorder.Recorder {
 	// Start our recorder
 	r, err := recorder.New(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msgf("could not open recorder path '%s'", path)
 	}
 	r.SetMatcher(func(r *http.Request, i cassette.Request) bool {
 		if r.Body == nil {
