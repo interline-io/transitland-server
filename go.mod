@@ -22,11 +22,13 @@ require (
 	github.com/interline-io/transitland-lib v0.8.9-0.20220120001539-4f0f05c4ec47
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.8.0
+	github.com/prometheus/client_golang v0.9.3
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/tinylru v1.1.0
 	github.com/twpayne/go-geom v1.4.1
 	github.com/vektah/gqlparser/v2 v2.1.0
+	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
 	google.golang.org/protobuf v1.27.1
 )
 
