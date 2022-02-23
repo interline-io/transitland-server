@@ -2,7 +2,6 @@ package find
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 )
@@ -30,13 +30,13 @@ func toSnakeCase(str string) string {
 func MustOpenDB(url string) sqlx.Ext {
 	db, err := sqlx.Open("postgres", url)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("could not open database")
 	}
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 	db.SetConnMaxLifetime(time.Hour)
 	if err := db.Ping(); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msgf("could not connect to database")
 	}
 	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
 	return db.Unsafe()
