@@ -1,0 +1,51 @@
+name: Test Suite
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PGDATABASE: tlv2_test_server
+      TL_TEST_SERVER_DATABASE_URL: "postgres://${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable"
+      TL_REDIS_URL: ""
+      AWS_PROFILE: something
+      AWS_REGION: us-east-1
+    services:
+      postgres:
+        image: postgis/postgis:12-3.2-alpine
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: for_testing
+          POSTGRES_DB: transitland_datastore_test
+        # needed because the postgres container does not provide a healthcheck
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      # redis:
+      #   image: redis:6.0.8
+      #   ports:
+      #     - 6379:6379
+      #   # Set health checks to wait until redis has started
+      #   options: >-
+      #     --health-cmd "redis-cli ping"
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17.6'
+      - run: |
+          git clone git@github.com:interline-io/transitland-lib.git
+      - run: |
+          dropdb --if-exists ${PGDATABASE}
+          ./transitland-lib/internal/schema/postgres/bootstrap.sh
+          ./test_setup.sh
+
