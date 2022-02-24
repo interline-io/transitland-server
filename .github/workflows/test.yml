@@ -12,7 +12,7 @@ jobs:
       PGDATABASE: tlv2_test_server
       PGHOST: postgres
       PGPORT: 5432
-      TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@$postgres:5432/${PGDATABASE}?sslmode=disable
+      TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@$postgres:5432/tlv2_test_server?sslmode=disable
       TL_REDIS_URL: ""
       AWS_PROFILE: something
       AWS_REGION: us-east-1
@@ -22,7 +22,7 @@ jobs:
         env:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: for_testing
-          POSTGRES_DB: ${tlv2_test_server}
+          POSTGRES_DB: tlv2_test_server
         # needed because the postgres container does not provide a healthcheck
         options: >-
           --health-cmd pg_isready
