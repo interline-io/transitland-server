@@ -206,6 +206,8 @@ type Route {
   route_sort_order: Int!
   route_url: String!
   route_desc: String!
+  continuous_pickup: Int
+  continuous_drop_off: Int
   geometry: Geometry
   agency: Agency!
   feed_version: FeedVersion!
@@ -234,6 +236,8 @@ type Stop {
   stop_url: String!
   wheelchair_boarding: Int!
   zone_id: String!
+  platform_code: String
+  tts_stop_name: String
   geometry: Point!
   feed_version_sha1: String!
   feed_onestop_id: String!  
@@ -340,6 +344,8 @@ type StopTime {
   trip: Trip!
   arrival: StopTimeEvent!
   departure: StopTimeEvent!
+  continuous_drop_off: Int
+  continuous_pickup: Int
   # schedule_relationship: ScheduleRelationship!
 }
 
