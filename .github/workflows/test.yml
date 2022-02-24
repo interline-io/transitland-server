@@ -48,6 +48,8 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '^1.17.6'
+      - run: apt-get update && apt-get install --no-install-recommends -y gdal-bin
+      - run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
       - run: git clone https://github.com/interline-io/transitland-lib.git
       - run: dropdb --if-exists ${PGDATABASE}
       - run: ./transitland-lib/internal/schema/postgres/bootstrap.sh
