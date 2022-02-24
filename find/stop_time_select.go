@@ -29,6 +29,8 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilte
 		"sts.timepoint",
 		"sts.interpolated",
 		"sts.stop_headsign",
+		"sts.continuous_pickup",
+		"sts.continuous_drop_off",
 	).
 		From("gtfs_trips").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
@@ -78,6 +80,8 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		"sts.timepoint",
 		"sts.interpolated",
 		"sts.stop_headsign",
+		"sts.continuous_pickup",
+		"sts.continuous_drop_off",
 	).
 		From("gtfs_trips").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
