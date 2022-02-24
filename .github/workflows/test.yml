@@ -45,7 +45,6 @@ jobs:
       - run: |
           git clone https://github.com/interline-io/transitland-lib.git
       - run: |
-          dropdb --if-exists ${PGDATABASE}
           ./transitland-lib/internal/schema/postgres/bootstrap.sh
       - run: |
           ./test_setup.sh
