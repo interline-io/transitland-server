@@ -48,8 +48,8 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '^1.17.6'
-      - run: |
-          git clone https://github.com/interline-io/transitland-lib.git
+      - run: git clone https://github.com/interline-io/transitland-lib.git
+      - run: dropdb --if-exists ${PGDATABASE}
       - run: ./transitland-lib/internal/schema/postgres/bootstrap.sh
       - run: ./test_setup.sh
       - run: go test -v -count=1 ./...
