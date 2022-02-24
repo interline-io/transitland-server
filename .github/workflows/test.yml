@@ -1,0 +1,60 @@
+name: Test Suite
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PGDATABASE: tlv2_test_server
+      PGUSER: root
+      PGPASSWORD: for_testing
+      PGHOST: localhost
+      PGPORT: 5432
+      TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
+      TL_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
+      TL_REDIS_URL: ""
+      AWS_PROFILE: something
+      AWS_REGION: us-east-1
+    services:
+      postgres:
+        image: postgis/postgis:12-3.2-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: for_testing
+          POSTGRES_DB: tlv2_test_server
+        # needed because the postgres container does not provide a healthcheck
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      # redis:
+      #   image: redis:6.0.8
+      #   ports:
+      #     - 6379:6379
+      #   # Set health checks to wait until redis has started
+      #   options: >-
+      #     --health-cmd "redis-cli ping"
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17.6'
+      - run: sudo apt-get install -y gdal-bin
+      - run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+      - run: git clone https://github.com/interline-io/transitland-lib.git
+      - run: dropdb --if-exists ${PGDATABASE}
+      - run: ${PWD}/transitland-lib/internal/schema/postgres/bootstrap.sh
+      - run: go build -o /usr/local/bin/tlserver cmd/tlserver/main.go
+      - run: ./test_setup.sh
+      - run: go test -v -count=1 ./...
+
