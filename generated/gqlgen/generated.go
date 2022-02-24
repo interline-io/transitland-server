@@ -193,6 +193,9 @@ type ComplexityRoot struct {
 	}
 
 	FeedInfo struct {
+		DefaultLang       func(childComplexity int) int
+		FeedContactEmail  func(childComplexity int) int
+		FeedContactURL    func(childComplexity int) int
 		FeedEndDate       func(childComplexity int) int
 		FeedLang          func(childComplexity int) int
 		FeedPublisherName func(childComplexity int) int
@@ -1475,6 +1478,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedAuthorization.Type(childComplexity), true
+
+	case "FeedInfo.default_lang":
+		if e.complexity.FeedInfo.DefaultLang == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.DefaultLang(childComplexity), true
+
+	case "FeedInfo.feed_contact_email":
+		if e.complexity.FeedInfo.FeedContactEmail == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.FeedContactEmail(childComplexity), true
+
+	case "FeedInfo.feed_contact_url":
+		if e.complexity.FeedInfo.FeedContactURL == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.FeedContactURL(childComplexity), true
 
 	case "FeedInfo.feed_end_date":
 		if e.complexity.FeedInfo.FeedEndDate == nil {
@@ -4361,9 +4385,12 @@ type FeedInfo {
   feed_publisher_name: String!
   feed_publisher_url: String!
   feed_lang: String!
+  default_lang: String
   feed_version: String!
   feed_start_date: Date
   feed_end_date: Date
+  feed_contact_email: String
+  feed_contact_url: String
 }
 
 # GTFS Support Entities
@@ -9357,6 +9384,38 @@ func (ec *executionContext) _FeedInfo_feed_lang(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FeedInfo_default_lang(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultLang, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OString)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FeedInfo_feed_version(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9454,6 +9513,70 @@ func (ec *executionContext) _FeedInfo_feed_end_date(ctx context.Context, field g
 	res := resTmp.(tl.ODate)
 	fc.Result = res
 	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedInfo_feed_contact_email(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedContactEmail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OString)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedInfo_feed_contact_url(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedContactURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OString)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedLicense_spdx_identifier(ctx context.Context, field graphql.CollectedField, obj *model.FeedLicense) (ret graphql.Marshaler) {
@@ -23495,6 +23618,8 @@ func (ec *executionContext) _FeedInfo(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "default_lang":
+			out.Values[i] = ec._FeedInfo_default_lang(ctx, field, obj)
 		case "feed_version":
 			out.Values[i] = ec._FeedInfo_feed_version(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -23504,6 +23629,10 @@ func (ec *executionContext) _FeedInfo(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._FeedInfo_feed_start_date(ctx, field, obj)
 		case "feed_end_date":
 			out.Values[i] = ec._FeedInfo_feed_end_date(ctx, field, obj)
+		case "feed_contact_email":
+			out.Values[i] = ec._FeedInfo_feed_contact_email(ctx, field, obj)
+		case "feed_contact_url":
+			out.Values[i] = ec._FeedInfo_feed_contact_url(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
