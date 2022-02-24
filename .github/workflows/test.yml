@@ -43,7 +43,7 @@ jobs:
         with:
           go-version: '^1.17.6'
       - run: |
-          git clone git@github.com:interline-io/transitland-lib.git
+          git clone https://github.com/interline-io/transitland-lib.git
       - run: |
           dropdb --if-exists ${PGDATABASE}
           ./transitland-lib/internal/schema/postgres/bootstrap.sh
