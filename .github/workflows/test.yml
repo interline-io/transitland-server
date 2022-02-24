@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PGDATABASE: tlv2_test_server
-      TL_TEST_SERVER_DATABASE_URL: "postgres://${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable"
+      TL_TEST_SERVER_DATABASE_URL: "postgres://root:for_testing@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable"
       TL_REDIS_URL: ""
       AWS_PROFILE: something
       AWS_REGION: us-east-1
@@ -20,7 +20,7 @@ jobs:
         env:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: for_testing
-          POSTGRES_DB: transitland_datastore_test
+          POSTGRES_DB: ${tlv2_test_server}
         # needed because the postgres container does not provide a healthcheck
         options: >-
           --health-cmd pg_isready
@@ -47,5 +47,6 @@ jobs:
       - run: |
           dropdb --if-exists ${PGDATABASE}
           ./transitland-lib/internal/schema/postgres/bootstrap.sh
+      - run: |
           ./test_setup.sh
 
