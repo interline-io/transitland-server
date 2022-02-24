@@ -16,6 +16,8 @@ query(
     route_text_color
     route_type
     route_url
+    continuous_pickup
+    continuous_drop_off
     onestop_id
     geometry @include(if: $include_geometry)
     agency {
