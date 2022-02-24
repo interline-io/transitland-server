@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PGDATABASE: tlv2_test_server
+      PGUSER: root
+      PGPASSWORD: for_testing
       PGHOST: localhost
       PGPORT: 5432
       TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@$localhost:5432/tlv2_test_server?sslmode=disable
