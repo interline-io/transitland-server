@@ -32,6 +32,16 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: FeedVersionFilter) {
       sunday
       route_id
     }
+    feed_infos {
+      default_lang
+      feed_contact_email
+      feed_contact_url
+      feed_end_date
+      feed_lang
+      feed_publisher_name
+      feed_start_date
+      feed_publisher_url
+    }
     feed_version_gtfs_import {
       in_progress
       success
