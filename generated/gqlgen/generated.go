@@ -193,6 +193,9 @@ type ComplexityRoot struct {
 	}
 
 	FeedInfo struct {
+		DefaultLang       func(childComplexity int) int
+		FeedContactEmail  func(childComplexity int) int
+		FeedContactURL    func(childComplexity int) int
 		FeedEndDate       func(childComplexity int) int
 		FeedLang          func(childComplexity int) int
 		FeedPublisherName func(childComplexity int) int
@@ -431,6 +434,8 @@ type ComplexityRoot struct {
 		Agency            func(childComplexity int) int
 		Alerts            func(childComplexity int) int
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
+		ContinuousDropOff func(childComplexity int) int
+		ContinuousPickup  func(childComplexity int) int
 		FeedOnestopID     func(childComplexity int) int
 		FeedVersion       func(childComplexity int) int
 		FeedVersionSHA1   func(childComplexity int) int
@@ -521,6 +526,7 @@ type ComplexityRoot struct {
 		Parent             func(childComplexity int) int
 		PathwaysFromStop   func(childComplexity int, limit *int) int
 		PathwaysToStop     func(childComplexity int, limit *int) int
+		PlatformCode       func(childComplexity int) int
 		RouteStops         func(childComplexity int, limit *int) int
 		SearchRank         func(childComplexity int) int
 		StopCode           func(childComplexity int) int
@@ -530,23 +536,26 @@ type ComplexityRoot struct {
 		StopTimes          func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		StopTimezone       func(childComplexity int) int
 		StopURL            func(childComplexity int) int
+		TtsStopName        func(childComplexity int) int
 		WheelchairBoarding func(childComplexity int) int
 		ZoneID             func(childComplexity int) int
 	}
 
 	StopTime struct {
-		Arrival       func(childComplexity int) int
-		ArrivalTime   func(childComplexity int) int
-		Departure     func(childComplexity int) int
-		DepartureTime func(childComplexity int) int
-		DropOffType   func(childComplexity int) int
-		Interpolated  func(childComplexity int) int
-		PickupType    func(childComplexity int) int
-		Stop          func(childComplexity int) int
-		StopHeadsign  func(childComplexity int) int
-		StopSequence  func(childComplexity int) int
-		Timepoint     func(childComplexity int) int
-		Trip          func(childComplexity int) int
+		Arrival           func(childComplexity int) int
+		ArrivalTime       func(childComplexity int) int
+		ContinuousDropOff func(childComplexity int) int
+		ContinuousPickup  func(childComplexity int) int
+		Departure         func(childComplexity int) int
+		DepartureTime     func(childComplexity int) int
+		DropOffType       func(childComplexity int) int
+		Interpolated      func(childComplexity int) int
+		PickupType        func(childComplexity int) int
+		Stop              func(childComplexity int) int
+		StopHeadsign      func(childComplexity int) int
+		StopSequence      func(childComplexity int) int
+		Timepoint         func(childComplexity int) int
+		Trip              func(childComplexity int) int
 	}
 
 	StopTimeEvent struct {
@@ -1469,6 +1478,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedAuthorization.Type(childComplexity), true
+
+	case "FeedInfo.default_lang":
+		if e.complexity.FeedInfo.DefaultLang == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.DefaultLang(childComplexity), true
+
+	case "FeedInfo.feed_contact_email":
+		if e.complexity.FeedInfo.FeedContactEmail == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.FeedContactEmail(childComplexity), true
+
+	case "FeedInfo.feed_contact_url":
+		if e.complexity.FeedInfo.FeedContactURL == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.FeedContactURL(childComplexity), true
 
 	case "FeedInfo.feed_end_date":
 		if e.complexity.FeedInfo.FeedEndDate == nil {
@@ -2742,6 +2772,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Route.CensusGeographies(childComplexity, args["layer"].(string), args["radius"].(*float64), args["limit"].(*int)), true
 
+	case "Route.continuous_drop_off":
+		if e.complexity.Route.ContinuousDropOff == nil {
+			break
+		}
+
+		return e.complexity.Route.ContinuousDropOff(childComplexity), true
+
+	case "Route.continuous_pickup":
+		if e.complexity.Route.ContinuousPickup == nil {
+			break
+		}
+
+		return e.complexity.Route.ContinuousPickup(childComplexity), true
+
 	case "Route.feed_onestop_id":
 		if e.complexity.Route.FeedOnestopID == nil {
 			break
@@ -3280,6 +3324,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.PathwaysToStop(childComplexity, args["limit"].(*int)), true
 
+	case "Stop.platform_code":
+		if e.complexity.Stop.PlatformCode == nil {
+			break
+		}
+
+		return e.complexity.Stop.PlatformCode(childComplexity), true
+
 	case "Stop.route_stops":
 		if e.complexity.Stop.RouteStops == nil {
 			break
@@ -3353,6 +3404,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.StopURL(childComplexity), true
 
+	case "Stop.tts_stop_name":
+		if e.complexity.Stop.TtsStopName == nil {
+			break
+		}
+
+		return e.complexity.Stop.TtsStopName(childComplexity), true
+
 	case "Stop.wheelchair_boarding":
 		if e.complexity.Stop.WheelchairBoarding == nil {
 			break
@@ -3380,6 +3438,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StopTime.ArrivalTime(childComplexity), true
+
+	case "StopTime.continuous_drop_off":
+		if e.complexity.StopTime.ContinuousDropOff == nil {
+			break
+		}
+
+		return e.complexity.StopTime.ContinuousDropOff(childComplexity), true
+
+	case "StopTime.continuous_pickup":
+		if e.complexity.StopTime.ContinuousPickup == nil {
+			break
+		}
+
+		return e.complexity.StopTime.ContinuousPickup(childComplexity), true
 
 	case "StopTime.departure":
 		if e.complexity.StopTime.Departure == nil {
@@ -4164,6 +4236,8 @@ type Route {
   route_sort_order: Int!
   route_url: String!
   route_desc: String!
+  continuous_pickup: Int
+  continuous_drop_off: Int
   geometry: Geometry
   agency: Agency!
   feed_version: FeedVersion!
@@ -4192,6 +4266,8 @@ type Stop {
   stop_url: String!
   wheelchair_boarding: Int!
   zone_id: String!
+  platform_code: String
+  tts_stop_name: String
   geometry: Point!
   feed_version_sha1: String!
   feed_onestop_id: String!  
@@ -4298,6 +4374,8 @@ type StopTime {
   trip: Trip!
   arrival: StopTimeEvent!
   departure: StopTimeEvent!
+  continuous_drop_off: Int
+  continuous_pickup: Int
   # schedule_relationship: ScheduleRelationship!
 }
 
@@ -4307,9 +4385,12 @@ type FeedInfo {
   feed_publisher_name: String!
   feed_publisher_url: String!
   feed_lang: String!
+  default_lang: String
   feed_version: String!
   feed_start_date: Date
   feed_end_date: Date
+  feed_contact_email: String
+  feed_contact_url: String
 }
 
 # GTFS Support Entities
@@ -9303,6 +9384,38 @@ func (ec *executionContext) _FeedInfo_feed_lang(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FeedInfo_default_lang(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultLang, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OString)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FeedInfo_feed_version(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9400,6 +9513,70 @@ func (ec *executionContext) _FeedInfo_feed_end_date(ctx context.Context, field g
 	res := resTmp.(tl.ODate)
 	fc.Result = res
 	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedInfo_feed_contact_email(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedContactEmail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OString)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedInfo_feed_contact_url(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedContactURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OString)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedLicense_spdx_identifier(ctx context.Context, field graphql.CollectedField, obj *model.FeedLicense) (ret graphql.Marshaler) {
@@ -15459,6 +15636,70 @@ func (ec *executionContext) _Route_route_desc(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Route_continuous_pickup(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinuousPickup, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OInt)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Route_continuous_drop_off(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinuousDropOff, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OInt)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Route_geometry(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17455,6 +17696,70 @@ func (ec *executionContext) _Stop_zone_id(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Stop_platform_code(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlatformCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OString)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_tts_stop_name(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TtsStopName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OString)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Stop_geometry(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18414,6 +18719,70 @@ func (ec *executionContext) _StopTime_departure(ctx context.Context, field graph
 	res := resTmp.(*model.StopTimeEvent)
 	fc.Result = res
 	return ec.marshalNStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTime_continuous_drop_off(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinuousDropOff, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OInt)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTime_continuous_pickup(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinuousPickup, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.OInt)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTimeEvent_stop_timezone(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
@@ -23249,6 +23618,8 @@ func (ec *executionContext) _FeedInfo(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "default_lang":
+			out.Values[i] = ec._FeedInfo_default_lang(ctx, field, obj)
 		case "feed_version":
 			out.Values[i] = ec._FeedInfo_feed_version(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -23258,6 +23629,10 @@ func (ec *executionContext) _FeedInfo(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._FeedInfo_feed_start_date(ctx, field, obj)
 		case "feed_end_date":
 			out.Values[i] = ec._FeedInfo_feed_end_date(ctx, field, obj)
+		case "feed_contact_email":
+			out.Values[i] = ec._FeedInfo_feed_contact_email(ctx, field, obj)
+		case "feed_contact_url":
+			out.Values[i] = ec._FeedInfo_feed_contact_url(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -24735,6 +25110,10 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "continuous_pickup":
+			out.Values[i] = ec._Route_continuous_pickup(ctx, field, obj)
+		case "continuous_drop_off":
+			out.Values[i] = ec._Route_continuous_drop_off(ctx, field, obj)
 		case "geometry":
 			out.Values[i] = ec._Route_geometry(ctx, field, obj)
 		case "agency":
@@ -25261,6 +25640,10 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "platform_code":
+			out.Values[i] = ec._Stop_platform_code(ctx, field, obj)
+		case "tts_stop_name":
+			out.Values[i] = ec._Stop_tts_stop_name(ctx, field, obj)
 		case "geometry":
 			out.Values[i] = ec._Stop_geometry(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -25520,6 +25903,10 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 				}
 				return res
 			})
+		case "continuous_drop_off":
+			out.Values[i] = ec._StopTime_continuous_drop_off(ctx, field, obj)
+		case "continuous_pickup":
+			out.Values[i] = ec._StopTime_continuous_pickup(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
