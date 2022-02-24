@@ -12,7 +12,7 @@ jobs:
       PGDATABASE: tlv2_test_server
       PGHOST: postgres
       PGPORT: 5432
-      TL_TEST_SERVER_DATABASE_URL: "postgres://root:for_testing@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable"
+      TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@$postgres:5432/${PGDATABASE}?sslmode=disable
       TL_REDIS_URL: ""
       AWS_PROFILE: something
       AWS_REGION: us-east-1
