@@ -10,7 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PGDATABASE: tlv2_test_server
-      TL_TEST_SERVER_DATABASE_URL: "postgres://root:for_testing@$localhost:5432/${PGDATABASE}?sslmode=disable"
+      PGHOST: localhost
+      PGPORT: 5432
+      TL_TEST_SERVER_DATABASE_URL: "postgres://root:for_testing@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable"
       TL_REDIS_URL: ""
       AWS_PROFILE: something
       AWS_REGION: us-east-1
