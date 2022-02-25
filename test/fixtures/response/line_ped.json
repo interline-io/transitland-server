@@ -20,8 +20,8 @@
         "distance": 4.116497154678776,
         "units": "KILOMETERS"
     },
-    "start_time": "2009-02-13T15:31:30-08:00",
-    "end_time": "2009-02-13T16:40:06-08:00",
+    "start_time": "2009-02-13T23:31:30Z",
+    "end_time": "2009-02-14T00:40:06Z",
     "itineraries": [
         {
             "duration": {
@@ -32,8 +32,8 @@
                 "distance": 4.116497154678776,
                 "units": "KILOMETERS"
             },
-            "start_time": "2009-02-13T15:31:30-08:00",
-            "end_time": "2009-02-13T16:40:06-08:00",
+            "start_time": "2009-02-13T23:31:30Z",
+            "end_time": "2009-02-14T00:40:06Z",
             "from": null,
             "to": null,
             "legs": [
@@ -46,8 +46,8 @@
                         "distance": 4.116497154678776,
                         "units": "KILOMETERS"
                     },
-                    "start_time": "2009-02-13T15:31:30-08:00",
-                    "end_time": "2009-02-13T16:40:06-08:00",
+                    "start_time": "2009-02-13T23:31:30Z",
+                    "end_time": "2009-02-14T00:40:06Z",
                     "from": null,
                     "to": null,
                     "steps": [
@@ -60,8 +60,8 @@
                                 "distance": 4.116497154678776,
                                 "units": "KILOMETERS"
                             },
-                            "start_time": "2009-02-13T15:31:30-08:00",
-                            "end_time": "2009-02-13T16:40:06-08:00",
+                            "start_time": "2009-02-13T23:31:30Z",
+                            "end_time": "2009-02-14T00:40:06Z",
                             "to": null,
                             "mode": "",
                             "instruction": "",

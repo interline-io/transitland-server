@@ -70,13 +70,15 @@ func (h *valhallaRouter) Request(req model.DirectionRequest) (*model.Directions,
 	} else {
 		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
-	departAt := time.Now().In(time.UTC)
+	departAt := time.Now()
 	if req.DepartAt == nil {
-		departAt = time.Now().In(time.UTC)
+		departAt = time.Now()
 		req.DepartAt = &departAt
 	} else {
 		departAt = *req.DepartAt
 	}
+	// Ensure we are in UTC
+	departAt = departAt.In(time.UTC)
 
 	// Make request
 	res, err := makeValRequest(input, h.client, h.endpoint, h.apikey)
@@ -115,7 +117,6 @@ func makeValRequest(req valhallaRequest, client *http.Client, endpoint string, a
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println("response:", string(body))
 	res := valhallaResponse{}
 	if err := json.Unmarshal(body, &res); err != nil {
 		return nil, err
