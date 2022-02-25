@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -24,7 +25,7 @@ func RegisterRouter(name string, f handlerFunc) error {
 	if _, ok := handlers[name]; ok {
 		return fmt.Errorf("handler '%s' already registered", name)
 	}
-	// fmt.Println("registering routing handler:", name)
+	log.Debugf("registering routing handler: %s", name)
 	handlers[name] = f
 	return nil
 }

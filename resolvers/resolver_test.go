@@ -2,11 +2,11 @@ package resolvers
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/rtcache"
@@ -21,7 +21,7 @@ var TestRTFinder model.RTFinder
 func TestMain(m *testing.M) {
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
 	if g == "" {
-		fmt.Println("TL_TEST_SERVER_DATABASE_URL not set, skipping")
+		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		return
 	}
 	db := find.MustOpenDB(g)
@@ -64,7 +64,7 @@ func testquery(t *testing.T, c *client.Client, tc testcase) {
 	jj := toJson(resp)
 	if tc.expect != "" {
 		if !assert.JSONEq(t, tc.expect, jj) {
-			fmt.Printf("got %s -- expect %s\n", jj, tc.expect)
+			t.Errorf("got %s -- expect %s\n", jj, tc.expect)
 		}
 	}
 	if tc.selector != "" {
@@ -76,7 +76,7 @@ func testquery(t *testing.T, c *client.Client, tc testcase) {
 			t.Errorf("selector '%s' returned zero elements", tc.selector)
 		} else {
 			if !assert.ElementsMatch(t, a, tc.expectSelect) {
-				fmt.Printf("got %#v -- expect %#v\n\n", a, tc.expectSelect)
+				t.Errorf("got %#v -- expect %#v\n\n", a, tc.expectSelect)
 			}
 		}
 	}

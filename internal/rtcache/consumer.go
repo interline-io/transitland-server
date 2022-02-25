@@ -2,9 +2,9 @@ package rtcache
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"google.golang.org/protobuf/proto"
 )
@@ -25,7 +25,7 @@ func newRTConsumer() (*rtConsumer, error) {
 }
 
 func (f *rtConsumer) GetTrip(tid string) (*pb.TripUpdate, bool) {
-	// fmt.Printf("consumer '%s': get trip '%s'\n", f.feed, tid)
+	log.Debug().Str("feed_id", f.feed).Str("trip", tid).Msg("consumer: get trip")
 	a, ok := f.entityByTrip[tid]
 	if ok {
 		return a, true
@@ -34,7 +34,7 @@ func (f *rtConsumer) GetTrip(tid string) (*pb.TripUpdate, bool) {
 }
 
 func (f *rtConsumer) Start(ch chan []byte) error {
-	// fmt.Printf("consumer '%s': start\n", f.feed)
+	log.Debug().Str("feed_id", f.feed).Msg("consumer: start")
 	f.entityByTrip = map[string]*pb.TripUpdate{}
 	timeout := make(chan bool)
 	go func() {
@@ -46,12 +46,12 @@ func (f *rtConsumer) Start(ch chan []byte) error {
 		for {
 			select {
 			case <-f.done:
-				// fmt.Printf("consumer '%s': done\n", f.feed)
+				log.Debug().Str("feed_id", f.feed).Msg("consumer: done")
 				return
 			case rtdata := <-ch:
-				// fmt.Printf("consumer '%s': received %d bytes\n", f.feed, len(rtdata))
+				log.Debug().Str("feed_id", f.feed).Int("bytes", len(rtdata)).Msg("consumer: received data")
 				if err := f.process(rtdata); err != nil {
-					fmt.Println("error processing rt data")
+					log.Error().Err(err).Str("feed_id", f.feed).Msg("consumer: error processing rt data")
 				}
 				if ready != nil {
 					ready <- true
@@ -64,17 +64,17 @@ func (f *rtConsumer) Start(ch chan []byte) error {
 	// wait for first entity
 	select {
 	case <-timeout:
-		// fmt.Printf("consumer '%s': timeout waiting for first entity\n", f.feed)
+		log.Debug().Str("feed_id", f.feed).Msg("consumer: timed out waiting for first entity")
 		return errors.New("timeout waiting for first entity")
 	case <-ready:
-		// fmt.Printf("consumer '%s': ready!\n", f.feed)
+		log.Debug().Str("feed_id", f.feed).Msg("consumer: ready")
 		return nil
 	}
 }
 
 func (f *rtConsumer) process(rtdata []byte) error {
 	if len(rtdata) == 0 {
-		// fmt.Printf("consumer '%s': received no data\n", f.feed)
+		log.Debug().Str("feed_id", f.feed).Msg("consumer: received no data")
 		return nil
 	}
 	rtmsg := pb.FeedMessage{}
@@ -98,7 +98,7 @@ func (f *rtConsumer) process(rtdata []byte) error {
 		}
 		// todo: vehicle positions...
 	}
-	// fmt.Printf("consumer '%s': processed trips: %s\n", f.feed, strings.Join(tids, ","))
+	log.Debug().Str("feed_id", f.feed).Int("trip_updates", len(a)).Int("alerts", len(alerts)).Msg("consumer: processed trips")
 	f.entityByTrip = a
 	f.alerts = alerts
 	return nil

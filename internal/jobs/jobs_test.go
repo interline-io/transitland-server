@@ -17,6 +17,7 @@ type testWorker struct {
 }
 
 func (t *testWorker) Run(ctx context.Context, job Job) error {
+	time.Sleep(10 * time.Millisecond)
 	t.count += 1
 	return nil
 }

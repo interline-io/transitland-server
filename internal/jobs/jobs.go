@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/interline-io/transitland-server/model"
+	"github.com/rs/zerolog"
 )
 
 // Job queue
@@ -28,6 +29,7 @@ type JobOptions struct {
 	Finder   model.Finder
 	RTFinder model.RTFinder
 	JobQueue JobQueue
+	Logger   zerolog.Logger
 }
 
 // GetWorker returns a new worker for this job type

@@ -23,6 +23,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.8.0
 	github.com/prometheus/client_golang v0.9.3
+	github.com/rs/zerolog v1.26.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/tinylru v1.1.0

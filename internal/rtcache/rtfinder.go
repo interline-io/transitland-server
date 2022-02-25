@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -200,14 +201,14 @@ func (f *RTFinder) getListener(topicKey string) (*rtConsumer, error) {
 		ch, err := f.cache.Listen(topicKey)
 		// Failed to create listener
 		if err != nil {
-			// fmt.Printf("manager: '%s' failed to create listener\n", topicKey)
+			log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: failed to create listener")
 			return nil, err
 		}
-		// fmt.Printf("manager: '%s' listener created\n", topicKey)
+		log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: listener created")
 		a, _ = newRTConsumer()
 		a.feed = topicKey
 		a.Start(ch)
-		// fmt.Printf("manager: '%s' consumer started\n", topicKey)
+		log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: started consumer")
 		f.fetchers[topicKey] = a
 	}
 	f.lock.Unlock()

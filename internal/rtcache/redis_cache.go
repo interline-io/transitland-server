@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/interline-io/transitland-lib/log"
 )
 
 type listenChan struct {
@@ -55,16 +56,16 @@ func (f *RedisCache) Listen(topic string) (chan []byte, error) {
 		for {
 			select {
 			case <-lch.done:
-				// fmt.Printf("cache '%s': done\n", topic)
+				log.Debug().Str("topic", topic).Msg("cache: done")
 				return
 			case rmsg := <-subch:
-				// fmt.Printf("cache '%s': sending %d bytes\n", topic, len(rmsg.Payload))
+				log.Debug().Str("topic", topic).Int("bytes", len(rmsg.Payload)).Msg("cache: sending data")
 				b := []byte(rmsg.Payload)
 				ch.listener <- b
 			}
 		}
 	}(f.client, lch)
-	// fmt.Printf("cache: '%s' listener created\n", topic)
+	log.Debug().Str("topic", topic).Msg("cache: listener created")
 	return lch.listener, nil
 }
 
@@ -77,13 +78,12 @@ func (f *RedisCache) AddData(topic string, data []byte) error {
 	if err := f.client.Publish(context.TODO(), subKey(topic), data).Err(); err != nil {
 		return err
 	}
-	// fmt.Printf("cache '%s': added %d bytes\n", topic, len(data))
+	log.Debug().Str("topic", topic).Int("bytes", len(data)).Msg("cache: added data")
 	return nil
 }
 
 func (f *RedisCache) Close() error {
 	for _, ch := range f.listeners {
-		// fmt.Println("closing ch:", ch)
 		ch.done <- true
 	}
 	return nil

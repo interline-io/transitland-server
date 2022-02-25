@@ -3,8 +3,15 @@ package jobs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/interline-io/transitland-lib/log"
 )
+
+var jobCounter = uint64(0)
 
 type LocalJobs struct {
 	jobs     chan Job
@@ -23,7 +30,7 @@ func (f *LocalJobs) AddJob(job Job) error {
 		return errors.New("closed")
 	}
 	f.jobs <- job
-	// fmt.Printf("jobs: added job '%s'\n", job.Feed)
+	log.Info().Interface("job", job).Msg("jobs: added job") // ("jobs: added job '%s'\n", job.Feed)
 	return nil
 }
 
@@ -36,10 +43,19 @@ func (f *LocalJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 		if err != nil {
 			return err
 		}
+		t1 := time.Now()
+		jobId := atomic.AddUint64(&jobCounter, 1)
 		job.Opts = jo
-		return w.Run(context.TODO(), job)
+		job.Opts.Logger = log.Logger.With().Str("job_type", job.JobType).Str("job_id", fmt.Sprintf("%d", jobId)).Logger()
+		job.Opts.Logger.Info().Msg("job: started")
+		if err := w.Run(context.TODO(), job); err != nil {
+			job.Opts.Logger.Error().Err(err).Msg("job: error")
+			return err
+		}
+		job.Opts.Logger.Info().Int64("job_time_ms", (time.Now().UnixNano()-t1.UnixNano())/1e6).Msg("job: completed")
+		return nil
 	}
-	// fmt.Printf("jobs: created job listener\n")
+	log.Infof("jobs: created job listener")
 	for i := 0; i < count; i++ {
 		f.jobfuncs = append(f.jobfuncs, processMessage)
 	}
@@ -50,6 +66,7 @@ func (f *LocalJobs) Run() error {
 	if f.running {
 		return errors.New("already running")
 	}
+	log.Infof("jobs: running")
 	f.running = true
 	var wg sync.WaitGroup
 	for _, jobfunc := range f.jobfuncs {
@@ -69,7 +86,7 @@ func (f *LocalJobs) Stop() error {
 	if !f.running {
 		return errors.New("not running")
 	}
-	// fmt.Println("jobs: stopping")
+	log.Infof("jobs: stopping")
 	close(f.jobs)
 	f.running = false
 	f.jobs = nil
