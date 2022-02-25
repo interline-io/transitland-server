@@ -112,15 +112,7 @@ func (cmd *Command) Run() error {
 		jobQueue = jobs.NewLocalJobs()
 	}
 
-	// Setup CORS and logging
 	root := mux.NewRouter()
-	cors := handlers.CORS(
-		handlers.AllowedHeaders([]string{"content-type", "apikey", "authorization"}),
-		handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowCredentials(),
-	)
-	root.Use(cors)
-	root.Use(loggingMiddleware)
 
 	// Setup user middleware
 	userMiddleware, err := auth.GetUserMiddleware(cmd.UseAuth, cmd.AuthConfig)
@@ -186,9 +178,18 @@ func (cmd *Command) Run() error {
 		}
 	}
 
+	// Setup CORS and logging
+	cors := handlers.CORS(
+		handlers.AllowedHeaders([]string{"content-type", "apikey", "authorization"}),
+		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowCredentials(),
+	)
+	root.Use(cors)
+	root.Use(loggingMiddleware)
+
 	// Start server
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
-	log.Print("listening on:", addr)
+	log.Infof("listening on: %s", addr)
 	timeOut := time.Duration(cmd.Timeout)
 	srv := &http.Server{
 		Handler:      root,
@@ -214,8 +215,15 @@ func mount(r *mux.Router, path string, handler http.Handler) {
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Print(r.RequestURI)
+		t1 := time.Now()
+		user := auth.ForContext(r.Context())
 		next.ServeHTTP(w, r)
+		log.Info().
+			Int64("duration_ms", (time.Now().UnixNano()-t1.UnixNano())/1e6).
+			Str("method", r.Method).
+			Str("url", r.RequestURI).
+			Str("user", user.Name).
+			Msg("request")
 	})
 }
 
