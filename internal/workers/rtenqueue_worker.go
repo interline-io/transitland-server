@@ -3,7 +3,6 @@ package workers
 import (
 	"context"
 
-	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -13,6 +12,7 @@ type RTEnqueueWorker struct{}
 
 func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	opts := job.Opts
+	log := job.Opts.Logger
 	// Get all operators
 	type skey struct {
 		RT     string
