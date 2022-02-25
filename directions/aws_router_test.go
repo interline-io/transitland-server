@@ -46,5 +46,17 @@ func makeTestawsRouter(tr http.RoundTripper) (*awsRouter, error) {
 		Transport: tr,
 	}
 	lc := location.NewFromConfig(cfg)
+	// cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
+	// lc := &mockLocationClient{
+	// 	Transport: tr,
+	// }
 	return newAWSRouter(lc, cn), nil
+}
+
+type mockLocationClient struct {
+	Transport http.RoundTripper
+}
+
+func (mc *mockLocationClient) CalculateRoute(context.Context, *location.CalculateRouteInput, ...func(*location.Options)) (*location.CalculateRouteOutput, error) {
+	return nil, nil
 }

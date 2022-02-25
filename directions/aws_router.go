@@ -16,6 +16,10 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
+type LocationClient interface {
+	CalculateRoute(context.Context, *location.CalculateRouteInput, ...func(*location.Options)) (*location.CalculateRouteOutput, error)
+}
+
 func init() {
 	// Get AWS config and register handler factory
 	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
@@ -47,10 +51,10 @@ func init() {
 
 type awsRouter struct {
 	CalculatorName string
-	locationClient *location.Client
+	locationClient LocationClient
 }
 
-func newAWSRouter(lc *location.Client, calculator string) *awsRouter {
+func newAWSRouter(lc LocationClient, calculator string) *awsRouter {
 	return &awsRouter{
 		CalculatorName: calculator,
 		locationClient: lc,
@@ -90,7 +94,7 @@ func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, erro
 		input.DepartNow = nil
 	}
 	// Ugly hack for testing
-	// If departAt is in the past, don't send any time info to request
+	// If departAt is in the past, don't send any time info with request
 	if departAt.Before(now) {
 		input.DepartNow = nil
 		input.DepartureTime = nil
