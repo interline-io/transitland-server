@@ -172,7 +172,7 @@ func (cmd *Command) Run() error {
 		jobWorkers := 10
 		if cmd.EnableWorkers {
 			log.Print("enabling workers")
-			jobQueue.AddWorker(workers.GetWorker, jobs.JobOptions{JobQueue: jobQueue, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
+			jobQueue.AddWorker(workers.GetWorker, jobs.JobOptions{Logger: log.Logger, JobQueue: jobQueue, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
 			go jobQueue.Run()
 		}
 		if cmd.EnableJobsApi {

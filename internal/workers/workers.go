@@ -37,7 +37,6 @@ func NewServer(cfg config.Config, finder model.Finder, rtFinder model.RTFinder, 
 		Finder:   finder,
 		RTFinder: rtFinder,
 	}
-	// fmt.Println("new runner:", runner)
 	r.HandleFunc("/add", wrapHandler(addJobRequest, jo, jq))
 	r.HandleFunc("/run", wrapHandler(runJobRequest, jo, jq))
 	return r, nil

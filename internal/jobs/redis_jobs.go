@@ -4,9 +4,11 @@ import (
 	"context"
 	"os"
 	"strconv"
+	"time"
 
 	workers "github.com/digitalocean/go-workers2"
 	"github.com/go-redis/redis/v8"
+	"github.com/interline-io/transitland-lib/log"
 )
 
 // RedisJobs is a simple wrapper around go-workers
@@ -61,16 +63,23 @@ func (f *RedisJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 		if err != nil {
 			return err
 		}
+		t1 := time.Now()
 		job.Opts = jo
-		return w.Run(context.TODO(), job)
-
+		job.Opts.Logger = log.Logger.With().Str("job_type", job.JobType).Str("job_id", msg.Jid()).Logger()
+		job.Opts.Logger.Info().Msg("job: started")
+		if err := w.Run(context.TODO(), job); err != nil {
+			job.Opts.Logger.Error().Err(err).Msg("job: error")
+			return err
+		}
+		job.Opts.Logger.Info().Int64("job_time_ms", (time.Now().UnixNano()-t1.UnixNano())/1e6).Msg("job: completed")
+		return nil
 	}
 	manager.AddWorker(f.queueName, count, processMessage)
 	return nil
 }
 
 func (f *RedisJobs) Run() error {
-	// fmt.Println("jobs: running")
+	log.Infof("jobs: running")
 	manager, err := f.getManager()
 	if err == nil {
 		// Blocks
@@ -80,7 +89,7 @@ func (f *RedisJobs) Run() error {
 }
 
 func (f *RedisJobs) Stop() error {
-	// fmt.Println("jobs: stopping")
+	log.Infof("jobs: stopping")
 	manager, err := f.getManager()
 	if err == nil {
 		manager.Stop()

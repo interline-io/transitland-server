@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -71,15 +72,14 @@ func (f *lookupCache) GetFeedVersionOnestopID(id int) (string, bool) {
 func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) {
 	// If a timezone is provided, save it and return immediately
 	if known != "" {
-		// fmt.Println("tz using known timezone:", id, known)
+		log.Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
 		return f.tzCache.Add(id, known)
 	}
 	// Check the cache
 	if loc, ok := f.tzCache.Get(id); ok {
-		// fmt.Println("tz cached timezone:", id, known, "result:", loc)
+		log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
 		return loc, ok
 	}
-	// fmt.Println("tz lookup timezone:", id, known)
 	// Otherwise lookup the timezone
 	q := `
 		select COALESCE(nullif(s.stop_timezone, ''), nullif(p.stop_timezone, ''), a.agency_timezone)
@@ -95,10 +95,12 @@ func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) 
 		limit 1`
 	tz := ""
 	if err := sqlx.Get(f.db, &tz, q, id); err != nil {
-		// fmt.Println("tz lookup error:", err)
+		log.Error().Err(err).Int("stop_id", id).Str("known", known).Msg("tz: lookup failed")
+
 	}
-	// fmt.Println("found:", id, "tz:", tz)
-	return f.tzCache.Add(id, tz)
+	loc, ok := f.tzCache.Add(id, tz)
+	log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: lookup successful")
+	return loc, ok
 }
 
 // Lookup time.Location by name
@@ -219,6 +221,5 @@ func (c *tzCache) Add(key int, tz string) (*time.Location, bool) {
 		}
 		c.tzs[tz] = loc
 	}
-	// fmt.Println("tzcache add:", loc, ok)
 	return loc, ok
 }

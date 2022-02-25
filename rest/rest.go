@@ -13,6 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/gorilla/mux"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/config"
 )
 
@@ -183,7 +184,7 @@ func makeHandler(cfg restConfig, f func() apiHandler) http.HandlerFunc {
 				w.WriteHeader(http.StatusOK)
 				err := localFileCache.Get(w, urlkey)
 				if err != nil {
-					fmt.Println("file cache error:", err)
+					log.Error().Err(err).Msg("file cache error")
 				}
 				return
 			}
@@ -192,12 +193,12 @@ func makeHandler(cfg restConfig, f func() apiHandler) http.HandlerFunc {
 		// Use json marshal/unmarshal to convert string params to correct types
 		s, err := json.Marshal(opts)
 		if err != nil {
-			fmt.Println("err:", err)
+			log.Error().Err(err).Msg("failed to marshal request params")
 			http.Error(w, "parameter error", http.StatusInternalServerError)
 			return
 		}
 		if err := json.Unmarshal(s, ent); err != nil {
-			fmt.Println("err:", err)
+			log.Error().Err(err).Msg("failed to unmarshal request params")
 			http.Error(w, "parameter error", http.StatusInternalServerError)
 			return
 		}
@@ -221,7 +222,7 @@ func makeHandler(cfg restConfig, f func() apiHandler) http.HandlerFunc {
 		// Cache image response
 		if format == "png" && localFileCache != nil {
 			if err := localFileCache.Put(urlkey, bytes.NewReader(response)); err != nil {
-				fmt.Println("file cache error:", err)
+				log.Error().Err(err).Msgf("file cache error")
 			}
 		}
 	}
@@ -242,17 +243,15 @@ func makeGraphQLRequest(srv http.Handler, q string, vars map[string]interface{})
 // makeRequest prepares an apiHandler and makes the request.
 func makeRequest(cfg restConfig, ent apiHandler, format string, u *url.URL) ([]byte, error) {
 	query, vars := ent.Query()
-	// fmt.Printf("debug query: %s\n vars:\n %s\n", query, vars)
 	response, err := makeGraphQLRequest(cfg.srv, query, vars)
 	x, _ := json.Marshal(vars)
 	if err != nil {
-		fmt.Printf("debug query: %s\n vars:\n %s\nresponse:\n%s\n", query, x, response)
+		log.Error().Err(err).Str("query", query).Str("vars", string(x)).Interface("response", response).Msgf("graphql request failed")
 		return nil, errors.New("request error")
 	}
-
 	// get highest ID
 	if maxid, err := getMaxID(ent, response); err != nil {
-		fmt.Println("getmaxid err:", err)
+		log.Error().Err(err).Msg("pagination failed to get max entity id")
 	} else if maxid > 0 && u != nil {
 		rq := u.Query()
 		rq.Set("after", strconv.Itoa(maxid))

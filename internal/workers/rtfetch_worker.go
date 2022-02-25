@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"google.golang.org/protobuf/proto"
@@ -13,7 +14,6 @@ import (
 type RTFetchWorker struct{}
 
 func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
-	// fmt.Printf("fetch worker! job: %#v\n", job)
 	if len(job.Args) != 4 {
 		return errors.New("feed, type and url required")
 	}
@@ -24,12 +24,12 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	var rtdata []byte
 	msg, err := rt.ReadURL(url)
 	if err != nil {
-		fmt.Printf("source '%s' type '%s': request failed\n", source, ftype)
+		log.Error().Err(err).Str("feed_id", feed).Str("source", source).Str("source_type", ftype).Str("url", url).Msg("fetch worker: request failed")
 		return nil
 	}
 	rtdata, err = proto.Marshal(msg)
 	if err != nil {
-		fmt.Printf("source '%s' type '%s': failed to parse response\n", source, ftype)
+		log.Error().Err(err).Str("feed_id", feed).Str("source", source).Str("source_type", ftype).Str("url", url).Msg("fetch worker: failed to parse response")
 		return nil
 	}
 	key := fmt.Sprintf("rtdata:%s:%s", feed, ftype)

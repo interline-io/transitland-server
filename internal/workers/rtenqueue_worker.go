@@ -2,8 +2,8 @@ package workers
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -12,7 +12,6 @@ import (
 type RTEnqueueWorker struct{}
 
 func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
-	// fmt.Println("enqueue worker!")
 	opts := job.Opts
 	// Get all operators
 	type skey struct {
@@ -44,9 +43,8 @@ func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	var jj []jobs.Job
 	for _, ent := range rtfeeds {
 		fid := ent.FeedID
-		fmt.Println("feed:", ent.FeedID)
 		if ent.Authorization.Type != "" {
-			fmt.Println("\trequire auth, skipping")
+			log.Info().Str("feed_id", fid).Msg("enqueue worker: feed requires auth, skipping")
 			continue
 		}
 		var uniq []string
@@ -55,8 +53,7 @@ func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				uniq = append(uniq, sk.Static)
 			}
 		}
-		fmt.Println("\ttargets:", uniq)
-		fmt.Println("\turls:", ent.URLs)
+		log.Info().Str("feed_id", fid).Strs("targets", uniq).Msg("enqueue worker: adding rt-fetch jobs for feed")
 		for _, target := range uniq {
 			if ent.URLs.RealtimeAlerts != "" {
 				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "alerts", ent.URLs.RealtimeAlerts, fid}})
