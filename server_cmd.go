@@ -46,31 +46,6 @@ type Command struct {
 	config.Config
 }
 
-func getRedisOpts(v string) (*redis.Options, error) {
-	a, err := url.Parse(v)
-	if err != nil {
-		return nil, err
-	}
-	if a.Scheme != "redis" {
-		return nil, errors.New("redis URL must begin with redis://")
-	}
-	port := a.Port()
-	if port == "" {
-		port = "6379"
-	}
-	addr := fmt.Sprintf("%s:%s", a.Hostname(), port)
-	dbNo := 0
-	if len(a.Path) > 0 {
-		var err error
-		f := a.Path[1:len(a.Path)]
-		dbNo, err = strconv.Atoi(f)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &redis.Options{Addr: addr, DB: dbNo}, nil
-}
-
 func (cmd *Command) Parse(args []string) error {
 	fl := flag.NewFlagSet("sync", flag.ExitOnError)
 	fl.Usage = func() {
@@ -242,4 +217,29 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		log.Print(r.RequestURI)
 		next.ServeHTTP(w, r)
 	})
+}
+
+func getRedisOpts(v string) (*redis.Options, error) {
+	a, err := url.Parse(v)
+	if err != nil {
+		return nil, err
+	}
+	if a.Scheme != "redis" {
+		return nil, errors.New("redis URL must begin with redis://")
+	}
+	port := a.Port()
+	if port == "" {
+		port = "6379"
+	}
+	addr := fmt.Sprintf("%s:%s", a.Hostname(), port)
+	dbNo := 0
+	if len(a.Path) > 0 {
+		var err error
+		f := a.Path[1:len(a.Path)]
+		dbNo, err = strconv.Atoi(f)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &redis.Options{Addr: addr, DB: dbNo}, nil
 }

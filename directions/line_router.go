@@ -34,13 +34,15 @@ func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, err
 		return &ret, nil
 	}
 
-	departAt := time.Now().In(time.UTC)
+	departAt := time.Now()
 	if req.DepartAt == nil {
-		departAt = time.Now().In(time.UTC)
+		departAt = time.Now()
 		req.DepartAt = &departAt
 	} else {
 		departAt = *req.DepartAt
 	}
+	// Ensure we are in UTC
+	departAt = departAt.In(time.UTC)
 
 	distance := distanceHaversine(req.From.Lon, req.From.Lat, req.To.Lon, req.To.Lat) / 1000.0
 	speed := 1.0 // m/s

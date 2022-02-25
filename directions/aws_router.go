@@ -2,7 +2,6 @@ package directions
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -11,10 +10,15 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/location"
 	"github.com/aws/aws-sdk-go-v2/service/location/types"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
 )
+
+type LocationClient interface {
+	CalculateRoute(context.Context, *location.CalculateRouteInput, ...func(*location.Options)) (*location.CalculateRouteOutput, error)
+}
 
 func init() {
 	// Get AWS config and register handler factory
@@ -47,10 +51,10 @@ func init() {
 
 type awsRouter struct {
 	CalculatorName string
-	locationClient *location.Client
+	locationClient LocationClient
 }
 
-func newAWSRouter(lc *location.Client, calculator string) *awsRouter {
+func newAWSRouter(lc LocationClient, calculator string) *awsRouter {
 	return &awsRouter{
 		CalculatorName: calculator,
 		locationClient: lc,
@@ -79,7 +83,7 @@ func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, erro
 		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
 	// Departure time
-	now := time.Now().In(time.UTC)
+	now := time.Now()
 	var departAt time.Time
 	if req.DepartAt == nil {
 		departAt = now
@@ -90,16 +94,18 @@ func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, erro
 		input.DepartNow = nil
 	}
 	// Ugly hack for testing
-	// If departAt is in the past, don't send any time info to request
+	// If departAt is in the past, don't send any time info with request
 	if departAt.Before(now) {
 		input.DepartNow = nil
 		input.DepartureTime = nil
 	}
+	// Ensure we are in UTC
+	departAt = departAt.In(time.UTC)
 
 	// Make request
 	res, err := h.locationClient.CalculateRoute(context.TODO(), &input)
 	if err != nil || res.Summary == nil {
-		fmt.Println("aws location services error:", err)
+		log.Debug().Err(err).Msg("aws location services error")
 		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
 	}
 

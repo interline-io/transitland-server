@@ -1,7 +1,10 @@
 package directions
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -26,7 +29,7 @@ func Test_awsRouter(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			recorder := testutil.NewRecorder(filepath.Join("../test/fixtures/aws/location", tc.name), "directions://aws")
 			defer recorder.Stop()
-			h, err := makeTestawsRouter(recorder)
+			h, err := makeTestMockRouter(recorder)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -35,8 +38,20 @@ func Test_awsRouter(t *testing.T) {
 	}
 }
 
-func makeTestawsRouter(tr http.RoundTripper) (*awsRouter, error) {
+// Mock reader
+func makeTestMockRouter(tr http.RoundTripper) (*awsRouter, error) {
 	// Use custom client/transport
+	cn := ""
+	lc := &mockLocationClient{
+		Client: &http.Client{
+			Transport: tr,
+		},
+	}
+	return newAWSRouter(lc, cn), nil
+}
+
+// Regenerate results
+func makeTestAwsRouter(tr http.RoundTripper) (*awsRouter, error) {
 	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
 	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
 	if err != nil {
@@ -47,4 +62,30 @@ func makeTestawsRouter(tr http.RoundTripper) (*awsRouter, error) {
 	}
 	lc := location.NewFromConfig(cfg)
 	return newAWSRouter(lc, cn), nil
+}
+
+// We need to mock out the location services client
+type mockLocationClient struct {
+	Client *http.Client
+}
+
+func (mc *mockLocationClient) CalculateRoute(ctx context.Context, params *location.CalculateRouteInput, opts ...func(*location.Options)) (*location.CalculateRouteOutput, error) {
+	reqBody, err := json.Marshal(params)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", "directions://aws", bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mc.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	b, _ := ioutil.ReadAll(resp.Body)
+	a := location.CalculateRouteOutput{}
+	if err := json.Unmarshal(b, &a); err != nil {
+		return nil, err
+	}
+	return &a, nil
 }
