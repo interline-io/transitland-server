@@ -38,6 +38,9 @@ func Test_awsRouter(t *testing.T) {
 func makeTestawsRouter(tr http.RoundTripper) (*awsRouter, error) {
 	// Use custom client/transport
 	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
+	if cn == "" {
+		cn = "test"
+	}
 	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return nil, err

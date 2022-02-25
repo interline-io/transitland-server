@@ -19,6 +19,8 @@ jobs:
       TL_REDIS_URL: ""
       AWS_PROFILE: something
       AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: "abc" 
+      AWS_SECRET_ACCESS_KEY: "def"
     services:
       postgres:
         image: postgis/postgis:12-3.2-alpine
