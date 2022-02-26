@@ -44,7 +44,8 @@ func (f *RedisCache) Listen(topic string) (chan []byte, error) {
 		if err := lastData.Err(); err == redis.Nil {
 			ch.listener <- nil
 		} else if err != nil {
-			panic(err)
+			log.Error().Err(err).Msg("cache: error receiving data")
+			ch.listener <- nil
 		} else {
 			lb, _ := lastData.Bytes()
 			ch.listener <- lb
