@@ -16,9 +16,9 @@ func TestFeedResolver(t *testing.T) {
 		},
 		{
 			"basic fields",
-			`query($onestop_id:String!) { feeds(where:{onestop_id:$onestop_id}) {name onestop_id spec languages associated_feeds file}}`,
+			`query($onestop_id:String!) { feeds(where:{onestop_id:$onestop_id}) {name onestop_id spec languages file}}`,
 			hw{"onestop_id": "CT"},
-			`{"feeds":[{"associated_feeds":["CT~rt"],"file":"server-test.dmfr.json","languages":["en-US"],"name":"Caltrain","onestop_id":"CT","spec":"gtfs"}]}`,
+			`{"feeds":[{"file":"server-test.dmfr.json","languages":["en-US"],"name":"Caltrain","onestop_id":"CT","spec":"gtfs"}]}`,
 			"",
 			nil,
 		},
