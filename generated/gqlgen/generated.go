@@ -168,7 +168,6 @@ type ComplexityRoot struct {
 	}
 
 	Feed struct {
-		AssociatedFeeds     func(childComplexity int) int
 		AssociatedOperators func(childComplexity int) int
 		Authorization       func(childComplexity int) int
 		FeedNamespaceID     func(childComplexity int) int
@@ -663,7 +662,6 @@ type CensusValueResolver interface {
 }
 type FeedResolver interface {
 	Languages(ctx context.Context, obj *model.Feed) ([]string, error)
-	AssociatedFeeds(ctx context.Context, obj *model.Feed) ([]string, error)
 
 	Authorization(ctx context.Context, obj *model.Feed) (*model.FeedAuthorization, error)
 	Urls(ctx context.Context, obj *model.Feed) (*model.FeedUrls, error)
@@ -1340,13 +1338,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Duration.Units(childComplexity), true
-
-	case "Feed.associated_feeds":
-		if e.complexity.Feed.AssociatedFeeds == nil {
-			break
-		}
-
-		return e.complexity.Feed.AssociatedFeeds(childComplexity), true
 
 	case "Feed.associated_operators":
 		if e.complexity.Feed.AssociatedOperators == nil {
@@ -4068,7 +4059,6 @@ type Feed {
   file: String!
   spec: String!
   languages: [String!]
-  associated_feeds: [String!]
   tags: Tags
   authorization: FeedAuthorization
   urls: FeedUrls
@@ -8828,38 +8818,6 @@ func (ec *executionContext) _Feed_languages(ctx context.Context, field graphql.C
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Feed().Languages(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Feed_associated_feeds(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Feed",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Feed().AssociatedFeeds(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23453,17 +23411,6 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Feed_languages(ctx, field, obj)
-				return res
-			})
-		case "associated_feeds":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Feed_associated_feeds(ctx, field, obj)
 				return res
 			})
 		case "tags":

@@ -38,7 +38,6 @@ type Feed {
   file: String!
   spec: String!
   languages: [String!]
-  associated_feeds: [String!]
   tags: Tags
   authorization: FeedAuthorization
   urls: FeedUrls
