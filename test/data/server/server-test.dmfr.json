@@ -8,9 +8,6 @@
       "languages": [
         "en-US"
       ],
-      "associated_feeds": [
-        "CT~rt"
-      ],
       "urls": {
         "static_current": "test/data/external/caltrain.zip",
         "static_historic": [
@@ -30,10 +27,19 @@
       },
       "operators": [
         {
+          "name": "Caltrain",
           "onestop_id": "o-9q9-caltrain",
           "tags": {
             "us_ntd_id": "90134"
-          }
+          },
+          "associated_feeds": [
+            {
+              "feed_onestop_id": "CT"
+            },            
+            {
+              "feed_onestop_id": "CT~rt"
+            }
+          ]
         }
       ]
     },
@@ -51,9 +57,6 @@
     {
       "spec": "gtfs-rt",
       "id": "BA~rt",
-      "associated_feeds": [
-        "BA"
-      ],
       "urls": {
         "realtime_trip_updates": "test/data/rt/BA.json"
       }
@@ -61,9 +64,6 @@
     {
       "spec": "gtfs-rt",
       "id": "CT~rt",
-      "associated_feeds": [
-        "CT"
-      ],
       "urls": {
         "realtime_trip_updates": "test/data/rt/CT.json"
       }

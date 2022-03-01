@@ -6,7 +6,7 @@ import (
 )
 
 func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilter) sq.SelectBuilder {
-	distinct := false
+	distinct := true
 	qView := sq.StatementBuilder.
 		Select(
 			"coif.id as id",
@@ -30,8 +30,8 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 		OrderBy("coif.resolved_onestop_id, coif.operator_id")
 
 	if where != nil {
-		if where.Merged != nil && *where.Merged {
-			distinct = true
+		if where.Merged != nil && !*where.Merged {
+			distinct = false
 		}
 		if where.FeedOnestopID != nil {
 			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
@@ -56,7 +56,6 @@ func OperatorSelect(limit *int, after *int, ids []int, where *model.OperatorFilt
 		}
 		// Places
 		if where.Adm0Iso != nil || where.Adm1Iso != nil || where.Adm0Name != nil || where.Adm1Name != nil || where.CityName != nil {
-			distinct = true
 			qView = qView.
 				Join("feed_states ON feed_states.feed_id = coif.feed_id").
 				Join("gtfs_agencies ON gtfs_agencies.feed_version_id = feed_states.feed_version_id AND gtfs_agencies.agency_id = coif.resolved_gtfs_agency_id").
