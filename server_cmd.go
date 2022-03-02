@@ -1,16 +1,12 @@
 package server
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 
 	"net/http"
 	"net/http/pprof"
-	"net/url"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -59,7 +55,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.JwtAudience, "jwt-audience", "", "JWT Audience")
 	fl.StringVar(&cmd.JwtIssuer, "jwt-issuer", "", "JWT Issuer")
 	fl.StringVar(&cmd.JwtPublicKeyFile, "jwt-public-key-file", "", "Path to JWT public key file")
-	fl.StringVar(&cmd.UseAuth, "auth", "", "")
+	fl.StringVar(&cmd.UseAuth, "auth", "anon", "")
 	fl.StringVar(&cmd.GtfsDir, "gtfsdir", "", "Directory to store GTFS files")
 	fl.StringVar(&cmd.GtfsS3Bucket, "s3", "", "S3 bucket for GTFS files")
 	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
@@ -156,7 +152,7 @@ func (cmd *Command) Run() error {
 		if err != nil {
 			return err
 		}
-		mount(root, "/rest", restServer)
+		mount(root, "/rest", auth.UserRequired(restServer))
 	}
 
 	// Workers
@@ -199,55 +195,4 @@ func (cmd *Command) Run() error {
 	}
 	return srv.ListenAndServe()
 
-}
-
-func mount(r *mux.Router, path string, handler http.Handler) {
-	r.PathPrefix(path).Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// If requesting /query rewrite to /query/ to match subrouter's "/"
-		if r.URL.Path == path {
-			r.URL.Path = r.URL.Path + "/"
-		}
-		// Remove path prefix
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, path)
-		handler.ServeHTTP(w, r)
-	}))
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t1 := time.Now()
-		user := auth.ForContext(r.Context())
-		next.ServeHTTP(w, r)
-		log.Info().
-			Int64("duration_ms", (time.Now().UnixNano()-t1.UnixNano())/1e6).
-			Str("method", r.Method).
-			Str("url", r.RequestURI).
-			Str("user", user.Name).
-			Msg("request")
-	})
-}
-
-func getRedisOpts(v string) (*redis.Options, error) {
-	a, err := url.Parse(v)
-	if err != nil {
-		return nil, err
-	}
-	if a.Scheme != "redis" {
-		return nil, errors.New("redis URL must begin with redis://")
-	}
-	port := a.Port()
-	if port == "" {
-		port = "6379"
-	}
-	addr := fmt.Sprintf("%s:%s", a.Hostname(), port)
-	dbNo := 0
-	if len(a.Path) > 0 {
-		var err error
-		f := a.Path[1:len(a.Path)]
-		dbNo, err = strconv.Atoi(f)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &redis.Options{Addr: addr, DB: dbNo}, nil
 }
