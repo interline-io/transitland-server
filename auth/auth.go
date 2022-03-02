@@ -16,12 +16,15 @@ type AuthConfig struct {
 // GetUserMiddleware returns a middleware that sets user details.
 func GetUserMiddleware(authType string, cfg AuthConfig) (mux.MiddlewareFunc, error) {
 	// Setup auth; default is all users will be anonymous.
-	if authType == "admin" {
+	switch authType {
+	case "admin":
 		return AdminDefaultMiddleware(), nil
-	} else if authType == "user" {
+	case "user":
 		return UserDefaultMiddleware(), nil
-	} else if authType == "jwt" {
+	case "jwt":
 		return JWTMiddleware(cfg.JwtAudience, cfg.JwtIssuer, cfg.JwtPublicKeyFile)
+	case "kong":
+		return KongMiddleware()
 	}
 	return func(next http.Handler) http.Handler {
 		return next
@@ -68,7 +71,7 @@ func AdminRequired(next http.Handler) http.Handler {
 		ctx := r.Context()
 		user := ForContext(ctx)
 		if user == nil || !user.IsAdmin {
-			http.Error(w, "permission denied", http.StatusUnauthorized)
+			http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -81,7 +84,7 @@ func UserRequired(next http.Handler) http.Handler {
 		ctx := r.Context()
 		user := ForContext(ctx)
 		if user == nil || !user.IsUser {
-			http.Error(w, "permission denied", http.StatusUnauthorized)
+			http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
 			return
 		}
 		next.ServeHTTP(w, r)
