@@ -71,7 +71,7 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).
 				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
 		}
-		if where.SourceURL.URL != "" {
+		if where.SourceURL != nil && where.SourceURL.URL != "" {
 			url_type := where.SourceURL.Type.String()
 			url := where.SourceURL.URL
 			if v := where.SourceURL.CaseSensitive; v == nil || !*v {
@@ -79,7 +79,7 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			} else if *v {
 				q = q.Where("urls->>? = ?", url_type, url)
 			}
-		} else if where.SourceURL.Type != nil {
+		} else if where.SourceURL != nil && where.SourceURL.Type != nil {
 			q = q.Where(fmt.Sprintf("urls->'%s' is not null", where.SourceURL.Type))
 		}
 	}
