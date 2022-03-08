@@ -72,13 +72,13 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
 		}
 		if where.SourceURL.URL != "" {
-			if v := where.SourceURL.CaseSensitive; v == nil {
-				// nothing
-				} else if *v {
-					q = q.Where(fmt.Sprintf("urls->>'%s' = %s", where.SourceURL.Type.String(), where.SourceURL.URL))
-				} else if !*v {
-					q = q.Where(fmt.Sprintf("LOWER(urls->>'%s') = LOWER(%s)", where.SourceURL.Type.String(), where.SourceURL.URL))
-				}
+			url_type := where.SourceURL.Type.String()
+			url := where.SourceURL.URL
+			if v := where.SourceURL.CaseSensitive; v == nil || !*v {
+				q = q.Where("urls @? '? like_regex \"(?i)^?$\"'", url_type, url)
+			} else if *v {
+				q = q.Where("urls->>? = ?", url_type, url)
+			}
 		} else if where.SourceURL.Type != nil {
 			q = q.Where(fmt.Sprintf("urls->'%s' is not null", where.SourceURL.Type))
 		}
