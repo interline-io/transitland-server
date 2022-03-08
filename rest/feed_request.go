@@ -60,8 +60,15 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 	} else if r.FetchError == "false" {
 		where["fetch_error"] = false
 	}
-	if r.URL != "" {
-		where["source_url"] = hw{"url": r.URL, "type": r.URLType, "case_sensitive": r.URLCaseSensitive }
+	if r.URL != "" || r.URLType != "" {
+		sourceUrl := hw{"case_sensitive": r.URLCaseSensitive}
+		if r.URL != "" {
+			sourceUrl["url"] = r.URL
+		}
+		if r.URLType != "" {
+			sourceUrl["type"] = r.URLType
+		}
+		where["source_url"] = sourceUrl
 	}
 	return feedQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }
