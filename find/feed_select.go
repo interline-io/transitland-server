@@ -75,7 +75,7 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			url_type := where.SourceURL.Type.String()
 			url := where.SourceURL.URL
 			if v := where.SourceURL.CaseSensitive; v == nil || !*v {
-				q = q.Where("urls @? '? like_regex \"(?i)^?$\"'", url_type, url)
+				q = q.Where("lower(urls->>?) = lower(?)", url_type, url)
 			} else if *v {
 				q = q.Where("urls->>? = ?", url_type, url)
 			}
