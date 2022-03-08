@@ -10,16 +10,19 @@ var feedQuery string
 
 // FeedRequest holds options for a Route request
 type FeedRequest struct {
-	FeedKey    string `json:"feed_key"`
-	ID         int    `json:"id,string"`
-	Limit      int    `json:"limit,string"`
-	After      int    `json:"after,string"`
-	OnestopID  string `json:"onestop_id"`
-	Spec       string `json:"spec"`
-	Search     string `json:"search"`
-	FetchError string `json:"fetch_error"`
-	TagKey     string `json:"tag_key"`
-	TagValue   string `json:"tag_value"`
+	FeedKey          string `json:"feed_key"`
+	ID               int    `json:"id,string"`
+	Limit            int    `json:"limit,string"`
+	After            int    `json:"after,string"`
+	OnestopID        string `json:"onestop_id"`
+	Spec             string `json:"spec"`
+	Search           string `json:"search"`
+	FetchError       string `json:"fetch_error"`
+	TagKey           string `json:"tag_key"`
+	TagValue         string `json:"tag_value"`
+	URL              string `json:"url"`
+	URLType          string `json:"url_type"`
+	URLCaseSensitive bool   "`json:url_case_sensitive"
 	// Lat       float64 `json:"lat,string"`
 	// Lon       float64 `json:"lon,string"`
 	// Radius    float64 `json:"radius,string"`
@@ -56,6 +59,16 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 		where["fetch_error"] = true
 	} else if r.FetchError == "false" {
 		where["fetch_error"] = false
+	}
+	if r.URL != "" || r.URLType != "" {
+		sourceUrl := hw{"case_sensitive": r.URLCaseSensitive}
+		if r.URL != "" {
+			sourceUrl["url"] = r.URL
+		}
+		if r.URLType != "" {
+			sourceUrl["type"] = r.URLType
+		}
+		where["source_url"] = sourceUrl
 	}
 	return feedQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }

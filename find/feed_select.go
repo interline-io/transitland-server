@@ -69,6 +69,20 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).
 				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
 		}
+		// Source URL
+		if where.SourceURL != nil {
+			urlType := "static_current"
+			if where.SourceURL.Type != nil {
+				urlType = where.SourceURL.Type.String()
+			}
+			if where.SourceURL.URL == nil {
+				q = q.Where("urls->>? is not null", urlType)
+			} else if v := where.SourceURL.CaseSensitive; v != nil && *v {
+				q = q.Where("urls->>? = ?", urlType, where.SourceURL.URL)
+			} else {
+				q = q.Where("lower(urls->>?) = lower(?)", urlType, where.SourceURL.URL)
+			}
+		}
 	}
 	return q
 }

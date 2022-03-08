@@ -79,12 +79,19 @@ type Duration struct {
 }
 
 type FeedFilter struct {
-	OnestopID    *string       `json:"onestop_id"`
-	Spec         []string      `json:"spec"`
-	FetchError   *bool         `json:"fetch_error"`
-	ImportStatus *ImportStatus `json:"import_status"`
-	Search       *string       `json:"search"`
-	Tags         *tl.Tags      `json:"tags"`
+	OnestopID    *string        `json:"onestop_id"`
+	Spec         []string       `json:"spec"`
+	FetchError   *bool          `json:"fetch_error"`
+	ImportStatus *ImportStatus  `json:"import_status"`
+	Search       *string        `json:"search"`
+	Tags         *tl.Tags       `json:"tags"`
+	SourceURL    *FeedSourceURL `json:"source_url"`
+}
+
+type FeedSourceURL struct {
+	URL           *string             `json:"url"`
+	Type          *FeedSourceURLTypes `json:"type"`
+	CaseSensitive *bool               `json:"case_sensitive"`
 }
 
 type FeedVersionDeleteResult struct {
@@ -340,6 +347,61 @@ func (e *DurationUnit) UnmarshalGQL(v interface{}) error {
 }
 
 func (e DurationUnit) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type FeedSourceURLTypes string
+
+const (
+	FeedSourceURLTypesStaticCurrent            FeedSourceURLTypes = "static_current"
+	FeedSourceURLTypesStaticHistoric           FeedSourceURLTypes = "static_historic"
+	FeedSourceURLTypesStaticPlanned            FeedSourceURLTypes = "static_planned"
+	FeedSourceURLTypesStaticHypothetical       FeedSourceURLTypes = "static_hypothetical"
+	FeedSourceURLTypesRealtimeVehiclePositions FeedSourceURLTypes = "realtime_vehicle_positions"
+	FeedSourceURLTypesRealtimeTripUpdates      FeedSourceURLTypes = "realtime_trip_updates"
+	FeedSourceURLTypesRealtimeAlerts           FeedSourceURLTypes = "realtime_alerts"
+	FeedSourceURLTypesGbfsAutoDiscovery        FeedSourceURLTypes = "gbfs_auto_discovery"
+	FeedSourceURLTypesMdsProvider              FeedSourceURLTypes = "mds_provider"
+)
+
+var AllFeedSourceURLTypes = []FeedSourceURLTypes{
+	FeedSourceURLTypesStaticCurrent,
+	FeedSourceURLTypesStaticHistoric,
+	FeedSourceURLTypesStaticPlanned,
+	FeedSourceURLTypesStaticHypothetical,
+	FeedSourceURLTypesRealtimeVehiclePositions,
+	FeedSourceURLTypesRealtimeTripUpdates,
+	FeedSourceURLTypesRealtimeAlerts,
+	FeedSourceURLTypesGbfsAutoDiscovery,
+	FeedSourceURLTypesMdsProvider,
+}
+
+func (e FeedSourceURLTypes) IsValid() bool {
+	switch e {
+	case FeedSourceURLTypesStaticCurrent, FeedSourceURLTypesStaticHistoric, FeedSourceURLTypesStaticPlanned, FeedSourceURLTypesStaticHypothetical, FeedSourceURLTypesRealtimeVehiclePositions, FeedSourceURLTypesRealtimeTripUpdates, FeedSourceURLTypesRealtimeAlerts, FeedSourceURLTypesGbfsAutoDiscovery, FeedSourceURLTypesMdsProvider:
+		return true
+	}
+	return false
+}
+
+func (e FeedSourceURLTypes) String() string {
+	return string(e)
+}
+
+func (e *FeedSourceURLTypes) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FeedSourceURLTypes(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FeedSourceUrlTypes", str)
+	}
+	return nil
+}
+
+func (e FeedSourceURLTypes) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

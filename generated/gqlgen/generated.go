@@ -4712,7 +4712,26 @@ input FeedFilter {
   fetch_error: Boolean
   import_status: ImportStatus
   search: String
-  tags: Tags
+  tags: Tags,
+  source_url: FeedSourceUrl
+}
+
+input FeedSourceUrl {
+  url: String
+  type: FeedSourceUrlTypes
+  case_sensitive: Boolean
+}
+
+enum FeedSourceUrlTypes {
+  static_current
+  static_historic
+  static_planned
+  static_hypothetical
+  realtime_vehicle_positions
+  realtime_trip_updates
+  realtime_alerts
+  gbfs_auto_discovery
+  mds_provider
 }
 
 input AgencyFilter {
@@ -22114,6 +22133,50 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
+		case "source_url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source_url"))
+			it.SourceURL, err = ec.unmarshalOFeedSourceUrl2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURL(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFeedSourceUrl(ctx context.Context, obj interface{}) (model.FeedSourceURL, error) {
+	var it model.FeedSourceURL
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			it.URL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalOFeedSourceUrlTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURLTypes(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "case_sensitive":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("case_sensitive"))
+			it.CaseSensitive, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -28839,6 +28902,30 @@ func (ec *executionContext) marshalOFeedLicense2ᚖgithubᚗcomᚋinterlineᚑio
 		return graphql.Null
 	}
 	return ec._FeedLicense(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFeedSourceUrl2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURL(ctx context.Context, v interface{}) (*model.FeedSourceURL, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFeedSourceUrl(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOFeedSourceUrlTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURLTypes(ctx context.Context, v interface{}) (*model.FeedSourceURLTypes, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.FeedSourceURLTypes)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFeedSourceUrlTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURLTypes(ctx context.Context, sel ast.SelectionSet, v *model.FeedSourceURLTypes) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOFeedState2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedState(ctx context.Context, sel ast.SelectionSet, v *model.FeedState) graphql.Marshaler {
