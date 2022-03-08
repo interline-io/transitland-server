@@ -691,7 +691,26 @@ input FeedFilter {
   fetch_error: Boolean
   import_status: ImportStatus
   search: String
-  tags: Tags
+  tags: Tags,
+  source_url: FeedSourceUrl
+}
+
+input FeedSourceUrl {
+  url: String!
+  type: FeedSourceUrlTypes
+  case_sensitive: Boolean
+}
+
+enum FeedSourceUrlTypes {
+  static_current
+  static_historic
+  static_planned
+  static_hypothetical
+  realtime_vehicle_positions
+  realtime_trip_updates
+  realtime_alerts
+  gbfs_auto_discovery
+  mds_provider
 }
 
 input AgencyFilter {

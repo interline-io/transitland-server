@@ -1,6 +1,8 @@
 package find
 
 import (
+	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -68,6 +70,17 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			// This lateral join gets the most recent attempt at a completed feed_version_gtfs_import and checks the status
 			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).
 				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
+		}
+		if where.SourceURL.URL != "" {
+			if v := where.SourceURL.CaseSensitive; v == nil {
+				// nothing
+				} else if *v {
+					q = q.Where(fmt.Sprintf("urls->>'%s' = %s", where.SourceURL.Type.String(), where.SourceURL.URL))
+				} else if !*v {
+					q = q.Where(fmt.Sprintf("LOWER(urls->>'%s') = LOWER(%s)", where.SourceURL.Type.String(), where.SourceURL.URL))
+				}
+		} else if where.SourceURL.Type != nil {
+			q = q.Where(fmt.Sprintf("urls->'%s' is not null", where.SourceURL.Type))
 		}
 	}
 	return q
