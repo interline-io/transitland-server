@@ -57,6 +57,22 @@ func TestFeedResolver(t *testing.T) {
 			nil,
 		},
 		{
+			"search by url with type realtime_trip_updates",
+			`query($url:String!) { feeds(where:{source_url:{url:$url, type: realtime_trip_updates}}) { onestop_id }}`,
+			hw{"url": "test/data/rt/BA.json"},
+			`{"feeds":[{"onestop_id":"BA~rt"}]}`,
+			"",
+			nil,
+		},
+		{
+			"search by url with type",
+			`query($url:String) { feeds(where:{source_url:{url: $url, type: realtime_trip_updates}}) { onestop_id }}`,
+			hw{"url": nil},
+			`{"feeds":[{"onestop_id":"BA~rt"},{"onestop_id":"CT~rt"}]}`,
+			"",
+			nil,
+		},
+		{
 			"license",
 			`query($onestop_id:String!) { feeds(where:{onestop_id:$onestop_id}) {license {spdx_identifier url use_without_attribution create_derived_product redistribution_allowed commercial_use_allowed share_alike_optional attribution_text attribution_instructions}}}`,
 			hw{"onestop_id": "CT"},

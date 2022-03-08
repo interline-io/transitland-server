@@ -1,8 +1,6 @@
 package find
 
 import (
-	"fmt"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -71,16 +69,19 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).
 				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
 		}
-		if where.SourceURL != nil && where.SourceURL.URL != "" {
-			url_type := where.SourceURL.Type.String()
-			url := where.SourceURL.URL
-			if v := where.SourceURL.CaseSensitive; v == nil || !*v {
-				q = q.Where("lower(urls->>?) = lower(?)", url_type, url)
-			} else if *v {
-				q = q.Where("urls->>? = ?", url_type, url)
+		// Source URL
+		if where.SourceURL != nil {
+			urlType := "static_current"
+			if where.SourceURL.Type != nil {
+				urlType = where.SourceURL.Type.String()
 			}
-		} else if where.SourceURL != nil && where.SourceURL.Type != nil {
-			q = q.Where(fmt.Sprintf("urls->'%s' is not null", where.SourceURL.Type))
+			if where.SourceURL.URL == nil {
+				q = q.Where("urls->>? is not null", urlType)
+			} else if v := where.SourceURL.CaseSensitive; v != nil && *v {
+				q = q.Where("urls->>? = ?", urlType, where.SourceURL.URL)
+			} else {
+				q = q.Where("lower(urls->>?) = lower(?)", urlType, where.SourceURL.URL)
+			}
 		}
 	}
 	return q

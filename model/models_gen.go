@@ -89,7 +89,7 @@ type FeedFilter struct {
 }
 
 type FeedSourceURL struct {
-	URL           string              `json:"url"`
+	URL           *string             `json:"url"`
 	Type          *FeedSourceURLTypes `json:"type"`
 	CaseSensitive *bool               `json:"case_sensitive"`
 }

@@ -4717,7 +4717,7 @@ input FeedFilter {
 }
 
 input FeedSourceUrl {
-  url: String!
+  url: String
   type: FeedSourceUrlTypes
   case_sensitive: Boolean
 }
@@ -22157,7 +22157,7 @@ func (ec *executionContext) unmarshalInputFeedSourceUrl(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
-			it.URL, err = ec.unmarshalNString2string(ctx, v)
+			it.URL, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

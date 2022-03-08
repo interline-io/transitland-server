@@ -696,7 +696,7 @@ input FeedFilter {
 }
 
 input FeedSourceUrl {
-  url: String!
+  url: String
   type: FeedSourceUrlTypes
   case_sensitive: Boolean
 }
