@@ -2,7 +2,7 @@ package jobs
 
 import (
 	"context"
-	"encoding/json"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -14,32 +14,22 @@ var (
 )
 
 type testWorker struct {
-	count  int
-	FeedID string `json:"feed_id"`
+	count *int64
 }
 
 func (t *testWorker) Run(ctx context.Context, job Job) error {
 	time.Sleep(10 * time.Millisecond)
-	t.count += 1
+	atomic.AddInt64(t.count, 1)
 	return nil
 }
 
-func testGetWorker(job Job) (JobWorker, error) {
-	w := testWorker{}
-	// Load json
-	jw, err := json.Marshal(job.JobArgs)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(jw, &w); err != nil {
-		return nil, err
-	}
-	return &w, nil
-
-}
-
 func testJobs(t *testing.T, rtJobs JobQueue) {
-	w := testWorker{}
+	count := int64(0)
+	// Ugly :(
+	testGetWorker := func(job Job) (JobWorker, error) {
+		w := testWorker{count: &count}
+		return &w, nil
+	}
 	rtJobs.AddWorker(testGetWorker, JobOptions{}, 1)
 	for _, feed := range feeds {
 		rtJobs.AddJob(Job{JobType: "test", JobArgs: JobArgs{"feed_id": feed}})
@@ -49,5 +39,5 @@ func testJobs(t *testing.T, rtJobs JobQueue) {
 		rtJobs.Stop()
 	}()
 	rtJobs.Run()
-	assert.Equal(t, len(feeds), w.count)
+	assert.Equal(t, len(feeds), int(count))
 }
