@@ -81,7 +81,7 @@ func (f *DBFinder) FindFeeds(limit *int, after *int, ids []int, where *model.Fee
 
 func (f *DBFinder) FindOperators(limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
-	MustSelect(f.db, OperatorSelect(limit, after, ids, where), &ents)
+	MustSelect(f.db, OperatorSelect(limit, after, ids, nil, where), &ents)
 	return ents, nil
 }
 
@@ -307,7 +307,7 @@ func (f *DBFinder) OperatorsByCOIF(ids []int) ([]*model.Operator, []error) {
 	var ents []*model.Operator
 	MustSelect(
 		f.db,
-		OperatorSelect(nil, nil, ids, nil),
+		OperatorSelect(nil, nil, ids, nil, nil),
 		&ents,
 	)
 	byid := map[int]*model.Operator{}
@@ -334,7 +334,7 @@ func (f *DBFinder) OperatorsByFeedID(params []model.OperatorParam) ([][]*model.O
 	qents := []*model.Operator{}
 	MustSelect(
 		f.db,
-		lateralWrap(OperatorSelect(params[0].Limit, nil, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
+		lateralWrap(OperatorSelect(params[0].Limit, nil, nil, ids, params[0].Where), "current_feeds", "id", "feed_id", ids),
 		&qents,
 	)
 	group := map[int][]*model.Operator{}
