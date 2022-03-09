@@ -45,7 +45,6 @@ func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	var jj []jobs.Job
 	for _, ent := range rtfeeds {
 		fid := ent.FeedID
-		// Find secret
 		var uniq []string
 		for _, sk := range targets {
 			if sk.RT == fid {

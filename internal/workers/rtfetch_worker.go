@@ -35,7 +35,7 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		return errors.New("feed not found")
 	}
 	rtfeed := rtfeeds[0]
-	// Load secrets and prepare auth
+	// Prepare auth
 	// Note: Only HTTP(S) allowed; AllowFTP/AllowS3/AllowLocal options not passed in.
 	var reqOpts []request.RequestOption
 	if rtfeed.Authorization.Type != "" {
