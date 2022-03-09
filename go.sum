@@ -265,6 +265,8 @@ github.com/interline-io/transitland-lib v0.10.0 h1:masQtdK/QcwljrlP/W4y4M4IizN+a
 github.com/interline-io/transitland-lib v0.10.0/go.mod h1:z8GoU7JzU5bgsMIerVZh3wVyXs2GZcdd8qB4cGNh5Q0=
 github.com/interline-io/transitland-lib v0.10.1-0.20220308062635-7451b1b16493 h1:hrpmvjYOPjTSuxGrljvdcnt78PigNQRAw8sQ1bcOZnw=
 github.com/interline-io/transitland-lib v0.10.1-0.20220308062635-7451b1b16493/go.mod h1:06p3NZNcvTuXG8MKxng1fXVepg6m4ueP+cpDGCaqYjU=
+github.com/interline-io/transitland-lib v0.10.1-0.20220309044035-5e7ae2b375c5 h1:mBM+NszRErD7UIbx13X1o1Qyhr+eCDbTUNz2Arku+RU=
+github.com/interline-io/transitland-lib v0.10.1-0.20220309044035-5e7ae2b375c5/go.mod h1:06p3NZNcvTuXG8MKxng1fXVepg6m4ueP+cpDGCaqYjU=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jlaffaye/ftp v0.0.0-20191218041957-e1b8fdd0dcc3 h1:QyB6CQGLB65Al72mAIbqrkGRk56JdGMHgBziM3F0FCw=
 github.com/jlaffaye/ftp v0.0.0-20191218041957-e1b8fdd0dcc3/go.mod h1:PwUeyujmhaGohgOf0kJKxPfk3HcRv8QD/wAUN44go4k=
