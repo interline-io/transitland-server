@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type Args map[string]interface{}
+type JobArgs map[string]interface{}
 
 // Job queue
 type JobQueue interface {
@@ -21,7 +21,7 @@ type JobQueue interface {
 // Job defines a single job
 type Job struct {
 	JobType string     `json:"job_type"`
-	Args    Args       `json:"args"`
+	JobArgs JobArgs    `json:"job_args"`
 	Opts    JobOptions `json:"-"`
 }
 

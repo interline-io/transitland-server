@@ -27,7 +27,7 @@ func (t *testWorker) Run(ctx context.Context, job Job) error {
 func testGetWorker(job Job) (JobWorker, error) {
 	w := testWorker{}
 	// Load json
-	jw, err := json.Marshal(job.Args)
+	jw, err := json.Marshal(job.JobArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func testJobs(t *testing.T, rtJobs JobQueue) {
 	w := testWorker{}
 	rtJobs.AddWorker(testGetWorker, JobOptions{}, 1)
 	for _, feed := range feeds {
-		rtJobs.AddJob(Job{JobType: "test", Args: Args{"feed_id": feed}})
+		rtJobs.AddJob(Job{JobType: "test", JobArgs: JobArgs{"feed_id": feed}})
 	}
 	go func() {
 		time.Sleep(100 * time.Millisecond)

@@ -26,7 +26,7 @@ func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
 		return nil, errors.New("unknown job type")
 	}
 	// Load json
-	jw, err := json.Marshal(job.Args)
+	jw, err := json.Marshal(job.JobArgs)
 	if err != nil {
 		return nil, err
 	}
