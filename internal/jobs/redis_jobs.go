@@ -37,7 +37,7 @@ func (f *RedisJobs) AddJob(job Job) error {
 			return err
 		}
 	}
-	_, err := f.producer.Enqueue(f.queueName, job.JobType, job.Args)
+	_, err := f.producer.Enqueue(f.queueName, job.JobType, job.JobArgs)
 	return err
 }
 
@@ -57,8 +57,11 @@ func (f *RedisJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 		return err
 	}
 	processMessage := func(msg *workers.Msg) error {
-		jargs, _ := msg.Args().StringArray()
-		job := Job{JobType: msg.Class(), Args: jargs}
+		jargs, err := msg.Args().Map()
+		if err != nil {
+			return err
+		}
+		job := Job{JobType: msg.Class(), JobArgs: jargs}
 		w, err := getWorker(job)
 		if err != nil {
 			return err

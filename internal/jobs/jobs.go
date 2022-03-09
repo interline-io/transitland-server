@@ -3,9 +3,12 @@ package jobs
 import (
 	"context"
 
+	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/rs/zerolog"
 )
+
+type JobArgs map[string]interface{}
 
 // Job queue
 type JobQueue interface {
@@ -18,9 +21,7 @@ type JobQueue interface {
 // Job defines a single job
 type Job struct {
 	JobType string     `json:"job_type"`
-	Feed    string     `json:"feed"`
-	URL     string     `json:"url"`
-	Args    []string   `json:"args"`
+	JobArgs JobArgs    `json:"job_args"`
 	Opts    JobOptions `json:"-"`
 }
 
@@ -29,6 +30,7 @@ type JobOptions struct {
 	Finder   model.Finder
 	RTFinder model.RTFinder
 	JobQueue JobQueue
+	Secrets  []tl.Secret
 	Logger   zerolog.Logger
 }
 

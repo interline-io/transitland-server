@@ -4,34 +4,68 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"time"
 
-	"github.com/interline-io/transitland-lib/rt"
+	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/request"
 	"github.com/interline-io/transitland-server/internal/jobs"
+	"github.com/interline-io/transitland-server/model"
 	"google.golang.org/protobuf/proto"
 )
 
-type RTFetchWorker struct{}
+type RTFetchWorker struct {
+	Target       string `json:"target"`
+	Url          string `json:"url"`
+	SourceType   string `json:"source_type"`
+	SourceFeedID string `json:"source_feed_id"`
+}
 
 func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
-	log := job.Opts.Logger
-	if len(job.Args) != 4 {
-		return errors.New("feed, type and url required")
-	}
-	feed := job.Args[0]
-	ftype := job.Args[1]
-	url := job.Args[2]
-	source := job.Args[3]
-	var rtdata []byte
-	msg, err := rt.ReadURL(url)
+	log := job.Opts.Logger.With().Str("target", w.Target).Str("source_feed_id", w.SourceFeedID).Str("source_type", w.SourceType).Str("url", w.Url).Logger()
+	// Find feed
+	rtfeeds, err := job.Opts.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{OnestopID: &w.SourceFeedID})
 	if err != nil {
-		log.Error().Err(err).Str("feed_id", feed).Str("source", source).Str("source_type", ftype).Str("url", url).Msg("fetch worker: request failed")
+		log.Error().Err(err).Msg("fetch worker: error loading source feed")
 		return err
 	}
-	rtdata, err = proto.Marshal(msg)
+	if len(rtfeeds) == 0 {
+		log.Error().Err(err).Msg("fetch worker: source feed not found")
+		return errors.New("feed not found")
+	}
+	rtfeed := rtfeeds[0]
+	// Prepare auth
+	// Note: Only HTTP(S) allowed; AllowFTP/AllowS3/AllowLocal options not passed in.
+	var reqOpts []request.RequestOption
+	if rtfeed.Authorization.Type != "" {
+		secret := tl.Secret{}
+		var err error
+		secret, err = rtfeed.MatchSecrets(job.Opts.Secrets)
+		if err != nil {
+			log.Error().Err(err).Msg("fetch worker: secret match failed")
+			return err
+		}
+		reqOpts = append(reqOpts, request.WithAuth(secret, rtfeed.Authorization))
+	}
+	// Make request
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	req := request.NewRequest(w.Url, reqOpts...)
+	reqBody, err := req.Request(ctx)
 	if err != nil {
-		log.Error().Err(err).Str("feed_id", feed).Str("source", source).Str("source_type", ftype).Str("url", url).Msg("fetch worker: failed to parse response")
+		log.Error().Err(err).Msg("fetch worker: request failed")
 		return err
 	}
-	key := fmt.Sprintf("rtdata:%s:%s", feed, ftype)
+	defer reqBody.Close()
+	// Test this is valid protobuf
+	rtdata, _ := ioutil.ReadAll(reqBody)
+	rtmsg := pb.FeedMessage{}
+	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
+		log.Error().Err(err).Msg("fetch worker: failed to parse response")
+		return err
+	}
+	// Save to cache
+	key := fmt.Sprintf("rtdata:%s:%s", w.Target, w.SourceType)
 	return job.Opts.RTFinder.AddData(key, rtdata)
 }

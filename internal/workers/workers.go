@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/jobs"
-	"github.com/interline-io/transitland-server/model"
 )
 
 // GetWorker returns the correct worker type for this job.
@@ -26,25 +25,28 @@ func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
 	default:
 		return nil, errors.New("unknown job type")
 	}
+	// Load json
+	jw, err := json.Marshal(job.JobArgs)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(jw, r); err != nil {
+		return nil, err
+	}
 	return r, nil
 }
 
 // NewServer creates a simple api for submitting and running jobs.
-func NewServer(cfg config.Config, finder model.Finder, rtFinder model.RTFinder, jq jobs.JobQueue, queueName string, workers int) (http.Handler, error) {
+func NewServer(cfg config.Config, queueName string, workers int, jo jobs.JobOptions) (http.Handler, error) {
 	r := mux.NewRouter()
-	jo := jobs.JobOptions{
-		JobQueue: jq,
-		Finder:   finder,
-		RTFinder: rtFinder,
-	}
-	r.HandleFunc("/add", wrapHandler(addJobRequest, jo, jq))
-	r.HandleFunc("/run", wrapHandler(runJobRequest, jo, jq))
+	r.HandleFunc("/add", wrapHandler(addJobRequest, jo))
+	r.HandleFunc("/run", wrapHandler(runJobRequest, jo))
 	return r, nil
 }
 
-func wrapHandler(next func(http.ResponseWriter, *http.Request, jobs.JobOptions, jobs.JobQueue), jo jobs.JobOptions, jq jobs.JobQueue) http.HandlerFunc {
+func wrapHandler(next func(http.ResponseWriter, *http.Request, jobs.JobOptions), jo jobs.JobOptions) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next(w, r, jo, jq)
+		next(w, r, jo)
 	})
 }
 
@@ -57,7 +59,7 @@ type jobResponse struct {
 }
 
 // addJobRequest adds the request to the appropriate queue
-func addJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions, jq jobs.JobQueue) {
+func addJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions) {
 	job, err := requestGetJob(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -67,6 +69,7 @@ func addJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions,
 		Job: job,
 	}
 	// add job to queue
+	jq := jo.JobQueue
 	if err := jq.AddJob(job); err != nil {
 		ret.Error = err.Error()
 		ret.Status = "failed"
@@ -79,7 +82,7 @@ func addJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions,
 }
 
 // runJobRequest runs the job directly
-func runJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions, jq jobs.JobQueue) {
+func runJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions) {
 	job, err := requestGetJob(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
