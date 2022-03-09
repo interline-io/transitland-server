@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 
@@ -13,7 +14,9 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
@@ -38,6 +41,7 @@ type Command struct {
 	EnableMetrics    bool
 	UseAuth          string
 	DefaultQueue     string
+	SecretsFile      string
 	auth.AuthConfig
 	config.Config
 }
@@ -58,6 +62,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.UseAuth, "auth", "anon", "")
 	fl.StringVar(&cmd.GtfsDir, "gtfsdir", "", "Directory to store GTFS files")
 	fl.StringVar(&cmd.GtfsS3Bucket, "s3", "", "S3 bucket for GTFS files")
+	fl.StringVar(&cmd.SecretsFile, "secrets", "", "DMFR file containing secrets")
 	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
 	fl.StringVar(&cmd.DefaultQueue, "queue", "tlv2-default", "Job queue name")
 	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
@@ -157,15 +162,32 @@ func (cmd *Command) Run() error {
 
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
+		// Load secrets
+		var secrets []tl.Secret
+		if v := cmd.SecretsFile; v != "" {
+			rr, err := dmfr.LoadAndParseRegistry(v)
+			if err != nil {
+				return errors.New("unable to load secrets file")
+			}
+			secrets = rr.Secrets
+		}
+		// Start workers/api
 		jobWorkers := 10
+		jobOptions := jobs.JobOptions{
+			Logger:   log.Logger,
+			JobQueue: jobQueue,
+			Finder:   dbFinder,
+			RTFinder: rtFinder,
+			Secrets:  secrets,
+		}
 		if cmd.EnableWorkers {
 			log.Print("enabling workers")
-			jobQueue.AddWorker(workers.GetWorker, jobs.JobOptions{Logger: log.Logger, JobQueue: jobQueue, Finder: dbFinder, RTFinder: rtFinder}, jobWorkers)
+			jobQueue.AddWorker(workers.GetWorker, jobOptions, jobWorkers)
 			go jobQueue.Run()
 		}
 		if cmd.EnableJobsApi {
 			log.Print("enabling jobs api")
-			jobServer, err := workers.NewServer(cfg, dbFinder, rtFinder, jobQueue, cmd.DefaultQueue, jobWorkers)
+			jobServer, err := workers.NewServer(cfg, cmd.DefaultQueue, jobWorkers, jobOptions)
 			if err != nil {
 				return err
 			}
@@ -194,5 +216,4 @@ func (cmd *Command) Run() error {
 		ReadTimeout:  timeOut * time.Second,
 	}
 	return srv.ListenAndServe()
-
 }

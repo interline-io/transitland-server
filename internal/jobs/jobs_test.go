@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -13,7 +14,8 @@ var (
 )
 
 type testWorker struct {
-	count int
+	count  int
+	FeedID string `json:"feed_id"`
 }
 
 func (t *testWorker) Run(ctx context.Context, job Job) error {
@@ -22,12 +24,25 @@ func (t *testWorker) Run(ctx context.Context, job Job) error {
 	return nil
 }
 
+func testGetWorker(job Job) (JobWorker, error) {
+	w := testWorker{}
+	// Load json
+	jw, err := json.Marshal(job.Args)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(jw, &w); err != nil {
+		return nil, err
+	}
+	return &w, nil
+
+}
+
 func testJobs(t *testing.T, rtJobs JobQueue) {
 	w := testWorker{}
-	gw := func(Job) (JobWorker, error) { return &w, nil }
-	rtJobs.AddWorker(gw, JobOptions{}, 1)
+	rtJobs.AddWorker(testGetWorker, JobOptions{}, 1)
 	for _, feed := range feeds {
-		rtJobs.AddJob(Job{JobType: "test", Args: []string{feed}})
+		rtJobs.AddJob(Job{JobType: "test", Args: Args{"feed_id": feed}})
 	}
 	go func() {
 		time.Sleep(100 * time.Millisecond)

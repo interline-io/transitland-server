@@ -8,7 +8,9 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type RTEnqueueWorker struct{}
+type RTEnqueueWorker struct {
+	FeedID *string `json:"feed_id"`
+}
 
 func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	opts := job.Opts
@@ -36,17 +38,14 @@ func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		return err
 	}
 	// Get all RT feeds
-	rtfeeds, err := opts.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{Spec: []string{"gtfs-rt"}})
+	rtfeeds, err := opts.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{OnestopID: w.FeedID, Spec: []string{"gtfs-rt"}})
 	if err != nil {
 		return err
 	}
 	var jj []jobs.Job
 	for _, ent := range rtfeeds {
 		fid := ent.FeedID
-		if ent.Authorization.Type != "" {
-			log.Info().Str("feed_id", fid).Msg("enqueue worker: feed requires auth, skipping")
-			continue
-		}
+		// Find secret
 		var uniq []string
 		for _, sk := range targets {
 			if sk.RT == fid {
@@ -56,13 +55,13 @@ func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		log.Info().Str("feed_id", fid).Strs("targets", uniq).Msg("enqueue worker: adding rt-fetch jobs for feed")
 		for _, target := range uniq {
 			if ent.URLs.RealtimeAlerts != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "alerts", ent.URLs.RealtimeAlerts, fid}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: jobs.Args{"target": target, "source_type": "alerts", "url": ent.URLs.RealtimeAlerts, "source_feed_id": fid}})
 			}
 			if ent.URLs.RealtimeTripUpdates != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "trip_updates", ent.URLs.RealtimeTripUpdates, fid}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: jobs.Args{"target": target, "source_type": "trip_updates", "url": ent.URLs.RealtimeTripUpdates, "source_feed_id": fid}})
 			}
 			if ent.URLs.RealtimeVehiclePositions != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: []string{target, "vehicle_positions", ent.URLs.RealtimeVehiclePositions, fid}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", Args: jobs.Args{"target": target, "source_type": "alertvehicle_positionss", "url": ent.URLs.RealtimeVehiclePositions, "source_feed_id": fid}})
 			}
 		}
 	}
