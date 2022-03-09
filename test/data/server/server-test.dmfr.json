@@ -9,7 +9,7 @@
         "en-US"
       ],
       "urls": {
-        "static_current": "test/data/external/caltrain.zip",
+        "static_current": "file://test/data/external/caltrain.zip",
         "static_historic": [
           "https://caltrain.com/old_feed.zip"
         ]
@@ -51,21 +51,21 @@
         "foo": "bar"
       },
       "urls": {
-        "static_current": "test/data/external/bart.zip"
+        "static_current": "file://test/data/external/bart.zip"
       }
     },
     {
       "spec": "gtfs-rt",
       "id": "BA~rt",
       "urls": {
-        "realtime_trip_updates": "test/data/rt/BA.json"
+        "realtime_trip_updates": "file://test/data/rt/BA.json"
       }
     },
     {
       "spec": "gtfs-rt",
       "id": "CT~rt",
       "urls": {
-        "realtime_trip_updates": "test/data/rt/CT.json"
+        "realtime_trip_updates": "file://test/data/rt/CT.json"
       }
     },
     {

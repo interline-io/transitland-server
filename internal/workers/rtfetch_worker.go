@@ -36,26 +36,30 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	}
 	rtfeed := rtfeeds[0]
 	// Load secrets and prepare auth
-	secret := tl.Secret{}
+	// Note: Only HTTP(S) allowed; AllowFTP/AllowS3/AllowLocal options not passed in.
+	var reqOpts []request.RequestOption
 	if rtfeed.Authorization.Type != "" {
+		secret := tl.Secret{}
 		var err error
 		secret, err = rtfeed.MatchSecrets(job.Opts.Secrets)
 		if err != nil {
 			log.Error().Err(err).Msg("fetch worker: secret match failed")
 			return err
 		}
+		reqOpts = append(reqOpts, request.WithAuth(secret, rtfeed.Authorization))
 	}
 	// Make request
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	req, err := request.AuthenticatedRequest(ctx, w.Url, secret, rtfeed.Authorization)
+	req := request.NewRequest(w.Url, reqOpts...)
+	reqBody, err := req.Request(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("fetch worker: request failed")
 		return err
 	}
-	defer req.Close()
+	defer reqBody.Close()
 	// Test this is valid protobuf
-	rtdata, _ := ioutil.ReadAll(req)
+	rtdata, _ := ioutil.ReadAll(reqBody)
 	rtmsg := pb.FeedMessage{}
 	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
 		log.Error().Err(err).Msg("fetch worker: failed to parse response")

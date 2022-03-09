@@ -28,14 +28,14 @@ func TestFeedResolver(t *testing.T) {
 			"urls",
 			`query($onestop_id:String!) { feeds(where:{onestop_id:$onestop_id}) {urls { static_current static_historic }}}`,
 			hw{"onestop_id": "CT"},
-			`{"feeds":[{"urls":{"static_current":"test/data/external/caltrain.zip","static_historic":["https://caltrain.com/old_feed.zip"]}}]}`,
+			`{"feeds":[{"urls":{"static_current":"file://test/data/external/caltrain.zip","static_historic":["https://caltrain.com/old_feed.zip"]}}]}`,
 			"",
 			nil,
 		},
 		{
 			"search by url case insensitive",
 			`query($url:String!) { feeds(where:{source_url:{url:$url}}) { onestop_id }}`,
-			hw{"url": "test/data/external/Caltrain.zip"},
+			hw{"url": "file://test/data/external/Caltrain.zip"},
 			`{"feeds":[{"onestop_id":"CT"}]}`,
 			"",
 			nil,
@@ -43,7 +43,7 @@ func TestFeedResolver(t *testing.T) {
 		{
 			"search by url case sensitive",
 			`query($url:String!) { feeds(where:{source_url:{url:$url, case_sensitive: true}}) { onestop_id }}`,
-			hw{"url": "test/data/external/Caltrain.zip"},
+			hw{"url": "file://test/data/external/Caltrain.zip"},
 			`{"feeds":[]}`,
 			"",
 			nil,
@@ -51,7 +51,7 @@ func TestFeedResolver(t *testing.T) {
 		{
 			"search by url with type specified",
 			`query($url:String!) { feeds(where:{source_url:{url:$url, type: static_current}}) { onestop_id }}`,
-			hw{"url": "test/data/external/caltrain.zip"},
+			hw{"url": "file://test/data/external/caltrain.zip"},
 			`{"feeds":[{"onestop_id":"CT"}]}`,
 			"",
 			nil,
@@ -59,7 +59,7 @@ func TestFeedResolver(t *testing.T) {
 		{
 			"search by url with type realtime_trip_updates",
 			`query($url:String!) { feeds(where:{source_url:{url:$url, type: realtime_trip_updates}}) { onestop_id }}`,
-			hw{"url": "test/data/rt/BA.json"},
+			hw{"url": "file://test/data/rt/BA.json"},
 			`{"feeds":[{"onestop_id":"BA~rt"}]}`,
 			"",
 			nil,
