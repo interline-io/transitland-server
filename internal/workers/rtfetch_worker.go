@@ -27,11 +27,11 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	// Find feed
 	rtfeeds, err := job.Opts.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{OnestopID: &w.SourceFeedID})
 	if err != nil {
-		log.Error().Err(err).Msg("fetch worker: error loading source feed")
+		log.Error().Err(err).Msg("rtfetch worker: error loading source feed")
 		return err
 	}
 	if len(rtfeeds) == 0 {
-		log.Error().Err(err).Msg("fetch worker: source feed not found")
+		log.Error().Err(err).Msg("rtfetch worker: source feed not found")
 		return errors.New("feed not found")
 	}
 	rtfeed := rtfeeds[0]
@@ -43,7 +43,7 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		var err error
 		secret, err = rtfeed.MatchSecrets(job.Opts.Secrets)
 		if err != nil {
-			log.Error().Err(err).Msg("fetch worker: secret match failed")
+			log.Error().Err(err).Msg("rtfetch worker: secret match failed")
 			return err
 		}
 		reqOpts = append(reqOpts, request.WithAuth(secret, rtfeed.Authorization))
@@ -54,7 +54,7 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	req := request.NewRequest(w.Url, reqOpts...)
 	reqBody, err := req.Request(ctx)
 	if err != nil {
-		log.Error().Err(err).Msg("fetch worker: request failed")
+		log.Error().Err(err).Msg("rtfetch worker: request failed")
 		return err
 	}
 	defer reqBody.Close()
@@ -62,10 +62,11 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	rtdata, _ := ioutil.ReadAll(reqBody)
 	rtmsg := pb.FeedMessage{}
 	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
-		log.Error().Err(err).Msg("fetch worker: failed to parse response")
+		log.Error().Err(err).Msg("rtfetch worker: failed to parse response")
 		return err
 	}
 	// Save to cache
 	key := fmt.Sprintf("rtdata:%s:%s", w.Target, w.SourceType)
+	log.Info().Int("bytes", len(rtdata)).Str("url", w.Url).Msg("rtfetch worker: success")
 	return job.Opts.RTFinder.AddData(key, rtdata)
 }
