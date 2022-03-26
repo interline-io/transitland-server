@@ -1,9 +1,6 @@
 package find
 
 import (
-	"fmt"
-	"time"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -412,43 +409,44 @@ func (f *DBFinder) StopTimesByStopID(params []model.StopTimeParam) ([][]*model.S
 		return nil, nil
 	}
 	limit := checkLimit(params[0].Limit)
-	qents := []*model.StopTime{}
-	var spairs []FVPair
-	for _, p := range params {
-		spairs = append(spairs, FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
-	}
-	if p := params[0].Where; p != nil && (p.ServiceDate != nil || p.Next != nil) {
-		// require a valid timezone
-		if p.Timezone != nil {
-			if _, err := time.LoadLocation(*p.Timezone); err != nil {
-				return nil, []error{fmt.Errorf("invalid timezone: '%s'", *p.Timezone)}
-			}
-		}
-		MustSelect(
-			f.db,
-			StopDeparturesSelect(spairs, p),
-			&qents,
-		)
-	} else {
-		// Otherwise get all stop_times for stop
-		MustSelect(
-			f.db,
-			StopTimeSelect(nil, spairs, params[0].Where),
-			&qents,
-		)
-	}
+	tzgroups := map[string][]FVPair{}
 	group := map[int][]*model.StopTime{}
-	for _, ent := range qents {
-		group[atoi(ent.StopID)] = append(group[atoi(ent.StopID)], ent)
+	for _, p := range params {
+		s := ""
+		if p.StopTimezone != nil {
+			s = p.StopTimezone.String()
+		}
+		tzgroups[s] = append(tzgroups[s], FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
 	}
-	for k, ents := range group {
-		if uint64(len(ents)) > limit {
-			group[k] = ents[0:limit]
+	for tzloc, tzpairs := range tzgroups {
+		qents := []*model.StopTime{}
+		if p := params[0].Where; p != nil && (p.ServiceDate != nil || p.Next != nil) {
+			p.Timezone = &tzloc
+			MustSelect(
+				f.db,
+				StopDeparturesSelect(tzpairs, p),
+				&qents,
+			)
+		} else {
+			// Otherwise get all stop_times for stop
+			MustSelect(
+				f.db,
+				StopTimeSelect(nil, tzpairs, params[0].Where),
+				&qents,
+			)
+		}
+		for _, ent := range qents {
+			group[atoi(ent.StopID)] = append(group[atoi(ent.StopID)], ent)
+		}
+		for k, ents := range group {
+			if uint64(len(ents)) > limit {
+				group[k] = ents[0:limit]
+			}
 		}
 	}
 	var ents [][]*model.StopTime
-	for _, sp := range spairs {
-		ents = append(ents, group[sp.EntityID])
+	for _, sp := range params {
+		ents = append(ents, group[sp.StopID])
 	}
 	return ents, nil
 }
