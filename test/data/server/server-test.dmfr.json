@@ -55,6 +55,13 @@
       }
     },
     {
+      "spec": "gtfs",
+      "id": "HA",
+      "urls": {
+        "static_current": "file://test/data/external/hart.zip"
+      }
+    },    
+    {
       "spec": "gtfs-rt",
       "id": "BA~rt",
       "urls": {

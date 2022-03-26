@@ -13,7 +13,7 @@ func TestAgencyResolver(t *testing.T) {
 			hw{},
 			``,
 			"agencies.#.agency_id",
-			[]string{"caltrain-ca-us", "BART"},
+			[]string{"caltrain-ca-us", "BART", "HART"},
 		},
 		{
 			"basic fields",
@@ -112,7 +112,7 @@ func TestAgencyResolver(t *testing.T) {
 			vars,
 			``,
 			"agencies.#.onestop_id",
-			[]string{"o-9q9-bayarearapidtransit", "o-9q9-caltrain"},
+			[]string{"o-9q9-bayarearapidtransit", "o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
 		},
 		{
 			"places iso3166 state",

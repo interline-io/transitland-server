@@ -44,7 +44,7 @@ func TestOperatorResolver(t *testing.T) {
 			hw{},
 			``,
 			"operators.#.onestop_id",
-			[]string{"o-9q9-bayarearapidtransit", "o-9q9-caltrain"},
+			[]string{"o-9q9-bayarearapidtransit", "o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
 		},
 		{
 			"places iso3166 state",
@@ -68,7 +68,7 @@ func TestOperatorResolver(t *testing.T) {
 			hw{},
 			``,
 			"operators.#.onestop_id",
-			[]string{"o-9q9-bayarearapidtransit", "o-9q9-caltrain"},
+			[]string{"o-9q9-bayarearapidtransit", "o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
 		},
 		{
 			"places adm1_name",
