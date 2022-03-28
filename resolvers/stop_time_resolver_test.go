@@ -2,6 +2,9 @@ package resolvers
 
 import (
 	"testing"
+	"time"
+
+	"github.com/interline-io/transitland-server/internal/clock"
 )
 
 func TestStopTimeResolver(t *testing.T) {
@@ -72,6 +75,65 @@ func TestStopTimeResolver(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestStopTimeResolver_Next(t *testing.T) {
+	type tcWithClock struct {
+		testcase
+		when string
+	}
+	testcases := []tcWithClock{
+		// Relative times
+		{
+			testcase{
+				"where next 3600",
+				`query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{next:3600}) {arrival_time}}}`,
+				hw{},
+				``,
+				"stops.0.stop_times.#.arrival_time",
+				// these should start at 15:00 - 16:00
+				[]string{"15:01:00", "15:09:00", "15:09:00", "15:16:00", "15:24:00", "15:24:00", "15:31:00", "15:39:00", "15:39:00", "15:46:00", "15:54:00", "15:54:00"},
+			},
+			"2018-05-30T22:00:00",
+		},
+		{
+			testcase{
+				"where next 1800",
+				`query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{next:1800}) {arrival_time}}}`,
+				hw{},
+				``,
+				"stops.0.stop_times.#.arrival_time",
+				// these should start at 15:00 - 15:30
+				[]string{"15:01:00", "15:09:00", "15:09:00", "15:16:00", "15:24:00", "15:24:00"},
+			},
+			"2018-05-30T22:00:00",
+		},
+		{
+			testcase{
+				"where next 900, east coast",
+				`query{ stops(where:{stop_id:"6497"}) { stop_times(where:{next:900}) {arrival_time}}}`,
+				hw{},
+				``,
+				"stops.0.stop_times.#.arrival_time",
+				// these should start at 18:00 - 18:15
+				[]string{"18:00:00", "18:00:00", "18:00:00", "18:00:00", "18:00:00", "18:03:00", "18:10:00", "18:10:00", "18:13:00", "18:14:00", "18:15:00", "18:15:00"},
+			},
+			"2018-05-30T22:00:00",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			// 2018-05-28 22:00:00 +0000 UTC
+			// 2018-05-28 15:00:00 -0700 PDT
+			when, err := time.Parse("2006-01-02T15:04:05", tc.when)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c := newTestClientWithClock(&clock.Mock{T: when})
+			testquery(t, c, tc.testcase)
 		})
 	}
 }

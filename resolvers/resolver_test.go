@@ -9,6 +9,7 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/rtcache"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,8 @@ func TestMain(m *testing.M) {
 		return
 	}
 	db := find.MustOpenDB(g)
-	TestDBFinder = find.NewDBFinder(db)
+	dbf := find.NewDBFinder(db)
+	TestDBFinder = dbf
 	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	os.Exit(m.Run())
 }
@@ -35,6 +37,16 @@ func TestMain(m *testing.M) {
 func newTestClient() *client.Client {
 	cfg := config.Config{}
 	srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+	return client.New(srv)
+}
+
+func newTestClientWithClock(cl clock.Clock) *client.Client {
+	// Create a new finder, with specified time
+	db := TestDBFinder.DBX()
+	f := find.NewDBFinder(db)
+	f.Clock = cl
+	cfg := config.Config{}
+	srv, _ := NewServer(cfg, f, TestRTFinder)
 	return client.New(srv)
 }
 
