@@ -12,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -36,6 +37,7 @@ func init() {
 }
 
 type valhallaRouter struct {
+	Clock    clock.Clock
 	client   *http.Client
 	endpoint string
 	apikey   string
@@ -71,8 +73,10 @@ func (h *valhallaRouter) Request(req model.DirectionRequest) (*model.Directions,
 		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
 	departAt := time.Now()
+	if h.Clock != nil {
+		departAt = h.Clock.Now()
+	}
 	if req.DepartAt == nil {
-		departAt = time.Now()
 		req.DepartAt = &departAt
 	} else {
 		departAt = *req.DepartAt

@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/location/types"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -51,12 +52,14 @@ func init() {
 
 type awsRouter struct {
 	CalculatorName string
+	Clock          clock.Clock
 	locationClient LocationClient
 }
 
 func newAWSRouter(lc LocationClient, calculator string) *awsRouter {
 	return &awsRouter{
 		CalculatorName: calculator,
+		Clock:          &clock.Real{},
 		locationClient: lc,
 	}
 }
@@ -84,6 +87,9 @@ func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, erro
 	}
 	// Departure time
 	now := time.Now()
+	if h.Clock != nil {
+		now = h.Clock.Now()
+	}
 	var departAt time.Time
 	if req.DepartAt == nil {
 		departAt = now

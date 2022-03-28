@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -18,7 +19,9 @@ func init() {
 }
 
 // lineRouter is a simple point-to-point handler for testing purposes
-type lineRouter struct{}
+type lineRouter struct {
+	Clock clock.Clock
+}
 
 func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, error) {
 	// Prepare response
@@ -35,8 +38,10 @@ func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, err
 	}
 
 	departAt := time.Now()
+	if h.Clock != nil {
+		departAt = h.Clock.Now()
+	}
 	if req.DepartAt == nil {
-		departAt = time.Now()
 		req.DepartAt = &departAt
 	} else {
 		departAt = *req.DepartAt

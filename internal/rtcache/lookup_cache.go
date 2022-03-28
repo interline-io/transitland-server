@@ -80,6 +80,10 @@ func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) 
 		log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
 		return loc, ok
 	}
+	if id == 0 {
+		log.Trace().Int("stop_id", id).Msg("tz: lookup failed, cant find timezone for stops with id=0 unless speciifed explicitly")
+		return nil, false
+	}
 	// Otherwise lookup the timezone
 	q := `
 		select COALESCE(nullif(s.stop_timezone, ''), nullif(p.stop_timezone, ''), a.agency_timezone)
@@ -96,7 +100,7 @@ func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) 
 	tz := ""
 	if err := sqlx.Get(f.db, &tz, q, id); err != nil {
 		log.Error().Err(err).Int("stop_id", id).Str("known", known).Msg("tz: lookup failed")
-
+		return nil, false
 	}
 	loc, ok := f.tzCache.Add(id, tz)
 	log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: lookup successful")

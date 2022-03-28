@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/lib/pq"
 )
@@ -47,11 +48,14 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilte
 	return qView
 }
 
-func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
+func StopDeparturesSelect(spairs []FVPair, nowtime clock.Clock, tz string, where *model.StopTimeFilter) sq.SelectBuilder {
 	serviceDate := time.Now()
-	if where != nil && where.Next != nil && where.Timezone != nil {
+	if nowtime != nil {
+		serviceDate = nowtime.Now()
+	}
+	if where != nil && where.Next != nil {
 		// Require a valid timezone
-		if loc, err := time.LoadLocation(*where.Timezone); err == nil {
+		if loc, err := time.LoadLocation(tz); err == nil {
 			serviceDate = serviceDate.In(loc)
 			st, et := 0, 0
 			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()

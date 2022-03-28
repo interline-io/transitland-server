@@ -12,7 +12,7 @@ func TestFeedResolver(t *testing.T) {
 			hw{},
 			``,
 			"feeds.#.onestop_id",
-			[]string{"BA", "CT", "BA~rt", "CT~rt", "test"},
+			[]string{"BA", "CT", "HA", "BA~rt", "CT~rt", "test"},
 		},
 		{
 			"basic fields",
@@ -111,7 +111,7 @@ func TestFeedResolver(t *testing.T) {
 			hw{},
 			``,
 			"feeds.#.onestop_id",
-			[]string{"CT", "BA", "test"},
+			[]string{"CT", "BA", "test", "HA"},
 		},
 		{
 			"where spec=gtfs-rt",
@@ -135,7 +135,7 @@ func TestFeedResolver(t *testing.T) {
 			hw{},
 			``,
 			"feeds.#.onestop_id",
-			[]string{"BA", "CT"},
+			[]string{"BA", "CT", "HA"},
 		},
 		{
 			"where import_status=success",
@@ -143,7 +143,7 @@ func TestFeedResolver(t *testing.T) {
 			hw{},
 			``,
 			"feeds.#.onestop_id",
-			[]string{"BA", "CT"},
+			[]string{"BA", "CT", "HA"},
 		},
 		{
 			"where import_status=in_progress", // TODO: mock an in-progress import

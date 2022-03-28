@@ -3,6 +3,8 @@ package resolvers
 import (
 	"context"
 	"errors"
+	"sort"
+	"strconv"
 	"time"
 
 	"github.com/interline-io/transitland-server/directions"
@@ -48,15 +50,14 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 }
 
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
-	sts, err := For(ctx).StopTimesByStopID.Load(model.StopTimeParam{FeedVersionID: obj.FeedVersionID, StopID: obj.ID, Limit: limit, Where: where})
-	if err != nil {
-		return nil, err
-	}
-	_, ok := r.rtcm.StopTimezone(obj.ID, obj.StopTimezone)
+	tz, ok := r.rtcm.StopTimezone(obj.ID, obj.StopTimezone)
 	if !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
-
+	sts, err := For(ctx).StopTimesByStopID.Load(model.StopTimeParam{StopTimezone: tz, FeedVersionID: obj.FeedVersionID, StopID: obj.ID, Limit: limit, Where: where})
+	if err != nil {
+		return nil, err
+	}
 	// Merge scheduled stop times with rt stop times
 	// TODO: handle StopTimeFilter in RT
 	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)
@@ -80,11 +81,18 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 			rtst.RTStopTimeUpdate = stu
 			rtst.FeedVersionID = obj.FeedVersionID
 			rtst.TripID = "0"
-			rtst.StopID = obj.StopID
+			rtst.StopID = strconv.Itoa(obj.ID)
 			rtst.StopSequence = int(stu.GetStopSequence())
 			sts = append(sts, rtst)
 		}
 	}
+	// Sort by scheduled departure time.
+	// TODO: Sort by rt departure time? Requires full StopTime Resolver for timezones, processing, etc.
+	sort.Slice(sts, func(i, j int) bool {
+		a := sts[i].DepartureTime.Seconds
+		b := sts[j].DepartureTime.Seconds
+		return a < b
+	})
 	return sts, nil
 }
 
