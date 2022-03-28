@@ -44,8 +44,8 @@ type Alert struct {
 }
 
 type CalendarDateFilter struct {
-	Date          *tl.ODate `json:"date"`
-	ExceptionType *int      `json:"exception_type"`
+	Date          *tl.Date `json:"date"`
+	ExceptionType *int     `json:"exception_type"`
 }
 
 type DirectionRequest struct {
@@ -105,11 +105,11 @@ type FeedVersionFilter struct {
 }
 
 type FeedVersionServiceLevelFilter struct {
-	StartDate  *tl.ODate `json:"start_date"`
-	EndDate    *tl.ODate `json:"end_date"`
-	AllRoutes  *bool     `json:"all_routes"`
-	DistinctOn *string   `json:"distinct_on"`
-	RouteIds   []string  `json:"route_ids"`
+	StartDate  *tl.Date `json:"start_date"`
+	EndDate    *tl.Date `json:"end_date"`
+	AllRoutes  *bool    `json:"all_routes"`
+	DistinctOn *string  `json:"distinct_on"`
+	RouteIds   []string `json:"route_ids"`
 }
 
 type FeedVersionSetInput struct {
@@ -181,7 +181,7 @@ type RTTripDescriptor struct {
 	RouteID              *string      `json:"route_id"`
 	DirectionID          *int         `json:"direction_id"`
 	StartTime            *tl.WideTime `json:"start_time"`
-	StartDate            *tl.ODate    `json:"start_date"`
+	StartDate            *tl.Date     `json:"start_date"`
 	ScheduleRelationship *string      `json:"schedule_relationship"`
 }
 
@@ -231,21 +231,20 @@ type StopFilter struct {
 }
 
 type StopTimeFilter struct {
-	ServiceDate     *tl.ODate `json:"service_date"`
-	StartTime       *int      `json:"start_time"`
-	EndTime         *int      `json:"end_time"`
-	Timezone        *string   `json:"timezone"`
-	Next            *int      `json:"next"`
-	RouteOnestopIds []string  `json:"route_onestop_ids"`
+	ServiceDate     *tl.Date `json:"service_date"`
+	StartTime       *int     `json:"start_time"`
+	EndTime         *int     `json:"end_time"`
+	Next            *int     `json:"next"`
+	RouteOnestopIds []string `json:"route_onestop_ids"`
 }
 
 type TripFilter struct {
-	ServiceDate     *tl.ODate `json:"service_date"`
-	TripID          *string   `json:"trip_id"`
-	RouteIds        []int     `json:"route_ids"`
-	RouteOnestopIds []string  `json:"route_onestop_ids"`
-	FeedVersionSha1 *string   `json:"feed_version_sha1"`
-	FeedOnestopID   *string   `json:"feed_onestop_id"`
+	ServiceDate     *tl.Date `json:"service_date"`
+	TripID          *string  `json:"trip_id"`
+	RouteIds        []int    `json:"route_ids"`
+	RouteOnestopIds []string `json:"route_onestop_ids"`
+	FeedVersionSha1 *string  `json:"feed_version_sha1"`
+	FeedOnestopID   *string  `json:"feed_onestop_id"`
 }
 
 type VehiclePosition struct {

@@ -761,7 +761,6 @@ input StopTimeFilter {
   service_date: Date
   start_time: Int
   end_time: Int
-  timezone: String
   next: Int
   route_onestop_ids: [String!] # keep?
 }

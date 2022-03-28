@@ -423,10 +423,9 @@ func (f *DBFinder) StopTimesByStopID(params []model.StopTimeParam) ([][]*model.S
 	for tzloc, tzpairs := range tzgroups {
 		qents := []*model.StopTime{}
 		if p := params[0].Where; p != nil && (p.ServiceDate != nil || p.Next != nil) {
-			p.Timezone = &tzloc
 			MustSelect(
 				f.db,
-				StopDeparturesSelect(tzpairs, f.Clock, p),
+				StopDeparturesSelect(tzpairs, f.Clock, tzloc, p),
 				&qents,
 			)
 		} else {
