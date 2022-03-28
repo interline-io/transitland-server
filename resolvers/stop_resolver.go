@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 	"errors"
+	"sort"
 	"strconv"
 	"time"
 
@@ -57,7 +58,6 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 	if err != nil {
 		return nil, err
 	}
-
 	// Merge scheduled stop times with rt stop times
 	// TODO: handle StopTimeFilter in RT
 	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)
@@ -86,6 +86,13 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 			sts = append(sts, rtst)
 		}
 	}
+	// Sort by scheduled departure time.
+	// TODO: Sort by rt departure time? Requires full StopTime Resolver for timezones, processing, etc.
+	sort.Slice(sts, func(i, j int) bool {
+		a := sts[i].DepartureTime.Seconds
+		b := sts[j].DepartureTime.Seconds
+		return a < b
+	})
 	return sts, nil
 }
 
