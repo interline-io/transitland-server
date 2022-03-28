@@ -13,7 +13,7 @@ func TestAgencyResolver(t *testing.T) {
 			hw{},
 			``,
 			"agencies.#.agency_id",
-			[]string{"caltrain-ca-us", "BART", "HART"},
+			[]string{"caltrain-ca-us", "BART", ""},
 		},
 		{
 			"basic fields",
