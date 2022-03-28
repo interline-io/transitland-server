@@ -2,6 +2,7 @@ package find
 
 import (
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -9,7 +10,8 @@ import (
 ////////
 
 type DBFinder struct {
-	db sqlx.Ext
+	Clock clock.Clock
+	db    sqlx.Ext
 }
 
 func NewDBFinder(db sqlx.Ext) *DBFinder {
@@ -424,7 +426,7 @@ func (f *DBFinder) StopTimesByStopID(params []model.StopTimeParam) ([][]*model.S
 			p.Timezone = &tzloc
 			MustSelect(
 				f.db,
-				StopDeparturesSelect(tzpairs, p),
+				StopDeparturesSelect(tzpairs, f.Clock, p),
 				&qents,
 			)
 		} else {
