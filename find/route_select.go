@@ -36,7 +36,22 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
 		}
 		if len(where.OnestopIds) > 0 {
-			qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
+			fallBack := true
+			if fallBack {
+				sub := sq.StatementBuilder.
+					Select("tl_route_onestop_ids.onestop_id", "gtfs_routes.route_id", "feed_versions.feed_id").
+					Distinct().Options("on (tl_route_onestop_ids.onestop_id)").
+					From("tl_route_onestop_ids").
+					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id").
+					Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
+					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
+				subClause := sub.
+					Prefix("JOIN (").
+					Suffix(") s2 on s2.route_id = gtfs_routes.route_id and s2.feed_id = feed_versions.feed_id")
+				qView = qView.JoinClause(subClause)
+			} else {
+				qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
+			}
 		}
 		if where.FeedVersionSha1 != nil {
 			qView = qView.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
