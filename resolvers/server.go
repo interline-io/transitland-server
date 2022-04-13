@@ -11,14 +11,16 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	generated "github.com/interline-io/transitland-server/generated/gqlgen"
+	"github.com/interline-io/transitland-server/internal/fvsl"
 	"github.com/interline-io/transitland-server/model"
 )
 
 func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder) (http.Handler, error) {
 	c := generated.Config{Resolvers: &Resolver{
-		cfg:    cfg,
-		finder: dbfinder,
-		rtcm:   rtfinder,
+		cfg:       cfg,
+		finder:    dbfinder,
+		rtcm:      rtfinder,
+		fvslCache: fvsl.FVSLCache{Finder: dbfinder},
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := auth.ForContext(ctx)

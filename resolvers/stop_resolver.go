@@ -3,17 +3,21 @@ package resolvers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
 
+	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
 // STOP
 
-type stopResolver struct{ *Resolver }
+type stopResolver struct {
+	*Resolver
+}
 
 func (r *stopResolver) FeedVersion(ctx context.Context, obj *model.Stop) (*model.FeedVersion, error) {
 	return For(ctx).FeedVersionsByID.Load(obj.FeedVersionID)
@@ -50,14 +54,51 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 }
 
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
-	tz, ok := r.rtcm.StopTimezone(obj.ID, obj.StopTimezone)
+	// Convert where.Next into departure date and time window
+	loc, ok := r.rtcm.StopTimezone(obj.ID, obj.StopTimezone)
 	if !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
-	sts, err := For(ctx).StopTimesByStopID.Load(model.StopTimeParam{StopTimezone: tz, FeedVersionID: obj.FeedVersionID, StopID: obj.ID, Limit: limit, Where: where})
+	if where != nil && where.Next != nil {
+		serviceDate := time.Now()
+		serviceDate = serviceDate.In(loc)
+		st, et := 0, 0
+		st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
+		et = st + *where.Next
+		sd2 := tl.Date{Valid: true, Time: serviceDate}
+		where.ServiceDate = &sd2
+		where.StartTime = &st
+		where.EndTime = &et
+		where.Next = nil
+	}
+	// Check if service date is outside the window for this feed version
+	if where != nil && where.ServiceDate != nil {
+		sl, ok := r.fvslCache.Get(obj.FeedVersionID)
+		if !ok {
+			return nil, errors.New("service level information not available for feed version")
+		}
+		s := where.ServiceDate.Time
+		if s.Before(sl.StartDate) || s.After(sl.EndDate) {
+			dow := int(s.Weekday()) - 1
+			if dow < 0 {
+				dow = 6
+			}
+			where.ServiceDate.Time = sl.BestWeek.AddDate(0, 0, dow)
+			fmt.Println("window:", s, "start:", sl.StartDate, "end:", sl.EndDate, "switching to:", where.ServiceDate.Time)
+		}
+	}
+	//
+	sts, err := For(ctx).StopTimesByStopID.Load(model.StopTimeParam{
+		StopID:        obj.ID,
+		FeedVersionID: obj.FeedVersionID,
+		Limit:         limit,
+		Where:         where,
+		StopTimezone:  loc,
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	// Merge scheduled stop times with rt stop times
 	// TODO: handle StopTimeFilter in RT
 	// Handle scheduled trips; these can be matched on trip_id or (route_id,direction_id,...)

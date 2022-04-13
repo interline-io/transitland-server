@@ -1,7 +1,10 @@
 package find
 
 import (
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -406,33 +409,66 @@ func (f *DBFinder) StopTimesByTripID(params []model.StopTimeParam) ([][]*model.S
 	return ents, nil
 }
 
+type departKey struct {
+	year      int
+	month     time.Month
+	day       int
+	startTime int
+	endTime   int
+	tz        string
+}
+
 func (f *DBFinder) StopTimesByStopID(params []model.StopTimeParam) ([][]*model.StopTime, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
 	limit := checkLimit(params[0].Limit)
-	tzgroups := map[string][]FVPair{}
+	// Group by service date, time window
+	dgroups := map[departKey][]FVPair{}
 	group := map[int][]*model.StopTime{}
 	for _, p := range params {
-		s := ""
-		if p.StopTimezone != nil {
-			s = p.StopTimezone.String()
+		dkey := departKey{startTime: -1, endTime: -1, tz: p.StopTimezone.String()}
+		if p.Where != nil {
+			if p.Where.ServiceDate != nil {
+				t := p.Where.ServiceDate.Time
+				dkey.year = t.Year()
+				dkey.month = t.Month()
+				dkey.day = t.Day()
+			}
+			if p.Where.StartTime != nil {
+				dkey.startTime = *p.Where.StartTime
+			}
+			if p.Where.EndTime != nil {
+				dkey.endTime = *p.Where.EndTime
+			}
 		}
-		tzgroups[s] = append(tzgroups[s], FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
+		dgroups[dkey] = append(dgroups[dkey], FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
 	}
-	for tzloc, tzpairs := range tzgroups {
+	for dkey, dpairs := range dgroups {
 		qents := []*model.StopTime{}
 		if p := params[0].Where; p != nil && (p.ServiceDate != nil || p.Next != nil) {
+			// Get stops on a specified day
+			p2 := *p
+			if dkey.startTime >= 0 {
+				p2.StartTime = &dkey.startTime
+			}
+			if dkey.endTime >= 0 {
+				p2.EndTime = &dkey.endTime
+			}
+			if dkey.year > 0 {
+				s := tl.NewDate(time.Date(dkey.year, dkey.month, dkey.day, 0, 0, 0, 0, time.UTC))
+				p2.ServiceDate = &s
+			}
 			MustSelect(
 				f.db,
-				StopDeparturesSelect(tzpairs, f.Clock, tzloc, p),
+				StopDeparturesSelect(dpairs, f.Clock, dkey.tz, p),
 				&qents,
 			)
 		} else {
 			// Otherwise get all stop_times for stop
 			MustSelect(
 				f.db,
-				StopTimeSelect(nil, tzpairs, params[0].Where),
+				StopTimeSelect(nil, dpairs, params[0].Where),
 				&qents,
 			)
 		}

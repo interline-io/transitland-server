@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"time"
 
+	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/request"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/model"
 	"google.golang.org/protobuf/proto"
@@ -49,20 +49,24 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		reqOpts = append(reqOpts, request.WithAuth(secret, rtfeed.Authorization))
 	}
 	// Make request
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	req := request.NewRequest(w.Url, reqOpts...)
-	reqBody, err := req.Request(ctx)
+	rtdata, responseSha1, responseCode, responseSize, err := request.AuthenticatedRequest(w.Url, reqOpts...)
 	if err != nil {
 		log.Error().Err(err).Msg("rtfetch worker: request failed")
 		return err
 	}
-	defer reqBody.Close()
-	// Test this is valid protobuf
-	rtdata, _ := ioutil.ReadAll(reqBody)
 	rtmsg := pb.FeedMessage{}
 	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
 		log.Error().Err(err).Msg("rtfetch worker: failed to parse response")
+		return err
+	}
+	// Write feed fetch
+	tlfetch := dmfr.FeedFetch{}
+	tlfetch.ResponseCode = tl.NewInt(responseCode)
+	tlfetch.ResponseSHA1 = tl.NewString(responseSha1)
+	tlfetch.ResponseSize = tl.NewInt(responseSize)
+	adapter := tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX())
+	if _, err := adapter.Insert(&tlfetch); err != nil {
+		log.Error().Err(err).Msg("rtfetch worker: failed to save feed fetch")
 		return err
 	}
 	// Save to cache
