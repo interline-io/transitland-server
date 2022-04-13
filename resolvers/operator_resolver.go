@@ -29,5 +29,5 @@ func (r *operatorResolver) Generated(ctx context.Context, obj *model.Operator) (
 }
 
 func (r *operatorResolver) Feeds(ctx context.Context, obj *model.Operator, limit *int, where *model.FeedFilter) ([]*model.Feed, error) {
-	return For(ctx).FeedsByOperatorID.Load(model.FeedParam{OperatorOnestopID: obj.OnestopID.String, Where: where, Limit: limit})
+	return For(ctx).FeedsByOperatorOnestopID.Load(model.FeedParam{OperatorOnestopID: obj.OnestopID.String, Where: where, Limit: limit})
 }

@@ -43,7 +43,7 @@ type Loaders struct {
 	StopsByFeedVersionID                    dl.StopWhereLoader
 	TripsByFeedVersionID                    dl.TripWhereLoader
 	FeedInfosByFeedVersionID                dl.FeedInfoWhereLoader
-	FeedsByOperatorID                       dl.FeedWhereLoader
+	FeedsByOperatorOnestopID                dl.FeedWhereLoader
 	StopsByRouteID                          dl.StopWhereLoader
 	StopsByParentStopID                     dl.StopWhereLoader
 	AgencyPlacesByAgencyID                  dl.AgencyPlaceWhereLoader
@@ -126,7 +126,7 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				Wait:     WAIT,
 				Fetch:    finder.FeedStatesByFeedID,
 			}),
-			FeedsByOperatorID: *dl.NewFeedWhereLoader(dl.FeedWhereLoaderConfig{
+			FeedsByOperatorOnestopID: *dl.NewFeedWhereLoader(dl.FeedWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
 				Fetch:    finder.FeedsByOperatorOnestopID,
