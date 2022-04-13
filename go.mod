@@ -3,9 +3,10 @@ module github.com/interline-io/transitland-server
 go 1.16
 
 require (
-	github.com/99designs/gqlgen v0.13.0
+	github.com/99designs/gqlgen v0.17.2
 	github.com/Masterminds/squirrel v1.5.0
 	github.com/ReneKroon/ttlcache/v2 v2.11.0
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/aws/aws-sdk-go v1.42.38
 	github.com/aws/aws-sdk-go-v2 v1.14.0
 	github.com/aws/aws-sdk-go-v2/config v1.14.0
@@ -16,7 +17,6 @@ require (
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang/geo v0.0.0-20210108004804-a63082ebfb66
-	github.com/gookit/color v1.2.0 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
@@ -29,9 +29,10 @@ require (
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/tinylru v1.1.0
 	github.com/twpayne/go-geom v1.4.1
-	github.com/vektah/gqlparser/v2 v2.1.0
-	github.com/zenazn/goji v0.9.0 // indirect
-	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
+	github.com/vektah/gqlparser/v2 v2.4.1
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	golang.org/x/tools v0.1.10 // indirect
+	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
 	google.golang.org/protobuf v1.27.1
 )
 
