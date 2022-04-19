@@ -40,6 +40,10 @@ func getHandler(name string) (handlerFunc, bool) {
 func HandleRequest(pref string, req model.DirectionRequest) (*model.Directions, error) {
 	var handler Handler
 	handler = &lineRouter{}
+	// Default to walking
+	if !req.Mode.IsValid() {
+		req.Mode = model.StepModeWalk
+	}
 	// Always use line
 	if req.Mode == model.StepModeLine {
 		pref = "line"
@@ -56,7 +60,25 @@ func HandleRequest(pref string, req model.DirectionRequest) (*model.Directions, 
 	if hf, ok := getHandler(pref); ok {
 		handler = hf()
 	}
-	return handler.Request(req)
+	h, err := handler.Request(req)
+	a := log.Trace()
+	if err != nil {
+		a = log.Error().Err(err)
+	}
+	a = a.Str("mode", req.Mode.String()).
+		Str("handler", pref).
+		Float64("from_lat", req.From.Lat).
+		Float64("from_lon", req.From.Lon).
+		Float64("to_lat", req.To.Lat).
+		Float64("to_lon", req.To.Lon)
+	if h.Duration != nil {
+		a = a.Float64("duration", h.Duration.Duration).Str("duration_units", h.Duration.Units.String())
+	}
+	if h.Distance != nil {
+		a = a.Float64("distance", h.Distance.Distance).Str("distance_units", h.Distance.Units.String())
+	}
+	a.Msg("directions request")
+	return h, err
 }
 
 func validateDirectionRequest(req model.DirectionRequest) error {
