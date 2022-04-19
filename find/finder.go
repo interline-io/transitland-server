@@ -353,6 +353,47 @@ func (f *DBFinder) OperatorsByFeedID(params []model.OperatorParam) ([][]*model.O
 	return ents, nil
 }
 
+func (f *DBFinder) FeedsByOperatorOnestopID(params []model.FeedParam) ([][]*model.Feed, []error) {
+	if len(params) == 0 {
+		return nil, nil
+	}
+	osids := []string{}
+	for _, p := range params {
+		osids = append(osids, p.OperatorOnestopID)
+	}
+	type ffeed struct {
+		OperatorOnestopID string
+		model.Feed
+	}
+	var qents []*ffeed
+	q := FeedSelect(nil, nil, nil, params[0].Where).
+		Distinct().Options("on (coif.resolved_onestop_id, t.id)").
+		Column("coif.resolved_onestop_id as operator_onestop_id").
+		Join("current_operators_in_feed coif on coif.feed_id = t.id").
+		Where(sq.Eq{"coif.resolved_onestop_id": osids})
+	MustSelect(
+		f.db,
+		q,
+		&qents,
+	)
+	group := map[string][]*model.Feed{}
+	for i := 0; i < len(qents); i++ {
+		ent := qents[i]
+		group[ent.OperatorOnestopID] = append(group[ent.OperatorOnestopID], &ent.Feed)
+	}
+	limit := checkLimit(params[0].Limit)
+	for k, ents := range group {
+		if uint64(len(ents)) > limit {
+			group[k] = ents[0:limit]
+		}
+	}
+	var ents [][]*model.Feed
+	for _, osid := range osids {
+		ents = append(ents, group[osid])
+	}
+	return ents, nil
+}
+
 func (f *DBFinder) FrequenciesByTripID(params []model.FrequencyParam) ([][]*model.Frequency, []error) {
 	if len(params) == 0 {
 		return nil, nil

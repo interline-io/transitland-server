@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/httpcache"
@@ -87,10 +88,9 @@ func (h *valhallaRouter) Request(req model.DirectionRequest) (*model.Directions,
 	// Make request
 	res, err := makeValRequest(input, h.client, h.endpoint, h.apikey)
 	if err != nil || len(res.Trip.Legs) == 0 {
+		log.Error().Err(err).Msg("valhalla router failed to calculate route")
 		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
-
 	}
-
 	// Prepare response
 	ret := makeValDirections(res, departAt)
 	ret.Origin = wpiWaypoint(req.From)
@@ -196,7 +196,7 @@ type valhallaTrip struct {
 }
 
 type valhallaSummary struct {
-	Time   int     `json:"time"`
+	Time   float64 `json:"time"`
 	Length float64 `json:"length"`
 }
 
@@ -208,13 +208,13 @@ type valhallaLeg struct {
 
 type valhallaManeuver struct {
 	Length          float64 `json:"length"`
-	Time            int     `json:"time"`
+	Time            float64 `json:"time"`
 	TravelMode      string  `json:"travel_mode"`
 	Instruction     string  `json:"instruction"`
 	BeginShapeIndex int     `json:"begin_shape_index"`
 }
 
-func valDuration(t int) *model.Duration {
+func valDuration(t float64) *model.Duration {
 	return &model.Duration{Duration: float64(t), Units: model.DurationUnitSeconds}
 }
 

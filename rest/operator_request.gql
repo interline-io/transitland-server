@@ -7,6 +7,12 @@ query($limit: Int, $after: Int, $where: OperatorFilter) {
     website
     tags
     associated_feeds
+    feeds {
+      id
+      onestop_id
+      name
+      spec
+    }
     agencies {
       id
       agency_id

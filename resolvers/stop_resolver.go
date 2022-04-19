@@ -157,5 +157,8 @@ func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *mo
 		p.From = swp
 		p.To = to
 	}
+	if mode != nil {
+		p.Mode = *mode
+	}
 	return directions.HandleRequest("", p)
 }

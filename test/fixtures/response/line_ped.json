@@ -13,7 +13,7 @@
         "name": null
     },
     "duration": {
-        "duration": 4116,
+        "duration": 4116.4971546787765,
         "units": "SECONDS"
     },
     "distance": {
@@ -25,7 +25,7 @@
     "itineraries": [
         {
             "duration": {
-                "duration": 4116,
+                "duration": 4116.4971546787765,
                 "units": "SECONDS"
             },
             "distance": {
@@ -39,7 +39,7 @@
             "legs": [
                 {
                     "duration": {
-                        "duration": 4116,
+                        "duration": 4116.4971546787765,
                         "units": "SECONDS"
                     },
                     "distance": {
@@ -53,7 +53,7 @@
                     "steps": [
                         {
                             "duration": {
-                                "duration": 4116,
+                                "duration": 4116.4971546787765,
                                 "units": "SECONDS"
                             },
                             "distance": {

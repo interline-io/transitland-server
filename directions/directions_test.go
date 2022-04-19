@@ -45,8 +45,8 @@ func testHandler(t *testing.T, h Handler, tc testCase) *model.Directions {
 	if ret.Success != tc.success {
 		t.Errorf("got success '%t', expected '%t'", ret.Success, tc.success)
 	} else if ret.Success {
-		assert.GreaterOrEqual(t, ret.Duration.Duration, tc.duration, "duration")
-		assert.GreaterOrEqual(t, ret.Distance.Distance, tc.distance, "distance")
+		assert.InEpsilon(t, ret.Duration.Duration, tc.duration, 1.0, "duration")
+		assert.InEpsilon(t, ret.Distance.Distance, tc.distance, 1.0, "distance")
 	}
 	_ = time.Now()
 	if tc.resJson != "" {

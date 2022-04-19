@@ -10,7 +10,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -21,6 +20,7 @@ import (
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/jobs"
+	"github.com/interline-io/transitland-server/internal/playground"
 	"github.com/interline-io/transitland-server/internal/rtcache"
 	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"

@@ -3,9 +3,10 @@ module github.com/interline-io/transitland-server
 go 1.18
 
 require (
-	github.com/99designs/gqlgen v0.13.0
+	github.com/99designs/gqlgen v0.17.2
 	github.com/Masterminds/squirrel v1.5.0
 	github.com/ReneKroon/ttlcache/v2 v2.11.0
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/aws/aws-sdk-go v1.42.38
 	github.com/aws/aws-sdk-go-v2 v1.14.0
 	github.com/aws/aws-sdk-go-v2/config v1.14.0
@@ -28,7 +29,10 @@ require (
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/tinylru v1.1.0
 	github.com/twpayne/go-geom v1.4.1
-	github.com/vektah/gqlparser/v2 v2.1.0
+	github.com/vektah/gqlparser/v2 v2.4.1
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	golang.org/x/tools v0.1.10 // indirect
+	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
 	google.golang.org/protobuf v1.27.1
 )
 
@@ -86,4 +90,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210105161348-2e78108cf5f8 // indirect
 )
 
-replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
