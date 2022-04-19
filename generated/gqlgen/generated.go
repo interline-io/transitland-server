@@ -366,6 +366,7 @@ type ComplexityRoot struct {
 	Operator struct {
 		Agencies        func(childComplexity int) int
 		AssociatedFeeds func(childComplexity int) int
+		Feeds           func(childComplexity int, limit *int, where *model.FeedFilter) int
 		File            func(childComplexity int) int
 		Generated       func(childComplexity int) int
 		ID              func(childComplexity int) int
@@ -706,6 +707,7 @@ type OperatorResolver interface {
 	AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error)
 
 	Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error)
+	Feeds(ctx context.Context, obj *model.Operator, limit *int, where *model.FeedFilter) ([]*model.Feed, error)
 }
 type PathwayResolver interface {
 	FromStop(ctx context.Context, obj *model.Pathway) (*model.Stop, error)
@@ -2395,6 +2397,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Operator.AssociatedFeeds(childComplexity), true
+
+	case "Operator.feeds":
+		if e.complexity.Operator.Feeds == nil {
+			break
+		}
+
+		args, err := ec.field_Operator_feeds_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Operator.Feeds(childComplexity, args["limit"].(*int), args["where"].(*model.FeedFilter)), true
 
 	case "Operator.file":
 		if e.complexity.Operator.File == nil {
@@ -4186,6 +4200,7 @@ type Operator {
   associated_feeds: Any
   search_rank: String # only for search results
   agencies: [Agency!]
+  feeds(limit: Int, where: FeedFilter): [Feed!]
 }
 
 # GTFS Entities
@@ -5298,6 +5313,30 @@ func (ec *executionContext) field_Mutation_validate_gtfs_args(ctx context.Contex
 		}
 	}
 	args["realtime_urls"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Operator_feeds_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.FeedFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOFeedFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -13947,6 +13986,45 @@ func (ec *executionContext) _Operator_agencies(ctx context.Context, field graphq
 	res := resTmp.([]*model.Agency)
 	fc.Result = res
 	return ec.marshalOAgency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Operator_feeds(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Operator",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Operator_feeds_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Operator().Feeds(rctx, obj, args["limit"].(*int), args["where"].(*model.FeedFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Feed)
+	fc.Result = res
+	return ec.marshalOFeed2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pathway_id(ctx context.Context, field graphql.CollectedField, obj *model.Pathway) (ret graphql.Marshaler) {
@@ -25956,6 +26034,23 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 				return innerFunc(ctx)
 
 			})
+		case "feeds":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Operator_feeds(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -31599,6 +31694,53 @@ func (ec *executionContext) marshalODuration2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 		return graphql.Null
 	}
 	return ec._Duration(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOFeed2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Feed) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFeed2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeed(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOFeedAuthorization2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedAuthorization(ctx context.Context, sel ast.SelectionSet, v *model.FeedAuthorization) graphql.Marshaler {

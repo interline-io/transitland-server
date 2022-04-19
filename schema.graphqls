@@ -165,6 +165,7 @@ type Operator {
   associated_feeds: Any
   search_rank: String # only for search results
   agencies: [Agency!]
+  feeds(limit: Int, where: FeedFilter): [Feed!]
 }
 
 # GTFS Entities
