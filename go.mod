@@ -66,6 +66,7 @@ require (
 	github.com/google/uuid v1.1.4 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
+	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20191218041957-e1b8fdd0dcc3 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect

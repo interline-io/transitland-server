@@ -30,10 +30,6 @@ func (r *feedResolver) Languages(ctx context.Context, obj *model.Feed) ([]string
 	return obj.Languages, nil
 }
 
-func (r *feedResolver) AssociatedFeeds(ctx context.Context, obj *model.Feed) ([]string, error) {
-	return obj.AssociatedFeeds, nil
-}
-
 func (r *feedResolver) Urls(ctx context.Context, obj *model.Feed) (*model.FeedUrls, error) {
 	return &model.FeedUrls{FeedUrls: obj.URLs}, nil
 }
