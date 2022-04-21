@@ -52,7 +52,7 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	req := request.NewRequest(w.Url, reqOpts...)
-	reqBody, err := req.Request(ctx)
+	reqBody, _, err := req.Request(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("rtfetch worker: request failed")
 		return err
