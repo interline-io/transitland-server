@@ -5,10 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/interline-io/transitland-lib/dmfr"
-	"github.com/interline-io/transitland-lib/rt/pb"
-	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/request"
+	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/model"
@@ -34,43 +31,24 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		log.Error().Err(err).Msg("rtfetch worker: source feed not found")
 		return errors.New("feed not found")
 	}
-	rtfeed := rtfeeds[0]
-	// Prepare auth
-	// Note: Only HTTP(S) allowed; AllowFTP/AllowS3/AllowLocal options not passed in.
-	var reqOpts []request.RequestOption
-	if rtfeed.Authorization.Type != "" {
-		secret := tl.Secret{}
-		var err error
-		secret, err = rtfeed.MatchSecrets(job.Opts.Secrets)
-		if err != nil {
-			log.Error().Err(err).Msg("rtfetch worker: secret match failed")
-			return err
-		}
-		reqOpts = append(reqOpts, request.WithAuth(secret, rtfeed.Authorization))
-	}
 	// Make request
-	rtdata, responseSha1, responseCode, responseSize, err := request.AuthenticatedRequest(w.Url, reqOpts...)
+	rtfeed := rtfeeds[0].Feed
+	atx := tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX())
+	fetchOpts := fetch.Options{
+		Secrets: job.Opts.Secrets,
+	}
+	rtmsg, fr, err := fetch.RTFetch(atx, rtfeed, fetchOpts)
 	if err != nil {
 		log.Error().Err(err).Msg("rtfetch worker: request failed")
 		return err
 	}
-	rtmsg := pb.FeedMessage{}
-	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
-		log.Error().Err(err).Msg("rtfetch worker: failed to parse response")
-		return err
-	}
-	// Write feed fetch
-	tlfetch := dmfr.FeedFetch{}
-	tlfetch.ResponseCode = tl.NewInt(responseCode)
-	tlfetch.ResponseSHA1 = tl.NewString(responseSha1)
-	tlfetch.ResponseSize = tl.NewInt(responseSize)
-	adapter := tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX())
-	if _, err := adapter.Insert(&tlfetch); err != nil {
-		log.Error().Err(err).Msg("rtfetch worker: failed to save feed fetch")
+	// Convert back to bytes...
+	rtdata, err := proto.Marshal(rtmsg)
+	if err != nil {
 		return err
 	}
 	// Save to cache
 	key := fmt.Sprintf("rtdata:%s:%s", w.Target, w.SourceType)
-	log.Info().Int("bytes", len(rtdata)).Str("url", w.Url).Msg("rtfetch worker: success")
+	log.Info().Int("bytes", fr.ResponseSize).Str("url", w.Url).Msg("rtfetch worker: success")
 	return job.Opts.RTFinder.AddData(key, rtdata)
 }
