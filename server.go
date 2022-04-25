@@ -1,8 +1,10 @@
 package server
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -34,16 +36,28 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		if user == nil {
 			user = &auth.User{IsAnon: true}
 		}
+		// Get request body for logging if request is json and length under 20kb
+		var body []byte
+		if r.Header.Get("content-type") == "application/json" && r.ContentLength < 1024*20 {
+			body, _ = ioutil.ReadAll(r.Body)
+			r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		}
+		// Wrap response to get error code
 		wr := wrapResponseWriter(w)
 		next.ServeHTTP(wr, r)
-		log.Info().
-			Int64("duration_ms", (time.Now().UnixNano()-t1.UnixNano())/1e6).
+		// Extra logging of request body if duration > 1s
+		durationMs := (time.Now().UnixNano() - t1.UnixNano()) / 1e6
+		msg := log.Info().
+			Int64("duration_ms", durationMs).
 			Str("method", r.Method).
 			Str("path", r.URL.EscapedPath()).
 			Str("query", r.URL.Query().Encode()).
 			Str("user", user.Name).
-			Int("status", wr.status).
-			Msg("request")
+			Int("status", wr.status)
+		if durationMs > 1000 {
+			msg = msg.Str("body", string(body)).Bool("long_query", true)
+		}
+		msg.Msg("request")
 	})
 }
 
