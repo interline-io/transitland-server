@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -54,8 +55,13 @@ func loggingMiddleware(next http.Handler) http.Handler {
 			Str("query", r.URL.Query().Encode()).
 			Str("user", user.Name).
 			Int("status", wr.status)
-		if durationMs > 1 {
-			msg = msg.RawJSON("body", body).Bool("long_query", true)
+		if durationMs > 1000 {
+			// Verify it's valid json
+			msg = msg.Bool("long_query", true)
+			var x interface{}
+			if err := json.Unmarshal(body, &x); err == nil {
+				msg = msg.RawJSON("body", body)
+			}
 		}
 		msg.Msg("request")
 	})
