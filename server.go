@@ -54,8 +54,8 @@ func loggingMiddleware(next http.Handler) http.Handler {
 			Str("query", r.URL.Query().Encode()).
 			Str("user", user.Name).
 			Int("status", wr.status)
-		if durationMs > 1000 {
-			msg = msg.Str("body", string(body)).Bool("long_query", true)
+		if durationMs > 1 {
+			msg = msg.RawJSON("body", body).Bool("long_query", true)
 		}
 		msg.Msg("request")
 	})
