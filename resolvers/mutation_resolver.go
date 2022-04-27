@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/rs/zerolog/log"
@@ -78,6 +79,8 @@ func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *strin
 	}
 	// Prepare request
 	opts := fetch.Options{
+		URLType:   "manual",
+		FetchedAt: time.Now(),
 		FeedID:    feedId,
 		Directory: cfg.GtfsDir,
 		S3:        cfg.GtfsS3Bucket,
