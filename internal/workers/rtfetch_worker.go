@@ -35,6 +35,7 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	rtfeed := rtfeeds[0].Feed
 	atx := tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX())
 	fetchOpts := fetch.Options{
+		URLType: w.SourceType,
 		FeedURL: w.Url,
 		Secrets: job.Opts.Secrets,
 	}

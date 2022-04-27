@@ -54,13 +54,13 @@ func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		log.Info().Str("feed_id", fid).Strs("targets", uniq).Msg("enqueue worker: adding rt-fetch jobs for feed")
 		for _, target := range uniq {
 			if ent.URLs.RealtimeAlerts != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "alerts", "url": ent.URLs.RealtimeAlerts, "source_feed_id": fid}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "realtime_alerts", "url": ent.URLs.RealtimeAlerts, "source_feed_id": fid}})
 			}
 			if ent.URLs.RealtimeTripUpdates != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "trip_updates", "url": ent.URLs.RealtimeTripUpdates, "source_feed_id": fid}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "realtime_trip_updates", "url": ent.URLs.RealtimeTripUpdates, "source_feed_id": fid}})
 			}
 			if ent.URLs.RealtimeVehiclePositions != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "vehicle_positions", "url": ent.URLs.RealtimeVehiclePositions, "source_feed_id": fid}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "realtime_vehicle_positions", "url": ent.URLs.RealtimeVehiclePositions, "source_feed_id": fid}})
 			}
 		}
 	}
