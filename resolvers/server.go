@@ -19,7 +19,7 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 	c := generated.Config{Resolvers: &Resolver{
 		cfg:       cfg,
 		finder:    dbfinder,
-		rtcm:      rtfinder,
+		rtfinder:  rtfinder,
 		fvslCache: fvsl.FVSLCache{Finder: dbfinder},
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {

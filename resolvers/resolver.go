@@ -20,7 +20,7 @@ func atoi(v string) int {
 // Resolver .
 type Resolver struct {
 	cfg       config.Config
-	rtcm      model.RTFinder
+	rtfinder  model.RTFinder
 	finder    model.Finder
 	fvslCache fvsl.FVSLCache
 }

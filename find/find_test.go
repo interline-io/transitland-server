@@ -1,6 +1,8 @@
 package find
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_alphanumeric(t *testing.T) {
 	tcs := []struct {
