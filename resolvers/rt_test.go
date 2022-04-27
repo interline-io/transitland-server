@@ -114,8 +114,8 @@ var baseStopVars = hw{
 }
 
 var baseRTFiles = []rtFile{
-	{"BA", "trip_updates", "BA.json"},
-	{"CT", "trip_updates", "CT.json"},
+	{"BA", "realtime_trip_updates", "BA.json"},
+	{"CT", "realtime_trip_updates", "CT.json"},
 }
 
 // rtFetchJson fetches test protobuf in JSON format
@@ -217,7 +217,7 @@ func TestStopRTAddedTrip(t *testing.T) {
 		"stop times added trip",
 		baseStopQuery,
 		baseStopVars,
-		[]rtFile{{"BA", "trip_updates", "BA-added.json"}},
+		[]rtFile{{"BA", "realtime_trip_updates", "BA-added.json"}},
 		func(t *testing.T, jj string) {
 			checkTrip := "-123"
 			found := false
@@ -250,7 +250,7 @@ func TestStopRTCanceledTrip(t *testing.T) {
 		"stop times canceled trip",
 		baseStopQuery,
 		baseStopVars,
-		[]rtFile{{"BA", "trip_updates", "BA-added.json"}},
+		[]rtFile{{"BA", "realtime_trip_updates", "BA-added.json"}},
 		func(t *testing.T, jj string) {
 			checkTrip := "2211533WKDY"
 			found := false
@@ -283,7 +283,7 @@ func TestTripAlerts(t *testing.T) {
 		baseStopQuery,
 		baseStopVars,
 		[]rtFile{
-			{"BA", "alerts", "BA-alerts.json"},
+			{"BA", "realtime_alerts", "BA-alerts.json"},
 		},
 		func(t *testing.T, jj string) {
 			checkTrip := "1031527WKDY"
@@ -317,7 +317,7 @@ func TestRouteAlerts(t *testing.T) {
 		baseStopQuery,
 		baseStopVars,
 		[]rtFile{
-			{"BA", "alerts", "BA-alerts.json"},
+			{"BA", "realtime_alerts", "BA-alerts.json"},
 		},
 		func(t *testing.T, jj string) {
 			checkTrip := "1031527WKDY"
@@ -352,7 +352,7 @@ func TestStopAlerts(t *testing.T) {
 		baseStopQuery,
 		baseStopVars,
 		[]rtFile{
-			{"BA", "alerts", "BA-alerts.json"},
+			{"BA", "realtime_alerts", "BA-alerts.json"},
 		},
 		func(t *testing.T, jj string) {
 			alerts := gjson.Get(jj, "stops.0.alerts").Array()
@@ -374,7 +374,7 @@ func TestAgencyAlerts(t *testing.T) {
 		baseStopQuery,
 		baseStopVars,
 		[]rtFile{
-			{"BA", "alerts", "BA-alerts.json"},
+			{"BA", "realtime_alerts", "BA-alerts.json"},
 		},
 		func(t *testing.T, jj string) {
 			checkTrip := "1031527WKDY"
