@@ -43,6 +43,10 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		log.Error().Err(err).Msg("rtfetch worker: request failed")
 		return err
 	}
+	if fr.FetchError != nil {
+		log.Error().Err(fr.FetchError).Msg("rtfetch worker: fetch error")
+		return err
+	}
 	if rtmsg == nil {
 		log.Error().Msg("rtfetch worker: no msg returned")
 		return err
