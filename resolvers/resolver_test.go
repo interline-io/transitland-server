@@ -43,10 +43,8 @@ func newTestClient() *client.Client {
 func newTestClientWithClock(cl clock.Clock) *client.Client {
 	// Create a new finder, with specified time
 	db := TestDBFinder.DBX()
-	f := find.NewDBFinder(db)
-	f.Clock = cl
-	cfg := config.Config{}
-	srv, _ := NewServer(cfg, f, TestRTFinder)
+	cfg := config.Config{Clock: cl}
+	srv, _ := NewServer(cfg, find.NewDBFinder(db), TestRTFinder)
 	return client.New(srv)
 }
 
