@@ -4795,6 +4795,7 @@ input StopFilter {
 
 input StopTimeFilter {
   service_date: Date
+  use_exact_date: Boolean
   start_time: Int
   end_time: Int
   next: Int
@@ -22887,6 +22888,14 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service_date"))
 			it.ServiceDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "use_exact_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_exact_date"))
+			it.UseExactDate, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -232,6 +232,7 @@ type StopFilter struct {
 
 type StopTimeFilter struct {
 	ServiceDate     *tl.Date `json:"service_date"`
+	UseExactDate    *bool    `json:"use_exact_date"`
 	StartTime       *int     `json:"start_time"`
 	EndTime         *int     `json:"end_time"`
 	Next            *int     `json:"next"`
