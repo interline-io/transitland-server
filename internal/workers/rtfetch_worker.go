@@ -35,6 +35,7 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	rtfeed := rtfeeds[0].Feed
 	atx := tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX())
 	fetchOpts := fetch.Options{
+		FeedURL: w.Url,
 		Secrets: job.Opts.Secrets,
 	}
 	rtmsg, fr, err := fetch.RTFetch(atx, rtfeed, fetchOpts)
@@ -42,9 +43,14 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		log.Error().Err(err).Msg("rtfetch worker: request failed")
 		return err
 	}
+	if rtmsg == nil {
+		log.Error().Msg("rtfetch worker: no msg returned")
+		return err
+	}
 	// Convert back to bytes...
 	rtdata, err := proto.Marshal(rtmsg)
 	if err != nil {
+		log.Error().Msg("rtfetch worker: invalid rt data")
 		return err
 	}
 	// Save to cache

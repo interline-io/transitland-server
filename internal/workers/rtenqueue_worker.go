@@ -60,7 +60,7 @@ func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "trip_updates", "url": ent.URLs.RealtimeTripUpdates, "source_feed_id": fid}})
 			}
 			if ent.URLs.RealtimeVehiclePositions != "" {
-				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "alertvehicle_positionss", "url": ent.URLs.RealtimeVehiclePositions, "source_feed_id": fid}})
+				jj = append(jj, jobs.Job{JobType: "rt-fetch", JobArgs: jobs.JobArgs{"target": target, "source_type": "vehicle_positions", "url": ent.URLs.RealtimeVehiclePositions, "source_feed_id": fid}})
 			}
 		}
 	}
