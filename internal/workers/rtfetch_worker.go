@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/tldb"
@@ -35,9 +36,10 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	rtfeed := rtfeeds[0].Feed
 	atx := tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX())
 	fetchOpts := fetch.Options{
-		URLType: w.SourceType,
-		FeedURL: w.Url,
-		Secrets: job.Opts.Secrets,
+		URLType:   w.SourceType,
+		FeedURL:   w.Url,
+		Secrets:   job.Opts.Secrets,
+		FetchedAt: time.Now(),
 	}
 	rtmsg, fr, err := fetch.RTFetch(atx, rtfeed, fetchOpts)
 	if err != nil {
