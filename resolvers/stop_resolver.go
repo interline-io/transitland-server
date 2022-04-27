@@ -3,7 +3,6 @@ package resolvers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -54,37 +53,45 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 }
 
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
-	// Convert where.Next into departure date and time window
-	loc, ok := r.rtcm.StopTimezone(obj.ID, obj.StopTimezone)
-	if !ok {
-		return nil, errors.New("timezone not available for stop")
-	}
-	if where != nil && where.Next != nil {
-		serviceDate := time.Now()
-		serviceDate = serviceDate.In(loc)
-		st, et := 0, 0
-		st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
-		et = st + *where.Next
-		sd2 := tl.Date{Valid: true, Time: serviceDate}
-		where.ServiceDate = &sd2
-		where.StartTime = &st
-		where.EndTime = &et
-		where.Next = nil
-	}
-	// Check if service date is outside the window for this feed version
-	if where != nil && where.ServiceDate != nil {
-		sl, ok := r.fvslCache.Get(obj.FeedVersionID)
-		if !ok {
-			return nil, errors.New("service level information not available for feed version")
-		}
-		s := where.ServiceDate.Time
-		if s.Before(sl.StartDate) || s.After(sl.EndDate) {
-			dow := int(s.Weekday()) - 1
-			if dow < 0 {
-				dow = 6
+	// Further processing of the StopTimeFilter
+	if where != nil {
+		// Convert where.Next into departure date and time window
+		if where.Next != nil {
+			loc, ok := r.rtfinder.StopTimezone(obj.ID, obj.StopTimezone)
+			if !ok {
+				return nil, errors.New("timezone not available for stop")
 			}
-			where.ServiceDate.Time = sl.BestWeek.AddDate(0, 0, dow)
-			fmt.Println("window:", s, "start:", sl.StartDate, "end:", sl.EndDate, "switching to:", where.ServiceDate.Time)
+			serviceDate := r.cfg.Clock.Now().In(loc)
+			st, et := 0, 0
+			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
+			et = st + *where.Next
+			sd2 := tl.Date{Valid: true, Time: serviceDate}
+			where.ServiceDate = &sd2
+			where.StartTime = &st
+			where.EndTime = &et
+			where.Next = nil
+		}
+		// Check if service date is outside the window for this feed version
+		if where.ServiceDate != nil && (where.UseExactDate == nil || !*where.UseExactDate) {
+			sl, ok := r.fvslCache.Get(obj.FeedVersionID)
+			if !ok {
+				return nil, errors.New("service level information not available for feed version")
+			}
+			s := where.ServiceDate.Time
+			if s.Before(sl.StartDate) || s.After(sl.EndDate) {
+				dow := int(s.Weekday()) - 1
+				if dow < 0 {
+					dow = 6
+				}
+				where.ServiceDate.Time = sl.BestWeek.AddDate(0, 0, dow)
+				// fmt.Println(
+				// 	"requested day:", s, s.Weekday(),
+				// 	"window start:", sl.StartDate,
+				// 	"window end:", sl.EndDate,
+				// 	"best week:", sl.BestWeek, sl.BestWeek.Weekday(),
+				// 	"switching to:", where.ServiceDate.Time, where.ServiceDate.Time.Weekday(),
+				// )
+			}
 		}
 	}
 	//
@@ -93,7 +100,6 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 		FeedVersionID: obj.FeedVersionID,
 		Limit:         limit,
 		Where:         where,
-		StopTimezone:  loc,
 	})
 	if err != nil {
 		return nil, err
@@ -105,13 +111,13 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 	for _, st := range sts {
 		ft := model.Trip{}
 		ft.FeedVersionID = obj.FeedVersionID
-		ft.TripID, _ = r.rtcm.GetGtfsTripID(atoi(st.TripID)) // TODO!
-		if ste, ok := r.rtcm.FindStopTimeUpdate(&ft, st); ok {
+		ft.TripID, _ = r.rtfinder.GetGtfsTripID(atoi(st.TripID)) // TODO!
+		if ste, ok := r.rtfinder.FindStopTimeUpdate(&ft, st); ok {
 			st.RTStopTimeUpdate = ste
 		}
 	}
 	// Handle added trips; these must specify stop_id in StopTimeUpdates
-	for _, rtTrip := range r.rtcm.GetAddedTripsForStop(obj) {
+	for _, rtTrip := range r.rtfinder.GetAddedTripsForStop(obj) {
 		for _, stu := range rtTrip.StopTimeUpdate {
 			if stu.GetStopId() != obj.StopID {
 				continue
@@ -138,7 +144,7 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 }
 
 func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error) {
-	rtAlerts := r.rtcm.FindAlertsForStop(obj)
+	rtAlerts := r.rtfinder.FindAlertsForStop(obj)
 	return rtAlerts, nil
 }
 
