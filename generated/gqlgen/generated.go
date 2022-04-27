@@ -551,6 +551,7 @@ type ComplexityRoot struct {
 		DropOffType       func(childComplexity int) int
 		Interpolated      func(childComplexity int) int
 		PickupType        func(childComplexity int) int
+		ServiceDate       func(childComplexity int) int
 		Stop              func(childComplexity int) int
 		StopHeadsign      func(childComplexity int) int
 		StopSequence      func(childComplexity int) int
@@ -3493,6 +3494,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StopTime.PickupType(childComplexity), true
 
+	case "StopTime.service_date":
+		if e.complexity.StopTime.ServiceDate == nil {
+			break
+		}
+
+		return e.complexity.StopTime.ServiceDate(childComplexity), true
+
 	case "StopTime.stop":
 		if e.complexity.StopTime.Stop == nil {
 			break
@@ -4381,7 +4389,7 @@ type StopTime {
   departure: StopTimeEvent!
   continuous_drop_off: Int
   continuous_pickup: Int
-  # schedule_relationship: ScheduleRelationship!
+  service_date: Date
 }
 
 
@@ -4795,6 +4803,7 @@ input StopFilter {
 
 input StopTimeFilter {
   service_date: Date
+  use_service_window: Boolean
   start_time: Int
   end_time: Int
   next: Int
@@ -18839,6 +18848,38 @@ func (ec *executionContext) _StopTime_continuous_pickup(ctx context.Context, fie
 	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _StopTime_service_date(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Date)
+	fc.Result = res
+	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _StopTimeEvent_stop_timezone(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -22887,6 +22928,14 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service_date"))
 			it.ServiceDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "use_service_window":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_service_window"))
+			it.UseServiceWindow, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -28021,6 +28070,13 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 		case "continuous_pickup":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._StopTime_continuous_pickup(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "service_date":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_service_date(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

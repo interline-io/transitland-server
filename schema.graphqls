@@ -346,7 +346,7 @@ type StopTime {
   departure: StopTimeEvent!
   continuous_drop_off: Int
   continuous_pickup: Int
-  # schedule_relationship: ScheduleRelationship!
+  service_date: Date
 }
 
 
@@ -760,6 +760,7 @@ input StopFilter {
 
 input StopTimeFilter {
   service_date: Date
+  use_service_window: Boolean
   start_time: Int
   end_time: Int
   next: Int

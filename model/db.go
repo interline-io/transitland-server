@@ -24,6 +24,7 @@ type EntityFinder interface {
 	FindFeeds(limit *int, after *int, ids []int, where *FeedFilter) ([]*Feed, error)
 	FindOperators(limit *int, after *int, ids []int, where *OperatorFilter) ([]*Operator, error)
 	RouteStopBuffer(*RouteStopBufferParam) ([]*RouteStopBuffer, error)
+	FindFeedVersionServiceWindow(int) (time.Time, time.Time, time.Time, error)
 	DBX() sqlx.Ext // escape hatch, for now
 }
 

@@ -1,8 +1,11 @@
 package find
 
 import (
+	"errors"
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
-	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -10,8 +13,7 @@ import (
 ////////
 
 type DBFinder struct {
-	Clock clock.Clock
-	db    sqlx.Ext
+	db sqlx.Ext
 }
 
 func NewDBFinder(db sqlx.Ext) *DBFinder {
@@ -92,6 +94,110 @@ func (f *DBFinder) RouteStopBuffer(param *model.RouteStopBufferParam) ([]*model.
 	q := RouteStopBufferSelect(*param)
 	MustSelect(f.db, q, &ents)
 	return ents, nil
+}
+
+// Custom queries
+
+func (f *DBFinder) FindFeedVersionServiceWindow(fvid int) (time.Time, time.Time, time.Time, error) {
+	type fvslQuery struct {
+		FetchedAt    tl.Time
+		StartDate    tl.Time
+		EndDate      tl.Time
+		TotalService tl.Int
+	}
+	minServiceRatio := 0.75
+	startDate := time.Time{}
+	endDate := time.Time{}
+	bestWeek := time.Time{}
+
+	// Get FVSLs
+	q := sq.StatementBuilder.
+		Select("fv.fetched_at", "fvsl.start_date", "fvsl.end_date", "monday + tuesday + wednesday + thursday + friday + saturday + sunday as total_service").
+		From("feed_version_service_levels fvsl").
+		Join("feed_versions fv on fv.id = fvsl.feed_version_id").
+		Where(sq.Eq{"route_id": nil}).
+		Where(sq.Eq{"fvsl.feed_version_id": fvid}).
+		OrderBy("fvsl.start_date").
+		Limit(1000)
+	var ents []fvslQuery
+	MustSelect(f.db, q, &ents)
+	if len(ents) == 0 {
+		return startDate, endDate, bestWeek, errors.New("no fvsl results")
+	}
+	var fis []tl.FeedInfo
+	fiq := sq.StatementBuilder.Select("*").From("gtfs_feed_infos").Where(sq.Eq{"feed_version_id": fvid}).OrderBy("feed_start_date").Limit(1)
+	MustSelect(f.db, fiq, &fis)
+
+	// Check if we have feed infos, otherwise calculate based on fetched week or highest service week
+	fetched := ents[0].FetchedAt.Time
+	if len(fis) > 0 {
+		// fmt.Println("using feed infos")
+		startDate = fis[0].FeedStartDate.Time
+		endDate = fis[0].FeedEndDate.Time
+	} else {
+		// Get the week which includes fetched_at date, and the highest service week
+		highestIdx := 0
+		highestService := -1
+		fetchedWeek := -1
+		for i, ent := range ents {
+			sd := ent.StartDate.Time
+			ed := ent.EndDate.Time
+			if (sd.Before(fetched) || sd.Equal(fetched)) && (ed.After(fetched) || ed.Equal(fetched)) {
+				fetchedWeek = i
+			}
+			if ent.TotalService.Int > highestService {
+				highestIdx = i
+				highestService = ent.TotalService.Int
+			}
+		}
+		if fetchedWeek < 0 {
+			// fmt.Println("fetched week not in fvsls, using highest week:", highestIdx, highestService)
+			fetchedWeek = highestIdx
+		} else {
+			// fmt.Println("using fetched week:", fetchedWeek)
+		}
+
+		// Expand window in both directions from chosen week
+		startDate = ents[fetchedWeek].StartDate.Time
+		endDate = ents[fetchedWeek].EndDate.Time
+		for i := fetchedWeek; i < len(ents); i++ {
+			ent := ents[i]
+			if float64(ent.TotalService.Int)/float64(highestService) < minServiceRatio {
+				break
+			}
+			if ent.StartDate.Time.Before(startDate) {
+				startDate = ent.StartDate.Time
+			}
+			endDate = ent.EndDate.Time
+		}
+		for i := fetchedWeek - 1; i > 0; i-- {
+			ent := ents[i]
+			if float64(ent.TotalService.Int)/float64(highestService) < minServiceRatio {
+				break
+			}
+			if ent.EndDate.Time.After(endDate) {
+				endDate = ent.EndDate.Time
+			}
+			startDate = ent.StartDate.Time
+		}
+	}
+
+	// Check again to find the highest service week in the window
+	// This will be used as the typical week for dates outside the window
+	// bestWeek must start with a Monday
+	bestWeek = ents[0].StartDate.Time
+	bestService := ents[0].TotalService.Int
+	for _, ent := range ents {
+		sd := ent.StartDate.Time
+		ed := ent.EndDate.Time
+		if (sd.Before(endDate) || sd.Equal(endDate)) && (ed.After(startDate) || ed.Equal(startDate)) {
+			if ent.TotalService.Int > bestService {
+				bestService = ent.TotalService.Int
+				bestWeek = ent.StartDate.Time
+			}
+		}
+	}
+	return startDate, endDate, bestWeek, nil
 }
 
 // Loaders
@@ -447,33 +553,65 @@ func (f *DBFinder) StopTimesByTripID(params []model.StopTimeParam) ([][]*model.S
 	return ents, nil
 }
 
+type departKey struct {
+	year      int
+	month     time.Month
+	day       int
+	startTime int
+	endTime   int
+}
+
 func (f *DBFinder) StopTimesByStopID(params []model.StopTimeParam) ([][]*model.StopTime, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
 	limit := checkLimit(params[0].Limit)
-	tzgroups := map[string][]FVPair{}
+	// Group by service date, time window
+	dgroups := map[departKey][]FVPair{}
 	group := map[int][]*model.StopTime{}
 	for _, p := range params {
-		s := ""
-		if p.StopTimezone != nil {
-			s = p.StopTimezone.String()
+		dkey := departKey{startTime: -1, endTime: -1}
+		if p.Where != nil {
+			if p.Where.ServiceDate != nil {
+				t := p.Where.ServiceDate.Time
+				dkey.year = t.Year()
+				dkey.month = t.Month()
+				dkey.day = t.Day()
+			}
+			if p.Where.StartTime != nil {
+				dkey.startTime = *p.Where.StartTime
+			}
+			if p.Where.EndTime != nil {
+				dkey.endTime = *p.Where.EndTime
+			}
 		}
-		tzgroups[s] = append(tzgroups[s], FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
+		dgroups[dkey] = append(dgroups[dkey], FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
 	}
-	for tzloc, tzpairs := range tzgroups {
+	for dkey, dpairs := range dgroups {
 		qents := []*model.StopTime{}
-		if p := params[0].Where; p != nil && (p.ServiceDate != nil || p.Next != nil) {
+		if p := params[0].Where; p != nil && p.ServiceDate != nil {
+			// Get stops on a specified day
+			p2 := *p
+			if dkey.startTime >= 0 {
+				p2.StartTime = &dkey.startTime
+			}
+			if dkey.endTime >= 0 {
+				p2.EndTime = &dkey.endTime
+			}
+			if dkey.year > 0 {
+				s := tl.NewDate(time.Date(dkey.year, dkey.month, dkey.day, 0, 0, 0, 0, time.UTC))
+				p2.ServiceDate = &s
+			}
 			MustSelect(
 				f.db,
-				StopDeparturesSelect(tzpairs, f.Clock, tzloc, p),
+				StopDeparturesSelect(dpairs, &p2),
 				&qents,
 			)
 		} else {
 			// Otherwise get all stop_times for stop
 			MustSelect(
 				f.db,
-				StopTimeSelect(nil, tzpairs, params[0].Where),
+				StopTimeSelect(nil, dpairs, params[0].Where),
 				&qents,
 			)
 		}

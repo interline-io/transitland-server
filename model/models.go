@@ -81,6 +81,7 @@ type Trip struct {
 
 type StopTime struct {
 	tl.StopTime
+	ServiceDate      tl.Date
 	RTTripID         string                        // internal: for ADDED trips
 	RTStopTimeUpdate *pb.TripUpdate_StopTimeUpdate // internal
 }
