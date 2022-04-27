@@ -321,10 +321,51 @@ func TestStopResolver_StopTimes(t *testing.T) {
 	}
 }
 
-func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
-	type tcWithClock struct {
-		testcase
+func TestStopResolver_StopTimes_ServiceDate(t *testing.T) {
+	q := `query($stop_id:String!,$sd:Date!,$ed:Boolean){ stops(where:{stop_id:$stop_id}) { stop_times(where:{service_date:$sd, start_time:54000, end_time:57600, use_service_window:$ed}) {service_date arrival_time}}}`
+	testcases := []testcase{
+		{
+			"service date in range",
+			q,
+			hw{"stop_id": "MCAR_S", "sd": "2018-05-29", "ed": true},
+			``,
+			"stops.0.stop_times.0.service_date",
+			[]string{"2018-05-29"}, // expect input date
+		},
+		{
+			"service date after range",
+			q,
+			hw{"stop_id": "MCAR_S", "sd": "2030-05-28", "ed": true},
+			``,
+			"stops.0.stop_times.0.service_date",
+			[]string{"2018-06-05"}, // expect adjusted date in window
+		},
+		{
+			"service date before range, friday",
+			q,
+			hw{"stop_id": "MCAR_S", "sd": "2010-05-28", "ed": true},
+			``,
+			"stops.0.stop_times.0.service_date",
+			[]string{"2018-06-08"}, // expect adjusted date in window
+		},
+		{
+			"service date after range, exact dates",
+			q,
+			hw{"stop_id": "MCAR_S", "sd": "2030-05-28", "ed": false},
+			``,
+			"stops.0.stop_times.#.service_date",
+			[]string{}, // exect no results
+		},
 	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := newTestClient()
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 	bartWeekdayTimes := []string{"15:01:00", "15:09:00", "15:09:00", "15:16:00", "15:24:00", "15:24:00", "15:31:00", "15:39:00", "15:39:00", "15:46:00", "15:54:00", "15:54:00"}
 	bartWeekendTimes := []string{"15:15:00", "15:15:00", "15:35:00", "15:35:00", "15:55:00", "15:55:00"}
 	q := `query($stop_id:String!,$sd:Date!,$ed:Boolean){ stops(where:{stop_id:$stop_id}) { stop_times(where:{service_date:$sd, start_time:54000, end_time:57600, use_service_window:$ed}) {arrival_time}}}`

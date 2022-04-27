@@ -61,7 +61,10 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 			if !ok {
 				return nil, errors.New("timezone not available for stop")
 			}
-			serviceDate := r.cfg.Clock.Now().In(loc)
+			serviceDate := time.Now().In(loc)
+			if r.cfg.Clock != nil {
+				serviceDate = r.cfg.Clock.Now().In(loc)
+			}
 			st, et := 0, 0
 			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
 			et = st + *where.Next
@@ -103,6 +106,13 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	// Add service date used in query, if any
+	if where != nil && where.ServiceDate != nil {
+		for _, st := range sts {
+			st.ServiceDate = tl.NewDate(where.ServiceDate.Time)
+		}
 	}
 
 	// Merge scheduled stop times with rt stop times

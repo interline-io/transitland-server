@@ -346,7 +346,7 @@ type StopTime {
   departure: StopTimeEvent!
   continuous_drop_off: Int
   continuous_pickup: Int
-  # schedule_relationship: ScheduleRelationship!
+  service_date: Date
 }
 
 
