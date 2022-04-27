@@ -23,16 +23,6 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestFindFeedVersionServiceWindow(t *testing.T) {
-	startWeek, endWeek, bestWeek, err := FindFeedVersionServiceWindow(TestDBFinder, 1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = startWeek
-	_ = endWeek
-	_ = bestWeek
-}
-
 func TestFVSLCache(t *testing.T) {
 	c := FVSLCache{Finder: TestDBFinder}
 	c.Get(1)
