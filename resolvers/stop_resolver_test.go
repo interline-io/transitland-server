@@ -327,12 +327,12 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 	}
 	bartWeekdayTimes := []string{"15:01:00", "15:09:00", "15:09:00", "15:16:00", "15:24:00", "15:24:00", "15:31:00", "15:39:00", "15:39:00", "15:46:00", "15:54:00", "15:54:00"}
 	bartWeekendTimes := []string{"15:15:00", "15:15:00", "15:35:00", "15:35:00", "15:55:00", "15:55:00"}
-	q := `query($stop_id:String!,$sd:Date!,$ed:Boolean){ stops(where:{stop_id:$stop_id}) { stop_times(where:{service_date:$sd, start_time:54000, end_time:57600, use_exact_date:$ed}) {arrival_time}}}`
+	q := `query($stop_id:String!,$sd:Date!,$ed:Boolean){ stops(where:{stop_id:$stop_id}) { stop_times(where:{service_date:$sd, start_time:54000, end_time:57600, use_service_window:$ed}) {arrival_time}}}`
 	testcases := []testcase{
 		{
 			"service date in range",
 			q,
-			hw{"stop_id": "MCAR_S", "sd": "2018-05-29"},
+			hw{"stop_id": "MCAR_S", "sd": "2018-05-29", "ed": true},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			bartWeekdayTimes,
@@ -340,7 +340,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 		{
 			"service date after range",
 			q,
-			hw{"stop_id": "MCAR_S", "sd": "2030-05-28"},
+			hw{"stop_id": "MCAR_S", "sd": "2030-05-28", "ed": true},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			bartWeekdayTimes,
@@ -348,7 +348,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 		{
 			"service date after range, exact dates",
 			q,
-			hw{"stop_id": "MCAR_S", "sd": "2030-05-28", "ed": true},
+			hw{"stop_id": "MCAR_S", "sd": "2030-05-28", "ed": false},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			[]string{},
@@ -356,7 +356,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 		{
 			"service date after range, sunday",
 			q,
-			hw{"stop_id": "MCAR_S", "sd": "2030-05-26"},
+			hw{"stop_id": "MCAR_S", "sd": "2030-05-26", "ed": true},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			bartWeekendTimes,
@@ -364,7 +364,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 		{
 			"service date before range, tuesday",
 			q,
-			hw{"stop_id": "MCAR_S", "sd": "2010-05-28"},
+			hw{"stop_id": "MCAR_S", "sd": "2010-05-28", "ed": true},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			bartWeekdayTimes,
@@ -372,7 +372,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 		{
 			"fv without feed_info, in window, monday",
 			q,
-			hw{"stop_id": "70011", "sd": "2019-02-11"},
+			hw{"stop_id": "70011", "sd": "2019-02-11", "ed": true},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			[]string{"15:48:00", "15:50:00"},
@@ -380,7 +380,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 		{
 			"fv without feed_info, before window, friday",
 			q,
-			hw{"stop_id": "70011", "sd": "2010-05-28"},
+			hw{"stop_id": "70011", "sd": "2010-05-28", "ed": true},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			[]string{"15:48:00", "15:50:00"},
@@ -388,7 +388,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 		{
 			"fv without feed_info, after window, tuesday",
 			q,
-			hw{"stop_id": "70011", "sd": "2030-05-28"},
+			hw{"stop_id": "70011", "sd": "2030-05-28", "ed": true},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			[]string{"15:48:00", "15:50:00"},
@@ -396,7 +396,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 		{
 			"fv without feed_info, after window, tuesday, exact date only",
 			q,
-			hw{"stop_id": "70011", "sd": "2030-05-28", "ed": true},
+			hw{"stop_id": "70011", "sd": "2030-05-28", "ed": false},
 			``,
 			"stops.0.stop_times.#.arrival_time",
 			[]string{},

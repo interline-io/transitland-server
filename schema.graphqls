@@ -760,7 +760,7 @@ input StopFilter {
 
 input StopTimeFilter {
   service_date: Date
-  use_exact_date: Boolean
+  use_service_window: Boolean
   start_time: Int
   end_time: Int
   next: Int
