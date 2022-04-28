@@ -212,11 +212,19 @@ func TestFeedResolver(t *testing.T) {
 		// feed fetches
 		{
 			"feed fetches",
-			`query { feeds(where:{onestop_id:"BA"}) { onestop_id feed_fetches { response_size fetched_at }}}`,
+			`query { feeds(where:{onestop_id:"BA"}) { onestop_id feed_fetches(limit:1) { success }}}`,
 			hw{},
 			``,
-			"feeds.0.feed_fetches.#.fetched_at",
-			[]string{"BA"},
+			"feeds.0.feed_fetches.#.success",
+			[]string{"true"},
+		},
+		{
+			"feed fetches failed",
+			`query { feeds(where:{onestop_id:"test"}) { onestop_id feed_fetches(limit:1) { success }}}`,
+			hw{},
+			``,
+			"feeds.0.feed_fetches.#.success",
+			[]string{"false"},
 		},
 	}
 	c := newTestClient()

@@ -43,7 +43,7 @@ func (r *feedResolver) Authorization(ctx context.Context, obj *model.Feed) (*mod
 }
 
 func (r *feedResolver) FeedFetches(ctx context.Context, obj *model.Feed, limit *int) ([]*model.FeedFetch, error) {
-	return For(ctx).FeedFetchesByFeedID.Load(model.FeedFetchParam{FeedID: obj.ID})
+	return For(ctx).FeedFetchesByFeedID.Load(model.FeedFetchParam{FeedID: obj.ID, Limit: limit})
 }
 
 // FEED STATE

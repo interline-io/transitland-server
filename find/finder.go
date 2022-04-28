@@ -483,9 +483,14 @@ func (f *DBFinder) FeedFetchesByFeedID(params []model.FeedFetchParam) ([][]*mode
 		ids = append(ids, p.FeedID)
 	}
 	qents := []*model.FeedFetch{}
+	q := sq.StatementBuilder.
+		Select("*").
+		From("feed_fetches").
+		Limit(checkLimit(params[0].Limit)).
+		OrderBy("feed_fetches.fetched_at desc")
 	MustSelect(
 		f.db,
-		lateralWrap(quickSelectOrder("feed_fetches", nil, nil, nil, "id"), "current_feeds", "id", "feed_id", ids),
+		lateralWrap(q, "current_feeds", "id", "feed_id", ids),
 		&qents,
 	)
 	group := map[int][]*model.FeedFetch{}
