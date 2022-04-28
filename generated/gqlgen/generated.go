@@ -170,8 +170,7 @@ type ComplexityRoot struct {
 	Feed struct {
 		AssociatedOperators func(childComplexity int) int
 		Authorization       func(childComplexity int) int
-		FeedFetches         func(childComplexity int, limit *int, where *model.FeedFetchFilter) int
-		FeedNamespaceID     func(childComplexity int) int
+		FeedFetches         func(childComplexity int, limit *int) int
 		FeedState           func(childComplexity int) int
 		FeedVersions        func(childComplexity int, limit *int, where *model.FeedVersionFilter) int
 		File                func(childComplexity int) int
@@ -377,18 +376,17 @@ type ComplexityRoot struct {
 	}
 
 	Operator struct {
-		Agencies        func(childComplexity int) int
-		AssociatedFeeds func(childComplexity int) int
-		Feeds           func(childComplexity int, limit *int, where *model.FeedFilter) int
-		File            func(childComplexity int) int
-		Generated       func(childComplexity int) int
-		ID              func(childComplexity int) int
-		Name            func(childComplexity int) int
-		OnestopID       func(childComplexity int) int
-		SearchRank      func(childComplexity int) int
-		ShortName       func(childComplexity int) int
-		Tags            func(childComplexity int) int
-		Website         func(childComplexity int) int
+		Agencies   func(childComplexity int) int
+		Feeds      func(childComplexity int, limit *int, where *model.FeedFilter) int
+		File       func(childComplexity int) int
+		Generated  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Name       func(childComplexity int) int
+		OnestopID  func(childComplexity int) int
+		SearchRank func(childComplexity int) int
+		ShortName  func(childComplexity int) int
+		Tags       func(childComplexity int) int
+		Website    func(childComplexity int) int
 	}
 
 	Pathway struct {
@@ -684,7 +682,7 @@ type FeedResolver interface {
 
 	AssociatedOperators(ctx context.Context, obj *model.Feed) ([]*model.Operator, error)
 	FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error)
-	FeedFetches(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedFetchFilter) ([]*model.FeedFetch, error)
+	FeedFetches(ctx context.Context, obj *model.Feed, limit *int) ([]*model.FeedFetch, error)
 	FeedVersions(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error)
 }
 type FeedStateResolver interface {
@@ -719,8 +717,6 @@ type MutationResolver interface {
 	FeedVersionDelete(ctx context.Context, id int) (*model.FeedVersionDeleteResult, error)
 }
 type OperatorResolver interface {
-	AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error)
-
 	Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error)
 	Feeds(ctx context.Context, obj *model.Operator, limit *int, where *model.FeedFilter) ([]*model.Feed, error)
 }
@@ -1380,14 +1376,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Feed.FeedFetches(childComplexity, args["limit"].(*int), args["where"].(*model.FeedFetchFilter)), true
-
-	case "Feed.feed_namespace_id":
-		if e.complexity.Feed.FeedNamespaceID == nil {
-			break
-		}
-
-		return e.complexity.Feed.FeedNamespaceID(childComplexity), true
+		return e.complexity.Feed.FeedFetches(childComplexity, args["limit"].(*int)), true
 
 	case "Feed.feed_state":
 		if e.complexity.Feed.FeedState == nil {
@@ -2480,13 +2469,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Operator.Agencies(childComplexity), true
-
-	case "Operator.associated_feeds":
-		if e.complexity.Operator.AssociatedFeeds == nil {
-			break
-		}
-
-		return e.complexity.Operator.AssociatedFeeds(childComplexity), true
 
 	case "Operator.feeds":
 		if e.complexity.Operator.Feeds == nil {
@@ -4166,7 +4148,6 @@ type Feed {
   id: Int!
   onestop_id: String!
   name: String
-  feed_namespace_id: String!
   file: String!
   spec: String!
   languages: [String!]
@@ -4177,7 +4158,7 @@ type Feed {
   search_rank: String # only for search results
   associated_operators: [Operator!]
   feed_state: FeedState
-  feed_fetches(limit: Int, where: FeedFetchFilter): [FeedFetch!]
+  feed_fetches(limit: Int): [FeedFetch!]
   feed_versions(limit: Int, where: FeedVersionFilter): [FeedVersion!]!
 }
 
@@ -4307,7 +4288,6 @@ type Operator {
   short_name: String
   website: String
   tags: Tags
-  associated_feeds: Any
   search_rank: String # only for search results
   agencies: [Agency!]
   feeds(limit: Int, where: FeedFilter): [Feed!]
@@ -4841,10 +4821,6 @@ input FeedFilter {
   source_url: FeedSourceUrl
 }
 
-input FeedFetchFilter {
-  success: Boolean
-}
-
 input FeedSourceUrl {
   url: String
   type: FeedSourceUrlTypes
@@ -5284,15 +5260,6 @@ func (ec *executionContext) field_Feed_feed_fetches_args(ctx context.Context, ra
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *model.FeedFetchFilter
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg1, err = ec.unmarshalOFeedFetchFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetchFilter(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["where"] = arg1
 	return args, nil
 }
 
@@ -8890,41 +8857,6 @@ func (ec *executionContext) _Feed_name(ctx context.Context, field graphql.Collec
 	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Feed_feed_namespace_id(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Feed",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FeedNamespaceID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Feed_file(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9276,7 +9208,7 @@ func (ec *executionContext) _Feed_feed_fetches(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Feed().FeedFetches(rctx, obj, args["limit"].(*int), args["where"].(*model.FeedFetchFilter))
+		return ec.resolvers.Feed().FeedFetches(rctx, obj, args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14359,38 +14291,6 @@ func (ec *executionContext) _Operator_tags(ctx context.Context, field graphql.Co
 	res := resTmp.(tl.Tags)
 	fc.Result = res
 	return ec.marshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_associated_feeds(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Operator().AssociatedFeeds(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(interface{})
-	fc.Result = res
-	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_search_rank(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -22768,29 +22668,6 @@ func (ec *executionContext) unmarshalInputDirectionRequest(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputFeedFetchFilter(ctx context.Context, obj interface{}) (model.FeedFetchFilter, error) {
-	var it model.FeedFetchFilter
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "success":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("success"))
-			it.Success, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj interface{}) (model.FeedFilter, error) {
 	var it model.FeedFilter
 	asMap := map[string]interface{}{}
@@ -24588,16 +24465,6 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = innerFunc(ctx)
 
-		case "feed_namespace_id":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Feed_feed_namespace_id(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "file":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Feed_file(ctx, field, obj)
@@ -26629,23 +26496,6 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 
 			out.Values[i] = innerFunc(ctx)
 
-		case "associated_feeds":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Operator_associated_feeds(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "search_rank":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Operator_search_rank(ctx, field, obj)
@@ -32448,14 +32298,6 @@ func (ec *executionContext) marshalOFeedFetch2ᚕᚖgithubᚗcomᚋinterlineᚑi
 	}
 
 	return ret
-}
-
-func (ec *executionContext) unmarshalOFeedFetchFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetchFilter(ctx context.Context, v interface{}) (*model.FeedFetchFilter, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputFeedFetchFilter(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOFeedFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFilter(ctx context.Context, v interface{}) (*model.FeedFilter, error) {

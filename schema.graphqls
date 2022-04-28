@@ -34,7 +34,6 @@ type Feed {
   id: Int!
   onestop_id: String!
   name: String
-  feed_namespace_id: String!
   file: String!
   spec: String!
   languages: [String!]
@@ -175,7 +174,6 @@ type Operator {
   short_name: String
   website: String
   tags: Tags
-  associated_feeds: Any
   search_rank: String # only for search results
   agencies: [Agency!]
   feeds(limit: Int, where: FeedFilter): [Feed!]
