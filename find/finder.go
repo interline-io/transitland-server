@@ -1,6 +1,7 @@
 package find
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -474,35 +475,54 @@ func (f *DBFinder) OperatorsByFeedID(params []model.OperatorParam) ([][]*model.O
 	return ents, nil
 }
 
+func marshalParam(param interface{}) string {
+	a, _ := json.Marshal(param)
+	return string(a)
+}
+
 func (f *DBFinder) FeedFetchesByFeedID(params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
-	ids := []int{}
-	for _, p := range params {
-		ids = append(ids, p.FeedID)
+	// This is horrendous :laughing:
+	ents := make([][]*model.FeedFetch, len(params))
+	pgroups := map[string][]int{}
+	// All in group share same params except FeedID
+	for pidx, param := range params {
+		param.FeedID = 0 // unset feedid on copy
+		k := marshalParam(param)
+		pgroups[k] = append(pgroups[k], pidx)
 	}
-	qents := []*model.FeedFetch{}
-	q := sq.StatementBuilder.
-		Select("*").
-		From("feed_fetches").
-		Limit(checkLimit(params[0].Limit)).
-		OrderBy("feed_fetches.fetched_at desc")
-	MustSelect(
-		f.db,
-		lateralWrap(q, "current_feeds", "id", "feed_id", ids),
-		&qents,
-	)
-	group := map[int][]*model.FeedFetch{}
-	for _, ent := range qents {
-		if v := ent.FeedID; v > 0 {
-			group[v] = append(group[v], ent)
+	for _, pidxs := range pgroups {
+		var ids []int
+		for _, pidx := range pidxs {
+			ids = append(ids, params[pidx].FeedID)
 		}
-
-	}
-	var ents [][]*model.FeedFetch
-	for _, id := range ids {
-		ents = append(ents, group[id])
+		var qents []*model.FeedFetch
+		q := sq.StatementBuilder.
+			Select("*").
+			From("feed_fetches").
+			Limit(checkLimit(params[pidxs[0]].Limit)).
+			OrderBy("feed_fetches.fetched_at desc")
+		if p := params[pidxs[0]].Where; p != nil {
+			if p.Success != nil {
+				q = q.Where(sq.Eq{"success": *p.Success})
+			}
+		}
+		MustSelect(
+			f.db,
+			lateralWrap(q, "current_feeds", "id", "feed_id", ids),
+			&qents,
+		)
+		group := map[int][]*model.FeedFetch{}
+		for _, ent := range qents {
+			if v := ent.FeedID; v > 0 {
+				group[v] = append(group[v], ent)
+			}
+		}
+		for _, pidx := range pidxs {
+			ents[pidx] = group[params[pidx].FeedID]
+		}
 	}
 	return ents, nil
 }

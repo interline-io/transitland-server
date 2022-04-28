@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 // This file contains parameters that can be passed to methods for finding/selecting/grouping entities
 // These are distinct from WHERE graphql input filters, which are available to users.
@@ -104,6 +106,7 @@ type FeedParam struct {
 type FeedFetchParam struct {
 	FeedID int
 	Limit  *int
+	Where  *FeedFetchFilter
 }
 
 type AgencyPlaceParam struct {

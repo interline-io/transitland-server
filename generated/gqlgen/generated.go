@@ -170,7 +170,7 @@ type ComplexityRoot struct {
 	Feed struct {
 		AssociatedOperators func(childComplexity int) int
 		Authorization       func(childComplexity int) int
-		FeedFetches         func(childComplexity int, limit *int) int
+		FeedFetches         func(childComplexity int, limit *int, where *model.FeedFetchFilter) int
 		FeedNamespaceID     func(childComplexity int) int
 		FeedState           func(childComplexity int) int
 		FeedVersions        func(childComplexity int, limit *int, where *model.FeedVersionFilter) int
@@ -684,7 +684,7 @@ type FeedResolver interface {
 
 	AssociatedOperators(ctx context.Context, obj *model.Feed) ([]*model.Operator, error)
 	FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error)
-	FeedFetches(ctx context.Context, obj *model.Feed, limit *int) ([]*model.FeedFetch, error)
+	FeedFetches(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedFetchFilter) ([]*model.FeedFetch, error)
 	FeedVersions(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error)
 }
 type FeedStateResolver interface {
@@ -1380,7 +1380,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Feed.FeedFetches(childComplexity, args["limit"].(*int)), true
+		return e.complexity.Feed.FeedFetches(childComplexity, args["limit"].(*int), args["where"].(*model.FeedFetchFilter)), true
 
 	case "Feed.feed_namespace_id":
 		if e.complexity.Feed.FeedNamespaceID == nil {
@@ -4177,7 +4177,7 @@ type Feed {
   search_rank: String # only for search results
   associated_operators: [Operator!]
   feed_state: FeedState
-  feed_fetches(limit: Int): [FeedFetch!]
+  feed_fetches(limit: Int, where: FeedFetchFilter): [FeedFetch!]
   feed_versions(limit: Int, where: FeedVersionFilter): [FeedVersion!]!
 }
 
@@ -4841,6 +4841,10 @@ input FeedFilter {
   source_url: FeedSourceUrl
 }
 
+input FeedFetchFilter {
+  success: Boolean
+}
+
 input FeedSourceUrl {
   url: String
   type: FeedSourceUrlTypes
@@ -5280,6 +5284,15 @@ func (ec *executionContext) field_Feed_feed_fetches_args(ctx context.Context, ra
 		}
 	}
 	args["limit"] = arg0
+	var arg1 *model.FeedFetchFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOFeedFetchFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetchFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -9263,7 +9276,7 @@ func (ec *executionContext) _Feed_feed_fetches(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Feed().FeedFetches(rctx, obj, args["limit"].(*int))
+		return ec.resolvers.Feed().FeedFetches(rctx, obj, args["limit"].(*int), args["where"].(*model.FeedFetchFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22755,6 +22768,29 @@ func (ec *executionContext) unmarshalInputDirectionRequest(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFeedFetchFilter(ctx context.Context, obj interface{}) (model.FeedFetchFilter, error) {
+	var it model.FeedFetchFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "success":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("success"))
+			it.Success, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj interface{}) (model.FeedFilter, error) {
 	var it model.FeedFilter
 	asMap := map[string]interface{}{}
@@ -32412,6 +32448,14 @@ func (ec *executionContext) marshalOFeedFetch2ᚕᚖgithubᚗcomᚋinterlineᚑi
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOFeedFetchFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetchFilter(ctx context.Context, v interface{}) (*model.FeedFetchFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFeedFetchFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOFeedFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFilter(ctx context.Context, v interface{}) (*model.FeedFilter, error) {

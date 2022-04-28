@@ -45,7 +45,7 @@ type Feed {
   search_rank: String # only for search results
   associated_operators: [Operator!]
   feed_state: FeedState
-  feed_fetches(limit: Int): [FeedFetch!]
+  feed_fetches(limit: Int, where: FeedFetchFilter): [FeedFetch!]
   feed_versions(limit: Int, where: FeedVersionFilter): [FeedVersion!]!
 }
 
@@ -707,6 +707,10 @@ input FeedFilter {
   search: String
   tags: Tags,
   source_url: FeedSourceUrl
+}
+
+input FeedFetchFilter {
+  success: Boolean
 }
 
 input FeedSourceUrl {

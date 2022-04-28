@@ -78,6 +78,10 @@ type Duration struct {
 	Units    DurationUnit `json:"units"`
 }
 
+type FeedFetchFilter struct {
+	Success *bool `json:"success"`
+}
+
 type FeedFilter struct {
 	OnestopID    *string        `json:"onestop_id"`
 	Spec         []string       `json:"spec"`
