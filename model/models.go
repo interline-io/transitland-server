@@ -50,6 +50,11 @@ type FeedState struct {
 	dmfr.FeedState
 }
 
+type FeedFetch struct {
+	ResponseSha1 tl.String // confusing but easier than alternative fixes
+	dmfr.FeedFetch
+}
+
 type FeedVersion struct {
 	Geometry *tl.Polygon `json:"geometry"`
 	tl.FeedVersion

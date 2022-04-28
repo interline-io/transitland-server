@@ -101,6 +101,11 @@ type FeedParam struct {
 	Where             *FeedFilter
 }
 
+type FeedFetchParam struct {
+	FeedID int
+	Limit  *int
+}
+
 type AgencyPlaceParam struct {
 	AgencyID int
 	Limit    *int

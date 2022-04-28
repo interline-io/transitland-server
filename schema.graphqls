@@ -45,6 +45,7 @@ type Feed {
   search_rank: String # only for search results
   associated_operators: [Operator!]
   feed_state: FeedState
+  feed_fetches(limit: Int): [FeedFetch!]
   feed_versions(limit: Int, where: FeedVersionFilter): [FeedVersion!]!
 }
 
@@ -54,6 +55,18 @@ type FeedState {
   last_fetched_at: Time
   last_successful_fetch_at: Time
   feed_version: FeedVersion
+}
+
+type FeedFetch {
+  id: Int!
+  url_type: String
+  url: String
+  success: Boolean
+  fetched_at: Time
+  fetch_error: String
+  response_size: Int
+  response_code: Int
+  response_sha1: String
 }
 
 type FeedAuthorization {

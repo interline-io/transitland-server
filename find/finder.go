@@ -408,6 +408,24 @@ func (f *DBFinder) FeedStatesByFeedID(ids []int) ([]*model.FeedState, []error) {
 	return ents2, nil
 }
 
+func (f *DBFinder) FeedFetchesStatesByFeedID(ids []int) ([]*model.FeedFetch, []error) {
+	var ents []*model.FeedFetch
+	MustSelect(
+		f.db,
+		quickSelect("feed_fetches", nil, nil, nil).Where(sq.Eq{"feed_id": ids}),
+		&ents,
+	)
+	byid := map[int]*model.FeedFetch{}
+	for _, ent := range ents {
+		byid[ent.FeedID] = ent
+	}
+	ents2 := make([]*model.FeedFetch, len(ids))
+	for i, id := range ids {
+		ents2[i] = byid[id]
+	}
+	return ents2, nil
+}
+
 func (f *DBFinder) OperatorsByCOIF(ids []int) ([]*model.Operator, []error) {
 	var ents []*model.Operator
 	MustSelect(
@@ -450,6 +468,39 @@ func (f *DBFinder) OperatorsByFeedID(params []model.OperatorParam) ([][]*model.O
 
 	}
 	var ents [][]*model.Operator
+	for _, id := range ids {
+		ents = append(ents, group[id])
+	}
+	return ents, nil
+}
+
+func (f *DBFinder) FeedFetchesByFeedID(params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
+	if len(params) == 0 {
+		return nil, nil
+	}
+	ids := []int{}
+	for _, p := range params {
+		ids = append(ids, p.FeedID)
+	}
+	qents := []*model.FeedFetch{}
+	q := sq.StatementBuilder.
+		Select("*").
+		From("feed_fetches").
+		Limit(checkLimit(params[0].Limit)).
+		OrderBy("feed_fetches.fetched_at desc")
+	MustSelect(
+		f.db,
+		lateralWrap(q, "current_feeds", "id", "feed_id", ids),
+		&qents,
+	)
+	group := map[int][]*model.FeedFetch{}
+	for _, ent := range qents {
+		if v := ent.FeedID; v > 0 {
+			group[v] = append(group[v], ent)
+		}
+
+	}
+	var ents [][]*model.FeedFetch
 	for _, id := range ids {
 		ents = append(ents, group[id])
 	}

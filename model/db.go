@@ -47,6 +47,7 @@ type EntityLoader interface {
 	OperatorsByFeedID([]OperatorParam) ([][]*Operator, []error)
 	OperatorsByCOIF([]int) ([]*Operator, []error)
 	// Param loaders
+	FeedFetchesByFeedID([]FeedFetchParam) ([][]*FeedFetch, []error)
 	FeedsByOperatorOnestopID([]FeedParam) ([][]*Feed, []error)
 	FrequenciesByTripID([]FrequencyParam) ([][]*Frequency, []error)
 	StopTimesByTripID([]StopTimeParam) ([][]*StopTime, []error)

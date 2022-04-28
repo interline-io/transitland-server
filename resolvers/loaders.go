@@ -34,6 +34,7 @@ type Loaders struct {
 	TripsByID                               dl.TripLoader
 	FeedStatesByFeedID                      dl.FeedStateLoader
 	OperatorsByCOIF                         dl.OperatorLoader
+	FeedFetchesByFeedID                     dl.FeedFetchWhereLoader
 	AgenciesByOnestopID                     dl.AgencyWhereLoader
 	FeedVersionGtfsImportsByFeedVersionID   dl.FeedVersionGtfsImportLoader
 	FeedVersionServiceLevelsByFeedVersionID dl.FeedVersionServiceLevelWhereLoader
@@ -217,6 +218,11 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
 				Fetch:    finder.AgenciesByFeedVersionID,
+			}),
+			FeedFetchesByFeedID: *dl.NewFeedFetchWhereLoader(dl.FeedFetchWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch:    finder.FeedFetchesByFeedID,
 			}),
 			AgenciesByOnestopID: *dl.NewAgencyWhereLoader(dl.AgencyWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
