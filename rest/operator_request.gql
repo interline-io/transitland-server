@@ -6,7 +6,6 @@ query($limit: Int, $after: Int, $where: OperatorFilter) {
     short_name
     website
     tags
-    associated_feeds
     feeds {
       id
       onestop_id
