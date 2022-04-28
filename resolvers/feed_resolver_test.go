@@ -220,11 +220,28 @@ func TestFeedResolver(t *testing.T) {
 		},
 		{
 			"feed fetches failed",
-			`query { feeds(where:{onestop_id:"test"}) { onestop_id feed_fetches(limit:1) { success }}}`,
+			`query { feeds(where:{onestop_id:"test"}) { onestop_id feed_fetches(limit:1, where:{success:false}) { success }}}`,
 			hw{},
 			``,
 			"feeds.0.feed_fetches.#.success",
 			[]string{"false"},
+		},
+		// multiple queries
+		{
+			"feed fetches multiple queries 1/2",
+			`query { feeds(where:{onestop_id:"BA"}) { onestop_id ok:feed_fetches(limit:1, where:{success:true}) { success } fail:feed_fetches(limit:1, where:{success:false}) { success }}}`,
+			hw{},
+			``,
+			"feeds.0.ok.#.success",
+			[]string{"true"},
+		},
+		{
+			"feed fetches multiple queries 2/2",
+			`query { feeds(where:{onestop_id:"BA"}) { onestop_id ok:feed_fetches(limit:1, where:{success:true}) { success } fail:feed_fetches(limit:1, where:{success:false}) { success }}}`,
+			hw{},
+			``,
+			"feeds.0.fail.#.success",
+			[]string{},
 		},
 	}
 	c := newTestClient()
