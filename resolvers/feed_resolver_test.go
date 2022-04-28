@@ -203,10 +203,19 @@ func TestFeedResolver(t *testing.T) {
 		},
 		{
 			"where tags test is present",
-			`query { feeds(where:{tags:{test:""}}) {onestop_id}}`,
+			`query { feeds(where:{tags:{test:""}}) {onestop_id }}`,
 			hw{},
 			``,
 			"feeds.#.onestop_id",
+			[]string{"BA"},
+		},
+		// feed fetches
+		{
+			"feed fetches",
+			`query { feeds(where:{onestop_id:"BA"}) { onestop_id feed_fetches { response_size fetched_at }}}`,
+			hw{},
+			``,
+			"feeds.0.feed_fetches.#.fetched_at",
 			[]string{"BA"},
 		},
 	}
