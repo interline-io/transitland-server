@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/tldb"
@@ -35,16 +36,28 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	rtfeed := rtfeeds[0].Feed
 	atx := tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX())
 	fetchOpts := fetch.Options{
-		Secrets: job.Opts.Secrets,
+		URLType:   w.SourceType,
+		FeedURL:   w.Url,
+		Secrets:   job.Opts.Secrets,
+		FetchedAt: time.Now(),
 	}
 	rtmsg, fr, err := fetch.RTFetch(atx, rtfeed, fetchOpts)
 	if err != nil {
 		log.Error().Err(err).Msg("rtfetch worker: request failed")
 		return err
 	}
+	if fr.FetchError != nil {
+		log.Error().Err(fr.FetchError).Msg("rtfetch worker: fetch error")
+		return err
+	}
+	if rtmsg == nil {
+		log.Error().Msg("rtfetch worker: no msg returned")
+		return err
+	}
 	// Convert back to bytes...
 	rtdata, err := proto.Marshal(rtmsg)
 	if err != nil {
+		log.Error().Msg("rtfetch worker: invalid rt data")
 		return err
 	}
 	// Save to cache
