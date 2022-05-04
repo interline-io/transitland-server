@@ -18,7 +18,7 @@ func TestFeedResolver(t *testing.T) {
 			"basic fields",
 			`query($onestop_id:String!) { feeds(where:{onestop_id:$onestop_id}) {name onestop_id spec languages file}}`,
 			hw{"onestop_id": "CT"},
-			`{"feeds":[{"file":"server-test.dmfr.json","languages":["en-US"],"name":"Caltrain","onestop_id":"CT","spec":"gtfs"}]}`,
+			`{"feeds":[{"file":"server-test.dmfr.json","languages":["en-US"],"name":"Caltrain","onestop_id":"CT","spec":"GTFS"}]}`,
 			"",
 			nil,
 		},
@@ -107,7 +107,7 @@ func TestFeedResolver(t *testing.T) {
 		},
 		{
 			"where spec=gtfs",
-			`query { feeds(where:{spec:["gtfs"]}) {onestop_id}}`,
+			`query { feeds(where:{spec:[GTFS]}) {onestop_id}}`,
 			hw{},
 			``,
 			"feeds.#.onestop_id",
@@ -115,7 +115,7 @@ func TestFeedResolver(t *testing.T) {
 		},
 		{
 			"where spec=gtfs-rt",
-			`query { feeds(where:{spec:["gtfs-rt"]}) {onestop_id}}`,
+			`query { feeds(where:{spec:[GTFS_RT]}) {onestop_id}}`,
 			hw{},
 			``,
 			"feeds.#.onestop_id",
@@ -139,7 +139,7 @@ func TestFeedResolver(t *testing.T) {
 		},
 		{
 			"where import_status=success",
-			`query { feeds(where:{import_status:success}) {onestop_id}}`,
+			`query { feeds(where:{import_status:SUCCESS}) {onestop_id}}`,
 			hw{},
 			``,
 			"feeds.#.onestop_id",
@@ -147,7 +147,7 @@ func TestFeedResolver(t *testing.T) {
 		},
 		{
 			"where import_status=in_progress", // TODO: mock an in-progress import
-			`query { feeds(where:{import_status:in_progress}) {onestop_id}}`,
+			`query { feeds(where:{import_status:IN_PROGRESS}) {onestop_id}}`,
 			hw{},
 			``,
 			"feeds.#.onestop_id",
@@ -155,7 +155,7 @@ func TestFeedResolver(t *testing.T) {
 		},
 		{
 			"where import_status=error", // TODO: mock an in-progress import
-			`query { feeds(where:{import_status:error}) {onestop_id}}`,
+			`query { feeds(where:{import_status:ERROR}) {onestop_id}}`,
 			hw{},
 			``,
 			"feeds.#.onestop_id",

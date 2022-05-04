@@ -12,25 +12,34 @@ import (
 )
 
 type AgencyFilter struct {
-	OnestopID       *string      `json:"onestop_id"`
-	FeedVersionSha1 *string      `json:"feed_version_sha1"`
-	FeedOnestopID   *string      `json:"feed_onestop_id"`
-	AgencyID        *string      `json:"agency_id"`
-	AgencyName      *string      `json:"agency_name"`
-	Within          *tl.Polygon  `json:"within"`
-	Near            *PointRadius `json:"near"`
-	Search          *string      `json:"search"`
-	CityName        *string      `json:"city_name"`
-	Adm0Name        *string      `json:"adm0_name"`
-	Adm1Name        *string      `json:"adm1_name"`
-	Adm0Iso         *string      `json:"adm0_iso"`
-	Adm1Iso         *string      `json:"adm1_iso"`
+	OnestopID       *string `json:"onestop_id"`
+	FeedVersionSha1 *string `json:"feed_version_sha1"`
+	FeedOnestopID   *string `json:"feed_onestop_id"`
+	AgencyID        *string `json:"agency_id"`
+	// Search for records with this GTFS agency_name
+	AgencyName *string     `json:"agency_name"`
+	Within     *tl.Polygon `json:"within"`
+	// Search for agencies within a radius
+	Near *PointRadius `json:"near"`
+	// Full text search
+	Search *string `json:"search"`
+	// Search by city name (provided by Natural Earth)
+	CityName *string `json:"city_name"`
+	// Search by country name (provided by Natural Earth)
+	Adm0Name *string `json:"adm0_name"`
+	// Search by state/province/division name (provided by Natural Earth)
+	Adm1Name *string `json:"adm1_name"`
+	// Search by country 2 letter ISO 3166 code (provided by Natural Earth)
+	Adm0Iso *string `json:"adm0_iso"`
+	// Search by state/province/division ISO 3166-2 code (provided by Natural Earth)
+	Adm1Iso *string `json:"adm1_iso"`
 }
 
 type AgencyPlaceFilter struct {
 	MinRank *float64 `json:"min_rank"`
 }
 
+// [Alert](https://gtfs.org/reference/realtime/v2/#message-alert) message, also called a service alert, provided by a source GTFS Realtime feed.
 type Alert struct {
 	ActivePeriod       []*RTTimeRange   `json:"active_period"`
 	Cause              *string          `json:"cause"`
@@ -83,13 +92,20 @@ type FeedFetchFilter struct {
 }
 
 type FeedFilter struct {
-	OnestopID    *string        `json:"onestop_id"`
-	Spec         []string       `json:"spec"`
-	FetchError   *bool          `json:"fetch_error"`
-	ImportStatus *ImportStatus  `json:"import_status"`
-	Search       *string        `json:"search"`
-	Tags         *tl.Tags       `json:"tags"`
-	SourceURL    *FeedSourceURL `json:"source_url"`
+	// Search for feed with a specific Onestop ID
+	OnestopID *string `json:"onestop_id"`
+	// Search for feeds of certain data types
+	Spec []FeedSpecTypes `json:"spec"`
+	// Search for feeds with or without a fetch error
+	FetchError *bool `json:"fetch_error"`
+	// Search for feeds by their import status
+	ImportStatus *ImportStatus `json:"import_status"`
+	// Full text search
+	Search *string `json:"search"`
+	// Search for feeds with a tag
+	Tags *tl.Tags `json:"tags"`
+	// Search for feeds by their source URLs
+	SourceURL *FeedSourceURL `json:"source_url"`
 }
 
 type FeedSourceURL struct {
@@ -170,16 +186,19 @@ type PointRadius struct {
 	Radius float64 `json:"radius"`
 }
 
+// See https://gtfs.org/reference/realtime/v2/#message-timerange
 type RTTimeRange struct {
 	Start *int `json:"start"`
 	End   *int `json:"end"`
 }
 
+// See https://gtfs.org/reference/realtime/v2/#message-translatedstring
 type RTTranslation struct {
 	Text     string  `json:"text"`
 	Language *string `json:"language"`
 }
 
+// See https://gtfs.org/reference/realtime/v2/#message-tripdescriptor
 type RTTripDescriptor struct {
 	TripID               *string      `json:"trip_id"`
 	RouteID              *string      `json:"route_id"`
@@ -189,6 +208,7 @@ type RTTripDescriptor struct {
 	ScheduleRelationship *string      `json:"schedule_relationship"`
 }
 
+// See https://gtfs.org/reference/realtime/v2/#message-vehicledescriptor
 type RTVehicleDescriptor struct {
 	ID           *string `json:"id"`
 	Label        *string `json:"label"`
@@ -252,6 +272,7 @@ type TripFilter struct {
 	FeedOnestopID   *string  `json:"feed_onestop_id"`
 }
 
+// [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
 type VehiclePosition struct {
 	Vehicle             *RTVehicleDescriptor `json:"vehicle"`
 	Position            *tl.Point            `json:"position"`
@@ -409,12 +430,58 @@ func (e FeedSourceURLTypes) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// Type of data contained in a source feed
+type FeedSpecTypes string
+
+const (
+	FeedSpecTypesGtfs   FeedSpecTypes = "GTFS"
+	FeedSpecTypesGtfsRt FeedSpecTypes = "GTFS_RT"
+	FeedSpecTypesGbfs   FeedSpecTypes = "GBFS"
+	FeedSpecTypesMds    FeedSpecTypes = "MDS"
+)
+
+var AllFeedSpecTypes = []FeedSpecTypes{
+	FeedSpecTypesGtfs,
+	FeedSpecTypesGtfsRt,
+	FeedSpecTypesGbfs,
+	FeedSpecTypesMds,
+}
+
+func (e FeedSpecTypes) IsValid() bool {
+	switch e {
+	case FeedSpecTypesGtfs, FeedSpecTypesGtfsRt, FeedSpecTypesGbfs, FeedSpecTypesMds:
+		return true
+	}
+	return false
+}
+
+func (e FeedSpecTypes) String() string {
+	return string(e)
+}
+
+func (e *FeedSpecTypes) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FeedSpecTypes(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FeedSpecTypes", str)
+	}
+	return nil
+}
+
+func (e FeedSpecTypes) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ImportStatus string
 
 const (
-	ImportStatusSuccess    ImportStatus = "success"
-	ImportStatusError      ImportStatus = "error"
-	ImportStatusInProgress ImportStatus = "in_progress"
+	ImportStatusSuccess    ImportStatus = "SUCCESS"
+	ImportStatusError      ImportStatus = "ERROR"
+	ImportStatusInProgress ImportStatus = "IN_PROGRESS"
 )
 
 var AllImportStatus = []ImportStatus{

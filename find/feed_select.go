@@ -27,7 +27,11 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			q = q.Where(sq.Eq{"onestop_id": *where.OnestopID})
 		}
 		if len(where.Spec) > 0 {
-			q = q.Where(sq.Eq{"spec": where.Spec})
+			var specs []string
+			for _, s := range where.Spec {
+				specs = append(specs, s.ToDBString())
+			}
+			q = q.Where(sq.Eq{"spec": specs})
 		}
 		// Tags
 		if where.Tags != nil {
@@ -54,16 +58,18 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			// in_progress must be false to check success and vice-versa
 			var checkSuccess bool
 			var checkInProgress bool
-			check := *where.ImportStatus
-			if check == "success" {
+			switch *where.ImportStatus {
+			case model.ImportStatusSuccess:
 				checkSuccess = true
 				checkInProgress = false
-			} else if check == "error" {
-				checkSuccess = false
-				checkInProgress = false
-			} else if check == "in_progress" {
+			case model.ImportStatusInProgress:
 				checkSuccess = false
 				checkInProgress = true
+			case model.ImportStatusError:
+				checkSuccess = false
+				checkInProgress = false
+			default:
+				panic("uknown import status enum")
 			}
 			// This lateral join gets the most recent attempt at a completed feed_version_gtfs_import and checks the status
 			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).
