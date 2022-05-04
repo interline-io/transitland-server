@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/rs/zerolog/log"
 
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/tl"
@@ -58,12 +60,28 @@ func (r *mutationResolver) FeedVersionDelete(ctx context.Context, id int) (*mode
 }
 
 // Fetch adds a feed version to the database.
-func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *string, feed string, user *auth.User) (*model.FeedVersionFetchResult, error) {
+func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *string, feedId string, user *auth.User) (*model.FeedVersionFetchResult, error) {
 	if user == nil {
 		return nil, errors.New("no user")
 	}
+	// Find feed
+	// feeds, err := cfg.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{OnestopID: &feed})
+	var feeds []tl.Feed
+	atx := tldb.NewPostgresAdapterFromDBX(finder.DBX())
+	err := atx.Select(&feeds, "select * from current_feeds where onestop_id = ?", feedId)
+	if err != nil {
+		log.Error().Err(err).Msg("fetch mutation: error loading source feed")
+		return nil, err
+	}
+	if len(feeds) == 0 {
+		log.Error().Err(err).Msg("fetch mutation: source feed not found")
+		return nil, errors.New("feed not found")
+	}
+	// Prepare request
 	opts := fetch.Options{
-		FeedID:    feed,
+		URLType:   "manual",
+		FetchedAt: time.Now(),
+		FeedID:    feedId,
 		Directory: cfg.GtfsDir,
 		S3:        cfg.GtfsS3Bucket,
 		CreatedBy: tl.NewOString(user.Name),
@@ -82,23 +100,17 @@ func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *strin
 	} else if feedURL != nil {
 		opts.FeedURL = *feedURL
 	}
-	// Run fetch command in txn
-	adapter := tldb.NewPostgresAdapterFromDBX(finder.DBX())
-	var fr fetch.Result
-	err := adapter.Tx(func(atx tldb.Adapter) error {
-		var fe error
-		fr, fe = fetch.DatabaseFetch(atx, opts)
-		return fe
-	})
+	// Make request
+	feed := feeds[0]
+	fv, fr, err := fetch.StaticFetch(atx, feed, opts)
 	if err != nil {
 		return nil, err
 	}
 	mr := model.FeedVersionFetchResult{
-		FoundSHA1:    fr.FoundSHA1,
-		FoundDirSHA1: fr.FoundDirSHA1,
+		FoundSHA1: fr.Found,
 	}
 	if fr.FetchError == nil {
-		mr.FeedVersion = &model.FeedVersion{FeedVersion: fr.FeedVersion}
+		mr.FeedVersion = &model.FeedVersion{FeedVersion: fv}
 		mr.FetchError = nil
 	} else {
 		return nil, fr.FetchError

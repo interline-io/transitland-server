@@ -47,7 +47,7 @@ func (f *RTFinder) FindTrip(t *model.Trip) *pb.TripUpdate {
 
 func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
 	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
-	a, err := f.getListener(getTopicKey(topic, "alerts"))
+	a, err := f.getListener(getTopicKey(topic, "realtime_alerts"))
 	if err != nil {
 		return nil
 	}
@@ -67,7 +67,7 @@ func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
 
 func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
 	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
-	a, err := f.getListener(getTopicKey(topic, "alerts"))
+	a, err := f.getListener(getTopicKey(topic, "realtime_alerts"))
 	if err != nil {
 		return nil
 	}
@@ -87,7 +87,7 @@ func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
 
 func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
 	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
-	a, err := f.getListener(getTopicKey(topic, "alerts"))
+	a, err := f.getListener(getTopicKey(topic, "realtime_alerts"))
 	if err != nil {
 		return nil
 	}
@@ -107,7 +107,7 @@ func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
 
 func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
 	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
-	a, err := f.getListener(getTopicKey(topic, "alerts"))
+	a, err := f.getListener(getTopicKey(topic, "realtime_alerts"))
 	if err != nil {
 		return nil
 	}
@@ -147,7 +147,7 @@ func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.Tr
 func (f *RTFinder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
 	topic, _ := f.lc.GetFeedVersionOnestopID(t.FeedVersionID)
 	sid := t.StopID
-	a, err := f.getListener(getTopicKey(topic, "trip_updates"))
+	a, err := f.getListener(getTopicKey(topic, "realtime_trip_updates"))
 	if err != nil {
 		return nil
 	}
@@ -186,7 +186,7 @@ func (f *RTFinder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
 	if tid == "" {
 		panic("no tid")
 	}
-	a, err := f.getListener(getTopicKey(topic, "trip_updates"))
+	a, err := f.getListener(getTopicKey(topic, "realtime_trip_updates"))
 	if err != nil {
 		return nil, false
 	}

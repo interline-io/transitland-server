@@ -16,7 +16,12 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: AgencyFilter) {
       name
       short_name
       tags
-      associated_feeds
+      feeds {
+        id
+        onestop_id
+        name
+        spec
+      }
     }
     places(where: { min_rank: 0.2 }) {
       city_name

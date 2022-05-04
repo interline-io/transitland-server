@@ -45,9 +45,9 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 		if v := where.FetchError; v == nil {
 			// nothing
 		} else if *v {
-			q = q.Join("feed_states on feed_states.feed_id = t.id").Where(sq.NotEq{"feed_states.last_fetch_error": ""})
+			q = q.JoinClause("join lateral (select success from feed_fetches where feed_fetches.feed_id = t.id order by fetched_at desc limit 1) ff on true").Where(sq.Eq{"ff.success": false})
 		} else if !*v {
-			q = q.Join("feed_states on feed_states.feed_id = t.id").Where(sq.Eq{"feed_states.last_fetch_error": ""})
+			q = q.JoinClause("join lateral (select success from feed_fetches where feed_fetches.feed_id = t.id order by fetched_at desc limit 1) ff on true").Where(sq.Eq{"ff.success": true})
 		}
 		// Import import status
 		if where.ImportStatus != nil {

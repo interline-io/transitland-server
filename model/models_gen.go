@@ -78,6 +78,10 @@ type Duration struct {
 	Units    DurationUnit `json:"units"`
 }
 
+type FeedFetchFilter struct {
+	Success *bool `json:"success"`
+}
+
 type FeedFilter struct {
 	OnestopID    *string        `json:"onestop_id"`
 	Spec         []string       `json:"spec"`
@@ -231,11 +235,12 @@ type StopFilter struct {
 }
 
 type StopTimeFilter struct {
-	ServiceDate     *tl.Date `json:"service_date"`
-	StartTime       *int     `json:"start_time"`
-	EndTime         *int     `json:"end_time"`
-	Next            *int     `json:"next"`
-	RouteOnestopIds []string `json:"route_onestop_ids"`
+	ServiceDate      *tl.Date `json:"service_date"`
+	UseServiceWindow *bool    `json:"use_service_window"`
+	StartTime        *int     `json:"start_time"`
+	EndTime          *int     `json:"end_time"`
+	Next             *int     `json:"next"`
+	RouteOnestopIds  []string `json:"route_onestop_ids"`
 }
 
 type TripFilter struct {

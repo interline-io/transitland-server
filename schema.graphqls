@@ -28,7 +28,6 @@ type Mutation {
     feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: ADMIN)
 }
 
-# Feed
 """
 Feeds contain details on how to access transit information, including URLs to data sources in various formats (GTFS, GTFS-RT, GBFS, etc), license information, related feeds, details on how to make authorized requests, and feed version archives. Feed versions are archived (as `.zip` files) and imported into the Transitland database for querying agencies, stops, routes, trips, etc.
 """
@@ -39,7 +38,6 @@ type Feed {
   onestop_id: String!
   "A common name for this feed. Optional. Alternatively use `associated_operators[].name`"
   name: String
-  feed_namespace_id: String!
   file: String!
   spec: FeedSpecTypes
   "Language(s) included in this feed"
@@ -51,6 +49,7 @@ type Feed {
   search_rank: String # only for search results
   associated_operators: [Operator!]
   feed_state: FeedState
+  feed_fetches(limit: Int, where: FeedFetchFilter): [FeedFetch!]
   "Versions of this feed that have been fetched, archived, and imported by Transitland"
   feed_versions(limit: Int, where: FeedVersionFilter): [FeedVersion!]!
 }
@@ -68,6 +67,18 @@ type FeedState {
   last_successful_fetch_at: Time
   "The active feed version for this feed"
   feed_version: FeedVersion
+}
+
+type FeedFetch {
+  id: Int!
+  url_type: String
+  url: String
+  success: Boolean
+  fetched_at: Time
+  fetch_error: String
+  response_size: Int
+  response_code: Int
+  response_sha1: String
 }
 
 """
@@ -130,7 +141,7 @@ type FeedUrls {
 
 """
 Feed versions represent a specific static GTFS file that was published at a particular point in time, and are generally accessed and referenced using the [SHA1 checksum](https://en.wikipedia.org/wiki/SHA-1) of the GTFS archive.
-""""
+"""
 type FeedVersion {
   id: Int!
   sha1: String!
@@ -214,7 +225,6 @@ type Operator {
   short_name: String
   website: String
   tags: Tags
-  associated_feeds: Any
   search_rank: String # only for search results
   agencies: [Agency!]
   feeds(limit: Int, where: FeedFilter): [Feed!]
@@ -427,7 +437,7 @@ type StopTime {
   departure: StopTimeEvent!
   continuous_drop_off: Int
   continuous_pickup: Int
-  # schedule_relationship: ScheduleRelationship!
+  service_date: Date
 }
 
 """
@@ -778,8 +788,7 @@ input OperatorFilter {
 input FeedVersionFilter {
   feed_onestop_id: String
   sha1: String
-  feed_ids: [Int!] # keep?
-}
+  feed_ids: [Int!]
 
 enum ImportStatus {
   success
@@ -802,6 +811,10 @@ input FeedFilter {
   tags: Tags,
   "Search for feeds by their source URLs"
   source_url: FeedSourceUrl
+}
+
+input FeedFetchFilter {
+  success: Boolean
 }
 
 input FeedSourceUrl {
@@ -886,6 +899,7 @@ input StopFilter {
 
 input StopTimeFilter {
   service_date: Date
+  use_service_window: Boolean
   start_time: Int
   end_time: Int
   next: Int
