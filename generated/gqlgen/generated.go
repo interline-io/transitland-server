@@ -237,6 +237,8 @@ type ComplexityRoot struct {
 	}
 
 	FeedUrls struct {
+		GbfsAutoDiscovery        func(childComplexity int) int
+		MdsProvider              func(childComplexity int) int
 		RealtimeAlerts           func(childComplexity int) int
 		RealtimeTripUpdates      func(childComplexity int) int
 		RealtimeVehiclePositions func(childComplexity int) int
@@ -674,6 +676,7 @@ type CensusValueResolver interface {
 	Values(ctx context.Context, obj *model.CensusValue) (interface{}, error)
 }
 type FeedResolver interface {
+	Spec(ctx context.Context, obj *model.Feed) (*model.FeedSpecTypes, error)
 	Languages(ctx context.Context, obj *model.Feed) ([]string, error)
 
 	Authorization(ctx context.Context, obj *model.Feed) (*model.FeedAuthorization, error)
@@ -1718,6 +1721,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedState.LastSuccessfulFetchAt(childComplexity), true
+
+	case "FeedUrls.gbfs_auto_discovery":
+		if e.complexity.FeedUrls.GbfsAutoDiscovery == nil {
+			break
+		}
+
+		return e.complexity.FeedUrls.GbfsAutoDiscovery(childComplexity), true
+
+	case "FeedUrls.mds_provider":
+		if e.complexity.FeedUrls.MdsProvider == nil {
+			break
+		}
+
+		return e.complexity.FeedUrls.MdsProvider(childComplexity), true
 
 	case "FeedUrls.realtime_alerts":
 		if e.complexity.FeedUrls.RealtimeAlerts == nil {
@@ -4142,14 +4159,19 @@ type Mutation {
     feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: ADMIN)
 }
 
-# Feed
-
+"""
+Feeds contain details on how to access transit information, including URLs to data sources in various formats (GTFS, GTFS-RT, GBFS, etc), license information, related feeds, details on how to make authorized requests, and feed version archives. Feed versions are archived (as ` + "`" + `.zip` + "`" + ` files) and imported into the Transitland database for querying agencies, stops, routes, trips, etc.
+"""
 type Feed {
+  "Unique integer ID"
   id: Int!
+  "Onestop ID for this feed"
   onestop_id: String!
+  "A common name for this feed. Optional. Alternatively use ` + "`" + `associated_operators[].name` + "`" + `"
   name: String
   file: String!
-  spec: String!
+  spec: FeedSpecTypes
+  "Language(s) included in this feed"
   languages: [String!]
   tags: Tags
   authorization: FeedAuthorization
@@ -4159,14 +4181,22 @@ type Feed {
   associated_operators: [Operator!]
   feed_state: FeedState
   feed_fetches(limit: Int, where: FeedFetchFilter): [FeedFetch!]
+  "Versions of this feed that have been fetched, archived, and imported by Transitland"
   feed_versions(limit: Int, where: FeedVersionFilter): [FeedVersion!]!
 }
 
+"""
+Details on the current state of this feed, such as active version, last fetch time, etc.
+"""
 type FeedState {
   id: Int!
+  "Error produced during the last fetch attempt by Transitland. Empty string if no error."
   last_fetch_error: String!
+  "Time of last attempted fetch by Transitland"
   last_fetched_at: Time
+  "Time of last successful fetch by Transitland that returned valid data"
   last_successful_fetch_at: Time
+  "The active feed version for this feed"
   feed_version: FeedVersion
 }
 
@@ -4182,35 +4212,67 @@ type FeedFetch {
   response_sha1: String
 }
 
+"""
+Details on how to construct an HTTP request to access a protected resource
+"""
 type FeedAuthorization {
+  "Method for inserting authorization secret into request"
   type: String!
+  "When ` + "`" + `type=query_param` + "`" + `, this specifies the name of the query parameter. When ` + "`" + `type=header` + "`" + `, this specifies the name of the header"
   param_name: String!
+  "Website to visit to sign up for an account"
   info_url: String!
 }
 
+"""
+License information for this feed, curated by Interline and contributors to the Transitland Atlas feed registry. Note that this does not constitute legal advice. Users are advised to review and confirm any terms and conditions attached to a source feed.
+"""
 type FeedLicense {
-	spdx_identifier: String!
-	url: String!
-	use_without_attribution: String!
+  "SPDX identifier for a common license. See https://spdx.org/licenses/"
+  spdx_identifier: String!
+  "URL for a custom license"
+  url: String!
+  "Are feed consumers allowed to use the feed contents without including attribution text in their app or map?"
+  use_without_attribution: String!
+  "Are feed consumers allowed to create and share derived products from the feed?"
   create_derived_product: String!
+  "Are feed consumers allowed to redistribute the feed in its entirety?"
   redistribution_allowed: String!
+  "Are feed consumers allowed to use the feed for commercial purposes?"
   commercial_use_allowed: String!
+  "Are feed consumers allowed to keep their modifications of this feed private?"
   share_alike_optional: String!
-	attribution_text: String!
-	attribution_instructions: String!
+  "Feed consumers must include this particular text when using this feed"
+  attribution_text: String!
+  "Feed consumers must follow these instructions for how to provide attribution"
+  attribution_instructions: String!
 }
 
+"""
+URL(s) from which Transitland sources a feed
+"""
 type FeedUrls {
+  "URL for the static feed that represents today's service"
   static_current: String!
+  "URLs for static feeds that represent past service that is no longer in effect "
   static_historic: [String!]!
+  "URLs for static feeds that represent service planned for upcoming dates. Typically used to represent calendar/service changes that will take effect few weeks or months in the future"
   static_planned: String!
+  "URL for GTFS Realtime VehiclePosition messages"
   realtime_vehicle_positions: String!
+  "URL for GTFS Realtime TripUpdate messages"
   realtime_trip_updates: String!
+  "URL for GTFS Realtime Alert messages"
   realtime_alerts: String!
+  "URL for GBFS feed ` + "`" + `gbfs.json` + "`" + ` auto-discovery file"
+  gbfs_auto_discovery: String!
+  "URL for MDS feed provider endpoint"
+  mds_provider: String!
 }
 
-# Feed Version
-
+"""
+Feed versions represent a specific static GTFS file that was published at a particular point in time, and are generally accessed and referenced using the [SHA1 checksum](https://en.wikipedia.org/wiki/SHA-1) of the GTFS archive.
+"""
 type FeedVersion {
   id: Int!
   sha1: String!
@@ -4222,9 +4284,11 @@ type FeedVersion {
   updated_by: String
   name: String
   description: String
+  "Convex hull around all active stops in the feed version"
   geometry: Polygon
   feed: Feed!
   feed_version_gtfs_import: FeedVersionGtfsImport
+  "Metadata for each text file present in the main directory of the zip archive "
   files(limit: Int): [FeedVersionFileInfo!]!
   service_levels(limit: Int, where: FeedVersionServiceLevelFilter): [FeedVersionServiceLevel!]!
   agencies(limit: Int, where: AgencyFilter): [Agency!]!
@@ -4278,7 +4342,11 @@ type FeedVersionServiceLevel {
 }
 
 # Operator
+"""
+An agency represents a single GTFS ` + "`" + `agencies.txt` + "`" + ` entity that was imported from a single feed version. The metadata, routes, etc., for an agency include only the data for that specific agency in that specific feed version. 
 
+Operators are a higher-level abstraction over agencies, with each operator defined by an entry in the [Transitland Atlas](/documentation/atlas). Operators provide a method for enriching the basic GTFS agency data, as well as grouping agencies that span across multiple source feeds. Operators are matched with GTFS agencies using ` + "`" + `associated_feeds` + "`" + `, a simple list of Feed OnestopIDs and GTFS ` + "`" + `agency_id` + "`" + `s. For instance, the [Atlas operator record](https://github.com/transitland/transitland-atlas/blob/master/operators/o-dr5r-nyct.json) for the [New York City MTA](/operators/o-dr5r-nyct) has ` + "`" + `associated_feeds` + "`" + ` values for 8 different GTFS feeds. A query for this operator OnestopID thus represents the union of data from all 8 feeds, and includes routes for the subway, bus service for all 5 boroughs, commuter rail agencies, etc., operated by the MTA. This record also includes additional metadata about the MTA, such as the United States National Transit Database ID, Wikidata IDs, and alternate names for the agency. Operator records are created and maintained through pull requests to the Atlas json files and synchronized with the Transitland database on each commit.
+"""
 type Operator {
   id: Int!
   generated: Boolean!
@@ -4295,6 +4363,9 @@ type Operator {
 
 # GTFS Entities
 
+"""
+See https://gtfs.org/schedule/reference/#agencytxt
+"""
 type Agency {
   id: Int!
   onestop_id: String!
@@ -4318,7 +4389,9 @@ type Agency {
   alerts: [Alert!]
 }
 
-
+"""
+See https://gtfs.org/schedule/reference/#routestxt
+"""
 type Route {
   id: Int!
   onestop_id: String
@@ -4349,6 +4422,9 @@ type Route {
   alerts: [Alert!]
 }
 
+"""
+See https://gtfs.org/reference/static/#stopstxt
+"""
 type Stop {
   id: Int!
   onestop_id: String!
@@ -4365,7 +4441,7 @@ type Stop {
   tts_stop_name: String
   geometry: Point!
   feed_version_sha1: String!
-  feed_onestop_id: String!  
+  feed_onestop_id: String!
   feed_version: FeedVersion!
   level: Level
   parent: Stop
@@ -4380,6 +4456,9 @@ type Stop {
   alerts: [Alert!]
 }
 
+"""
+The GTFS-Pathways extension uses a graph representation to describe subway or train, with nodes (the locations) and edges (the pathways). See https://gtfs.org/reference/static/#pathwaystxt
+"""
 type Pathway {
   id: Int!
   pathway_id: String!
@@ -4396,6 +4475,9 @@ type Pathway {
   to_stop: Stop!
 }
 
+"""
+Describe the different levels of a station. Is mostly useful when used in conjunction with pathways. See https://gtfs.org/reference/static/#levelstxt
+"""
 type Level {
   id: Int!
   level_id: String!
@@ -4403,6 +4485,9 @@ type Level {
   level_index: Float!
 }
 
+"""
+Record from a static GTFS [trips.txt](https://gtfs.org/schedule/reference/#tripstxt) file optionally enriched with by GTFS Realtime [TripUpdate](https://gtfs.org/reference/realtime/v2/#message-tripupdate) and [Alert](https://gtfs.org/reference/realtime/v2/#message-alert) messages.
+"""
 type Trip {
   id: Int!
   trip_id: String!
@@ -4425,6 +4510,9 @@ type Trip {
   alerts: [Alert!]
 }
 
+"""
+Record from a static GTFS [calendars.txt](https://gtfs.org/schedule/reference/#calendarstxt) file.
+"""
 type Calendar {
   id: Int!
   service_id: String!
@@ -4441,6 +4529,9 @@ type Calendar {
   removed_dates(limit: Int): [Date!]!
 }
 
+"""
+Record from a static GTFS [shapes.txt](https://gtfs.org/schedule/reference/#shapestxt) file.
+"""
 type Shape {
   id: Int!
   shape_id: String!
@@ -4448,6 +4539,9 @@ type Shape {
   generated: Boolean!
 }
 
+"""
+Record from a static GTFS [frequencies.txt](https://gtfs.org/schedule/reference/#frequenciestxt) file.
+"""
 type Frequency {
   id: Int!
   start_time: Seconds!
@@ -4456,6 +4550,9 @@ type Frequency {
   exact_times: Int!
 }
 
+"""
+Record from a static GTFS [stop_times.txt](https://gtfs.org/schedule/reference/#stop_timestxt) file.
+"""
 type StopTime {
   arrival_time: Seconds!
   departure_time: Seconds!
@@ -4474,7 +4571,9 @@ type StopTime {
   service_date: Date
 }
 
-
+"""
+Record from a static GTFS [feed_info.txt](https://gtfs.org/schedule/reference/#feed_infotxt) file.
+"""
 type FeedInfo {
   id: Int!
   feed_publisher_name: String!
@@ -4508,6 +4607,7 @@ type RouteStop {
 }
 
 type RouteGeometry {
+  "If true, the source GTFS feed provides no shapes. This route geometry is based on straight lines between stop points."
   generated: Boolean!
   geometry: LineString
   combined_geometry: Geometry
@@ -4630,7 +4730,7 @@ type CensusGeography {
   aland: Float
   awater: Float
   geometry: Polygon
-  values(table_names: [String!]!, limit: Int): [CensusValue]! 
+  values(table_names: [String!]!, limit: Int): [CensusValue]!
 }
 
 type CensusValue {
@@ -4663,6 +4763,9 @@ type StopTimeEvent {
   uncertainty: Int
 }
 
+"""
+[Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
+"""
 type VehiclePosition {
   vehicle: RTVehicleDescriptor
   position: Point
@@ -4673,6 +4776,9 @@ type VehiclePosition {
   congestion_level: String
 }
 
+"""
+[Alert](https://gtfs.org/reference/realtime/v2/#message-alert) message, also called a service alert, provided by a source GTFS Realtime feed.
+"""
 type Alert {
   active_period: [RTTimeRange!]
   cause: String
@@ -4685,17 +4791,26 @@ type Alert {
   severity_level: String
 }
 
+"""
+See https://gtfs.org/reference/realtime/v2/#message-timerange
+"""
 type RTTimeRange {
   start: Int
   end: Int
 }
 
+"""
+See https://gtfs.org/reference/realtime/v2/#message-vehicledescriptor
+"""
 type RTVehicleDescriptor {
   id: String
   label: String
   license_plate: String
 }
 
+"""
+See https://gtfs.org/reference/realtime/v2/#message-tripdescriptor
+"""
 type RTTripDescriptor {
   trip_id: String
   route_id: String
@@ -4705,7 +4820,9 @@ type RTTripDescriptor {
   schedule_relationship: String
 }
 
-
+"""
+See https://gtfs.org/reference/realtime/v2/#message-translatedstring
+"""
 type RTTranslation {
   text: String!
   language: String
@@ -4802,22 +4919,29 @@ input OperatorFilter {
 input FeedVersionFilter {
   feed_onestop_id: String
   sha1: String
-  feed_ids: [Int!] # keep?
+  feed_ids: [Int!]
 }
 
 enum ImportStatus {
-  success
-  error
-  in_progress
+  SUCCESS
+  ERROR
+  IN_PROGRESS
 }
 
 input FeedFilter {
+  "Search for feed with a specific Onestop ID"
   onestop_id: String
-  spec: [String!]
+  "Search for feeds of certain data types"
+  spec: [FeedSpecTypes!]
+  "Search for feeds with or without a fetch error"
   fetch_error: Boolean
+  "Search for feeds by their import status"
   import_status: ImportStatus
+  "Full text search"
   search: String
+  "Search for feeds with a tag"
   tags: Tags,
+  "Search for feeds by their source URLs"
   source_url: FeedSourceUrl
 }
 
@@ -4843,19 +4967,37 @@ enum FeedSourceUrlTypes {
   mds_provider
 }
 
+"""
+Type of data contained in a source feed
+"""
+enum FeedSpecTypes {
+  GTFS
+  GTFS_RT
+  GBFS
+  MDS
+}
+
 input AgencyFilter {
   onestop_id: String
   feed_version_sha1: String
   feed_onestop_id: String
   agency_id: String
+  "Search for records with this GTFS agency_name"
   agency_name: String
   within: Polygon
+  "Search for agencies within a radius"
   near: PointRadius
+  "Full text search"
   search: String
+  "Search by city name (provided by Natural Earth)"
   city_name: String
+  "Search by country name (provided by Natural Earth)"
   adm0_name: String
+  "Search by state/province/division name (provided by Natural Earth)"
   adm1_name: String
+  "Search by country 2 letter ISO 3166 code (provided by Natural Earth)"
   adm0_iso: String
+  "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
   adm1_iso: String
 }
 
@@ -4867,7 +5009,7 @@ input RouteFilter {
   route_id: String
   route_type: Int
   within: Polygon
-  near: PointRadius  
+  near: PointRadius
   search: String
   operator_onestop_id: String
   agency_ids: [Int!] # keep?
@@ -8916,28 +9058,25 @@ func (ec *executionContext) _Feed_spec(ctx context.Context, field graphql.Collec
 		Object:     "Feed",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Spec, nil
+		return ec.resolvers.Feed().Spec(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.FeedSpecTypes)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOFeedSpecTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Feed_languages(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
@@ -10683,6 +10822,76 @@ func (ec *executionContext) _FeedUrls_realtime_alerts(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RealtimeAlerts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedUrls_gbfs_auto_discovery(ctx context.Context, field graphql.CollectedField, obj *model.FeedUrls) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedUrls",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GbfsAutoDiscovery, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedUrls_mds_provider(ctx context.Context, field graphql.CollectedField, obj *model.FeedUrls) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedUrls",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MdsProvider, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22725,7 +22934,7 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("spec"))
-			it.Spec, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			it.Spec, err = ec.unmarshalOFeedSpecTypes2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypesᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -24512,15 +24721,22 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "spec":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Feed_spec(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Feed_spec(ctx, field, obj)
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			})
 		case "languages":
 			field := field
 
@@ -25175,6 +25391,26 @@ func (ec *executionContext) _FeedUrls(ctx context.Context, sel ast.SelectionSet,
 		case "realtime_alerts":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._FeedUrls_realtime_alerts(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "gbfs_auto_discovery":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_gbfs_auto_discovery(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "mds_provider":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_mds_provider(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -30269,6 +30505,16 @@ func (ec *executionContext) marshalNFeedInfo2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 	return ec._FeedInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNFeedSpecTypes2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx context.Context, v interface{}) (model.FeedSpecTypes, error) {
+	var res model.FeedSpecTypes
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFeedSpecTypes2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx context.Context, sel ast.SelectionSet, v model.FeedSpecTypes) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNFeedVersion2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersion(ctx context.Context, sel ast.SelectionSet, v model.FeedVersion) graphql.Marshaler {
 	return ec._FeedVersion(ctx, sel, &v)
 }
@@ -32377,6 +32623,89 @@ func (ec *executionContext) unmarshalOFeedSourceUrlTypes2ᚖgithubᚗcomᚋinter
 }
 
 func (ec *executionContext) marshalOFeedSourceUrlTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURLTypes(ctx context.Context, sel ast.SelectionSet, v *model.FeedSourceURLTypes) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOFeedSpecTypes2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypesᚄ(ctx context.Context, v interface{}) ([]model.FeedSpecTypes, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.FeedSpecTypes, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFeedSpecTypes2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOFeedSpecTypes2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypesᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FeedSpecTypes) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFeedSpecTypes2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOFeedSpecTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx context.Context, v interface{}) (*model.FeedSpecTypes, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.FeedSpecTypes)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFeedSpecTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx context.Context, sel ast.SelectionSet, v *model.FeedSpecTypes) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -32,7 +32,7 @@ func TestOperatorResolver(t *testing.T) {
 		},
 		{
 			"feeds only gtfs-rt",
-			`query{operators(where:{onestop_id:"o-9q9-caltrain"}) {feeds(where:{spec:"gtfs-rt"}) {onestop_id}}}`,
+			`query{operators(where:{onestop_id:"o-9q9-caltrain"}) {feeds(where:{spec:GTFS_RT}) {onestop_id}}}`,
 			hw{},
 			``,
 			"operators.0.feeds.#.onestop_id",
@@ -40,7 +40,7 @@ func TestOperatorResolver(t *testing.T) {
 		},
 		{
 			"feeds only gtfs",
-			`query{operators(where:{onestop_id:"o-9q9-caltrain"}) {feeds(where:{spec:"gtfs"}) {onestop_id}}}`,
+			`query{operators(where:{onestop_id:"o-9q9-caltrain"}) {feeds(where:{spec:GTFS}) {onestop_id}}}`,
 			hw{},
 			``,
 			"operators.0.feeds.#.onestop_id",

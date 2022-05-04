@@ -46,6 +46,12 @@ func (r *feedResolver) FeedFetches(ctx context.Context, obj *model.Feed, limit *
 	return For(ctx).FeedFetchesByFeedID.Load(model.FeedFetchParam{FeedID: obj.ID, Limit: limit, Where: where})
 }
 
+func (r *feedResolver) Spec(ctx context.Context, obj *model.Feed) (*model.FeedSpecTypes, error) {
+	var s model.FeedSpecTypes
+	s2 := s.FromDBString(obj.Spec)
+	return &s2, nil
+}
+
 // FEED STATE
 
 type feedStateResolver struct{ *Resolver }

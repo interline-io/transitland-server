@@ -840,7 +840,7 @@ enum FeedSourceUrlTypes {
 Type of data contained in a source feed
 """
 enum FeedSpecTypes {
-  GTFDS
+  GTFS
   GTFS_RT
   GBFS
   MDS
