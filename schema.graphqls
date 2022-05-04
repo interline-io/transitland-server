@@ -98,11 +98,11 @@ License information for this feed, curated by Interline and contributors to the 
 """
 type FeedLicense {
   "SPDX identifier for a common license. See https://spdx.org/licenses/"
-	spdx_identifier: String!
+  spdx_identifier: String!
   "URL for a custom license"
-	url: String!
+  url: String!
   "Are feed consumers allowed to use the feed contents without including attribution text in their app or map?"
-	use_without_attribution: String!
+  use_without_attribution: String!
   "Are feed consumers allowed to create and share derived products from the feed?"
   create_derived_product: String!
   "Are feed consumers allowed to redistribute the feed in its entirety?"
@@ -112,9 +112,9 @@ type FeedLicense {
   "Are feed consumers allowed to keep their modifications of this feed private?"
   share_alike_optional: String!
   "Feed consumers must include this particular text when using this feed"
-	attribution_text: String!
+  attribution_text: String!
   "Feed consumers must follow these instructions for how to provide attribution"
-	attribution_instructions: String!
+  attribution_instructions: String!
 }
 
 """
