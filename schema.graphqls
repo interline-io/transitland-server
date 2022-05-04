@@ -789,6 +789,7 @@ input FeedVersionFilter {
   feed_onestop_id: String
   sha1: String
   feed_ids: [Int!]
+}
 
 enum ImportStatus {
   success
