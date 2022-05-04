@@ -792,9 +792,9 @@ input FeedVersionFilter {
 }
 
 enum ImportStatus {
-  success
-  error
-  in_progress
+  SUCCESS
+  ERROR
+  IN_PROGRESS
 }
 
 input FeedFilter {
@@ -840,10 +840,10 @@ enum FeedSourceUrlTypes {
 Type of data contained in a source feed
 """
 enum FeedSpecTypes {
-  gtfs
-  gtfs-rt
-  gbfs
-  mds
+  GTFDS
+  GTFS_RT
+  GBFS
+  MDS
 }
 
 input AgencyFilter {
