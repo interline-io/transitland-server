@@ -101,7 +101,7 @@ func Handler(title string, endpoint string) http.HandlerFunc {
 			"jsSRI":       "sha384-TqI6gT2PjmSrnEOTvGHLad1U4Vm5VoyzMmcKK0C/PLCWTnwPyXhCJY6NYhC/tp19",
 		})
 		if err != nil {
-			panic(err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 	}
 }

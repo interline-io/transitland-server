@@ -184,7 +184,7 @@ func (f *RTFinder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
 
 func (f *RTFinder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
 	if tid == "" {
-		panic("no tid")
+		return nil, false
 	}
 	a, err := f.getListener(getTopicKey(topic, "realtime_trip_updates"))
 	if err != nil {
