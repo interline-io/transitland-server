@@ -5,7 +5,7 @@ package model
 var specTypeMap = map[string]FeedSpecTypes{
 	"gtfs":    FeedSpecTypesGtfs,
 	"gtfs-rt": FeedSpecTypesGtfsRt,
-	"gfbs":    FeedSpecTypesGbfs,
+	"gbfs":    FeedSpecTypesGbfs,
 	"mds":     FeedSpecTypesMds,
 }
 
@@ -18,10 +18,10 @@ func (f FeedSpecTypes) ToDBString() string {
 	return ""
 }
 
-func (f FeedSpecTypes) FromDBString(s string) FeedSpecTypes {
+func (f FeedSpecTypes) FromDBString(s string) *FeedSpecTypes {
 	a, ok := specTypeMap[s]
 	if !ok {
-		panic("cannot convert")
+		return nil
 	}
-	return a
+	return &a
 }
