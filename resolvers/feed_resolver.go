@@ -49,7 +49,7 @@ func (r *feedResolver) FeedFetches(ctx context.Context, obj *model.Feed, limit *
 func (r *feedResolver) Spec(ctx context.Context, obj *model.Feed) (*model.FeedSpecTypes, error) {
 	var s model.FeedSpecTypes
 	s2 := s.FromDBString(obj.Spec)
-	return &s2, nil
+	return s2, nil
 }
 
 // FEED STATE
