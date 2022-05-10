@@ -20,19 +20,31 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 		OrderBy("gtfs_stops.id")
 	distinct := false
 
-	if where != nil && where.UsePreviousOnestopIds != nil && *where.UsePreviousOnestopIds {
-		sub := sq.StatementBuilder.
-			Select("tl_stop_onestop_ids.onestop_id", "gtfs_stops.stop_id", "feed_versions.feed_id").
-			Distinct().Options("on (tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id)").
-			From("tl_stop_onestop_ids").
-			Join("gtfs_stops on gtfs_stops.id = tl_stop_onestop_ids.stop_id").
-			Join("feed_versions on feed_versions.id = gtfs_stops.feed_version_id").
-			Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds}).
-			OrderBy("tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id, feed_versions.id DESC")
-		subClause := sub.
-			Prefix("LEFT JOIN (").
-			Suffix(") tl_stop_onestop_ids on tl_stop_onestop_ids.stop_id = gtfs_stops.stop_id and tl_stop_onestop_ids.feed_id = feed_versions.feed_id")
-		qView = qView.JoinClause(subClause)
+	// Handle previous OnestopIds
+	if where != nil {
+		// Allow either a single onestop id or multiple
+		if where.OnestopID != nil {
+			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
+		}
+		if len(where.OnestopIds) > 0 {
+			qView = qView.Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds})
+		}
+		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
+			sub := sq.StatementBuilder.
+				Select("tl_stop_onestop_ids.onestop_id", "gtfs_stops.stop_id", "feed_versions.feed_id").
+				Distinct().Options("on (tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id)").
+				From("tl_stop_onestop_ids").
+				Join("gtfs_stops on gtfs_stops.id = tl_stop_onestop_ids.stop_id").
+				Join("feed_versions on feed_versions.id = gtfs_stops.feed_version_id").
+				Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds}).
+				OrderBy("tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id, feed_versions.id DESC")
+			subClause := sub.
+				Prefix("LEFT JOIN (").
+				Suffix(") tl_stop_onestop_ids on tl_stop_onestop_ids.stop_id = gtfs_stops.stop_id and tl_stop_onestop_ids.feed_id = feed_versions.feed_id")
+			qView = qView.JoinClause(subClause)
+		} else {
+			qView = qView.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`)
+		}
 	} else {
 		qView = qView.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`)
 	}
@@ -57,13 +69,6 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 		}
 		if where.StopID != nil {
 			qView = qView.Where(sq.Eq{"gtfs_stops.stop_id": *where.StopID})
-		}
-		// Allow either a single onestop id or multiple
-		if where.OnestopID != nil {
-			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
-		}
-		if len(where.OnestopIds) > 0 {
-			qView = qView.Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds})
 		}
 		// Accepts both route and operator Onestop IDs
 		if len(where.ServedByOnestopIds) > 0 {

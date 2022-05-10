@@ -5004,6 +5004,7 @@ input AgencyFilter {
 input RouteFilter {
   onestop_id: String
   onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
   feed_version_sha1: String
   feed_onestop_id: String
   route_id: String
@@ -5018,7 +5019,7 @@ input RouteFilter {
 input StopFilter {
   onestop_id: String
   onestop_ids: [String!]
-  use_previous_onestop_ids: Boolean
+  allow_previous_onestop_ids: Boolean
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
@@ -5037,6 +5038,7 @@ input StopTimeFilter {
   end_time: Int
   next: Int
   route_onestop_ids: [String!] # keep?
+  allow_previous_route_onestop_ids: Boolean
 }
 
 input PathwayFilter {
@@ -23339,6 +23341,14 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 			if err != nil {
 				return it, err
 			}
+		case "allow_previous_onestop_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allow_previous_onestop_ids"))
+			it.AllowPreviousOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "feed_version_sha1":
 			var err error
 
@@ -23442,11 +23452,11 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
-		case "use_previous_onestop_ids":
+		case "allow_previous_onestop_ids":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_previous_onestop_ids"))
-			it.UsePreviousOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allow_previous_onestop_ids"))
+			it.AllowPreviousOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -23582,6 +23592,14 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("route_onestop_ids"))
 			it.RouteOnestopIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "allow_previous_route_onestop_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allow_previous_route_onestop_ids"))
+			it.AllowPreviousRouteOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

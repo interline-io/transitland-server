@@ -873,6 +873,7 @@ input AgencyFilter {
 input RouteFilter {
   onestop_id: String
   onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
   feed_version_sha1: String
   feed_onestop_id: String
   route_id: String
@@ -887,7 +888,7 @@ input RouteFilter {
 input StopFilter {
   onestop_id: String
   onestop_ids: [String!]
-  use_previous_onestop_ids: Boolean
+  allow_previous_onestop_ids: Boolean
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
@@ -906,6 +907,7 @@ input StopTimeFilter {
   end_time: Int
   next: Int
   route_onestop_ids: [String!] # keep?
+  allow_previous_route_onestop_ids: Boolean
 }
 
 input PathwayFilter {

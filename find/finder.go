@@ -660,6 +660,7 @@ func (f *DBFinder) StopTimesByStopID(params []model.StopTimeParam) ([][]*model.S
 	}
 	for dkey, dpairs := range dgroups {
 		qents := []*model.StopTime{}
+		// TODO: also group by param input...
 		if p := params[0].Where; p != nil && p.ServiceDate != nil {
 			// Get stops on a specified day
 			p2 := *p

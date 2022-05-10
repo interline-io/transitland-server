@@ -119,11 +119,28 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			pqfvids).
 		Where(sq.Eq{"sts.stop_id": sids, "sts.feed_version_id": fvids}).
 		OrderBy("sts.arrival_time asc")
+
 	if where != nil {
 		if len(where.RouteOnestopIds) > 0 {
+			if where.AllowPreviousRouteOnestopIds != nil && *where.AllowPreviousRouteOnestopIds {
+				// Find a way to make this simpler, perhaps handle elsewhere
+				sub := sq.StatementBuilder.
+					Select("tl_route_onestop_ids.onestop_id", "gtfs_routes.route_id", "feed_versions.feed_id").
+					Distinct().Options("on (tl_route_onestop_ids.onestop_id, gtfs_routes.route_id)").
+					From("tl_route_onestop_ids").
+					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id").
+					Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
+					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds}).
+					OrderBy("tl_route_onestop_ids.onestop_id, gtfs_routes.route_id, feed_versions.id DESC")
+				subClause := sub.
+					Prefix("LEFT JOIN (").
+					Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
+				q = q.JoinClause(subClause)
+			} else {
+				q = q.Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.id")
+			}
 			q = q.
 				Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
-				Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.id").
 				Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 		}
 		if where.StartTime != nil {
