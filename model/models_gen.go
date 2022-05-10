@@ -216,17 +216,18 @@ type RTVehicleDescriptor struct {
 }
 
 type RouteFilter struct {
-	OnestopID         *string      `json:"onestop_id"`
-	OnestopIds        []string     `json:"onestop_ids"`
-	FeedVersionSha1   *string      `json:"feed_version_sha1"`
-	FeedOnestopID     *string      `json:"feed_onestop_id"`
-	RouteID           *string      `json:"route_id"`
-	RouteType         *int         `json:"route_type"`
-	Within            *tl.Polygon  `json:"within"`
-	Near              *PointRadius `json:"near"`
-	Search            *string      `json:"search"`
-	OperatorOnestopID *string      `json:"operator_onestop_id"`
-	AgencyIds         []int        `json:"agency_ids"`
+	OnestopID               *string      `json:"onestop_id"`
+	OnestopIds              []string     `json:"onestop_ids"`
+	AllowPreviousOnestopIds *bool        `json:"allow_previous_onestop_ids"`
+	FeedVersionSha1         *string      `json:"feed_version_sha1"`
+	FeedOnestopID           *string      `json:"feed_onestop_id"`
+	RouteID                 *string      `json:"route_id"`
+	RouteType               *int         `json:"route_type"`
+	Within                  *tl.Polygon  `json:"within"`
+	Near                    *PointRadius `json:"near"`
+	Search                  *string      `json:"search"`
+	OperatorOnestopID       *string      `json:"operator_onestop_id"`
+	AgencyIds               []int        `json:"agency_ids"`
 }
 
 type Step struct {
@@ -241,26 +242,28 @@ type Step struct {
 }
 
 type StopFilter struct {
-	OnestopID          *string      `json:"onestop_id"`
-	OnestopIds         []string     `json:"onestop_ids"`
-	FeedVersionSha1    *string      `json:"feed_version_sha1"`
-	FeedOnestopID      *string      `json:"feed_onestop_id"`
-	StopID             *string      `json:"stop_id"`
-	StopCode           *string      `json:"stop_code"`
-	Within             *tl.Polygon  `json:"within"`
-	Near               *PointRadius `json:"near"`
-	Search             *string      `json:"search"`
-	ServedByOnestopIds []string     `json:"served_by_onestop_ids"`
-	AgencyIds          []int        `json:"agency_ids"`
+	OnestopID               *string      `json:"onestop_id"`
+	OnestopIds              []string     `json:"onestop_ids"`
+	AllowPreviousOnestopIds *bool        `json:"allow_previous_onestop_ids"`
+	FeedVersionSha1         *string      `json:"feed_version_sha1"`
+	FeedOnestopID           *string      `json:"feed_onestop_id"`
+	StopID                  *string      `json:"stop_id"`
+	StopCode                *string      `json:"stop_code"`
+	Within                  *tl.Polygon  `json:"within"`
+	Near                    *PointRadius `json:"near"`
+	Search                  *string      `json:"search"`
+	ServedByOnestopIds      []string     `json:"served_by_onestop_ids"`
+	AgencyIds               []int        `json:"agency_ids"`
 }
 
 type StopTimeFilter struct {
-	ServiceDate      *tl.Date `json:"service_date"`
-	UseServiceWindow *bool    `json:"use_service_window"`
-	StartTime        *int     `json:"start_time"`
-	EndTime          *int     `json:"end_time"`
-	Next             *int     `json:"next"`
-	RouteOnestopIds  []string `json:"route_onestop_ids"`
+	ServiceDate                  *tl.Date `json:"service_date"`
+	UseServiceWindow             *bool    `json:"use_service_window"`
+	StartTime                    *int     `json:"start_time"`
+	EndTime                      *int     `json:"end_time"`
+	Next                         *int     `json:"next"`
+	RouteOnestopIds              []string `json:"route_onestop_ids"`
+	AllowPreviousRouteOnestopIds *bool    `json:"allow_previous_route_onestop_ids"`
 }
 
 type TripFilter struct {
