@@ -27,7 +27,11 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			q = q.Where(sq.Eq{"onestop_id": *where.OnestopID})
 		}
 		if len(where.Spec) > 0 {
-			q = q.Where(sq.Eq{"spec": where.Spec})
+			var specs []string
+			for _, s := range where.Spec {
+				specs = append(specs, s.ToDBString())
+			}
+			q = q.Where(sq.Eq{"spec": specs})
 		}
 		// Tags
 		if where.Tags != nil {
@@ -45,25 +49,27 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 		if v := where.FetchError; v == nil {
 			// nothing
 		} else if *v {
-			q = q.Join("feed_states on feed_states.feed_id = t.id").Where(sq.NotEq{"feed_states.last_fetch_error": ""})
+			q = q.JoinClause("join lateral (select success from feed_fetches where feed_fetches.feed_id = t.id order by fetched_at desc limit 1) ff on true").Where(sq.Eq{"ff.success": false})
 		} else if !*v {
-			q = q.Join("feed_states on feed_states.feed_id = t.id").Where(sq.Eq{"feed_states.last_fetch_error": ""})
+			q = q.JoinClause("join lateral (select success from feed_fetches where feed_fetches.feed_id = t.id order by fetched_at desc limit 1) ff on true").Where(sq.Eq{"ff.success": true})
 		}
 		// Import import status
 		if where.ImportStatus != nil {
 			// in_progress must be false to check success and vice-versa
 			var checkSuccess bool
 			var checkInProgress bool
-			check := *where.ImportStatus
-			if check == "success" {
+			switch *where.ImportStatus {
+			case model.ImportStatusSuccess:
 				checkSuccess = true
 				checkInProgress = false
-			} else if check == "error" {
-				checkSuccess = false
-				checkInProgress = false
-			} else if check == "in_progress" {
+			case model.ImportStatusInProgress:
 				checkSuccess = false
 				checkInProgress = true
+			case model.ImportStatusError:
+				checkSuccess = false
+				checkInProgress = false
+			default:
+				panic("uknown import status enum")
 			}
 			// This lateral join gets the most recent attempt at a completed feed_version_gtfs_import and checks the status
 			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).

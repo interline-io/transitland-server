@@ -30,10 +30,6 @@ func (r *feedResolver) Languages(ctx context.Context, obj *model.Feed) ([]string
 	return obj.Languages, nil
 }
 
-func (r *feedResolver) AssociatedFeeds(ctx context.Context, obj *model.Feed) ([]string, error) {
-	return obj.AssociatedFeeds, nil
-}
-
 func (r *feedResolver) Urls(ctx context.Context, obj *model.Feed) (*model.FeedUrls, error) {
 	return &model.FeedUrls{FeedUrls: obj.URLs}, nil
 }
@@ -44,6 +40,16 @@ func (r *feedResolver) AssociatedOperators(ctx context.Context, obj *model.Feed)
 
 func (r *feedResolver) Authorization(ctx context.Context, obj *model.Feed) (*model.FeedAuthorization, error) {
 	return &model.FeedAuthorization{FeedAuthorization: obj.Authorization}, nil
+}
+
+func (r *feedResolver) FeedFetches(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedFetchFilter) ([]*model.FeedFetch, error) {
+	return For(ctx).FeedFetchesByFeedID.Load(model.FeedFetchParam{FeedID: obj.ID, Limit: limit, Where: where})
+}
+
+func (r *feedResolver) Spec(ctx context.Context, obj *model.Feed) (*model.FeedSpecTypes, error) {
+	var s model.FeedSpecTypes
+	s2 := s.FromDBString(obj.Spec)
+	return s2, nil
 }
 
 // FEED STATE

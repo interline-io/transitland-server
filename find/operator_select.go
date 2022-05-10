@@ -20,7 +20,6 @@ func OperatorSelect(limit *int, after *int, ids []int, feedIds []int, where *mod
 			"co.id as operator_id",
 			"co.website as website",
 			"co.operator_tags as operator_tags",
-			"co.associated_feeds as associated_feeds",
 		).
 		From("current_operators_in_feed coif").
 		Join("current_feeds on current_feeds.id = coif.feed_id").

@@ -61,7 +61,7 @@ func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, err
 	case model.StepModeTransit:
 		speed = 5
 	}
-	duration := int(distance * 1000 / speed)
+	duration := float64(distance * 1000 / speed)
 
 	// Create itinerary summary
 	itin := model.Itinerary{}

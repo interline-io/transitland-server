@@ -34,6 +34,7 @@ type Loaders struct {
 	TripsByID                               dl.TripLoader
 	FeedStatesByFeedID                      dl.FeedStateLoader
 	OperatorsByCOIF                         dl.OperatorLoader
+	FeedFetchesByFeedID                     dl.FeedFetchWhereLoader
 	AgenciesByOnestopID                     dl.AgencyWhereLoader
 	FeedVersionGtfsImportsByFeedVersionID   dl.FeedVersionGtfsImportLoader
 	FeedVersionServiceLevelsByFeedVersionID dl.FeedVersionServiceLevelWhereLoader
@@ -43,6 +44,7 @@ type Loaders struct {
 	StopsByFeedVersionID                    dl.StopWhereLoader
 	TripsByFeedVersionID                    dl.TripWhereLoader
 	FeedInfosByFeedVersionID                dl.FeedInfoWhereLoader
+	FeedsByOperatorOnestopID                dl.FeedWhereLoader
 	StopsByRouteID                          dl.StopWhereLoader
 	StopsByParentStopID                     dl.StopWhereLoader
 	AgencyPlacesByAgencyID                  dl.AgencyPlaceWhereLoader
@@ -124,6 +126,11 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
 				Fetch:    finder.FeedStatesByFeedID,
+			}),
+			FeedsByOperatorOnestopID: *dl.NewFeedWhereLoader(dl.FeedWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch:    finder.FeedsByOperatorOnestopID,
 			}),
 			OperatorsByFeedID: *dl.NewOperatorWhereLoader(dl.OperatorWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
@@ -212,6 +219,11 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				Wait:     WAIT,
 				Fetch:    finder.AgenciesByFeedVersionID,
 			}),
+			FeedFetchesByFeedID: *dl.NewFeedFetchWhereLoader(dl.FeedFetchWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch:    finder.FeedFetchesByFeedID,
+			}),
 			AgenciesByOnestopID: *dl.NewAgencyWhereLoader(dl.AgencyWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
@@ -232,6 +244,7 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				Wait:     WAIT,
 				Fetch:    finder.FeedInfosByFeedVersionID,
 			}),
+
 			RoutesByFeedVersionID: *dl.NewRouteWhereLoader(dl.RouteWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,

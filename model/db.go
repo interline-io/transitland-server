@@ -24,6 +24,7 @@ type EntityFinder interface {
 	FindFeeds(limit *int, after *int, ids []int, where *FeedFilter) ([]*Feed, error)
 	FindOperators(limit *int, after *int, ids []int, where *OperatorFilter) ([]*Operator, error)
 	RouteStopBuffer(*RouteStopBufferParam) ([]*RouteStopBuffer, error)
+	FindFeedVersionServiceWindow(int) (time.Time, time.Time, time.Time, error)
 	DBX() sqlx.Ext // escape hatch, for now
 }
 
@@ -46,6 +47,8 @@ type EntityLoader interface {
 	OperatorsByFeedID([]OperatorParam) ([][]*Operator, []error)
 	OperatorsByCOIF([]int) ([]*Operator, []error)
 	// Param loaders
+	FeedFetchesByFeedID([]FeedFetchParam) ([][]*FeedFetch, []error)
+	FeedsByOperatorOnestopID([]FeedParam) ([][]*Feed, []error)
 	FrequenciesByTripID([]FrequencyParam) ([][]*Frequency, []error)
 	StopTimesByTripID([]StopTimeParam) ([][]*StopTime, []error)
 	StopTimesByStopID([]StopTimeParam) ([][]*StopTime, []error)

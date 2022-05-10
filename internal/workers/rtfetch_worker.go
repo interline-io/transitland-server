@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"time"
 
-	"github.com/interline-io/transitland-lib/rt/pb"
-	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/request"
+	"github.com/interline-io/transitland-lib/dmfr/fetch"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/model"
 	"google.golang.org/protobuf/proto"
@@ -34,39 +32,36 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		log.Error().Err(err).Msg("rtfetch worker: source feed not found")
 		return errors.New("feed not found")
 	}
-	rtfeed := rtfeeds[0]
-	// Prepare auth
-	// Note: Only HTTP(S) allowed; AllowFTP/AllowS3/AllowLocal options not passed in.
-	var reqOpts []request.RequestOption
-	if rtfeed.Authorization.Type != "" {
-		secret := tl.Secret{}
-		var err error
-		secret, err = rtfeed.MatchSecrets(job.Opts.Secrets)
-		if err != nil {
-			log.Error().Err(err).Msg("rtfetch worker: secret match failed")
-			return err
-		}
-		reqOpts = append(reqOpts, request.WithAuth(secret, rtfeed.Authorization))
-	}
 	// Make request
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	req := request.NewRequest(w.Url, reqOpts...)
-	reqBody, err := req.Request(ctx)
+	rtfeed := rtfeeds[0].Feed
+	atx := tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX())
+	fetchOpts := fetch.Options{
+		URLType:   w.SourceType,
+		FeedURL:   w.Url,
+		Secrets:   job.Opts.Secrets,
+		FetchedAt: time.Now(),
+	}
+	rtmsg, fr, err := fetch.RTFetch(atx, rtfeed, fetchOpts)
 	if err != nil {
 		log.Error().Err(err).Msg("rtfetch worker: request failed")
 		return err
 	}
-	defer reqBody.Close()
-	// Test this is valid protobuf
-	rtdata, _ := ioutil.ReadAll(reqBody)
-	rtmsg := pb.FeedMessage{}
-	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
-		log.Error().Err(err).Msg("rtfetch worker: failed to parse response")
+	if fr.FetchError != nil {
+		log.Error().Err(fr.FetchError).Msg("rtfetch worker: fetch error")
+		return err
+	}
+	if rtmsg == nil {
+		log.Error().Msg("rtfetch worker: no msg returned")
+		return err
+	}
+	// Convert back to bytes...
+	rtdata, err := proto.Marshal(rtmsg)
+	if err != nil {
+		log.Error().Msg("rtfetch worker: invalid rt data")
 		return err
 	}
 	// Save to cache
 	key := fmt.Sprintf("rtdata:%s:%s", w.Target, w.SourceType)
-	log.Info().Int("bytes", len(rtdata)).Str("url", w.Url).Msg("rtfetch worker: success")
+	log.Info().Int("bytes", fr.ResponseSize).Str("url", w.Url).Msg("rtfetch worker: success")
 	return job.Opts.RTFinder.AddData(key, rtdata)
 }
