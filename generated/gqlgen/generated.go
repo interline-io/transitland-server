@@ -5018,6 +5018,7 @@ input RouteFilter {
 input StopFilter {
   onestop_id: String
   onestop_ids: [String!]
+  use_previous_onestop_ids: Boolean
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
@@ -23438,6 +23439,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onestop_ids"))
 			it.OnestopIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "use_previous_onestop_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_previous_onestop_ids"))
+			it.UsePreviousOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

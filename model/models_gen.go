@@ -241,17 +241,18 @@ type Step struct {
 }
 
 type StopFilter struct {
-	OnestopID          *string      `json:"onestop_id"`
-	OnestopIds         []string     `json:"onestop_ids"`
-	FeedVersionSha1    *string      `json:"feed_version_sha1"`
-	FeedOnestopID      *string      `json:"feed_onestop_id"`
-	StopID             *string      `json:"stop_id"`
-	StopCode           *string      `json:"stop_code"`
-	Within             *tl.Polygon  `json:"within"`
-	Near               *PointRadius `json:"near"`
-	Search             *string      `json:"search"`
-	ServedByOnestopIds []string     `json:"served_by_onestop_ids"`
-	AgencyIds          []int        `json:"agency_ids"`
+	OnestopID             *string      `json:"onestop_id"`
+	OnestopIds            []string     `json:"onestop_ids"`
+	UsePreviousOnestopIds *bool        `json:"use_previous_onestop_ids"`
+	FeedVersionSha1       *string      `json:"feed_version_sha1"`
+	FeedOnestopID         *string      `json:"feed_onestop_id"`
+	StopID                *string      `json:"stop_id"`
+	StopCode              *string      `json:"stop_code"`
+	Within                *tl.Polygon  `json:"within"`
+	Near                  *PointRadius `json:"near"`
+	Search                *string      `json:"search"`
+	ServedByOnestopIds    []string     `json:"served_by_onestop_ids"`
+	AgencyIds             []int        `json:"agency_ids"`
 }
 
 type StopTimeFilter struct {

@@ -887,6 +887,7 @@ input RouteFilter {
 input StopFilter {
   onestop_id: String
   onestop_ids: [String!]
+  use_previous_onestop_ids: Boolean
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
