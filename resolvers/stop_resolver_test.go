@@ -312,6 +312,31 @@ func TestStopResolver_StopTimes(t *testing.T) {
 			"stops.0.stop_times.#.arrival_time",
 			[]string{"21:14:00", "21:34:00", "21:54:00", "22:14:00", "22:34:00", "22:54:00", "23:14:00", "23:34:00", "23:54:00", "24:14:00", "24:47:00", "21:14:00", "21:34:00", "21:54:00", "22:14:00", "22:34:00", "22:54:00", "23:14:00", "23:34:00", "23:54:00", "24:14:00", "24:47:00"},
 		},
+		// check arrival and departure resolvers
+		{
+			"arrival departure base case",
+			`query{ stops(where:{stop_id:"RICH"}) { stop_times(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.stop_times.#.departure_time",
+			[]string{"21:09:00", "21:14:00", "21:15:00"},
+		},
+		{
+			"departures",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{"21:15:00"},
+		},
+		{
+			"arrivals",
+			`query{ stops(where:{stop_id:"RICH"}) { arrivals(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {arrival_time}}}`,
+			hw{},
+			``,
+			"stops.0.arrivals.#.arrival_time",
+			[]string{"21:09:00", "21:14:00"},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {

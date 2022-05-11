@@ -112,6 +112,7 @@ func makeValRequest(req valhallaRequest, client *http.Client, endpoint string, a
 	}
 	hreq.Body = io.NopCloser(bytes.NewReader(reqJson))
 	hreq.Header.Add("api_key", apikey)
+	log.Debug().Str("url", hreq.URL.String()).Str("body", string(reqJson)).Msg("valhalla request")
 	resp, err := client.Do(hreq)
 	if err != nil {
 		return nil, err
