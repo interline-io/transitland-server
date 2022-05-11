@@ -264,6 +264,8 @@ type StopTimeFilter struct {
 	Next                         *int     `json:"next"`
 	RouteOnestopIds              []string `json:"route_onestop_ids"`
 	AllowPreviousRouteOnestopIds *bool    `json:"allow_previous_route_onestop_ids"`
+	ExcludeFirst                 *bool    `json:"exclude_first"`
+	ExcludeLast                  *bool    `json:"exclude_last"`
 }
 
 type TripFilter struct {

@@ -52,7 +52,29 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 	return For(ctx).PathwaysByToStopID.Load(model.PathwayParam{ToStopID: obj.ID, Limit: limit})
 }
 
+func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
+	if where == nil {
+		where = &model.StopTimeFilter{}
+	}
+	t := true
+	where.ExcludeLast = &t
+	return r.getStopTimes(ctx, obj, limit, where)
+}
+
+func (r *stopResolver) Arrivals(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
+	if where == nil {
+		where = &model.StopTimeFilter{}
+	}
+	t := true
+	where.ExcludeFirst = &t
+	return r.getStopTimes(ctx, obj, limit, where)
+}
+
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
+	return r.getStopTimes(ctx, obj, limit, where)
+}
+
+func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
 	// Further processing of the StopTimeFilter
 	if where != nil {
 		// Convert where.Next into departure date and time window

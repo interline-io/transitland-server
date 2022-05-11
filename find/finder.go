@@ -624,80 +624,68 @@ func (f *DBFinder) StopTimesByTripID(params []model.StopTimeParam) ([][]*model.S
 	return ents, nil
 }
 
-type departKey struct {
-	year      int
-	month     time.Month
-	day       int
-	startTime int
-	endTime   int
-}
-
 func (f *DBFinder) StopTimesByStopID(params []model.StopTimeParam) ([][]*model.StopTime, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
-	limit := checkLimit(params[0].Limit)
-	// Group by service date, time window
-	dgroups := map[departKey][]FVPair{}
-	group := map[int][]*model.StopTime{}
-	for _, p := range params {
-		dkey := departKey{startTime: -1, endTime: -1}
-		if p.Where != nil {
-			if p.Where.ServiceDate != nil {
-				t := p.Where.ServiceDate.Time
-				dkey.year = t.Year()
-				dkey.month = t.Month()
-				dkey.day = t.Day()
-			}
-			if p.Where.StartTime != nil {
-				dkey.startTime = *p.Where.StartTime
-			}
-			if p.Where.EndTime != nil {
-				dkey.endTime = *p.Where.EndTime
-			}
-		}
-		dgroups[dkey] = append(dgroups[dkey], FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
+	// Group each param into a query group
+	// only exported fields are included in key
+	type dGroup struct {
+		Where *model.StopTimeFilter
+		Limit *int
+		pairs []FVPair
+		idx   []int
 	}
-	for dkey, dpairs := range dgroups {
+	dGroups := map[string]*dGroup{}
+	for i, p := range params {
+		// somewhat ugly, use json representation for grouping
+		dg := &dGroup{Where: p.Where, Limit: p.Limit}
+		key, err := json.Marshal(dg)
+		if err != nil {
+			panic(err)
+		}
+		if a, ok := dGroups[string(key)]; ok {
+			dg = a
+		} else {
+			dGroups[string(key)] = dg
+		}
+		dg.pairs = append(dg.pairs, FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
+		dg.idx = append(dg.idx, i) // original input position
+	}
+	ents := make([][]*model.StopTime, len(params))
+	for _, dg := range dGroups {
+		// group results by stop
+		group := map[int][]*model.StopTime{}
+		limit := checkLimit(dg.Limit)
 		qents := []*model.StopTime{}
-		if p := params[0].Where; p != nil && p.ServiceDate != nil {
+		p := dg.Where
+		if p != nil && p.ServiceDate != nil {
 			// Get stops on a specified day
-			p2 := *p
-			if dkey.startTime >= 0 {
-				p2.StartTime = &dkey.startTime
-			}
-			if dkey.endTime >= 0 {
-				p2.EndTime = &dkey.endTime
-			}
-			if dkey.year > 0 {
-				s := tl.NewDate(time.Date(dkey.year, dkey.month, dkey.day, 0, 0, 0, 0, time.UTC))
-				p2.ServiceDate = &s
-			}
 			MustSelect(
 				f.db,
-				StopDeparturesSelect(dpairs, &p2),
+				StopDeparturesSelect(dg.pairs, p),
 				&qents,
 			)
 		} else {
 			// Otherwise get all stop_times for stop
 			MustSelect(
 				f.db,
-				StopTimeSelect(nil, dpairs, params[0].Where),
+				StopTimeSelect(nil, dg.pairs, p),
 				&qents,
 			)
 		}
 		for _, ent := range qents {
 			group[atoi(ent.StopID)] = append(group[atoi(ent.StopID)], ent)
 		}
-		for k, ents := range group {
-			if uint64(len(ents)) > limit {
-				group[k] = ents[0:limit]
+		for i := 0; i < len(dg.pairs); i++ {
+			pair := dg.pairs[i]
+			idx := dg.idx[i]
+			g := group[pair.EntityID]
+			if uint64(len(g)) > limit {
+				g = g[0:limit]
 			}
+			ents[idx] = g
 		}
-	}
-	var ents [][]*model.StopTime
-	for _, sp := range params {
-		ents = append(ents, group[sp.StopID])
 	}
 	return ents, nil
 }
