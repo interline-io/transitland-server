@@ -23,6 +23,9 @@ func (r *agencyResolver) Places(ctx context.Context, obj *model.Agency, limit *i
 }
 
 func (r *agencyResolver) Operator(ctx context.Context, obj *model.Agency) (*model.Operator, error) {
+	if obj.CoifID == nil {
+		return nil, nil
+	}
 	return For(ctx).OperatorsByCOIF.Load(*obj.CoifID)
 
 }
