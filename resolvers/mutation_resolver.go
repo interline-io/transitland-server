@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/rs/zerolog/log"
+	"github.com/interline-io/transitland-lib/log"
 
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/tl"

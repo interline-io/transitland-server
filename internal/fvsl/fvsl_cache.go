@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/rs/zerolog/log"
 )
 
 type FVSLWindow struct {
