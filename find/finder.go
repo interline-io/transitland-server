@@ -157,6 +157,11 @@ func (f *DBFinder) FindFeedVersionServiceWindow(fvid int) (time.Time, time.Time,
 		} else {
 			// fmt.Println("using fetched week:", fetchedWeek)
 		}
+		// If the fetched week has bad service, use highest week
+		if float64(ents[fetchedWeek].TotalService.Int)/float64(highestService) < minServiceRatio {
+			// fmt.Println("fetched week has poor service ratio, falling back to highest week:", fetchedWeek)
+			fetchedWeek = highestIdx
+		}
 
 		// Expand window in both directions from chosen week
 		startDate = ents[fetchedWeek].StartDate.Time

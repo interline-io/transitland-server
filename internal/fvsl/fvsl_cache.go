@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -49,6 +50,12 @@ func (f *FVSLCache) query(fvid int) (FVSLWindow, error) {
 	var err error
 	w := FVSLWindow{}
 	w.StartDate, w.EndDate, w.BestWeek, err = f.Finder.FindFeedVersionServiceWindow(fvid)
+	log.Trace().
+		Str("start_date", w.StartDate.Format("2006-01-02")).
+		Str("end_date", w.EndDate.Format("2006-01-02")).
+		Str("best_week", w.BestWeek.Format("2006-01-02")).
+		Int("fvid", fvid).
+		Msg("service window result")
 	if err != nil {
 		return w, err
 	}
