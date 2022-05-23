@@ -52,7 +52,29 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 	return For(ctx).PathwaysByToStopID.Load(model.PathwayParam{ToStopID: obj.ID, Limit: limit})
 }
 
+func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
+	if where == nil {
+		where = &model.StopTimeFilter{}
+	}
+	t := true
+	where.ExcludeLast = &t
+	return r.getStopTimes(ctx, obj, limit, where)
+}
+
+func (r *stopResolver) Arrivals(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
+	if where == nil {
+		where = &model.StopTimeFilter{}
+	}
+	t := true
+	where.ExcludeFirst = &t
+	return r.getStopTimes(ctx, obj, limit, where)
+}
+
 func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
+	return r.getStopTimes(ctx, obj, limit, where)
+}
+
+func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
 	// Further processing of the StopTimeFilter
 	if where != nil {
 		// Convert where.Next into departure date and time window
@@ -75,7 +97,7 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 			where.Next = nil
 		}
 		// Check if service date is outside the window for this feed version
-		if where.ServiceDate != nil && (where.UseServiceWindow == nil || *where.UseServiceWindow) {
+		if where.ServiceDate != nil && (where.UseServiceWindow != nil && *where.UseServiceWindow) {
 			sl, ok := r.fvslCache.Get(obj.FeedVersionID)
 			if !ok {
 				return nil, errors.New("service level information not available for feed version")
@@ -88,7 +110,7 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 				}
 				where.ServiceDate.Time = sl.BestWeek.AddDate(0, 0, dow)
 				// fmt.Println(
-				// 	"requested day:", s, s.Weekday(),
+				// 	"service window, requested day:", s, s.Weekday(),
 				// 	"window start:", sl.StartDate,
 				// 	"window end:", sl.EndDate,
 				// 	"best week:", sl.BestWeek, sl.BestWeek.Weekday(),

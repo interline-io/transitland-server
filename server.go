@@ -30,41 +30,43 @@ func mount(r *mux.Router, path string, handler http.Handler) {
 	}))
 }
 
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t1 := time.Now()
-		user := auth.ForContext(r.Context())
-		if user == nil {
-			user = &auth.User{IsAnon: true}
-		}
-		// Get request body for logging if request is json and length under 20kb
-		var body []byte
-		if r.Header.Get("content-type") == "application/json" && r.ContentLength < 1024*20 {
-			body, _ = ioutil.ReadAll(r.Body)
-			r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-		}
-		// Wrap response to get error code
-		wr := wrapResponseWriter(w)
-		next.ServeHTTP(wr, r)
-		// Extra logging of request body if duration > 1s
-		durationMs := (time.Now().UnixNano() - t1.UnixNano()) / 1e6
-		msg := log.Info().
-			Int64("duration_ms", durationMs).
-			Str("method", r.Method).
-			Str("path", r.URL.EscapedPath()).
-			Str("query", r.URL.Query().Encode()).
-			Str("user", user.Name).
-			Int("status", wr.status)
-		if durationMs > 1000 {
-			// Verify it's valid json
-			msg = msg.Bool("long_query", true)
-			var x interface{}
-			if err := json.Unmarshal(body, &x); err == nil {
-				msg = msg.RawJSON("body", body)
+func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t1 := time.Now()
+			user := auth.ForContext(r.Context())
+			if user == nil {
+				user = &auth.User{IsAnon: true}
 			}
-		}
-		msg.Msg("request")
-	})
+			// Get request body for logging if request is json and length under 20kb
+			var body []byte
+			if r.Header.Get("content-type") == "application/json" && r.ContentLength < 1024*20 {
+				body, _ = ioutil.ReadAll(r.Body)
+				r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+			}
+			// Wrap response to get error code
+			wr := wrapResponseWriter(w)
+			next.ServeHTTP(wr, r)
+			// Extra logging of request body if duration > 1s
+			durationMs := (time.Now().UnixNano() - t1.UnixNano()) / 1e6
+			msg := log.Info().
+				Int64("duration_ms", durationMs).
+				Str("method", r.Method).
+				Str("path", r.URL.EscapedPath()).
+				Str("query", r.URL.Query().Encode()).
+				Str("user", user.Name).
+				Int("status", wr.status)
+			if durationMs > int64(longQueryDuration) {
+				// Verify it's valid json
+				msg = msg.Bool("long_query", true)
+				var x interface{}
+				if err := json.Unmarshal(body, &x); err == nil {
+					msg = msg.RawJSON("body", body)
+				}
+			}
+			msg.Msg("request")
+		})
+	}
 }
 
 func getRedisOpts(v string) (*redis.Options, error) {

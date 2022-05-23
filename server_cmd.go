@@ -30,18 +30,19 @@ import (
 )
 
 type Command struct {
-	Timeout          int
-	Port             string
-	DisableGraphql   bool
-	DisableRest      bool
-	EnablePlayground bool
-	EnableJobsApi    bool
-	EnableWorkers    bool
-	EnableProfiler   bool
-	EnableMetrics    bool
-	UseAuth          string
-	DefaultQueue     string
-	SecretsFile      string
+	Timeout           int
+	Port              string
+	LongQueryDuration int
+	DisableGraphql    bool
+	DisableRest       bool
+	EnablePlayground  bool
+	EnableJobsApi     bool
+	EnableWorkers     bool
+	EnableProfiler    bool
+	EnableMetrics     bool
+	UseAuth           string
+	DefaultQueue      string
+	SecretsFile       string
 	auth.AuthConfig
 	config.Config
 }
@@ -55,6 +56,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
 	fl.StringVar(&cmd.RedisURL, "redisurl", "", "Redis URL (default: $TL_REDIS_URL)")
 	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
+	fl.IntVar(&cmd.LongQueryDuration, "long-query", 1000, "Log queries over this duration (ms)")
 	fl.StringVar(&cmd.Port, "port", "8080", "")
 	fl.StringVar(&cmd.JwtAudience, "jwt-audience", "", "JWT Audience")
 	fl.StringVar(&cmd.JwtIssuer, "jwt-issuer", "", "JWT Issuer")
@@ -203,7 +205,7 @@ func (cmd *Command) Run() error {
 		handlers.AllowCredentials(),
 	)
 	root.Use(cors)
-	root.Use(loggingMiddleware)
+	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Start server
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)

@@ -1,9 +1,5 @@
 package model
 
-import (
-	"time"
-)
-
 // This file contains parameters that can be passed to methods for finding/selecting/grouping entities
 // These are distinct from WHERE graphql input filters, which are available to users.
 
@@ -45,7 +41,6 @@ type PathwayParam struct {
 type StopTimeParam struct {
 	TripID        int
 	StopID        int
-	StopTimezone  *time.Location
 	FeedVersionID int
 	Limit         *int
 	Where         *StopTimeFilter

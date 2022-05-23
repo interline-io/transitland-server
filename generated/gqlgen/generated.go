@@ -525,8 +525,10 @@ type ComplexityRoot struct {
 
 	Stop struct {
 		Alerts             func(childComplexity int) int
+		Arrivals           func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		CensusGeographies  func(childComplexity int, layer string, radius *float64, limit *int) int
 		Children           func(childComplexity int, limit *int) int
+		Departures         func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		Directions         func(childComplexity int, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) int
 		FeedOnestopID      func(childComplexity int) int
 		FeedVersion        func(childComplexity int) int
@@ -769,6 +771,8 @@ type StopResolver interface {
 	PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
 	PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
 	StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
+	Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
+	Arrivals(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
 
 	CensusGeographies(ctx context.Context, obj *model.Stop, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	Directions(ctx context.Context, obj *model.Stop, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error)
@@ -3295,6 +3299,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.Alerts(childComplexity), true
 
+	case "Stop.arrivals":
+		if e.complexity.Stop.Arrivals == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_arrivals_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.Arrivals(childComplexity, args["limit"].(*int), args["where"].(*model.StopTimeFilter)), true
+
 	case "Stop.census_geographies":
 		if e.complexity.Stop.CensusGeographies == nil {
 			break
@@ -3318,6 +3334,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Stop.Children(childComplexity, args["limit"].(*int)), true
+
+	case "Stop.departures":
+		if e.complexity.Stop.Departures == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_departures_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.Departures(childComplexity, args["limit"].(*int), args["where"].(*model.StopTimeFilter)), true
 
 	case "Stop.directions":
 		if e.complexity.Stop.Directions == nil {
@@ -4450,6 +4478,8 @@ type Stop {
   pathways_from_stop(limit: Int): [Pathway!]!
   pathways_to_stop(limit: Int): [Pathway!]!
   stop_times(limit: Int, where: StopTimeFilter): [StopTime!]!
+  departures(limit: Int, where: StopTimeFilter): [StopTime!]!
+  arrivals(limit: Int, where: StopTimeFilter): [StopTime!]!
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
@@ -5039,6 +5069,8 @@ input StopTimeFilter {
   next: Int
   route_onestop_ids: [String!] # keep?
   allow_previous_route_onestop_ids: Boolean
+  exclude_first: Boolean
+  exclude_last: Boolean
 }
 
 input PathwayFilter {
@@ -6069,6 +6101,30 @@ func (ec *executionContext) field_Route_trips_args(ctx context.Context, rawArgs 
 	return args, nil
 }
 
+func (ec *executionContext) field_Stop_arrivals_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.StopTimeFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOStopTimeFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Stop_census_geographies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6114,6 +6170,30 @@ func (ec *executionContext) field_Stop_children_args(ctx context.Context, rawArg
 		}
 	}
 	args["limit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Stop_departures_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.StopTimeFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOStopTimeFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -18819,6 +18899,90 @@ func (ec *executionContext) _Stop_stop_times(ctx context.Context, field graphql.
 	return ec.marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Stop_departures(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Stop_departures_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Departures(rctx, obj, args["limit"].(*int), args["where"].(*model.StopTimeFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.StopTime)
+	fc.Result = res
+	return ec.marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_arrivals(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Stop_arrivals_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Arrivals(rctx, obj, args["limit"].(*int), args["where"].(*model.StopTimeFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.StopTime)
+	fc.Result = res
+	return ec.marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Stop_search_rank(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23600,6 +23764,22 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allow_previous_route_onestop_ids"))
 			it.AllowPreviousRouteOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "exclude_first":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exclude_first"))
+			it.ExcludeFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "exclude_last":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exclude_last"))
+			it.ExcludeLast, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -28559,6 +28739,46 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Stop_stop_times(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "departures":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_departures(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "arrivals":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_arrivals(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

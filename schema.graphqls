@@ -319,6 +319,8 @@ type Stop {
   pathways_from_stop(limit: Int): [Pathway!]!
   pathways_to_stop(limit: Int): [Pathway!]!
   stop_times(limit: Int, where: StopTimeFilter): [StopTime!]!
+  departures(limit: Int, where: StopTimeFilter): [StopTime!]!
+  arrivals(limit: Int, where: StopTimeFilter): [StopTime!]!
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
@@ -908,6 +910,8 @@ input StopTimeFilter {
   next: Int
   route_onestop_ids: [String!] # keep?
   allow_previous_route_onestop_ids: Boolean
+  exclude_first: Boolean
+  exclude_last: Boolean
 }
 
 input PathwayFilter {
