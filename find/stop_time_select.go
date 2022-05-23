@@ -47,8 +47,6 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilte
 	return qView
 }
 
-// StopDepartures finds departures from stops on a given day and time.
-// Stop times that are the last stop in a trip will not be returned.
 func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
 	// Where must already be set for local service date and timezone
 	serviceDate := time.Now()
@@ -78,8 +76,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		From("gtfs_trips").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
-		JoinClause(`join lateral (select min(stop_sequence), max(stop_sequence) max from gtfs_stop_times sts2 where sts2.trip_id = t2.id AND sts2.feed_version_id = t2.feed_version_id) trip_stop_sequence on true`).
-		JoinClause(`join (
+		JoinClause(`inner join (
 			SELECT
 				id
 			FROM
@@ -124,13 +121,11 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		OrderBy("sts.arrival_time asc")
 
 	if where != nil {
-		if where.ExcludeFirst != nil && *where.ExcludeFirst {
-			q = q.Where("sts.stop_sequence > trip_stop_sequence.min")
-		}
-		if where.ExcludeLast != nil && *where.ExcludeLast {
-			q = q.Where("sts.stop_sequence < trip_stop_sequence.max")
-		}
 		if len(where.RouteOnestopIds) > 0 {
+			q = q.
+				Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
+				Join("feed_versions on feed_versions.id = sts.feed_version_id").
+				Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 			if where.AllowPreviousRouteOnestopIds != nil && *where.AllowPreviousRouteOnestopIds {
 				// Find a way to make this simpler, perhaps handle elsewhere
 				sub := sq.StatementBuilder.
@@ -148,9 +143,6 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			} else {
 				q = q.Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.id")
 			}
-			q = q.
-				Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
-				Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 		}
 		if where.StartTime != nil {
 			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.StartTime})
