@@ -122,6 +122,12 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		OrderBy("sts.arrival_time asc")
 
 	if where != nil {
+		if where.ExcludeFirst != nil && *where.ExcludeFirst {
+			q = q.Where("sts.stop_sequence > trip_stop_sequence.min")
+		}
+		if where.ExcludeLast != nil && *where.ExcludeLast {
+			q = q.Where("sts.stop_sequence < trip_stop_sequence.max")
+		}
 		if len(where.RouteOnestopIds) > 0 {
 			q = q.
 				Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
