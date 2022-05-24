@@ -2,6 +2,7 @@ package find
 
 import (
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -58,7 +59,7 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			// in_progress must be false to check success and vice-versa
 			var checkSuccess bool
 			var checkInProgress bool
-			switch *where.ImportStatus {
+			switch v := *where.ImportStatus; v {
 			case model.ImportStatusSuccess:
 				checkSuccess = true
 				checkInProgress = false
@@ -69,7 +70,7 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 				checkSuccess = false
 				checkInProgress = false
 			default:
-				panic("uknown import status enum")
+				log.Error().Str("value", v.String()).Msg("unknown imnport status enum")
 			}
 			// This lateral join gets the most recent attempt at a completed feed_version_gtfs_import and checks the status
 			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).

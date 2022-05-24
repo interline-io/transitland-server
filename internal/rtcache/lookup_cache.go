@@ -63,7 +63,7 @@ func (f *lookupCache) GetFeedVersionOnestopID(id int) (string, bool) {
 	)
 	f.fvidFeedCache.Set(id, eid)
 	if err != nil {
-		panic(err)
+		return "", false
 	}
 	return eid, err == nil
 }
