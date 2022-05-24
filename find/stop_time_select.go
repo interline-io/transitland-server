@@ -129,26 +129,28 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			q = q.Where("sts.stop_sequence < trip_stop_sequence.max")
 		}
 		if len(where.RouteOnestopIds) > 0 {
-			q = q.
-				Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
-				Join("feed_versions on feed_versions.id = sts.feed_version_id").
-				Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 			if where.AllowPreviousRouteOnestopIds != nil && *where.AllowPreviousRouteOnestopIds {
 				// Find a way to make this simpler, perhaps handle elsewhere
 				sub := sq.StatementBuilder.
-					Select("tl_route_onestop_ids.onestop_id", "gtfs_routes.route_id", "feed_versions.feed_id").
-					Distinct().Options("on (tl_route_onestop_ids.onestop_id, gtfs_routes.route_id)").
+					Select("gtfs_routes.route_id", "feed_versions.feed_id").
+					Distinct().Options("on (gtfs_routes.route_id, feed_versions.feed_id)").
 					From("tl_route_onestop_ids").
 					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id").
 					Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
 					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds}).
-					OrderBy("tl_route_onestop_ids.onestop_id, gtfs_routes.route_id, feed_versions.id DESC")
+					OrderBy("gtfs_routes.route_id, feed_versions.feed_id, feed_versions.id DESC")
 				subClause := sub.
-					Prefix("LEFT JOIN (").
+					Prefix("JOIN (").
 					Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
-				q = q.JoinClause(subClause)
+				q = q.
+					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
+					Join("feed_versions on feed_versions.id = sts.feed_version_id").
+					JoinClause(subClause)
 			} else {
-				q = q.Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.id")
+				q = q.
+					Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_trips.route_id").
+					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
+
 			}
 		}
 		if where.StartTime != nil {
