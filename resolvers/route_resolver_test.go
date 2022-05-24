@@ -195,3 +195,46 @@ func TestRouteResolver(t *testing.T) {
 		})
 	}
 }
+
+func TestRouteResolver_PreviousOnestopID(t *testing.T) {
+	testcases := []testcase{
+		{
+			"default",
+			`query($osid:String!, $previous:Boolean!) { routes(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { route_id onestop_id }}`,
+			hw{"osid": "r-9q9-antioch~sfia~millbrae", "previous": false},
+			``,
+			"routes.#.onestop_id",
+			[]string{"r-9q9-antioch~sfia~millbrae"},
+		},
+		{
+			"old id no result",
+			`query($osid:String!, $previous:Boolean!) { routes(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { route_id onestop_id }}`,
+			hw{"osid": "r-9q9-pittsburg~baypoint~sfia~millbrae", "previous": false},
+			``,
+			"routes.#.onestop_id",
+			[]string{},
+		},
+		{
+			"old id specify fv",
+			`query($osid:String!, $previous:Boolean!) { routes(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous, feed_version_sha1:"dd7aca4a8e4c90908fd3603c097fabee75fea907"}) { route_id onestop_id }}`,
+			hw{"osid": "r-9q9-pittsburg~baypoint~sfia~millbrae", "previous": false},
+			``,
+			"routes.#.onestop_id",
+			[]string{"r-9q9-pittsburg~baypoint~sfia~millbrae"},
+		},
+		{
+			"use previous",
+			`query($osid:String!, $previous:Boolean!) { routes(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { route_id onestop_id }}`,
+			hw{"osid": "r-9q9-pittsburg~baypoint~sfia~millbrae", "previous": true},
+			``,
+			"routes.#.onestop_id",
+			[]string{"r-9q9-pittsburg~baypoint~sfia~millbrae"},
+		},
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}

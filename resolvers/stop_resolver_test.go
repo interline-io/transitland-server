@@ -249,6 +249,49 @@ func TestStopResolver(t *testing.T) {
 	}
 }
 
+func TestStopResolver_PreviousOnestopID(t *testing.T) {
+	testcases := []testcase{
+		{
+			"default",
+			`query($osid:String!, $previous:Boolean!) { stops(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { stop_id onestop_id }}`,
+			hw{"osid": "s-9q9nfsxn67-fruitvale", "previous": false},
+			``,
+			"stops.#.onestop_id",
+			[]string{"s-9q9nfsxn67-fruitvale"},
+		},
+		{
+			"old id no result",
+			`query($osid:String!, $previous:Boolean!) { stops(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { stop_id onestop_id }}`,
+			hw{"osid": "s-9q9nfswzpg-fruitvale", "previous": false},
+			``,
+			"stops.#.onestop_id",
+			[]string{},
+		},
+		{
+			"old id no specify fv",
+			`query($osid:String!, $previous:Boolean!) { stops(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous, feed_version_sha1:"dd7aca4a8e4c90908fd3603c097fabee75fea907"}) { stop_id onestop_id }}`,
+			hw{"osid": "s-9q9nfswzpg-fruitvale", "previous": false},
+			``,
+			"stops.#.onestop_id",
+			[]string{"s-9q9nfswzpg-fruitvale"},
+		},
+		{
+			"use previous",
+			`query($osid:String!, $previous:Boolean!) { stops(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { stop_id onestop_id }}`,
+			hw{"osid": "s-9q9nfswzpg-fruitvale", "previous": true},
+			``,
+			"stops.#.onestop_id",
+			[]string{"s-9q9nfswzpg-fruitvale"},
+		},
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
 func TestStopResolver_StopTimes(t *testing.T) {
 	vars := hw{"trip_id": "3850526WKDY"}
 	testcases := []testcase{
@@ -336,6 +379,74 @@ func TestStopResolver_StopTimes(t *testing.T) {
 			``,
 			"stops.0.arrivals.#.arrival_time",
 			[]string{"21:09:00", "21:14:00"},
+		},
+		// route_onestop_ids
+		{
+			"departure route_onestop_ids",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{"10:05:00", "10:12:00", "10:20:00", "10:27:00", "10:35:00", "10:42:00", "10:50:00", "10:57:00"},
+		},
+		{
+			"departure route_onestop_ids 1",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{route_onestop_ids: ["r-9q8y-richmond~dalycity~millbrae"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{"10:12:00", "10:27:00", "10:42:00", "10:57:00"},
+		},
+		{
+			"departure route_onestop_ids 2",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
+		},
+		// Allow previous route onestop ids
+		// OLD: r-9q9n-fremont~richmond
+		// NEW: r-9q9n-warmsprings~southfremont~richmond
+		{
+			"departure route_onestop_ids use previous id current ok",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
+		},
+		{
+			"departure route_onestop_ids, use previous id, both at once ok",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond","r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
+		},
+		{
+			"departure route_onestop_ids, use previous id, both at once, no duplicates",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: true, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond","r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
+		},
+		{
+			"departure route_onestop_ids, use previous id, old, fail",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{},
+		},
+		{
+			"departure route_onestop_ids, use previous id, old, ok",
+			`query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: true, route_onestop_ids: ["r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
+			hw{},
+			``,
+			"stops.0.departures.#.departure_time",
+			[]string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
 		},
 	}
 	c := newTestClient()
