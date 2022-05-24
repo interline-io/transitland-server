@@ -27,9 +27,9 @@ func (f *DBFinder) DBX() sqlx.Ext {
 
 func (f *DBFinder) FindAgencies(limit *int, after *int, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
 	var ents []*model.Agency
-	active := false
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
-		active = true
+	active := true
+	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
+		active = false
 	}
 	q := AgencySelect(limit, after, ids, active, where)
 	MustSelect(f.db, q, &ents)
@@ -38,9 +38,9 @@ func (f *DBFinder) FindAgencies(limit *int, after *int, ids []int, where *model.
 
 func (f *DBFinder) FindRoutes(limit *int, after *int, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
 	var ents []*model.Route
-	active := false
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
-		active = true
+	active := true
+	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
+		active = false
 	}
 	q := RouteSelect(limit, after, ids, active, where)
 	MustSelect(f.db, q, &ents)
@@ -49,9 +49,9 @@ func (f *DBFinder) FindRoutes(limit *int, after *int, ids []int, where *model.Ro
 
 func (f *DBFinder) FindStops(limit *int, after *int, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
 	var ents []*model.Stop
-	active := false
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
-		active = true
+	active := true
+	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
+		active = false
 	}
 	q := StopSelect(limit, after, ids, active, where)
 	MustSelect(f.db, q, &ents)
@@ -60,9 +60,9 @@ func (f *DBFinder) FindStops(limit *int, after *int, ids []int, where *model.Sto
 
 func (f *DBFinder) FindTrips(limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
 	var ents []*model.Trip
-	active := false
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
-		active = true
+	active := true
+	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
+		active = false
 	}
 	q := TripSelect(limit, after, ids, active, where)
 	MustSelect(f.db, q, &ents)
