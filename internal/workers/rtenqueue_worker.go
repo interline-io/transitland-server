@@ -38,7 +38,7 @@ func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		return err
 	}
 	// Get all RT feeds
-	rtfeeds, err := opts.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{OnestopID: w.FeedID, Spec: []model.FeedSpecTypes{model.FeedSpecTypesGtfsRt}})
+	rtfeeds, err := opts.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: w.FeedID, Spec: []model.FeedSpecTypes{model.FeedSpecTypesGtfsRt}})
 	if err != nil {
 		return err
 	}

@@ -42,7 +42,7 @@ func (r *routeResolver) Headways(ctx context.Context, obj *model.Route, limit *i
 func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error) {
 	// TODO: remove n+1 (which is tricky, what if multiple radius specified in different parts of query)
 	p := model.RouteStopBufferParam{Radius: radius, EntityID: obj.ID}
-	ents, err := r.finder.RouteStopBuffer(&p)
+	ents, err := r.finder.RouteStopBuffer(ctx, &p)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package fvsl
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -49,7 +50,7 @@ func (f *FVSLCache) Set(fvid int, w FVSLWindow) {
 func (f *FVSLCache) query(fvid int) (FVSLWindow, error) {
 	var err error
 	w := FVSLWindow{}
-	w.StartDate, w.EndDate, w.BestWeek, err = f.Finder.FindFeedVersionServiceWindow(fvid)
+	w.StartDate, w.EndDate, w.BestWeek, err = f.Finder.FindFeedVersionServiceWindow(context.TODO(), fvid)
 	log.Trace().
 		Str("start_date", w.StartDate.Format("2006-01-02")).
 		Str("end_date", w.EndDate.Format("2006-01-02")).
