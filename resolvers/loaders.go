@@ -70,223 +70,258 @@ type Loaders struct {
 // Middleware provides context local request batching
 func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), loadersKey{}, &Loaders{
+		ctx := r.Context()
+		rctx := context.WithValue(ctx, loadersKey{}, &Loaders{
 			LevelsByID: *dl.NewLevelLoader(dl.LevelLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.LevelsByID,
+				Fetch:    func(a []int) ([]*model.Level, []error) { return finder.LevelsByID(ctx, a) },
 			}),
 			TripsByID: *dl.NewTripLoader(dl.TripLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.TripsByID,
+				Fetch:    func(a []int) ([]*model.Trip, []error) { return finder.TripsByID(ctx, a) },
 			}),
 			CalendarsByID: *dl.NewCalendarLoader(dl.CalendarLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.CalendarsByID,
+				Fetch:    func(a []int) ([]*model.Calendar, []error) { return finder.CalendarsByID(ctx, a) },
 			}),
 			ShapesByID: *dl.NewShapeLoader(dl.ShapeLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.ShapesByID,
+				Fetch:    func(a []int) ([]*model.Shape, []error) { return finder.ShapesByID(ctx, a) },
 			}),
 			FeedVersionsByID: *dl.NewFeedVersionLoader(dl.FeedVersionLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedVersionsByID,
+				Fetch:    func(a []int) ([]*model.FeedVersion, []error) { return finder.FeedVersionsByID(ctx, a) },
 			}),
 			FeedsByID: *dl.NewFeedLoader(dl.FeedLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedsByID,
+				Fetch:    func(a []int) ([]*model.Feed, []error) { return finder.FeedsByID(ctx, a) },
 			}),
 			AgenciesByID: *dl.NewAgencyLoader(dl.AgencyLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.AgenciesByID,
+				Fetch:    func(a []int) ([]*model.Agency, []error) { return finder.AgenciesByID(ctx, a) },
 			}),
 			StopsByID: *dl.NewStopLoader(dl.StopLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.StopsByID,
+				Fetch:    func(a []int) ([]*model.Stop, []error) { return finder.StopsByID(ctx, a) },
 			}),
 			RoutesByID: *dl.NewRouteLoader(dl.RouteLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.RoutesByID,
+				Fetch:    func(a []int) ([]*model.Route, []error) { return finder.RoutesByID(ctx, a) },
 			}),
 			// Other ID loaders
 			FeedVersionGtfsImportsByFeedVersionID: *dl.NewFeedVersionGtfsImportLoader(dl.FeedVersionGtfsImportLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedVersionGtfsImportsByFeedVersionID,
+				Fetch: func(a []int) ([]*model.FeedVersionGtfsImport, []error) {
+					return finder.FeedVersionGtfsImportsByFeedVersionID(ctx, a)
+				},
 			}),
 			FeedStatesByFeedID: *dl.NewFeedStateLoader(dl.FeedStateLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedStatesByFeedID,
+				Fetch:    func(a []int) ([]*model.FeedState, []error) { return finder.FeedStatesByFeedID(ctx, a) },
 			}),
 			FeedsByOperatorOnestopID: *dl.NewFeedWhereLoader(dl.FeedWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedsByOperatorOnestopID,
+				Fetch:    func(a []model.FeedParam) ([][]*model.Feed, []error) { return finder.FeedsByOperatorOnestopID(ctx, a) },
 			}),
 			OperatorsByFeedID: *dl.NewOperatorWhereLoader(dl.OperatorWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.OperatorsByFeedID,
+				Fetch:    func(a []model.OperatorParam) ([][]*model.Operator, []error) { return finder.OperatorsByFeedID(ctx, a) },
 			}),
 			OperatorsByCOIF: *dl.NewOperatorLoader(dl.OperatorLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.OperatorsByCOIF,
+				Fetch:    func(a []int) ([]*model.Operator, []error) { return finder.OperatorsByCOIF(ctx, a) },
 			}),
 			// Where loaders
 			FrequenciesByTripID: *dl.NewFrequencyWhereLoader(dl.FrequencyWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FrequenciesByTripID,
+				Fetch: func(a []model.FrequencyParam) ([][]*model.Frequency, []error) {
+					return finder.FrequenciesByTripID(ctx, a)
+				},
 			}),
 			StopTimesByTripID: *dl.NewStopTimeWhereLoader(dl.StopTimeWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.StopTimesByTripID,
+				Fetch:    func(a []model.StopTimeParam) ([][]*model.StopTime, []error) { return finder.StopTimesByTripID(ctx, a) },
 			}),
 			StopTimesByStopID: *dl.NewStopTimeWhereLoader(dl.StopTimeWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.StopTimesByStopID,
+				Fetch:    func(a []model.StopTimeParam) ([][]*model.StopTime, []error) { return finder.StopTimesByStopID(ctx, a) },
 			}),
 			RouteStopsByStopID: *dl.NewRouteStopWhereLoader(dl.RouteStopWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.RouteStopsByStopID,
+				Fetch: func(a []model.RouteStopParam) ([][]*model.RouteStop, []error) {
+					return finder.RouteStopsByStopID(ctx, a)
+				},
 			}),
 			StopsByRouteID: *dl.NewStopWhereLoader(dl.StopWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.StopsByRouteID,
+				Fetch:    func(a []model.StopParam) ([][]*model.Stop, []error) { return finder.StopsByRouteID(ctx, a) },
 			}),
 			RouteStopsByRouteID: *dl.NewRouteStopWhereLoader(dl.RouteStopWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.RouteStopsByRouteID,
+				Fetch: func(a []model.RouteStopParam) ([][]*model.RouteStop, []error) {
+					return finder.RouteStopsByRouteID(ctx, a)
+				},
 			}),
 			RouteHeadwaysByRouteID: *dl.NewRouteHeadwayWhereLoader(dl.RouteHeadwayWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.RouteHeadwaysByRouteID,
+				Fetch: func(a []model.RouteHeadwayParam) ([][]*model.RouteHeadway, []error) {
+					return finder.RouteHeadwaysByRouteID(ctx, a)
+				},
 			}),
 			FeedVersionFileInfosByFeedVersionID: *dl.NewFeedVersionFileInfoWhereLoader(dl.FeedVersionFileInfoWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedVersionFileInfosByFeedVersionID,
+				Fetch: func(a []model.FeedVersionFileInfoParam) ([][]*model.FeedVersionFileInfo, []error) {
+					return finder.FeedVersionFileInfosByFeedVersionID(ctx, a)
+				},
 			}),
 			// Has a select method
 			StopsByParentStopID: *dl.NewStopWhereLoader(dl.StopWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.StopsByParentStopID,
+				Fetch:    func(a []model.StopParam) ([][]*model.Stop, []error) { return finder.StopsByParentStopID(ctx, a) },
 			}),
 			FeedVersionsByFeedID: *dl.NewFeedVersionWhereLoader(dl.FeedVersionWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedVersionsByFeedID,
+				Fetch: func(a []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
+					return finder.FeedVersionsByFeedID(ctx, a)
+				},
 			}),
 			AgencyPlacesByAgencyID: *dl.NewAgencyPlaceWhereLoader(dl.AgencyPlaceWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.AgencyPlacesByAgencyID,
+				Fetch: func(a []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
+					return finder.AgencyPlacesByAgencyID(ctx, a)
+				},
 			}),
 			RouteGeometriesByRouteID: *dl.NewRouteGeometryWhereLoader(dl.RouteGeometryWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.RouteGeometriesByRouteID,
+				Fetch: func(a []model.RouteGeometryParam) ([][]*model.RouteGeometry, []error) {
+					return finder.RouteGeometriesByRouteID(ctx, a)
+				},
 			}),
 			TripsByRouteID: *dl.NewTripWhereLoader(dl.TripWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.TripsByRouteID,
+				Fetch:    func(a []model.TripParam) ([][]*model.Trip, []error) { return finder.TripsByRouteID(ctx, a) },
 			}),
 			RoutesByAgencyID: *dl.NewRouteWhereLoader(dl.RouteWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.RoutesByAgencyID,
+				Fetch:    func(a []model.RouteParam) ([][]*model.Route, []error) { return finder.RoutesByAgencyID(ctx, a) },
 			}),
 			AgenciesByFeedVersionID: *dl.NewAgencyWhereLoader(dl.AgencyWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.AgenciesByFeedVersionID,
+				Fetch: func(a []model.AgencyParam) ([][]*model.Agency, []error) {
+					return finder.AgenciesByFeedVersionID(ctx, a)
+				},
 			}),
 			FeedFetchesByFeedID: *dl.NewFeedFetchWhereLoader(dl.FeedFetchWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedFetchesByFeedID,
+				Fetch: func(a []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
+					return finder.FeedFetchesByFeedID(ctx, a)
+				},
 			}),
 			AgenciesByOnestopID: *dl.NewAgencyWhereLoader(dl.AgencyWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.AgenciesByOnestopID,
+				Fetch:    func(a []model.AgencyParam) ([][]*model.Agency, []error) { return finder.AgenciesByOnestopID(ctx, a) },
 			}),
 			StopsByFeedVersionID: *dl.NewStopWhereLoader(dl.StopWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.StopsByFeedVersionID,
+				Fetch:    func(a []model.StopParam) ([][]*model.Stop, []error) { return finder.StopsByFeedVersionID(ctx, a) },
 			}),
 			TripsByFeedVersionID: *dl.NewTripWhereLoader(dl.TripWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.TripsByFeedVersionID,
+				Fetch:    func(a []model.TripParam) ([][]*model.Trip, []error) { return finder.TripsByFeedVersionID(ctx, a) },
 			}),
 			FeedInfosByFeedVersionID: *dl.NewFeedInfoWhereLoader(dl.FeedInfoWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedInfosByFeedVersionID,
+				Fetch: func(a []model.FeedInfoParam) ([][]*model.FeedInfo, []error) {
+					return finder.FeedInfosByFeedVersionID(ctx, a)
+				},
 			}),
 
 			RoutesByFeedVersionID: *dl.NewRouteWhereLoader(dl.RouteWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.RoutesByFeedVersionID,
+				Fetch:    func(a []model.RouteParam) ([][]*model.Route, []error) { return finder.RoutesByFeedVersionID(ctx, a) },
 			}),
 			FeedVersionServiceLevelsByFeedVersionID: *dl.NewFeedVersionServiceLevelWhereLoader(dl.FeedVersionServiceLevelWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.FeedVersionServiceLevelsByFeedVersionID,
+				Fetch: func(a []model.FeedVersionServiceLevelParam) ([][]*model.FeedVersionServiceLevel, []error) {
+					return finder.FeedVersionServiceLevelsByFeedVersionID(ctx, a)
+				},
 			}),
 			PathwaysByFromStopID: *dl.NewPathwayWhereLoader(dl.PathwayWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.PathwaysByFromStopID,
+				Fetch:    func(a []model.PathwayParam) ([][]*model.Pathway, []error) { return finder.PathwaysByFromStopID(ctx, a) },
 			}),
 			PathwaysByToStopID: *dl.NewPathwayWhereLoader(dl.PathwayWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.PathwaysByToStopID,
+				Fetch:    func(a []model.PathwayParam) ([][]*model.Pathway, []error) { return finder.PathwaysByToStopID(ctx, a) },
 			}),
 			CalendarDatesByServiceID: *dl.NewCalendarDateWhereLoader(dl.CalendarDateWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.CalendarDatesByServiceID,
+				Fetch: func(a []model.CalendarDateParam) ([][]*model.CalendarDate, []error) {
+					return finder.CalendarDatesByServiceID(ctx, a)
+				},
 			}),
 			CensusGeographiesByEntityID: *dl.NewCensusGeographyWhereLoader(dl.CensusGeographyWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.CensusGeographiesByEntityID,
+				Fetch: func(a []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
+					return finder.CensusGeographiesByEntityID(ctx, a)
+				},
 			}),
 			CensusValuesByGeographyID: *dl.NewCensusValueWhereLoader(dl.CensusValueWhereLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.CensusValuesByGeographyID,
+				Fetch: func(a []model.CensusValueParam) ([][]*model.CensusValue, []error) {
+					return finder.CensusValuesByGeographyID(ctx, a)
+				},
 			}),
 			CensusTableByID: *dl.NewCensusTableLoader(dl.CensusTableLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
-				Fetch:    finder.CensusTableByID,
+				Fetch: func(a []int) ([]*model.CensusTable, []error) {
+					return finder.CensusTableByID(ctx, a)
+				},
 			}),
 		})
-		r = r.WithContext(ctx)
+		r = r.WithContext(rctx)
 		next.ServeHTTP(w, r)
 	})
 }
