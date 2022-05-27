@@ -20,7 +20,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/transitland-lib v0.10.4-0.20220521045852-2267793f0fef
+	github.com/interline-io/transitland-lib v0.10.4-0.20220527004802-5343db28d99b
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.8.0
 	github.com/prometheus/client_golang v0.9.3
@@ -35,8 +35,6 @@ require (
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
 	google.golang.org/protobuf v1.27.1
 )
-
-require golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
 
 require (
 	github.com/Wessie/appdirs v0.0.0-20141031215813-6573e894f8e2 // indirect
