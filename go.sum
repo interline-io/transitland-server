@@ -241,10 +241,10 @@ github.com/iancoleman/orderedmap v0.2.0 h1:sq1N/TFpYH++aViPcaKjys3bDClUEU7s5B+z6
 github.com/iancoleman/orderedmap v0.2.0/go.mod h1:N0Wam8K1arqPXNWjMo21EXnBPOPp36vB07FNRdD2geA=
 github.com/imdario/mergo v0.3.9/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/interline-io/transitland-lib v0.10.2-0.20220428013603-38aa3c482ad3 h1:/Uf0WjxqZ+UoXNAqkpFfiBceZGwcSi56JH6X9BKHWnU=
-github.com/interline-io/transitland-lib v0.10.2-0.20220428013603-38aa3c482ad3/go.mod h1:F+egylnLVp/ziGUsBGTqM5ZrPwwodgkYbEGUtKxoRRM=
 github.com/interline-io/transitland-lib v0.10.4-0.20220521045852-2267793f0fef h1:F40FGsmFF7caZgs+WTW0xO9euVyLLWAV4+Aow6Ybifo=
 github.com/interline-io/transitland-lib v0.10.4-0.20220521045852-2267793f0fef/go.mod h1:F+egylnLVp/ziGUsBGTqM5ZrPwwodgkYbEGUtKxoRRM=
+github.com/interline-io/transitland-lib v0.10.4-0.20220527004802-5343db28d99b h1:CbCBpNWlIEIuYyDx7AsAcLMvgSB2gB1Lc/FgIpHO9L0=
+github.com/interline-io/transitland-lib v0.10.4-0.20220527004802-5343db28d99b/go.mod h1:F+egylnLVp/ziGUsBGTqM5ZrPwwodgkYbEGUtKxoRRM=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jlaffaye/ftp v0.0.0-20191218041957-e1b8fdd0dcc3 h1:QyB6CQGLB65Al72mAIbqrkGRk56JdGMHgBziM3F0FCw=
 github.com/jlaffaye/ftp v0.0.0-20191218041957-e1b8fdd0dcc3/go.mod h1:PwUeyujmhaGohgOf0kJKxPfk3HcRv8QD/wAUN44go4k=

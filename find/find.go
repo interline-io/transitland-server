@@ -1,6 +1,8 @@
 package find
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -39,30 +41,41 @@ func MustOpenDB(url string) sqlx.Ext {
 		log.Fatal().Err(err).Msgf("could not connect to database")
 	}
 	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
-	// return db.Unsafe()
+	//return db.Unsafe()
 	return &tldb.QueryLogger{Ext: db.Unsafe()}
 }
 
 // MustSelect runs a query or panics.
-func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
+func MustSelect(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
+	err := Select(ctx, db, q, dest)
+	if errors.Is(err, context.Canceled) {
+		// Ignore
+		return
+	} else if err != nil {
+		panic(err)
+	}
+}
+
+func Select(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) error {
 	useStatement := false
 	q = q.PlaceholderFormat(sq.Dollar)
 	qstr, qargs := q.MustSql()
-	if a, ok := db.(sqlx.Preparer); ok && useStatement {
-		stmt, err := sqlx.Preparex(a, qstr)
-		if err != nil {
-			panic(err)
+	var err error
+	if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
+		stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
+		if prepareErr != nil {
+			return prepareErr
 		}
-		if err := stmt.Select(dest, qargs...); err != nil {
-			log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
-			panic(err)
-		}
+		err = stmt.SelectContext(ctx, dest, qargs...)
+	} else if a, ok := db.(sqlx.QueryerContext); ok {
+		err = sqlx.SelectContext(ctx, a, dest, qstr, qargs...)
 	} else {
-		if err := sqlx.Select(db, dest, qstr, qargs...); err != nil {
-			log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
-			panic(err)
-		}
+		err = sqlx.Select(db, dest, qstr, qargs...)
 	}
+	if err != nil {
+		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
+	}
+	return err
 }
 
 // helpers

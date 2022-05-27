@@ -1,6 +1,7 @@
 package find
 
 import (
+	"context"
 	"log"
 	"os"
 	"testing"
@@ -25,7 +26,7 @@ func TestMain(m *testing.M) {
 
 func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	fvm := map[string]int{}
-	fvs, err := TestDBFinder.FindFeedVersions(nil, nil, nil, nil)
+	fvs, err := TestDBFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +64,7 @@ func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			start, end, best, err := TestDBFinder.FindFeedVersionServiceWindow(tc.fvid)
+			start, end, best, err := TestDBFinder.FindFeedVersionServiceWindow(context.TODO(), tc.fvid)
 			if err != nil {
 				t.Fatal(err)
 			}

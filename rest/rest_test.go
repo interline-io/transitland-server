@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"testing"
@@ -56,7 +57,7 @@ type testRest struct {
 }
 
 func testquery(t *testing.T, cfg restConfig, tc testRest) {
-	data, err := makeRequest(cfg, tc.h, tc.format, nil)
+	data, err := makeRequest(context.TODO(), cfg, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)
 		return

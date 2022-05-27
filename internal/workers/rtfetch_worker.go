@@ -23,7 +23,7 @@ type RTFetchWorker struct {
 func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	log := job.Opts.Logger.With().Str("target", w.Target).Str("source_feed_id", w.SourceFeedID).Str("source_type", w.SourceType).Str("url", w.Url).Logger()
 	// Find feed
-	rtfeeds, err := job.Opts.Finder.FindFeeds(nil, nil, nil, &model.FeedFilter{OnestopID: &w.SourceFeedID})
+	rtfeeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &w.SourceFeedID})
 	if err != nil {
 		log.Error().Err(err).Msg("rtfetch worker: error loading source feed")
 		return err

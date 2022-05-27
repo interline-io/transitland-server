@@ -22,7 +22,7 @@ type FeedRequest struct {
 	TagValue         string `json:"tag_value"`
 	URL              string `json:"url"`
 	URLType          string `json:"url_type"`
-	URLCaseSensitive bool   "`json:url_case_sensitive"
+	URLCaseSensitive bool   `json:"url_case_sensitive"`
 	// Lat       float64 `json:"lat,string"`
 	// Lon       float64 `json:"lon,string"`
 	// Radius    float64 `json:"radius,string"`

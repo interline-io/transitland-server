@@ -51,7 +51,7 @@ jobs:
       - run: git clone https://github.com/interline-io/transitland-lib.git
       - run: dropdb --if-exists ${PGDATABASE}
       - run: ${PWD}/transitland-lib/internal/schema/postgres/bootstrap.sh
-      - run: go build -o /usr/local/bin/tlserver cmd/tlserver/main.go
+      - run: (cd cmd/tlserver && go install .)
       - run: ./test_setup.sh
       - run: go test -v -count=1 ./...
 

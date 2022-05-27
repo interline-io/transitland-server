@@ -2,16 +2,17 @@ package rest
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strconv"
 	"strings"
 
-	"github.com/99designs/gqlgen/client"
 	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/config"
@@ -204,7 +205,7 @@ func makeHandler(cfg restConfig, f func() apiHandler) http.HandlerFunc {
 		}
 
 		// Make the request
-		response, err := makeRequest(cfg, ent, format, r.URL)
+		response, err := makeRequest(r.Context(), cfg, ent, format, r.URL)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -229,26 +230,44 @@ func makeHandler(cfg restConfig, f func() apiHandler) http.HandlerFunc {
 }
 
 // makeGraphQLRequest issues the graphql request and unpacks the response.
-func makeGraphQLRequest(srv http.Handler, q string, vars map[string]interface{}) (map[string]interface{}, error) {
-	d := hw{}
-	c2 := client.New(srv)
-	opts := []client.Option{}
-	for k, v := range vars {
-		opts = append(opts, client.Var(k, v))
+func makeGraphQLRequest(ctx context.Context, srv http.Handler, query string, vars map[string]interface{}) (map[string]interface{}, error) {
+	gqlData := map[string]any{
+		"query":     query,
+		"variables": vars,
 	}
-	err := c2.Post(q, &d, opts...)
-	return d, err
+	gqlBody, err := json.Marshal(gqlData)
+	if err != nil {
+		panic(err)
+	}
+	gqlRequest, err := http.NewRequestWithContext(ctx, "POST", "/", bytes.NewReader(gqlBody))
+	gqlRequest.Header.Set("Content-Type", "application/json")
+	if err != nil {
+		return nil, errors.New("request error")
+	}
+	wr := httptest.NewRecorder()
+	srv.ServeHTTP(wr, gqlRequest)
+	response := map[string]any{}
+	if err := json.Unmarshal(wr.Body.Bytes(), &response); err != nil {
+		log.Error().Err(err).Str("query", query).Str("vars", string("")).Interface("response", response).Msgf("graphql request failed")
+		return nil, errors.New("request error")
+	}
+	data, ok := response["data"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid graphql response")
+	}
+	return data, nil
 }
 
 // makeRequest prepares an apiHandler and makes the request.
-func makeRequest(cfg restConfig, ent apiHandler, format string, u *url.URL) ([]byte, error) {
+func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format string, u *url.URL) ([]byte, error) {
 	query, vars := ent.Query()
-	response, err := makeGraphQLRequest(cfg.srv, query, vars)
-	x, _ := json.Marshal(vars)
+	response, err := makeGraphQLRequest(ctx, cfg.srv, query, vars)
 	if err != nil {
-		log.Error().Err(err).Str("query", query).Str("vars", string(x)).Interface("response", response).Msgf("graphql request failed")
+		vjson, _ := json.Marshal(vars)
+		log.Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msgf("graphql request failed")
 		return nil, errors.New("request error")
 	}
+
 	// get highest ID
 	if maxid, err := getMaxID(ent, response); err != nil {
 		log.Error().Err(err).Msg("pagination failed to get max entity id")
