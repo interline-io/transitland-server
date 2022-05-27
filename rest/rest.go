@@ -251,7 +251,11 @@ func makeGraphQLRequest(ctx context.Context, srv http.Handler, query string, var
 		log.Error().Err(err).Str("query", query).Str("vars", string("")).Interface("response", response).Msgf("graphql request failed")
 		return nil, errors.New("request error")
 	}
-	return response, nil
+	data, ok := response["data"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid graphql response")
+	}
+	return data, nil
 }
 
 // makeRequest prepares an apiHandler and makes the request.
@@ -260,14 +264,9 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 	response, err := makeGraphQLRequest(ctx, cfg.srv, query, vars)
 	if err != nil {
 		vjson, _ := json.Marshal(vars)
-		log.Error().Err(err).Str("query", query).Str("vars", string(vjson)).Interface("response", response).Msgf("graphql request failed")
+		log.Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msgf("graphql request failed")
 		return nil, errors.New("request error")
 	}
-	data, ok := response["data"].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid graphql response")
-	}
-	response = data
 
 	// get highest ID
 	if maxid, err := getMaxID(ent, response); err != nil {
