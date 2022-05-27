@@ -1,6 +1,7 @@
 package find
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 )
@@ -39,21 +39,26 @@ func MustOpenDB(url string) sqlx.Ext {
 		log.Fatal().Err(err).Msgf("could not connect to database")
 	}
 	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
-	// return db.Unsafe()
-	return &tldb.QueryLogger{Ext: db.Unsafe()}
+	return db.Unsafe()
+	// return &tldb.QueryLogger{Ext: db.Unsafe()}
 }
 
 // MustSelect runs a query or panics.
-func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
+func MustSelect(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
 	useStatement := false
 	q = q.PlaceholderFormat(sq.Dollar)
 	qstr, qargs := q.MustSql()
-	if a, ok := db.(sqlx.Preparer); ok && useStatement {
-		stmt, err := sqlx.Preparex(a, qstr)
+	if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
+		stmt, err := sqlx.PreparexContext(ctx, a, qstr)
 		if err != nil {
 			panic(err)
 		}
-		if err := stmt.Select(dest, qargs...); err != nil {
+		if err := stmt.SelectContext(ctx, dest, qargs...); err != nil {
+			log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
+			panic(err)
+		}
+	} else if a, ok := db.(sqlx.QueryerContext); ok {
+		if err := sqlx.SelectContext(ctx, a, dest, qstr, qargs...); err != nil {
 			log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
 			panic(err)
 		}

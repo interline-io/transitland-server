@@ -36,6 +36,8 @@ require (
 	google.golang.org/protobuf v1.27.1
 )
 
+require golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
+
 require (
 	github.com/Wessie/appdirs v0.0.0-20141031215813-6573e894f8e2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.3.0 // indirect

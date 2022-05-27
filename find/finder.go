@@ -33,7 +33,7 @@ func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *int, ids
 		active = false
 	}
 	q := AgencySelect(limit, after, ids, active, where)
-	MustSelect(f.db, q, &ents)
+	MustSelect(ctx, f.db, q, &ents)
 	return ents, nil
 }
 
@@ -44,7 +44,7 @@ func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *int, ids [
 		active = false
 	}
 	q := RouteSelect(limit, after, ids, active, where)
-	MustSelect(f.db, q, &ents)
+	MustSelect(ctx, f.db, q, &ents)
 	return ents, nil
 }
 
@@ -55,7 +55,7 @@ func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *int, ids []
 		active = false
 	}
 	q := StopSelect(limit, after, ids, active, where)
-	MustSelect(f.db, q, &ents)
+	MustSelect(ctx, f.db, q, &ents)
 	return ents, nil
 }
 
@@ -66,25 +66,25 @@ func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *int, ids []
 		active = false
 	}
 	q := TripSelect(limit, after, ids, active, where)
-	MustSelect(f.db, q, &ents)
+	MustSelect(ctx, f.db, q, &ents)
 	return ents, nil
 }
 
 func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
-	MustSelect(f.db, FeedVersionSelect(limit, after, ids, where), &ents)
+	MustSelect(ctx, f.db, FeedVersionSelect(limit, after, ids, where), &ents)
 	return ents, nil
 }
 
 func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
 	var ents []*model.Feed
-	MustSelect(f.db, FeedSelect(limit, after, ids, where), &ents)
+	MustSelect(ctx, f.db, FeedSelect(limit, after, ids, where), &ents)
 	return ents, nil
 }
 
 func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
-	MustSelect(f.db, OperatorSelect(limit, after, ids, nil, where), &ents)
+	MustSelect(ctx, f.db, OperatorSelect(limit, after, ids, nil, where), &ents)
 	return ents, nil
 }
 
@@ -94,7 +94,7 @@ func (f *DBFinder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBu
 	}
 	var ents []*model.RouteStopBuffer
 	q := RouteStopBufferSelect(*param)
-	MustSelect(f.db, q, &ents)
+	MustSelect(ctx, f.db, q, &ents)
 	return ents, nil
 }
 
@@ -122,13 +122,13 @@ func (f *DBFinder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (
 		OrderBy("fvsl.start_date").
 		Limit(1000)
 	var ents []fvslQuery
-	MustSelect(f.db, q, &ents)
+	MustSelect(ctx, f.db, q, &ents)
 	if len(ents) == 0 {
 		return startDate, endDate, bestWeek, errors.New("no fvsl results")
 	}
 	var fis []tl.FeedInfo
 	fiq := sq.StatementBuilder.Select("*").From("gtfs_feed_infos").Where(sq.Eq{"feed_version_id": fvid}).OrderBy("feed_start_date").Limit(1)
-	MustSelect(f.db, fiq, &fis)
+	MustSelect(ctx, f.db, fiq, &fis)
 
 	// Check if we have feed infos, otherwise calculate based on fetched week or highest service week
 	fetched := ents[0].FetchedAt.Time
@@ -228,7 +228,7 @@ func (f *DBFinder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip
 // Simple ID loaders
 func (f *DBFinder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []error) {
 	var ents []*model.Level
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		quickSelect("gtfs_levels", nil, nil, ids),
 		&ents,
@@ -246,7 +246,7 @@ func (f *DBFinder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, [
 
 func (f *DBFinder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
 	var ents []*model.Calendar
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		quickSelect("gtfs_calendars", nil, nil, ids),
 		&ents,
@@ -264,7 +264,7 @@ func (f *DBFinder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calen
 
 func (f *DBFinder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []error) {
 	var ents []*model.Shape
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		quickSelect("gtfs_shapes", nil, nil, ids),
 		&ents,
@@ -363,7 +363,7 @@ func (f *DBFinder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, [
 
 func (f *DBFinder) CensusTableByID(ctx context.Context, ids []int) ([]*model.CensusTable, []error) {
 	var ents []*model.CensusTable
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		quickSelect("tl_census_tables", nil, nil, ids),
 		&ents,
@@ -381,7 +381,7 @@ func (f *DBFinder) CensusTableByID(ctx context.Context, ids []int) ([]*model.Cen
 
 func (f *DBFinder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
 	var ents []*model.FeedVersionGtfsImport
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		quickSelect("feed_version_gtfs_imports", nil, nil, nil).Where(sq.Eq{"feed_version_id": ids}),
 		&ents,
@@ -399,7 +399,7 @@ func (f *DBFinder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, id
 
 func (f *DBFinder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
 	var ents []*model.FeedState
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		quickSelect("feed_states", nil, nil, nil).Where(sq.Eq{"feed_id": ids}),
 		&ents,
@@ -417,7 +417,7 @@ func (f *DBFinder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.
 
 func (f *DBFinder) FeedFetchesStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedFetch, []error) {
 	var ents []*model.FeedFetch
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		quickSelect("feed_fetches", nil, nil, nil).Where(sq.Eq{"feed_id": ids}),
 		&ents,
@@ -435,7 +435,7 @@ func (f *DBFinder) FeedFetchesStatesByFeedID(ctx context.Context, ids []int) ([]
 
 func (f *DBFinder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Operator, []error) {
 	var ents []*model.Operator
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		OperatorSelect(nil, nil, ids, nil, nil),
 		&ents,
@@ -462,7 +462,7 @@ func (f *DBFinder) OperatorsByFeedID(ctx context.Context, params []model.Operato
 		ids = append(ids, p.FeedID)
 	}
 	qents := []*model.Operator{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(OperatorSelect(params[0].Limit, nil, nil, ids, params[0].Where), "current_feeds", "id", "feed_id", ids),
 		&qents,
@@ -515,7 +515,7 @@ func (f *DBFinder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedF
 				q = q.Where(sq.Eq{"success": *p.Success})
 			}
 		}
-		MustSelect(
+		MustSelect(ctx,
 			f.db,
 			lateralWrap(q, "current_feeds", "id", "feed_id", ids),
 			&qents,
@@ -551,7 +551,7 @@ func (f *DBFinder) FeedsByOperatorOnestopID(ctx context.Context, params []model.
 		Column("coif.resolved_onestop_id as operator_onestop_id").
 		Join("current_operators_in_feed coif on coif.feed_id = t.id").
 		Where(sq.Eq{"coif.resolved_onestop_id": osids})
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		q,
 		&qents,
@@ -583,7 +583,7 @@ func (f *DBFinder) FrequenciesByTripID(ctx context.Context, params []model.Frequ
 		ids = append(ids, p.TripID)
 	}
 	qents := []*model.Frequency{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(quickSelect("gtfs_frequencies", params[0].Limit, nil, nil), "gtfs_trips", "id", "trip_id", ids),
 		&qents,
@@ -609,7 +609,7 @@ func (f *DBFinder) StopTimesByTripID(ctx context.Context, params []model.StopTim
 		tpairs = append(tpairs, FVPair{EntityID: p.TripID, FeedVersionID: p.FeedVersionID})
 	}
 	qents := []*model.StopTime{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		StopTimeSelect(tpairs, nil, params[0].Where),
 		&qents,
@@ -667,14 +667,14 @@ func (f *DBFinder) StopTimesByStopID(ctx context.Context, params []model.StopTim
 		p := dg.Where
 		if p != nil && p.ServiceDate != nil {
 			// Get stops on a specified day
-			MustSelect(
+			MustSelect(ctx,
 				f.db,
 				StopDeparturesSelect(dg.pairs, p),
 				&qents,
 			)
 		} else {
 			// Otherwise get all stop_times for stop
-			MustSelect(
+			MustSelect(ctx,
 				f.db,
 				StopTimeSelect(nil, dg.pairs, p),
 				&qents,
@@ -705,7 +705,7 @@ func (f *DBFinder) RouteStopsByStopID(ctx context.Context, params []model.RouteS
 		ids = append(ids, p.StopID)
 	}
 	qents := []*model.RouteStop{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(quickSelectOrder("tl_route_stops", params[0].Limit, nil, nil, "stop_id"), "gtfs_stops", "id", "stop_id", ids),
 		&qents,
@@ -736,7 +736,7 @@ func (f *DBFinder) StopsByRouteID(ctx context.Context, params []model.StopParam)
 	qents := []*qEnt{}
 	qso := StopSelect(params[0].Limit, nil, nil, false, params[0].Where)
 	qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Where(sq.Eq{"route_id": routeIds}).Column("route_id")
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		qso,
 		&qents,
@@ -761,7 +761,7 @@ func (f *DBFinder) RouteStopsByRouteID(ctx context.Context, params []model.Route
 		ids = append(ids, p.RouteID)
 	}
 	qents := []*model.RouteStop{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(quickSelectOrder("tl_route_stops", params[0].Limit, nil, nil, "stop_id"), "gtfs_routes", "id", "route_id", ids),
 		&qents,
@@ -786,7 +786,7 @@ func (f *DBFinder) RouteHeadwaysByRouteID(ctx context.Context, params []model.Ro
 		ids = append(ids, p.RouteID)
 	}
 	qents := []*model.RouteHeadway{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(quickSelectOrder("tl_route_headways", params[0].Limit, nil, nil, "route_id"), "gtfs_routes", "id", "route_id", ids),
 		&qents,
@@ -811,7 +811,7 @@ func (f *DBFinder) FeedVersionFileInfosByFeedVersionID(ctx context.Context, para
 		ids = append(ids, p.FeedVersionID)
 	}
 	qents := []*model.FeedVersionFileInfo{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(quickSelectOrder("feed_version_file_infos", params[0].Limit, nil, nil, "id"), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
@@ -836,7 +836,7 @@ func (f *DBFinder) StopsByParentStopID(ctx context.Context, params []model.StopP
 		ids = append(ids, p.ParentStopID)
 	}
 	qents := []*model.Stop{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_stops", "id", "parent_station", ids),
 		&qents,
@@ -861,7 +861,7 @@ func (f *DBFinder) FeedVersionsByFeedID(ctx context.Context, params []model.Feed
 		ids = append(ids, p.FeedID)
 	}
 	qents := []*model.FeedVersion{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(FeedVersionSelect(params[0].Limit, nil, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
 		&qents,
@@ -890,7 +890,7 @@ func (f *DBFinder) AgencyPlacesByAgencyID(ctx context.Context, params []model.Ag
 		}
 	}
 	qents := []*model.AgencyPlace{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(quickSelectOrder("tl_agency_places", params[0].Limit, nil, nil, "agency_id").Where(sq.GtOrEq{"rank": minRank}), "gtfs_agencies", "id", "agency_id", ids),
 		&qents,
@@ -915,7 +915,7 @@ func (f *DBFinder) RouteGeometriesByRouteID(ctx context.Context, params []model.
 		ids = append(ids, p.RouteID)
 	}
 	qents := []*model.RouteGeometry{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(quickSelectOrder("tl_route_geometries", params[0].Limit, nil, nil, "route_id"), "gtfs_routes", "id", "route_id", ids),
 		&qents,
@@ -940,7 +940,7 @@ func (f *DBFinder) TripsByRouteID(ctx context.Context, params []model.TripParam)
 		ids = append(ids, p.RouteID)
 	}
 	qents := []*model.Trip{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(TripSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_routes", "id", "route_id", ids),
 		&qents,
@@ -965,7 +965,7 @@ func (f *DBFinder) RoutesByAgencyID(ctx context.Context, params []model.RoutePar
 		ids = append(ids, p.AgencyID)
 	}
 	qents := []*model.Route{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_agencies", "id", "agency_id", ids),
 		&qents,
@@ -990,7 +990,7 @@ func (f *DBFinder) AgenciesByFeedVersionID(ctx context.Context, params []model.A
 		ids = append(ids, p.FeedVersionID)
 	}
 	qents := []*model.Agency{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(AgencySelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
@@ -1015,7 +1015,7 @@ func (f *DBFinder) AgenciesByOnestopID(ctx context.Context, params []model.Agenc
 		ids = append(ids, *p.OnestopID)
 	}
 	qents := []*model.Agency{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		AgencySelect(params[0].Limit, nil, nil, true, nil).Where(sq.Eq{"onestop_id": ids}), // active=true
 		&qents,
@@ -1040,7 +1040,7 @@ func (f *DBFinder) StopsByFeedVersionID(ctx context.Context, params []model.Stop
 		ids = append(ids, p.FeedVersionID)
 	}
 	qents := []*model.Stop{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
@@ -1065,7 +1065,7 @@ func (f *DBFinder) TripsByFeedVersionID(ctx context.Context, params []model.Trip
 		ids = append(ids, p.FeedVersionID)
 	}
 	qents := []*model.Trip{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(TripSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
@@ -1090,7 +1090,7 @@ func (f *DBFinder) FeedInfosByFeedVersionID(ctx context.Context, params []model.
 		ids = append(ids, p.FeedVersionID)
 	}
 	qents := []*model.FeedInfo{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(quickSelectOrder("gtfs_feed_infos", params[0].Limit, nil, nil, "id"), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
@@ -1115,7 +1115,7 @@ func (f *DBFinder) RoutesByFeedVersionID(ctx context.Context, params []model.Rou
 		ids = append(ids, p.FeedVersionID)
 	}
 	qents := []*model.Route{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
@@ -1140,7 +1140,7 @@ func (f *DBFinder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, 
 		ids = append(ids, p.FeedVersionID)
 	}
 	qents := []*model.FeedVersionServiceLevel{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(FeedVersionServiceLevelSelect(params[0].Limit, nil, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
@@ -1165,7 +1165,7 @@ func (f *DBFinder) PathwaysByFromStopID(ctx context.Context, params []model.Path
 		ids = append(ids, p.FromStopID)
 	}
 	qents := []*model.Pathway{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(PathwaySelect(params[0].Limit, nil, nil, params[0].Where), "gtfs_stops", "id", "from_stop_id", ids),
 		&qents,
@@ -1190,7 +1190,7 @@ func (f *DBFinder) PathwaysByToStopID(ctx context.Context, params []model.Pathwa
 		ids = append(ids, p.ToStopID)
 	}
 	qents := []*model.Pathway{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		lateralWrap(PathwaySelect(params[0].Limit, nil, nil, params[0].Where), "gtfs_stops", "id", "to_stop_id", ids),
 		&qents,
@@ -1215,7 +1215,7 @@ func (f *DBFinder) CalendarDatesByServiceID(ctx context.Context, params []model.
 		ids = append(ids, p.ServiceID)
 	}
 	qents := []*model.CalendarDate{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		quickSelectOrder("gtfs_calendar_dates", nil, nil, nil, "date").Where(sq.Eq{"service_id": ids}),
 		&qents,
@@ -1240,7 +1240,7 @@ func (f *DBFinder) CensusGeographiesByEntityID(ctx context.Context, params []mod
 		ids = append(ids, p.EntityID)
 	}
 	qents := []*model.CensusGeography{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		CensusGeographySelect(&params[0], ids),
 		&qents,
@@ -1267,7 +1267,7 @@ func (f *DBFinder) CensusValuesByGeographyID(ctx context.Context, params []model
 	a := 1000
 	params[0].Limit = &a // only a single result allowed
 	qents := []*model.CensusValue{}
-	MustSelect(
+	MustSelect(ctx,
 		f.db,
 		// lateralWrap(CensusValueSelect(&params[0], ids), "tl_census_geographies", "id", "geography_id", ids),
 		CensusValueSelect(&params[0], ids),
