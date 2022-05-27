@@ -1,14 +1,14 @@
-package server
+package main
 
 import (
 	"errors"
 	"flag"
 	"fmt"
+	"time"
 
 	"net/http"
 	"net/http/pprof"
 	"os"
-	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/handlers"
@@ -29,7 +29,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type Command struct {
+type ServerCommand struct {
 	Timeout           int
 	Port              string
 	LongQueryDuration int
@@ -47,7 +47,7 @@ type Command struct {
 	config.Config
 }
 
-func (cmd *Command) Parse(args []string) error {
+func (cmd *ServerCommand) Parse(args []string) error {
 	fl := flag.NewFlagSet("sync", flag.ExitOnError)
 	fl.Usage = func() {
 		log.Print("Usage: server")
@@ -86,7 +86,7 @@ func (cmd *Command) Parse(args []string) error {
 	return nil
 }
 
-func (cmd *Command) Run() error {
+func (cmd *ServerCommand) Run() error {
 	// Default finders and job queue
 	var dbFinder model.Finder
 	var rtFinder model.RTFinder
@@ -123,6 +123,11 @@ func (cmd *Command) Run() error {
 		return err
 	}
 	root.Use(userMiddleware)
+
+	// Timeout and logging
+	timeOut := time.Duration(cmd.Timeout) * time.Second
+	root.Use(timeoutMiddleware(timeOut))
+	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Profiling
 	if cmd.EnableProfiler {
@@ -198,24 +203,22 @@ func (cmd *Command) Run() error {
 		}
 	}
 
-	// Setup CORS and logging
+	// Setup CORS
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"content-type", "apikey", "authorization"}),
 		handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowCredentials(),
 	)
 	root.Use(cors)
-	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Start server
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
 	log.Infof("listening on: %s", addr)
-	timeOut := time.Duration(cmd.Timeout)
 	srv := &http.Server{
 		Handler:      root,
 		Addr:         addr,
-		WriteTimeout: timeOut * time.Second,
-		ReadTimeout:  timeOut * time.Second,
+		WriteTimeout: 2 * timeOut,
+		ReadTimeout:  2 * timeOut,
 	}
 	return srv.ListenAndServe()
 }

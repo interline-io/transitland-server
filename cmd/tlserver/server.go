@@ -1,7 +1,8 @@
-package server
+package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,11 +31,25 @@ func mount(r *mux.Router, path string, handler http.Handler) {
 	}))
 }
 
+// add a timeout to request context
+func timeoutMiddleware(timeout time.Duration) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			tctx, cancel := context.WithTimeout(ctx, timeout)
+			defer cancel()
+			next.ServeHTTP(w, r.WithContext(tctx))
+		})
+	}
+}
+
+// log request and duration
 func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 			t1 := time.Now()
-			user := auth.ForContext(r.Context())
+			user := auth.ForContext(ctx)
 			if user == nil {
 				user = &auth.User{IsAnon: true}
 			}
