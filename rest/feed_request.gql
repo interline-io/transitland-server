@@ -30,9 +30,6 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: FeedFilter) {
 		  info_url
 	  }
 	  feed_state {
-		last_fetch_error
-		last_fetched_at
-		last_successful_fetch_at
 		feed_version {
 		  id
 		  sha1
