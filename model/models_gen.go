@@ -125,11 +125,8 @@ type FeedVersionFilter struct {
 }
 
 type FeedVersionServiceLevelFilter struct {
-	StartDate  *tl.Date `json:"start_date"`
-	EndDate    *tl.Date `json:"end_date"`
-	AllRoutes  *bool    `json:"all_routes"`
-	DistinctOn *string  `json:"distinct_on"`
-	RouteIds   []string `json:"route_ids"`
+	StartDate *tl.Date `json:"start_date"`
+	EndDate   *tl.Date `json:"end_date"`
 }
 
 type FeedVersionSetInput struct {
