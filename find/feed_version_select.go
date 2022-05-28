@@ -38,18 +38,7 @@ func FeedVersionServiceLevelSelect(limit *int, after *int, ids []int, where *mod
 	if where == nil {
 		where = &model.FeedVersionServiceLevelFilter{}
 	}
-	if where.DistinctOn != nil {
-		q = q.Distinct().Options("ON (feed_version_id,route_id)").OrderBy("feed_version_id,route_id")
-	} else {
-		q = q.OrderBy("id")
-	}
-	if where.AllRoutes != nil && *where.AllRoutes {
-		// default
-	} else if len(where.RouteIds) > 0 {
-		q = q.Where(sq.Eq{"route_id": where.RouteIds})
-	} else {
-		q = q.Where(sq.Eq{"route_id": nil})
-	}
+	q = q.Where(sq.Eq{"route_id": nil})
 	if where.StartDate != nil {
 		q = q.Where(sq.GtOrEq{"start_date": where.StartDate})
 	}

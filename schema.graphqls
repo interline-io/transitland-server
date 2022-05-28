@@ -196,9 +196,6 @@ type FeedVersionGtfsImport {
 
 type FeedVersionServiceLevel {
   id: Int!
-  route_id: String
-  route_short_name: String!
-  route_long_name: String!
   start_date: Date!
   end_date: Date!
   monday: Int!
@@ -930,9 +927,6 @@ input TripFilter {
 input FeedVersionServiceLevelFilter {
   start_date: Date
   end_date: Date
-  all_routes: Boolean
-  distinct_on: String
-  route_ids: [String!]
 }
 
 input AgencyPlaceFilter {
