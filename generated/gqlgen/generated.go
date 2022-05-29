@@ -229,11 +229,8 @@ type ComplexityRoot struct {
 	}
 
 	FeedState struct {
-		FeedVersion           func(childComplexity int) int
-		ID                    func(childComplexity int) int
-		LastFetchError        func(childComplexity int) int
-		LastFetchedAt         func(childComplexity int) int
-		LastSuccessfulFetchAt func(childComplexity int) int
+		FeedVersion func(childComplexity int) int
+		ID          func(childComplexity int) int
 	}
 
 	FeedUrls struct {
@@ -1701,27 +1698,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedState.ID(childComplexity), true
-
-	case "FeedState.last_fetch_error":
-		if e.complexity.FeedState.LastFetchError == nil {
-			break
-		}
-
-		return e.complexity.FeedState.LastFetchError(childComplexity), true
-
-	case "FeedState.last_fetched_at":
-		if e.complexity.FeedState.LastFetchedAt == nil {
-			break
-		}
-
-		return e.complexity.FeedState.LastFetchedAt(childComplexity), true
-
-	case "FeedState.last_successful_fetch_at":
-		if e.complexity.FeedState.LastSuccessfulFetchAt == nil {
-			break
-		}
-
-		return e.complexity.FeedState.LastSuccessfulFetchAt(childComplexity), true
 
 	case "FeedUrls.gbfs_auto_discovery":
 		if e.complexity.FeedUrls.GbfsAutoDiscovery == nil {
@@ -4194,12 +4170,6 @@ Details on the current state of this feed, such as active version, last fetch ti
 """
 type FeedState {
   id: Int!
-  "Error produced during the last fetch attempt by Transitland. Empty string if no error."
-  last_fetch_error: String!
-  "Time of last attempted fetch by Transitland"
-  last_fetched_at: Time
-  "Time of last successful fetch by Transitland that returned valid data"
-  last_successful_fetch_at: Time
   "The active feed version for this feed"
   feed_version: FeedVersion
 }
@@ -10548,105 +10518,6 @@ func (ec *executionContext) _FeedState_id(ctx context.Context, field graphql.Col
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FeedState_last_fetch_error(ctx context.Context, field graphql.CollectedField, obj *model.FeedState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedState",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastFetchError, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FeedState_last_fetched_at(ctx context.Context, field graphql.CollectedField, obj *model.FeedState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedState",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastFetchedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(tl.Time)
-	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FeedState_last_successful_fetch_at(ctx context.Context, field graphql.CollectedField, obj *model.FeedState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedState",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastSuccessfulFetchAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(tl.Time)
-	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedState_feed_version(ctx context.Context, field graphql.CollectedField, obj *model.FeedState) (ret graphql.Marshaler) {
@@ -25327,30 +25198,6 @@ func (ec *executionContext) _FeedState(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "last_fetch_error":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._FeedState_last_fetch_error(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "last_fetched_at":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._FeedState_last_fetched_at(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "last_successful_fetch_at":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._FeedState_last_successful_fetch_at(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
 		case "feed_version":
 			field := field
 

@@ -59,12 +59,6 @@ Details on the current state of this feed, such as active version, last fetch ti
 """
 type FeedState {
   id: Int!
-  "Error produced during the last fetch attempt by Transitland. Empty string if no error."
-  last_fetch_error: String!
-  "Time of last attempted fetch by Transitland"
-  last_fetched_at: Time
-  "Time of last successful fetch by Transitland that returned valid data"
-  last_successful_fetch_at: Time
   "The active feed version for this feed"
   feed_version: FeedVersion
 }
