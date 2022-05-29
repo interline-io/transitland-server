@@ -126,7 +126,7 @@ func (cmd *ServerCommand) Run() error {
 
 	// Timeout and logging
 	timeOut := time.Duration(cmd.Timeout) * time.Second
-	root.Use(timeoutMiddleware(timeOut))
+	// root.Use(timeoutMiddleware(timeOut))
 	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Profiling
