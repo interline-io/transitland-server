@@ -20,7 +20,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/transitland-lib v0.10.4-0.20220529031818-7ab79472c901
+	github.com/interline-io/transitland-lib v0.10.4-0.20220529035428-a494f21435f8
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.8.0
 	github.com/prometheus/client_golang v0.9.3
