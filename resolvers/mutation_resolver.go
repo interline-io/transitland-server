@@ -77,11 +77,12 @@ func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *strin
 		log.Error().Err(err).Msg("fetch mutation: source feed not found")
 		return nil, errors.New("feed not found")
 	}
+	feed := feeds[0]
 	// Prepare request
 	opts := fetch.Options{
 		URLType:   "manual",
 		FetchedAt: time.Now(),
-		FeedID:    feedId,
+		FeedID:    feed.ID,
 		Directory: cfg.GtfsDir,
 		S3:        cfg.GtfsS3Bucket,
 		CreatedBy: tl.NewOString(user.Name),
@@ -101,8 +102,7 @@ func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *strin
 		opts.FeedURL = *feedURL
 	}
 	// Make request
-	feed := feeds[0]
-	fv, fr, err := fetch.StaticFetch(atx, feed, opts)
+	fv, fr, err := fetch.StaticFetch(atx, opts)
 	if err != nil {
 		return nil, err
 	}
