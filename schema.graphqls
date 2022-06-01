@@ -473,6 +473,9 @@ type RouteGeometry {
   generated: Boolean!
   geometry: LineString
   combined_geometry: Geometry
+  length: Float
+  max_segment_length: Float
+  first_point_max_distance: Float
 }
 
 type RouteHeadway {

@@ -67,4 +67,9 @@ models:
       - "github.com/99designs/gqlgen/graphql.Int64"
       - "github.com/99designs/gqlgen/graphql.Int32"
       - "github.com/interline-io/transitland-lib/tl.OInt"
+  Float:
+    model:
+      - "github.com/99designs/gqlgen/graphql.Float"
+      - "github.com/interline-io/transitland-lib/tl.Float"
+
 

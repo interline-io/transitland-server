@@ -468,9 +468,12 @@ type ComplexityRoot struct {
 	}
 
 	RouteGeometry struct {
-		CombinedGeometry func(childComplexity int) int
-		Generated        func(childComplexity int) int
-		Geometry         func(childComplexity int) int
+		CombinedGeometry      func(childComplexity int) int
+		FirstPointMaxDistance func(childComplexity int) int
+		Generated             func(childComplexity int) int
+		Geometry              func(childComplexity int) int
+		Length                func(childComplexity int) int
+		MaxSegmentLength      func(childComplexity int) int
 	}
 
 	RouteHeadway struct {
@@ -3027,6 +3030,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RouteGeometry.CombinedGeometry(childComplexity), true
 
+	case "RouteGeometry.first_point_max_distance":
+		if e.complexity.RouteGeometry.FirstPointMaxDistance == nil {
+			break
+		}
+
+		return e.complexity.RouteGeometry.FirstPointMaxDistance(childComplexity), true
+
 	case "RouteGeometry.generated":
 		if e.complexity.RouteGeometry.Generated == nil {
 			break
@@ -3040,6 +3050,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RouteGeometry.Geometry(childComplexity), true
+
+	case "RouteGeometry.length":
+		if e.complexity.RouteGeometry.Length == nil {
+			break
+		}
+
+		return e.complexity.RouteGeometry.Length(childComplexity), true
+
+	case "RouteGeometry.max_segment_length":
+		if e.complexity.RouteGeometry.MaxSegmentLength == nil {
+			break
+		}
+
+		return e.complexity.RouteGeometry.MaxSegmentLength(childComplexity), true
 
 	case "RouteHeadway.departures":
 		if e.complexity.RouteHeadway.Departures == nil {
@@ -4584,6 +4608,9 @@ type RouteGeometry {
   generated: Boolean!
   geometry: LineString
   combined_geometry: Geometry
+  length: Float
+  max_segment_length: Float
+  first_point_max_distance: Float
 }
 
 type RouteHeadway {
@@ -16793,6 +16820,102 @@ func (ec *executionContext) _RouteGeometry_combined_geometry(ctx context.Context
 	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _RouteGeometry_length(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RouteGeometry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Length, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Float)
+	fc.Result = res
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RouteGeometry_max_segment_length(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RouteGeometry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxSegmentLength, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Float)
+	fc.Result = res
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RouteGeometry_first_point_max_distance(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RouteGeometry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstPointMaxDistance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Float)
+	fc.Result = res
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _RouteHeadway_stop(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -27672,6 +27795,27 @@ func (ec *executionContext) _RouteGeometry(ctx context.Context, sel ast.Selectio
 
 			out.Values[i] = innerFunc(ctx)
 
+		case "length":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_length(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "max_segment_length":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_max_segment_length(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "first_point_max_distance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_first_point_max_distance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -30736,18 +30880,18 @@ func (ec *executionContext) marshalNFeedVersionUnimportResult2ᚖgithubᚗcomᚋ
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
-	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	res, err := graphql.UnmarshalFloat(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
-	res := graphql.MarshalFloatContext(v)
+	res := graphql.MarshalFloat(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 	}
-	return graphql.WrapContextMarshaler(ctx, res)
+	return res
 }
 
 func (ec *executionContext) marshalNFrequency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFrequencyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Frequency) graphql.Marshaler {
@@ -32674,11 +32818,21 @@ func (ec *executionContext) unmarshalOFeedVersionServiceLevelFilter2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx context.Context, v interface{}) (tl.Float, error) {
+	var res tl.Float
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx context.Context, sel ast.SelectionSet, v tl.Float) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	res, err := graphql.UnmarshalFloat(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -32686,8 +32840,8 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	if v == nil {
 		return graphql.Null
 	}
-	res := graphql.MarshalFloatContext(*v)
-	return graphql.WrapContextMarshaler(ctx, res)
+	res := graphql.MarshalFloat(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx context.Context, v interface{}) (tl.Geometry, error) {
