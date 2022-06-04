@@ -37,7 +37,8 @@ models:
       - "github.com/99designs/gqlgen/graphql.String"
       - "github.com/interline-io/transitland-lib/tl.OString"
   Cursor:
-    model: "github.com/interline-io/transitland-server/model.Cursor"
+    model: 
+      - "github.com/interline-io/transitland-server/model.Cursor"
   Tags:
     model: "github.com/interline-io/transitland-lib/tl.Tags"
   Polygon:
