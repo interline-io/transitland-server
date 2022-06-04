@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func StopSelect(limit *int, after *int, ids []int, active bool, where *model.StopFilter) sq.SelectBuilder {
+func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.StopFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_stops.*",
 		"current_feeds.id AS feed_id",
@@ -17,7 +17,7 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 		Join("feed_versions ON feed_versions.id = gtfs_stops.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		OrderBy("gtfs_stops.id")
+		OrderBy("gtfs_stops.feed_version_id,gtfs_stops.id")
 	distinct := false
 
 	// Handle previous OnestopIds
@@ -102,7 +102,7 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 		}
 	}
 	if distinct {
-		qView = qView.Distinct().Options("on (gtfs_stops.id)")
+		qView = qView.Distinct().Options("on (gtfs_stops.feed_version_id,gtfs_stops.id)")
 	}
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
@@ -110,8 +110,12 @@ func StopSelect(limit *int, after *int, ids []int, active bool, where *model.Sto
 	if len(ids) > 0 {
 		qView = qView.Where(sq.Eq{"gtfs_stops.id": ids})
 	}
-	if after != nil {
-		qView = qView.Where(sq.Gt{"gtfs_stops.id": *after})
+	if after != nil && after.Valid {
+		if after.FeedVersionID == 0 {
+			qView = qView.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (coalesce((select feed_version_id from gtfs_stops where id = ?), 0), ?)", after.ID, after.ID))
+		} else {
+			qView = qView.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (?,?)", after.FeedVersionID, after.ID))
+		}
 	}
 	// Outer query
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")

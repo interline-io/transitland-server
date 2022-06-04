@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedVersionSelect(limit *int, after *int, ids []int, where *model.FeedVersionFilter) sq.SelectBuilder {
+func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*, tl_feed_version_geometries.geometry").
 		From("feed_versions t").
@@ -16,8 +16,8 @@ func FeedVersionSelect(limit *int, after *int, ids []int, where *model.FeedVersi
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil && *after > 0 {
-		q = q.Where(sq.Expr("fetched_at < (select fetched_at from feed_versions where id = ?)", *after))
+	if after != nil && after.Valid {
+		q = q.Where(sq.Expr("fetched_at < (select fetched_at from feed_versions where id = ?)", after))
 	}
 	if where != nil {
 		if where.Sha1 != nil {
@@ -33,7 +33,7 @@ func FeedVersionSelect(limit *int, after *int, ids []int, where *model.FeedVersi
 	return q
 }
 
-func FeedVersionServiceLevelSelect(limit *int, after *int, ids []int, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
+func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
 	q := quickSelectOrder("feed_version_service_levels", limit, after, nil, "")
 	if where == nil {
 		where = &model.FeedVersionServiceLevelFilter{}

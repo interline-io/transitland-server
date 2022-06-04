@@ -638,7 +638,27 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 				// this test checks the json response because it is too complex for the simple element selector approach
 				// we should expect east coast times 18:00-18:10, and west coast times 15:00-15:10
 				`{
-					"stops": [{
+					"stops": [
+					{
+						"onestop_id": "s-9q9p1wxf72-macarthur",
+						"stop_id": "MCAR",
+						"stop_times": [{
+							"arrival_time": "15:00:00"
+						}, {
+							"arrival_time": "15:07:00"
+						}]
+					}, {
+						"onestop_id": "s-9q9p1wxf72-macarthur",
+						"stop_id": "MCAR_S",
+						"stop_times": [{
+							"arrival_time": "15:01:00"
+						}, {
+							"arrival_time": "15:09:00"
+						}, {
+							"arrival_time": "15:09:00"
+						}]
+					},
+					{
 						"onestop_id": "s-dhvrsm227t-universityareatransitcenter",
 						"stop_id": "6497",
 						"stop_times": [{
@@ -657,24 +677,6 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 							"arrival_time": "18:10:00"
 						}, {
 							"arrival_time": "18:10:00"
-						}]
-					}, {
-						"onestop_id": "s-9q9p1wxf72-macarthur",
-						"stop_id": "MCAR",
-						"stop_times": [{
-							"arrival_time": "15:00:00"
-						}, {
-							"arrival_time": "15:07:00"
-						}]
-					}, {
-						"onestop_id": "s-9q9p1wxf72-macarthur",
-						"stop_id": "MCAR_S",
-						"stop_times": [{
-							"arrival_time": "15:01:00"
-						}, {
-							"arrival_time": "15:09:00"
-						}, {
-							"arrival_time": "15:09:00"
 						}]
 					}]
 				}`,

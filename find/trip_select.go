@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func TripSelect(limit *int, after *int, ids []int, active bool, where *model.TripFilter) sq.SelectBuilder {
+func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.TripFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_trips.*",
 		"current_feeds.id AS feed_id",
@@ -15,7 +15,7 @@ func TripSelect(limit *int, after *int, ids []int, active bool, where *model.Tri
 		From("gtfs_trips").
 		Join("feed_versions ON feed_versions.id = gtfs_trips.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		OrderBy("gtfs_trips.id")
+		OrderBy("gtfs_trips.feed_version_id,gtfs_trips.id")
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
@@ -57,8 +57,12 @@ func TripSelect(limit *int, after *int, ids []int, active bool, where *model.Tri
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
+	if after != nil && after.Valid {
+		if after.FeedVersionID == 0 {
+			qView = qView.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (coalesce((select feed_version_id from gtfs_trips where id <= ? order by id limit 1),  0), ?)", after.ID, after.ID))
+		} else {
+			qView = qView.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (?,?)", after.FeedVersionID, after.ID))
+		}
 	}
 	q = q.Limit(checkLimit(limit))
 	if where != nil {

@@ -17,13 +17,13 @@ type Finder interface {
 
 // Finder handles basic queries
 type EntityFinder interface {
-	FindAgencies(context.Context, *int, *int, []int, *AgencyFilter) ([]*Agency, error)
-	FindRoutes(context.Context, *int, *int, []int, *RouteFilter) ([]*Route, error)
-	FindStops(context.Context, *int, *int, []int, *StopFilter) ([]*Stop, error)
-	FindTrips(context.Context, *int, *int, []int, *TripFilter) ([]*Trip, error)
-	FindFeedVersions(context.Context, *int, *int, []int, *FeedVersionFilter) ([]*FeedVersion, error)
-	FindFeeds(context.Context, *int, *int, []int, *FeedFilter) ([]*Feed, error)
-	FindOperators(context.Context, *int, *int, []int, *OperatorFilter) ([]*Operator, error)
+	FindAgencies(context.Context, *int, *Cursor, []int, *AgencyFilter) ([]*Agency, error)
+	FindRoutes(context.Context, *int, *Cursor, []int, *RouteFilter) ([]*Route, error)
+	FindStops(context.Context, *int, *Cursor, []int, *StopFilter) ([]*Stop, error)
+	FindTrips(context.Context, *int, *Cursor, []int, *TripFilter) ([]*Trip, error)
+	FindFeedVersions(context.Context, *int, *Cursor, []int, *FeedVersionFilter) ([]*FeedVersion, error)
+	FindFeeds(context.Context, *int, *Cursor, []int, *FeedFilter) ([]*Feed, error)
+	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (time.Time, time.Time, time.Time, error)
 	DBX() sqlx.Ext // escape hatch, for now
