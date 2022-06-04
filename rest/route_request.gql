@@ -1,7 +1,7 @@
 query(
   $limit: Int
   $ids: [Int!]
-  $after: Int
+  $after: Cursor
   $where: RouteFilter
   $include_geometry: Boolean!
 ) {

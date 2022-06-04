@@ -1,4 +1,4 @@
-query($limit: Int, $after: Int, $ids: [Int!], $where: StopFilter) {
+query($limit: Int, $after: Cursor, $ids: [Int!], $where: StopFilter) {
   stops(limit: $limit, ids: $ids, after: $after, where: $where) {
     id
     stop_id

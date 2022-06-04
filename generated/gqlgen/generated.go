@@ -402,14 +402,14 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Agencies     func(childComplexity int, limit *int, after *int, ids []int, where *model.AgencyFilter) int
+		Agencies     func(childComplexity int, limit *int, after *model.Cursor, ids []int, where *model.AgencyFilter) int
 		Directions   func(childComplexity int, where model.DirectionRequest) int
-		FeedVersions func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedVersionFilter) int
-		Feeds        func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedFilter) int
-		Operators    func(childComplexity int, limit *int, after *int, ids []int, where *model.OperatorFilter) int
-		Routes       func(childComplexity int, limit *int, after *int, ids []int, where *model.RouteFilter) int
-		Stops        func(childComplexity int, limit *int, after *int, ids []int, where *model.StopFilter) int
-		Trips        func(childComplexity int, limit *int, after *int, ids []int, where *model.TripFilter) int
+		FeedVersions func(childComplexity int, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) int
+		Feeds        func(childComplexity int, limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) int
+		Operators    func(childComplexity int, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) int
+		Routes       func(childComplexity int, limit *int, after *model.Cursor, ids []int, where *model.RouteFilter) int
+		Stops        func(childComplexity int, limit *int, after *model.Cursor, ids []int, where *model.StopFilter) int
+		Trips        func(childComplexity int, limit *int, after *model.Cursor, ids []int, where *model.TripFilter) int
 	}
 
 	RTTimeRange struct {
@@ -525,6 +525,7 @@ type ComplexityRoot struct {
 		Arrivals           func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		CensusGeographies  func(childComplexity int, layer string, radius *float64, limit *int) int
 		Children           func(childComplexity int, limit *int) int
+		Cursor             func(childComplexity int) int
 		Departures         func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		Directions         func(childComplexity int, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) int
 		FeedOnestopID      func(childComplexity int) int
@@ -727,13 +728,13 @@ type PathwayResolver interface {
 	ToStop(ctx context.Context, obj *model.Pathway) (*model.Stop, error)
 }
 type QueryResolver interface {
-	FeedVersions(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error)
-	Feeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error)
-	Agencies(ctx context.Context, limit *int, after *int, ids []int, where *model.AgencyFilter) ([]*model.Agency, error)
-	Routes(ctx context.Context, limit *int, after *int, ids []int, where *model.RouteFilter) ([]*model.Route, error)
-	Stops(ctx context.Context, limit *int, after *int, ids []int, where *model.StopFilter) ([]*model.Stop, error)
-	Trips(ctx context.Context, limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error)
-	Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error)
+	FeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error)
+	Feeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) ([]*model.Feed, error)
+	Agencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.AgencyFilter) ([]*model.Agency, error)
+	Routes(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.RouteFilter) ([]*model.Route, error)
+	Stops(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.StopFilter) ([]*model.Stop, error)
+	Trips(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.TripFilter) ([]*model.Trip, error)
+	Operators(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) ([]*model.Operator, error)
 	Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error)
 }
 type RouteResolver interface {
@@ -763,6 +764,7 @@ type StopResolver interface {
 	FeedVersion(ctx context.Context, obj *model.Stop) (*model.FeedVersion, error)
 	Level(ctx context.Context, obj *model.Stop) (*model.Level, error)
 	Parent(ctx context.Context, obj *model.Stop) (*model.Stop, error)
+	Cursor(ctx context.Context, obj *model.Stop) (*model.Cursor, error)
 	Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error)
 	RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error)
 	PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
@@ -2622,7 +2624,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Agencies(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.AgencyFilter)), true
+		return e.complexity.Query.Agencies(childComplexity, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.AgencyFilter)), true
 
 	case "Query.directions":
 		if e.complexity.Query.Directions == nil {
@@ -2646,7 +2648,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FeedVersions(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.FeedVersionFilter)), true
+		return e.complexity.Query.FeedVersions(childComplexity, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.FeedVersionFilter)), true
 
 	case "Query.feeds":
 		if e.complexity.Query.Feeds == nil {
@@ -2658,7 +2660,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Feeds(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.FeedFilter)), true
+		return e.complexity.Query.Feeds(childComplexity, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.FeedFilter)), true
 
 	case "Query.operators":
 		if e.complexity.Query.Operators == nil {
@@ -2670,7 +2672,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Operators(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.OperatorFilter)), true
+		return e.complexity.Query.Operators(childComplexity, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.OperatorFilter)), true
 
 	case "Query.routes":
 		if e.complexity.Query.Routes == nil {
@@ -2682,7 +2684,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Routes(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.RouteFilter)), true
+		return e.complexity.Query.Routes(childComplexity, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.RouteFilter)), true
 
 	case "Query.stops":
 		if e.complexity.Query.Stops == nil {
@@ -2694,7 +2696,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Stops(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.StopFilter)), true
+		return e.complexity.Query.Stops(childComplexity, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.StopFilter)), true
 
 	case "Query.trips":
 		if e.complexity.Query.Trips == nil {
@@ -2706,7 +2708,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Trips(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.TripFilter)), true
+		return e.complexity.Query.Trips(childComplexity, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.TripFilter)), true
 
 	case "RTTimeRange.end":
 		if e.complexity.RTTimeRange.End == nil {
@@ -3310,6 +3312,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Stop.Children(childComplexity, args["limit"].(*int)), true
+
+	case "Stop.cursor":
+		if e.complexity.Stop.Cursor == nil {
+			break
+		}
+
+		return e.complexity.Stop.Cursor(childComplexity), true
 
 	case "Stop.departures":
 		if e.complexity.Stop.Departures == nil {
@@ -4144,13 +4153,13 @@ enum Role {
 # Root query and mutation
 
 type Query {
-  feed_versions(limit: Int, after: Int, ids: [Int!], where: FeedVersionFilter): [FeedVersion!]!
-  feeds(limit: Int, after: Int, ids: [Int!], where: FeedFilter): [Feed!]!
-  agencies(limit: Int, after: Int, ids: [Int!], where: AgencyFilter): [Agency!]!
-  routes(limit: Int, after: Int, ids: [Int!], where: RouteFilter): [Route!]!
-  stops(limit: Int, after: Int, ids: [Int!], where: StopFilter): [Stop!]!
-  trips(limit: Int, after: Int, ids: [Int!], where: TripFilter): [Trip!]!
-  operators(limit: Int, after: Int, ids: [Int!], where: OperatorFilter): [Operator!]!
+  feed_versions(limit: Int, after: Cursor, ids: [Int!], where: FeedVersionFilter): [FeedVersion!]!
+  feeds(limit: Int, after: Cursor, ids: [Int!], where: FeedFilter): [Feed!]!
+  agencies(limit: Int, after: Cursor, ids: [Int!], where: AgencyFilter): [Agency!]!
+  routes(limit: Int, after: Cursor, ids: [Int!], where: RouteFilter): [Route!]!
+  stops(limit: Int, after: Cursor, ids: [Int!], where: StopFilter): [Stop!]!
+  trips(limit: Int, after: Cursor, ids: [Int!], where: TripFilter): [Trip!]!
+  operators(limit: Int, after: Cursor, ids: [Int!], where: OperatorFilter): [Operator!]!
   directions(where: DirectionRequest!): Directions!
 }
 
@@ -4440,6 +4449,7 @@ type Stop {
   feed_version: FeedVersion!
   level: Level
   parent: Stop
+  cursor: Cursor!
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
   pathways_from_stop(limit: Int): [Pathway!]!
@@ -5088,7 +5098,9 @@ scalar Seconds
 scalar Polygon
 scalar Map
 scalar Any
-scalar Upload`, BuiltIn: false},
+scalar Upload
+scalar Cursor
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -5630,10 +5642,10 @@ func (ec *executionContext) field_Query_agencies_args(ctx context.Context, rawAr
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *int
+	var arg1 *model.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5687,10 +5699,10 @@ func (ec *executionContext) field_Query_feed_versions_args(ctx context.Context, 
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *int
+	var arg1 *model.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5729,10 +5741,10 @@ func (ec *executionContext) field_Query_feeds_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *int
+	var arg1 *model.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5771,10 +5783,10 @@ func (ec *executionContext) field_Query_operators_args(ctx context.Context, rawA
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *int
+	var arg1 *model.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5813,10 +5825,10 @@ func (ec *executionContext) field_Query_routes_args(ctx context.Context, rawArgs
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *int
+	var arg1 *model.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5855,10 +5867,10 @@ func (ec *executionContext) field_Query_stops_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *int
+	var arg1 *model.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5897,10 +5909,10 @@ func (ec *executionContext) field_Query_trips_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *int
+	var arg1 *model.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -14947,7 +14959,7 @@ func (ec *executionContext) _Query_feed_versions(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FeedVersions(rctx, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.FeedVersionFilter))
+		return ec.resolvers.Query().FeedVersions(rctx, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.FeedVersionFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14989,7 +15001,7 @@ func (ec *executionContext) _Query_feeds(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Feeds(rctx, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.FeedFilter))
+		return ec.resolvers.Query().Feeds(rctx, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.FeedFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15031,7 +15043,7 @@ func (ec *executionContext) _Query_agencies(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Agencies(rctx, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.AgencyFilter))
+		return ec.resolvers.Query().Agencies(rctx, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.AgencyFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15073,7 +15085,7 @@ func (ec *executionContext) _Query_routes(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Routes(rctx, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.RouteFilter))
+		return ec.resolvers.Query().Routes(rctx, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.RouteFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15115,7 +15127,7 @@ func (ec *executionContext) _Query_stops(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Stops(rctx, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.StopFilter))
+		return ec.resolvers.Query().Stops(rctx, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.StopFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15157,7 +15169,7 @@ func (ec *executionContext) _Query_trips(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Trips(rctx, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.TripFilter))
+		return ec.resolvers.Query().Trips(rctx, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.TripFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15199,7 +15211,7 @@ func (ec *executionContext) _Query_operators(ctx context.Context, field graphql.
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Operators(rctx, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.OperatorFilter))
+		return ec.resolvers.Query().Operators(rctx, args["limit"].(*int), args["after"].(*model.Cursor), args["ids"].([]int), args["where"].(*model.OperatorFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18552,6 +18564,41 @@ func (ec *executionContext) _Stop_parent(ctx context.Context, field graphql.Coll
 	res := resTmp.(*model.Stop)
 	fc.Result = res
 	return ec.marshalOStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Cursor(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Stop_children(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
@@ -28460,6 +28507,26 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
+		case "cursor":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_cursor(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "children":
 			field := field
 
@@ -30271,6 +30338,32 @@ func (ec *executionContext) marshalNCensusValue2ᚕᚖgithubᚗcomᚋinterline�
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNCursor2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx context.Context, v interface{}) (model.Cursor, error) {
+	var res model.Cursor
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCursor2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx context.Context, sel ast.SelectionSet, v model.Cursor) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx context.Context, v interface{}) (*model.Cursor, error) {
+	var res = new(model.Cursor)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx context.Context, sel ast.SelectionSet, v *model.Cursor) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, v interface{}) (tl.Date, error) {
@@ -32494,6 +32587,22 @@ func (ec *executionContext) marshalOCensusValue2ᚖgithubᚗcomᚋinterlineᚑio
 		return graphql.Null
 	}
 	return ec._CensusValue(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx context.Context, v interface{}) (*model.Cursor, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.Cursor)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx context.Context, sel ast.SelectionSet, v *model.Cursor) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, v interface{}) (tl.Date, error) {

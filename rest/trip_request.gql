@@ -1,7 +1,7 @@
 query(
   $limit: Int
   $ids: [Int!]
-  $after: Int,
+  $after: Cursor,
   $include_route: Boolean!
   $include_stop_times: Boolean!
   $include_geometry: Boolean!

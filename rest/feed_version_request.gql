@@ -1,4 +1,4 @@
-query($limit: Int, $ids: [Int!], $after: Int, $where: FeedVersionFilter) {
+query($limit: Int, $ids: [Int!], $after: Cursor, $where: FeedVersionFilter) {
   feed_versions(limit: $limit, ids: $ids, after: $after, where: $where) {
     id
     sha1

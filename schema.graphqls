@@ -9,13 +9,13 @@ enum Role {
 # Root query and mutation
 
 type Query {
-  feed_versions(limit: Int, after: Int, ids: [Int!], where: FeedVersionFilter): [FeedVersion!]!
-  feeds(limit: Int, after: Int, ids: [Int!], where: FeedFilter): [Feed!]!
-  agencies(limit: Int, after: Int, ids: [Int!], where: AgencyFilter): [Agency!]!
-  routes(limit: Int, after: Int, ids: [Int!], where: RouteFilter): [Route!]!
-  stops(limit: Int, after: Int, ids: [Int!], where: StopFilter): [Stop!]!
-  trips(limit: Int, after: Int, ids: [Int!], where: TripFilter): [Trip!]!
-  operators(limit: Int, after: Int, ids: [Int!], where: OperatorFilter): [Operator!]!
+  feed_versions(limit: Int, after: Cursor, ids: [Int!], where: FeedVersionFilter): [FeedVersion!]!
+  feeds(limit: Int, after: Cursor, ids: [Int!], where: FeedFilter): [Feed!]!
+  agencies(limit: Int, after: Cursor, ids: [Int!], where: AgencyFilter): [Agency!]!
+  routes(limit: Int, after: Cursor, ids: [Int!], where: RouteFilter): [Route!]!
+  stops(limit: Int, after: Cursor, ids: [Int!], where: StopFilter): [Stop!]!
+  trips(limit: Int, after: Cursor, ids: [Int!], where: TripFilter): [Trip!]!
+  operators(limit: Int, after: Cursor, ids: [Int!], where: OperatorFilter): [Operator!]!
   directions(where: DirectionRequest!): Directions!
 }
 
@@ -305,6 +305,7 @@ type Stop {
   feed_version: FeedVersion!
   level: Level
   parent: Stop
+  cursor: Cursor!
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
   pathways_from_stop(limit: Int): [Pathway!]!
@@ -954,3 +955,4 @@ scalar Polygon
 scalar Map
 scalar Any
 scalar Upload
+scalar Cursor

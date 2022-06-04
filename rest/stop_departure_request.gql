@@ -3,7 +3,7 @@ query(
   $include_route: Boolean!
   $limit: Int
   $ids: [Int!]
-  $after: Int
+  $after: Cursor
   $where: StopFilter
   $stop_time_where: StopTimeFilter
 ) {

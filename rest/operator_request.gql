@@ -1,4 +1,4 @@
-query($limit: Int, $after: Int, $where: OperatorFilter) {
+query($limit: Int, $after: Cursor, $where: OperatorFilter) {
   operators(after: $after, limit: $limit, where: $where) {
     id
     onestop_id

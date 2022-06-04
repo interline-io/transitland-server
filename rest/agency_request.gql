@@ -1,4 +1,4 @@
-query($limit: Int, $ids: [Int!], $after: Int, $where: AgencyFilter) {
+query($limit: Int, $ids: [Int!], $after: Cursor, $where: AgencyFilter) {
   agencies(limit: $limit, after: $after, ids: $ids, where: $where) {
     id
     agency_name
