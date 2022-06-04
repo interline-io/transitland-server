@@ -13,7 +13,7 @@ type FeedRequest struct {
 	FeedKey          string `json:"feed_key"`
 	ID               int    `json:"id,string"`
 	Limit            int    `json:"limit,string"`
-	After            int    `json:"after,string"`
+	After            string `json:"after"`
 	OnestopID        string `json:"onestop_id"`
 	Spec             string `json:"spec"`
 	Search           string `json:"search"`
@@ -70,7 +70,7 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 		}
 		where["source_url"] = sourceUrl
 	}
-	return feedQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
+	return feedQuery, hw{"limit": checkLimit(r.Limit), "after": r.After, "ids": checkIds(r.ID), "where": where}
 }
 
 // ProcessGeoJSON .

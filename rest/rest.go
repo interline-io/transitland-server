@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -132,14 +131,6 @@ func checkIds(id int) []int {
 		return []int{id}
 	}
 	return nil
-}
-
-// checkAfter checks the value is positive.
-func checkAfter(after int) int {
-	if after < 0 {
-		return 0
-	}
-	return after
 }
 
 // checkLimit checks the limit is positive and below the maximum limit.
@@ -271,9 +262,9 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 	// get highest ID
 	if maxid, err := getMaxID(ent, response); err != nil {
 		log.Error().Err(err).Msg("pagination failed to get max entity id")
-	} else if maxid > 0 && u != nil {
+	} else if maxid != "" && u != nil {
 		rq := u.Query()
-		rq.Set("after", strconv.Itoa(maxid))
+		rq.Set("after", maxid)
 		u.RawQuery = rq.Encode()
 		nextUrl := cfg.RestPrefix + u.String()
 		response["meta"] = hw{"after": maxid, "next": nextUrl}

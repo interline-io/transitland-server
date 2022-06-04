@@ -14,6 +14,7 @@ query($limit: Int, $after: Cursor, $ids: [Int!], $where: StopFilter) {
     location_type
     onestop_id
     geometry
+    cursor
     feed_version {
       id
       sha1

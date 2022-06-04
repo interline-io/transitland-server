@@ -83,36 +83,26 @@ func renderMap(data []byte, width int, height int) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-func getMaxID(ent apiHandler, response map[string]interface{}) (int, error) {
-	maxid := 0
+func getMaxID(ent apiHandler, response map[string]interface{}) (string, error) {
+	maxid := ""
 	fkey := ""
 	if v, ok := ent.(hasResponseKey); ok {
 		fkey = v.ResponseKey()
 	} else {
-		return 0, errors.New("pagination")
+		return "", errors.New("pagination")
 	}
 	entities, ok := response[fkey].([]interface{})
 	if !ok {
-		return 0, errors.New("invalid graphql response")
+		return "", errors.New("invalid graphql response")
 	}
 	for _, feature := range entities {
 		f, ok := feature.(map[string]interface{})
 		if !ok {
 			continue
 		}
-		switch id := f["id"].(type) {
-		case int:
-			if id > maxid {
-				maxid = id
-			}
-		case float64:
-			if int(id) > maxid {
-				maxid = int(id)
-			}
-		case int64:
-			if int(id) > maxid {
-				maxid = int(id)
-			}
+		if a, ok := f["cursor"].(string); ok {
+			maxid = a
+			delete(f, "cursor")
 		}
 	}
 	return maxid, nil

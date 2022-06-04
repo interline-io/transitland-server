@@ -12,7 +12,7 @@ var routeQuery string
 type RouteRequest struct {
 	ID                int     `json:"id,string"`
 	Limit             int     `json:"limit,string"`
-	After             int     `json:"after,string"`
+	After             string  `json:"after"`
 	AgencyKey         string  `json:"agency_key"`
 	RouteKey          string  `json:"route_key"`
 	RouteID           string  `json:"route_id"`
@@ -83,5 +83,5 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 	if r.IncludeGeometry == "true" || r.Format == "geojson" || r.Format == "png" {
 		includeGeometry = true
 	}
-	return routeQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where, "include_geometry": includeGeometry}
+	return routeQuery, hw{"limit": checkLimit(r.Limit), "after": r.After, "ids": checkIds(r.ID), "where": where, "include_geometry": includeGeometry}
 }

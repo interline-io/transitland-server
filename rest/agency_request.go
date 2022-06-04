@@ -12,7 +12,7 @@ var agencyQuery string
 type AgencyRequest struct {
 	ID              int     `json:"id,string"`
 	Limit           int     `json:"limit,string"`
-	After           int     `json:"after,string"`
+	After           string  `json:"after"`
 	AgencyKey       string  `json:"agency_key"`
 	AgencyID        string  `json:"agency_id"`
 	AgencyName      string  `json:"agency_name"`
@@ -79,5 +79,5 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 	if r.CityName != "" {
 		where["city_name"] = r.CityName
 	}
-	return agencyQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
+	return agencyQuery, hw{"limit": checkLimit(r.Limit), "after": r.After, "ids": checkIds(r.ID), "where": where}
 }

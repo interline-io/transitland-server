@@ -12,7 +12,7 @@ type StopDepartureRequest struct {
 	StopKey            string  `json:"stop_key"`
 	ID                 int     `json:"id,string"`
 	Limit              int     `json:"limit,string"`
-	After              int     `json:"after,string"`
+	After              int     `json:"after"`
 	StopID             string  `json:"stop_id"`
 	OnestopID          string  `json:"onestop_id"`
 	FeedVersionSHA1    string  `json:"feed_version_sha1"`

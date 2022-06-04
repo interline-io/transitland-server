@@ -14,7 +14,7 @@ type FeedVersionRequest struct {
 	FeedKey        string `json:"feed_key"`
 	ID             int    `json:"id,string"`
 	Limit          int    `json:"limit,string"`
-	After          int    `json:"after,string"`
+	After          string `json:"after"`
 	FeedID         int    `json:"feed_id,string"`
 	FeedOnestopID  string `json:"feed_onestop_id"`
 	Sha1           string `json:"sha1"`
@@ -48,7 +48,7 @@ func (r FeedVersionRequest) Query() (string, map[string]interface{}) {
 	if r.Sha1 != "" {
 		where["sha1"] = r.Sha1
 	}
-	return feedVersionQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
+	return feedVersionQuery, hw{"limit": checkLimit(r.Limit), "after": r.After, "ids": checkIds(r.ID), "where": where}
 }
 
 // ResponseKey .

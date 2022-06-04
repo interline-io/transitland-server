@@ -12,7 +12,7 @@ var tripQuery string
 type TripRequest struct {
 	ID               int    `json:"id,string"`
 	Limit            int    `json:"limit,string"`
-	After            int    `json:"after,string"`
+	After            string `json:"after"`
 	TripID           string `json:"trip_id"`
 	RouteKey         string `json:"route_key"`
 	RouteID          int    `json:"route_id,string"`
@@ -71,7 +71,7 @@ func (r TripRequest) Query() (string, map[string]interface{}) {
 		includeStopTimes = true
 	}
 	includeRoute := false
-	return tripQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where, "include_geometry": includeGeometry, "include_stop_times": includeStopTimes, "include_route": includeRoute}
+	return tripQuery, hw{"limit": checkLimit(r.Limit), "after": r.After, "ids": checkIds(r.ID), "where": where, "include_geometry": includeGeometry, "include_stop_times": includeStopTimes, "include_route": includeRoute}
 }
 
 // ProcessGeoJSON .

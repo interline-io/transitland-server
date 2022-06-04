@@ -19,6 +19,7 @@ query(
     continuous_pickup
     continuous_drop_off
     onestop_id
+    cursor
     geometry @include(if: $include_geometry)
     agency {
       id

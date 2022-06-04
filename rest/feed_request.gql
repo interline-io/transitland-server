@@ -5,6 +5,7 @@ query($limit: Int, $ids: [Int!], $after: Cursor, $where: FeedFilter) {
 	  name
 	  onestop_id
 	  languages
+      cursor
 	  urls {
 		static_current
 		static_historic

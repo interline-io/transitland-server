@@ -11,6 +11,7 @@ query($limit: Int, $ids: [Int!], $after: Cursor, $where: AgencyFilter) {
     agency_fare_url
     agency_email
     geometry
+    cursor
     operator {
       onestop_id
       name

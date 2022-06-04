@@ -17,6 +17,7 @@ query(
     wheelchair_accessible
     bikes_allowed
     stop_pattern_id
+    cursor
     feed_version {
       sha1
       fetched_at

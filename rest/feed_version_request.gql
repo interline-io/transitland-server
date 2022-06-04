@@ -7,6 +7,7 @@ query($limit: Int, $ids: [Int!], $after: Cursor, $where: FeedVersionFilter) {
     earliest_calendar_date
     latest_calendar_date
     geometry
+    cursor
     feed {
       onestop_id
       name

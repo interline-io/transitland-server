@@ -12,6 +12,7 @@ query(
     stop_id
     stop_name
     geometry
+    cursor
     feed_version {
       sha1
       fetched_at

@@ -13,7 +13,7 @@ type OperatorRequest struct {
 	OperatorKey   string `json:"operator_key"`
 	ID            int    `json:"id,string"`
 	Limit         int    `json:"limit,string"`
-	After         int    `json:"after,string"`
+	After         string `json:"after"`
 	OnestopID     string `json:"onestop_id"`
 	FeedOnestopID string `json:"feed_onestop_id"`
 	Search        string `json:"search"`
@@ -67,5 +67,5 @@ func (r OperatorRequest) Query() (string, map[string]interface{}) {
 	if r.CityName != "" {
 		where["city_name"] = r.CityName
 	}
-	return operatorQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
+	return operatorQuery, hw{"limit": checkLimit(r.Limit), "after": r.After, "ids": checkIds(r.ID), "where": where}
 }

@@ -13,7 +13,7 @@ type StopRequest struct {
 	StopKey            string  `json:"stop_key"`
 	ID                 int     `json:"id,string"`
 	Limit              int     `json:"limit,string"`
-	After              int     `json:"after,string"`
+	After              string  `json:"after"`
 	StopID             string  `json:"stop_id"`
 	OnestopID          string  `json:"onestop_id"`
 	FeedVersionSHA1    string  `json:"feed_version_sha1"`
@@ -59,5 +59,5 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	if r.ServedByOnestopIds != "" {
 		where["served_by_onestop_ids"] = commaSplit(r.ServedByOnestopIds)
 	}
-	return stopQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
+	return stopQuery, hw{"limit": checkLimit(r.Limit), "after": r.After, "ids": checkIds(r.ID), "where": where}
 }
