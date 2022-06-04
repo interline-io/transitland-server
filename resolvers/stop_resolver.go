@@ -18,6 +18,10 @@ type stopResolver struct {
 	*Resolver
 }
 
+func (r *stopResolver) Cursor(ctx context.Context, obj *model.Stop) (*model.Cursor, error) {
+	return &model.Cursor{FeedVersionID: obj.FeedVersionID, ID: obj.ID}, nil
+}
+
 func (r *stopResolver) FeedVersion(ctx context.Context, obj *model.Stop) (*model.FeedVersion, error) {
 	return For(ctx).FeedVersionsByID.Load(obj.FeedVersionID)
 }
@@ -50,10 +54,6 @@ func (r *stopResolver) PathwaysFromStop(ctx context.Context, obj *model.Stop, li
 
 func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {
 	return For(ctx).PathwaysByToStopID.Load(model.PathwayParam{ToStopID: obj.ID, Limit: limit})
-}
-
-func (r *stopResolver) Cursor(ctx context.Context, obj *model.Stop) (*model.Cursor, error) {
-	return &model.Cursor{FeedVersionID: obj.FeedVersionID, ID: obj.ID}, nil
 }
 
 func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {

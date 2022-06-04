@@ -47,6 +47,7 @@ type Feed {
   urls: FeedUrls
   license: FeedLicense
   search_rank: String # only for search results
+  cursor: Cursor!
   associated_operators: [Operator!]
   feed_state: FeedState
   feed_fetches(limit: Int, where: FeedFetchFilter): [FeedFetch!]
@@ -147,6 +148,7 @@ type FeedVersion {
   updated_by: String
   name: String
   description: String
+  cursor: Cursor!
   "Convex hull around all active stops in the feed version"
   geometry: Polygon
   feed: Feed!
@@ -217,6 +219,7 @@ type Operator {
   website: String
   tags: Tags
   search_rank: String # only for search results
+  cursor: Cursor!
   agencies: [Agency!]
   feeds(limit: Int, where: FeedFilter): [Feed!]
 }
@@ -241,6 +244,7 @@ type Agency {
   feed_onestop_id: String
   feed_version: FeedVersion!
   geometry: Polygon
+  cursor: Cursor!
   search_rank: String # only for search results
   operator: Operator
   places(limit: Int, where: AgencyPlaceFilter): [AgencyPlace!]
@@ -271,6 +275,7 @@ type Route {
   feed_version: FeedVersion!
   feed_version_sha1: String!
   feed_onestop_id: String!
+  cursor: Cursor!
   search_rank: String # only for search results
   trips(limit: Int, where: TripFilter): [Trip!]!
   stops(limit: Int, where: StopFilter): [Stop!]!
@@ -364,6 +369,7 @@ type Trip {
   calendar: Calendar!
   route: Route!
   shape: Shape
+  cursor: Cursor!
   feed_version: FeedVersion!
   stop_times(limit: Int): [StopTime]!
   frequencies(limit: Int): [Frequency!]!

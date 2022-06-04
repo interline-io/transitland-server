@@ -10,6 +10,10 @@ import (
 
 type feedVersionResolver struct{ *Resolver }
 
+func (r *feedVersionResolver) Cursor(ctx context.Context, obj *model.FeedVersion) (*model.Cursor, error) {
+	return &model.Cursor{ID: obj.ID}, nil
+}
+
 func (r *feedVersionResolver) Agencies(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.AgencyFilter) ([]*model.Agency, error) {
 	return For(ctx).AgenciesByFeedVersionID.Load(model.AgencyParam{FeedVersionID: obj.ID, Limit: limit})
 }

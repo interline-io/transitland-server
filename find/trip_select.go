@@ -57,7 +57,7 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil {
+	if after != nil && after.Valid {
 		if after.FeedVersionID == 0 {
 			qView = qView.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (coalesce((select feed_version_id from gtfs_trips where id <= ? order by id limit 1),  0), ?)", after.ID, after.ID))
 		} else {

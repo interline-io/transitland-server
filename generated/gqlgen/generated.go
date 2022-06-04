@@ -74,6 +74,7 @@ type ComplexityRoot struct {
 		AgencyURL         func(childComplexity int) int
 		Alerts            func(childComplexity int) int
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
+		Cursor            func(childComplexity int) int
 		FeedOnestopID     func(childComplexity int) int
 		FeedVersion       func(childComplexity int) int
 		FeedVersionSHA1   func(childComplexity int) int
@@ -170,6 +171,7 @@ type ComplexityRoot struct {
 	Feed struct {
 		AssociatedOperators func(childComplexity int) int
 		Authorization       func(childComplexity int) int
+		Cursor              func(childComplexity int) int
 		FeedFetches         func(childComplexity int, limit *int, where *model.FeedFetchFilter) int
 		FeedState           func(childComplexity int) int
 		FeedVersions        func(childComplexity int, limit *int, where *model.FeedVersionFilter) int
@@ -247,6 +249,7 @@ type ComplexityRoot struct {
 	FeedVersion struct {
 		Agencies              func(childComplexity int, limit *int, where *model.AgencyFilter) int
 		CreatedBy             func(childComplexity int) int
+		Cursor                func(childComplexity int) int
 		Description           func(childComplexity int) int
 		EarliestCalendarDate  func(childComplexity int) int
 		Feed                  func(childComplexity int) int
@@ -373,6 +376,7 @@ type ComplexityRoot struct {
 
 	Operator struct {
 		Agencies   func(childComplexity int) int
+		Cursor     func(childComplexity int) int
 		Feeds      func(childComplexity int, limit *int, where *model.FeedFilter) int
 		File       func(childComplexity int) int
 		Generated  func(childComplexity int) int
@@ -443,6 +447,7 @@ type ComplexityRoot struct {
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
 		ContinuousDropOff func(childComplexity int) int
 		ContinuousPickup  func(childComplexity int) int
+		Cursor            func(childComplexity int) int
 		FeedOnestopID     func(childComplexity int) int
 		FeedVersion       func(childComplexity int) int
 		FeedVersionSHA1   func(childComplexity int) int
@@ -586,6 +591,7 @@ type ComplexityRoot struct {
 		BikesAllowed         func(childComplexity int) int
 		BlockID              func(childComplexity int) int
 		Calendar             func(childComplexity int) int
+		Cursor               func(childComplexity int) int
 		DirectionID          func(childComplexity int) int
 		FeedVersion          func(childComplexity int) int
 		Frequencies          func(childComplexity int, limit *int) int
@@ -655,6 +661,8 @@ type ComplexityRoot struct {
 type AgencyResolver interface {
 	FeedVersion(ctx context.Context, obj *model.Agency) (*model.FeedVersion, error)
 
+	Cursor(ctx context.Context, obj *model.Agency) (*model.Cursor, error)
+
 	Operator(ctx context.Context, obj *model.Agency) (*model.Operator, error)
 	Places(ctx context.Context, obj *model.Agency, limit *int, where *model.AgencyPlaceFilter) ([]*model.AgencyPlace, error)
 	Routes(ctx context.Context, obj *model.Agency, limit *int, where *model.RouteFilter) ([]*model.Route, error)
@@ -683,6 +691,7 @@ type FeedResolver interface {
 	Urls(ctx context.Context, obj *model.Feed) (*model.FeedUrls, error)
 	License(ctx context.Context, obj *model.Feed) (*model.FeedLicense, error)
 
+	Cursor(ctx context.Context, obj *model.Feed) (*model.Cursor, error)
 	AssociatedOperators(ctx context.Context, obj *model.Feed) ([]*model.Operator, error)
 	FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error)
 	FeedFetches(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedFetchFilter) ([]*model.FeedFetch, error)
@@ -692,6 +701,8 @@ type FeedStateResolver interface {
 	FeedVersion(ctx context.Context, obj *model.FeedState) (*model.FeedVersion, error)
 }
 type FeedVersionResolver interface {
+	Cursor(ctx context.Context, obj *model.FeedVersion) (*model.Cursor, error)
+
 	Feed(ctx context.Context, obj *model.FeedVersion) (*model.Feed, error)
 	FeedVersionGtfsImport(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionGtfsImport, error)
 	Files(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedVersionFileInfo, error)
@@ -720,6 +731,7 @@ type MutationResolver interface {
 	FeedVersionDelete(ctx context.Context, id int) (*model.FeedVersionDeleteResult, error)
 }
 type OperatorResolver interface {
+	Cursor(ctx context.Context, obj *model.Operator) (*model.Cursor, error)
 	Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error)
 	Feeds(ctx context.Context, obj *model.Operator, limit *int, where *model.FeedFilter) ([]*model.Feed, error)
 }
@@ -740,6 +752,8 @@ type QueryResolver interface {
 type RouteResolver interface {
 	Agency(ctx context.Context, obj *model.Route) (*model.Agency, error)
 	FeedVersion(ctx context.Context, obj *model.Route) (*model.FeedVersion, error)
+
+	Cursor(ctx context.Context, obj *model.Route) (*model.Cursor, error)
 
 	Trips(ctx context.Context, obj *model.Route, limit *int, where *model.TripFilter) ([]*model.Trip, error)
 	Stops(ctx context.Context, obj *model.Route, limit *int, where *model.StopFilter) ([]*model.Stop, error)
@@ -787,6 +801,7 @@ type TripResolver interface {
 	Calendar(ctx context.Context, obj *model.Trip) (*model.Calendar, error)
 	Route(ctx context.Context, obj *model.Trip) (*model.Route, error)
 	Shape(ctx context.Context, obj *model.Trip) (*model.Shape, error)
+	Cursor(ctx context.Context, obj *model.Trip) (*model.Cursor, error)
 	FeedVersion(ctx context.Context, obj *model.Trip) (*model.FeedVersion, error)
 	StopTimes(ctx context.Context, obj *model.Trip, limit *int) ([]*model.StopTime, error)
 	Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error)
@@ -884,6 +899,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Agency.CensusGeographies(childComplexity, args["layer"].(string), args["radius"].(*float64), args["limit"].(*int)), true
+
+	case "Agency.cursor":
+		if e.complexity.Agency.Cursor == nil {
+			break
+		}
+
+		return e.complexity.Agency.Cursor(childComplexity), true
 
 	case "Agency.feed_onestop_id":
 		if e.complexity.Agency.FeedOnestopID == nil {
@@ -1372,6 +1394,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Feed.Authorization(childComplexity), true
 
+	case "Feed.cursor":
+		if e.complexity.Feed.Cursor == nil {
+			break
+		}
+
+		return e.complexity.Feed.Cursor(childComplexity), true
+
 	case "Feed.feed_fetches":
 		if e.complexity.Feed.FeedFetches == nil {
 			break
@@ -1778,6 +1807,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedVersion.CreatedBy(childComplexity), true
+
+	case "FeedVersion.cursor":
+		if e.complexity.FeedVersion.Cursor == nil {
+			break
+		}
+
+		return e.complexity.FeedVersion.Cursor(childComplexity), true
 
 	case "FeedVersion.description":
 		if e.complexity.FeedVersion.Description == nil {
@@ -2448,6 +2484,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Operator.Agencies(childComplexity), true
 
+	case "Operator.cursor":
+		if e.complexity.Operator.Cursor == nil {
+			break
+		}
+
+		return e.complexity.Operator.Cursor(childComplexity), true
+
 	case "Operator.feeds":
 		if e.complexity.Operator.Feeds == nil {
 			break
@@ -2840,6 +2883,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Route.ContinuousPickup(childComplexity), true
+
+	case "Route.cursor":
+		if e.complexity.Route.Cursor == nil {
+			break
+		}
+
+		return e.complexity.Route.Cursor(childComplexity), true
 
 	case "Route.feed_onestop_id":
 		if e.complexity.Route.FeedOnestopID == nil {
@@ -3707,6 +3757,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Trip.Calendar(childComplexity), true
 
+	case "Trip.cursor":
+		if e.complexity.Trip.Cursor == nil {
+			break
+		}
+
+		return e.complexity.Trip.Cursor(childComplexity), true
+
 	case "Trip.direction_id":
 		if e.complexity.Trip.DirectionID == nil {
 			break
@@ -4191,6 +4248,7 @@ type Feed {
   urls: FeedUrls
   license: FeedLicense
   search_rank: String # only for search results
+  cursor: Cursor!
   associated_operators: [Operator!]
   feed_state: FeedState
   feed_fetches(limit: Int, where: FeedFetchFilter): [FeedFetch!]
@@ -4291,6 +4349,7 @@ type FeedVersion {
   updated_by: String
   name: String
   description: String
+  cursor: Cursor!
   "Convex hull around all active stops in the feed version"
   geometry: Polygon
   feed: Feed!
@@ -4361,6 +4420,7 @@ type Operator {
   website: String
   tags: Tags
   search_rank: String # only for search results
+  cursor: Cursor!
   agencies: [Agency!]
   feeds(limit: Int, where: FeedFilter): [Feed!]
 }
@@ -4385,6 +4445,7 @@ type Agency {
   feed_onestop_id: String
   feed_version: FeedVersion!
   geometry: Polygon
+  cursor: Cursor!
   search_rank: String # only for search results
   operator: Operator
   places(limit: Int, where: AgencyPlaceFilter): [AgencyPlace!]
@@ -4415,6 +4476,7 @@ type Route {
   feed_version: FeedVersion!
   feed_version_sha1: String!
   feed_onestop_id: String!
+  cursor: Cursor!
   search_rank: String # only for search results
   trips(limit: Int, where: TripFilter): [Trip!]!
   stops(limit: Int, where: StopFilter): [Stop!]!
@@ -4508,6 +4570,7 @@ type Trip {
   calendar: Calendar!
   route: Route!
   shape: Shape
+  cursor: Cursor!
   feed_version: FeedVersion!
   stop_times(limit: Int): [StopTime]!
   frequencies(limit: Int): [Frequency!]!
@@ -6918,6 +6981,41 @@ func (ec *executionContext) _Agency_geometry(ctx context.Context, field graphql.
 	res := resTmp.(*tl.Polygon)
 	fc.Result = res
 	return ec.marshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐPolygon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agency_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Agency) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agency",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Agency().Cursor(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Agency_search_rank(ctx context.Context, field graphql.CollectedField, obj *model.Agency) (ret graphql.Marshaler) {
@@ -9333,6 +9431,41 @@ func (ec *executionContext) _Feed_search_rank(ctx context.Context, field graphql
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Feed_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Feed",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Feed().Cursor(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Feed_associated_operators(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11207,6 +11340,41 @@ func (ec *executionContext) _FeedVersion_description(ctx context.Context, field 
 	res := resTmp.(tl.String)
 	fc.Result = res
 	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedVersion_cursor(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedVersion",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.FeedVersion().Cursor(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersion_geometry(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
@@ -14408,6 +14576,41 @@ func (ec *executionContext) _Operator_search_rank(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Operator_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Operator",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Operator().Cursor(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Operator_agencies(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16376,6 +16579,41 @@ func (ec *executionContext) _Route_feed_onestop_id(ctx context.Context, field gr
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Route_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Route().Cursor(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Route_search_rank(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
@@ -20148,6 +20386,41 @@ func (ec *executionContext) _Trip_shape(ctx context.Context, field graphql.Colle
 	res := resTmp.(*model.Shape)
 	fc.Result = res
 	return ec.marshalOShape2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐShape(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Trip_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Trip",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Trip().Cursor(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Trip_feed_version(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
@@ -23935,6 +24208,26 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 
 			out.Values[i] = innerFunc(ctx)
 
+		case "cursor":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Agency_cursor(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "search_rank":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Agency_search_rank(ctx, field, obj)
@@ -24911,6 +25204,26 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = innerFunc(ctx)
 
+		case "cursor":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Feed_cursor(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "associated_operators":
 			field := field
 
@@ -25595,6 +25908,26 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 
 			out.Values[i] = innerFunc(ctx)
 
+		case "cursor":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._FeedVersion_cursor(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "geometry":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._FeedVersion_geometry(ctx, field, obj)
@@ -26816,6 +27149,26 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 
 			out.Values[i] = innerFunc(ctx)
 
+		case "cursor":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Operator_cursor(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "agencies":
 			field := field
 
@@ -27636,6 +27989,26 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "cursor":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Route_cursor(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "search_rank":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Route_search_rank(ctx, field, obj)
@@ -29139,6 +29512,26 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Trip_shape(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "cursor":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Trip_cursor(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 

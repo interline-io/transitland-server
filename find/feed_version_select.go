@@ -16,7 +16,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil && after.ID > 0 {
+	if after != nil && after.Valid {
 		q = q.Where(sq.Expr("fetched_at < (select fetched_at from feed_versions where id = ?)", *after))
 	}
 	if where != nil {

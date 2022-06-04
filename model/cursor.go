@@ -13,6 +13,7 @@ import (
 type Cursor struct {
 	FeedVersionID int
 	ID            int
+	Valid         bool
 }
 
 // UnmarshalJSON implements json.Marshaler interface.
@@ -38,6 +39,7 @@ func (r Cursor) MarshalGQL(w io.Writer) {
 
 // UnmarshalGQL implements the graphql.Unmarshaler interface
 func (r *Cursor) Scan(value interface{}) error {
+	r.Valid = false
 	switch v := value.(type) {
 	case int64:
 		r.ID = int(v)
@@ -58,6 +60,7 @@ func (r *Cursor) Scan(value interface{}) error {
 	default:
 		return errors.New("invalid cursor")
 	}
+	r.Valid = true
 	return nil
 }
 func (r *Cursor) encode() string {
@@ -65,6 +68,9 @@ func (r *Cursor) encode() string {
 }
 
 func (r *Cursor) decode(value string) error {
+	if len(value) == 0 {
+		return nil
+	}
 	dec, err := base64.RawURLEncoding.DecodeString(value)
 	if err != nil {
 		return errors.New("invalid cursor")

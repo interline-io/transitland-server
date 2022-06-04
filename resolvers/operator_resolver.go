@@ -11,6 +11,10 @@ import (
 
 type operatorResolver struct{ *Resolver }
 
+func (r *operatorResolver) Cursor(ctx context.Context, obj *model.Operator) (*model.Cursor, error) {
+	return &model.Cursor{ID: obj.ID}, nil
+}
+
 func (r *operatorResolver) Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error) {
 	a := obj.OnestopID.String
 	return For(ctx).AgenciesByOnestopID.Load(model.AgencyParam{OnestopID: &a})

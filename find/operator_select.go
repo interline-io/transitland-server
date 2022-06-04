@@ -86,7 +86,7 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, w
 	if len(feedIds) > 0 {
 		qView = qView.Where(sq.Eq{"coif.feed_id": feedIds})
 	}
-	if after != nil {
+	if after != nil && after.Valid {
 		qView = qView.Where(sq.Gt{"coif.id": after.ID})
 	}
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t").Limit(checkLimit(limit))
