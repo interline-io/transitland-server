@@ -10,6 +10,11 @@ import (
 
 type feedResolver struct{ *Resolver }
 
+func (r *feedResolver) Cursor(ctx context.Context, obj *model.Feed) (*model.Cursor, error) {
+	c := model.NewCursor(0, obj.ID)
+	return &c, nil
+}
+
 func (r *feedResolver) FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error) {
 	return For(ctx).FeedStatesByFeedID.Load(obj.ID)
 }

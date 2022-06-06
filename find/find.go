@@ -13,6 +13,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 )
@@ -163,11 +164,11 @@ func lateralWrap(q sq.SelectBuilder, parent string, pkey string, ckey string, pi
 	return q2
 }
 
-func quickSelect(table string, limit *int, after *int, ids []int) sq.SelectBuilder {
+func quickSelect(table string, limit *int, after *model.Cursor, ids []int) sq.SelectBuilder {
 	return quickSelectOrder(table, limit, after, ids, "id")
 }
 
-func quickSelectOrder(table string, limit *int, after *int, ids []int, order string) sq.SelectBuilder {
+func quickSelectOrder(table string, limit *int, after *model.Cursor, ids []int, order string) sq.SelectBuilder {
 	table = az09(table)
 	order = az09(order)
 	q := sq.StatementBuilder.
@@ -180,8 +181,8 @@ func quickSelectOrder(table string, limit *int, after *int, ids []int, order str
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
+	if after != nil && after.Valid && after.ID > 0 {
+		q = q.Where(sq.Gt{"t.id": after.ID})
 	}
 	return q
 }

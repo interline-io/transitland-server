@@ -1,6 +1,7 @@
 package resolvers
 
 import (
+	"context"
 	"testing"
 )
 
@@ -229,6 +230,65 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 			``,
 			"routes.#.onestop_id",
 			[]string{"r-9q9-pittsburg~baypoint~sfia~millbrae"},
+		},
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestRouteResolver_Cursor(t *testing.T) {
+	allEnts, err := TestDBFinder.FindRoutes(context.Background(), nil, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	allIds := []string{}
+	for _, ent := range allEnts {
+		allIds = append(allIds, ent.RouteID)
+	}
+	testcases := []testcase{
+		{
+			"no cursor",
+			"query{routes(limit:10){feed_version{id} id route_id}}",
+			nil,
+			``,
+			"routes.#.route_id",
+			allIds[:10],
+		},
+		{
+			"after 0",
+			"query{routes(after: 0, limit:10){feed_version{id} id route_id}}",
+			nil,
+			``,
+			"routes.#.route_id",
+			allIds[:10],
+		},
+		{
+			"after 10th",
+			"query($after: Int!){routes(after: $after, limit:10){feed_version{id} id route_id}}",
+			hw{"after": allEnts[10].ID},
+			``,
+			"routes.#.route_id",
+			allIds[11:21],
+		},
+		{
+			"after last",
+			"query($after: Int!){routes(after: $after, limit:10){feed_version{id} id route_id}}",
+			hw{"after": allEnts[len(allEnts)-1].ID},
+			``,
+			"routes.#.route_id",
+			[]string{},
+		},
+		{
+			"after invalid id returns no results",
+			"query($after: Int!){routes(after: $after, limit:10){feed_version{id} id route_id}}",
+			hw{"after": 10_000_000},
+			``,
+			"routes.#.route_id",
+			[]string{},
 		},
 	}
 	c := newTestClient()

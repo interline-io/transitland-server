@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.AgencyFilter) sq.SelectBuilder {
+func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.AgencyFilter) sq.SelectBuilder {
 	distinct := false
 	qView := sq.StatementBuilder.
 		Select(
@@ -22,7 +22,7 @@ func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.A
 		JoinClause("left join tl_agency_geometries ON tl_agency_geometries.agency_id = gtfs_agencies.id").
 		JoinClause("left join current_operators_in_feed coif ON coif.feed_id = current_feeds.id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		OrderBy("gtfs_agencies.id")
+		OrderBy("gtfs_agencies.feed_version_id,gtfs_agencies.id")
 
 	if where != nil {
 		if where.FeedVersionSha1 != nil {
@@ -72,7 +72,7 @@ func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.A
 		}
 	}
 	if distinct {
-		qView = qView.Distinct().Options("on (gtfs_agencies.id)")
+		qView = qView.Distinct().Options("on (gtfs_agencies.feed_version_id,gtfs_agencies.id)")
 	}
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
@@ -80,8 +80,12 @@ func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.A
 	if len(ids) > 0 {
 		qView = qView.Where(sq.Eq{"gtfs_agencies.id": ids})
 	}
-	if after != nil {
-		qView = qView.Where(sq.Gt{"gtfs_agencies.id": *after})
+	if after != nil && after.Valid && after.ID > 0 {
+		if after.FeedVersionID == 0 {
+			qView = qView.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (select feed_version_id,id from gtfs_agencies where id = ?)", after.ID))
+		} else {
+			qView = qView.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (?,?)", after.FeedVersionID, after.ID))
+		}
 	}
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t").Limit(checkLimit(limit))
 
@@ -89,16 +93,6 @@ func AgencySelect(limit *int, after *int, ids []int, active bool, where *model.A
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)
 			q = q.Column(rank).Where(wc)
-		}
-	}
-	return q
-}
-
-func AgencyPlaceSelect(limit *int, after *int, ids []int, where *model.AgencyPlaceFilter) sq.SelectBuilder {
-	q := quickSelectOrder("tl_agency_places", limit, after, ids, "rank desc")
-	if where != nil {
-		if where.MinRank != nil {
-			q = q.Where(sq.GtOrEq{"rank": where.MinRank})
 		}
 	}
 	return q

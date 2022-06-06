@@ -10,6 +10,11 @@ import (
 
 type agencyResolver struct{ *Resolver }
 
+func (r *agencyResolver) Cursor(ctx context.Context, obj *model.Agency) (*model.Cursor, error) {
+	c := model.NewCursor(obj.FeedVersionID, obj.ID)
+	return &c, nil
+}
+
 func (r *agencyResolver) Routes(ctx context.Context, obj *model.Agency, limit *int, where *model.RouteFilter) ([]*model.Route, error) {
 	return For(ctx).RoutesByAgencyID.Load(model.RouteParam{AgencyID: obj.ID, Limit: limit, Where: where})
 }

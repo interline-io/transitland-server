@@ -1,6 +1,7 @@
 package resolvers
 
 import (
+	"context"
 	"testing"
 )
 
@@ -242,6 +243,49 @@ func TestFeedResolver(t *testing.T) {
 			``,
 			"feeds.0.fail.#.success",
 			[]string{},
+		},
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestFeedResolver_Cursor(t *testing.T) {
+	allEnts, err := TestDBFinder.FindFeeds(context.Background(), nil, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	allIds := []string{}
+	for _, ent := range allEnts {
+		allIds = append(allIds, ent.FeedID)
+	}
+	testcases := []testcase{
+		{
+			"no cursor",
+			"query{feeds(limit:10){id onestop_id}}",
+			nil,
+			``,
+			"feeds.#.onestop_id",
+			allIds,
+		},
+		{
+			"after 0",
+			"query{feeds(after: 0, limit:10){id onestop_id}}",
+			nil,
+			``,
+			"feeds.#.onestop_id",
+			allIds,
+		},
+		{
+			"after 1st",
+			"query($after: Int!){feeds(after: $after, limit:10){id onestop_id}}",
+			hw{"after": allEnts[1].ID},
+			``,
+			"feeds.#.onestop_id",
+			allIds[2:],
 		},
 	}
 	c := newTestClient()

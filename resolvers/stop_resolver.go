@@ -18,6 +18,11 @@ type stopResolver struct {
 	*Resolver
 }
 
+func (r *stopResolver) Cursor(ctx context.Context, obj *model.Stop) (*model.Cursor, error) {
+	c := model.NewCursor(obj.FeedVersionID, obj.ID)
+	return &c, nil
+}
+
 func (r *stopResolver) FeedVersion(ctx context.Context, obj *model.Stop) (*model.FeedVersion, error) {
 	return For(ctx).FeedVersionsByID.Load(obj.FeedVersionID)
 }

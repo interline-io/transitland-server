@@ -26,7 +26,7 @@ func (f *DBFinder) DBX() sqlx.Ext {
 	return f.db
 }
 
-func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *int, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
+func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
 	var ents []*model.Agency
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
@@ -37,7 +37,7 @@ func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *int, ids
 	return ents, nil
 }
 
-func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *int, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
+func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
 	var ents []*model.Route
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
@@ -48,7 +48,7 @@ func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *int, ids [
 	return ents, nil
 }
 
-func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *int, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
+func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
 	var ents []*model.Stop
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
@@ -59,7 +59,7 @@ func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *int, ids []
 	return ents, nil
 }
 
-func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
+func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
 	var ents []*model.Trip
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
@@ -70,19 +70,19 @@ func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *int, ids []
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
+func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
 	MustSelect(ctx, f.db, FeedVersionSelect(limit, after, ids, where), &ents)
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
+func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
 	var ents []*model.Feed
 	MustSelect(ctx, f.db, FeedSelect(limit, after, ids, where), &ents)
 	return ents, nil
 }
 
-func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
+func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
 	MustSelect(ctx, f.db, OperatorSelect(limit, after, ids, nil, where), &ents)
 	return ents, nil
@@ -409,24 +409,6 @@ func (f *DBFinder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.
 		byid[ent.FeedID] = ent
 	}
 	ents2 := make([]*model.FeedState, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
-}
-
-func (f *DBFinder) FeedFetchesStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedFetch, []error) {
-	var ents []*model.FeedFetch
-	MustSelect(ctx,
-		f.db,
-		quickSelect("feed_fetches", nil, nil, nil).Where(sq.Eq{"feed_id": ids}),
-		&ents,
-	)
-	byid := map[int]*model.FeedFetch{}
-	for _, ent := range ents {
-		byid[ent.FeedID] = ent
-	}
-	ents2 := make([]*model.FeedFetch, len(ids))
 	for i, id := range ids {
 		ents2[i] = byid[id]
 	}

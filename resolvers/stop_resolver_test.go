@@ -1,6 +1,7 @@
 package resolvers
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -240,6 +241,68 @@ func TestStopResolver(t *testing.T) {
 		},
 		// TODO: census_geographies
 		// TODO: route_stop_buffer
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestStopResolver_Cursor(t *testing.T) {
+	// First 1000 stops...
+	allEnts, err := TestDBFinder.FindStops(context.Background(), nil, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	allIds := []string{}
+	for _, st := range allEnts {
+		allIds = append(allIds, st.StopID)
+	}
+	testcases := []testcase{
+		{
+			"no cursor",
+			"query{stops(limit:100){feed_version{id} id stop_id}}",
+			nil,
+			``,
+			"stops.#.stop_id",
+			allIds[:100],
+		},
+		{
+			"after 0",
+			"query{stops(after: 0, limit:100){feed_version{id} id stop_id}}",
+			nil,
+			``,
+			"stops.#.stop_id",
+			allIds[:100],
+		},
+		{
+			"after 10th",
+			"query($after: Int!){stops(after: $after, limit:10){feed_version{id} id stop_id}}",
+			hw{"after": allEnts[10].ID},
+			``,
+			"stops.#.stop_id",
+			allIds[11:21],
+		},
+		{
+			"after invalid id returns no records",
+			"query($after: Int!){stops(after: $after, limit:10){feed_version{id} id stop_id}}",
+			hw{"after": 10_000_000},
+			``,
+			"stops.#.stop_id",
+			[]string{},
+		},
+
+		// TODO: uncomment after schema changes
+		// {
+		// 	"no cursor",
+		// 	"query($cursor: Cursor!){stops(after: $cursor, limit:100){feed_version{id} id stop_id}}",
+		// 	hw{"cursor": 0},
+		// 	``,
+		// 	"stops.#.stop_id",
+		// 	stopIds[:100],
+		// },
 	}
 	c := newTestClient()
 	for _, tc := range testcases {
@@ -638,7 +701,27 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 				// this test checks the json response because it is too complex for the simple element selector approach
 				// we should expect east coast times 18:00-18:10, and west coast times 15:00-15:10
 				`{
-					"stops": [{
+					"stops": [
+					{
+						"onestop_id": "s-9q9p1wxf72-macarthur",
+						"stop_id": "MCAR",
+						"stop_times": [{
+							"arrival_time": "15:00:00"
+						}, {
+							"arrival_time": "15:07:00"
+						}]
+					}, {
+						"onestop_id": "s-9q9p1wxf72-macarthur",
+						"stop_id": "MCAR_S",
+						"stop_times": [{
+							"arrival_time": "15:01:00"
+						}, {
+							"arrival_time": "15:09:00"
+						}, {
+							"arrival_time": "15:09:00"
+						}]
+					},
+					{
 						"onestop_id": "s-dhvrsm227t-universityareatransitcenter",
 						"stop_id": "6497",
 						"stop_times": [{
@@ -657,24 +740,6 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 							"arrival_time": "18:10:00"
 						}, {
 							"arrival_time": "18:10:00"
-						}]
-					}, {
-						"onestop_id": "s-9q9p1wxf72-macarthur",
-						"stop_id": "MCAR",
-						"stop_times": [{
-							"arrival_time": "15:00:00"
-						}, {
-							"arrival_time": "15:07:00"
-						}]
-					}, {
-						"onestop_id": "s-9q9p1wxf72-macarthur",
-						"stop_id": "MCAR_S",
-						"stop_times": [{
-							"arrival_time": "15:01:00"
-						}, {
-							"arrival_time": "15:09:00"
-						}, {
-							"arrival_time": "15:09:00"
 						}]
 					}]
 				}`,

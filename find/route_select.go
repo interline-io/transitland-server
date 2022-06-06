@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
+func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
 		"COALESCE(tlrg.combined_geometry, tlrg.geometry) as geometry",
@@ -20,7 +20,7 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
 		JoinClause(`LEFT JOIN tl_route_geometries tlrg ON tlrg.route_id = gtfs_routes.id`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		OrderBy("gtfs_routes.id")
+		OrderBy("gtfs_routes.feed_version_id,gtfs_routes.id")
 
 	// Handle previous OnestopIds
 	if where != nil {
@@ -94,8 +94,12 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 	if len(ids) > 0 {
 		qView = qView.Where(sq.Eq{"gtfs_routes.id": ids})
 	}
-	if after != nil {
-		qView = qView.Where(sq.Gt{"gtfs_routes.id": *after})
+	if after != nil && after.Valid && after.ID > 0 {
+		if after.FeedVersionID == 0 {
+			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (select feed_version_id,id from gtfs_routes where id = ?)", after.ID))
+		} else {
+			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (?,?)", after.FeedVersionID, after.ID))
+		}
 	}
 	// Outer query
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")

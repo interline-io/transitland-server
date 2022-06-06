@@ -1,6 +1,7 @@
 package resolvers
 
 import (
+	"context"
 	"testing"
 )
 
@@ -221,6 +222,49 @@ func TestAgencyResolver(t *testing.T) {
 		},
 		// TODO
 		// {"census_geographies", }
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestAgencyResolver_Cursor(t *testing.T) {
+	allEnts, err := TestDBFinder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	allIds := []string{}
+	for _, ent := range allEnts {
+		allIds = append(allIds, ent.AgencyID)
+	}
+	testcases := []testcase{
+		{
+			"no cursor",
+			"query{agencies(limit:10){feed_version{id} id agency_id}}",
+			nil,
+			``,
+			"agencies.#.agency_id",
+			allIds,
+		},
+		{
+			"after 0",
+			"query{agencies(after: 0, limit:10){feed_version{id} id agency_id}}",
+			nil,
+			``,
+			"agencies.#.agency_id",
+			allIds,
+		},
+		{
+			"after 1st",
+			"query($after: Int!){agencies(after: $after, limit:10){feed_version{id} id agency_id}}",
+			hw{"after": allEnts[1].ID},
+			``,
+			"agencies.#.agency_id",
+			allIds[2:],
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {
