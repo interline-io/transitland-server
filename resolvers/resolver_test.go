@@ -85,7 +85,7 @@ func testquery(t *testing.T, c *client.Client, tc testcase) {
 		if len(a) == 0 && tc.expectSelect == nil {
 			t.Errorf("selector '%s' returned zero elements", tc.selector)
 		} else {
-			if !assert.ElementsMatch(t, a, tc.expectSelect) {
+			if !assert.ElementsMatch(t, tc.expectSelect, a) {
 				t.Errorf("got %#v -- expect %#v\n\n", a, tc.expectSelect)
 			}
 		}

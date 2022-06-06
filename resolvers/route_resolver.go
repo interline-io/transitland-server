@@ -12,7 +12,8 @@ import (
 type routeResolver struct{ *Resolver }
 
 func (r *routeResolver) Cursor(ctx context.Context, obj *model.Route) (*model.Cursor, error) {
-	return &model.Cursor{FeedVersionID: obj.FeedVersionID, ID: obj.ID}, nil
+	c := model.NewCursor(obj.FeedVersionID, obj.ID)
+	return &c, nil
 }
 
 func (r *routeResolver) Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error) {

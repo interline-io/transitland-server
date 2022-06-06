@@ -12,7 +12,8 @@ import (
 type tripResolver struct{ *Resolver }
 
 func (r *tripResolver) Cursor(ctx context.Context, obj *model.Trip) (*model.Cursor, error) {
-	return &model.Cursor{FeedVersionID: obj.FeedVersionID, ID: obj.ID}, nil
+	c := model.NewCursor(obj.FeedVersionID, obj.ID)
+	return &c, nil
 }
 
 func (r *tripResolver) Route(ctx context.Context, obj *model.Trip) (*model.Route, error) {

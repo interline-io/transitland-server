@@ -12,7 +12,8 @@ import (
 type operatorResolver struct{ *Resolver }
 
 func (r *operatorResolver) Cursor(ctx context.Context, obj *model.Operator) (*model.Cursor, error) {
-	return &model.Cursor{ID: obj.ID}, nil
+	c := model.NewCursor(0, obj.ID)
+	return &c, nil
 }
 
 func (r *operatorResolver) Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error) {

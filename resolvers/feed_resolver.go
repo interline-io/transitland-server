@@ -11,7 +11,8 @@ import (
 type feedResolver struct{ *Resolver }
 
 func (r *feedResolver) Cursor(ctx context.Context, obj *model.Feed) (*model.Cursor, error) {
-	return &model.Cursor{ID: obj.ID}, nil
+	c := model.NewCursor(0, obj.ID)
+	return &c, nil
 }
 
 func (r *feedResolver) FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error) {

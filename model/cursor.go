@@ -16,6 +16,10 @@ type Cursor struct {
 	Valid         bool
 }
 
+func NewCursor(fvid int, id int) Cursor {
+	return Cursor{FeedVersionID: fvid, ID: id, Valid: true}
+}
+
 // UnmarshalJSON implements json.Marshaler interface.
 func (r *Cursor) UnmarshalJSON(v []byte) error {
 	return r.Scan(v)
