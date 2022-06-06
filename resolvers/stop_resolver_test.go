@@ -252,13 +252,13 @@ func TestStopResolver(t *testing.T) {
 
 func TestStopResolver_Cursor(t *testing.T) {
 	// First 1000 stops...
-	allStops, err := TestDBFinder.FindStops(context.Background(), nil, nil, nil, nil)
+	allEnts, err := TestDBFinder.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	stopIds := []string{}
-	for _, st := range allStops {
-		stopIds = append(stopIds, st.StopID)
+	allIds := []string{}
+	for _, st := range allEnts {
+		allIds = append(allIds, st.StopID)
 	}
 	testcases := []testcase{
 		{
@@ -267,7 +267,7 @@ func TestStopResolver_Cursor(t *testing.T) {
 			nil,
 			``,
 			"stops.#.stop_id",
-			stopIds[:100],
+			allIds[:100],
 		},
 		{
 			"after 0",
@@ -275,16 +275,25 @@ func TestStopResolver_Cursor(t *testing.T) {
 			nil,
 			``,
 			"stops.#.stop_id",
-			stopIds[:100],
+			allIds[:100],
 		},
 		{
 			"after 10th",
 			"query($after: Int!){stops(after: $after, limit:10){feed_version{id} id stop_id}}",
-			hw{"after": allStops[10].ID},
+			hw{"after": allEnts[10].ID},
 			``,
 			"stops.#.stop_id",
-			stopIds[11:21],
+			allIds[11:21],
 		},
+		{
+			"after invalid id behaves like (0,0)",
+			"query($after: Int!){stops(after: $after, limit:10){feed_version{id} id stop_id}}",
+			hw{"after": 10_000_000},
+			``,
+			"stops.#.stop_id",
+			allIds[:10],
+		},
+
 		// TODO: uncomment after schema changes
 		// {
 		// 	"no cursor",

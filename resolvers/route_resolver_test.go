@@ -274,6 +274,22 @@ func TestRouteResolver_Cursor(t *testing.T) {
 			"routes.#.route_id",
 			allIds[11:21],
 		},
+		{
+			"after last",
+			"query($after: Int!){routes(after: $after, limit:10){feed_version{id} id route_id}}",
+			hw{"after": allEnts[len(allEnts)-1].ID},
+			``,
+			"routes.#.route_id",
+			[]string{},
+		},
+		{
+			"after invalid id behaves like (0,0)",
+			"query($after: Int!){routes(after: $after, limit:10){feed_version{id} id route_id}}",
+			hw{"after": 10_000_000},
+			``,
+			"routes.#.route_id",
+			allIds[:10],
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {
