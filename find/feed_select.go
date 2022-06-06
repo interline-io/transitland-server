@@ -16,7 +16,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedFil
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil && after.Valid {
+	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"t.id": after.ID})
 	}
 	if where != nil {

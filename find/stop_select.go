@@ -110,9 +110,9 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 	if len(ids) > 0 {
 		qView = qView.Where(sq.Eq{"gtfs_stops.id": ids})
 	}
-	if after != nil && after.Valid {
+	if after != nil && after.Valid && after.ID > 0 {
 		if after.FeedVersionID == 0 {
-			qView = qView.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (coalesce((select feed_version_id from gtfs_stops where id = ?),  0), ?)", after.ID, after.ID))
+			qView = qView.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (select feed_version_id,id from gtfs_stops where id = ?)", after.ID))
 		} else {
 			qView = qView.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (?,?)", after.FeedVersionID, after.ID))
 		}

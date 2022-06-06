@@ -80,9 +80,9 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, where
 	if len(ids) > 0 {
 		qView = qView.Where(sq.Eq{"gtfs_agencies.id": ids})
 	}
-	if after != nil && after.Valid {
+	if after != nil && after.Valid && after.ID > 0 {
 		if after.FeedVersionID == 0 {
-			qView = qView.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (coalesce((select feed_version_id from gtfs_agencies where id = ?),  0), ?)", after.ID, after.ID))
+			qView = qView.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (select feed_version_id,id from gtfs_agencies where id = ?)", after.ID))
 		} else {
 			qView = qView.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (?,?)", after.FeedVersionID, after.ID))
 		}

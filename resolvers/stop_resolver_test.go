@@ -286,12 +286,12 @@ func TestStopResolver_Cursor(t *testing.T) {
 			allIds[11:21],
 		},
 		{
-			"after invalid id behaves like (0,0)",
+			"after invalid id returns no records",
 			"query($after: Int!){stops(after: $after, limit:10){feed_version{id} id stop_id}}",
 			hw{"after": 10_000_000},
 			``,
 			"stops.#.stop_id",
-			allIds[:10],
+			[]string{},
 		},
 
 		// TODO: uncomment after schema changes

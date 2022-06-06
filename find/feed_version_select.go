@@ -12,12 +12,12 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
 		JoinClause("left join tl_feed_version_geometries on tl_feed_version_geometries.feed_version_id = t.id").
 		Limit(checkLimit(limit)).
-		OrderBy("t.fetched_at desc")
+		OrderBy("t.fetched_at desc, t.id desc")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil && after.Valid {
-		q = q.Where(sq.Expr("fetched_at < (select fetched_at from feed_versions where id = ?)", after.ID))
+	if after != nil && after.Valid && after.ID > 0 {
+		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at from feed_versions where id = ?", after.ID))
 	}
 	if where != nil {
 		if where.Sha1 != nil {
