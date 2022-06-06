@@ -96,7 +96,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where 
 	}
 	if after != nil && after.Valid {
 		if after.FeedVersionID == 0 {
-			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (coalesce((select feed_version_id from gtfs_routes where id <= ? order by id limit 1),  0), ?)", after.ID, after.ID))
+			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (coalesce((select feed_version_id from gtfs_routes where id <= ? order by id desc limit 1),  0), ?)", after.ID, after.ID))
 		} else {
 			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
