@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"strconv"
 	"testing"
 
@@ -9,14 +10,14 @@ import (
 
 func TestTripRequest(t *testing.T) {
 	cfg := testRestConfig()
-	d, err := makeGraphQLRequest(cfg.srv, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
+	d, err := makeGraphQLRequest(context.Background(), cfg.srv, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
 	}
 	routeId := int(gjson.Get(toJson(d), "routes.0.id").Int())
 	routeOnestopId := gjson.Get(toJson(d), "routes.0.onestop_id").String()
 
-	d2, err := makeGraphQLRequest(cfg.srv, `query{trips(where:{trip_id:"5132248WKDY"}){id}}`, nil)
+	d2, err := makeGraphQLRequest(context.Background(), cfg.srv, `query{trips(where:{trip_id:"5132248WKDY"}){id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
 	}

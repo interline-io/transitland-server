@@ -72,6 +72,7 @@ type ComplexityRoot struct {
 		AgencyPhone       func(childComplexity int) int
 		AgencyTimezone    func(childComplexity int) int
 		AgencyURL         func(childComplexity int) int
+		Alerts            func(childComplexity int) int
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
 		FeedOnestopID     func(childComplexity int) int
 		FeedVersion       func(childComplexity int) int
@@ -90,6 +91,18 @@ type ComplexityRoot struct {
 		Adm1Name func(childComplexity int) int
 		CityName func(childComplexity int) int
 		Rank     func(childComplexity int) int
+	}
+
+	Alert struct {
+		ActivePeriod       func(childComplexity int) int
+		Cause              func(childComplexity int) int
+		DescriptionText    func(childComplexity int) int
+		Effect             func(childComplexity int) int
+		HeaderText         func(childComplexity int) int
+		SeverityLevel      func(childComplexity int) int
+		TtsDescriptionText func(childComplexity int) int
+		TtsHeaderText      func(childComplexity int) int
+		URL                func(childComplexity int) int
 	}
 
 	Calendar struct {
@@ -131,11 +144,33 @@ type ComplexityRoot struct {
 		Values func(childComplexity int) int
 	}
 
+	Directions struct {
+		DataSource  func(childComplexity int) int
+		Destination func(childComplexity int) int
+		Distance    func(childComplexity int) int
+		Duration    func(childComplexity int) int
+		EndTime     func(childComplexity int) int
+		Exception   func(childComplexity int) int
+		Itineraries func(childComplexity int) int
+		Origin      func(childComplexity int) int
+		StartTime   func(childComplexity int) int
+		Success     func(childComplexity int) int
+	}
+
+	Distance struct {
+		Distance func(childComplexity int) int
+		Units    func(childComplexity int) int
+	}
+
+	Duration struct {
+		Duration func(childComplexity int) int
+		Units    func(childComplexity int) int
+	}
+
 	Feed struct {
-		AssociatedFeeds     func(childComplexity int) int
 		AssociatedOperators func(childComplexity int) int
 		Authorization       func(childComplexity int) int
-		FeedNamespaceID     func(childComplexity int) int
+		FeedFetches         func(childComplexity int, limit *int, where *model.FeedFetchFilter) int
 		FeedState           func(childComplexity int) int
 		FeedVersions        func(childComplexity int, limit *int, where *model.FeedVersionFilter) int
 		File                func(childComplexity int) int
@@ -156,7 +191,22 @@ type ComplexityRoot struct {
 		Type      func(childComplexity int) int
 	}
 
+	FeedFetch struct {
+		FetchError   func(childComplexity int) int
+		FetchedAt    func(childComplexity int) int
+		ID           func(childComplexity int) int
+		ResponseCode func(childComplexity int) int
+		ResponseSha1 func(childComplexity int) int
+		ResponseSize func(childComplexity int) int
+		Success      func(childComplexity int) int
+		URL          func(childComplexity int) int
+		URLType      func(childComplexity int) int
+	}
+
 	FeedInfo struct {
+		DefaultLang       func(childComplexity int) int
+		FeedContactEmail  func(childComplexity int) int
+		FeedContactURL    func(childComplexity int) int
 		FeedEndDate       func(childComplexity int) int
 		FeedLang          func(childComplexity int) int
 		FeedPublisherName func(childComplexity int) int
@@ -179,14 +229,13 @@ type ComplexityRoot struct {
 	}
 
 	FeedState struct {
-		FeedVersion           func(childComplexity int) int
-		ID                    func(childComplexity int) int
-		LastFetchError        func(childComplexity int) int
-		LastFetchedAt         func(childComplexity int) int
-		LastSuccessfulFetchAt func(childComplexity int) int
+		FeedVersion func(childComplexity int) int
+		ID          func(childComplexity int) int
 	}
 
 	FeedUrls struct {
+		GbfsAutoDiscovery        func(childComplexity int) int
+		MdsProvider              func(childComplexity int) int
 		RealtimeAlerts           func(childComplexity int) int
 		RealtimeTripUpdates      func(childComplexity int) int
 		RealtimeVehiclePositions func(childComplexity int) int
@@ -261,19 +310,16 @@ type ComplexityRoot struct {
 	}
 
 	FeedVersionServiceLevel struct {
-		EndDate        func(childComplexity int) int
-		Friday         func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Monday         func(childComplexity int) int
-		RouteID        func(childComplexity int) int
-		RouteLongName  func(childComplexity int) int
-		RouteShortName func(childComplexity int) int
-		Saturday       func(childComplexity int) int
-		StartDate      func(childComplexity int) int
-		Sunday         func(childComplexity int) int
-		Thursday       func(childComplexity int) int
-		Tuesday        func(childComplexity int) int
-		Wednesday      func(childComplexity int) int
+		EndDate   func(childComplexity int) int
+		Friday    func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Monday    func(childComplexity int) int
+		Saturday  func(childComplexity int) int
+		StartDate func(childComplexity int) int
+		Sunday    func(childComplexity int) int
+		Thursday  func(childComplexity int) int
+		Tuesday   func(childComplexity int) int
+		Wednesday func(childComplexity int) int
 	}
 
 	FeedVersionUnimportResult struct {
@@ -286,6 +332,27 @@ type ComplexityRoot struct {
 		HeadwaySecs func(childComplexity int) int
 		ID          func(childComplexity int) int
 		StartTime   func(childComplexity int) int
+	}
+
+	Itinerary struct {
+		Distance  func(childComplexity int) int
+		Duration  func(childComplexity int) int
+		EndTime   func(childComplexity int) int
+		From      func(childComplexity int) int
+		Legs      func(childComplexity int) int
+		StartTime func(childComplexity int) int
+		To        func(childComplexity int) int
+	}
+
+	Leg struct {
+		Distance  func(childComplexity int) int
+		Duration  func(childComplexity int) int
+		EndTime   func(childComplexity int) int
+		From      func(childComplexity int) int
+		Geometry  func(childComplexity int) int
+		StartTime func(childComplexity int) int
+		Steps     func(childComplexity int) int
+		To        func(childComplexity int) int
 	}
 
 	Level struct {
@@ -305,17 +372,17 @@ type ComplexityRoot struct {
 	}
 
 	Operator struct {
-		Agencies        func(childComplexity int) int
-		AssociatedFeeds func(childComplexity int) int
-		File            func(childComplexity int) int
-		Generated       func(childComplexity int) int
-		ID              func(childComplexity int) int
-		Name            func(childComplexity int) int
-		OnestopID       func(childComplexity int) int
-		SearchRank      func(childComplexity int) int
-		ShortName       func(childComplexity int) int
-		Tags            func(childComplexity int) int
-		Website         func(childComplexity int) int
+		Agencies   func(childComplexity int) int
+		Feeds      func(childComplexity int, limit *int, where *model.FeedFilter) int
+		File       func(childComplexity int) int
+		Generated  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Name       func(childComplexity int) int
+		OnestopID  func(childComplexity int) int
+		SearchRank func(childComplexity int) int
+		ShortName  func(childComplexity int) int
+		Tags       func(childComplexity int) int
+		Website    func(childComplexity int) int
 	}
 
 	Pathway struct {
@@ -336,6 +403,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Agencies     func(childComplexity int, limit *int, after *int, ids []int, where *model.AgencyFilter) int
+		Directions   func(childComplexity int, where model.DirectionRequest) int
 		FeedVersions func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedVersionFilter) int
 		Feeds        func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedFilter) int
 		Operators    func(childComplexity int, limit *int, after *int, ids []int, where *model.OperatorFilter) int
@@ -344,9 +412,37 @@ type ComplexityRoot struct {
 		Trips        func(childComplexity int, limit *int, after *int, ids []int, where *model.TripFilter) int
 	}
 
+	RTTimeRange struct {
+		End   func(childComplexity int) int
+		Start func(childComplexity int) int
+	}
+
+	RTTranslation struct {
+		Language func(childComplexity int) int
+		Text     func(childComplexity int) int
+	}
+
+	RTTripDescriptor struct {
+		DirectionID          func(childComplexity int) int
+		RouteID              func(childComplexity int) int
+		ScheduleRelationship func(childComplexity int) int
+		StartDate            func(childComplexity int) int
+		StartTime            func(childComplexity int) int
+		TripID               func(childComplexity int) int
+	}
+
+	RTVehicleDescriptor struct {
+		ID           func(childComplexity int) int
+		Label        func(childComplexity int) int
+		LicensePlate func(childComplexity int) int
+	}
+
 	Route struct {
 		Agency            func(childComplexity int) int
+		Alerts            func(childComplexity int) int
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
+		ContinuousDropOff func(childComplexity int) int
+		ContinuousPickup  func(childComplexity int) int
 		FeedOnestopID     func(childComplexity int) int
 		FeedVersion       func(childComplexity int) int
 		FeedVersionSHA1   func(childComplexity int) int
@@ -372,9 +468,12 @@ type ComplexityRoot struct {
 	}
 
 	RouteGeometry struct {
-		CombinedGeometry func(childComplexity int) int
-		Generated        func(childComplexity int) int
-		Geometry         func(childComplexity int) int
+		CombinedGeometry      func(childComplexity int) int
+		FirstPointMaxDistance func(childComplexity int) int
+		Generated             func(childComplexity int) int
+		Geometry              func(childComplexity int) int
+		Length                func(childComplexity int) int
+		MaxSegmentLength      func(childComplexity int) int
 	}
 
 	RouteHeadway struct {
@@ -410,9 +509,24 @@ type ComplexityRoot struct {
 		ShapeID   func(childComplexity int) int
 	}
 
+	Step struct {
+		Distance       func(childComplexity int) int
+		Duration       func(childComplexity int) int
+		EndTime        func(childComplexity int) int
+		GeometryOffset func(childComplexity int) int
+		Instruction    func(childComplexity int) int
+		Mode           func(childComplexity int) int
+		StartTime      func(childComplexity int) int
+		To             func(childComplexity int) int
+	}
+
 	Stop struct {
+		Alerts             func(childComplexity int) int
+		Arrivals           func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		CensusGeographies  func(childComplexity int, layer string, radius *float64, limit *int) int
 		Children           func(childComplexity int, limit *int) int
+		Departures         func(childComplexity int, limit *int, where *model.StopTimeFilter) int
+		Directions         func(childComplexity int, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) int
 		FeedOnestopID      func(childComplexity int) int
 		FeedVersion        func(childComplexity int) int
 		FeedVersionSHA1    func(childComplexity int) int
@@ -424,6 +538,7 @@ type ComplexityRoot struct {
 		Parent             func(childComplexity int) int
 		PathwaysFromStop   func(childComplexity int, limit *int) int
 		PathwaysToStop     func(childComplexity int, limit *int) int
+		PlatformCode       func(childComplexity int) int
 		RouteStops         func(childComplexity int, limit *int) int
 		SearchRank         func(childComplexity int) int
 		StopCode           func(childComplexity int) int
@@ -433,24 +548,40 @@ type ComplexityRoot struct {
 		StopTimes          func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		StopTimezone       func(childComplexity int) int
 		StopURL            func(childComplexity int) int
+		TtsStopName        func(childComplexity int) int
 		WheelchairBoarding func(childComplexity int) int
 		ZoneID             func(childComplexity int) int
 	}
 
 	StopTime struct {
-		ArrivalTime   func(childComplexity int) int
-		DepartureTime func(childComplexity int) int
-		DropOffType   func(childComplexity int) int
-		Interpolated  func(childComplexity int) int
-		PickupType    func(childComplexity int) int
-		Stop          func(childComplexity int) int
-		StopHeadsign  func(childComplexity int) int
-		StopSequence  func(childComplexity int) int
-		Timepoint     func(childComplexity int) int
-		Trip          func(childComplexity int) int
+		Arrival           func(childComplexity int) int
+		ArrivalTime       func(childComplexity int) int
+		ContinuousDropOff func(childComplexity int) int
+		ContinuousPickup  func(childComplexity int) int
+		Departure         func(childComplexity int) int
+		DepartureTime     func(childComplexity int) int
+		DropOffType       func(childComplexity int) int
+		Interpolated      func(childComplexity int) int
+		PickupType        func(childComplexity int) int
+		ServiceDate       func(childComplexity int) int
+		Stop              func(childComplexity int) int
+		StopHeadsign      func(childComplexity int) int
+		StopSequence      func(childComplexity int) int
+		Timepoint         func(childComplexity int) int
+		Trip              func(childComplexity int) int
+	}
+
+	StopTimeEvent struct {
+		Delay        func(childComplexity int) int
+		Estimated    func(childComplexity int) int
+		EstimatedUtc func(childComplexity int) int
+		Scheduled    func(childComplexity int) int
+		StopTimezone func(childComplexity int) int
+		Uncertainty  func(childComplexity int) int
 	}
 
 	Trip struct {
+		Alerts               func(childComplexity int) int
 		BikesAllowed         func(childComplexity int) int
 		BlockID              func(childComplexity int) int
 		Calendar             func(childComplexity int) int
@@ -459,9 +590,11 @@ type ComplexityRoot struct {
 		Frequencies          func(childComplexity int, limit *int) int
 		ID                   func(childComplexity int) int
 		Route                func(childComplexity int) int
+		ScheduleRelationship func(childComplexity int) int
 		Shape                func(childComplexity int) int
 		StopPatternID        func(childComplexity int) int
 		StopTimes            func(childComplexity int, limit *int) int
+		Timestamp            func(childComplexity int) int
 		TripHeadsign         func(childComplexity int) int
 		TripID               func(childComplexity int) int
 		TripShortName        func(childComplexity int) int
@@ -500,6 +633,22 @@ type ComplexityRoot struct {
 		Filename  func(childComplexity int) int
 		Limit     func(childComplexity int) int
 	}
+
+	VehiclePosition struct {
+		CongestionLevel     func(childComplexity int) int
+		CurrentStatus       func(childComplexity int) int
+		CurrentStopSequence func(childComplexity int) int
+		Position            func(childComplexity int) int
+		StopID              func(childComplexity int) int
+		Timestamp           func(childComplexity int) int
+		Vehicle             func(childComplexity int) int
+	}
+
+	Waypoint struct {
+		Lat  func(childComplexity int) int
+		Lon  func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
 }
 
 type AgencyResolver interface {
@@ -509,13 +658,14 @@ type AgencyResolver interface {
 	Places(ctx context.Context, obj *model.Agency, limit *int, where *model.AgencyPlaceFilter) ([]*model.AgencyPlace, error)
 	Routes(ctx context.Context, obj *model.Agency, limit *int, where *model.RouteFilter) ([]*model.Route, error)
 	CensusGeographies(ctx context.Context, obj *model.Agency, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
+	Alerts(ctx context.Context, obj *model.Agency) ([]*model.Alert, error)
 }
 type CalendarResolver interface {
-	StartDate(ctx context.Context, obj *model.Calendar) (*tl.ODate, error)
-	EndDate(ctx context.Context, obj *model.Calendar) (*tl.ODate, error)
+	StartDate(ctx context.Context, obj *model.Calendar) (*tl.Date, error)
+	EndDate(ctx context.Context, obj *model.Calendar) (*tl.Date, error)
 
-	AddedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.ODate, error)
-	RemovedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.ODate, error)
+	AddedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.Date, error)
+	RemovedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.Date, error)
 }
 type CensusGeographyResolver interface {
 	Values(ctx context.Context, obj *model.CensusGeography, tableNames []string, limit *int) ([]*model.CensusValue, error)
@@ -525,8 +675,8 @@ type CensusValueResolver interface {
 	Values(ctx context.Context, obj *model.CensusValue) (interface{}, error)
 }
 type FeedResolver interface {
+	Spec(ctx context.Context, obj *model.Feed) (*model.FeedSpecTypes, error)
 	Languages(ctx context.Context, obj *model.Feed) ([]string, error)
-	AssociatedFeeds(ctx context.Context, obj *model.Feed) ([]string, error)
 
 	Authorization(ctx context.Context, obj *model.Feed) (*model.FeedAuthorization, error)
 	Urls(ctx context.Context, obj *model.Feed) (*model.FeedUrls, error)
@@ -534,6 +684,7 @@ type FeedResolver interface {
 
 	AssociatedOperators(ctx context.Context, obj *model.Feed) ([]*model.Operator, error)
 	FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error)
+	FeedFetches(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedFetchFilter) ([]*model.FeedFetch, error)
 	FeedVersions(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error)
 }
 type FeedStateResolver interface {
@@ -568,9 +719,8 @@ type MutationResolver interface {
 	FeedVersionDelete(ctx context.Context, id int) (*model.FeedVersionDeleteResult, error)
 }
 type OperatorResolver interface {
-	AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error)
-
 	Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error)
+	Feeds(ctx context.Context, obj *model.Operator, limit *int, where *model.FeedFilter) ([]*model.Feed, error)
 }
 type PathwayResolver interface {
 	FromStop(ctx context.Context, obj *model.Pathway) (*model.Stop, error)
@@ -584,6 +734,7 @@ type QueryResolver interface {
 	Stops(ctx context.Context, limit *int, after *int, ids []int, where *model.StopFilter) ([]*model.Stop, error)
 	Trips(ctx context.Context, limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error)
 	Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error)
+	Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error)
 }
 type RouteResolver interface {
 	Agency(ctx context.Context, obj *model.Route) (*model.Agency, error)
@@ -596,6 +747,7 @@ type RouteResolver interface {
 	Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error)
 	CensusGeographies(ctx context.Context, obj *model.Route, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error)
+	Alerts(ctx context.Context, obj *model.Route) ([]*model.Alert, error)
 }
 type RouteHeadwayResolver interface {
 	Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error)
@@ -616,12 +768,18 @@ type StopResolver interface {
 	PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
 	PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
 	StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
+	Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
+	Arrivals(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
 
 	CensusGeographies(ctx context.Context, obj *model.Stop, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
+	Directions(ctx context.Context, obj *model.Stop, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error)
+	Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error)
 }
 type StopTimeResolver interface {
 	Stop(ctx context.Context, obj *model.StopTime) (*model.Stop, error)
 	Trip(ctx context.Context, obj *model.StopTime) (*model.Trip, error)
+	Arrival(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error)
+	Departure(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error)
 }
 type TripResolver interface {
 	Calendar(ctx context.Context, obj *model.Trip) (*model.Calendar, error)
@@ -630,6 +788,9 @@ type TripResolver interface {
 	FeedVersion(ctx context.Context, obj *model.Trip) (*model.FeedVersion, error)
 	StopTimes(ctx context.Context, obj *model.Trip, limit *int) ([]*model.StopTime, error)
 	Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error)
+	ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error)
+	Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error)
+	Alerts(ctx context.Context, obj *model.Trip) ([]*model.Alert, error)
 }
 
 type executableSchema struct {
@@ -702,6 +863,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Agency.AgencyURL(childComplexity), true
+
+	case "Agency.alerts":
+		if e.complexity.Agency.Alerts == nil {
+			break
+		}
+
+		return e.complexity.Agency.Alerts(childComplexity), true
 
 	case "Agency.census_geographies":
 		if e.complexity.Agency.CensusGeographies == nil {
@@ -822,6 +990,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AgencyPlace.Rank(childComplexity), true
+
+	case "Alert.active_period":
+		if e.complexity.Alert.ActivePeriod == nil {
+			break
+		}
+
+		return e.complexity.Alert.ActivePeriod(childComplexity), true
+
+	case "Alert.cause":
+		if e.complexity.Alert.Cause == nil {
+			break
+		}
+
+		return e.complexity.Alert.Cause(childComplexity), true
+
+	case "Alert.description_text":
+		if e.complexity.Alert.DescriptionText == nil {
+			break
+		}
+
+		return e.complexity.Alert.DescriptionText(childComplexity), true
+
+	case "Alert.effect":
+		if e.complexity.Alert.Effect == nil {
+			break
+		}
+
+		return e.complexity.Alert.Effect(childComplexity), true
+
+	case "Alert.header_text":
+		if e.complexity.Alert.HeaderText == nil {
+			break
+		}
+
+		return e.complexity.Alert.HeaderText(childComplexity), true
+
+	case "Alert.severity_level":
+		if e.complexity.Alert.SeverityLevel == nil {
+			break
+		}
+
+		return e.complexity.Alert.SeverityLevel(childComplexity), true
+
+	case "Alert.tts_description_text":
+		if e.complexity.Alert.TtsDescriptionText == nil {
+			break
+		}
+
+		return e.complexity.Alert.TtsDescriptionText(childComplexity), true
+
+	case "Alert.tts_header_text":
+		if e.complexity.Alert.TtsHeaderText == nil {
+			break
+		}
+
+		return e.complexity.Alert.TtsHeaderText(childComplexity), true
+
+	case "Alert.url":
+		if e.complexity.Alert.URL == nil {
+			break
+		}
+
+		return e.complexity.Alert.URL(childComplexity), true
 
 	case "Calendar.added_dates":
 		if e.complexity.Calendar.AddedDates == nil {
@@ -1027,12 +1258,103 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CensusValue.Values(childComplexity), true
 
-	case "Feed.associated_feeds":
-		if e.complexity.Feed.AssociatedFeeds == nil {
+	case "Directions.data_source":
+		if e.complexity.Directions.DataSource == nil {
 			break
 		}
 
-		return e.complexity.Feed.AssociatedFeeds(childComplexity), true
+		return e.complexity.Directions.DataSource(childComplexity), true
+
+	case "Directions.destination":
+		if e.complexity.Directions.Destination == nil {
+			break
+		}
+
+		return e.complexity.Directions.Destination(childComplexity), true
+
+	case "Directions.distance":
+		if e.complexity.Directions.Distance == nil {
+			break
+		}
+
+		return e.complexity.Directions.Distance(childComplexity), true
+
+	case "Directions.duration":
+		if e.complexity.Directions.Duration == nil {
+			break
+		}
+
+		return e.complexity.Directions.Duration(childComplexity), true
+
+	case "Directions.end_time":
+		if e.complexity.Directions.EndTime == nil {
+			break
+		}
+
+		return e.complexity.Directions.EndTime(childComplexity), true
+
+	case "Directions.exception":
+		if e.complexity.Directions.Exception == nil {
+			break
+		}
+
+		return e.complexity.Directions.Exception(childComplexity), true
+
+	case "Directions.itineraries":
+		if e.complexity.Directions.Itineraries == nil {
+			break
+		}
+
+		return e.complexity.Directions.Itineraries(childComplexity), true
+
+	case "Directions.origin":
+		if e.complexity.Directions.Origin == nil {
+			break
+		}
+
+		return e.complexity.Directions.Origin(childComplexity), true
+
+	case "Directions.start_time":
+		if e.complexity.Directions.StartTime == nil {
+			break
+		}
+
+		return e.complexity.Directions.StartTime(childComplexity), true
+
+	case "Directions.success":
+		if e.complexity.Directions.Success == nil {
+			break
+		}
+
+		return e.complexity.Directions.Success(childComplexity), true
+
+	case "Distance.distance":
+		if e.complexity.Distance.Distance == nil {
+			break
+		}
+
+		return e.complexity.Distance.Distance(childComplexity), true
+
+	case "Distance.units":
+		if e.complexity.Distance.Units == nil {
+			break
+		}
+
+		return e.complexity.Distance.Units(childComplexity), true
+
+	case "Duration.duration":
+		if e.complexity.Duration.Duration == nil {
+			break
+		}
+
+		return e.complexity.Duration.Duration(childComplexity), true
+
+	case "Duration.units":
+		if e.complexity.Duration.Units == nil {
+			break
+		}
+
+		return e.complexity.Duration.Units(childComplexity), true
 
 	case "Feed.associated_operators":
 		if e.complexity.Feed.AssociatedOperators == nil {
@@ -1048,12 +1370,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Feed.Authorization(childComplexity), true
 
-	case "Feed.feed_namespace_id":
-		if e.complexity.Feed.FeedNamespaceID == nil {
+	case "Feed.feed_fetches":
+		if e.complexity.Feed.FeedFetches == nil {
 			break
 		}
 
-		return e.complexity.Feed.FeedNamespaceID(childComplexity), true
+		args, err := ec.field_Feed_feed_fetches_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Feed.FeedFetches(childComplexity, args["limit"].(*int), args["where"].(*model.FeedFetchFilter)), true
 
 	case "Feed.feed_state":
 		if e.complexity.Feed.FeedState == nil {
@@ -1164,6 +1491,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedAuthorization.Type(childComplexity), true
+
+	case "FeedFetch.fetch_error":
+		if e.complexity.FeedFetch.FetchError == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.FetchError(childComplexity), true
+
+	case "FeedFetch.fetched_at":
+		if e.complexity.FeedFetch.FetchedAt == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.FetchedAt(childComplexity), true
+
+	case "FeedFetch.id":
+		if e.complexity.FeedFetch.ID == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.ID(childComplexity), true
+
+	case "FeedFetch.response_code":
+		if e.complexity.FeedFetch.ResponseCode == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.ResponseCode(childComplexity), true
+
+	case "FeedFetch.response_sha1":
+		if e.complexity.FeedFetch.ResponseSha1 == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.ResponseSha1(childComplexity), true
+
+	case "FeedFetch.response_size":
+		if e.complexity.FeedFetch.ResponseSize == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.ResponseSize(childComplexity), true
+
+	case "FeedFetch.success":
+		if e.complexity.FeedFetch.Success == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.Success(childComplexity), true
+
+	case "FeedFetch.url":
+		if e.complexity.FeedFetch.URL == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.URL(childComplexity), true
+
+	case "FeedFetch.url_type":
+		if e.complexity.FeedFetch.URLType == nil {
+			break
+		}
+
+		return e.complexity.FeedFetch.URLType(childComplexity), true
+
+	case "FeedInfo.default_lang":
+		if e.complexity.FeedInfo.DefaultLang == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.DefaultLang(childComplexity), true
+
+	case "FeedInfo.feed_contact_email":
+		if e.complexity.FeedInfo.FeedContactEmail == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.FeedContactEmail(childComplexity), true
+
+	case "FeedInfo.feed_contact_url":
+		if e.complexity.FeedInfo.FeedContactURL == nil {
+			break
+		}
+
+		return e.complexity.FeedInfo.FeedContactURL(childComplexity), true
 
 	case "FeedInfo.feed_end_date":
 		if e.complexity.FeedInfo.FeedEndDate == nil {
@@ -1291,26 +1702,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FeedState.ID(childComplexity), true
 
-	case "FeedState.last_fetch_error":
-		if e.complexity.FeedState.LastFetchError == nil {
+	case "FeedUrls.gbfs_auto_discovery":
+		if e.complexity.FeedUrls.GbfsAutoDiscovery == nil {
 			break
 		}
 
-		return e.complexity.FeedState.LastFetchError(childComplexity), true
+		return e.complexity.FeedUrls.GbfsAutoDiscovery(childComplexity), true
 
-	case "FeedState.last_fetched_at":
-		if e.complexity.FeedState.LastFetchedAt == nil {
+	case "FeedUrls.mds_provider":
+		if e.complexity.FeedUrls.MdsProvider == nil {
 			break
 		}
 
-		return e.complexity.FeedState.LastFetchedAt(childComplexity), true
-
-	case "FeedState.last_successful_fetch_at":
-		if e.complexity.FeedState.LastSuccessfulFetchAt == nil {
-			break
-		}
-
-		return e.complexity.FeedState.LastSuccessfulFetchAt(childComplexity), true
+		return e.complexity.FeedUrls.MdsProvider(childComplexity), true
 
 	case "FeedUrls.realtime_alerts":
 		if e.complexity.FeedUrls.RealtimeAlerts == nil {
@@ -1746,27 +2150,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FeedVersionServiceLevel.Monday(childComplexity), true
 
-	case "FeedVersionServiceLevel.route_id":
-		if e.complexity.FeedVersionServiceLevel.RouteID == nil {
-			break
-		}
-
-		return e.complexity.FeedVersionServiceLevel.RouteID(childComplexity), true
-
-	case "FeedVersionServiceLevel.route_long_name":
-		if e.complexity.FeedVersionServiceLevel.RouteLongName == nil {
-			break
-		}
-
-		return e.complexity.FeedVersionServiceLevel.RouteLongName(childComplexity), true
-
-	case "FeedVersionServiceLevel.route_short_name":
-		if e.complexity.FeedVersionServiceLevel.RouteShortName == nil {
-			break
-		}
-
-		return e.complexity.FeedVersionServiceLevel.RouteShortName(childComplexity), true
-
 	case "FeedVersionServiceLevel.saturday":
 		if e.complexity.FeedVersionServiceLevel.Saturday == nil {
 			break
@@ -1850,6 +2233,111 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Frequency.StartTime(childComplexity), true
+
+	case "Itinerary.distance":
+		if e.complexity.Itinerary.Distance == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.Distance(childComplexity), true
+
+	case "Itinerary.duration":
+		if e.complexity.Itinerary.Duration == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.Duration(childComplexity), true
+
+	case "Itinerary.end_time":
+		if e.complexity.Itinerary.EndTime == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.EndTime(childComplexity), true
+
+	case "Itinerary.from":
+		if e.complexity.Itinerary.From == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.From(childComplexity), true
+
+	case "Itinerary.legs":
+		if e.complexity.Itinerary.Legs == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.Legs(childComplexity), true
+
+	case "Itinerary.start_time":
+		if e.complexity.Itinerary.StartTime == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.StartTime(childComplexity), true
+
+	case "Itinerary.to":
+		if e.complexity.Itinerary.To == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.To(childComplexity), true
+
+	case "Leg.distance":
+		if e.complexity.Leg.Distance == nil {
+			break
+		}
+
+		return e.complexity.Leg.Distance(childComplexity), true
+
+	case "Leg.duration":
+		if e.complexity.Leg.Duration == nil {
+			break
+		}
+
+		return e.complexity.Leg.Duration(childComplexity), true
+
+	case "Leg.end_time":
+		if e.complexity.Leg.EndTime == nil {
+			break
+		}
+
+		return e.complexity.Leg.EndTime(childComplexity), true
+
+	case "Leg.from":
+		if e.complexity.Leg.From == nil {
+			break
+		}
+
+		return e.complexity.Leg.From(childComplexity), true
+
+	case "Leg.geometry":
+		if e.complexity.Leg.Geometry == nil {
+			break
+		}
+
+		return e.complexity.Leg.Geometry(childComplexity), true
+
+	case "Leg.start_time":
+		if e.complexity.Leg.StartTime == nil {
+			break
+		}
+
+		return e.complexity.Leg.StartTime(childComplexity), true
+
+	case "Leg.steps":
+		if e.complexity.Leg.Steps == nil {
+			break
+		}
+
+		return e.complexity.Leg.Steps(childComplexity), true
+
+	case "Leg.to":
+		if e.complexity.Leg.To == nil {
+			break
+		}
+
+		return e.complexity.Leg.To(childComplexity), true
 
 	case "Level.id":
 		if e.complexity.Level.ID == nil {
@@ -1958,12 +2446,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Operator.Agencies(childComplexity), true
 
-	case "Operator.associated_feeds":
-		if e.complexity.Operator.AssociatedFeeds == nil {
+	case "Operator.feeds":
+		if e.complexity.Operator.Feeds == nil {
 			break
 		}
 
-		return e.complexity.Operator.AssociatedFeeds(childComplexity), true
+		args, err := ec.field_Operator_feeds_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Operator.Feeds(childComplexity, args["limit"].(*int), args["where"].(*model.FeedFilter)), true
 
 	case "Operator.file":
 		if e.complexity.Operator.File == nil {
@@ -2131,6 +2624,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Agencies(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.AgencyFilter)), true
 
+	case "Query.directions":
+		if e.complexity.Query.Directions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_directions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Directions(childComplexity, args["where"].(model.DirectionRequest)), true
+
 	case "Query.feed_versions":
 		if e.complexity.Query.FeedVersions == nil {
 			break
@@ -2203,12 +2708,110 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Trips(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.TripFilter)), true
 
+	case "RTTimeRange.end":
+		if e.complexity.RTTimeRange.End == nil {
+			break
+		}
+
+		return e.complexity.RTTimeRange.End(childComplexity), true
+
+	case "RTTimeRange.start":
+		if e.complexity.RTTimeRange.Start == nil {
+			break
+		}
+
+		return e.complexity.RTTimeRange.Start(childComplexity), true
+
+	case "RTTranslation.language":
+		if e.complexity.RTTranslation.Language == nil {
+			break
+		}
+
+		return e.complexity.RTTranslation.Language(childComplexity), true
+
+	case "RTTranslation.text":
+		if e.complexity.RTTranslation.Text == nil {
+			break
+		}
+
+		return e.complexity.RTTranslation.Text(childComplexity), true
+
+	case "RTTripDescriptor.direction_id":
+		if e.complexity.RTTripDescriptor.DirectionID == nil {
+			break
+		}
+
+		return e.complexity.RTTripDescriptor.DirectionID(childComplexity), true
+
+	case "RTTripDescriptor.route_id":
+		if e.complexity.RTTripDescriptor.RouteID == nil {
+			break
+		}
+
+		return e.complexity.RTTripDescriptor.RouteID(childComplexity), true
+
+	case "RTTripDescriptor.schedule_relationship":
+		if e.complexity.RTTripDescriptor.ScheduleRelationship == nil {
+			break
+		}
+
+		return e.complexity.RTTripDescriptor.ScheduleRelationship(childComplexity), true
+
+	case "RTTripDescriptor.start_date":
+		if e.complexity.RTTripDescriptor.StartDate == nil {
+			break
+		}
+
+		return e.complexity.RTTripDescriptor.StartDate(childComplexity), true
+
+	case "RTTripDescriptor.start_time":
+		if e.complexity.RTTripDescriptor.StartTime == nil {
+			break
+		}
+
+		return e.complexity.RTTripDescriptor.StartTime(childComplexity), true
+
+	case "RTTripDescriptor.trip_id":
+		if e.complexity.RTTripDescriptor.TripID == nil {
+			break
+		}
+
+		return e.complexity.RTTripDescriptor.TripID(childComplexity), true
+
+	case "RTVehicleDescriptor.id":
+		if e.complexity.RTVehicleDescriptor.ID == nil {
+			break
+		}
+
+		return e.complexity.RTVehicleDescriptor.ID(childComplexity), true
+
+	case "RTVehicleDescriptor.label":
+		if e.complexity.RTVehicleDescriptor.Label == nil {
+			break
+		}
+
+		return e.complexity.RTVehicleDescriptor.Label(childComplexity), true
+
+	case "RTVehicleDescriptor.license_plate":
+		if e.complexity.RTVehicleDescriptor.LicensePlate == nil {
+			break
+		}
+
+		return e.complexity.RTVehicleDescriptor.LicensePlate(childComplexity), true
+
 	case "Route.agency":
 		if e.complexity.Route.Agency == nil {
 			break
 		}
 
 		return e.complexity.Route.Agency(childComplexity), true
+
+	case "Route.alerts":
+		if e.complexity.Route.Alerts == nil {
+			break
+		}
+
+		return e.complexity.Route.Alerts(childComplexity), true
 
 	case "Route.census_geographies":
 		if e.complexity.Route.CensusGeographies == nil {
@@ -2221,6 +2824,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Route.CensusGeographies(childComplexity, args["layer"].(string), args["radius"].(*float64), args["limit"].(*int)), true
+
+	case "Route.continuous_drop_off":
+		if e.complexity.Route.ContinuousDropOff == nil {
+			break
+		}
+
+		return e.complexity.Route.ContinuousDropOff(childComplexity), true
+
+	case "Route.continuous_pickup":
+		if e.complexity.Route.ContinuousPickup == nil {
+			break
+		}
+
+		return e.complexity.Route.ContinuousPickup(childComplexity), true
 
 	case "Route.feed_onestop_id":
 		if e.complexity.Route.FeedOnestopID == nil {
@@ -2413,6 +3030,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RouteGeometry.CombinedGeometry(childComplexity), true
 
+	case "RouteGeometry.first_point_max_distance":
+		if e.complexity.RouteGeometry.FirstPointMaxDistance == nil {
+			break
+		}
+
+		return e.complexity.RouteGeometry.FirstPointMaxDistance(childComplexity), true
+
 	case "RouteGeometry.generated":
 		if e.complexity.RouteGeometry.Generated == nil {
 			break
@@ -2426,6 +3050,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RouteGeometry.Geometry(childComplexity), true
+
+	case "RouteGeometry.length":
+		if e.complexity.RouteGeometry.Length == nil {
+			break
+		}
+
+		return e.complexity.RouteGeometry.Length(childComplexity), true
+
+	case "RouteGeometry.max_segment_length":
+		if e.complexity.RouteGeometry.MaxSegmentLength == nil {
+			break
+		}
+
+		return e.complexity.RouteGeometry.MaxSegmentLength(childComplexity), true
 
 	case "RouteHeadway.departures":
 		if e.complexity.RouteHeadway.Departures == nil {
@@ -2574,6 +3212,81 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Shape.ShapeID(childComplexity), true
 
+	case "Step.distance":
+		if e.complexity.Step.Distance == nil {
+			break
+		}
+
+		return e.complexity.Step.Distance(childComplexity), true
+
+	case "Step.duration":
+		if e.complexity.Step.Duration == nil {
+			break
+		}
+
+		return e.complexity.Step.Duration(childComplexity), true
+
+	case "Step.end_time":
+		if e.complexity.Step.EndTime == nil {
+			break
+		}
+
+		return e.complexity.Step.EndTime(childComplexity), true
+
+	case "Step.geometry_offset":
+		if e.complexity.Step.GeometryOffset == nil {
+			break
+		}
+
+		return e.complexity.Step.GeometryOffset(childComplexity), true
+
+	case "Step.instruction":
+		if e.complexity.Step.Instruction == nil {
+			break
+		}
+
+		return e.complexity.Step.Instruction(childComplexity), true
+
+	case "Step.mode":
+		if e.complexity.Step.Mode == nil {
+			break
+		}
+
+		return e.complexity.Step.Mode(childComplexity), true
+
+	case "Step.start_time":
+		if e.complexity.Step.StartTime == nil {
+			break
+		}
+
+		return e.complexity.Step.StartTime(childComplexity), true
+
+	case "Step.to":
+		if e.complexity.Step.To == nil {
+			break
+		}
+
+		return e.complexity.Step.To(childComplexity), true
+
+	case "Stop.alerts":
+		if e.complexity.Stop.Alerts == nil {
+			break
+		}
+
+		return e.complexity.Stop.Alerts(childComplexity), true
+
+	case "Stop.arrivals":
+		if e.complexity.Stop.Arrivals == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_arrivals_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.Arrivals(childComplexity, args["limit"].(*int), args["where"].(*model.StopTimeFilter)), true
+
 	case "Stop.census_geographies":
 		if e.complexity.Stop.CensusGeographies == nil {
 			break
@@ -2597,6 +3310,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Stop.Children(childComplexity, args["limit"].(*int)), true
+
+	case "Stop.departures":
+		if e.complexity.Stop.Departures == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_departures_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.Departures(childComplexity, args["limit"].(*int), args["where"].(*model.StopTimeFilter)), true
+
+	case "Stop.directions":
+		if e.complexity.Stop.Directions == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_directions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.Directions(childComplexity, args["to"].(*model.WaypointInput), args["from"].(*model.WaypointInput), args["mode"].(*model.StepMode), args["depart_at"].(*time.Time)), true
 
 	case "Stop.feed_onestop_id":
 		if e.complexity.Stop.FeedOnestopID == nil {
@@ -2685,6 +3422,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.PathwaysToStop(childComplexity, args["limit"].(*int)), true
 
+	case "Stop.platform_code":
+		if e.complexity.Stop.PlatformCode == nil {
+			break
+		}
+
+		return e.complexity.Stop.PlatformCode(childComplexity), true
+
 	case "Stop.route_stops":
 		if e.complexity.Stop.RouteStops == nil {
 			break
@@ -2758,6 +3502,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.StopURL(childComplexity), true
 
+	case "Stop.tts_stop_name":
+		if e.complexity.Stop.TtsStopName == nil {
+			break
+		}
+
+		return e.complexity.Stop.TtsStopName(childComplexity), true
+
 	case "Stop.wheelchair_boarding":
 		if e.complexity.Stop.WheelchairBoarding == nil {
 			break
@@ -2772,12 +3523,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.ZoneID(childComplexity), true
 
+	case "StopTime.arrival":
+		if e.complexity.StopTime.Arrival == nil {
+			break
+		}
+
+		return e.complexity.StopTime.Arrival(childComplexity), true
+
 	case "StopTime.arrival_time":
 		if e.complexity.StopTime.ArrivalTime == nil {
 			break
 		}
 
 		return e.complexity.StopTime.ArrivalTime(childComplexity), true
+
+	case "StopTime.continuous_drop_off":
+		if e.complexity.StopTime.ContinuousDropOff == nil {
+			break
+		}
+
+		return e.complexity.StopTime.ContinuousDropOff(childComplexity), true
+
+	case "StopTime.continuous_pickup":
+		if e.complexity.StopTime.ContinuousPickup == nil {
+			break
+		}
+
+		return e.complexity.StopTime.ContinuousPickup(childComplexity), true
+
+	case "StopTime.departure":
+		if e.complexity.StopTime.Departure == nil {
+			break
+		}
+
+		return e.complexity.StopTime.Departure(childComplexity), true
 
 	case "StopTime.departure_time":
 		if e.complexity.StopTime.DepartureTime == nil {
@@ -2806,6 +3585,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StopTime.PickupType(childComplexity), true
+
+	case "StopTime.service_date":
+		if e.complexity.StopTime.ServiceDate == nil {
+			break
+		}
+
+		return e.complexity.StopTime.ServiceDate(childComplexity), true
 
 	case "StopTime.stop":
 		if e.complexity.StopTime.Stop == nil {
@@ -2841,6 +3627,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StopTime.Trip(childComplexity), true
+
+	case "StopTimeEvent.delay":
+		if e.complexity.StopTimeEvent.Delay == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.Delay(childComplexity), true
+
+	case "StopTimeEvent.estimated":
+		if e.complexity.StopTimeEvent.Estimated == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.Estimated(childComplexity), true
+
+	case "StopTimeEvent.estimated_utc":
+		if e.complexity.StopTimeEvent.EstimatedUtc == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.EstimatedUtc(childComplexity), true
+
+	case "StopTimeEvent.scheduled":
+		if e.complexity.StopTimeEvent.Scheduled == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.Scheduled(childComplexity), true
+
+	case "StopTimeEvent.stop_timezone":
+		if e.complexity.StopTimeEvent.StopTimezone == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.StopTimezone(childComplexity), true
+
+	case "StopTimeEvent.uncertainty":
+		if e.complexity.StopTimeEvent.Uncertainty == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.Uncertainty(childComplexity), true
+
+	case "Trip.alerts":
+		if e.complexity.Trip.Alerts == nil {
+			break
+		}
+
+		return e.complexity.Trip.Alerts(childComplexity), true
 
 	case "Trip.bikes_allowed":
 		if e.complexity.Trip.BikesAllowed == nil {
@@ -2903,6 +3738,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Trip.Route(childComplexity), true
 
+	case "Trip.schedule_relationship":
+		if e.complexity.Trip.ScheduleRelationship == nil {
+			break
+		}
+
+		return e.complexity.Trip.ScheduleRelationship(childComplexity), true
+
 	case "Trip.shape":
 		if e.complexity.Trip.Shape == nil {
 			break
@@ -2928,6 +3770,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Trip.StopTimes(childComplexity, args["limit"].(*int)), true
+
+	case "Trip.timestamp":
+		if e.complexity.Trip.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.Trip.Timestamp(childComplexity), true
 
 	case "Trip.trip_headsign":
 		if e.complexity.Trip.TripHeadsign == nil {
@@ -3150,6 +3999,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationResultErrorGroup.Limit(childComplexity), true
 
+	case "VehiclePosition.congestion_level":
+		if e.complexity.VehiclePosition.CongestionLevel == nil {
+			break
+		}
+
+		return e.complexity.VehiclePosition.CongestionLevel(childComplexity), true
+
+	case "VehiclePosition.current_status":
+		if e.complexity.VehiclePosition.CurrentStatus == nil {
+			break
+		}
+
+		return e.complexity.VehiclePosition.CurrentStatus(childComplexity), true
+
+	case "VehiclePosition.current_stop_sequence":
+		if e.complexity.VehiclePosition.CurrentStopSequence == nil {
+			break
+		}
+
+		return e.complexity.VehiclePosition.CurrentStopSequence(childComplexity), true
+
+	case "VehiclePosition.position":
+		if e.complexity.VehiclePosition.Position == nil {
+			break
+		}
+
+		return e.complexity.VehiclePosition.Position(childComplexity), true
+
+	case "VehiclePosition.stop_id":
+		if e.complexity.VehiclePosition.StopID == nil {
+			break
+		}
+
+		return e.complexity.VehiclePosition.StopID(childComplexity), true
+
+	case "VehiclePosition.timestamp":
+		if e.complexity.VehiclePosition.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.VehiclePosition.Timestamp(childComplexity), true
+
+	case "VehiclePosition.vehicle":
+		if e.complexity.VehiclePosition.Vehicle == nil {
+			break
+		}
+
+		return e.complexity.VehiclePosition.Vehicle(childComplexity), true
+
+	case "Waypoint.lat":
+		if e.complexity.Waypoint.Lat == nil {
+			break
+		}
+
+		return e.complexity.Waypoint.Lat(childComplexity), true
+
+	case "Waypoint.lon":
+		if e.complexity.Waypoint.Lon == nil {
+			break
+		}
+
+		return e.complexity.Waypoint.Lon(childComplexity), true
+
+	case "Waypoint.name":
+		if e.complexity.Waypoint.Name == nil {
+			break
+		}
+
+		return e.complexity.Waypoint.Name(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -3232,6 +4151,7 @@ type Query {
   stops(limit: Int, after: Int, ids: [Int!], where: StopFilter): [Stop!]!
   trips(limit: Int, after: Int, ids: [Int!], where: TripFilter): [Trip!]!
   operators(limit: Int, after: Int, ids: [Int!], where: OperatorFilter): [Operator!]!
+  directions(where: DirectionRequest!): Directions!
 }
 
 type Mutation {
@@ -3243,17 +4163,20 @@ type Mutation {
     feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: ADMIN)
 }
 
-# Feed
-
+"""
+Feeds contain details on how to access transit information, including URLs to data sources in various formats (GTFS, GTFS-RT, GBFS, etc), license information, related feeds, details on how to make authorized requests, and feed version archives. Feed versions are archived (as ` + "`" + `.zip` + "`" + ` files) and imported into the Transitland database for querying agencies, stops, routes, trips, etc.
+"""
 type Feed {
+  "Unique integer ID"
   id: Int!
+  "Onestop ID for this feed"
   onestop_id: String!
+  "A common name for this feed. Optional. Alternatively use ` + "`" + `associated_operators[].name` + "`" + `"
   name: String
-  feed_namespace_id: String!
   file: String!
-  spec: String!
+  spec: FeedSpecTypes
+  "Language(s) included in this feed"
   languages: [String!]
-  associated_feeds: [String!]
   tags: Tags
   authorization: FeedAuthorization
   urls: FeedUrls
@@ -3261,46 +4184,93 @@ type Feed {
   search_rank: String # only for search results
   associated_operators: [Operator!]
   feed_state: FeedState
+  feed_fetches(limit: Int, where: FeedFetchFilter): [FeedFetch!]
+  "Versions of this feed that have been fetched, archived, and imported by Transitland"
   feed_versions(limit: Int, where: FeedVersionFilter): [FeedVersion!]!
 }
 
+"""
+Details on the current state of this feed, such as active version, last fetch time, etc.
+"""
 type FeedState {
   id: Int!
-  last_fetch_error: String!
-  last_fetched_at: Time
-  last_successful_fetch_at: Time
+  "The active feed version for this feed"
   feed_version: FeedVersion
 }
 
+type FeedFetch {
+  id: Int!
+  url_type: String
+  url: String
+  success: Boolean
+  fetched_at: Time
+  fetch_error: String
+  response_size: Int
+  response_code: Int
+  response_sha1: String
+}
+
+"""
+Details on how to construct an HTTP request to access a protected resource
+"""
 type FeedAuthorization {
+  "Method for inserting authorization secret into request"
   type: String!
+  "When ` + "`" + `type=query_param` + "`" + `, this specifies the name of the query parameter. When ` + "`" + `type=header` + "`" + `, this specifies the name of the header"
   param_name: String!
+  "Website to visit to sign up for an account"
   info_url: String!
 }
 
+"""
+License information for this feed, curated by Interline and contributors to the Transitland Atlas feed registry. Note that this does not constitute legal advice. Users are advised to review and confirm any terms and conditions attached to a source feed.
+"""
 type FeedLicense {
-	spdx_identifier: String!
-	url: String!
-	use_without_attribution: String!
+  "SPDX identifier for a common license. See https://spdx.org/licenses/"
+  spdx_identifier: String!
+  "URL for a custom license"
+  url: String!
+  "Are feed consumers allowed to use the feed contents without including attribution text in their app or map?"
+  use_without_attribution: String!
+  "Are feed consumers allowed to create and share derived products from the feed?"
   create_derived_product: String!
+  "Are feed consumers allowed to redistribute the feed in its entirety?"
   redistribution_allowed: String!
+  "Are feed consumers allowed to use the feed for commercial purposes?"
   commercial_use_allowed: String!
+  "Are feed consumers allowed to keep their modifications of this feed private?"
   share_alike_optional: String!
-	attribution_text: String!
-	attribution_instructions: String!
+  "Feed consumers must include this particular text when using this feed"
+  attribution_text: String!
+  "Feed consumers must follow these instructions for how to provide attribution"
+  attribution_instructions: String!
 }
 
+"""
+URL(s) from which Transitland sources a feed
+"""
 type FeedUrls {
+  "URL for the static feed that represents today's service"
   static_current: String!
+  "URLs for static feeds that represent past service that is no longer in effect "
   static_historic: [String!]!
+  "URLs for static feeds that represent service planned for upcoming dates. Typically used to represent calendar/service changes that will take effect few weeks or months in the future"
   static_planned: String!
+  "URL for GTFS Realtime VehiclePosition messages"
   realtime_vehicle_positions: String!
+  "URL for GTFS Realtime TripUpdate messages"
   realtime_trip_updates: String!
+  "URL for GTFS Realtime Alert messages"
   realtime_alerts: String!
+  "URL for GBFS feed ` + "`" + `gbfs.json` + "`" + ` auto-discovery file"
+  gbfs_auto_discovery: String!
+  "URL for MDS feed provider endpoint"
+  mds_provider: String!
 }
 
-# Feed Version
-
+"""
+Feed versions represent a specific static GTFS file that was published at a particular point in time, and are generally accessed and referenced using the [SHA1 checksum](https://en.wikipedia.org/wiki/SHA-1) of the GTFS archive.
+"""
 type FeedVersion {
   id: Int!
   sha1: String!
@@ -3312,9 +4282,11 @@ type FeedVersion {
   updated_by: String
   name: String
   description: String
+  "Convex hull around all active stops in the feed version"
   geometry: Polygon
   feed: Feed!
   feed_version_gtfs_import: FeedVersionGtfsImport
+  "Metadata for each text file present in the main directory of the zip archive "
   files(limit: Int): [FeedVersionFileInfo!]!
   service_levels(limit: Int, where: FeedVersionServiceLevelFilter): [FeedVersionServiceLevel!]!
   agencies(limit: Int, where: AgencyFilter): [Agency!]!
@@ -3353,9 +4325,6 @@ type FeedVersionGtfsImport {
 
 type FeedVersionServiceLevel {
   id: Int!
-  route_id: String
-  route_short_name: String!
-  route_long_name: String!
   start_date: Date!
   end_date: Date!
   monday: Int!
@@ -3368,7 +4337,11 @@ type FeedVersionServiceLevel {
 }
 
 # Operator
+"""
+An agency represents a single GTFS ` + "`" + `agencies.txt` + "`" + ` entity that was imported from a single feed version. The metadata, routes, etc., for an agency include only the data for that specific agency in that specific feed version. 
 
+Operators are a higher-level abstraction over agencies, with each operator defined by an entry in the [Transitland Atlas](/documentation/atlas). Operators provide a method for enriching the basic GTFS agency data, as well as grouping agencies that span across multiple source feeds. Operators are matched with GTFS agencies using ` + "`" + `associated_feeds` + "`" + `, a simple list of Feed OnestopIDs and GTFS ` + "`" + `agency_id` + "`" + `s. For instance, the [Atlas operator record](https://github.com/transitland/transitland-atlas/blob/master/operators/o-dr5r-nyct.json) for the [New York City MTA](/operators/o-dr5r-nyct) has ` + "`" + `associated_feeds` + "`" + ` values for 8 different GTFS feeds. A query for this operator OnestopID thus represents the union of data from all 8 feeds, and includes routes for the subway, bus service for all 5 boroughs, commuter rail agencies, etc., operated by the MTA. This record also includes additional metadata about the MTA, such as the United States National Transit Database ID, Wikidata IDs, and alternate names for the agency. Operator records are created and maintained through pull requests to the Atlas json files and synchronized with the Transitland database on each commit.
+"""
 type Operator {
   id: Int!
   generated: Boolean!
@@ -3378,13 +4351,16 @@ type Operator {
   short_name: String
   website: String
   tags: Tags
-  associated_feeds: Any
   search_rank: String # only for search results
   agencies: [Agency!]
+  feeds(limit: Int, where: FeedFilter): [Feed!]
 }
 
 # GTFS Entities
 
+"""
+See https://gtfs.org/schedule/reference/#agencytxt
+"""
 type Agency {
   id: Int!
   onestop_id: String!
@@ -3405,9 +4381,12 @@ type Agency {
   places(limit: Int, where: AgencyPlaceFilter): [AgencyPlace!]
   routes(limit: Int, where: RouteFilter): [Route!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  alerts: [Alert!]
 }
 
-
+"""
+See https://gtfs.org/schedule/reference/#routestxt
+"""
 type Route {
   id: Int!
   onestop_id: String
@@ -3420,6 +4399,8 @@ type Route {
   route_sort_order: Int!
   route_url: String!
   route_desc: String!
+  continuous_pickup: Int
+  continuous_drop_off: Int
   geometry: Geometry
   agency: Agency!
   feed_version: FeedVersion!
@@ -3433,8 +4414,12 @@ type Route {
   geometries(limit: Int): [RouteGeometry!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   route_stop_buffer(radius: Float): RouteStopBuffer!
+  alerts: [Alert!]
 }
 
+"""
+See https://gtfs.org/reference/static/#stopstxt
+"""
 type Stop {
   id: Int!
   onestop_id: String!
@@ -3447,9 +4432,11 @@ type Stop {
   stop_url: String!
   wheelchair_boarding: Int!
   zone_id: String!
+  platform_code: String
+  tts_stop_name: String
   geometry: Point!
   feed_version_sha1: String!
-  feed_onestop_id: String!  
+  feed_onestop_id: String!
   feed_version: FeedVersion!
   level: Level
   parent: Stop
@@ -3458,10 +4445,17 @@ type Stop {
   pathways_from_stop(limit: Int): [Pathway!]!
   pathways_to_stop(limit: Int): [Pathway!]!
   stop_times(limit: Int, where: StopTimeFilter): [StopTime!]!
+  departures(limit: Int, where: StopTimeFilter): [StopTime!]!
+  arrivals(limit: Int, where: StopTimeFilter): [StopTime!]!
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
+  alerts: [Alert!]
 }
 
+"""
+The GTFS-Pathways extension uses a graph representation to describe subway or train, with nodes (the locations) and edges (the pathways). See https://gtfs.org/reference/static/#pathwaystxt
+"""
 type Pathway {
   id: Int!
   pathway_id: String!
@@ -3478,6 +4472,9 @@ type Pathway {
   to_stop: Stop!
 }
 
+"""
+Describe the different levels of a station. Is mostly useful when used in conjunction with pathways. See https://gtfs.org/reference/static/#levelstxt
+"""
 type Level {
   id: Int!
   level_id: String!
@@ -3485,6 +4482,9 @@ type Level {
   level_index: Float!
 }
 
+"""
+Record from a static GTFS [trips.txt](https://gtfs.org/schedule/reference/#tripstxt) file optionally enriched with by GTFS Realtime [TripUpdate](https://gtfs.org/reference/realtime/v2/#message-tripupdate) and [Alert](https://gtfs.org/reference/realtime/v2/#message-alert) messages.
+"""
 type Trip {
   id: Int!
   trip_id: String!
@@ -3501,8 +4501,15 @@ type Trip {
   feed_version: FeedVersion!
   stop_times(limit: Int): [StopTime]!
   frequencies(limit: Int): [Frequency!]!
+  # rt
+  schedule_relationship: ScheduleRelationship
+  timestamp: Time
+  alerts: [Alert!]
 }
 
+"""
+Record from a static GTFS [calendars.txt](https://gtfs.org/schedule/reference/#calendarstxt) file.
+"""
 type Calendar {
   id: Int!
   service_id: String!
@@ -3519,6 +4526,9 @@ type Calendar {
   removed_dates(limit: Int): [Date!]!
 }
 
+"""
+Record from a static GTFS [shapes.txt](https://gtfs.org/schedule/reference/#shapestxt) file.
+"""
 type Shape {
   id: Int!
   shape_id: String!
@@ -3526,6 +4536,9 @@ type Shape {
   generated: Boolean!
 }
 
+"""
+Record from a static GTFS [frequencies.txt](https://gtfs.org/schedule/reference/#frequenciestxt) file.
+"""
 type Frequency {
   id: Int!
   start_time: Seconds!
@@ -3534,6 +4547,9 @@ type Frequency {
   exact_times: Int!
 }
 
+"""
+Record from a static GTFS [stop_times.txt](https://gtfs.org/schedule/reference/#stop_timestxt) file.
+"""
 type StopTime {
   arrival_time: Seconds!
   departure_time: Seconds!
@@ -3545,17 +4561,27 @@ type StopTime {
   interpolated: Int
   stop: Stop!
   trip: Trip!
+  arrival: StopTimeEvent!
+  departure: StopTimeEvent!
+  continuous_drop_off: Int
+  continuous_pickup: Int
+  service_date: Date
 }
 
-
+"""
+Record from a static GTFS [feed_info.txt](https://gtfs.org/schedule/reference/#feed_infotxt) file.
+"""
 type FeedInfo {
   id: Int!
   feed_publisher_name: String!
   feed_publisher_url: String!
   feed_lang: String!
+  default_lang: String
   feed_version: String!
   feed_start_date: Date
   feed_end_date: Date
+  feed_contact_email: String
+  feed_contact_url: String
 }
 
 # GTFS Support Entities
@@ -3578,9 +4604,13 @@ type RouteStop {
 }
 
 type RouteGeometry {
+  "If true, the source GTFS feed provides no shapes. This route geometry is based on straight lines between stop points."
   generated: Boolean!
   geometry: LineString
   combined_geometry: Geometry
+  length: Float
+  max_segment_length: Float
+  first_point_max_distance: Float
 }
 
 type RouteHeadway {
@@ -3593,6 +4623,103 @@ type RouteHeadway {
   departures: [Seconds!]
 }
 
+# Directions API
+
+input DirectionRequest {
+  to: WaypointInput!
+  from: WaypointInput!
+  mode: StepMode!
+  depart_at: Time
+}
+
+input WaypointInput {
+  lon: Float!
+  lat: Float!
+  name: String
+}
+
+type Waypoint {
+  lon: Float!
+  lat: Float!
+  name: String
+}
+
+type Directions {
+  # metadata
+  success: Boolean!
+  exception: String
+  data_source: String
+  # input
+  origin: Waypoint
+  destination: Waypoint
+  # first itin summary
+  duration: Duration
+  distance: Distance
+  start_time: Time
+  end_time: Time
+  # itineraries
+  itineraries: [Itinerary!]
+}
+
+type Itinerary {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  from: Waypoint!
+  to: Waypoint!
+  legs: [Leg!]
+}
+
+type Leg {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  from: Waypoint
+  to: Waypoint
+  steps: [Step!]
+  geometry: LineString!
+}
+
+type Step {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  to: Waypoint
+  mode: StepMode!
+  instruction: String!
+  geometry_offset: Int!
+}
+
+type Distance {
+  distance: Float!
+  units: DistanceUnit!
+}
+
+type Duration {
+  duration: Float!
+  units: DurationUnit!
+}
+
+enum DurationUnit {
+  SECONDS
+}
+
+enum DistanceUnit {
+  KILOMETERS
+  MILES
+}
+
+enum StepMode {
+  WALK
+  AUTO
+  BICYCLE
+  TRANSIT
+  LINE
+}
+
 # Census entities
 
 type CensusGeography {
@@ -3603,14 +4730,12 @@ type CensusGeography {
   aland: Float
   awater: Float
   geometry: Polygon
-  values(table_names: [String!]!, limit: Int): [CensusValue]! 
-  # source: CensusSource!
+  values(table_names: [String!]!, limit: Int): [CensusValue]!
 }
 
 type CensusValue {
   table: CensusTable!
   values: Any! # json blob
-  # geography: CensusGeography!
 }
 
 type CensusTable {
@@ -3618,31 +4743,91 @@ type CensusTable {
   table_name: String!
   table_title: String!
   table_group: String!
-  # dataset: CensusDataset!
 }
 
-# type CensusDataset {
-#   id: Int!
-#   dataset_name: String!
-#   year_min: Int!
-#   year_max: Int!
-#   url: String!
-# }
+# Realtime updates
 
-# type CensusField {
-#   id: Int!
-#   field_name: String!
-#   field_title: String!
-#   table: CensusTable!
-# }
+enum ScheduleRelationship {
+  SCHEDULED
+  ADDED
+  UNSCHEDULED
+  CANCELED
+}
 
-# type CensusSource {
-#   id: Int!
-#   source_name: String!
-#   url: String!
-#   sha1: String!
-#   dataset: CensusDataset!
-# }
+type StopTimeEvent {
+  stop_timezone: String!
+  scheduled: Seconds
+  estimated: Seconds
+  estimated_utc: Time
+  delay: Int
+  uncertainty: Int
+}
+
+"""
+[Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
+"""
+type VehiclePosition {
+  vehicle: RTVehicleDescriptor
+  position: Point
+  current_stop_sequence: Int
+  stop_id: Stop
+  current_status: String
+  timestamp: Time
+  congestion_level: String
+}
+
+"""
+[Alert](https://gtfs.org/reference/realtime/v2/#message-alert) message, also called a service alert, provided by a source GTFS Realtime feed.
+"""
+type Alert {
+  active_period: [RTTimeRange!]
+  cause: String
+  effect: String
+  header_text: [RTTranslation!]!
+  description_text: [RTTranslation!]!
+  tts_header_text: [RTTranslation!]
+  tts_description_text: [RTTranslation!]
+  url: [RTTranslation!]
+  severity_level: String
+}
+
+"""
+See https://gtfs.org/reference/realtime/v2/#message-timerange
+"""
+type RTTimeRange {
+  start: Int
+  end: Int
+}
+
+"""
+See https://gtfs.org/reference/realtime/v2/#message-vehicledescriptor
+"""
+type RTVehicleDescriptor {
+  id: String
+  label: String
+  license_plate: String
+}
+
+"""
+See https://gtfs.org/reference/realtime/v2/#message-tripdescriptor
+"""
+type RTTripDescriptor {
+  trip_id: String
+  route_id: String
+  direction_id: Int
+  start_time: Seconds
+  start_date: Date
+  schedule_relationship: String
+}
+
+"""
+See https://gtfs.org/reference/realtime/v2/#message-translatedstring
+"""
+type RTTranslation {
+  text: String!
+  language: String
+}
+
 
 # Analysis tools
 
@@ -3724,27 +4909,72 @@ input OperatorFilter {
   agency_id: String
   search: String
   tags: Tags
+  city_name: String
+  adm0_name: String
+  adm1_name: String
+  adm0_iso: String
+  adm1_iso: String
 }
 
 input FeedVersionFilter {
   feed_onestop_id: String
   sha1: String
-  feed_ids: [Int!] # keep?
+  feed_ids: [Int!]
 }
 
 enum ImportStatus {
-  success
-  error
-  in_progress
+  SUCCESS
+  ERROR
+  IN_PROGRESS
 }
 
 input FeedFilter {
+  "Search for feed with a specific Onestop ID"
   onestop_id: String
-  spec: [String!]
+  "Search for feeds of certain data types"
+  spec: [FeedSpecTypes!]
+  "Search for feeds with or without a fetch error"
   fetch_error: Boolean
+  "Search for feeds by their import status"
   import_status: ImportStatus
+  "Full text search"
   search: String
-  tags: Tags
+  "Search for feeds with a tag"
+  tags: Tags,
+  "Search for feeds by their source URLs"
+  source_url: FeedSourceUrl
+}
+
+input FeedFetchFilter {
+  success: Boolean
+}
+
+input FeedSourceUrl {
+  url: String
+  type: FeedSourceUrlTypes
+  case_sensitive: Boolean
+}
+
+enum FeedSourceUrlTypes {
+  static_current
+  static_historic
+  static_planned
+  static_hypothetical
+  realtime_vehicle_positions
+  realtime_trip_updates
+  realtime_alerts
+  gbfs_auto_discovery
+  mds_provider
+}
+
+"""
+Type of data contained in a source feed
+"""
+enum FeedSpecTypes {
+  GTFS
+  GTFS_RT
+  GBFS
+  MDS
 }
 
 input AgencyFilter {
@@ -3752,21 +4982,35 @@ input AgencyFilter {
   feed_version_sha1: String
   feed_onestop_id: String
   agency_id: String
+  "Search for records with this GTFS agency_name"
   agency_name: String
   within: Polygon
+  "Search for agencies within a radius"
   near: PointRadius
+  "Full text search"
   search: String
+  "Search by city name (provided by Natural Earth)"
+  city_name: String
+  "Search by country name (provided by Natural Earth)"
+  adm0_name: String
+  "Search by state/province/division name (provided by Natural Earth)"
+  adm1_name: String
+  "Search by country 2 letter ISO 3166 code (provided by Natural Earth)"
+  adm0_iso: String
+  "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
+  adm1_iso: String
 }
 
 input RouteFilter {
   onestop_id: String
   onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
   feed_version_sha1: String
   feed_onestop_id: String
   route_id: String
   route_type: Int
   within: Polygon
-  near: PointRadius  
+  near: PointRadius
   search: String
   operator_onestop_id: String
   agency_ids: [Int!] # keep?
@@ -3775,6 +5019,7 @@ input RouteFilter {
 input StopFilter {
   onestop_id: String
   onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
   feed_version_sha1: String
   feed_onestop_id: String
   stop_id: String
@@ -3788,10 +5033,14 @@ input StopFilter {
 
 input StopTimeFilter {
   service_date: Date
+  use_service_window: Boolean
   start_time: Int
   end_time: Int
-  timezone: String
   next: Int
+  route_onestop_ids: [String!] # keep?
+  allow_previous_route_onestop_ids: Boolean
+  exclude_first: Boolean
+  exclude_last: Boolean
 }
 
 input PathwayFilter {
@@ -3810,14 +5059,10 @@ input TripFilter {
 input FeedVersionServiceLevelFilter {
   start_date: Date
   end_date: Date
-  all_routes: Boolean
-  distinct_on: String
-  route_ids: [String!]
 }
 
 input AgencyPlaceFilter {
   min_rank: Float
-  search: String
 }
 
 input CalendarDateFilter {
@@ -4151,6 +5396,30 @@ func (ec *executionContext) field_FeedVersion_trips_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Feed_feed_fetches_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.FeedFetchFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOFeedFetchFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetchFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Feed_feed_versions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4310,6 +5579,30 @@ func (ec *executionContext) field_Mutation_validate_gtfs_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Operator_feeds_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.FeedFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOFeedFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4364,6 +5657,21 @@ func (ec *executionContext) field_Query_agencies_args(ctx context.Context, rawAr
 		}
 	}
 	args["where"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_directions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.DirectionRequest
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg0, err = ec.unmarshalNDirectionRequest2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirectionRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg0
 	return args, nil
 }
 
@@ -4760,6 +6068,30 @@ func (ec *executionContext) field_Route_trips_args(ctx context.Context, rawArgs 
 	return args, nil
 }
 
+func (ec *executionContext) field_Stop_arrivals_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.StopTimeFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOStopTimeFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Stop_census_geographies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4805,6 +6137,72 @@ func (ec *executionContext) field_Stop_children_args(ctx context.Context, rawArg
 		}
 	}
 	args["limit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Stop_departures_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.StopTimeFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOStopTimeFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Stop_directions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.WaypointInput
+	if tmp, ok := rawArgs["to"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to"))
+		arg0, err = ec.unmarshalOWaypointInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["to"] = arg0
+	var arg1 *model.WaypointInput
+	if tmp, ok := rawArgs["from"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from"))
+		arg1, err = ec.unmarshalOWaypointInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["from"] = arg1
+	var arg2 *model.StepMode
+	if tmp, ok := rawArgs["mode"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mode"))
+		arg2, err = ec.unmarshalOStepMode2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepMode(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["mode"] = arg2
+	var arg3 *time.Time
+	if tmp, ok := rawArgs["depart_at"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("depart_at"))
+		arg3, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["depart_at"] = arg3
 	return args, nil
 }
 
@@ -5694,6 +7092,38 @@ func (ec *executionContext) _Agency_census_geographies(ctx context.Context, fiel
 	return ec.marshalOCensusGeography2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusGeographyᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Agency_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Agency) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agency",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Agency().Alerts(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Alert)
+	fc.Result = res
+	return ec.marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlertᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _AgencyPlace_city_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5822,6 +7252,300 @@ func (ec *executionContext) _AgencyPlace_rank(ctx context.Context, field graphql
 	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Alert_active_period(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActivePeriod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RTTimeRange)
+	fc.Result = res
+	return ec.marshalORTTimeRange2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTimeRangeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Alert_cause(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cause, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Alert_effect(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Effect, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Alert_header_text(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HeaderText, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RTTranslation)
+	fc.Result = res
+	return ec.marshalNRTTranslation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Alert_description_text(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DescriptionText, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RTTranslation)
+	fc.Result = res
+	return ec.marshalNRTTranslation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Alert_tts_header_text(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TtsHeaderText, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RTTranslation)
+	fc.Result = res
+	return ec.marshalORTTranslation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Alert_tts_description_text(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TtsDescriptionText, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RTTranslation)
+	fc.Result = res
+	return ec.marshalORTTranslation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Alert_url(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RTTranslation)
+	fc.Result = res
+	return ec.marshalORTTranslation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Alert_severity_level(ctx context.Context, field graphql.CollectedField, obj *model.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SeverityLevel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Calendar_id(ctx context.Context, field graphql.CollectedField, obj *model.Calendar) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5922,9 +7646,9 @@ func (ec *executionContext) _Calendar_start_date(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*tl.ODate)
+	res := resTmp.(*tl.Date)
 	fc.Result = res
-	return ec.marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Calendar_end_date(ctx context.Context, field graphql.CollectedField, obj *model.Calendar) (ret graphql.Marshaler) {
@@ -5957,9 +7681,9 @@ func (ec *executionContext) _Calendar_end_date(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*tl.ODate)
+	res := resTmp.(*tl.Date)
 	fc.Result = res
-	return ec.marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Calendar_monday(ctx context.Context, field graphql.CollectedField, obj *model.Calendar) (ret graphql.Marshaler) {
@@ -6244,9 +7968,9 @@ func (ec *executionContext) _Calendar_added_dates(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*tl.ODate)
+	res := resTmp.([]*tl.Date)
 	fc.Result = res
-	return ec.marshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODateᚄ(ctx, field.Selections, res)
+	return ec.marshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDateᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Calendar_removed_dates(ctx context.Context, field graphql.CollectedField, obj *model.Calendar) (ret graphql.Marshaler) {
@@ -6286,9 +8010,9 @@ func (ec *executionContext) _Calendar_removed_dates(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*tl.ODate)
+	res := resTmp.([]*tl.Date)
 	fc.Result = res
-	return ec.marshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODateᚄ(ctx, field.Selections, res)
+	return ec.marshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDateᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CensusGeography_id(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
@@ -6773,6 +8497,469 @@ func (ec *executionContext) _CensusValue_values(ctx context.Context, field graph
 	return ec.marshalNAny2interface(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Directions_success(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_exception(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Exception, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_data_source(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DataSource, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_origin(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Origin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Waypoint)
+	fc.Result = res
+	return ec.marshalOWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_destination(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Waypoint)
+	fc.Result = res
+	return ec.marshalOWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_duration(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Duration)
+	fc.Result = res
+	return ec.marshalODuration2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_distance(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Distance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Distance)
+	fc.Result = res
+	return ec.marshalODistance2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistance(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_start_time(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_end_time(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Directions_itineraries(ctx context.Context, field graphql.CollectedField, obj *model.Directions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Directions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Itineraries, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Itinerary)
+	fc.Result = res
+	return ec.marshalOItinerary2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐItineraryᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Distance_distance(ctx context.Context, field graphql.CollectedField, obj *model.Distance) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Distance",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Distance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Distance_units(ctx context.Context, field graphql.CollectedField, obj *model.Distance) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Distance",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Units, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DistanceUnit)
+	fc.Result = res
+	return ec.marshalNDistanceUnit2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistanceUnit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Duration_duration(ctx context.Context, field graphql.CollectedField, obj *model.Duration) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Duration",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Duration_units(ctx context.Context, field graphql.CollectedField, obj *model.Duration) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Duration",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Units, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DurationUnit)
+	fc.Result = res
+	return ec.marshalNDurationUnit2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDurationUnit(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Feed_id(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6870,44 +9057,9 @@ func (ec *executionContext) _Feed_name(ctx context.Context, field graphql.Collec
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Feed_feed_namespace_id(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Feed",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FeedNamespaceID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Feed_file(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
@@ -6956,28 +9108,25 @@ func (ec *executionContext) _Feed_spec(ctx context.Context, field graphql.Collec
 		Object:     "Feed",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Spec, nil
+		return ec.resolvers.Feed().Spec(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.FeedSpecTypes)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOFeedSpecTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Feed_languages(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
@@ -6999,38 +9148,6 @@ func (ec *executionContext) _Feed_languages(ctx context.Context, field graphql.C
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Feed().Languages(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Feed_associated_feeds(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Feed",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Feed().AssociatedFeeds(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7268,6 +9385,45 @@ func (ec *executionContext) _Feed_feed_state(ctx context.Context, field graphql.
 	return ec.marshalOFeedState2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedState(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Feed_feed_fetches(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Feed",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Feed_feed_fetches_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Feed().FeedFetches(rctx, obj, args["limit"].(*int), args["where"].(*model.FeedFetchFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.FeedFetch)
+	fc.Result = res
+	return ec.marshalOFeedFetch2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetchᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Feed_feed_versions(ctx context.Context, field graphql.CollectedField, obj *model.Feed) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7415,6 +9571,297 @@ func (ec *executionContext) _FeedAuthorization_info_url(ctx context.Context, fie
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FeedFetch_id(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedFetch_url_type(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URLType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedFetch_url(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedFetch_success(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedFetch_fetched_at(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FetchedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Time)
+	fc.Result = res
+	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedFetch_fetch_error(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FetchError, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedFetch_response_size(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResponseSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Int)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedFetch_response_code(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResponseCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Int)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedFetch_response_sha1(ctx context.Context, field graphql.CollectedField, obj *model.FeedFetch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedFetch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResponseSha1, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FeedInfo_id(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7555,6 +10002,38 @@ func (ec *executionContext) _FeedInfo_feed_lang(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FeedInfo_default_lang(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultLang, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FeedInfo_feed_version(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7617,9 +10096,9 @@ func (ec *executionContext) _FeedInfo_feed_start_date(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedInfo_feed_end_date(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
@@ -7649,9 +10128,73 @@ func (ec *executionContext) _FeedInfo_feed_end_date(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedInfo_feed_contact_email(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedContactEmail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedInfo_feed_contact_url(ctx context.Context, field graphql.CollectedField, obj *model.FeedInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedContactURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedLicense_spdx_identifier(ctx context.Context, field graphql.CollectedField, obj *model.FeedLicense) (ret graphql.Marshaler) {
@@ -8004,105 +10547,6 @@ func (ec *executionContext) _FeedState_id(ctx context.Context, field graphql.Col
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _FeedState_last_fetch_error(ctx context.Context, field graphql.CollectedField, obj *model.FeedState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedState",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastFetchError, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FeedState_last_fetched_at(ctx context.Context, field graphql.CollectedField, obj *model.FeedState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedState",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastFetchedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(tl.OTime)
-	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FeedState_last_successful_fetch_at(ctx context.Context, field graphql.CollectedField, obj *model.FeedState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedState",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastSuccessfulFetchAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(tl.OTime)
-	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOTime(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _FeedState_feed_version(ctx context.Context, field graphql.CollectedField, obj *model.FeedState) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8345,6 +10789,76 @@ func (ec *executionContext) _FeedUrls_realtime_alerts(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FeedUrls_gbfs_auto_discovery(ctx context.Context, field graphql.CollectedField, obj *model.FeedUrls) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedUrls",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GbfsAutoDiscovery, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeedUrls_mds_provider(ctx context.Context, field graphql.CollectedField, obj *model.FeedUrls) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeedUrls",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MdsProvider, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FeedVersion_id(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8515,9 +11029,9 @@ func (ec *executionContext) _FeedVersion_earliest_calendar_date(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersion_latest_calendar_date(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
@@ -8550,9 +11064,9 @@ func (ec *executionContext) _FeedVersion_latest_calendar_date(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersion_created_by(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
@@ -8582,9 +11096,9 @@ func (ec *executionContext) _FeedVersion_created_by(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersion_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
@@ -8614,9 +11128,9 @@ func (ec *executionContext) _FeedVersion_updated_by(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersion_name(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
@@ -8646,9 +11160,9 @@ func (ec *executionContext) _FeedVersion_name(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersion_description(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
@@ -8678,9 +11192,9 @@ func (ec *executionContext) _FeedVersion_description(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersion_geometry(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
@@ -10023,108 +12537,6 @@ func (ec *executionContext) _FeedVersionServiceLevel_id(ctx context.Context, fie
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _FeedVersionServiceLevel_route_id(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceLevel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedVersionServiceLevel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RouteID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(tl.OString)
-	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FeedVersionServiceLevel_route_short_name(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceLevel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedVersionServiceLevel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RouteShortName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FeedVersionServiceLevel_route_long_name(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceLevel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FeedVersionServiceLevel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RouteLongName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _FeedVersionServiceLevel_start_date(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceLevel) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10155,9 +12567,9 @@ func (ec *executionContext) _FeedVersionServiceLevel_start_date(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersionServiceLevel_end_date(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceLevel) (ret graphql.Marshaler) {
@@ -10190,9 +12602,9 @@ func (ec *executionContext) _FeedVersionServiceLevel_end_date(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeedVersionServiceLevel_monday(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceLevel) (ret graphql.Marshaler) {
@@ -10648,6 +13060,519 @@ func (ec *executionContext) _Frequency_exact_times(ctx context.Context, field gr
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Itinerary_duration(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Itinerary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Duration)
+	fc.Result = res
+	return ec.marshalNDuration2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Itinerary_distance(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Itinerary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Distance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Distance)
+	fc.Result = res
+	return ec.marshalNDistance2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistance(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Itinerary_start_time(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Itinerary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Itinerary_end_time(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Itinerary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Itinerary_from(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Itinerary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.From, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Waypoint)
+	fc.Result = res
+	return ec.marshalNWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Itinerary_to(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Itinerary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.To, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Waypoint)
+	fc.Result = res
+	return ec.marshalNWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Itinerary_legs(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Itinerary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Legs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Leg)
+	fc.Result = res
+	return ec.marshalOLeg2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Leg_duration(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Duration)
+	fc.Result = res
+	return ec.marshalNDuration2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Leg_distance(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Distance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Distance)
+	fc.Result = res
+	return ec.marshalNDistance2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistance(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Leg_start_time(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Leg_end_time(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Leg_from(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.From, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Waypoint)
+	fc.Result = res
+	return ec.marshalOWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Leg_to(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.To, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Waypoint)
+	fc.Result = res
+	return ec.marshalOWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Leg_steps(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Steps, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Step)
+	fc.Result = res
+	return ec.marshalOStep2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Leg_geometry(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Geometry, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(tl.LineString)
+	fc.Result = res
+	return ec.marshalNLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐLineString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Level_id(ctx context.Context, field graphql.CollectedField, obj *model.Level) (ret graphql.Marshaler) {
@@ -11274,9 +14199,9 @@ func (ec *executionContext) _Operator_file(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -11306,9 +14231,9 @@ func (ec *executionContext) _Operator_onestop_id(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_name(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -11338,9 +14263,9 @@ func (ec *executionContext) _Operator_name(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_short_name(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -11370,9 +14295,9 @@ func (ec *executionContext) _Operator_short_name(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_website(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -11402,9 +14327,9 @@ func (ec *executionContext) _Operator_website(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_tags(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -11437,38 +14362,6 @@ func (ec *executionContext) _Operator_tags(ctx context.Context, field graphql.Co
 	res := resTmp.(tl.Tags)
 	fc.Result = res
 	return ec.marshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Operator_associated_feeds(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Operator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Operator().AssociatedFeeds(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(interface{})
-	fc.Result = res
-	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Operator_search_rank(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
@@ -11533,6 +14426,45 @@ func (ec *executionContext) _Operator_agencies(ctx context.Context, field graphq
 	res := resTmp.([]*model.Agency)
 	fc.Result = res
 	return ec.marshalOAgency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Operator_feeds(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Operator",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Operator_feeds_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Operator().Feeds(rctx, obj, args["limit"].(*int), args["where"].(*model.FeedFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Feed)
+	fc.Result = res
+	return ec.marshalOFeed2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pathway_id(ctx context.Context, field graphql.CollectedField, obj *model.Pathway) (ret graphql.Marshaler) {
@@ -12284,6 +15216,48 @@ func (ec *executionContext) _Query_operators(ctx context.Context, field graphql.
 	return ec.marshalNOperator2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐOperatorᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_directions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_directions_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Directions(rctx, args["where"].(model.DirectionRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Directions)
+	fc.Result = res
+	return ec.marshalNDirections2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirections(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12353,6 +15327,425 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTimeRange_start(ctx context.Context, field graphql.CollectedField, obj *model.RTTimeRange) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTimeRange",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Start, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTimeRange_end(ctx context.Context, field graphql.CollectedField, obj *model.RTTimeRange) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTimeRange",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.End, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTranslation_text(ctx context.Context, field graphql.CollectedField, obj *model.RTTranslation) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTranslation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Text, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTranslation_language(ctx context.Context, field graphql.CollectedField, obj *model.RTTranslation) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTranslation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Language, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTripDescriptor_trip_id(ctx context.Context, field graphql.CollectedField, obj *model.RTTripDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTripDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TripID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTripDescriptor_route_id(ctx context.Context, field graphql.CollectedField, obj *model.RTTripDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTripDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTripDescriptor_direction_id(ctx context.Context, field graphql.CollectedField, obj *model.RTTripDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTripDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DirectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTripDescriptor_start_time(ctx context.Context, field graphql.CollectedField, obj *model.RTTripDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTripDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tl.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTripDescriptor_start_date(ctx context.Context, field graphql.CollectedField, obj *model.RTTripDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTripDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tl.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTTripDescriptor_schedule_relationship(ctx context.Context, field graphql.CollectedField, obj *model.RTTripDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTTripDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduleRelationship, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTVehicleDescriptor_id(ctx context.Context, field graphql.CollectedField, obj *model.RTVehicleDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTVehicleDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTVehicleDescriptor_label(ctx context.Context, field graphql.CollectedField, obj *model.RTVehicleDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTVehicleDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Label, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RTVehicleDescriptor_license_plate(ctx context.Context, field graphql.CollectedField, obj *model.RTVehicleDescriptor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RTVehicleDescriptor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LicensePlate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Route_id(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
@@ -12735,6 +16128,70 @@ func (ec *executionContext) _Route_route_desc(ctx context.Context, field graphql
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Route_continuous_pickup(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinuousPickup, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Int)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Route_continuous_drop_off(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinuousDropOff, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Int)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Route_geometry(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
@@ -13232,6 +16689,38 @@ func (ec *executionContext) _Route_route_stop_buffer(ctx context.Context, field 
 	return ec.marshalNRouteStopBuffer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopBuffer(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Route_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Route().Alerts(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Alert)
+	fc.Result = res
+	return ec.marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlertᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _RouteGeometry_generated(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13329,6 +16818,102 @@ func (ec *executionContext) _RouteGeometry_combined_geometry(ctx context.Context
 	res := resTmp.(tl.Geometry)
 	fc.Result = res
 	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RouteGeometry_length(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RouteGeometry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Length, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Float)
+	fc.Result = res
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RouteGeometry_max_segment_length(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RouteGeometry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxSegmentLength, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Float)
+	fc.Result = res
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RouteGeometry_first_point_max_distance(ctx context.Context, field graphql.CollectedField, obj *model.RouteGeometry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RouteGeometry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstPointMaxDistance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Float)
+	fc.Result = res
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RouteHeadway_stop(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
@@ -13489,9 +17074,9 @@ func (ec *executionContext) _RouteHeadway_service_date(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RouteHeadway_stop_trip_count(ctx context.Context, field graphql.CollectedField, obj *model.RouteHeadway) (ret graphql.Marshaler) {
@@ -14039,6 +17624,283 @@ func (ec *executionContext) _Shape_generated(ctx context.Context, field graphql.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Step_duration(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Step",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Duration)
+	fc.Result = res
+	return ec.marshalNDuration2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Step_distance(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Step",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Distance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Distance)
+	fc.Result = res
+	return ec.marshalNDistance2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistance(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Step_start_time(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Step",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Step_end_time(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Step",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Step_to(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Step",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.To, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Waypoint)
+	fc.Result = res
+	return ec.marshalOWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Step_mode(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Step",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Mode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.StepMode)
+	fc.Result = res
+	return ec.marshalNStepMode2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepMode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Step_instruction(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Step",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Instruction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Step_geometry_offset(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Step",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GeometryOffset, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Stop_id(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14422,6 +18284,70 @@ func (ec *executionContext) _Stop_zone_id(ctx context.Context, field graphql.Col
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_platform_code(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlatformCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_tts_stop_name(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TtsStopName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Stop_geometry(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
@@ -14835,6 +18761,90 @@ func (ec *executionContext) _Stop_stop_times(ctx context.Context, field graphql.
 	return ec.marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Stop_departures(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Stop_departures_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Departures(rctx, obj, args["limit"].(*int), args["where"].(*model.StopTimeFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.StopTime)
+	fc.Result = res
+	return ec.marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_arrivals(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Stop_arrivals_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Arrivals(rctx, obj, args["limit"].(*int), args["where"].(*model.StopTimeFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.StopTime)
+	fc.Result = res
+	return ec.marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Stop_search_rank(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14904,6 +18914,80 @@ func (ec *executionContext) _Stop_census_geographies(ctx context.Context, field 
 	res := resTmp.([]*model.CensusGeography)
 	fc.Result = res
 	return ec.marshalOCensusGeography2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusGeographyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_directions(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Stop_directions_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Directions(rctx, obj, args["to"].(*model.WaypointInput), args["from"].(*model.WaypointInput), args["mode"].(*model.StepMode), args["depart_at"].(*time.Time))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Directions)
+	fc.Result = res
+	return ec.marshalNDirections2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirections(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stop_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Alerts(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Alert)
+	fc.Result = res
+	return ec.marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlertᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_arrival_time(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -15038,9 +19122,9 @@ func (ec *executionContext) _StopTime_stop_headsign(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OString)
+	res := resTmp.(tl.String)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_pickup_type(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -15070,9 +19154,9 @@ func (ec *executionContext) _StopTime_pickup_type(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OInt)
+	res := resTmp.(tl.Int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_drop_off_type(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -15102,9 +19186,9 @@ func (ec *executionContext) _StopTime_drop_off_type(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OInt)
+	res := resTmp.(tl.Int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_timepoint(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -15134,9 +19218,9 @@ func (ec *executionContext) _StopTime_timepoint(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OInt)
+	res := resTmp.(tl.Int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_interpolated(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -15166,9 +19250,9 @@ func (ec *executionContext) _StopTime_interpolated(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.OInt)
+	res := resTmp.(tl.Int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _StopTime_stop(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
@@ -15239,6 +19323,367 @@ func (ec *executionContext) _StopTime_trip(ctx context.Context, field graphql.Co
 	res := resTmp.(*model.Trip)
 	fc.Result = res
 	return ec.marshalNTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTrip(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTime_arrival(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StopTime().Arrival(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.StopTimeEvent)
+	fc.Result = res
+	return ec.marshalNStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTime_departure(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StopTime().Departure(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.StopTimeEvent)
+	fc.Result = res
+	return ec.marshalNStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTime_continuous_drop_off(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinuousDropOff, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Int)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTime_continuous_pickup(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinuousPickup, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Int)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTime_service_date(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Date)
+	fc.Result = res
+	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTimeEvent_stop_timezone(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopTimezone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Scheduled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTimeEvent_estimated(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Estimated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTimeEvent_estimated_utc(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EstimatedUtc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tl.Time)
+	fc.Result = res
+	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTimeEvent_delay(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Delay, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StopTimeEvent_uncertainty(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Uncertainty, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Trip_id(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
@@ -15777,6 +20222,102 @@ func (ec *executionContext) _Trip_frequencies(ctx context.Context, field graphql
 	return ec.marshalNFrequency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFrequencyᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Trip_schedule_relationship(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Trip",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Trip().ScheduleRelationship(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ScheduleRelationship)
+	fc.Result = res
+	return ec.marshalOScheduleRelationship2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐScheduleRelationship(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Trip_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Trip",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Trip().Timestamp(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Trip_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Trip) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Trip",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Trip().Alerts(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Alert)
+	fc.Result = res
+	return ec.marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlertᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ValidationResult_success(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15979,9 +20520,9 @@ func (ec *executionContext) _ValidationResult_earliest_calendar_date(ctx context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ValidationResult_latest_calendar_date(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
@@ -16011,9 +20552,9 @@ func (ec *executionContext) _ValidationResult_latest_calendar_date(ctx context.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tl.ODate)
+	res := resTmp.(tl.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, field.Selections, res)
+	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ValidationResult_files(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
@@ -16646,6 +21187,332 @@ func (ec *executionContext) _ValidationResultErrorGroup_errors(ctx context.Conte
 	return ec.marshalNValidationResultError2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResultErrorᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _VehiclePosition_vehicle(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VehiclePosition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Vehicle, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.RTVehicleDescriptor)
+	fc.Result = res
+	return ec.marshalORTVehicleDescriptor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTVehicleDescriptor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VehiclePosition_position(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VehiclePosition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Position, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tl.Point)
+	fc.Result = res
+	return ec.marshalOPoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐPoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VehiclePosition_current_stop_sequence(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VehiclePosition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentStopSequence, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VehiclePosition_stop_id(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VehiclePosition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Stop)
+	fc.Result = res
+	return ec.marshalOStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VehiclePosition_current_status(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VehiclePosition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VehiclePosition_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VehiclePosition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VehiclePosition_congestion_level(ctx context.Context, field graphql.CollectedField, obj *model.VehiclePosition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VehiclePosition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CongestionLevel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waypoint_lon(ctx context.Context, field graphql.CollectedField, obj *model.Waypoint) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waypoint",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waypoint_lat(ctx context.Context, field graphql.CollectedField, obj *model.Waypoint) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waypoint",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lat, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waypoint_name(ctx context.Context, field graphql.CollectedField, obj *model.Waypoint) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waypoint",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16692,14 +21559,14 @@ func (ec *executionContext) ___Directive_description(ctx context.Context, field 
 		Object:     "__Directive",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
+		return obj.Description(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16708,9 +21575,9 @@ func (ec *executionContext) ___Directive_description(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_locations(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -16783,6 +21650,41 @@ func (ec *executionContext) ___Directive_args(ctx context.Context, field graphql
 	return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) ___Directive_isRepeatable(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "__Directive",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsRepeatable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___EnumValue_name(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16829,14 +21731,14 @@ func (ec *executionContext) ___EnumValue_description(ctx context.Context, field 
 		Object:     "__EnumValue",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
+		return obj.Description(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16845,9 +21747,9 @@ func (ec *executionContext) ___EnumValue_description(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___EnumValue_isDeprecated(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) (ret graphql.Marshaler) {
@@ -16963,14 +21865,14 @@ func (ec *executionContext) ___Field_description(ctx context.Context, field grap
 		Object:     "__Field",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
+		return obj.Description(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16979,9 +21881,9 @@ func (ec *executionContext) ___Field_description(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Field_args(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) (ret graphql.Marshaler) {
@@ -17167,14 +22069,14 @@ func (ec *executionContext) ___InputValue_description(ctx context.Context, field
 		Object:     "__InputValue",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
+		return obj.Description(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17183,9 +22085,9 @@ func (ec *executionContext) ___InputValue_description(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___InputValue_type(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
@@ -17242,6 +22144,38 @@ func (ec *executionContext) ___InputValue_defaultValue(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DefaultValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) ___Schema_description(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "__Schema",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17518,9 +22452,9 @@ func (ec *executionContext) ___Type_description(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Type_fields(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
@@ -17729,13 +22663,48 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 	return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SpecifiedByURL(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
 
 func (ec *executionContext) unmarshalInputAgencyFilter(ctx context.Context, obj interface{}) (model.AgencyFilter, error) {
 	var it model.AgencyFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17803,6 +22772,46 @@ func (ec *executionContext) unmarshalInputAgencyFilter(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
+		case "city_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city_name"))
+			it.CityName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_name"))
+			it.Adm0Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_name"))
+			it.Adm1Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_iso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_iso"))
+			it.Adm0Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_iso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_iso"))
+			it.Adm1Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -17811,7 +22820,10 @@ func (ec *executionContext) unmarshalInputAgencyFilter(ctx context.Context, obj 
 
 func (ec *executionContext) unmarshalInputAgencyPlaceFilter(ctx context.Context, obj interface{}) (model.AgencyPlaceFilter, error) {
 	var it model.AgencyPlaceFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17823,14 +22835,6 @@ func (ec *executionContext) unmarshalInputAgencyPlaceFilter(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "search":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -17839,7 +22843,10 @@ func (ec *executionContext) unmarshalInputAgencyPlaceFilter(ctx context.Context,
 
 func (ec *executionContext) unmarshalInputCalendarDateFilter(ctx context.Context, obj interface{}) (model.CalendarDateFilter, error) {
 	var it model.CalendarDateFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17847,7 +22854,7 @@ func (ec *executionContext) unmarshalInputCalendarDateFilter(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
-			it.Date, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, v)
+			it.Date, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17865,9 +22872,82 @@ func (ec *executionContext) unmarshalInputCalendarDateFilter(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDirectionRequest(ctx context.Context, obj interface{}) (model.DirectionRequest, error) {
+	var it model.DirectionRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "to":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to"))
+			it.To, err = ec.unmarshalNWaypointInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "from":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from"))
+			it.From, err = ec.unmarshalNWaypointInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "mode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mode"))
+			it.Mode, err = ec.unmarshalNStepMode2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepMode(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "depart_at":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("depart_at"))
+			it.DepartAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFeedFetchFilter(ctx context.Context, obj interface{}) (model.FeedFetchFilter, error) {
+	var it model.FeedFetchFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "success":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("success"))
+			it.Success, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj interface{}) (model.FeedFilter, error) {
 	var it model.FeedFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17883,7 +22963,7 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("spec"))
-			it.Spec, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			it.Spec, err = ec.unmarshalOFeedSpecTypes2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypesᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17919,6 +22999,53 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
+		case "source_url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source_url"))
+			it.SourceURL, err = ec.unmarshalOFeedSourceUrl2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURL(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFeedSourceUrl(ctx context.Context, obj interface{}) (model.FeedSourceURL, error) {
+	var it model.FeedSourceURL
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			it.URL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalOFeedSourceUrlTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURLTypes(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "case_sensitive":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("case_sensitive"))
+			it.CaseSensitive, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -17927,7 +23054,10 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 
 func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context, obj interface{}) (model.FeedVersionFilter, error) {
 	var it model.FeedVersionFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17963,7 +23093,10 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 
 func (ec *executionContext) unmarshalInputFeedVersionServiceLevelFilter(ctx context.Context, obj interface{}) (model.FeedVersionServiceLevelFilter, error) {
 	var it model.FeedVersionServiceLevelFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17971,7 +23104,7 @@ func (ec *executionContext) unmarshalInputFeedVersionServiceLevelFilter(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-			it.StartDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, v)
+			it.StartDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17979,31 +23112,7 @@ func (ec *executionContext) unmarshalInputFeedVersionServiceLevelFilter(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-			it.EndDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "all_routes":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("all_routes"))
-			it.AllRoutes, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "distinct_on":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("distinct_on"))
-			it.DistinctOn, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "route_ids":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("route_ids"))
-			it.RouteIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			it.EndDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18015,7 +23124,10 @@ func (ec *executionContext) unmarshalInputFeedVersionServiceLevelFilter(ctx cont
 
 func (ec *executionContext) unmarshalInputFeedVersionSetInput(ctx context.Context, obj interface{}) (model.FeedVersionSetInput, error) {
 	var it model.FeedVersionSetInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18043,7 +23155,10 @@ func (ec *executionContext) unmarshalInputFeedVersionSetInput(ctx context.Contex
 
 func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, obj interface{}) (model.OperatorFilter, error) {
 	var it model.OperatorFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18095,6 +23210,46 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
+		case "city_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city_name"))
+			it.CityName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_name"))
+			it.Adm0Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_name"))
+			it.Adm1Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_iso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_iso"))
+			it.Adm0Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_iso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_iso"))
+			it.Adm1Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -18103,7 +23258,10 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 
 func (ec *executionContext) unmarshalInputPathwayFilter(ctx context.Context, obj interface{}) (model.PathwayFilter, error) {
 	var it model.PathwayFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18123,7 +23281,10 @@ func (ec *executionContext) unmarshalInputPathwayFilter(ctx context.Context, obj
 
 func (ec *executionContext) unmarshalInputPointRadius(ctx context.Context, obj interface{}) (model.PointRadius, error) {
 	var it model.PointRadius
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18159,7 +23320,10 @@ func (ec *executionContext) unmarshalInputPointRadius(ctx context.Context, obj i
 
 func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj interface{}) (model.RouteFilter, error) {
 	var it model.RouteFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18176,6 +23340,14 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onestop_ids"))
 			it.OnestopIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "allow_previous_onestop_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allow_previous_onestop_ids"))
+			it.AllowPreviousOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18259,7 +23431,10 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 
 func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj interface{}) (model.StopFilter, error) {
 	var it model.StopFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18276,6 +23451,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onestop_ids"))
 			it.OnestopIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "allow_previous_onestop_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allow_previous_onestop_ids"))
+			it.AllowPreviousOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18359,7 +23542,10 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, obj interface{}) (model.StopTimeFilter, error) {
 	var it model.StopTimeFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18367,7 +23553,15 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service_date"))
-			it.ServiceDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, v)
+			it.ServiceDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "use_service_window":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_service_window"))
+			it.UseServiceWindow, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18387,19 +23581,43 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
-		case "timezone":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timezone"))
-			it.Timezone, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "next":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("next"))
 			it.Next, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "route_onestop_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("route_onestop_ids"))
+			it.RouteOnestopIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "allow_previous_route_onestop_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allow_previous_route_onestop_ids"))
+			it.AllowPreviousRouteOnestopIds, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "exclude_first":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exclude_first"))
+			it.ExcludeFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "exclude_last":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exclude_last"))
+			it.ExcludeLast, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18411,7 +23629,10 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 
 func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj interface{}) (model.TripFilter, error) {
 	var it model.TripFilter
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18419,7 +23640,7 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service_date"))
-			it.ServiceDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, v)
+			it.ServiceDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18469,6 +23690,45 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputWaypointInput(ctx context.Context, obj interface{}) (model.WaypointInput, error) {
+	var it model.WaypointInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "lon":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lon"))
+			it.Lon, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lat":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lat"))
+			it.Lat, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -18481,7 +23741,6 @@ var agencyImplementors = []string{"Agency"}
 
 func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, obj *model.Agency) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, agencyImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -18489,62 +23748,123 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Agency")
 		case "id":
-			out.Values[i] = ec._Agency_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "onestop_id":
-			out.Values[i] = ec._Agency_onestop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_onestop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_email":
-			out.Values[i] = ec._Agency_agency_email(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_agency_email(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_fare_url":
-			out.Values[i] = ec._Agency_agency_fare_url(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_agency_fare_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_id":
-			out.Values[i] = ec._Agency_agency_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_agency_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_lang":
-			out.Values[i] = ec._Agency_agency_lang(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_agency_lang(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_name":
-			out.Values[i] = ec._Agency_agency_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_agency_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_phone":
-			out.Values[i] = ec._Agency_agency_phone(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_agency_phone(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_timezone":
-			out.Values[i] = ec._Agency_agency_timezone(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_agency_timezone(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_url":
-			out.Values[i] = ec._Agency_agency_url(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_agency_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "feed_version_sha1":
-			out.Values[i] = ec._Agency_feed_version_sha1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_feed_version_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "feed_onestop_id":
-			out.Values[i] = ec._Agency_feed_onestop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_feed_onestop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "feed_version":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18555,14 +23875,30 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "geometry":
-			out.Values[i] = ec._Agency_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "search_rank":
-			out.Values[i] = ec._Agency_search_rank(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Agency_search_rank(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "operator":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18570,10 +23906,16 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 				}()
 				res = ec._Agency_operator(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "places":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18581,10 +23923,16 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 				}()
 				res = ec._Agency_places(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "routes":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18595,10 +23943,16 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "census_geographies":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18606,6 +23960,28 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 				}()
 				res = ec._Agency_census_geographies(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "alerts":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Agency_alerts(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -18622,7 +23998,6 @@ var agencyPlaceImplementors = []string{"AgencyPlace"}
 
 func (ec *executionContext) _AgencyPlace(ctx context.Context, sel ast.SelectionSet, obj *model.AgencyPlace) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, agencyPlaceImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -18630,13 +24005,123 @@ func (ec *executionContext) _AgencyPlace(ctx context.Context, sel ast.SelectionS
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AgencyPlace")
 		case "city_name":
-			out.Values[i] = ec._AgencyPlace_city_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AgencyPlace_city_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "adm1_name":
-			out.Values[i] = ec._AgencyPlace_adm1_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AgencyPlace_adm1_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "adm0_name":
-			out.Values[i] = ec._AgencyPlace_adm0_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AgencyPlace_adm0_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "rank":
-			out.Values[i] = ec._AgencyPlace_rank(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AgencyPlace_rank(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var alertImplementors = []string{"Alert"}
+
+func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, obj *model.Alert) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Alert")
+		case "active_period":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_active_period(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "cause":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_cause(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "effect":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_effect(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "header_text":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_header_text(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description_text":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_description_text(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "tts_header_text":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_tts_header_text(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "tts_description_text":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_tts_description_text(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "severity_level":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Alert_severity_level(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18652,7 +24137,6 @@ var calendarImplementors = []string{"Calendar"}
 
 func (ec *executionContext) _Calendar(ctx context.Context, sel ast.SelectionSet, obj *model.Calendar) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, calendarImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -18660,18 +24144,29 @@ func (ec *executionContext) _Calendar(ctx context.Context, sel ast.SelectionSet,
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Calendar")
 		case "id":
-			out.Values[i] = ec._Calendar_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "service_id":
-			out.Values[i] = ec._Calendar_service_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_service_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "start_date":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18682,10 +24177,16 @@ func (ec *executionContext) _Calendar(ctx context.Context, sel ast.SelectionSet,
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "end_date":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18696,45 +24197,86 @@ func (ec *executionContext) _Calendar(ctx context.Context, sel ast.SelectionSet,
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "monday":
-			out.Values[i] = ec._Calendar_monday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_monday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "tuesday":
-			out.Values[i] = ec._Calendar_tuesday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_tuesday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "wednesday":
-			out.Values[i] = ec._Calendar_wednesday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_wednesday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "thursday":
-			out.Values[i] = ec._Calendar_thursday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_thursday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "friday":
-			out.Values[i] = ec._Calendar_friday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_friday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "saturday":
-			out.Values[i] = ec._Calendar_saturday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_saturday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "sunday":
-			out.Values[i] = ec._Calendar_sunday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Calendar_sunday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "added_dates":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18745,10 +24287,16 @@ func (ec *executionContext) _Calendar(ctx context.Context, sel ast.SelectionSet,
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "removed_dates":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18759,6 +24307,11 @@ func (ec *executionContext) _Calendar(ctx context.Context, sel ast.SelectionSet,
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -18775,7 +24328,6 @@ var censusGeographyImplementors = []string{"CensusGeography"}
 
 func (ec *executionContext) _CensusGeography(ctx context.Context, sel ast.SelectionSet, obj *model.CensusGeography) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, censusGeographyImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -18783,28 +24335,64 @@ func (ec *executionContext) _CensusGeography(ctx context.Context, sel ast.Select
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CensusGeography")
 		case "id":
-			out.Values[i] = ec._CensusGeography_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusGeography_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "layer_name":
-			out.Values[i] = ec._CensusGeography_layer_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusGeography_layer_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "geoid":
-			out.Values[i] = ec._CensusGeography_geoid(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusGeography_geoid(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "name":
-			out.Values[i] = ec._CensusGeography_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusGeography_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "aland":
-			out.Values[i] = ec._CensusGeography_aland(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusGeography_aland(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "awater":
-			out.Values[i] = ec._CensusGeography_awater(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusGeography_awater(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "geometry":
-			out.Values[i] = ec._CensusGeography_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusGeography_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "values":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18815,6 +24403,11 @@ func (ec *executionContext) _CensusGeography(ctx context.Context, sel ast.Select
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -18831,7 +24424,6 @@ var censusTableImplementors = []string{"CensusTable"}
 
 func (ec *executionContext) _CensusTable(ctx context.Context, sel ast.SelectionSet, obj *model.CensusTable) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, censusTableImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -18839,22 +24431,42 @@ func (ec *executionContext) _CensusTable(ctx context.Context, sel ast.SelectionS
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CensusTable")
 		case "id":
-			out.Values[i] = ec._CensusTable_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusTable_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "table_name":
-			out.Values[i] = ec._CensusTable_table_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusTable_table_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "table_title":
-			out.Values[i] = ec._CensusTable_table_title(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusTable_table_title(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "table_group":
-			out.Values[i] = ec._CensusTable_table_group(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CensusTable_table_group(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -18873,7 +24485,6 @@ var censusValueImplementors = []string{"CensusValue"}
 
 func (ec *executionContext) _CensusValue(ctx context.Context, sel ast.SelectionSet, obj *model.CensusValue) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, censusValueImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -18882,7 +24493,8 @@ func (ec *executionContext) _CensusValue(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = graphql.MarshalString("CensusValue")
 		case "table":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18893,10 +24505,16 @@ func (ec *executionContext) _CensusValue(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "values":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18907,7 +24525,188 @@ func (ec *executionContext) _CensusValue(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var directionsImplementors = []string{"Directions"}
+
+func (ec *executionContext) _Directions(ctx context.Context, sel ast.SelectionSet, obj *model.Directions) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, directionsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Directions")
+		case "success":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "exception":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_exception(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "data_source":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_data_source(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "origin":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_origin(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "destination":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_destination(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "duration":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_duration(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "distance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_distance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "start_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_start_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "end_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_end_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "itineraries":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Directions_itineraries(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var distanceImplementors = []string{"Distance"}
+
+func (ec *executionContext) _Distance(ctx context.Context, sel ast.SelectionSet, obj *model.Distance) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, distanceImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Distance")
+		case "distance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Distance_distance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "units":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Distance_units(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var durationImplementors = []string{"Duration"}
+
+func (ec *executionContext) _Duration(ctx context.Context, sel ast.SelectionSet, obj *model.Duration) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, durationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Duration")
+		case "duration":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Duration_duration(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "units":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Duration_units(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18923,7 +24722,6 @@ var feedImplementors = []string{"Feed"}
 
 func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj *model.Feed) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -18931,35 +24729,63 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Feed")
 		case "id":
-			out.Values[i] = ec._Feed_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Feed_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "onestop_id":
-			out.Values[i] = ec._Feed_onestop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Feed_onestop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
-			out.Values[i] = ec._Feed_name(ctx, field, obj)
-		case "feed_namespace_id":
-			out.Values[i] = ec._Feed_feed_namespace_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Feed_name(ctx, field, obj)
 			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "file":
-			out.Values[i] = ec._Feed_file(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Feed_file(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "spec":
-			out.Values[i] = ec._Feed_spec(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Feed_spec(ctx, field, obj)
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "languages":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18967,23 +24793,23 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Feed_languages(ctx, field, obj)
 				return res
-			})
-		case "associated_feeds":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Feed_associated_feeds(ctx, field, obj)
-				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "tags":
-			out.Values[i] = ec._Feed_tags(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Feed_tags(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "authorization":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -18991,10 +24817,16 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Feed_authorization(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "urls":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19002,10 +24834,16 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Feed_urls(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "license":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19013,12 +24851,23 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Feed_license(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "search_rank":
-			out.Values[i] = ec._Feed_search_rank(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Feed_search_rank(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "associated_operators":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19026,10 +24875,16 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Feed_associated_operators(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "feed_state":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19037,10 +24892,33 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Feed_feed_state(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "feed_fetches":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Feed_feed_fetches(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "feed_versions":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19051,6 +24929,11 @@ func (ec *executionContext) _Feed(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -19067,7 +24950,6 @@ var feedAuthorizationImplementors = []string{"FeedAuthorization"}
 
 func (ec *executionContext) _FeedAuthorization(ctx context.Context, sel ast.SelectionSet, obj *model.FeedAuthorization) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedAuthorizationImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19075,20 +24957,122 @@ func (ec *executionContext) _FeedAuthorization(ctx context.Context, sel ast.Sele
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedAuthorization")
 		case "type":
-			out.Values[i] = ec._FeedAuthorization_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedAuthorization_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "param_name":
-			out.Values[i] = ec._FeedAuthorization_param_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedAuthorization_param_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "info_url":
-			out.Values[i] = ec._FeedAuthorization_info_url(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedAuthorization_info_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var feedFetchImplementors = []string{"FeedFetch"}
+
+func (ec *executionContext) _FeedFetch(ctx context.Context, sel ast.SelectionSet, obj *model.FeedFetch) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, feedFetchImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FeedFetch")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "url_type":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_url_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "success":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "fetched_at":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_fetched_at(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "fetch_error":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_fetch_error(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "response_size":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_response_size(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "response_code":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_response_code(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "response_sha1":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedFetch_response_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19104,7 +25088,6 @@ var feedInfoImplementors = []string{"FeedInfo"}
 
 func (ec *executionContext) _FeedInfo(ctx context.Context, sel ast.SelectionSet, obj *model.FeedInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedInfoImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19112,34 +25095,90 @@ func (ec *executionContext) _FeedInfo(ctx context.Context, sel ast.SelectionSet,
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedInfo")
 		case "id":
-			out.Values[i] = ec._FeedInfo_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "feed_publisher_name":
-			out.Values[i] = ec._FeedInfo_feed_publisher_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_feed_publisher_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "feed_publisher_url":
-			out.Values[i] = ec._FeedInfo_feed_publisher_url(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_feed_publisher_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "feed_lang":
-			out.Values[i] = ec._FeedInfo_feed_lang(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_feed_lang(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "default_lang":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_default_lang(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "feed_version":
-			out.Values[i] = ec._FeedInfo_feed_version(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_feed_version(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "feed_start_date":
-			out.Values[i] = ec._FeedInfo_feed_start_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_feed_start_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "feed_end_date":
-			out.Values[i] = ec._FeedInfo_feed_end_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_feed_end_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "feed_contact_email":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_feed_contact_email(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "feed_contact_url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedInfo_feed_contact_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19155,7 +25194,6 @@ var feedLicenseImplementors = []string{"FeedLicense"}
 
 func (ec *executionContext) _FeedLicense(ctx context.Context, sel ast.SelectionSet, obj *model.FeedLicense) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedLicenseImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19163,47 +25201,92 @@ func (ec *executionContext) _FeedLicense(ctx context.Context, sel ast.SelectionS
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedLicense")
 		case "spdx_identifier":
-			out.Values[i] = ec._FeedLicense_spdx_identifier(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_spdx_identifier(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "url":
-			out.Values[i] = ec._FeedLicense_url(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "use_without_attribution":
-			out.Values[i] = ec._FeedLicense_use_without_attribution(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_use_without_attribution(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "create_derived_product":
-			out.Values[i] = ec._FeedLicense_create_derived_product(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_create_derived_product(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "redistribution_allowed":
-			out.Values[i] = ec._FeedLicense_redistribution_allowed(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_redistribution_allowed(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "commercial_use_allowed":
-			out.Values[i] = ec._FeedLicense_commercial_use_allowed(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_commercial_use_allowed(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "share_alike_optional":
-			out.Values[i] = ec._FeedLicense_share_alike_optional(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_share_alike_optional(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "attribution_text":
-			out.Values[i] = ec._FeedLicense_attribution_text(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_attribution_text(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "attribution_instructions":
-			out.Values[i] = ec._FeedLicense_attribution_instructions(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedLicense_attribution_instructions(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19222,7 +25305,6 @@ var feedStateImplementors = []string{"FeedState"}
 
 func (ec *executionContext) _FeedState(ctx context.Context, sel ast.SelectionSet, obj *model.FeedState) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedStateImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19230,22 +25312,19 @@ func (ec *executionContext) _FeedState(ctx context.Context, sel ast.SelectionSet
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedState")
 		case "id":
-			out.Values[i] = ec._FeedState_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedState_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "last_fetch_error":
-			out.Values[i] = ec._FeedState_last_fetch_error(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "last_fetched_at":
-			out.Values[i] = ec._FeedState_last_fetched_at(ctx, field, obj)
-		case "last_successful_fetch_at":
-			out.Values[i] = ec._FeedState_last_successful_fetch_at(ctx, field, obj)
 		case "feed_version":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19253,6 +25332,11 @@ func (ec *executionContext) _FeedState(ctx context.Context, sel ast.SelectionSet
 				}()
 				res = ec._FeedState_feed_version(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -19269,7 +25353,6 @@ var feedUrlsImplementors = []string{"FeedUrls"}
 
 func (ec *executionContext) _FeedUrls(ctx context.Context, sel ast.SelectionSet, obj *model.FeedUrls) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedUrlsImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19277,32 +25360,82 @@ func (ec *executionContext) _FeedUrls(ctx context.Context, sel ast.SelectionSet,
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedUrls")
 		case "static_current":
-			out.Values[i] = ec._FeedUrls_static_current(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_static_current(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "static_historic":
-			out.Values[i] = ec._FeedUrls_static_historic(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_static_historic(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "static_planned":
-			out.Values[i] = ec._FeedUrls_static_planned(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_static_planned(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "realtime_vehicle_positions":
-			out.Values[i] = ec._FeedUrls_realtime_vehicle_positions(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_realtime_vehicle_positions(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "realtime_trip_updates":
-			out.Values[i] = ec._FeedUrls_realtime_trip_updates(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_realtime_trip_updates(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "realtime_alerts":
-			out.Values[i] = ec._FeedUrls_realtime_alerts(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_realtime_alerts(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "gbfs_auto_discovery":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_gbfs_auto_discovery(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "mds_provider":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedUrls_mds_provider(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19321,7 +25454,6 @@ var feedVersionImplementors = []string{"FeedVersion"}
 
 func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersion) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19329,48 +25461,104 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedVersion")
 		case "id":
-			out.Values[i] = ec._FeedVersion_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "sha1":
-			out.Values[i] = ec._FeedVersion_sha1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "fetched_at":
-			out.Values[i] = ec._FeedVersion_fetched_at(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_fetched_at(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "url":
-			out.Values[i] = ec._FeedVersion_url(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "earliest_calendar_date":
-			out.Values[i] = ec._FeedVersion_earliest_calendar_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_earliest_calendar_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "latest_calendar_date":
-			out.Values[i] = ec._FeedVersion_latest_calendar_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_latest_calendar_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "created_by":
-			out.Values[i] = ec._FeedVersion_created_by(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_created_by(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "updated_by":
-			out.Values[i] = ec._FeedVersion_updated_by(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_updated_by(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "name":
-			out.Values[i] = ec._FeedVersion_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "description":
-			out.Values[i] = ec._FeedVersion_description(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_description(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "geometry":
-			out.Values[i] = ec._FeedVersion_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersion_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "feed":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19381,10 +25569,16 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "feed_version_gtfs_import":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19392,10 +25586,16 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 				}()
 				res = ec._FeedVersion_feed_version_gtfs_import(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "files":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19406,10 +25606,16 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "service_levels":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19420,10 +25626,16 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "agencies":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19434,10 +25646,16 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "routes":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19448,10 +25666,16 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "stops":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19462,10 +25686,16 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "trips":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19476,10 +25706,16 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "feed_infos":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19490,6 +25726,11 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -19506,7 +25747,6 @@ var feedVersionDeleteResultImplementors = []string{"FeedVersionDeleteResult"}
 
 func (ec *executionContext) _FeedVersionDeleteResult(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersionDeleteResult) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionDeleteResultImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19514,7 +25754,12 @@ func (ec *executionContext) _FeedVersionDeleteResult(ctx context.Context, sel as
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedVersionDeleteResult")
 		case "success":
-			out.Values[i] = ec._FeedVersionDeleteResult_success(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionDeleteResult_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19533,7 +25778,6 @@ var feedVersionFetchResultImplementors = []string{"FeedVersionFetchResult"}
 
 func (ec *executionContext) _FeedVersionFetchResult(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersionFetchResult) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionFetchResultImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19541,16 +25785,36 @@ func (ec *executionContext) _FeedVersionFetchResult(ctx context.Context, sel ast
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedVersionFetchResult")
 		case "feed_version":
-			out.Values[i] = ec._FeedVersionFetchResult_feed_version(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFetchResult_feed_version(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "fetch_error":
-			out.Values[i] = ec._FeedVersionFetchResult_fetch_error(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFetchResult_fetch_error(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "found_sha1":
-			out.Values[i] = ec._FeedVersionFetchResult_found_sha1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFetchResult_found_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "found_dir_sha1":
-			out.Values[i] = ec._FeedVersionFetchResult_found_dir_sha1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFetchResult_found_dir_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19569,7 +25833,6 @@ var feedVersionFileInfoImplementors = []string{"FeedVersionFileInfo"}
 
 func (ec *executionContext) _FeedVersionFileInfo(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersionFileInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionFileInfoImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19577,37 +25840,72 @@ func (ec *executionContext) _FeedVersionFileInfo(ctx context.Context, sel ast.Se
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedVersionFileInfo")
 		case "id":
-			out.Values[i] = ec._FeedVersionFileInfo_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFileInfo_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "name":
-			out.Values[i] = ec._FeedVersionFileInfo_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFileInfo_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "rows":
-			out.Values[i] = ec._FeedVersionFileInfo_rows(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFileInfo_rows(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "sha1":
-			out.Values[i] = ec._FeedVersionFileInfo_sha1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFileInfo_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "header":
-			out.Values[i] = ec._FeedVersionFileInfo_header(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFileInfo_header(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "csv_like":
-			out.Values[i] = ec._FeedVersionFileInfo_csv_like(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFileInfo_csv_like(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "size":
-			out.Values[i] = ec._FeedVersionFileInfo_size(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionFileInfo_size(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19626,7 +25924,6 @@ var feedVersionGtfsImportImplementors = []string{"FeedVersionGtfsImport"}
 
 func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersionGtfsImport) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionGtfsImportImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19634,33 +25931,59 @@ func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedVersionGtfsImport")
 		case "id":
-			out.Values[i] = ec._FeedVersionGtfsImport_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionGtfsImport_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "in_progress":
-			out.Values[i] = ec._FeedVersionGtfsImport_in_progress(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionGtfsImport_in_progress(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "success":
-			out.Values[i] = ec._FeedVersionGtfsImport_success(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionGtfsImport_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "schedule_removed":
-			out.Values[i] = ec._FeedVersionGtfsImport_schedule_removed(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionGtfsImport_schedule_removed(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "exception_log":
-			out.Values[i] = ec._FeedVersionGtfsImport_exception_log(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionGtfsImport_exception_log(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "skip_entity_error_count":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19668,10 +25991,16 @@ func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.
 				}()
 				res = ec._FeedVersionGtfsImport_skip_entity_error_count(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "entity_count":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19679,10 +26008,16 @@ func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.
 				}()
 				res = ec._FeedVersionGtfsImport_entity_count(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "warning_count":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19690,14 +26025,30 @@ func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.
 				}()
 				res = ec._FeedVersionGtfsImport_warning_count(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "created_at":
-			out.Values[i] = ec._FeedVersionGtfsImport_created_at(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionGtfsImport_created_at(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "updated_at":
-			out.Values[i] = ec._FeedVersionGtfsImport_updated_at(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionGtfsImport_updated_at(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "skip_entity_reference_count":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19705,10 +26056,16 @@ func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.
 				}()
 				res = ec._FeedVersionGtfsImport_skip_entity_reference_count(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "skip_entity_filter_count":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19716,10 +26073,16 @@ func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.
 				}()
 				res = ec._FeedVersionGtfsImport_skip_entity_filter_count(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "skip_entity_marked_count":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -19727,9 +26090,19 @@ func (ec *executionContext) _FeedVersionGtfsImport(ctx context.Context, sel ast.
 				}()
 				res = ec._FeedVersionGtfsImport_skip_entity_marked_count(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "interpolated_stop_time_count":
-			out.Values[i] = ec._FeedVersionGtfsImport_interpolated_stop_time_count(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionGtfsImport_interpolated_stop_time_count(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19745,7 +26118,6 @@ var feedVersionImportResultImplementors = []string{"FeedVersionImportResult"}
 
 func (ec *executionContext) _FeedVersionImportResult(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersionImportResult) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionImportResultImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19753,7 +26125,12 @@ func (ec *executionContext) _FeedVersionImportResult(ctx context.Context, sel as
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedVersionImportResult")
 		case "success":
-			out.Values[i] = ec._FeedVersionImportResult_success(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionImportResult_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19772,7 +26149,6 @@ var feedVersionServiceLevelImplementors = []string{"FeedVersionServiceLevel"}
 
 func (ec *executionContext) _FeedVersionServiceLevel(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersionServiceLevel) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionServiceLevelImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19780,64 +26156,102 @@ func (ec *executionContext) _FeedVersionServiceLevel(ctx context.Context, sel as
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedVersionServiceLevel")
 		case "id":
-			out.Values[i] = ec._FeedVersionServiceLevel_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_id(ctx, field, obj)
 			}
-		case "route_id":
-			out.Values[i] = ec._FeedVersionServiceLevel_route_id(ctx, field, obj)
-		case "route_short_name":
-			out.Values[i] = ec._FeedVersionServiceLevel_route_short_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "route_long_name":
-			out.Values[i] = ec._FeedVersionServiceLevel_route_long_name(ctx, field, obj)
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "start_date":
-			out.Values[i] = ec._FeedVersionServiceLevel_start_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_start_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "end_date":
-			out.Values[i] = ec._FeedVersionServiceLevel_end_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_end_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "monday":
-			out.Values[i] = ec._FeedVersionServiceLevel_monday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_monday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "tuesday":
-			out.Values[i] = ec._FeedVersionServiceLevel_tuesday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_tuesday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "wednesday":
-			out.Values[i] = ec._FeedVersionServiceLevel_wednesday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_wednesday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "thursday":
-			out.Values[i] = ec._FeedVersionServiceLevel_thursday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_thursday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "friday":
-			out.Values[i] = ec._FeedVersionServiceLevel_friday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_friday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "saturday":
-			out.Values[i] = ec._FeedVersionServiceLevel_saturday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_saturday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "sunday":
-			out.Values[i] = ec._FeedVersionServiceLevel_sunday(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionServiceLevel_sunday(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19856,7 +26270,6 @@ var feedVersionUnimportResultImplementors = []string{"FeedVersionUnimportResult"
 
 func (ec *executionContext) _FeedVersionUnimportResult(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersionUnimportResult) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionUnimportResultImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19864,7 +26277,12 @@ func (ec *executionContext) _FeedVersionUnimportResult(ctx context.Context, sel 
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeedVersionUnimportResult")
 		case "success":
-			out.Values[i] = ec._FeedVersionUnimportResult_success(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._FeedVersionUnimportResult_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19883,7 +26301,6 @@ var frequencyImplementors = []string{"Frequency"}
 
 func (ec *executionContext) _Frequency(ctx context.Context, sel ast.SelectionSet, obj *model.Frequency) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, frequencyImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19891,27 +26308,232 @@ func (ec *executionContext) _Frequency(ctx context.Context, sel ast.SelectionSet
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Frequency")
 		case "id":
-			out.Values[i] = ec._Frequency_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Frequency_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "start_time":
-			out.Values[i] = ec._Frequency_start_time(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Frequency_start_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "end_time":
-			out.Values[i] = ec._Frequency_end_time(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Frequency_end_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "headway_secs":
-			out.Values[i] = ec._Frequency_headway_secs(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Frequency_headway_secs(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "exact_times":
-			out.Values[i] = ec._Frequency_exact_times(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Frequency_exact_times(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var itineraryImplementors = []string{"Itinerary"}
+
+func (ec *executionContext) _Itinerary(ctx context.Context, sel ast.SelectionSet, obj *model.Itinerary) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, itineraryImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Itinerary")
+		case "duration":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Itinerary_duration(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "distance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Itinerary_distance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "start_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Itinerary_start_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "end_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Itinerary_end_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "from":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Itinerary_from(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "to":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Itinerary_to(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "legs":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Itinerary_legs(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var legImplementors = []string{"Leg"}
+
+func (ec *executionContext) _Leg(ctx context.Context, sel ast.SelectionSet, obj *model.Leg) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, legImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Leg")
+		case "duration":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Leg_duration(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "distance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Leg_distance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "start_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Leg_start_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "end_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Leg_end_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "from":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Leg_from(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "to":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Leg_to(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "steps":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Leg_steps(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "geometry":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Leg_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19930,7 +26552,6 @@ var levelImplementors = []string{"Level"}
 
 func (ec *executionContext) _Level(ctx context.Context, sel ast.SelectionSet, obj *model.Level) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, levelImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -19938,22 +26559,42 @@ func (ec *executionContext) _Level(ctx context.Context, sel ast.SelectionSet, ob
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Level")
 		case "id":
-			out.Values[i] = ec._Level_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Level_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "level_id":
-			out.Values[i] = ec._Level_level_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Level_level_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "level_name":
-			out.Values[i] = ec._Level_level_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Level_level_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "level_index":
-			out.Values[i] = ec._Level_level_index(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Level_level_index(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19972,7 +26613,6 @@ var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
-
 	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
 		Object: "Mutation",
 	})
@@ -19980,27 +26620,62 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
+		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
+			Object: field.Name,
+			Field:  field,
+		})
+
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "validate_gtfs":
-			out.Values[i] = ec._Mutation_validate_gtfs(ctx, field)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_validate_gtfs(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 		case "feed_version_update":
-			out.Values[i] = ec._Mutation_feed_version_update(ctx, field)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_feed_version_update(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 		case "feed_version_fetch":
-			out.Values[i] = ec._Mutation_feed_version_fetch(ctx, field)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_feed_version_fetch(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 		case "feed_version_import":
-			out.Values[i] = ec._Mutation_feed_version_import(ctx, field)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_feed_version_import(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "feed_version_unimport":
-			out.Values[i] = ec._Mutation_feed_version_unimport(ctx, field)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_feed_version_unimport(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "feed_version_delete":
-			out.Values[i] = ec._Mutation_feed_version_delete(ctx, field)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_feed_version_delete(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -20019,7 +26694,6 @@ var operatorImplementors = []string{"Operator"}
 
 func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet, obj *model.Operator) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, operatorImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20027,43 +26701,78 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Operator")
 		case "id":
-			out.Values[i] = ec._Operator_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "generated":
-			out.Values[i] = ec._Operator_generated(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_generated(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "file":
-			out.Values[i] = ec._Operator_file(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_file(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "onestop_id":
-			out.Values[i] = ec._Operator_onestop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_onestop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "name":
-			out.Values[i] = ec._Operator_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "short_name":
-			out.Values[i] = ec._Operator_short_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_short_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "website":
-			out.Values[i] = ec._Operator_website(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_website(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "tags":
-			out.Values[i] = ec._Operator_tags(ctx, field, obj)
-		case "associated_feeds":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Operator_associated_feeds(ctx, field, obj)
-				return res
-			})
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_tags(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "search_rank":
-			out.Values[i] = ec._Operator_search_rank(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Operator_search_rank(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "agencies":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20071,6 +26780,28 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 				}()
 				res = ec._Operator_agencies(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "feeds":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Operator_feeds(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -20087,7 +26818,6 @@ var pathwayImplementors = []string{"Pathway"}
 
 func (ec *executionContext) _Pathway(ctx context.Context, sel ast.SelectionSet, obj *model.Pathway) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, pathwayImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20095,63 +26825,119 @@ func (ec *executionContext) _Pathway(ctx context.Context, sel ast.SelectionSet, 
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Pathway")
 		case "id":
-			out.Values[i] = ec._Pathway_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "pathway_id":
-			out.Values[i] = ec._Pathway_pathway_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_pathway_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "pathway_mode":
-			out.Values[i] = ec._Pathway_pathway_mode(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_pathway_mode(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "is_bidirectional":
-			out.Values[i] = ec._Pathway_is_bidirectional(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_is_bidirectional(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "length":
-			out.Values[i] = ec._Pathway_length(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_length(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "traversal_time":
-			out.Values[i] = ec._Pathway_traversal_time(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_traversal_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stair_count":
-			out.Values[i] = ec._Pathway_stair_count(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_stair_count(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "max_slope":
-			out.Values[i] = ec._Pathway_max_slope(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_max_slope(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "min_width":
-			out.Values[i] = ec._Pathway_min_width(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_min_width(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "signposted_as":
-			out.Values[i] = ec._Pathway_signposted_as(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_signposted_as(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "reverse_signposted_as":
-			out.Values[i] = ec._Pathway_reverse_signposted_as(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Pathway_reverse_signposted_as(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "from_stop":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20162,10 +26948,16 @@ func (ec *executionContext) _Pathway(ctx context.Context, sel ast.SelectionSet, 
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "to_stop":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20176,6 +26968,11 @@ func (ec *executionContext) _Pathway(ctx context.Context, sel ast.SelectionSet, 
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -20192,7 +26989,6 @@ var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, queryImplementors)
-
 	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
 		Object: "Query",
 	})
@@ -20200,12 +26996,18 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
+		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
+			Object: field.Name,
+			Field:  field,
+		})
+
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
 		case "feed_versions":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20216,10 +27018,19 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
 			})
 		case "feeds":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20230,10 +27041,19 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
 			})
 		case "agencies":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20244,10 +27064,19 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
 			})
 		case "routes":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20258,10 +27087,19 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
 			})
 		case "stops":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20272,10 +27110,19 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
 			})
 		case "trips":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20286,10 +27133,19 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
 			})
 		case "operators":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20300,11 +27156,230 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "directions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_directions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
 			})
 		case "__type":
-			out.Values[i] = ec._Query___type(ctx, field)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Query___type(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 		case "__schema":
-			out.Values[i] = ec._Query___schema(ctx, field)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Query___schema(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var rTTimeRangeImplementors = []string{"RTTimeRange"}
+
+func (ec *executionContext) _RTTimeRange(ctx context.Context, sel ast.SelectionSet, obj *model.RTTimeRange) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rTTimeRangeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RTTimeRange")
+		case "start":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTimeRange_start(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "end":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTimeRange_end(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var rTTranslationImplementors = []string{"RTTranslation"}
+
+func (ec *executionContext) _RTTranslation(ctx context.Context, sel ast.SelectionSet, obj *model.RTTranslation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rTTranslationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RTTranslation")
+		case "text":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTranslation_text(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "language":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTranslation_language(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var rTTripDescriptorImplementors = []string{"RTTripDescriptor"}
+
+func (ec *executionContext) _RTTripDescriptor(ctx context.Context, sel ast.SelectionSet, obj *model.RTTripDescriptor) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rTTripDescriptorImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RTTripDescriptor")
+		case "trip_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTripDescriptor_trip_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "route_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTripDescriptor_route_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "direction_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTripDescriptor_direction_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "start_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTripDescriptor_start_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "start_date":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTripDescriptor_start_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "schedule_relationship":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTTripDescriptor_schedule_relationship(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var rTVehicleDescriptorImplementors = []string{"RTVehicleDescriptor"}
+
+func (ec *executionContext) _RTVehicleDescriptor(ctx context.Context, sel ast.SelectionSet, obj *model.RTVehicleDescriptor) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rTVehicleDescriptorImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RTVehicleDescriptor")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTVehicleDescriptor_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "label":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTVehicleDescriptor_label(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "license_plate":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RTVehicleDescriptor_license_plate(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20320,7 +27395,6 @@ var routeImplementors = []string{"Route"}
 
 func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, obj *model.Route) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, routeImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20328,62 +27402,137 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Route")
 		case "id":
-			out.Values[i] = ec._Route_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "onestop_id":
-			out.Values[i] = ec._Route_onestop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_onestop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "route_id":
-			out.Values[i] = ec._Route_route_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_short_name":
-			out.Values[i] = ec._Route_route_short_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_short_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_long_name":
-			out.Values[i] = ec._Route_route_long_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_long_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_type":
-			out.Values[i] = ec._Route_route_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_color":
-			out.Values[i] = ec._Route_route_color(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_color(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_text_color":
-			out.Values[i] = ec._Route_route_text_color(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_text_color(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_sort_order":
-			out.Values[i] = ec._Route_route_sort_order(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_sort_order(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_url":
-			out.Values[i] = ec._Route_route_url(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_desc":
-			out.Values[i] = ec._Route_route_desc(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_route_desc(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "continuous_pickup":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_continuous_pickup(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "continuous_drop_off":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_continuous_drop_off(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "geometry":
-			out.Values[i] = ec._Route_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "agency":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20394,10 +27543,16 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "feed_version":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20408,22 +27563,43 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "feed_version_sha1":
-			out.Values[i] = ec._Route_feed_version_sha1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_feed_version_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "feed_onestop_id":
-			out.Values[i] = ec._Route_feed_onestop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_feed_onestop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "search_rank":
-			out.Values[i] = ec._Route_search_rank(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Route_search_rank(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "trips":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20434,10 +27610,16 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "stops":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20448,10 +27630,16 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "route_stops":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20462,10 +27650,16 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "headways":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20476,10 +27670,16 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "geometries":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20490,10 +27690,16 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "census_geographies":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20501,10 +27707,16 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 				}()
 				res = ec._Route_census_geographies(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "route_stop_buffer":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20515,6 +27727,28 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "alerts":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Route_alerts(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -20531,7 +27765,6 @@ var routeGeometryImplementors = []string{"RouteGeometry"}
 
 func (ec *executionContext) _RouteGeometry(ctx context.Context, sel ast.SelectionSet, obj *model.RouteGeometry) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, routeGeometryImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20539,14 +27772,50 @@ func (ec *executionContext) _RouteGeometry(ctx context.Context, sel ast.Selectio
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("RouteGeometry")
 		case "generated":
-			out.Values[i] = ec._RouteGeometry_generated(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_generated(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "geometry":
-			out.Values[i] = ec._RouteGeometry_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "combined_geometry":
-			out.Values[i] = ec._RouteGeometry_combined_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_combined_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "length":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_length(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "max_segment_length":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_max_segment_length(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "first_point_max_distance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteGeometry_first_point_max_distance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20562,7 +27831,6 @@ var routeHeadwayImplementors = []string{"RouteHeadway"}
 
 func (ec *executionContext) _RouteHeadway(ctx context.Context, sel ast.SelectionSet, obj *model.RouteHeadway) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, routeHeadwayImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20571,7 +27839,8 @@ func (ec *executionContext) _RouteHeadway(ctx context.Context, sel ast.Selection
 			out.Values[i] = graphql.MarshalString("RouteHeadway")
 		case "stop":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20582,20 +27851,51 @@ func (ec *executionContext) _RouteHeadway(ctx context.Context, sel ast.Selection
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "dow_category":
-			out.Values[i] = ec._RouteHeadway_dow_category(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteHeadway_dow_category(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "direction_id":
-			out.Values[i] = ec._RouteHeadway_direction_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteHeadway_direction_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "headway_secs":
-			out.Values[i] = ec._RouteHeadway_headway_secs(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteHeadway_headway_secs(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "service_date":
-			out.Values[i] = ec._RouteHeadway_service_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteHeadway_service_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "stop_trip_count":
-			out.Values[i] = ec._RouteHeadway_stop_trip_count(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteHeadway_stop_trip_count(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "departures":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20603,6 +27903,11 @@ func (ec *executionContext) _RouteHeadway(ctx context.Context, sel ast.Selection
 				}()
 				res = ec._RouteHeadway_departures(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -20619,7 +27924,6 @@ var routeStopImplementors = []string{"RouteStop"}
 
 func (ec *executionContext) _RouteStop(ctx context.Context, sel ast.SelectionSet, obj *model.RouteStop) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, routeStopImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20627,28 +27931,49 @@ func (ec *executionContext) _RouteStop(ctx context.Context, sel ast.SelectionSet
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("RouteStop")
 		case "id":
-			out.Values[i] = ec._RouteStop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteStop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_id":
-			out.Values[i] = ec._RouteStop_stop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteStop_stop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route_id":
-			out.Values[i] = ec._RouteStop_route_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteStop_route_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "agency_id":
-			out.Values[i] = ec._RouteStop_agency_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteStop_agency_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "route":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20659,10 +27984,16 @@ func (ec *executionContext) _RouteStop(ctx context.Context, sel ast.SelectionSet
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "stop":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20673,10 +28004,16 @@ func (ec *executionContext) _RouteStop(ctx context.Context, sel ast.SelectionSet
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "agency":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20687,6 +28024,11 @@ func (ec *executionContext) _RouteStop(ctx context.Context, sel ast.SelectionSet
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -20703,7 +28045,6 @@ var routeStopBufferImplementors = []string{"RouteStopBuffer"}
 
 func (ec *executionContext) _RouteStopBuffer(ctx context.Context, sel ast.SelectionSet, obj *model.RouteStopBuffer) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, routeStopBufferImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20711,11 +28052,26 @@ func (ec *executionContext) _RouteStopBuffer(ctx context.Context, sel ast.Select
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("RouteStopBuffer")
 		case "stop_points":
-			out.Values[i] = ec._RouteStopBuffer_stop_points(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteStopBuffer_stop_points(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "stop_buffer":
-			out.Values[i] = ec._RouteStopBuffer_stop_buffer(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteStopBuffer_stop_buffer(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "stop_convexhull":
-			out.Values[i] = ec._RouteStopBuffer_stop_convexhull(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._RouteStopBuffer_stop_convexhull(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20731,7 +28087,6 @@ var shapeImplementors = []string{"Shape"}
 
 func (ec *executionContext) _Shape(ctx context.Context, sel ast.SelectionSet, obj *model.Shape) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, shapeImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20739,22 +28094,140 @@ func (ec *executionContext) _Shape(ctx context.Context, sel ast.SelectionSet, ob
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Shape")
 		case "id":
-			out.Values[i] = ec._Shape_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Shape_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "shape_id":
-			out.Values[i] = ec._Shape_shape_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Shape_shape_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "geometry":
-			out.Values[i] = ec._Shape_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Shape_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "generated":
-			out.Values[i] = ec._Shape_generated(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Shape_generated(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stepImplementors = []string{"Step"}
+
+func (ec *executionContext) _Step(ctx context.Context, sel ast.SelectionSet, obj *model.Step) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stepImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Step")
+		case "duration":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Step_duration(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "distance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Step_distance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "start_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Step_start_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "end_time":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Step_end_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "to":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Step_to(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "mode":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Step_mode(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "instruction":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Step_instruction(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "geometry_offset":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Step_geometry_offset(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -20773,7 +28246,6 @@ var stopImplementors = []string{"Stop"}
 
 func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj *model.Stop) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, stopImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20781,78 +28253,163 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Stop")
 		case "id":
-			out.Values[i] = ec._Stop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "onestop_id":
-			out.Values[i] = ec._Stop_onestop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_onestop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "location_type":
-			out.Values[i] = ec._Stop_location_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_location_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_code":
-			out.Values[i] = ec._Stop_stop_code(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_stop_code(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_desc":
-			out.Values[i] = ec._Stop_stop_desc(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_stop_desc(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_id":
-			out.Values[i] = ec._Stop_stop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_stop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_name":
-			out.Values[i] = ec._Stop_stop_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_stop_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_timezone":
-			out.Values[i] = ec._Stop_stop_timezone(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_stop_timezone(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_url":
-			out.Values[i] = ec._Stop_stop_url(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_stop_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "wheelchair_boarding":
-			out.Values[i] = ec._Stop_wheelchair_boarding(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_wheelchair_boarding(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "zone_id":
-			out.Values[i] = ec._Stop_zone_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_zone_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "platform_code":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_platform_code(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "tts_stop_name":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_tts_stop_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "geometry":
-			out.Values[i] = ec._Stop_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_geometry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "feed_version_sha1":
-			out.Values[i] = ec._Stop_feed_version_sha1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_feed_version_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "feed_onestop_id":
-			out.Values[i] = ec._Stop_feed_onestop_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_feed_onestop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "feed_version":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20863,10 +28420,16 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "level":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20874,10 +28437,16 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Stop_level(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "parent":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20885,10 +28454,16 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Stop_parent(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "children":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20896,10 +28471,16 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Stop_children(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "route_stops":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20910,10 +28491,16 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "pathways_from_stop":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20924,10 +28511,16 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "pathways_to_stop":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20938,10 +28531,16 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "stop_times":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20952,12 +28551,63 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "departures":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_departures(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "arrivals":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_arrivals(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "search_rank":
-			out.Values[i] = ec._Stop_search_rank(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Stop_search_rank(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "census_geographies":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -20965,6 +28615,48 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Stop_census_geographies(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "directions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_directions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "alerts":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_alerts(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -20981,7 +28673,6 @@ var stopTimeImplementors = []string{"StopTime"}
 
 func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet, obj *model.StopTime) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, stopTimeImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -20989,33 +28680,74 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("StopTime")
 		case "arrival_time":
-			out.Values[i] = ec._StopTime_arrival_time(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_arrival_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "departure_time":
-			out.Values[i] = ec._StopTime_departure_time(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_departure_time(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_sequence":
-			out.Values[i] = ec._StopTime_stop_sequence(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_stop_sequence(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_headsign":
-			out.Values[i] = ec._StopTime_stop_headsign(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_stop_headsign(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "pickup_type":
-			out.Values[i] = ec._StopTime_pickup_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_pickup_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "drop_off_type":
-			out.Values[i] = ec._StopTime_drop_off_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_drop_off_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "timepoint":
-			out.Values[i] = ec._StopTime_timepoint(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_timepoint(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "interpolated":
-			out.Values[i] = ec._StopTime_interpolated(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_interpolated(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "stop":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -21026,10 +28758,16 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "trip":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -21040,7 +28778,139 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
+		case "arrival":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StopTime_arrival(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "departure":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StopTime_departure(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "continuous_drop_off":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_continuous_drop_off(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "continuous_pickup":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_continuous_pickup(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "service_date":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTime_service_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stopTimeEventImplementors = []string{"StopTimeEvent"}
+
+func (ec *executionContext) _StopTimeEvent(ctx context.Context, sel ast.SelectionSet, obj *model.StopTimeEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stopTimeEventImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StopTimeEvent")
+		case "stop_timezone":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTimeEvent_stop_timezone(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "scheduled":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTimeEvent_scheduled(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "estimated":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTimeEvent_estimated(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "estimated_utc":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTimeEvent_estimated_utc(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "delay":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTimeEvent_delay(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "uncertainty":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._StopTimeEvent_uncertainty(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21056,7 +28926,6 @@ var tripImplementors = []string{"Trip"}
 
 func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj *model.Trip) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, tripImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21064,53 +28933,99 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Trip")
 		case "id":
-			out.Values[i] = ec._Trip_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "trip_id":
-			out.Values[i] = ec._Trip_trip_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_trip_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "trip_headsign":
-			out.Values[i] = ec._Trip_trip_headsign(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_trip_headsign(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "trip_short_name":
-			out.Values[i] = ec._Trip_trip_short_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_trip_short_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "direction_id":
-			out.Values[i] = ec._Trip_direction_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_direction_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "block_id":
-			out.Values[i] = ec._Trip_block_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_block_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "wheelchair_accessible":
-			out.Values[i] = ec._Trip_wheelchair_accessible(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_wheelchair_accessible(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "bikes_allowed":
-			out.Values[i] = ec._Trip_bikes_allowed(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_bikes_allowed(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "stop_pattern_id":
-			out.Values[i] = ec._Trip_stop_pattern_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Trip_stop_pattern_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "calendar":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -21121,10 +29036,16 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "route":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -21135,10 +29056,16 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "shape":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -21146,10 +29073,16 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Trip_shape(ctx, field, obj)
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "feed_version":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -21160,10 +29093,16 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "stop_times":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -21174,10 +29113,16 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		case "frequencies":
 			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -21188,6 +29133,62 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "schedule_relationship":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Trip_schedule_relationship(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "timestamp":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Trip_timestamp(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "alerts":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Trip_alerts(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -21204,7 +29205,6 @@ var validationResultImplementors = []string{"ValidationResult"}
 
 func (ec *executionContext) _ValidationResult(ctx context.Context, sel ast.SelectionSet, obj *model.ValidationResult) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, validationResultImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21212,61 +29212,126 @@ func (ec *executionContext) _ValidationResult(ctx context.Context, sel ast.Selec
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ValidationResult")
 		case "success":
-			out.Values[i] = ec._ValidationResult_success(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "failure_reason":
-			out.Values[i] = ec._ValidationResult_failure_reason(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_failure_reason(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "errors":
-			out.Values[i] = ec._ValidationResult_errors(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_errors(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "warnings":
-			out.Values[i] = ec._ValidationResult_warnings(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_warnings(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "sha1":
-			out.Values[i] = ec._ValidationResult_sha1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_sha1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "earliest_calendar_date":
-			out.Values[i] = ec._ValidationResult_earliest_calendar_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_earliest_calendar_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "latest_calendar_date":
-			out.Values[i] = ec._ValidationResult_latest_calendar_date(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_latest_calendar_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "files":
-			out.Values[i] = ec._ValidationResult_files(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_files(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "service_levels":
-			out.Values[i] = ec._ValidationResult_service_levels(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_service_levels(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "agencies":
-			out.Values[i] = ec._ValidationResult_agencies(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_agencies(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "routes":
-			out.Values[i] = ec._ValidationResult_routes(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_routes(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "stops":
-			out.Values[i] = ec._ValidationResult_stops(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_stops(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "feed_infos":
-			out.Values[i] = ec._ValidationResult_feed_infos(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResult_feed_infos(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21285,7 +29350,6 @@ var validationResultErrorImplementors = []string{"ValidationResultError"}
 
 func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.SelectionSet, obj *model.ValidationResultError) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, validationResultErrorImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21293,32 +29357,62 @@ func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ValidationResultError")
 		case "filename":
-			out.Values[i] = ec._ValidationResultError_filename(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultError_filename(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "error_type":
-			out.Values[i] = ec._ValidationResultError_error_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultError_error_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "entity_id":
-			out.Values[i] = ec._ValidationResultError_entity_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultError_entity_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "field":
-			out.Values[i] = ec._ValidationResultError_field(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultError_field(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "value":
-			out.Values[i] = ec._ValidationResultError_value(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultError_value(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "message":
-			out.Values[i] = ec._ValidationResultError_message(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultError_message(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21337,7 +29431,6 @@ var validationResultErrorGroupImplementors = []string{"ValidationResultErrorGrou
 
 func (ec *executionContext) _ValidationResultErrorGroup(ctx context.Context, sel ast.SelectionSet, obj *model.ValidationResultErrorGroup) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, validationResultErrorGroupImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21345,30 +29438,173 @@ func (ec *executionContext) _ValidationResultErrorGroup(ctx context.Context, sel
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ValidationResultErrorGroup")
 		case "filename":
-			out.Values[i] = ec._ValidationResultErrorGroup_filename(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultErrorGroup_filename(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "error_type":
-			out.Values[i] = ec._ValidationResultErrorGroup_error_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultErrorGroup_error_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "count":
-			out.Values[i] = ec._ValidationResultErrorGroup_count(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultErrorGroup_count(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "limit":
-			out.Values[i] = ec._ValidationResultErrorGroup_limit(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultErrorGroup_limit(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "errors":
-			out.Values[i] = ec._ValidationResultErrorGroup_errors(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ValidationResultErrorGroup_errors(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var vehiclePositionImplementors = []string{"VehiclePosition"}
+
+func (ec *executionContext) _VehiclePosition(ctx context.Context, sel ast.SelectionSet, obj *model.VehiclePosition) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, vehiclePositionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VehiclePosition")
+		case "vehicle":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VehiclePosition_vehicle(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "position":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VehiclePosition_position(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "current_stop_sequence":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VehiclePosition_current_stop_sequence(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "stop_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VehiclePosition_stop_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "current_status":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VehiclePosition_current_status(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "timestamp":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VehiclePosition_timestamp(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "congestion_level":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VehiclePosition_congestion_level(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var waypointImplementors = []string{"Waypoint"}
+
+func (ec *executionContext) _Waypoint(ctx context.Context, sel ast.SelectionSet, obj *model.Waypoint) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, waypointImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Waypoint")
+		case "lon":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waypoint_lon(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "lat":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waypoint_lat(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waypoint_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21384,7 +29620,6 @@ var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __DirectiveImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21392,19 +29627,49 @@ func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionS
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Directive")
 		case "name":
-			out.Values[i] = ec.___Directive_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Directive_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "description":
-			out.Values[i] = ec.___Directive_description(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Directive_description(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "locations":
-			out.Values[i] = ec.___Directive_locations(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Directive_locations(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "args":
-			out.Values[i] = ec.___Directive_args(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Directive_args(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isRepeatable":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Directive_isRepeatable(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21423,7 +29688,6 @@ var __EnumValueImplementors = []string{"__EnumValue"}
 
 func (ec *executionContext) ___EnumValue(ctx context.Context, sel ast.SelectionSet, obj *introspection.EnumValue) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __EnumValueImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21431,19 +29695,39 @@ func (ec *executionContext) ___EnumValue(ctx context.Context, sel ast.SelectionS
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__EnumValue")
 		case "name":
-			out.Values[i] = ec.___EnumValue_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___EnumValue_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "description":
-			out.Values[i] = ec.___EnumValue_description(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___EnumValue_description(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "isDeprecated":
-			out.Values[i] = ec.___EnumValue_isDeprecated(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___EnumValue_isDeprecated(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "deprecationReason":
-			out.Values[i] = ec.___EnumValue_deprecationReason(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___EnumValue_deprecationReason(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21459,7 +29743,6 @@ var __FieldImplementors = []string{"__Field"}
 
 func (ec *executionContext) ___Field(ctx context.Context, sel ast.SelectionSet, obj *introspection.Field) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __FieldImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21467,29 +29750,59 @@ func (ec *executionContext) ___Field(ctx context.Context, sel ast.SelectionSet, 
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Field")
 		case "name":
-			out.Values[i] = ec.___Field_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Field_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "description":
-			out.Values[i] = ec.___Field_description(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Field_description(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "args":
-			out.Values[i] = ec.___Field_args(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Field_args(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "type":
-			out.Values[i] = ec.___Field_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Field_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "isDeprecated":
-			out.Values[i] = ec.___Field_isDeprecated(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Field_isDeprecated(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "deprecationReason":
-			out.Values[i] = ec.___Field_deprecationReason(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Field_deprecationReason(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21505,7 +29818,6 @@ var __InputValueImplementors = []string{"__InputValue"}
 
 func (ec *executionContext) ___InputValue(ctx context.Context, sel ast.SelectionSet, obj *introspection.InputValue) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __InputValueImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21513,19 +29825,39 @@ func (ec *executionContext) ___InputValue(ctx context.Context, sel ast.Selection
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__InputValue")
 		case "name":
-			out.Values[i] = ec.___InputValue_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___InputValue_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "description":
-			out.Values[i] = ec.___InputValue_description(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___InputValue_description(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "type":
-			out.Values[i] = ec.___InputValue_type(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___InputValue_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "defaultValue":
-			out.Values[i] = ec.___InputValue_defaultValue(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___InputValue_defaultValue(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21541,29 +29873,60 @@ var __SchemaImplementors = []string{"__Schema"}
 
 func (ec *executionContext) ___Schema(ctx context.Context, sel ast.SelectionSet, obj *introspection.Schema) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __SchemaImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Schema")
+		case "description":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Schema_description(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "types":
-			out.Values[i] = ec.___Schema_types(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Schema_types(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "queryType":
-			out.Values[i] = ec.___Schema_queryType(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Schema_queryType(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "mutationType":
-			out.Values[i] = ec.___Schema_mutationType(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Schema_mutationType(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "subscriptionType":
-			out.Values[i] = ec.___Schema_subscriptionType(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Schema_subscriptionType(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "directives":
-			out.Values[i] = ec.___Schema_directives(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Schema_directives(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21582,7 +29945,6 @@ var __TypeImplementors = []string{"__Type"}
 
 func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, obj *introspection.Type) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __TypeImplementors)
-
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
@@ -21590,26 +29952,78 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Type")
 		case "kind":
-			out.Values[i] = ec.___Type_kind(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_kind(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "name":
-			out.Values[i] = ec.___Type_name(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "description":
-			out.Values[i] = ec.___Type_description(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_description(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "fields":
-			out.Values[i] = ec.___Type_fields(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_fields(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "interfaces":
-			out.Values[i] = ec.___Type_interfaces(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_interfaces(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "possibleTypes":
-			out.Values[i] = ec.___Type_possibleTypes(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_possibleTypes(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "enumValues":
-			out.Values[i] = ec.___Type_enumValues(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_enumValues(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "inputFields":
-			out.Values[i] = ec.___Type_inputFields(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_inputFields(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "ofType":
-			out.Values[i] = ec.___Type_ofType(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_ofType(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "specifiedByURL":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec.___Type_specifiedByURL(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21663,6 +30077,13 @@ func (ec *executionContext) marshalNAgency2ᚕgithubᚗcomᚋinterlineᚑioᚋtr
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -21700,6 +30121,13 @@ func (ec *executionContext) marshalNAgency2ᚕᚖgithubᚗcomᚋinterlineᚑio�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -21721,6 +30149,16 @@ func (ec *executionContext) marshalNAgencyPlace2ᚖgithubᚗcomᚋinterlineᚑio
 		return graphql.Null
 	}
 	return ec._AgencyPlace(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAlert2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlert(ctx context.Context, sel ast.SelectionSet, v *model.Alert) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Alert(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
@@ -21831,33 +30269,30 @@ func (ec *executionContext) marshalNCensusValue2ᚕᚖgithubᚗcomᚋinterline�
 
 	}
 	wg.Wait()
+
 	return ret
 }
 
-func (ec *executionContext) unmarshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx context.Context, v interface{}) (tl.ODate, error) {
-	var res tl.ODate
+func (ec *executionContext) unmarshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, v interface{}) (tl.Date, error) {
+	var res tl.Date
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx context.Context, sel ast.SelectionSet, v tl.ODate) graphql.Marshaler {
+func (ec *executionContext) marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, sel ast.SelectionSet, v tl.Date) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODateᚄ(ctx context.Context, v interface{}) ([]*tl.ODate, error) {
+func (ec *executionContext) unmarshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDateᚄ(ctx context.Context, v interface{}) ([]*tl.Date, error) {
 	var vSlice []interface{}
 	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
+		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]*tl.ODate, len(vSlice))
+	res := make([]*tl.Date, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -21865,28 +30300,93 @@ func (ec *executionContext) unmarshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑio�
 	return res, nil
 }
 
-func (ec *executionContext) marshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODateᚄ(ctx context.Context, sel ast.SelectionSet, v []*tl.ODate) graphql.Marshaler {
+func (ec *executionContext) marshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDateᚄ(ctx context.Context, sel ast.SelectionSet, v []*tl.Date) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	for i := range v {
-		ret[i] = ec.marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx, sel, v[i])
+		ret[i] = ec.marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
 	}
 
 	return ret
 }
 
-func (ec *executionContext) unmarshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx context.Context, v interface{}) (*tl.ODate, error) {
-	var res = new(tl.ODate)
+func (ec *executionContext) unmarshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, v interface{}) (*tl.Date, error) {
+	var res = new(tl.Date)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx context.Context, sel ast.SelectionSet, v *tl.ODate) graphql.Marshaler {
+func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, sel ast.SelectionSet, v *tl.Date) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
+	return v
+}
+
+func (ec *executionContext) unmarshalNDirectionRequest2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirectionRequest(ctx context.Context, v interface{}) (model.DirectionRequest, error) {
+	res, err := ec.unmarshalInputDirectionRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDirections2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirections(ctx context.Context, sel ast.SelectionSet, v model.Directions) graphql.Marshaler {
+	return ec._Directions(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDirections2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirections(ctx context.Context, sel ast.SelectionSet, v *model.Directions) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Directions(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDistance2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistance(ctx context.Context, sel ast.SelectionSet, v *model.Distance) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Distance(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDistanceUnit2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistanceUnit(ctx context.Context, v interface{}) (model.DistanceUnit, error) {
+	var res model.DistanceUnit
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDistanceUnit2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistanceUnit(ctx context.Context, sel ast.SelectionSet, v model.DistanceUnit) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNDuration2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDuration(ctx context.Context, sel ast.SelectionSet, v *model.Duration) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Duration(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDurationUnit2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDurationUnit(ctx context.Context, v interface{}) (model.DurationUnit, error) {
+	var res model.DurationUnit
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDurationUnit2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDurationUnit(ctx context.Context, sel ast.SelectionSet, v model.DurationUnit) graphql.Marshaler {
 	return v
 }
 
@@ -21928,6 +30428,13 @@ func (ec *executionContext) marshalNFeed2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋt
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -21939,6 +30446,16 @@ func (ec *executionContext) marshalNFeed2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		return graphql.Null
 	}
 	return ec._Feed(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFeedFetch2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetch(ctx context.Context, sel ast.SelectionSet, v *model.FeedFetch) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._FeedFetch(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNFeedInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfo(ctx context.Context, sel ast.SelectionSet, v model.FeedInfo) graphql.Marshaler {
@@ -21979,6 +30496,13 @@ func (ec *executionContext) marshalNFeedInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋ
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22016,6 +30540,13 @@ func (ec *executionContext) marshalNFeedInfo2ᚕᚖgithubᚗcomᚋinterlineᚑio
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22027,6 +30558,16 @@ func (ec *executionContext) marshalNFeedInfo2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 		return graphql.Null
 	}
 	return ec._FeedInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNFeedSpecTypes2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx context.Context, v interface{}) (model.FeedSpecTypes, error) {
+	var res model.FeedSpecTypes
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFeedSpecTypes2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx context.Context, sel ast.SelectionSet, v model.FeedSpecTypes) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNFeedVersion2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersion(ctx context.Context, sel ast.SelectionSet, v model.FeedVersion) graphql.Marshaler {
@@ -22067,6 +30608,13 @@ func (ec *executionContext) marshalNFeedVersion2ᚕᚖgithubᚗcomᚋinterline�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22132,6 +30680,13 @@ func (ec *executionContext) marshalNFeedVersionFileInfo2ᚕgithubᚗcomᚋinterl
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22169,6 +30724,13 @@ func (ec *executionContext) marshalNFeedVersionFileInfo2ᚕᚖgithubᚗcomᚋint
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22234,6 +30796,13 @@ func (ec *executionContext) marshalNFeedVersionServiceLevel2ᚕgithubᚗcomᚋin
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22271,6 +30840,13 @@ func (ec *executionContext) marshalNFeedVersionServiceLevel2ᚕᚖgithubᚗcom�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22352,6 +30928,13 @@ func (ec *executionContext) marshalNFrequency2ᚕᚖgithubᚗcomᚋinterlineᚑi
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22393,6 +30976,26 @@ func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNItinerary2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐItinerary(ctx context.Context, sel ast.SelectionSet, v *model.Itinerary) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Itinerary(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLeg2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLeg(ctx context.Context, sel ast.SelectionSet, v *model.Leg) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Leg(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐLineString(ctx context.Context, v interface{}) (tl.LineString, error) {
@@ -22439,6 +31042,13 @@ func (ec *executionContext) marshalNOperator2ᚕᚖgithubᚗcomᚋinterlineᚑio
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22486,6 +31096,13 @@ func (ec *executionContext) marshalNPathway2ᚕᚖgithubᚗcomᚋinterlineᚑio�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22507,6 +31124,70 @@ func (ec *executionContext) unmarshalNPoint2githubᚗcomᚋinterlineᚑioᚋtran
 
 func (ec *executionContext) marshalNPoint2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐPoint(ctx context.Context, sel ast.SelectionSet, v tl.Point) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNRTTimeRange2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTimeRange(ctx context.Context, sel ast.SelectionSet, v *model.RTTimeRange) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._RTTimeRange(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRTTranslation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RTTranslation) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRTTranslation2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRTTranslation2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslation(ctx context.Context, sel ast.SelectionSet, v *model.RTTranslation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._RTTranslation(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
@@ -22557,6 +31238,13 @@ func (ec *executionContext) marshalNRoute2ᚕgithubᚗcomᚋinterlineᚑioᚋtra
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22594,6 +31282,13 @@ func (ec *executionContext) marshalNRoute2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋ
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22641,6 +31336,13 @@ func (ec *executionContext) marshalNRouteGeometry2ᚕᚖgithubᚗcomᚋinterline
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22688,6 +31390,13 @@ func (ec *executionContext) marshalNRouteHeadway2ᚕᚖgithubᚗcomᚋinterline�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22735,6 +31444,13 @@ func (ec *executionContext) marshalNRouteStop2ᚕᚖgithubᚗcomᚋinterlineᚑi
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22788,6 +31504,26 @@ func (ec *executionContext) marshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
+func (ec *executionContext) marshalNStep2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStep(ctx context.Context, sel ast.SelectionSet, v *model.Step) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Step(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNStepMode2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepMode(ctx context.Context, v interface{}) (model.StepMode, error) {
+	var res model.StepMode
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStepMode2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepMode(ctx context.Context, sel ast.SelectionSet, v model.StepMode) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNStop2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx context.Context, sel ast.SelectionSet, v model.Stop) graphql.Marshaler {
 	return ec._Stop(ctx, sel, &v)
 }
@@ -22826,6 +31562,13 @@ func (ec *executionContext) marshalNStop2ᚕgithubᚗcomᚋinterlineᚑioᚋtran
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22863,6 +31606,13 @@ func (ec *executionContext) marshalNStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋt
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22910,6 +31660,7 @@ func (ec *executionContext) marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑio
 
 	}
 	wg.Wait()
+
 	return ret
 }
 
@@ -22947,6 +31698,13 @@ func (ec *executionContext) marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑio
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -22958,6 +31716,20 @@ func (ec *executionContext) marshalNStopTime2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 		return graphql.Null
 	}
 	return ec._StopTime(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNStopTimeEvent2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeEvent(ctx context.Context, sel ast.SelectionSet, v model.StopTimeEvent) graphql.Marshaler {
+	return ec._StopTimeEvent(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTimeEvent(ctx context.Context, sel ast.SelectionSet, v *model.StopTimeEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._StopTimeEvent(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -22978,11 +31750,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
 	var vSlice []interface{}
 	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
+		vSlice = graphql.CoerceList(v)
 	}
 	var err error
 	res := make([]string, len(vSlice))
@@ -23000,6 +31768,12 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	ret := make(graphql.Array, len(v))
 	for i := range v {
 		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
 	}
 
 	return ret
@@ -23079,6 +31853,13 @@ func (ec *executionContext) marshalNTrip2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋt
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23126,6 +31907,13 @@ func (ec *executionContext) marshalNValidationResultError2ᚕᚖgithubᚗcomᚋi
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23177,7 +31965,29 @@ func (ec *executionContext) marshalNValidationResultErrorGroup2ᚕgithubᚗcom�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
+}
+
+func (ec *executionContext) marshalNWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx context.Context, sel ast.SelectionSet, v *model.Waypoint) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Waypoint(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNWaypointInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointInput(ctx context.Context, v interface{}) (*model.WaypointInput, error) {
+	res, err := ec.unmarshalInputWaypointInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -23218,6 +32028,13 @@ func (ec *executionContext) marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgq
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23239,11 +32056,7 @@ func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Conte
 func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
 	var vSlice []interface{}
 	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
+		vSlice = graphql.CoerceList(v)
 	}
 	var err error
 	res := make([]string, len(vSlice))
@@ -23291,6 +32104,13 @@ func (ec *executionContext) marshalN__DirectiveLocation2ᚕstringᚄ(ctx context
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23340,6 +32160,13 @@ func (ec *executionContext) marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋg
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23381,6 +32208,13 @@ func (ec *executionContext) marshalN__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgen�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23446,6 +32280,13 @@ func (ec *executionContext) marshalOAgency2ᚕᚖgithubᚗcomᚋinterlineᚑio�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23494,6 +32335,13 @@ func (ec *executionContext) marshalOAgencyPlace2ᚕᚖgithubᚗcomᚋinterline�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23503,6 +32351,53 @@ func (ec *executionContext) unmarshalOAgencyPlaceFilter2ᚖgithubᚗcomᚋinterl
 	}
 	res, err := ec.unmarshalInputAgencyPlaceFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlertᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Alert) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAlert2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAlert(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
@@ -23517,7 +32412,8 @@ func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.S
 	if v == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalAny(v)
+	res := graphql.MarshalAny(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -23526,7 +32422,8 @@ func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interf
 }
 
 func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
-	return graphql.MarshalBoolean(v)
+	res := graphql.MarshalBoolean(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v interface{}) (*bool, error) {
@@ -23541,7 +32438,8 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	if v == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalBoolean(*v)
+	res := graphql.MarshalBoolean(*v)
+	return res
 }
 
 func (ec *executionContext) marshalOCensusGeography2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusGeographyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CensusGeography) graphql.Marshaler {
@@ -23581,6 +32479,13 @@ func (ec *executionContext) marshalOCensusGeography2ᚕᚖgithubᚗcomᚋinterli
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23591,30 +32496,91 @@ func (ec *executionContext) marshalOCensusValue2ᚖgithubᚗcomᚋinterlineᚑio
 	return ec._CensusValue(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx context.Context, v interface{}) (tl.ODate, error) {
-	var res tl.ODate
+func (ec *executionContext) unmarshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, v interface{}) (tl.Date, error) {
+	var res tl.Date
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx context.Context, sel ast.SelectionSet, v tl.ODate) graphql.Marshaler {
+func (ec *executionContext) marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, sel ast.SelectionSet, v tl.Date) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx context.Context, v interface{}) (*tl.ODate, error) {
+func (ec *executionContext) unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, v interface{}) (*tl.Date, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(tl.ODate)
+	var res = new(tl.Date)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐODate(ctx context.Context, sel ast.SelectionSet, v *tl.ODate) graphql.Marshaler {
+func (ec *executionContext) marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐDate(ctx context.Context, sel ast.SelectionSet, v *tl.Date) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalODistance2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistance(ctx context.Context, sel ast.SelectionSet, v *model.Distance) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Distance(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODuration2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDuration(ctx context.Context, sel ast.SelectionSet, v *model.Duration) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Duration(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOFeed2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Feed) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFeed2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeed(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOFeedAuthorization2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedAuthorization(ctx context.Context, sel ast.SelectionSet, v *model.FeedAuthorization) graphql.Marshaler {
@@ -23622,6 +32588,61 @@ func (ec *executionContext) marshalOFeedAuthorization2ᚖgithubᚗcomᚋinterlin
 		return graphql.Null
 	}
 	return ec._FeedAuthorization(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOFeedFetch2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetchᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FeedFetch) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFeedFetch2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetch(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOFeedFetchFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFetchFilter(ctx context.Context, v interface{}) (*model.FeedFetchFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFeedFetchFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOFeedFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedFilter(ctx context.Context, v interface{}) (*model.FeedFilter, error) {
@@ -23637,6 +32658,113 @@ func (ec *executionContext) marshalOFeedLicense2ᚖgithubᚗcomᚋinterlineᚑio
 		return graphql.Null
 	}
 	return ec._FeedLicense(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFeedSourceUrl2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURL(ctx context.Context, v interface{}) (*model.FeedSourceURL, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFeedSourceUrl(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOFeedSourceUrlTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURLTypes(ctx context.Context, v interface{}) (*model.FeedSourceURLTypes, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.FeedSourceURLTypes)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFeedSourceUrlTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURLTypes(ctx context.Context, sel ast.SelectionSet, v *model.FeedSourceURLTypes) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOFeedSpecTypes2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypesᚄ(ctx context.Context, v interface{}) ([]model.FeedSpecTypes, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.FeedSpecTypes, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFeedSpecTypes2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOFeedSpecTypes2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypesᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FeedSpecTypes) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFeedSpecTypes2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOFeedSpecTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx context.Context, v interface{}) (*model.FeedSpecTypes, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.FeedSpecTypes)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFeedSpecTypes2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSpecTypes(ctx context.Context, sel ast.SelectionSet, v *model.FeedSpecTypes) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOFeedState2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedState(ctx context.Context, sel ast.SelectionSet, v *model.FeedState) graphql.Marshaler {
@@ -23690,6 +32818,16 @@ func (ec *executionContext) unmarshalOFeedVersionServiceLevelFilter2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx context.Context, v interface{}) (tl.Float, error) {
+	var res tl.Float
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐFloat(ctx context.Context, sel ast.SelectionSet, v tl.Float) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
 	if v == nil {
 		return nil, nil
@@ -23702,7 +32840,8 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	if v == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalFloat(*v)
+	res := graphql.MarshalFloat(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐGeometry(ctx context.Context, v interface{}) (tl.Geometry, error) {
@@ -23747,13 +32886,13 @@ func (ec *executionContext) marshalOImportStatus2ᚖgithubᚗcomᚋinterlineᚑi
 	return v
 }
 
-func (ec *executionContext) unmarshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx context.Context, v interface{}) (tl.OInt, error) {
-	var res tl.OInt
+func (ec *executionContext) unmarshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx context.Context, v interface{}) (tl.Int, error) {
+	var res tl.Int
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOInt(ctx context.Context, sel ast.SelectionSet, v tl.OInt) graphql.Marshaler {
+func (ec *executionContext) marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐInt(ctx context.Context, sel ast.SelectionSet, v tl.Int) graphql.Marshaler {
 	return v
 }
 
@@ -23763,7 +32902,8 @@ func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}
 }
 
 func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	return graphql.MarshalInt(v)
+	res := graphql.MarshalInt(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
@@ -23772,11 +32912,7 @@ func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v inter
 	}
 	var vSlice []interface{}
 	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
+		vSlice = graphql.CoerceList(v)
 	}
 	var err error
 	res := make([]int, len(vSlice))
@@ -23799,6 +32935,12 @@ func (ec *executionContext) marshalOInt2ᚕintᚄ(ctx context.Context, sel ast.S
 		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
 	}
 
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23814,7 +32956,102 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	if v == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalInt(*v)
+	res := graphql.MarshalInt(*v)
+	return res
+}
+
+func (ec *executionContext) marshalOItinerary2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐItineraryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Itinerary) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNItinerary2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐItinerary(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOLeg2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Leg) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLeg2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLeg(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx context.Context, sel ast.SelectionSet, v *model.Level) graphql.Marshaler {
@@ -23871,6 +33108,13 @@ func (ec *executionContext) marshalOOperator2ᚕᚖgithubᚗcomᚋinterlineᚑio
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23887,6 +33131,22 @@ func (ec *executionContext) unmarshalOOperatorFilter2ᚖgithubᚗcomᚋinterline
 	}
 	res, err := ec.unmarshalInputOperatorFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOPoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐPoint(ctx context.Context, v interface{}) (*tl.Point, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(tl.Point)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOPoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐPoint(ctx context.Context, sel ast.SelectionSet, v *tl.Point) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx context.Context, v interface{}) (*model.PointRadius, error) {
@@ -23913,6 +33173,107 @@ func (ec *executionContext) marshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
+func (ec *executionContext) marshalORTTimeRange2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTimeRangeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RTTimeRange) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRTTimeRange2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTimeRange(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalORTTranslation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RTTranslation) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRTTranslation2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTTranslation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalORTVehicleDescriptor2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRTVehicleDescriptor(ctx context.Context, sel ast.SelectionSet, v *model.RTVehicleDescriptor) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RTVehicleDescriptor(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalORouteFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteFilter(ctx context.Context, v interface{}) (*model.RouteFilter, error) {
 	if v == nil {
 		return nil, nil
@@ -23921,17 +33282,39 @@ func (ec *executionContext) unmarshalORouteFilter2ᚖgithubᚗcomᚋinterlineᚑ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOScheduleRelationship2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐScheduleRelationship(ctx context.Context, v interface{}) (*model.ScheduleRelationship, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ScheduleRelationship)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOScheduleRelationship2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐScheduleRelationship(ctx context.Context, sel ast.SelectionSet, v *model.ScheduleRelationship) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx context.Context, v interface{}) (tl.WideTime, error) {
+	var res tl.WideTime
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx context.Context, sel ast.SelectionSet, v tl.WideTime) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTimeᚄ(ctx context.Context, v interface{}) ([]*tl.WideTime, error) {
 	if v == nil {
 		return nil, nil
 	}
 	var vSlice []interface{}
 	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
+		vSlice = graphql.CoerceList(v)
 	}
 	var err error
 	res := make([]*tl.WideTime, len(vSlice))
@@ -23954,7 +33337,29 @@ func (ec *executionContext) marshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑio�
 		ret[i] = ec.marshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx, sel, v[i])
 	}
 
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
+}
+
+func (ec *executionContext) unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx context.Context, v interface{}) (*tl.WideTime, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(tl.WideTime)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐWideTime(ctx context.Context, sel ast.SelectionSet, v *tl.WideTime) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOShape2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐShape(ctx context.Context, sel ast.SelectionSet, v *model.Shape) graphql.Marshaler {
@@ -23962,6 +33367,69 @@ func (ec *executionContext) marshalOShape2ᚖgithubᚗcomᚋinterlineᚑioᚋtra
 		return graphql.Null
 	}
 	return ec._Shape(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOStep2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Step) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNStep2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStep(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOStepMode2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepMode(ctx context.Context, v interface{}) (*model.StepMode, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.StepMode)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOStepMode2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepMode(ctx context.Context, sel ast.SelectionSet, v *model.StepMode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Stop) graphql.Marshaler {
@@ -24001,6 +33469,13 @@ func (ec *executionContext) marshalOStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋt
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24034,13 +33509,13 @@ func (ec *executionContext) unmarshalOStopTimeFilter2ᚖgithubᚗcomᚋinterline
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx context.Context, v interface{}) (tl.OString, error) {
-	var res tl.OString
+func (ec *executionContext) unmarshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx context.Context, v interface{}) (tl.String, error) {
+	var res tl.String
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOString(ctx context.Context, sel ast.SelectionSet, v tl.OString) graphql.Marshaler {
+func (ec *executionContext) marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐString(ctx context.Context, sel ast.SelectionSet, v tl.String) graphql.Marshaler {
 	return v
 }
 
@@ -24050,7 +33525,8 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 }
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	return graphql.MarshalString(v)
+	res := graphql.MarshalString(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
@@ -24059,11 +33535,7 @@ func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v
 	}
 	var vSlice []interface{}
 	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
+		vSlice = graphql.CoerceList(v)
 	}
 	var err error
 	res := make([]string, len(vSlice))
@@ -24086,6 +33558,12 @@ func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel
 		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
 	}
 
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24101,7 +33579,8 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	if v == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalString(*v)
+	res := graphql.MarshalString(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTags(ctx context.Context, v interface{}) (tl.Tags, error) {
@@ -24130,13 +33609,13 @@ func (ec *executionContext) marshalOTags2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 	return v
 }
 
-func (ec *executionContext) unmarshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOTime(ctx context.Context, v interface{}) (tl.OTime, error) {
-	var res tl.OTime
+func (ec *executionContext) unmarshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTime(ctx context.Context, v interface{}) (tl.Time, error) {
+	var res tl.Time
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐOTime(ctx context.Context, sel ast.SelectionSet, v tl.OTime) graphql.Marshaler {
+func (ec *executionContext) marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚐTime(ctx context.Context, sel ast.SelectionSet, v tl.Time) graphql.Marshaler {
 	return v
 }
 
@@ -24146,7 +33625,24 @@ func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v in
 }
 
 func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	return graphql.MarshalTime(v)
+	res := graphql.MarshalTime(v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalTime(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOTripFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripFilter(ctx context.Context, v interface{}) (*model.TripFilter, error) {
@@ -24169,7 +33665,8 @@ func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	if v == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalUpload(*v)
+	res := graphql.MarshalUpload(*v)
+	return res
 }
 
 func (ec *executionContext) marshalOValidationResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResult(ctx context.Context, sel ast.SelectionSet, v *model.ValidationResult) graphql.Marshaler {
@@ -24177,6 +33674,21 @@ func (ec *executionContext) marshalOValidationResult2ᚖgithubᚗcomᚋinterline
 		return graphql.Null
 	}
 	return ec._ValidationResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx context.Context, sel ast.SelectionSet, v *model.Waypoint) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Waypoint(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOWaypointInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointInput(ctx context.Context, v interface{}) (*model.WaypointInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputWaypointInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
@@ -24216,6 +33728,13 @@ func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgq
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24256,6 +33775,13 @@ func (ec *executionContext) marshalO__Field2ᚕgithubᚗcomᚋ99designsᚋgqlgen
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24296,6 +33822,13 @@ func (ec *executionContext) marshalO__InputValue2ᚕgithubᚗcomᚋ99designsᚋg
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24343,6 +33876,13 @@ func (ec *executionContext) marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgen�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 

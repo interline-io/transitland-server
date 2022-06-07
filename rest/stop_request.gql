@@ -8,6 +8,8 @@ query($limit: Int, $after: Int, $ids: [Int!], $where: StopFilter) {
     stop_desc
     stop_code
     zone_id
+    platform_code
+    tts_stop_name
     wheelchair_boarding
     location_type
     onestop_id

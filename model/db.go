@@ -1,65 +1,95 @@
 package model
 
 import (
-	"log"
-	"regexp"
-	"strings"
+	"context"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/rt/pb"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/jmoiron/sqlx/reflectx"
 )
 
-var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
-// TODO: replace with middleware or configuration
-
-type canBeginx interface {
-	sqlx.Ext
-	sqlx.Preparer
-	Beginx() (*sqlx.Tx, error)
+// Finder provides all necessary database methods
+type Finder interface {
+	EntityFinder
+	EntityLoader
 }
 
-var DB canBeginx
-
-func MustOpenDB(url string) canBeginx {
-	db, err := sqlx.Open("postgres", url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-	db.SetConnMaxLifetime(time.Hour)
-	if err := db.Ping(); err != nil {
-		log.Fatal(err)
-	}
-	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
-	return db.Unsafe()
+// Finder handles basic queries
+type EntityFinder interface {
+	FindAgencies(context.Context, *int, *Cursor, []int, *AgencyFilter) ([]*Agency, error)
+	FindRoutes(context.Context, *int, *Cursor, []int, *RouteFilter) ([]*Route, error)
+	FindStops(context.Context, *int, *Cursor, []int, *StopFilter) ([]*Stop, error)
+	FindTrips(context.Context, *int, *Cursor, []int, *TripFilter) ([]*Trip, error)
+	FindFeedVersions(context.Context, *int, *Cursor, []int, *FeedVersionFilter) ([]*FeedVersion, error)
+	FindFeeds(context.Context, *int, *Cursor, []int, *FeedFilter) ([]*Feed, error)
+	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
+	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
+	FindFeedVersionServiceWindow(context.Context, int) (time.Time, time.Time, time.Time, error)
+	DBX() sqlx.Ext // escape hatch, for now
 }
 
-func Sqrl(db sqlx.Ext) sq.StatementBuilderType {
-	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(db)
+// EntityLoader methods must return items in the same order as the input parameters
+type EntityLoader interface {
+	// Simple ID loaders
+	TripsByID(context.Context, []int) ([]*Trip, []error)
+	LevelsByID(context.Context, []int) ([]*Level, []error)
+	CalendarsByID(context.Context, []int) ([]*Calendar, []error)
+	ShapesByID(context.Context, []int) ([]*Shape, []error)
+	FeedVersionsByID(context.Context, []int) ([]*FeedVersion, []error)
+	FeedsByID(context.Context, []int) ([]*Feed, []error)
+	AgenciesByID(context.Context, []int) ([]*Agency, []error)
+	StopsByID(context.Context, []int) ([]*Stop, []error)
+	RoutesByID(context.Context, []int) ([]*Route, []error)
+	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
+	// Other loaders
+	FeedVersionGtfsImportsByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
+	FeedStatesByFeedID(context.Context, []int) ([]*FeedState, []error)
+	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
+	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
+	// Param loaders
+	FeedFetchesByFeedID(context.Context, []FeedFetchParam) ([][]*FeedFetch, []error)
+	FeedsByOperatorOnestopID(context.Context, []FeedParam) ([][]*Feed, []error)
+	FrequenciesByTripID(context.Context, []FrequencyParam) ([][]*Frequency, []error)
+	StopTimesByTripID(context.Context, []StopTimeParam) ([][]*StopTime, []error)
+	StopTimesByStopID(context.Context, []StopTimeParam) ([][]*StopTime, []error)
+	RouteStopsByStopID(context.Context, []RouteStopParam) ([][]*RouteStop, []error)
+	StopsByRouteID(context.Context, []StopParam) ([][]*Stop, []error)
+	RouteStopsByRouteID(context.Context, []RouteStopParam) ([][]*RouteStop, []error)
+	RouteHeadwaysByRouteID(context.Context, []RouteHeadwayParam) ([][]*RouteHeadway, []error)
+	FeedVersionFileInfosByFeedVersionID(context.Context, []FeedVersionFileInfoParam) ([][]*FeedVersionFileInfo, []error)
+	StopsByParentStopID(context.Context, []StopParam) ([][]*Stop, []error)
+	FeedVersionsByFeedID(context.Context, []FeedVersionParam) ([][]*FeedVersion, []error)
+	AgencyPlacesByAgencyID(context.Context, []AgencyPlaceParam) ([][]*AgencyPlace, []error)
+	RouteGeometriesByRouteID(context.Context, []RouteGeometryParam) ([][]*RouteGeometry, []error)
+	TripsByRouteID(context.Context, []TripParam) ([][]*Trip, []error)
+	RoutesByAgencyID(context.Context, []RouteParam) ([][]*Route, []error)
+	AgenciesByFeedVersionID(context.Context, []AgencyParam) ([][]*Agency, []error)
+	AgenciesByOnestopID(context.Context, []AgencyParam) ([][]*Agency, []error)
+	StopsByFeedVersionID(context.Context, []StopParam) ([][]*Stop, []error)
+	TripsByFeedVersionID(context.Context, []TripParam) ([][]*Trip, []error)
+	FeedInfosByFeedVersionID(context.Context, []FeedInfoParam) ([][]*FeedInfo, []error)
+	RoutesByFeedVersionID(context.Context, []RouteParam) ([][]*Route, []error)
+	FeedVersionServiceLevelsByFeedVersionID(context.Context, []FeedVersionServiceLevelParam) ([][]*FeedVersionServiceLevel, []error)
+	PathwaysByFromStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
+	PathwaysByToStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
+	CalendarDatesByServiceID(context.Context, []CalendarDateParam) ([][]*CalendarDate, []error)
+	CensusGeographiesByEntityID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
+	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
 }
 
-func Tx(cb func(sqlx.Ext) error) error {
-	tx, err := DB.Beginx()
-	if err != nil {
-		panic(err)
-	}
-	if err := cb(tx); err != nil {
-		if errTx := tx.Rollback(); errTx != nil {
-			panic(errTx)
-		}
-		return err
-	}
-	return tx.Commit()
-}
-
-func toSnakeCase(str string) string {
-	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
-	return strings.ToLower(snake)
+// RTFinder manages and looks up RT data
+type RTFinder interface {
+	AddData(string, []byte) error
+	FindTrip(t *Trip) *pb.TripUpdate
+	MakeTrip(t *Trip) (*Trip, error)
+	FindAlertsForTrip(*Trip) []*Alert
+	FindAlertsForStop(*Stop) []*Alert
+	FindAlertsForRoute(*Route) []*Alert
+	FindAlertsForAgency(*Agency) []*Alert
+	GetAddedTripsForStop(*Stop) []*pb.TripUpdate
+	FindStopTimeUpdate(*Trip, *StopTime) (*pb.TripUpdate_StopTimeUpdate, bool)
+	// lookup cache methods
+	StopTimezone(int, string) (*time.Location, bool)
+	GetGtfsTripID(int) (string, bool)
 }

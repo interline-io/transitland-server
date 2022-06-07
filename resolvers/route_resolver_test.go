@@ -1,6 +1,7 @@
 package resolvers
 
 import (
+	"context"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ func TestRouteResolver(t *testing.T) {
 			hw{},
 			``,
 			"routes.#.route_id",
-			[]string{"Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130", "01", "03", "05", "07", "11", "19"},
+			[]string{"1", "12", "14", "15", "16", "17", "19", "20", "24", "25", "275", "30", "31", "32", "33", "34", "35", "36", "360", "37", "38", "39", "400", "42", "45", "46", "48", "5", "51", "6", "60", "7", "75", "8", "9", "96", "97", "570", "571", "572", "573", "574", "800", "PWT", "SKY", "01", "03", "05", "07", "11", "19", "Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"},
 		},
 		{
 			"basic fields",
@@ -187,6 +188,108 @@ func TestRouteResolver(t *testing.T) {
 			[]string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130", "01", "05", "07", "11"},
 		},
 		// TODO: census_geographies
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestRouteResolver_PreviousOnestopID(t *testing.T) {
+	testcases := []testcase{
+		{
+			"default",
+			`query($osid:String!, $previous:Boolean!) { routes(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { route_id onestop_id }}`,
+			hw{"osid": "r-9q9-antioch~sfia~millbrae", "previous": false},
+			``,
+			"routes.#.onestop_id",
+			[]string{"r-9q9-antioch~sfia~millbrae"},
+		},
+		{
+			"old id no result",
+			`query($osid:String!, $previous:Boolean!) { routes(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { route_id onestop_id }}`,
+			hw{"osid": "r-9q9-pittsburg~baypoint~sfia~millbrae", "previous": false},
+			``,
+			"routes.#.onestop_id",
+			[]string{},
+		},
+		{
+			"old id specify fv",
+			`query($osid:String!, $previous:Boolean!) { routes(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous, feed_version_sha1:"dd7aca4a8e4c90908fd3603c097fabee75fea907"}) { route_id onestop_id }}`,
+			hw{"osid": "r-9q9-pittsburg~baypoint~sfia~millbrae", "previous": false},
+			``,
+			"routes.#.onestop_id",
+			[]string{"r-9q9-pittsburg~baypoint~sfia~millbrae"},
+		},
+		{
+			"use previous",
+			`query($osid:String!, $previous:Boolean!) { routes(where:{onestop_id:$osid, allow_previous_onestop_ids:$previous}) { route_id onestop_id }}`,
+			hw{"osid": "r-9q9-pittsburg~baypoint~sfia~millbrae", "previous": true},
+			``,
+			"routes.#.onestop_id",
+			[]string{"r-9q9-pittsburg~baypoint~sfia~millbrae"},
+		},
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestRouteResolver_Cursor(t *testing.T) {
+	allEnts, err := TestDBFinder.FindRoutes(context.Background(), nil, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	allIds := []string{}
+	for _, ent := range allEnts {
+		allIds = append(allIds, ent.RouteID)
+	}
+	testcases := []testcase{
+		{
+			"no cursor",
+			"query{routes(limit:10){feed_version{id} id route_id}}",
+			nil,
+			``,
+			"routes.#.route_id",
+			allIds[:10],
+		},
+		{
+			"after 0",
+			"query{routes(after: 0, limit:10){feed_version{id} id route_id}}",
+			nil,
+			``,
+			"routes.#.route_id",
+			allIds[:10],
+		},
+		{
+			"after 10th",
+			"query($after: Int!){routes(after: $after, limit:10){feed_version{id} id route_id}}",
+			hw{"after": allEnts[10].ID},
+			``,
+			"routes.#.route_id",
+			allIds[11:21],
+		},
+		{
+			"after last",
+			"query($after: Int!){routes(after: $after, limit:10){feed_version{id} id route_id}}",
+			hw{"after": allEnts[len(allEnts)-1].ID},
+			``,
+			"routes.#.route_id",
+			[]string{},
+		},
+		{
+			"after invalid id returns no results",
+			"query($after: Int!){routes(after: $after, limit:10){feed_version{id} id route_id}}",
+			hw{"after": 10_000_000},
+			``,
+			"routes.#.route_id",
+			[]string{},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {

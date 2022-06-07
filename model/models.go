@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/interline-io/transitland-lib/dmfr"
+	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
 )
 
@@ -30,6 +31,7 @@ type FeedUrls struct {
 type FeedAuthorization struct {
 	tl.FeedAuthorization
 }
+
 type Agency struct {
 	OnestopID       string      `json:"onestop_id"`
 	FeedOnestopID   string      `json:"feed_onestop_id"`
@@ -46,6 +48,11 @@ type Calendar struct {
 
 type FeedState struct {
 	dmfr.FeedState
+}
+
+type FeedFetch struct {
+	ResponseSha1 tl.String // confusing but easier than alternative fixes
+	dmfr.FeedFetch
 }
 
 type FeedVersion struct {
@@ -74,10 +81,23 @@ type Route struct {
 
 type Trip struct {
 	tl.Trip
+	RTTripID string // internal: for ADDED trips
 }
 
 type StopTime struct {
 	tl.StopTime
+	ServiceDate      tl.Date
+	RTTripID         string                        // internal: for ADDED trips
+	RTStopTimeUpdate *pb.TripUpdate_StopTimeUpdate // internal
+}
+
+type StopTimeEvent struct {
+	StopTimezone string      `json:"stop_timezone"`
+	Scheduled    tl.WideTime `json:"scheduled"`
+	Estimated    tl.WideTime `json:"estimated"`
+	EstimatedUtc tl.OTime    `json:"estimated_utc"`
+	Delay        *int        `json:"delay"`
+	Uncertainty  *int        `json:"uncertainty"`
 }
 
 type Stop struct {
@@ -159,10 +179,13 @@ type RouteStopBuffer struct {
 }
 
 type RouteGeometry struct {
-	RouteID          int           `json:"route_id"`
-	Generated        bool          `json:"generated"`
-	Geometry         tl.LineString `json:"geometry"`
-	CombinedGeometry tl.Geometry   `json:"combined_geometry"`
+	RouteID               int           `json:"route_id"`
+	Generated             bool          `json:"generated"`
+	Geometry              tl.LineString `json:"geometry"`
+	CombinedGeometry      tl.Geometry   `json:"combined_geometry"`
+	Length                tl.Float      `json:"length"`
+	MaxSegmentLength      tl.Float      `json:"max_segment_length"`
+	FirstPointMaxDistance tl.Float      `json:"first_point_max_distance"`
 }
 
 type AgencyPlace struct {

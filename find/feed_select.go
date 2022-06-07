@@ -2,16 +2,11 @@ package find
 
 import (
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
-func FindFeeds(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.FeedFilter) (ents []*model.Feed, err error) {
-	MustSelect(model.DB, FeedSelect(limit, after, ids, where), &ents)
-	return ents, nil
-}
-
-func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.SelectBuilder {
+func FeedSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("current_feeds t").
@@ -21,8 +16,8 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
+	if after != nil && after.Valid && after.ID > 0 {
+		q = q.Where(sq.Gt{"t.id": after.ID})
 	}
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 1 {
@@ -33,7 +28,11 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 			q = q.Where(sq.Eq{"onestop_id": *where.OnestopID})
 		}
 		if len(where.Spec) > 0 {
-			q = q.Where(sq.Eq{"spec": where.Spec})
+			var specs []string
+			for _, s := range where.Spec {
+				specs = append(specs, s.ToDBString())
+			}
+			q = q.Where(sq.Eq{"spec": specs})
 		}
 		// Tags
 		if where.Tags != nil {
@@ -51,29 +50,45 @@ func FeedSelect(limit *int, after *int, ids []int, where *model.FeedFilter) sq.S
 		if v := where.FetchError; v == nil {
 			// nothing
 		} else if *v {
-			q = q.Join("feed_states on feed_states.feed_id = t.id").Where(sq.NotEq{"feed_states.last_fetch_error": ""})
+			q = q.JoinClause("join lateral (select success from feed_fetches where feed_fetches.feed_id = t.id order by fetched_at desc limit 1) ff on true").Where(sq.Eq{"ff.success": false})
 		} else if !*v {
-			q = q.Join("feed_states on feed_states.feed_id = t.id").Where(sq.Eq{"feed_states.last_fetch_error": ""})
+			q = q.JoinClause("join lateral (select success from feed_fetches where feed_fetches.feed_id = t.id order by fetched_at desc limit 1) ff on true").Where(sq.Eq{"ff.success": true})
 		}
 		// Import import status
 		if where.ImportStatus != nil {
 			// in_progress must be false to check success and vice-versa
 			var checkSuccess bool
 			var checkInProgress bool
-			check := *where.ImportStatus
-			if check == "success" {
+			switch v := *where.ImportStatus; v {
+			case model.ImportStatusSuccess:
 				checkSuccess = true
 				checkInProgress = false
-			} else if check == "error" {
-				checkSuccess = false
-				checkInProgress = false
-			} else if check == "in_progress" {
+			case model.ImportStatusInProgress:
 				checkSuccess = false
 				checkInProgress = true
+			case model.ImportStatusError:
+				checkSuccess = false
+				checkInProgress = false
+			default:
+				log.Error().Str("value", v.String()).Msg("unknown imnport status enum")
 			}
 			// This lateral join gets the most recent attempt at a completed feed_version_gtfs_import and checks the status
 			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).
 				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
+		}
+		// Source URL
+		if where.SourceURL != nil {
+			urlType := "static_current"
+			if where.SourceURL.Type != nil {
+				urlType = where.SourceURL.Type.String()
+			}
+			if where.SourceURL.URL == nil {
+				q = q.Where("urls->>? is not null", urlType)
+			} else if v := where.SourceURL.CaseSensitive; v != nil && *v {
+				q = q.Where("urls->>? = ?", urlType, where.SourceURL.URL)
+			} else {
+				q = q.Where("lower(urls->>?) = lower(?)", urlType, where.SourceURL.URL)
+			}
 		}
 	}
 	return q

@@ -1,17 +1,23 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/rtcache"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
+
+var TestDBFinder model.Finder
+var TestRTFinder model.RTFinder
 
 const LON = 37.803613
 const LAT = -122.271556
@@ -19,10 +25,12 @@ const LAT = -122.271556
 func TestMain(m *testing.M) {
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
 	if g == "" {
-		fmt.Println("TL_TEST_SERVER_DATABASE_URL not set, skipping")
+		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		return
 	}
-	model.DB = model.MustOpenDB(g)
+	db := find.MustOpenDB(g)
+	TestDBFinder = find.NewDBFinder(db)
+	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	os.Exit(m.Run())
 }
 
@@ -30,7 +38,7 @@ func TestMain(m *testing.M) {
 
 func testRestConfig() restConfig {
 	cfg := config.Config{}
-	srv, _ := resolvers.NewServer(cfg)
+	srv, _ := resolvers.NewServer(cfg, TestDBFinder, TestRTFinder)
 	return restConfig{srv: srv, Config: cfg}
 }
 
@@ -49,7 +57,7 @@ type testRest struct {
 }
 
 func testquery(t *testing.T, cfg restConfig, tc testRest) {
-	data, err := makeRequest(cfg, tc.h, tc.format, nil)
+	data, err := makeRequest(context.TODO(), cfg, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)
 		return
@@ -65,7 +73,7 @@ func testquery(t *testing.T, cfg restConfig, tc testRest) {
 				t.Errorf("selector '%s' returned zero elements", tc.selector)
 			} else {
 				if !assert.ElementsMatch(t, a, tc.expectSelect) {
-					fmt.Printf("got %#v -- expect %#v\n\n", a, tc.expectSelect)
+					t.Errorf("got %#v -- expect %#v\n\n", a, tc.expectSelect)
 				}
 			}
 		} else {

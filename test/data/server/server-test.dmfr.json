@@ -8,11 +8,8 @@
       "languages": [
         "en-US"
       ],
-      "associated_feeds": [
-        "CT~rt"
-      ],
       "urls": {
-        "static_current": "test/data/external/caltrain.zip",
+        "static_current": "file://test/data/external/caltrain.zip",
         "static_historic": [
           "https://caltrain.com/old_feed.zip"
         ]
@@ -30,10 +27,19 @@
       },
       "operators": [
         {
+          "name": "Caltrain",
           "onestop_id": "o-9q9-caltrain",
           "tags": {
             "us_ntd_id": "90134"
-          }
+          },
+          "associated_feeds": [
+            {
+              "feed_onestop_id": "CT"
+            },            
+            {
+              "feed_onestop_id": "CT~rt"
+            }
+          ]
         }
       ]
     },
@@ -45,18 +51,36 @@
         "foo": "bar"
       },
       "urls": {
-        "static_current": "test/data/external/bart.zip"
+        "static_current": "file://test/data/external/bart.zip"
+      }
+    },
+    {
+      "spec": "gtfs",
+      "id": "HA",
+      "urls": {
+        "static_current": "file://test/data/external/hart.zip"
+      }
+    },    
+    {
+      "spec": "gtfs-rt",
+      "id": "BA~rt",
+      "urls": {
+        "realtime_trip_updates": "file://test/data/rt/BA.json"
       }
     },
     {
       "spec": "gtfs-rt",
-      "id": "BA~rt",
-      "urls": {}
+      "id": "CT~rt",
+      "urls": {
+        "realtime_trip_updates": "file://test/data/rt/CT.json"
+      }
     },
     {
       "spec": "gtfs",
       "id": "test",
-      "urls": {}
+      "urls": {
+        "static_current": "http://domain.invalid/test.zip"
+      }
     }
   ],
   "license_spdx_identifier": "CC0-1.0"

@@ -3,27 +3,21 @@ package find
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
-func FindFeedVersions(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.FeedVersionFilter) (ents []*model.FeedVersion, err error) {
-	MustSelect(model.DB, FeedVersionSelect(limit, after, ids, where), &ents)
-	return ents, nil
-}
-
-func FeedVersionSelect(limit *int, after *int, ids []int, where *model.FeedVersionFilter) sq.SelectBuilder {
+func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*, tl_feed_version_geometries.geometry").
 		From("feed_versions t").
 		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
 		JoinClause("left join tl_feed_version_geometries on tl_feed_version_geometries.feed_version_id = t.id").
 		Limit(checkLimit(limit)).
-		OrderBy("t.fetched_at desc")
+		OrderBy("t.fetched_at desc, t.id desc")
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil && *after > 0 {
-		q = q.Where(sq.Expr("fetched_at < (select fetched_at from feed_versions where id = ?)", *after))
+	if after != nil && after.Valid && after.ID > 0 {
+		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at from feed_versions where id = ?", after.ID))
 	}
 	if where != nil {
 		if where.Sha1 != nil {
@@ -39,23 +33,12 @@ func FeedVersionSelect(limit *int, after *int, ids []int, where *model.FeedVersi
 	return q
 }
 
-func FeedVersionServiceLevelSelect(limit *int, after *int, ids []int, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
+func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
 	q := quickSelectOrder("feed_version_service_levels", limit, after, nil, "")
 	if where == nil {
 		where = &model.FeedVersionServiceLevelFilter{}
 	}
-	if where.DistinctOn != nil {
-		q = q.Distinct().Options("ON (feed_version_id,route_id)").OrderBy("feed_version_id,route_id")
-	} else {
-		q = q.OrderBy("id")
-	}
-	if where.AllRoutes != nil && *where.AllRoutes {
-		// default
-	} else if len(where.RouteIds) > 0 {
-		q = q.Where(sq.Eq{"route_id": where.RouteIds})
-	} else {
-		q = q.Where(sq.Eq{"route_id": nil})
-	}
+	q = q.Where(sq.Eq{"route_id": nil})
 	if where.StartDate != nil {
 		q = q.Where(sq.GtOrEq{"start_date": where.StartDate})
 	}

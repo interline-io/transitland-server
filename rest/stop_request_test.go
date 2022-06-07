@@ -19,7 +19,7 @@ func TestStopRequest(t *testing.T) {
 		{"stop_id", StopRequest{StopID: "70011"}, "", "stops.#.stop_id", []string{"70011"}, 0},    // default
 		{"limit:1", StopRequest{Limit: 1}, "", "stops.#.stop_id", nil, 1},
 		{"limit:100", StopRequest{Limit: 100}, "", "stops.#.stop_id", nil, 100},
-		{"limit:1000", StopRequest{Limit: 1000}, "", "stops.#.stop_id", nil, 114},
+		{"limit:1000", StopRequest{Limit: 1000}, "", "stops.#.stop_id", nil, 1000},
 		{"feed_onestop_id", StopRequest{FeedOnestopID: "BA", Limit: 100}, "", "stops.#.stop_id", bartstops, 0},
 		{"feed_onestop_id,stop_id", StopRequest{FeedOnestopID: "BA", StopID: "12TH"}, "", "stops.#.stop_id", []string{"12TH"}, 0},
 		{"feed_version_sha1", StopRequest{FeedVersionSHA1: fv}, "", "stops.#.stop_id", nil, 20},

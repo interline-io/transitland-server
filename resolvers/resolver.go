@@ -3,10 +3,13 @@
 package resolvers
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/generated/gqlgen"
+	"github.com/interline-io/transitland-server/internal/fvsl"
+	"github.com/interline-io/transitland-server/model"
 )
 
 func atoi(v string) int {
@@ -16,7 +19,10 @@ func atoi(v string) int {
 
 // Resolver .
 type Resolver struct {
-	cfg config.Config
+	cfg       config.Config
+	rtfinder  model.RTFinder
+	finder    model.Finder
+	fvslCache fvsl.FVSLCache
 }
 
 // Query .
@@ -81,4 +87,10 @@ func (r *Resolver) CensusValue() gqlgen.CensusValueResolver {
 // Pathway .
 func (r *Resolver) Pathway() gqlgen.PathwayResolver {
 	return &pathwayResolver{r}
+}
+
+// Directions .
+func (r *Resolver) Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error) {
+	dr := directionsResolver{r}
+	return dr.Directions(ctx, where)
 }

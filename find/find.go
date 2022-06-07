@@ -1,41 +1,85 @@
 package find
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/reflectx"
 )
 
 // MAXLIMIT .
 const MAXLIMIT = 1000
 
-// MustSelect runs a query or panics.
-func MustSelect(db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
-	q = q.PlaceholderFormat(sq.Dollar)
-	qstr, qargs := q.MustSql()
-	if os.Getenv("TL_LOG_SQL") == "true" {
-		fmt.Println(qstr)
+var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+
+func toSnakeCase(str string) string {
+	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	return strings.ToLower(snake)
+}
+
+func MustOpenDB(url string) sqlx.Ext {
+	db, err := sqlx.Open("postgres", url)
+	if err != nil {
+		log.Fatal().Err(err).Msg("could not open database")
 	}
-	if a, ok := db.(sqlx.Preparer); ok {
-		stmt, err := sqlx.Preparex(a, qstr)
-		if err != nil {
-			panic(err)
-		}
-		if err := stmt.Select(dest, qargs...); err != nil {
-			panic(err)
-		}
-	} else {
-		if err := sqlx.Select(db, dest, qstr, qargs...); err != nil {
-			panic(err)
-		}
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+	db.SetConnMaxLifetime(time.Hour)
+	if err := db.Ping(); err != nil {
+		log.Fatal().Err(err).Msgf("could not connect to database")
+	}
+	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
+	//return db.Unsafe()
+	return &tldb.QueryLogger{Ext: db.Unsafe()}
+}
+
+// MustSelect runs a query or panics.
+func MustSelect(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
+	err := Select(ctx, db, q, dest)
+	if errors.Is(err, context.Canceled) {
+		// Ignore
+		return
+	} else if err != nil {
+		panic(err)
 	}
 }
+
+func Select(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) error {
+	useStatement := false
+	q = q.PlaceholderFormat(sq.Dollar)
+	qstr, qargs := q.MustSql()
+	var err error
+	if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
+		stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
+		if prepareErr != nil {
+			return prepareErr
+		}
+		err = stmt.SelectContext(ctx, dest, qargs...)
+	} else if a, ok := db.(sqlx.QueryerContext); ok {
+		err = sqlx.SelectContext(ctx, a, dest, qstr, qargs...)
+	} else {
+		err = sqlx.Select(db, dest, qstr, qargs...)
+	}
+	if err != nil {
+		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
+	}
+	return err
+}
+
+// helpers
 
 func checkLimit(limit *int) uint64 {
 	return checkRange(limit, 0, MAXLIMIT)
@@ -120,11 +164,11 @@ func lateralWrap(q sq.SelectBuilder, parent string, pkey string, ckey string, pi
 	return q2
 }
 
-func quickSelect(table string, limit *int, after *int, ids []int) sq.SelectBuilder {
+func quickSelect(table string, limit *int, after *model.Cursor, ids []int) sq.SelectBuilder {
 	return quickSelectOrder(table, limit, after, ids, "id")
 }
 
-func quickSelectOrder(table string, limit *int, after *int, ids []int, order string) sq.SelectBuilder {
+func quickSelectOrder(table string, limit *int, after *model.Cursor, ids []int, order string) sq.SelectBuilder {
 	table = az09(table)
 	order = az09(order)
 	q := sq.StatementBuilder.
@@ -137,8 +181,8 @@ func quickSelectOrder(table string, limit *int, after *int, ids []int, order str
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
+	if after != nil && after.Valid && after.ID > 0 {
+		q = q.Where(sq.Gt{"t.id": after.ID})
 	}
 	return q
 }

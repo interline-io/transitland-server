@@ -3,20 +3,9 @@ package find
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
-func FindTrips(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.TripFilter) (ents []*model.Trip, err error) {
-	active := false
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
-		active = true
-	}
-	q := TripSelect(limit, after, ids, active, where)
-	MustSelect(model.DB, q, &ents)
-	return ents, nil
-}
-
-func TripSelect(limit *int, after *int, ids []int, active bool, where *model.TripFilter) sq.SelectBuilder {
+func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.TripFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_trips.*",
 		"current_feeds.id AS feed_id",
@@ -26,7 +15,7 @@ func TripSelect(limit *int, after *int, ids []int, active bool, where *model.Tri
 		From("gtfs_trips").
 		Join("feed_versions ON feed_versions.id = gtfs_trips.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		OrderBy("gtfs_trips.id")
+		OrderBy("gtfs_trips.feed_version_id,gtfs_trips.id")
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
@@ -68,8 +57,12 @@ func TripSelect(limit *int, after *int, ids []int, active bool, where *model.Tri
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil {
-		q = q.Where(sq.Gt{"t.id": *after})
+	if after != nil && after.Valid {
+		if after.FeedVersionID == 0 {
+			qView = qView.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (select feed_version_id,id from gtfs_trips where id = ?)", after.ID))
+		} else {
+			qView = qView.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (?,?)", after.FeedVersionID, after.ID))
+		}
 	}
 	q = q.Limit(checkLimit(limit))
 	if where != nil {

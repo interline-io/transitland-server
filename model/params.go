@@ -92,6 +92,18 @@ type StopParam struct {
 	RouteID       int
 }
 
+type FeedParam struct {
+	OperatorOnestopID string
+	Limit             *int
+	Where             *FeedFilter
+}
+
+type FeedFetchParam struct {
+	FeedID int
+	Limit  *int
+	Where  *FeedFetchFilter
+}
+
 type AgencyPlaceParam struct {
 	AgencyID int
 	Limit    *int

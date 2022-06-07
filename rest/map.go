@@ -3,12 +3,12 @@ package rest
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"image/color"
 	"image/png"
 
 	sm "github.com/flopp/go-staticmaps"
 	"github.com/golang/geo/s2"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/geojson"
 )
@@ -71,7 +71,7 @@ func renderMap(data []byte, width int, height int) ([]byte, error) {
 		} else if g, ok := feature.Geometry.(*geom.Point); ok {
 			ctx.AddCircle(sm.NewCircle(s2.LatLngFromDegrees(g.Coords().Y(), g.Coords().X()), color.RGBA{0xff, 0x00, 0x00, 0xff}, color.RGBA{0xff, 0x00, 0x00, 0xff}, CIRCLESIZE, CIRCLEWIDTH))
 		} else {
-			fmt.Println("cant draw geom type")
+			log.Info().Msgf("cant draw geom type: %T", feature.Geometry)
 		}
 	}
 	img, err := ctx.Render()
@@ -133,12 +133,12 @@ func processGeoJSON(ent apiHandler, response map[string]interface{}) error {
 	for _, feature := range entities {
 		f, ok := feature.(map[string]interface{})
 		if !ok {
-			fmt.Println("skipping feature")
+			log.Infof("feature not map[string]any, skipping")
 			continue
 		}
 		geometry := f["geometry"]
 		if geometry == nil {
-			fmt.Println("no geometry")
+			log.Infof("feature has no geometry, skipping")
 			continue
 		}
 		properties := hw{}

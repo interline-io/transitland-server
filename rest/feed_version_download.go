@@ -43,7 +43,7 @@ func feedDownloadLatestFeedVersionHandler(cfg restConfig, w http.ResponseWriter,
 		gvars["feed_onestop_id"] = key
 	}
 	// Check if we're allowed to redistribute feed and look up latest feed version
-	feedResponse, err := makeGraphQLRequest(cfg.srv, latestFeedVersionQuery, gvars)
+	feedResponse, err := makeGraphQLRequest(r.Context(), cfg.srv, latestFeedVersionQuery, gvars)
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
@@ -112,7 +112,7 @@ func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 		gvars["feed_version_sha1"] = key
 	}
 	// Check if we're allowed to redistribute feed
-	checkfv, err := makeGraphQLRequest(cfg.srv, feedVersionFileQuery, gvars)
+	checkfv, err := makeGraphQLRequest(r.Context(), cfg.srv, feedVersionFileQuery, gvars)
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return

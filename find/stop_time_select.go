@@ -29,6 +29,8 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilte
 		"sts.timepoint",
 		"sts.interpolated",
 		"sts.stop_headsign",
+		"sts.continuous_pickup",
+		"sts.continuous_drop_off",
 	).
 		From("gtfs_trips").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
@@ -46,18 +48,8 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilte
 }
 
 func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
+	// Where must already be set for local service date and timezone
 	serviceDate := time.Now()
-	if where != nil && where.Next != nil && where.Timezone != nil {
-		// Require a valid timezone
-		if loc, err := time.LoadLocation(*where.Timezone); err == nil {
-			serviceDate = serviceDate.In(loc)
-			st, et := 0, 0
-			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
-			et = st + *where.Next
-			where.StartTime = &st
-			where.EndTime = &et
-		}
-	}
 	if where != nil && where.ServiceDate != nil {
 		serviceDate = where.ServiceDate.Time
 	}
@@ -78,11 +70,14 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		"sts.timepoint",
 		"sts.interpolated",
 		"sts.stop_headsign",
+		"sts.continuous_pickup",
+		"sts.continuous_drop_off",
 	).
 		From("gtfs_trips").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
-		JoinClause(`inner join (
+		JoinClause(`join lateral (select min(stop_sequence), max(stop_sequence) max from gtfs_stop_times sts2 where sts2.trip_id = t2.id AND sts2.feed_version_id = t2.feed_version_id) trip_stop_sequence on true`).
+		JoinClause(`join (
 			SELECT
 				id
 			FROM
@@ -125,7 +120,39 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			pqfvids).
 		Where(sq.Eq{"sts.stop_id": sids, "sts.feed_version_id": fvids}).
 		OrderBy("sts.arrival_time asc")
+
 	if where != nil {
+		if where.ExcludeFirst != nil && *where.ExcludeFirst {
+			q = q.Where("sts.stop_sequence > trip_stop_sequence.min")
+		}
+		if where.ExcludeLast != nil && *where.ExcludeLast {
+			q = q.Where("sts.stop_sequence < trip_stop_sequence.max")
+		}
+		if len(where.RouteOnestopIds) > 0 {
+			if where.AllowPreviousRouteOnestopIds != nil && *where.AllowPreviousRouteOnestopIds {
+				// Find a way to make this simpler, perhaps handle elsewhere
+				sub := sq.StatementBuilder.
+					Select("gtfs_routes.route_id", "feed_versions.feed_id").
+					Distinct().Options("on (gtfs_routes.route_id, feed_versions.feed_id)").
+					From("tl_route_onestop_ids").
+					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id").
+					Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
+					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds}).
+					OrderBy("gtfs_routes.route_id, feed_versions.feed_id, feed_versions.id DESC")
+				subClause := sub.
+					Prefix("JOIN (").
+					Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
+				q = q.
+					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
+					Join("feed_versions on feed_versions.id = sts.feed_version_id").
+					JoinClause(subClause)
+			} else {
+				q = q.
+					Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_trips.route_id").
+					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
+
+			}
+		}
 		if where.StartTime != nil {
 			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.StartTime})
 		}

@@ -3,20 +3,9 @@ package find
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
-func FindRoutes(atx sqlx.Ext, limit *int, after *int, ids []int, where *model.RouteFilter) (ents []*model.Route, err error) {
-	active := false
-	if where != nil && where.FeedVersionSha1 == nil && len(ids) == 0 {
-		active = true
-	}
-	q := RouteSelect(limit, after, ids, active, where)
-	MustSelect(model.DB, q, &ents)
-	return ents, nil
-}
-
-func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
+func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
 		"COALESCE(tlrg.combined_geometry, tlrg.geometry) as geometry",
@@ -29,10 +18,38 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 		From("gtfs_routes").
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		JoinClause("LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id").
 		JoinClause(`LEFT JOIN tl_route_geometries tlrg ON tlrg.route_id = gtfs_routes.id`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		OrderBy("gtfs_routes.id")
+		OrderBy("gtfs_routes.feed_version_id,gtfs_routes.id")
+
+	// Handle previous OnestopIds
+	if where != nil {
+		if where.OnestopID != nil {
+			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
+		}
+		if len(where.OnestopIds) > 0 {
+			qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
+		}
+		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
+			sub := sq.StatementBuilder.
+				Select("tl_route_onestop_ids.onestop_id", "gtfs_routes.route_id", "feed_versions.feed_id").
+				Distinct().Options("on (tl_route_onestop_ids.onestop_id, gtfs_routes.route_id)").
+				From("tl_route_onestop_ids").
+				Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id").
+				Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
+				Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds}).
+				OrderBy("tl_route_onestop_ids.onestop_id, gtfs_routes.route_id, feed_versions.id DESC")
+			subClause := sub.
+				Prefix("LEFT JOIN (").
+				Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
+			qView = qView.JoinClause(subClause)
+		} else {
+			qView = qView.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id`)
+		}
+	} else {
+		qView = qView.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id`)
+	}
+
 	if where != nil {
 		if len(where.AgencyIds) > 0 {
 			qView = qView.Where(sq.Eq{"gtfs_routes.agency_id": where.AgencyIds})
@@ -42,12 +59,6 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 		}
 		if where.RouteType != nil {
 			qView = qView.Where(sq.Eq{"gtfs_routes.route_type": where.RouteType})
-		}
-		if where.OnestopID != nil {
-			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
-		}
-		if len(where.OnestopIds) > 0 {
-			qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
 		}
 		if where.FeedVersionSha1 != nil {
 			qView = qView.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
@@ -83,8 +94,12 @@ func RouteSelect(limit *int, after *int, ids []int, active bool, where *model.Ro
 	if len(ids) > 0 {
 		qView = qView.Where(sq.Eq{"gtfs_routes.id": ids})
 	}
-	if after != nil {
-		qView = qView.Where(sq.Gt{"gtfs_routes.id": *after})
+	if after != nil && after.Valid && after.ID > 0 {
+		if after.FeedVersionID == 0 {
+			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (select feed_version_id,id from gtfs_routes where id = ?)", after.ID))
+		} else {
+			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (?,?)", after.FeedVersionID, after.ID))
+		}
 	}
 	// Outer query
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")

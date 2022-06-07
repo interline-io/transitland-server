@@ -2,31 +2,49 @@ package resolvers
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/internal/rtcache"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
+var TestDBFinder model.Finder
+var TestRTFinder model.RTFinder
+
 func TestMain(m *testing.M) {
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
 	if g == "" {
-		fmt.Println("TL_TEST_SERVER_DATABASE_URL not set, skipping")
+		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		return
 	}
-	model.DB = model.MustOpenDB(g)
+	db := find.MustOpenDB(g)
+	dbf := find.NewDBFinder(db)
+	TestDBFinder = dbf
+	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	os.Exit(m.Run())
 }
 
 // Test helpers
 
 func newTestClient() *client.Client {
-	srv, _ := NewServer(config.Config{})
+	cfg := config.Config{}
+	srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+	return client.New(srv)
+}
+
+func newTestClientWithClock(cl clock.Clock) *client.Client {
+	// Create a new finder, with specified time
+	db := TestDBFinder.DBX()
+	cfg := config.Config{Clock: cl}
+	srv, _ := NewServer(cfg, find.NewDBFinder(db), TestRTFinder)
 	return client.New(srv)
 }
 
@@ -56,7 +74,7 @@ func testquery(t *testing.T, c *client.Client, tc testcase) {
 	jj := toJson(resp)
 	if tc.expect != "" {
 		if !assert.JSONEq(t, tc.expect, jj) {
-			fmt.Printf("got %s -- expect %s\n", jj, tc.expect)
+			t.Errorf("got %s -- expect %s\n", jj, tc.expect)
 		}
 	}
 	if tc.selector != "" {
@@ -67,8 +85,8 @@ func testquery(t *testing.T, c *client.Client, tc testcase) {
 		if len(a) == 0 && tc.expectSelect == nil {
 			t.Errorf("selector '%s' returned zero elements", tc.selector)
 		} else {
-			if !assert.ElementsMatch(t, a, tc.expectSelect) {
-				fmt.Printf("got %#v -- expect %#v\n\n", a, tc.expectSelect)
+			if !assert.ElementsMatch(t, tc.expectSelect, a) {
+				t.Errorf("got %#v -- expect %#v\n\n", a, tc.expectSelect)
 			}
 		}
 	}

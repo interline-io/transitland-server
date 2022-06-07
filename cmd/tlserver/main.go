@@ -2,16 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"log"
 	"os"
 
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/dmfr/importer"
 	"github.com/interline-io/transitland-lib/dmfr/sync"
 	"github.com/interline-io/transitland-lib/dmfr/unimporter"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
-	server "github.com/interline-io/transitland-server"
 )
 
 ///////////////
@@ -31,19 +29,19 @@ func main() {
 	flag.BoolVar(&traceFlag, "vv", false, "Enable more verbose/query output")
 	flag.BoolVar(&versionFlag, "version", false, "Show version and GTFS spec information")
 	flag.Usage = func() {
-		log.Printf("Usage of %s:", os.Args[0])
-		log.Printf("Commands:")
-		log.Printf("  sync")
-		log.Printf("  fetch")
-		log.Printf("  import")
-		log.Printf("  unimport")
-		log.Printf("  server")
+		log.Print("Usage of %s:", os.Args[0])
+		log.Print("Commands:")
+		log.Print("  sync")
+		log.Print("  fetch")
+		log.Print("  import")
+		log.Print("  unimport")
+		log.Print("  server")
 
 	}
 	flag.Parse()
 	if versionFlag {
-		log.Printf("transitland-lib version: %s", tl.VERSION)
-		log.Printf("gtfs spec version: https://github.com/google/transit/blob/%s/gtfs/spec/en/reference.md", tl.GTFSVERSION)
+		log.Print("transitland-lib version: %s", tl.VERSION)
+		log.Print("gtfs spec version: https://github.com/google/transit/blob/%s/gtfs/spec/en/reference.md", tl.GTFSVERSION)
 		return
 	}
 	args := flag.Args()
@@ -63,17 +61,15 @@ func main() {
 	case "fetch":
 		r = &fetch.Command{}
 	case "server":
-		r = &server.Command{}
+		r = &ServerCommand{}
 	default:
-		fmt.Printf("%q is not valid command.", subc)
+		log.Print("%q is not valid command.", subc)
 		return
 	}
 	if err := r.Parse(args[1:]); err != nil {
-		fmt.Println("Error: ", err)
-		os.Exit(1)
+		log.Errorf("Error: %s", err.Error())
 	}
 	if err := r.Run(); err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		os.Exit(1)
+		log.Errorf("Error: %s", err.Error())
 	}
 }

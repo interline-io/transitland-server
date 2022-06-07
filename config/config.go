@@ -1,18 +1,16 @@
 package config
 
+import "github.com/interline-io/transitland-server/internal/clock"
+
 // Config is in a separate package to avoid import cycles.
 
 type Config struct {
-	Timeout            int
-	Port               string
-	UseAuth            string
-	DBURL              string
-	JwtAudience        string
-	JwtIssuer          string
-	JwtPublicKeyFile   string
 	GtfsDir            string
 	GtfsS3Bucket       string
 	ValidateLargeFiles bool
 	DisableImage       bool
 	RestPrefix         string
+	DBURL              string
+	RedisURL           string
+	Clock              clock.Clock
 }

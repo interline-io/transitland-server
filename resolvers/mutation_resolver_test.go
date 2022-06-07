@@ -4,36 +4,20 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	_, b, _, _ = runtime.Caller(0)
-	basepath   = filepath.Dir(b)
-)
-
-// RootPath returns the project root directory, e.g. two directories up from internal/testutil.
-func RootPath() string {
-	a, err := filepath.Abs(filepath.Join(basepath, ".."))
-	if err != nil {
-		panic(err)
-	}
-	return a
-}
-
-// RelPath returns the absolute path relative to the project root.
-func RelPath(p string) string {
-	return filepath.Join(RootPath(), p)
-}
-
 func TestFetchResolver(t *testing.T) {
-	expectFile := RelPath("test/data/external/bart.zip")
+	cfg := config.Config{}
+	// dbFinder := find.NewDBFinder(TestDB)
+	// rtFinder := rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDB)
+	expectFile := testutil.RelPath("test/data/external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
 		if err != nil {
@@ -42,7 +26,9 @@ func TestFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		srv, _ := NewServer(config.Config{UseAuth: "admin"})
+		srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+		srv = auth.AdminDefaultMiddleware()(srv) // Run all requests as admin
+		// Run all requests as admin
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {feed_version_fetch(feed_onestop_id:"BA",url:$url){found_sha1 feed_version{sha1}}}`, &resp, client.Var("url", ts200.URL))
@@ -52,7 +38,8 @@ func TestFetchResolver(t *testing.T) {
 		assert.JSONEq(t, `{"feed_version_fetch":{"found_sha1":true,"feed_version":{"sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0"}}}`, toJson(resp))
 	})
 	t.Run("requires admin access", func(t *testing.T) {
-		srv, _ := NewServer(config.Config{UseAuth: "user"})
+		srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+		srv = auth.UserDefaultMiddleware()(srv) // Run all requests as regular user
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {feed_version_fetch(feed_onestop_id:"BA",url:$url){found_sha1}}`, &resp, client.Var("url", ts200.URL))
@@ -63,7 +50,8 @@ func TestFetchResolver(t *testing.T) {
 }
 
 func TestValidationResolver(t *testing.T) {
-	expectFile := RelPath("test/data/external/caltrain.zip")
+	cfg := config.Config{}
+	expectFile := testutil.RelPath("test/data/external/caltrain.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
 		if err != nil {
@@ -71,7 +59,8 @@ func TestValidationResolver(t *testing.T) {
 		}
 		w.Write(buf)
 	}))
-	srv, _ := NewServer(config.Config{UseAuth: "user"})
+	srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+	srv = auth.UserDefaultMiddleware()(srv) // Run all requests as user
 	c := client.New(srv)
 	vars := hw{"url": ts200.URL}
 	testcases := []testcase{
@@ -145,7 +134,7 @@ func TestValidationResolver(t *testing.T) {
 			vars,
 			``,
 			"validate_gtfs.service_levels.#.thursday",
-			[]string{"0", "165720", "165720", "125400", "165720", "165720", "165720", "165720", "165720", "165720", "165720", "15900", "89160", "89160", "89160", "89160", "89160", "89160", "89160", "89160", "89160", "230340", "230340", "230340", "230340", "230340", "230340", "230340", "230340", "0", "230340", "0", "0", "0", "0", "0", "0", "0", "0", "14640", "0", "0", "0", "5460", "0", "0", "0", "0", "0", "0"}, // todo: better checking...
+			[]string{"485220", "485220", "485220", "485220", "155940", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "490680", "485220", "485220", "485220", "485220"}, // todo: better checking...
 		},
 	}
 	for _, tc := range testcases {
@@ -154,7 +143,7 @@ func TestValidationResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		srv, _ := NewServer(config.Config{UseAuth: ""})
+		srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder) // all requests run as anonymous context by default
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))

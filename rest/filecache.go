@@ -1,11 +1,11 @@
 package rest
 
 import (
-	"fmt"
 	"io"
 	"os"
 
 	"github.com/hypirion/go-filecache"
+	"github.com/interline-io/transitland-lib/log"
 )
 
 // local file cache
@@ -18,7 +18,7 @@ func init() {
 	if dc, err := filecache.New(filecache.Size(cachesize)*filecache.MiB, &d); err == nil {
 		localFileCache = dc
 	} else {
-		fmt.Println("Error creating local file cache:", err)
+		log.Fatal().Msgf("Error creating local file cache: %s", err.Error())
 	}
 }
 
