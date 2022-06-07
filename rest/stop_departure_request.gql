@@ -108,8 +108,8 @@ fragment alert on Alert {
   }
 }
 
-query ($include_geometry: Boolean!, $limit: Int = 100, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
-  stops(limit: $limit, ids: $ids, after: $after, where: $where) {
+query ($include_geometry: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
+  stops(limit: 100, ids: $ids, after: $after, where: $where) {
     ...stop
     feed_version {
       id
@@ -120,7 +120,7 @@ query ($include_geometry: Boolean!, $limit: Int = 100, $ids: [Int!], $after: Int
         onestop_id
       }
     }
-    departures(limit: 1000, where: $stop_time_where) {
+    departures(limit: $limit, where: $stop_time_where) {
       ...departure
       trip {
         ...trip
