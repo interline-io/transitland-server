@@ -39,8 +39,8 @@ func TestAgencyRequest(t *testing.T) {
 		{"city_name:oakland", AgencyRequest{CityName: "berkeley"}, "", "agencies.#.agency_id", []string{"BART"}, 0},
 		{"city_name:new york city", AgencyRequest{CityName: "new york city"}, "", "agencies.#.agency_id", []string{}, 0},
 		{"pagination exists", AgencyRequest{}, "", "meta.after", nil, 1}, // just check presence
-		{"pagination limit 10", AgencyRequest{Limit: 1}, "", "agencies.#.agency_id", allIds[:1], 0},
-		{"pagination after 10", AgencyRequest{Limit: 1, After: allEnts[0].ID}, "", "agencies.#.agency_id", allIds[1:2], 0},
+		{"pagination limit 1", AgencyRequest{Limit: 1}, "", "agencies.#.agency_id", allIds[:1], 0},
+		{"pagination after 1", AgencyRequest{Limit: 1, After: allEnts[0].ID}, "", "agencies.#.agency_id", allIds[1:2], 0},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
