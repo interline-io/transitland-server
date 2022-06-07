@@ -20,7 +20,7 @@ type StopDepartureRequest struct {
 	ServiceDate     string `json:"service_date"`
 	StartTime       int    `json:"start_time"`
 	EndTime         int    `json:"end_time"`
-	IncludeGeometry bool   `json:"include_geometry"`
+	IncludeGeometry bool   `json:"include_geometry,string"`
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -39,7 +39,9 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	if r.OnestopID != "" {
 		where["onestop_id"] = r.OnestopID
 	}
-	stwhere := hw{}
+	stwhere := hw{
+		"use_service_window": true,
+	}
 	if r.ServiceDate != "" {
 		stwhere["service_date"] = r.ServiceDate
 		stwhere["start_time"] = r.StartTime
@@ -51,7 +53,6 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 			r.Next = 3600
 		}
 		stwhere["next"] = r.Next
-		stwhere["timezone"] = "America/Los_Angeles"
 	}
 	return stopDepartureQuery, hw{
 		"include_geometry": r.IncludeGeometry,
