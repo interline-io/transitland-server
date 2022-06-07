@@ -254,15 +254,17 @@ type StopFilter struct {
 }
 
 type StopTimeFilter struct {
-	ServiceDate                  *tl.Date `json:"service_date"`
-	UseServiceWindow             *bool    `json:"use_service_window"`
-	StartTime                    *int     `json:"start_time"`
-	EndTime                      *int     `json:"end_time"`
-	Next                         *int     `json:"next"`
-	RouteOnestopIds              []string `json:"route_onestop_ids"`
-	AllowPreviousRouteOnestopIds *bool    `json:"allow_previous_route_onestop_ids"`
-	ExcludeFirst                 *bool    `json:"exclude_first"`
-	ExcludeLast                  *bool    `json:"exclude_last"`
+	ServiceDate                  *tl.Date     `json:"service_date"`
+	UseServiceWindow             *bool        `json:"use_service_window"`
+	StartTime                    *int         `json:"start_time"`
+	EndTime                      *int         `json:"end_time"`
+	Start                        *tl.WideTime `json:"start"`
+	End                          *tl.WideTime `json:"end"`
+	Next                         *int         `json:"next"`
+	RouteOnestopIds              []string     `json:"route_onestop_ids"`
+	AllowPreviousRouteOnestopIds *bool        `json:"allow_previous_route_onestop_ids"`
+	ExcludeFirst                 *bool        `json:"exclude_first"`
+	ExcludeLast                  *bool        `json:"exclude_last"`
 }
 
 type TripFilter struct {

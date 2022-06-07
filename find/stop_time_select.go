@@ -119,7 +119,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			serviceDate,
 			pqfvids).
 		Where(sq.Eq{"sts.stop_id": sids, "sts.feed_version_id": fvids}).
-		OrderBy("sts.arrival_time asc")
+		OrderBy("departure_time") // base + offset
 
 	if where != nil {
 		if where.ExcludeFirst != nil && *where.ExcludeFirst {
@@ -152,6 +152,12 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 
 			}
+		}
+		if where.Start != nil && where.Start.Valid {
+			where.StartTime = &where.Start.Seconds
+		}
+		if where.End != nil && where.End.Valid {
+			where.EndTime = &where.End.Seconds
 		}
 		if where.StartTime != nil {
 			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.StartTime})

@@ -16,8 +16,8 @@ type StopDepartureRequest struct {
 	OnestopID       string `json:"onestop_id"`
 	Next            int    `json:"next"`
 	ServiceDate     string `json:"service_date"`
-	StartTime       int    `json:"start_time"`
-	EndTime         int    `json:"end_time"`
+	StartTime       string `json:"start_time"`
+	EndTime         string `json:"end_time"`
 	IncludeGeometry bool   `json:"include_geometry,string"`
 }
 
@@ -46,9 +46,9 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.ServiceDate != "" {
 		stwhere["service_date"] = r.ServiceDate
-		stwhere["start_time"] = r.StartTime
-		if r.EndTime > 0 {
-			stwhere["end_time"] = r.EndTime
+		stwhere["start"] = r.StartTime
+		if r.EndTime != "" {
+			stwhere["end"] = r.EndTime
 		}
 	} else {
 		if r.Next == 0 {
