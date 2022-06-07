@@ -33,6 +33,14 @@ func TestStopDepartureRequest(t *testing.T) {
 			[]string{"2018-06-04", "2018-06-04", "2018-06-04", "2018-06-04"},
 			0,
 		},
+		{
+			"no pagination",
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2022-05-30", Limit: 1},
+			"",
+			"meta.next",
+			[]string{},
+			0,
+		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

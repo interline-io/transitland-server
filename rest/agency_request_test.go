@@ -1,12 +1,21 @@
 package rest
 
 import (
+	"context"
 	"testing"
 )
 
 func TestAgencyRequest(t *testing.T) {
 	cfg := testRestConfig()
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
+	allEnts, err := TestDBFinder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	allIds := []string{}
+	for _, ent := range allEnts {
+		allIds = append(allIds, ent.AgencyID)
+	}
 	testcases := []testRest{
 		{"basic", AgencyRequest{}, "", "agencies.#.agency_id", []string{"caltrain-ca-us", "BART", ""}, 0},
 		{"limit:1", AgencyRequest{Limit: 1}, "", "agencies.#.agency_id", nil, 1}, // this used to be caltrain but now bart is imported first.
@@ -29,6 +38,9 @@ func TestAgencyRequest(t *testing.T) {
 		{"city_name:san jose", AgencyRequest{CityName: "san jose"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us"}, 0},
 		{"city_name:oakland", AgencyRequest{CityName: "berkeley"}, "", "agencies.#.agency_id", []string{"BART"}, 0},
 		{"city_name:new york city", AgencyRequest{CityName: "new york city"}, "", "agencies.#.agency_id", []string{}, 0},
+		{"pagination exists", AgencyRequest{}, "", "meta.after", nil, 1}, // just check presence
+		{"pagination limit 10", AgencyRequest{Limit: 1}, "", "agencies.#.agency_id", allIds[:1], 0},
+		{"pagination after 10", AgencyRequest{Limit: 1, After: allEnts[0].ID}, "", "agencies.#.agency_id", allIds[1:2], 0},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -283,14 +283,18 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 	if addMeta {
 		if maxid, err := getMaxID(ent, response); err != nil {
 			log.Error().Err(err).Msg("pagination failed to get max entity id")
-		} else if maxid > 0 && u != nil {
-			rq := u.Query()
-			rq.Set("after", strconv.Itoa(maxid))
-			u.RawQuery = rq.Encode()
-			nextUrl := cfg.RestPrefix + u.String()
-			response["meta"] = hw{"after": maxid, "next": nextUrl}
+		} else if maxid > 0 {
+			meta := hw{"after": maxid}
+			if u != nil {
+				rq := u.Query()
+				rq.Set("after", strconv.Itoa(maxid))
+				u.RawQuery = rq.Encode()
+				meta["next"] = cfg.RestPrefix + u.String()
+			}
+			response["meta"] = meta
 		}
 	}
+	fmt.Println("response:", response["meta"])
 
 	if format == "geojson" || format == "png" {
 		// TODO: Don't process response in-place.

@@ -8,7 +8,7 @@ import (
 //go:embed stop_departure_request.gql
 var stopDepartureQuery string
 
-// StopDepartureRequest holds options for a /stops request
+// StopDepartureRequest holds options for a /stops/_/departures request
 type StopDepartureRequest struct {
 	StopKey         string `json:"stop_key"`
 	ID              int    `json:"id,string"`
