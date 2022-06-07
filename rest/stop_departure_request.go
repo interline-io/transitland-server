@@ -13,8 +13,6 @@ type StopDepartureRequest struct {
 	StopKey         string `json:"stop_key"`
 	ID              int    `json:"id,string"`
 	Limit           int    `json:"limit,string"`
-	After           int    `json:"after,string"`
-	StopID          string `json:"stop_id"`
 	OnestopID       string `json:"onestop_id"`
 	Next            int    `json:"next"`
 	ServiceDate     string `json:"service_date"`
@@ -26,11 +24,15 @@ type StopDepartureRequest struct {
 // ResponseKey returns the GraphQL response entity key.
 func (r StopDepartureRequest) ResponseKey() string { return "stops" }
 
+// IncludeNext
+func (r StopDepartureRequest) IncludeNext() bool { return false }
+
 // Query returns a GraphQL query string and variables.
 func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	if r.StopKey == "" {
 		// pass
-	} else if v, err := strconv.Atoi(r.StopKey); err == nil {
+	} else if v, err := strconv.Atoi(r.StopKey); err == nil && v > 0 {
+		// require an actual ID, not just 0
 		r.ID = v
 	} else {
 		r.OnestopID = r.StopKey
@@ -57,7 +59,6 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	return stopDepartureQuery, hw{
 		"include_geometry": r.IncludeGeometry,
 		"limit":            checkLimit(r.Limit),
-		"after":            checkAfter(r.After),
 		"ids":              checkIds(r.ID),
 		"where":            where,
 		"stop_time_where":  stwhere,
