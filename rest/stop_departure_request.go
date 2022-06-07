@@ -10,15 +10,16 @@ var stopDepartureQuery string
 
 // StopDepartureRequest holds options for a /stops/_/departures request
 type StopDepartureRequest struct {
-	StopKey         string `json:"stop_key"`
-	ID              int    `json:"id,string"`
-	Limit           int    `json:"limit,string"`
-	OnestopID       string `json:"onestop_id"`
-	Next            int    `json:"next"`
-	ServiceDate     string `json:"service_date"`
-	StartTime       string `json:"start_time"`
-	EndTime         string `json:"end_time"`
-	IncludeGeometry bool   `json:"include_geometry,string"`
+	StopKey          string `json:"stop_key"`
+	ID               int    `json:"id,string"`
+	Limit            int    `json:"limit,string"`
+	OnestopID        string `json:"onestop_id"`
+	Next             int    `json:"next"`
+	ServiceDate      string `json:"service_date"`
+	StartTime        string `json:"start_time"`
+	EndTime          string `json:"end_time"`
+	IncludeGeometry  bool   `json:"include_geometry,string"`
+	UseServiceWindow *bool  `json:"use_service_window,string"`
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -30,7 +31,7 @@ func (r StopDepartureRequest) IncludeNext() bool { return false }
 // Query returns a GraphQL query string and variables.
 func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	if r.StopKey == "" {
-		// pass
+		// TODO: add a way to reject request as invalid
 	} else if v, err := strconv.Atoi(r.StopKey); err == nil && v > 0 {
 		// require an actual ID, not just 0
 		r.ID = v
@@ -41,8 +42,10 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	if r.OnestopID != "" {
 		where["onestop_id"] = r.OnestopID
 	}
-	stwhere := hw{
-		"use_service_window": true,
+	//
+	stwhere := hw{}
+	if r.UseServiceWindow == nil || *r.UseServiceWindow {
+		stwhere["use_service_window"] = true
 	}
 	if r.ServiceDate != "" {
 		stwhere["service_date"] = r.ServiceDate
