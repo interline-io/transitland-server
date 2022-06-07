@@ -294,7 +294,6 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 			response["meta"] = meta
 		}
 	}
-	fmt.Println("response:", response["meta"])
 
 	if format == "geojson" || format == "png" {
 		// TODO: Don't process response in-place.
