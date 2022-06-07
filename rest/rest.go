@@ -44,6 +44,7 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	routeHandler := makeHandler(restcfg, func() apiHandler { return &RouteRequest{} })
 	tripHandler := makeHandler(restcfg, func() apiHandler { return &TripRequest{} })
 	stopHandler := makeHandler(restcfg, func() apiHandler { return &StopRequest{} })
+	stopDepartureHandler := makeHandler(restcfg, func() apiHandler { return &StopDepartureRequest{} })
 	operatorHandler := makeHandler(restcfg, func() apiHandler { return &OperatorRequest{} })
 
 	r.HandleFunc("/feeds.{format}", feedHandler)
@@ -81,11 +82,12 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	r.HandleFunc("/stops/{stop_key}.{format}", stopHandler)
 	r.HandleFunc("/stops/{stop_key}", stopHandler)
 
+	r.HandleFunc("/stops/{stop_key}/departures", stopDepartureHandler)
+
 	r.HandleFunc("/operators.{format}", operatorHandler)
 	r.HandleFunc("/operators", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}.{format}", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}", operatorHandler)
-	// r.HandleFunc("/stops/{stop_id}/departures", stopTimeHandler)
 
 	return r, nil
 }
@@ -105,6 +107,11 @@ type apiHandler interface {
 // A type that can generate a GeoJSON response.
 type canProcessGeoJSON interface {
 	ProcessGeoJSON(map[string]interface{}) error
+}
+
+// A type that defines if meta should be included or not
+type canIncludeNext interface {
+	IncludeNext() bool
 }
 
 // A type that specifies a JSON response key.
@@ -268,15 +275,24 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 		return nil, errors.New("request error")
 	}
 
-	// get highest ID
-	if maxid, err := getMaxID(ent, response); err != nil {
-		log.Error().Err(err).Msg("pagination failed to get max entity id")
-	} else if maxid > 0 && u != nil {
-		rq := u.Query()
-		rq.Set("after", strconv.Itoa(maxid))
-		u.RawQuery = rq.Encode()
-		nextUrl := cfg.RestPrefix + u.String()
-		response["meta"] = hw{"after": maxid, "next": nextUrl}
+	// Add meta
+	addMeta := true
+	if v, ok := ent.(canIncludeNext); ok {
+		addMeta = v.IncludeNext()
+	}
+	if addMeta {
+		if maxid, err := getMaxID(ent, response); err != nil {
+			log.Error().Err(err).Msg("pagination failed to get max entity id")
+		} else if maxid > 0 {
+			meta := hw{"after": maxid}
+			if u != nil {
+				rq := u.Query()
+				rq.Set("after", strconv.Itoa(maxid))
+				u.RawQuery = rq.Encode()
+				meta["next"] = cfg.RestPrefix + u.String()
+			}
+			response["meta"] = meta
+		}
 	}
 
 	if format == "geojson" || format == "png" {

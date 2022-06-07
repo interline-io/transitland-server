@@ -1,18 +1,118 @@
-query(
-  $include_geometry: Boolean!
-  $include_route: Boolean!
-  $limit: Int
-  $ids: [Int!]
-  $after: Int
-  $where: StopFilter
-  $stop_time_where: StopTimeFilter
-) {
-  stops(limit: $limit, ids: $ids, after: $after, where: $where) {
-    id
-    stop_id
-    stop_name
-    geometry
+fragment stop on Stop {
+  id
+  onestop_id
+  stop_code
+  stop_desc
+  stop_id
+  stop_name
+  stop_timezone
+  stop_url
+  geometry
+  location_type
+  platform_code
+  tts_stop_name
+  wheelchair_boarding
+  zone_id
+}
+
+fragment agency on Agency {
+  id
+  onestop_id
+  agency_id
+  agency_name
+}
+
+fragment route on Route {
+  id
+  onestop_id
+  route_id
+  route_short_name
+  route_long_name
+  route_color
+  route_desc
+  route_text_color
+  route_type
+  route_url
+  continuous_drop_off
+  continuous_pickup
+}
+
+fragment trip on Trip {
+  id
+  trip_id
+  trip_headsign
+  trip_short_name
+  direction_id
+  block_id
+  wheelchair_accessible
+  bikes_allowed
+  stop_pattern_id
+  timestamp
+}
+
+fragment departure on StopTime {
+  stop_sequence
+  stop_headsign
+  timepoint
+  pickup_type
+  drop_off_type
+  continuous_pickup
+  continuous_drop_off
+  interpolated
+  service_date
+  arrival_time
+  departure_time
+  arrival {
+    scheduled
+    estimated
+    estimated_utc
+    delay
+    uncertainty
+  }
+  departure {
+    scheduled
+    estimated
+    estimated_utc
+    delay
+    uncertainty
+  }
+}
+
+fragment alert on Alert {
+  cause
+  effect
+  severity_level
+  url {
+    language
+    text
+  }
+  header_text {
+    language
+    text
+  }
+  description_text {
+    language
+    text
+  }
+  tts_header_text {
+    language
+    text
+  }
+  tts_description_text {
+    language
+    text
+  }
+  active_period {
+    start
+    end
+  }
+}
+
+query ($include_geometry: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
+  stops(limit: 100, ids: $ids, after: $after, where: $where) {
+    ...stop
     feed_version {
+      id
       sha1
       fetched_at
       feed {
@@ -20,64 +120,45 @@ query(
         onestop_id
       }
     }
-    stop_times(where: $stop_time_where) {
-      arrival_time
-      departure_time
-      stop_sequence
-      stop_headsign
-      pickup_type
-      drop_off_type
-      timepoint
-      interpolated
+    departures(limit: $limit, where: $stop_time_where) {
+      ...departure
       trip {
-        id
-        trip_id
-        trip_headsign
-        trip_short_name
-        direction_id
-        block_id
-        wheelchair_accessible
-        bikes_allowed
-        stop_pattern_id
+        ...trip
+        route {
+          ...route
+          agency {
+            ...agency
+            alerts {
+              ...alert
+            }
+          }
+        }
         shape {
+          id
           shape_id
           geometry @include(if: $include_geometry)
           generated
         }
-        calendar {
-          service_id
-          start_date
-          end_date
-          monday
-          tuesday
-          wednesday
-          thursday
-          friday
-          saturday
-          sunday
-          added_dates
-          removed_dates
-        }
         frequencies {
+          id
           start_time
           end_time
           headway_secs
           exact_times
         }
-        route @include(if: $include_route) {
-          id
-          onestop_id
-          route_id
-          route_short_name
-          route_long_name
-          agency {
-            id
-            agency_id
-            agency_name
-            onestop_id
-          }
+        alerts {
+          ...alert
         }
       }
+    }
+    parent {
+      ...stop
+      alerts {
+        ...alert
+      }
+    }
+    alerts {
+      ...alert
     }
   }
 }

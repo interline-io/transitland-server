@@ -901,6 +901,8 @@ input StopTimeFilter {
   use_service_window: Boolean
   start_time: Int
   end_time: Int
+  start: Seconds
+  end: Seconds
   next: Int
   route_onestop_ids: [String!] # keep?
   allow_previous_route_onestop_ids: Boolean
