@@ -289,3 +289,12 @@ type FeedVersionFetchResult struct {
 type FeedVersionImportResult struct {
 	Success bool
 }
+
+///////////////////
+
+type StopExternalReference struct {
+	ID                  int     `json:"id"`
+	TargetFeedOnestopID *string `json:"target_feed_onestop_id"`
+	TargetStopID        *string `json:"target_stop_id"`
+	Inactive            *bool   `json:"inactive"`
+}

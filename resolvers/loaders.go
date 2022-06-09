@@ -30,6 +30,7 @@ type Loaders struct {
 	ShapesByID                              dl.ShapeLoader
 	StopsByID                               dl.StopLoader
 	FeedVersionsByID                        dl.FeedVersionLoader
+	StopExternalReferencesByStopID          dl.StopExternalReferenceLoader
 	LevelsByID                              dl.LevelLoader
 	TripsByID                               dl.TripLoader
 	FeedStatesByFeedID                      dl.FeedStateLoader
@@ -42,6 +43,7 @@ type Loaders struct {
 	AgenciesByFeedVersionID                 dl.AgencyWhereLoader
 	RoutesByFeedVersionID                   dl.RouteWhereLoader
 	StopsByFeedVersionID                    dl.StopWhereLoader
+	TargetStopsByStopID                     dl.StopLoader
 	TripsByFeedVersionID                    dl.TripWhereLoader
 	FeedInfosByFeedVersionID                dl.FeedInfoWhereLoader
 	FeedsByOperatorOnestopID                dl.FeedWhereLoader
@@ -97,6 +99,13 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				Wait:     WAIT,
 				Fetch:    func(a []int) ([]*model.FeedVersion, []error) { return finder.FeedVersionsByID(ctx, a) },
 			}),
+			StopExternalReferencesByStopID: *dl.NewStopExternalReferenceLoader(dl.StopExternalReferenceLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch: func(a []int) ([]*model.StopExternalReference, []error) {
+					return finder.StopExternalReferencesByStopID(ctx, a)
+				},
+			}),
 			FeedsByID: *dl.NewFeedLoader(dl.FeedLoaderConfig{
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
@@ -144,6 +153,11 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
 				Fetch:    func(a []int) ([]*model.Operator, []error) { return finder.OperatorsByCOIF(ctx, a) },
+			}),
+			TargetStopsByStopID: *dl.NewStopLoader(dl.StopLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch:    func(a []int) ([]*model.Stop, []error) { return finder.TargetStopsByStopID(ctx, a) },
 			}),
 			// Where loaders
 			FrequenciesByTripID: *dl.NewFrequencyWhereLoader(dl.FrequencyWhereLoaderConfig{

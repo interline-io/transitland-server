@@ -89,6 +89,11 @@ func (r *Resolver) Pathway() gqlgen.PathwayResolver {
 	return &pathwayResolver{r}
 }
 
+// StopExternalReference .
+func (r *Resolver) StopExternalReference() gqlgen.StopExternalReferenceResolver {
+	return &stopExternalReferenceResolver{r}
+}
+
 // Directions .
 func (r *Resolver) Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error) {
 	dr := directionsResolver{r}

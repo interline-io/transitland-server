@@ -41,6 +41,8 @@ type EntityLoader interface {
 	AgenciesByID(context.Context, []int) ([]*Agency, []error)
 	StopsByID(context.Context, []int) ([]*Stop, []error)
 	RoutesByID(context.Context, []int) ([]*Route, []error)
+	StopExternalReferencesByStopID(context.Context, []int) ([]*StopExternalReference, []error)
+	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
 	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 	// Other loaders
 	FeedVersionGtfsImportsByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
