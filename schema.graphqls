@@ -305,6 +305,7 @@ type Stop {
   feed_version: FeedVersion!
   level: Level
   parent: Stop
+  external_reference: StopExternalReference
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
   pathways_from_stop(limit: Int): [Pathway!]!
@@ -450,6 +451,14 @@ type FeedInfo {
 }
 
 # GTFS Support Entities
+
+type StopExternalReference {
+  id: Int!
+  target_feed_onestop_id: String
+  target_stop_id: String
+  inactive: Boolean
+  target_active_stop: Stop
+}
 
 type AgencyPlace {
   city_name: String
