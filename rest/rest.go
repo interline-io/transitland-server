@@ -244,23 +244,23 @@ func makeGraphQLRequest(ctx context.Context, srv http.Handler, query string, var
 	}
 	gqlBody, err := json.Marshal(gqlData)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	gqlRequest, err := http.NewRequestWithContext(ctx, "POST", "/", bytes.NewReader(gqlBody))
 	gqlRequest.Header.Set("Content-Type", "application/json")
 	if err != nil {
-		return nil, errors.New("request error")
+		return nil, err
 	}
 	wr := httptest.NewRecorder()
 	srv.ServeHTTP(wr, gqlRequest)
 	response := map[string]any{}
 	if err := json.Unmarshal(wr.Body.Bytes(), &response); err != nil {
 		log.Error().Err(err).Str("query", query).Str("vars", string("")).Interface("response", response).Msgf("graphql request failed")
-		return nil, errors.New("request error")
+		return nil, err
 	}
 	data, ok := response["data"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New("invalid graphql response")
+		return nil, err
 	}
 	return data, nil
 }

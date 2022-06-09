@@ -215,7 +215,7 @@ func (cmd *ServerCommand) Run() error {
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
 	log.Infof("listening on: %s", addr)
 	srv := &http.Server{
-		Handler:      root,
+		Handler:      http.TimeoutHandler(root, timeOut, "timeout"),
 		Addr:         addr,
 		WriteTimeout: 2 * timeOut,
 		ReadTimeout:  2 * timeOut,
