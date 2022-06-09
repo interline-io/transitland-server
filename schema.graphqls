@@ -147,6 +147,7 @@ type FeedVersion {
   updated_by: String
   name: String
   description: String
+  file: String
   "Convex hull around all active stops in the feed version"
   geometry: Polygon
   feed: Feed!
@@ -793,6 +794,7 @@ input OperatorFilter {
 input FeedVersionFilter {
   feed_onestop_id: String
   sha1: String
+  file: String
   feed_ids: [Int!]
 }
 
@@ -901,6 +903,7 @@ input StopFilter {
   within: Polygon
   near: PointRadius
   search: String
+  location_type: Int
   served_by_onestop_ids: [String!]
   agency_ids: [Int!] # keep?
 }
