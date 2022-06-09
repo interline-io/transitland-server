@@ -347,6 +347,7 @@ type Level {
   level_id: String!
   level_name: String!
   level_index: Float!
+  geometry: Polygon!
 }
 
 """
