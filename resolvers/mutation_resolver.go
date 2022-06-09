@@ -278,9 +278,9 @@ func ValidateUpload(cfg config.Config, src io.Reader, feedURL *string, rturls []
 	for _, v := range r.Agencies {
 		result.Agencies = append(result.Agencies, model.Agency{Agency: v})
 	}
-	for _, v := range r.Routes {
-		result.Routes = append(result.Routes, model.Route{Geometry: v.Geometry, Route: v})
-	}
+	// for _, v := range r.Routes {
+	// 	result.Routes = append(result.Routes, model.Route{Geometry: v.Geometry, Route: v})
+	// }
 	for _, v := range r.Stops {
 		result.Stops = append(result.Stops, model.Stop{Stop: v})
 	}
