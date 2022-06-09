@@ -255,7 +255,6 @@ func makeGraphQLRequest(ctx context.Context, srv http.Handler, query string, var
 	srv.ServeHTTP(wr, gqlRequest)
 	response := map[string]any{}
 	if err := json.Unmarshal(wr.Body.Bytes(), &response); err != nil {
-		log.Error().Err(err).Str("query", query).Str("vars", string("")).Interface("response", response).Msgf("graphql request failed")
 		return nil, err
 	}
 	data, ok := response["data"].(map[string]interface{})
@@ -281,13 +280,13 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 		addMeta = v.IncludeNext()
 	}
 	if addMeta {
-		if maxid, err := getMaxID(ent, response); err != nil {
+		if lastId, err := getAfterID(ent, response); err != nil {
 			log.Error().Err(err).Msg("pagination failed to get max entity id")
-		} else if maxid > 0 {
-			meta := hw{"after": maxid}
+		} else if lastId > 0 {
+			meta := hw{"after": lastId}
 			if u != nil {
 				rq := u.Query()
-				rq.Set("after", strconv.Itoa(maxid))
+				rq.Set("after", strconv.Itoa(lastId))
 				u.RawQuery = rq.Encode()
 				meta["next"] = cfg.RestPrefix + u.String()
 			}
