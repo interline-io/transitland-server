@@ -8,7 +8,6 @@ import (
 func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
-		"COALESCE(tlrg.combined_geometry, tlrg.geometry) as geometry",
 		"tlrg.generated AS geometry_generated",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
