@@ -121,6 +121,7 @@ type FeedVersionDeleteResult struct {
 type FeedVersionFilter struct {
 	FeedOnestopID *string `json:"feed_onestop_id"`
 	Sha1          *string `json:"sha1"`
+	File          *string `json:"file"`
 	FeedIds       []int   `json:"feed_ids"`
 }
 
@@ -249,6 +250,7 @@ type StopFilter struct {
 	Within                  *tl.Polygon  `json:"within"`
 	Near                    *PointRadius `json:"near"`
 	Search                  *string      `json:"search"`
+	LocationType            *int         `json:"location_type"`
 	ServedByOnestopIds      []string     `json:"served_by_onestop_ids"`
 	AgencyIds               []int        `json:"agency_ids"`
 }

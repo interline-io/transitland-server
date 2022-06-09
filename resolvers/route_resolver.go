@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/model"
@@ -14,6 +15,19 @@ type routeResolver struct{ *Resolver }
 func (r *routeResolver) Cursor(ctx context.Context, obj *model.Route) (*model.Cursor, error) {
 	c := model.NewCursor(obj.FeedVersionID, obj.ID)
 	return &c, nil
+}
+
+func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tl.Geometry, error) {
+	// Fetching this in the main RouteSelect query is expensive
+	fmt.Println("geom resolver")
+	geoms, err := For(ctx).RouteGeometriesByRouteID.Load(model.RouteGeometryParam{RouteID: obj.ID})
+	if err != nil {
+		return nil, err
+	}
+	if len(geoms) > 0 {
+		return &geoms[0].CombinedGeometry, nil
+	}
+	return nil, nil
 }
 
 func (r *routeResolver) Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error) {

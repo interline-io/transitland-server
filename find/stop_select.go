@@ -61,6 +61,9 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 		if where.StopCode != nil {
 			qView = qView.Where(sq.Eq{"gtfs_stops.stop_code": where.StopCode})
 		}
+		if where.LocationType != nil {
+			qView = qView.Where(sq.Eq{"gtfs_stops.location_type": where.LocationType})
+		}
 		if where.FeedOnestopID != nil {
 			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
