@@ -2,6 +2,7 @@ package find
 
 import (
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -28,6 +29,28 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		}
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"cf.onestop_id": *where.FeedOnestopID})
+		}
+		// Import import status
+		// Similar logic to FeedSelect
+		if where.ImportStatus != nil {
+			// in_progress must be false to check success and vice-versa
+			var checkSuccess bool
+			var checkInProgress bool
+			switch v := *where.ImportStatus; v {
+			case model.ImportStatusSuccess:
+				checkSuccess = true
+				checkInProgress = false
+			case model.ImportStatusInProgress:
+				checkSuccess = false
+				checkInProgress = true
+			case model.ImportStatusError:
+				checkSuccess = false
+				checkInProgress = false
+			default:
+				log.Error().Str("value", v.String()).Msg("unknown imnport status enum")
+			}
+			q = q.Join(`feed_version_gtfs_imports fvgi on fvgi.feed_version_id = t.id`).
+				Where(sq.Eq{"fvgi.success": checkSuccess, "fvgi.in_progress": checkInProgress})
 		}
 	}
 	return q

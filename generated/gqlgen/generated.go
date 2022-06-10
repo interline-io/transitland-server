@@ -4917,6 +4917,7 @@ input OperatorFilter {
 }
 
 input FeedVersionFilter {
+  import_status: ImportStatus
   feed_onestop_id: String
   sha1: String
   feed_ids: [Int!]
@@ -23063,6 +23064,14 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 
 	for k, v := range asMap {
 		switch k {
+		case "import_status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("import_status"))
+			it.ImportStatus, err = ec.unmarshalOImportStatus2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐImportStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "feed_onestop_id":
 			var err error
 

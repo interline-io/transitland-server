@@ -782,6 +782,7 @@ input OperatorFilter {
 }
 
 input FeedVersionFilter {
+  import_status: ImportStatus
   feed_onestop_id: String
   sha1: String
   feed_ids: [Int!]
