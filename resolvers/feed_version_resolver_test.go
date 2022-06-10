@@ -96,6 +96,32 @@ func TestFeedVersionResolver(t *testing.T) {
 			"feed_versions.#.sha1",
 			[]string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
 		},
+		{
+			"where import_status success",
+			`query{feed_versions(where:{feed_onestop_id:"CT", import_status:SUCCESS}) {sha1} }`,
+			hw{},
+			``,
+			"feed_versions.#.sha1",
+			[]string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
+		},
+		// there isnt a fv with this import status in test db
+		{
+			"where import_status error",
+			`query{feed_versions(where:{feed_onestop_id:"CT", import_status:ERROR}) {sha1} }`,
+			hw{},
+			``,
+			"feed_versions.#.sha1",
+			[]string{},
+		},
+		// there isnt a fv with this import status in test db
+		{
+			"where import_status error",
+			`query{feed_versions(where:{feed_onestop_id:"CT", import_status:IN_PROGRESS}) {sha1} }`,
+			hw{},
+			``,
+			"feed_versions.#.sha1",
+			[]string{},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {

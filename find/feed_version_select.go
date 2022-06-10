@@ -2,6 +2,7 @@ package find
 
 import (
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -11,7 +12,6 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		From("feed_versions t").
 		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
 		JoinClause("left join tl_feed_version_geometries on tl_feed_version_geometries.feed_version_id = t.id").
-		JoinClause("left join feed_version_gtfs_imports fvgi on fvgi.feed_version_id = t.id").
 		Limit(checkLimit(limit)).
 		OrderBy("t.fetched_at desc, t.id desc")
 	if len(ids) > 0 {
@@ -30,12 +30,27 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"cf.onestop_id": *where.FeedOnestopID})
 		}
-		if where.Imported != nil {
-			if *where.Imported {
-				q = q.Where(sq.Eq{"fvgi.success": true})
-			} else {
-				q = q.Where(sq.Expr("fvgi.success = false or fvgi.id is null"))
+		// Import import status
+		// Similar logic to FeedSelect
+		if where.ImportStatus != nil {
+			// in_progress must be false to check success and vice-versa
+			var checkSuccess bool
+			var checkInProgress bool
+			switch v := *where.ImportStatus; v {
+			case model.ImportStatusSuccess:
+				checkSuccess = true
+				checkInProgress = false
+			case model.ImportStatusInProgress:
+				checkSuccess = false
+				checkInProgress = true
+			case model.ImportStatusError:
+				checkSuccess = false
+				checkInProgress = false
+			default:
+				log.Error().Str("value", v.String()).Msg("unknown imnport status enum")
 			}
+			q = q.Join(`feed_version_gtfs_imports fvgi on fvgi.feed_version_id = t.id`).
+				Where(sq.Eq{"fvgi.success": checkSuccess, "fvgi.in_progress": checkInProgress})
 		}
 	}
 	return q
