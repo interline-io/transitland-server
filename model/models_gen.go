@@ -119,6 +119,7 @@ type FeedVersionDeleteResult struct {
 }
 
 type FeedVersionFilter struct {
+	Imported      *bool   `json:"imported"`
 	FeedOnestopID *string `json:"feed_onestop_id"`
 	Sha1          *string `json:"sha1"`
 	FeedIds       []int   `json:"feed_ids"`

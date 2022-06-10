@@ -11,6 +11,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		From("feed_versions t").
 		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
 		JoinClause("left join tl_feed_version_geometries on tl_feed_version_geometries.feed_version_id = t.id").
+		JoinClause("left join feed_version_gtfs_imports fvgi on fvgi.feed_version_id = t.id").
 		Limit(checkLimit(limit)).
 		OrderBy("t.fetched_at desc, t.id desc")
 	if len(ids) > 0 {
@@ -28,6 +29,13 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		}
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"cf.onestop_id": *where.FeedOnestopID})
+		}
+		if where.Imported != nil {
+			if *where.Imported {
+				q = q.Where(sq.Eq{"fvgi.success": true})
+			} else {
+				q = q.Where(sq.Expr("fvgi.success = false or fvgi.id is null"))
+			}
 		}
 	}
 	return q
