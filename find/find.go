@@ -2,7 +2,6 @@ package find
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -46,32 +45,24 @@ func MustOpenDB(url string) sqlx.Ext {
 	return &tldb.QueryLogger{Ext: db.Unsafe()}
 }
 
-// MustSelect runs a query or panics.
-func MustSelect(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) {
-	err := Select(ctx, db, q, dest)
-	if errors.Is(err, context.Canceled) {
-		// Ignore
-		return
-	} else if err != nil {
-		panic(err)
-	}
-}
-
+// MustSelect runs a query and reads results into dest.
 func Select(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) error {
 	useStatement := false
 	q = q.PlaceholderFormat(sq.Dollar)
-	qstr, qargs := q.MustSql()
-	var err error
-	if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
-		stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
-		if prepareErr != nil {
-			return prepareErr
+	qstr, qargs, err := q.ToSql()
+	if err == nil {
+		if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
+			stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
+			if prepareErr != nil {
+				err = prepareErr
+			} else {
+				err = stmt.SelectContext(ctx, dest, qargs...)
+			}
+		} else if a, ok := db.(sqlx.QueryerContext); ok {
+			err = sqlx.SelectContext(ctx, a, dest, qstr, qargs...)
+		} else {
+			err = sqlx.Select(db, dest, qstr, qargs...)
 		}
-		err = stmt.SelectContext(ctx, dest, qargs...)
-	} else if a, ok := db.(sqlx.QueryerContext); ok {
-		err = sqlx.SelectContext(ctx, a, dest, qstr, qargs...)
-	} else {
-		err = sqlx.Select(db, dest, qstr, qargs...)
 	}
 	if err != nil {
 		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")

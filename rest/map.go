@@ -83,37 +83,34 @@ func renderMap(data []byte, width int, height int) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-func getMaxID(ent apiHandler, response map[string]interface{}) (int, error) {
+func getAfterID(ent apiHandler, response map[string]interface{}) (int, error) {
 	maxid := 0
 	fkey := ""
 	if v, ok := ent.(hasResponseKey); ok {
 		fkey = v.ResponseKey()
 	} else {
-		return 0, errors.New("pagination")
+		return 0, errors.New("pagination: response key missing")
 	}
 	entities, ok := response[fkey].([]interface{})
 	if !ok {
-		return 0, errors.New("invalid graphql response")
+		return 0, errors.New("pagination: unknown response key value")
 	}
-	for _, feature := range entities {
-		f, ok := feature.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		switch id := f["id"].(type) {
-		case int:
-			if id > maxid {
-				maxid = id
-			}
-		case float64:
-			if int(id) > maxid {
-				maxid = int(id)
-			}
-		case int64:
-			if int(id) > maxid {
-				maxid = int(id)
-			}
-		}
+	if len(entities) == 0 {
+		return 0, errors.New("pagination: no entities in response")
+	}
+	lastEnt, ok := entities[len(entities)-1].(map[string]interface{})
+	if !ok {
+		return 0, errors.New("pagination: last entity not map[string]interface{}")
+	}
+	switch id := lastEnt["id"].(type) {
+	case int:
+		maxid = id
+	case float64:
+		maxid = int(id)
+	case int64:
+		maxid = int(id)
+	default:
+		return 0, errors.New("pagination: last entity id not numeric")
 	}
 	return maxid, nil
 }

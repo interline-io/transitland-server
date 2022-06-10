@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,18 +28,6 @@ func mount(r *mux.Router, path string, handler http.Handler) {
 		r.URL.Path = strings.TrimPrefix(r.URL.Path, path)
 		handler.ServeHTTP(w, r)
 	}))
-}
-
-// add a timeout to request context
-func timeoutMiddleware(timeout time.Duration) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			tctx, cancel := context.WithTimeout(ctx, timeout)
-			defer cancel()
-			next.ServeHTTP(w, r.WithContext(tctx))
-		})
-	}
 }
 
 // log request and duration
