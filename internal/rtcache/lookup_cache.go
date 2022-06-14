@@ -12,6 +12,7 @@ type lookupCache struct {
 	db              sqlx.Ext
 	fvidFeedCache   simpleCache
 	gtfsTripIdCache simpleCache
+	gtfsStopIdCache simpleCache
 	routeIdCache    skeyCache
 	tzCache         tzCache
 }
@@ -41,6 +42,17 @@ func (f *lookupCache) GetGtfsTripID(id int) (string, bool) {
 	eid := ""
 	err := sqlx.Get(f.db, &eid, q, id)
 	f.gtfsTripIdCache.Set(id, eid)
+	return eid, err == nil
+}
+
+func (f *lookupCache) GetGtfsStopID(id int) (string, bool) {
+	if a, ok := f.gtfsStopIdCache.Get(id); ok {
+		return a, ok
+	}
+	q := `select stop_id from gtfs_stops where id = $1 limit 1`
+	eid := ""
+	err := sqlx.Get(f.db, &eid, q, id)
+	f.gtfsStopIdCache.Set(id, eid)
 	return eid, err == nil
 }
 
