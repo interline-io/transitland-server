@@ -174,7 +174,10 @@ func (f *RTFinder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
 	t.RTTripID = obj.RTTripID
 	if rtTrip := f.FindTrip(&t); rtTrip != nil {
 		rtt := rtTrip.Trip
-		rid, _ := f.lc.GetRouteID(obj.FeedVersionID, rtt.GetRouteId())
+		rid, ok := f.lc.GetRouteID(obj.FeedVersionID, rtt.GetRouteId())
+		if !ok {
+			return nil, errors.New("not found")
+		}
 		t.RouteID = strconv.Itoa(rid)
 		t.DirectionID = int(rtt.GetDirectionId())
 		return &t, nil
