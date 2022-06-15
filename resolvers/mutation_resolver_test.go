@@ -26,7 +26,7 @@ func TestFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+		srv, _ := NewServer(cfg, TestDBFinder, nil)
 		srv = auth.AdminDefaultMiddleware()(srv) // Run all requests as admin
 		// Run all requests as admin
 		c := client.New(srv)
@@ -38,7 +38,7 @@ func TestFetchResolver(t *testing.T) {
 		assert.JSONEq(t, `{"feed_version_fetch":{"found_sha1":true,"feed_version":{"sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0"}}}`, toJson(resp))
 	})
 	t.Run("requires admin access", func(t *testing.T) {
-		srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+		srv, _ := NewServer(cfg, TestDBFinder, nil)
 		srv = auth.UserDefaultMiddleware()(srv) // Run all requests as regular user
 		c := client.New(srv)
 		resp := make(map[string]interface{})
@@ -59,7 +59,7 @@ func TestValidationResolver(t *testing.T) {
 		}
 		w.Write(buf)
 	}))
-	srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+	srv, _ := NewServer(cfg, TestDBFinder, nil)
 	srv = auth.UserDefaultMiddleware()(srv) // Run all requests as user
 	c := client.New(srv)
 	vars := hw{"url": ts200.URL}
@@ -143,7 +143,7 @@ func TestValidationResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder) // all requests run as anonymous context by default
+		srv, _ := NewServer(cfg, TestDBFinder, nil) // all requests run as anonymous context by default
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))
