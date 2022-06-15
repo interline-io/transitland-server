@@ -224,11 +224,11 @@ func (f *RTFinder) getListener(topicKey string) (*rtConsumer, error) {
 			log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: failed to create listener")
 			return nil, err
 		}
-		log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: listener created")
+		log.Trace().Err(err).Str("topic", topicKey).Msg("rtfinder: listener created")
 		a, _ = newRTConsumer()
 		a.feed = topicKey
 		a.Start(ch)
-		log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: started consumer")
+		log.Trace().Err(err).Str("topic", topicKey).Msg("rtfinder: started consumer")
 		f.fetchers[topicKey] = a
 	}
 	f.lock.Unlock()

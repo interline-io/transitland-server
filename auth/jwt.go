@@ -30,7 +30,7 @@ func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (fun
 			if tokenString := strings.Split(r.Header.Get("Authorization"), "Bearer "); len(tokenString) == 2 {
 				user, err = validateJwt(verifyKey, jwtAudience, jwtIssuer, tokenString[1])
 				if err != nil {
-					log.Debug().Err(err).Msgf("invalid jwt token")
+					log.Error().Err(err).Msgf("invalid jwt token")
 					http.Error(w, "Unauthorized", http.StatusUnauthorized)
 					return
 				}
