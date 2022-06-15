@@ -37,10 +37,14 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 	if !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
-	// create departure
+	// create arrival; fallback to RT departure if arrival is not present
 	a := model.StopTimeEvent{}
-	if obj.RTStopTimeUpdate != nil && obj.RTStopTimeUpdate.Arrival != nil {
-		a = fromSte(obj.RTStopTimeUpdate.Arrival, obj.ArrivalTime, loc)
+	if obj.RTStopTimeUpdate != nil {
+		if obj.RTStopTimeUpdate.Arrival != nil {
+			a = fromSte(obj.RTStopTimeUpdate.Arrival, obj.ArrivalTime, loc)
+		} else if obj.RTStopTimeUpdate.Departure != nil {
+			a = fromSte(obj.RTStopTimeUpdate.Departure, obj.DepartureTime, loc)
+		}
 	}
 	a.StopTimezone = loc.String()
 	a.Scheduled = obj.ArrivalTime
@@ -53,10 +57,14 @@ func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (
 	if !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
-	// create departure
+	// create departure; fallback to RT arrival if departure is not present
 	a := model.StopTimeEvent{}
-	if obj.RTStopTimeUpdate != nil && obj.RTStopTimeUpdate.Departure != nil {
-		a = fromSte(obj.RTStopTimeUpdate.Departure, obj.DepartureTime, loc)
+	if obj.RTStopTimeUpdate != nil {
+		if obj.RTStopTimeUpdate.Departure != nil {
+			a = fromSte(obj.RTStopTimeUpdate.Departure, obj.DepartureTime, loc)
+		} else if obj.RTStopTimeUpdate.Arrival != nil {
+			a = fromSte(obj.RTStopTimeUpdate.Arrival, obj.ArrivalTime, loc)
+		}
 	}
 	a.StopTimezone = loc.String()
 	a.Scheduled = obj.ArrivalTime

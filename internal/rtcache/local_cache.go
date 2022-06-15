@@ -25,7 +25,7 @@ func (f *LocalCache) Listen(topic string) (chan []byte, error) {
 	f.lock.Lock()
 	f.listeners[topic] = append(f.listeners[topic], c)
 	f.lock.Unlock()
-	log.Debug().Str("topic", topic).Msg("cache: listener created")
+	log.Trace().Str("topic", topic).Msg("cache: listener created")
 	return c, nil
 }
 
@@ -36,7 +36,7 @@ func (f *LocalCache) AddData(topic string, data []byte) error {
 	for _, c := range f.listeners[topic] {
 		c <- data
 	}
-	log.Debug().Str("topic", topic).Int("bytes", len(data)).Msg("cache: added data")
+	log.Trace().Str("topic", topic).Int("bytes", len(data)).Msg("cache: added data")
 	return nil
 }
 

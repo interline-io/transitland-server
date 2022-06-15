@@ -133,13 +133,30 @@ func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.Tr
 	if !rtok {
 		return nil, false
 	}
+	// Match on stop sequence
 	for _, ste := range rtTrip.StopTimeUpdate {
-		// Must match on StopSequence
-		// TODO: allow matching on stop_id if stop_sequence is not provided
 		if int(ste.GetStopSequence()) == seq {
+			log.Trace().Str("trip_id", t.TripID).Int("seq", seq).Msgf("found stop time update on trip_id/stop_sequence")
 			return ste, true
 		}
 	}
+	// If no match on stop sequence, match on stop_id if stop is not visited twice
+	check := map[string]int{}
+	for _, ste := range rtTrip.StopTimeUpdate {
+		check[ste.GetStopId()] += 1
+	}
+	sid, ok := f.lc.GetGtfsStopID(atoi(st.StopID))
+	if !ok {
+		return nil, false
+	}
+	for _, ste := range rtTrip.StopTimeUpdate {
+		stid := ste.GetStopId()
+		if sid == stid && check[stid] == 1 {
+			log.Trace().Str("trip_id", t.TripID).Str("stop_id", sid).Msgf("found stop time update on trip_id/stop_id")
+			return ste, true
+		}
+	}
+	log.Trace().Str("trip_id", t.TripID).Int("seq", seq).Str("stop_id", sid).Msgf("no stop time update found")
 	return nil, false
 }
 
@@ -174,7 +191,10 @@ func (f *RTFinder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
 	t.RTTripID = obj.RTTripID
 	if rtTrip := f.FindTrip(&t); rtTrip != nil {
 		rtt := rtTrip.Trip
-		rid, _ := f.lc.GetRouteID(obj.FeedVersionID, rtt.GetRouteId())
+		rid, ok := f.lc.GetRouteID(obj.FeedVersionID, rtt.GetRouteId())
+		if !ok {
+			return nil, errors.New("not found")
+		}
 		t.RouteID = strconv.Itoa(rid)
 		t.DirectionID = int(rtt.GetDirectionId())
 		return &t, nil
@@ -204,11 +224,11 @@ func (f *RTFinder) getListener(topicKey string) (*rtConsumer, error) {
 			log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: failed to create listener")
 			return nil, err
 		}
-		log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: listener created")
+		log.Trace().Err(err).Str("topic", topicKey).Msg("rtfinder: listener created")
 		a, _ = newRTConsumer()
 		a.feed = topicKey
 		a.Start(ch)
-		log.Error().Err(err).Str("topic", topicKey).Msg("rtfinder: started consumer")
+		log.Trace().Err(err).Str("topic", topicKey).Msg("rtfinder: started consumer")
 		f.fetchers[topicKey] = a
 	}
 	f.lock.Unlock()
@@ -238,6 +258,11 @@ func makeAlert(a *pb.Alert) *model.Alert {
 	r.URL = newTranslation(a.Url)
 	r.SeverityLevel = pstr(a.SeverityLevel.String())
 	return &r
+}
+
+func atoi(v string) int {
+	a, _ := strconv.Atoi(v)
+	return a
 }
 
 func pstr(v string) *string {

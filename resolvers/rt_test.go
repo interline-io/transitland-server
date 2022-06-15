@@ -9,6 +9,7 @@ import (
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/internal/rtcache"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -152,11 +153,13 @@ type rtFile struct {
 }
 
 func testRt(t *testing.T, tc rtTestCase) {
+	// Create a new RT Finder for each test...
+	rtfinder := rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDBFinder.DBX())
 	cfg := config.Config{}
-	srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+	srv, _ := NewServer(cfg, TestDBFinder, rtfinder)
 	c := client.New(srv)
 	for _, rtf := range tc.rtfiles {
-		if err := rtFetchJson(rtf.feed, rtf.ftype, testutil.RelPath("test", "data", "rt", rtf.fname), TestRTFinder); err != nil {
+		if err := rtFetchJson(rtf.feed, rtf.ftype, testutil.RelPath("test", "data", "rt", rtf.fname), rtfinder); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -203,6 +206,135 @@ func TestStopRTBasic(t *testing.T) {
 				assert.Equal(t, "2018-05-30T22:27:30Z", st.Get("trip.timestamp").String())
 				assert.Equal(t, "2018-05-30T23:02:30Z", st.Get("arrival.estimated_utc").String())
 				assert.Equal(t, "2018-05-30T23:02:30Z", st.Get("departure.estimated_utc").String())
+			}
+			if !found {
+				t.Errorf("expected to find trip '%s'", checkTrip)
+			}
+		},
+	}
+	testRt(t, tc)
+}
+
+func TestStopRTBasic_ArrivalFallback(t *testing.T) {
+	tc := rtTestCase{
+		"arrival will use departure if arrival is not present",
+		baseStopQuery,
+		baseStopVars,
+		[]rtFile{{"BA", "realtime_trip_updates", "BA-arrival-fallback.json"}},
+		func(t *testing.T, jj string) {
+			a := gjson.Get(jj, "stops.0.stop_times").Array()
+			checkTrip := "1031527WKDY"
+			found := false
+			for _, st := range a {
+				if st.Get("trip.trip_id").String() != checkTrip {
+					continue
+				}
+				found = true
+				assert.Equal(t, "2018-05-30T23:02:30Z", st.Get("arrival.estimated_utc").String())
+			}
+			if !found {
+				t.Errorf("expected to find trip '%s'", checkTrip)
+			}
+		},
+	}
+	testRt(t, tc)
+}
+
+func TestStopRTBasic_DepartureFallback(t *testing.T) {
+	tc := rtTestCase{
+		"departure will use arrival if departure is not present",
+		baseStopQuery,
+		baseStopVars,
+		[]rtFile{{"BA", "realtime_trip_updates", "BA-departure-fallback.json"}},
+		func(t *testing.T, jj string) {
+			a := gjson.Get(jj, "stops.0.stop_times").Array()
+			checkTrip := "1031527WKDY"
+			found := false
+			for _, st := range a {
+				if st.Get("trip.trip_id").String() != checkTrip {
+					continue
+				}
+				found = true
+				assert.Equal(t, "2018-05-30T23:02:30Z", st.Get("departure.estimated_utc").String())
+			}
+			if !found {
+				t.Errorf("expected to find trip '%s'", checkTrip)
+			}
+		},
+	}
+	testRt(t, tc)
+}
+
+func TestStopRTBasic_StopIDFallback(t *testing.T) {
+	tc := rtTestCase{
+		"use stop_id as fallback if no matching stop sequence",
+		baseStopQuery,
+		baseStopVars,
+		[]rtFile{{"BA", "realtime_trip_updates", "BA-stop-id-fallback.json"}},
+		func(t *testing.T, jj string) {
+			a := gjson.Get(jj, "stops.0.stop_times").Array()
+			checkTrip := "1031527WKDY"
+			found := false
+			for _, st := range a {
+				if st.Get("trip.trip_id").String() != checkTrip {
+					continue
+				}
+				found = true
+				assert.Equal(t, checkTrip, st.Get("trip.trip_id").String())
+				assert.Equal(t, "2018-05-30T23:02:30Z", st.Get("departure.estimated_utc").String())
+			}
+			if !found {
+				t.Errorf("expected to find trip '%s'", checkTrip)
+			}
+		},
+	}
+	testRt(t, tc)
+}
+
+func TestStopRTBasic_StopIDFallback_NoDoubleVisit(t *testing.T) {
+	tc := rtTestCase{
+		"do not use stop_id as fallback if stop is visited twice",
+		baseStopQuery,
+		baseStopVars,
+		[]rtFile{{"BA", "realtime_trip_updates", "BA-stop-double-visit.json"}},
+		func(t *testing.T, jj string) {
+			a := gjson.Get(jj, "stops.0.stop_times").Array()
+			checkTrip := "1031527WKDY"
+			found := false
+			for _, st := range a {
+				if st.Get("trip.trip_id").String() != checkTrip {
+					continue
+				}
+				found = true
+				assert.Equal(t, "", st.Get("departure.estimated_utc").String())
+			}
+			if !found {
+				t.Errorf("expected to find trip '%s'", checkTrip)
+			}
+		},
+	}
+	testRt(t, tc)
+}
+
+func TestStopRTBasic_NoRT(t *testing.T) {
+	tc := rtTestCase{
+		"no rt matches for trip 2211533WKDY",
+		baseStopQuery,
+		baseStopVars,
+		[]rtFile{{"BA", "realtime_trip_updates", "BA-departure-fallback.json"}},
+		func(t *testing.T, jj string) {
+			a := gjson.Get(jj, "stops.0.stop_times").Array()
+			checkTrip := "2211533WKDY"
+			found := false
+			for _, st := range a {
+				if st.Get("trip.trip_id").String() != checkTrip {
+					continue
+				}
+				found = true
+				assert.Equal(t, checkTrip, st.Get("trip.trip_id").String())
+				assert.Equal(t, "", st.Get("trip.timestamp").String())
+				assert.Equal(t, "", st.Get("arrival.estimated_utc").String())
+				assert.Equal(t, "", st.Get("departure.estimated_utc").String())
 			}
 			if !found {
 				t.Errorf("expected to find trip '%s'", checkTrip)

@@ -17,7 +17,6 @@ import (
 )
 
 var TestDBFinder model.Finder
-var TestRTFinder model.RTFinder
 
 func TestMain(m *testing.M) {
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
@@ -28,23 +27,24 @@ func TestMain(m *testing.M) {
 	db := find.MustOpenDB(g)
 	dbf := find.NewDBFinder(db)
 	TestDBFinder = dbf
-	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	os.Exit(m.Run())
 }
 
 // Test helpers
 
 func newTestClient() *client.Client {
+	rtf := rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDBFinder.DBX())
 	cfg := config.Config{}
-	srv, _ := NewServer(cfg, TestDBFinder, TestRTFinder)
+	srv, _ := NewServer(cfg, TestDBFinder, rtf)
 	return client.New(srv)
 }
 
 func newTestClientWithClock(cl clock.Clock) *client.Client {
 	// Create a new finder, with specified time
 	db := TestDBFinder.DBX()
+	rtf := rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
 	cfg := config.Config{Clock: cl}
-	srv, _ := NewServer(cfg, find.NewDBFinder(db), TestRTFinder)
+	srv, _ := NewServer(cfg, find.NewDBFinder(db), rtf)
 	return client.New(srv)
 }
 
