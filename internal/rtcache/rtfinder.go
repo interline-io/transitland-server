@@ -151,7 +151,7 @@ func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.Tr
 	}
 	for _, ste := range rtTrip.StopTimeUpdate {
 		stid := ste.GetStopId()
-		if sid == stid && check[stid] == 0 {
+		if sid == stid && check[stid] == 1 {
 			log.Trace().Str("trip_id", t.TripID).Str("stop_id", sid).Msgf("found stop time update on trip_id/stop_id")
 			return ste, true
 		}
