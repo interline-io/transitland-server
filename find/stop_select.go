@@ -32,12 +32,12 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
 			sub := sq.StatementBuilder.
 				Select("tl_stop_onestop_ids.onestop_id", "gtfs_stops.stop_id", "feed_versions.feed_id").
-				Distinct().Options("on (tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id)").
+				Distinct().Options("on (tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id, feed_versions.feed_id)").
 				From("tl_stop_onestop_ids").
 				Join("gtfs_stops on gtfs_stops.id = tl_stop_onestop_ids.stop_id").
 				Join("feed_versions on feed_versions.id = gtfs_stops.feed_version_id").
 				Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds}).
-				OrderBy("tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id, feed_versions.id DESC")
+				OrderBy("tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id, feed_versions.feed_id, feed_versions.id DESC")
 			subClause := sub.
 				Prefix("LEFT JOIN (").
 				Suffix(") tl_stop_onestop_ids on tl_stop_onestop_ids.stop_id = gtfs_stops.stop_id and tl_stop_onestop_ids.feed_id = feed_versions.feed_id")
