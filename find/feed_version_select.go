@@ -18,7 +18,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
-		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at from feed_versions where id = ?", after.ID))
+		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at,id from feed_versions where id = ?)", after.ID))
 	}
 	if where != nil {
 		if where.Sha1 != nil {
