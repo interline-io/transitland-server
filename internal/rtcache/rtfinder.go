@@ -47,10 +47,7 @@ func (f *RTFinder) StopTimezone(id int, known string) (*time.Location, bool) {
 }
 
 func (f *RTFinder) FindTrip(t *model.Trip) *pb.TripUpdate {
-	topics, ok := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
-	if !ok {
-		return nil
-	}
+	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
 		if a, ok := f.getTrip(topic, t.TripID); ok {
 			return a
@@ -60,11 +57,8 @@ func (f *RTFinder) FindTrip(t *model.Trip) *pb.TripUpdate {
 }
 
 func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
-	topics, ok := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
-	if !ok {
-		return nil
-	}
 	var foundAlerts []*model.Alert
+	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
 		if !ok {
@@ -85,11 +79,8 @@ func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
 }
 
 func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
-	topics, ok := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
-	if !ok {
-		return nil
-	}
 	var foundAlerts []*model.Alert
+	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
 		if !ok {
@@ -110,11 +101,8 @@ func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
 }
 
 func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
-	topics, ok := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
-	if !ok {
-		return nil
-	}
 	var foundAlerts []*model.Alert
+	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
 		if !ok {
@@ -135,11 +123,8 @@ func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
 }
 
 func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
-	topics, ok := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
-	if !ok {
-		return nil
-	}
 	var foundAlerts []*model.Alert
+	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
 		if !ok {
@@ -160,12 +145,9 @@ func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
 }
 
 func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.TripUpdate_StopTimeUpdate, bool) {
-	topics, ok := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
-	if !ok {
-		return nil, false
-	}
 	tid := t.TripID
 	seq := st.StopSequence
+	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
 		rtTrip, rtok := f.getTrip(topic, tid)
 		if !rtok {
@@ -202,11 +184,8 @@ func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.Tr
 // TODO: put this method on consumer and wrap, as with GetTrip
 func (f *RTFinder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
 	sid := t.StopID
-	topics, ok := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
-	if !ok {
-		return nil
-	}
 	var ret []*pb.TripUpdate
+	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_trip_updates"))
 		if !ok {
