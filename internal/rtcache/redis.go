@@ -61,7 +61,7 @@ func (f *RedisCache) AddFeedMessage(topic string, rtmsg *pb.FeedMessage) error {
 }
 
 func (f *RedisCache) AddData(topic string, data []byte) error {
-	rctx, cc := context.WithTimeout(f.ctx, 1*time.Second)
+	rctx, cc := context.WithTimeout(f.ctx, 5*time.Second)
 	defer cc()
 	// Set last seen value with 5 min ttl
 	if err := f.client.Set(rctx, lastKey(topic), data, 5*time.Minute).Err(); err != nil {
