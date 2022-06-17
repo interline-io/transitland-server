@@ -10,13 +10,11 @@ import (
 
 type lookupCache struct {
 	db              sqlx.Ext
-	fvidSourceCache simpleCache[int, []string]
-	fvidFeedCache   simpleCache[int, string]
-	gtfsTripIdCache simpleCache[int, string]
-	gtfsStopIdCache simpleCache[int, string]
-	routeIdCache    simpleCache[skey, int]
+	fvidFeedCache   simpleCache
+	gtfsTripIdCache simpleCache
+	gtfsStopIdCache simpleCache
+	routeIdCache    skeyCache
 	tzCache         tzCache
-	rtLookupLock    sync.Mutex
 }
 
 func newLookupCache(db sqlx.Ext) *lookupCache {
@@ -58,47 +56,40 @@ func (f *lookupCache) GetGtfsStopID(id int) (string, bool) {
 	return eid, err == nil
 }
 
-func (f *lookupCache) GetFeedVersionRTFeeds(id int) ([]string, bool) {
-	f.rtLookupLock.Lock()
-	defer f.rtLookupLock.Unlock()
-	if a, ok := f.fvidSourceCache.Get(id); ok {
+func (f *lookupCache) GetFeedVersionOnestopID(id int) (string, bool) {
+	if a, ok := f.fvidFeedCache.Get(id); ok {
 		return a, ok
 	}
 	q := `
-	select 
-		distinct on(cf.onestop_id)
-		cf.onestop_id 
-	from feed_versions fv 
-	join current_operators_in_feed coif on coif.feed_id = fv.feed_id 
-	join current_operators_in_feed coif2 on coif2.resolved_onestop_id = coif.resolved_onestop_id 
-	join current_feeds cf on coif2.feed_id = cf.id
-	where fv.id = $1 
-	order by cf.onestop_id
-	`
-	var eid []string
-	err := sqlx.Select(
+	select current_feeds.onestop_id 
+	from feed_versions 
+	join current_feeds on current_feeds.id = feed_versions.feed_id 
+	where feed_versions.id = $1
+	limit 1`
+	eid := ""
+	err := sqlx.Get(
 		f.db,
 		&eid,
 		q,
 		id,
 	)
-	f.fvidSourceCache.Set(id, eid) // set before return
+	f.fvidFeedCache.Set(id, eid)
 	if err != nil {
-		return nil, false
+		return "", false
 	}
-	return eid, true
+	return eid, err == nil
 }
 
 // StopTimezone looks up the timezone for a stop
 func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) {
 	// If a timezone is provided, save it and return immediately
 	if known != "" {
-		// log.Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
+		log.Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
 		return f.tzCache.Add(id, known)
 	}
 	// Check the cache
 	if loc, ok := f.tzCache.Get(id); ok {
-		// log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
+		log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
 		return loc, ok
 	}
 	if id == 0 {
@@ -140,32 +131,53 @@ type skey struct {
 	eid  string
 }
 
-///
-
-type simpleCache[K comparable, V any] struct {
+type skeyCache struct {
 	lock   sync.Mutex
-	values map[K]V
+	values map[skey]int
 }
 
-func (c *simpleCache[K, V]) Get(key K) (V, bool) {
+func (c *skeyCache) Get(key skey) (int, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	a, ok := c.values[key]
 	return a, ok
 }
 
-func (c *simpleCache[K, V]) Set(key K, value V) {
+func (c *skeyCache) Set(key skey, value int) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if c.values == nil {
-		c.values = map[K]V{}
+		c.values = map[skey]int{}
 	}
 	c.values[key] = value
 }
 
-func newSimpleCache[K comparable, V any]() *simpleCache[K, V] {
-	return &simpleCache[K, V]{
-		values: map[K]V{},
+///
+
+type simpleCache struct {
+	lock   sync.Mutex
+	values map[int]string
+}
+
+func (c *simpleCache) Get(key int) (string, bool) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	a, ok := c.values[key]
+	return a, ok
+}
+
+func (c *simpleCache) Set(key int, value string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	if c.values == nil {
+		c.values = map[int]string{}
+	}
+	c.values[key] = value
+}
+
+func newSimpleCache() *simpleCache {
+	return &simpleCache{
+		values: map[int]string{},
 	}
 }
 
