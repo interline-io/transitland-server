@@ -18,6 +18,8 @@ func NewLocalCache() *LocalCache {
 }
 
 func (f *LocalCache) GetSource(topic string) (*Source, bool) {
+	f.lock.Lock()
+	defer f.lock.Unlock()
 	a, ok := f.sources[topic]
 	if ok {
 		return a, true
