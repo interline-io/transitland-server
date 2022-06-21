@@ -155,7 +155,7 @@ func (f *DBFinder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (
 
 	// Check if we have feed infos, otherwise calculate based on fetched week or highest service week
 	fetched := ents[0].FetchedAt.Time
-	if len(fis) > 0 {
+	if len(fis) > 0 && fis[0].FeedStartDate.Valid && fis[0].FeedEndDate.Valid {
 		// fmt.Println("using feed infos")
 		startDate = fis[0].FeedStartDate.Time
 		endDate = fis[0].FeedEndDate.Time
