@@ -30,19 +30,20 @@ import (
 )
 
 type ServerCommand struct {
-	Timeout           int
-	Port              string
-	LongQueryDuration int
-	DisableGraphql    bool
-	DisableRest       bool
-	EnablePlayground  bool
-	EnableJobsApi     bool
-	EnableWorkers     bool
-	EnableProfiler    bool
-	EnableMetrics     bool
-	UseAuth           string
-	DefaultQueue      string
-	SecretsFile       string
+	Timeout            int
+	Port               string
+	LongQueryDuration  int
+	DisableGraphql     bool
+	DisableRest        bool
+	EnablePlayground   bool
+	EnableJobsApi      bool
+	EnableWorkers      bool
+	EnableProfiler     bool
+	EnableMetrics      bool
+	UseAuth            string
+	DefaultQueue       string
+	SecretsFile        string
+	GatekeeperEndpoint string
 	auth.AuthConfig
 	config.Config
 }
@@ -67,6 +68,7 @@ func (cmd *ServerCommand) Parse(args []string) error {
 	fl.StringVar(&cmd.SecretsFile, "secrets", "", "DMFR file containing secrets")
 	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
 	fl.StringVar(&cmd.DefaultQueue, "queue", "tlv2-default", "Job queue name")
+	fl.StringVar(&cmd.GatekeeperEndpoint, "gatekeeper-endpoint", "", "Gatekeeper endpoint")
 	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
 	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
 	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
@@ -118,11 +120,17 @@ func (cmd *ServerCommand) Run() error {
 	root := mux.NewRouter()
 
 	// Setup user middleware
-	userMiddleware, err := auth.GetUserMiddleware(cmd.UseAuth, cmd.AuthConfig)
-	if err != nil {
+	if userMiddleware, err := auth.GetUserMiddleware(cmd.UseAuth, cmd.AuthConfig); err != nil {
 		return err
+	} else {
+		root.Use(userMiddleware)
 	}
-	root.Use(userMiddleware)
+
+	// Setup gatekeeper
+	if cmd.GatekeeperEndpoint != "" {
+		mw, _ := auth.Gatekeeper(cmd.GatekeeperEndpoint)
+		root.Use(mw)
+	}
 
 	// Timeout and logging
 	timeOut := time.Duration(cmd.Timeout) * time.Second
