@@ -25,18 +25,21 @@ func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (fun
 	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var err error
-			var user *User
 			if tokenString := strings.Split(r.Header.Get("Authorization"), "Bearer "); len(tokenString) == 2 {
-				user, err = validateJwt(verifyKey, jwtAudience, jwtIssuer, tokenString[1])
+				jwtUser, err := validateJwt(verifyKey, jwtAudience, jwtIssuer, tokenString[1])
 				if err != nil {
 					log.Error().Err(err).Msgf("invalid jwt token")
 					http.Error(w, "Unauthorized", http.StatusUnauthorized)
 					return
 				}
+				ctx := r.Context()
+				user := ForContext(ctx)
+				if user == nil {
+					user = NewUser(jwtUser.Name)
+				}
+				user.Merge(jwtUser)
+				r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
 			}
-			ctx := context.WithValue(r.Context(), userCtxKey, user)
-			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
 	}, nil
@@ -65,6 +68,6 @@ func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer stri
 	if !claims.VerifyIssuer(jwtIssuer, true) {
 		return nil, errors.New("invalid issuer")
 	}
-	user := NewUser(claims.Subject).WithRoles("user", "admin")
+	user := NewUser(claims.Subject).WithRoles("user")
 	return user, nil
 }

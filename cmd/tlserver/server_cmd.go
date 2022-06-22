@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"strings"
 	"time"
 
 	"net/http"
@@ -30,20 +31,19 @@ import (
 )
 
 type ServerCommand struct {
-	Timeout            int
-	Port               string
-	LongQueryDuration  int
-	DisableGraphql     bool
-	DisableRest        bool
-	EnablePlayground   bool
-	EnableJobsApi      bool
-	EnableWorkers      bool
-	EnableProfiler     bool
-	EnableMetrics      bool
-	UseAuth            string
-	DefaultQueue       string
-	SecretsFile        string
-	GatekeeperEndpoint string
+	Timeout           int
+	Port              string
+	LongQueryDuration int
+	DisableGraphql    bool
+	DisableRest       bool
+	EnablePlayground  bool
+	EnableJobsApi     bool
+	EnableWorkers     bool
+	EnableProfiler    bool
+	EnableMetrics     bool
+	UseAuth           ArrayFlags
+	DefaultQueue      string
+	SecretsFile       string
 	auth.AuthConfig
 	config.Config
 }
@@ -62,13 +62,15 @@ func (cmd *ServerCommand) Parse(args []string) error {
 	fl.StringVar(&cmd.JwtAudience, "jwt-audience", "", "JWT Audience")
 	fl.StringVar(&cmd.JwtIssuer, "jwt-issuer", "", "JWT Issuer")
 	fl.StringVar(&cmd.JwtPublicKeyFile, "jwt-public-key-file", "", "Path to JWT public key file")
-	fl.StringVar(&cmd.UseAuth, "auth", "anon", "")
+	fl.Var(&cmd.UseAuth, "auth", "anon")
 	fl.StringVar(&cmd.GtfsDir, "gtfsdir", "", "Directory to store GTFS files")
 	fl.StringVar(&cmd.GtfsS3Bucket, "s3", "", "S3 bucket for GTFS files")
 	fl.StringVar(&cmd.SecretsFile, "secrets", "", "DMFR file containing secrets")
 	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
 	fl.StringVar(&cmd.DefaultQueue, "queue", "tlv2-default", "Job queue name")
 	fl.StringVar(&cmd.GatekeeperEndpoint, "gatekeeper-endpoint", "", "Gatekeeper endpoint")
+	fl.StringVar(&cmd.GatekeeperSelector, "gatekeeper-selector", "", "Gatekeeper selector")
+	fl.StringVar(&cmd.GatekeeperParam, "gatekeeper-param", "", "Gatekeeper param")
 	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
 	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
 	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
@@ -90,16 +92,15 @@ func (cmd *ServerCommand) Parse(args []string) error {
 
 func (cmd *ServerCommand) Run() error {
 	// Default finders and job queue
+	cfg := cmd.Config
 	var dbFinder model.Finder
 	var rtFinder model.RTFinder
 	var jobQueue jobs.JobQueue
 
-	// Create Finder
-	cfg := cmd.Config
+	// Open database
 	dbx := find.MustOpenDB(cfg.DBURL)
-	dbFinder = find.NewDBFinder(dbx)
 
-	// Create RTFinder
+	// Open redis
 	var redisClient *redis.Client
 	if cmd.RedisURL != "" {
 		// Redis backed RTFinder
@@ -108,6 +109,13 @@ func (cmd *ServerCommand) Run() error {
 			return err
 		}
 		redisClient = redis.NewClient(rOpts)
+	}
+
+	// Create Finder
+	dbFinder = find.NewDBFinder(dbx)
+
+	// Create RTFinder
+	if cmd.RedisURL != "" {
 		// Replace RTFinder; use redis backed cache now
 		rtFinder = rtcache.NewRTFinder(rtcache.NewRedisCache(redisClient), dbx)
 		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
@@ -117,18 +125,24 @@ func (cmd *ServerCommand) Run() error {
 		jobQueue = jobs.NewLocalJobs()
 	}
 
+	// Setup router
 	root := mux.NewRouter()
 
 	// Setup user middleware
-	if userMiddleware, err := auth.GetUserMiddleware(cmd.UseAuth, cmd.AuthConfig); err != nil {
-		return err
-	} else {
-		root.Use(userMiddleware)
+	for _, k := range cmd.UseAuth {
+		if userMiddleware, err := auth.GetUserMiddleware(k, cmd.AuthConfig); err != nil {
+			return err
+		} else {
+			root.Use(userMiddleware)
+		}
 	}
 
 	// Setup gatekeeper
 	if cmd.GatekeeperEndpoint != "" {
-		mw, _ := auth.Gatekeeper(cmd.GatekeeperEndpoint, "product_roles.tlv2_api")
+		mw, err := auth.GatekeeperMiddleware(redisClient, cmd.GatekeeperEndpoint, cmd.GatekeeperParam, cmd.GatekeeperSelector)
+		if err != nil {
+			return err
+		}
 		root.Use(mw)
 	}
 
@@ -229,4 +243,17 @@ func (cmd *ServerCommand) Run() error {
 		ReadTimeout:  2 * timeOut,
 	}
 	return srv.ListenAndServe()
+}
+
+// ArrayFlags allow repeatable command line options.
+// https://stackoverflow.com/questions/28322997/how-to-get-a-list-of-values-into-a-flag-in-golang/28323276#28323276
+type ArrayFlags []string
+
+func (i *ArrayFlags) String() string {
+	return strings.Join(*i, ",")
+}
+
+func (i *ArrayFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
 }

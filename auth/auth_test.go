@@ -34,13 +34,13 @@ func testAuthMiddleware(t *testing.T, req *http.Request, mwf mux.MiddlewareFunc,
 	}
 }
 func TestUserMiddleware(t *testing.T) {
-	a := UserDefaultMiddleware()
+	a := UserDefaultMiddleware("")
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	testAuthMiddleware(t, req, a, 200, NewUser("").WithRoles("user"))
 }
 
 func TestAdminMiddleware(t *testing.T) {
-	a := AdminDefaultMiddleware()
+	a := AdminDefaultMiddleware("")
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	testAuthMiddleware(t, req, a, 200, NewUser("").WithRoles("user", "admin"))
 }
@@ -61,8 +61,8 @@ func TestUserRequired(t *testing.T) {
 		code int
 		user *User
 	}{
-		{"with user", func(next http.Handler) http.Handler { return AdminDefaultMiddleware()(UserRequired(next)) }, 200, NewUser("").WithRoles("user", "admin")},
-		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware()(UserRequired(next)) }, 200, NewUser("").WithRoles("user")},
+		{"with user", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("")(UserRequired(next)) }, 200, NewUser("").WithRoles("user", "admin")},
+		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("")(UserRequired(next)) }, 200, NewUser("").WithRoles("user")},
 		{"no user", func(next http.Handler) http.Handler { return UserRequired(next) }, 401, nil},
 	}
 	for _, tc := range tcs {
@@ -80,8 +80,8 @@ func TestAdminRequired(t *testing.T) {
 		code int
 		user *User
 	}{
-		{"with admin", func(next http.Handler) http.Handler { return AdminDefaultMiddleware()(AdminRequired(next)) }, 200, NewUser("").WithRoles("user", "admin")},
-		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware()(AdminRequired(next)) }, 401, nil}, // mw kills request before handler
+		{"with admin", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("")(AdminRequired(next)) }, 200, NewUser("").WithRoles("user", "admin")},
+		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("")(AdminRequired(next)) }, 401, nil}, // mw kills request before handler
 		{"no user", func(next http.Handler) http.Handler { return AdminRequired(next) }, 401, nil},
 	}
 	for _, tc := range tcs {

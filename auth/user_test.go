@@ -31,7 +31,7 @@ func TestUser_HasRole(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			if tc.user.HasRole(tc.role) != tc.hasRole {
+			if tc.user.HasRole(string(tc.role)) != tc.hasRole {
 				t.Errorf("expected role %s to be %t", tc.role, tc.hasRole)
 			}
 		})

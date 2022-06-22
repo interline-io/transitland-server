@@ -3,8 +3,6 @@ package auth
 import (
 	"context"
 	"strings"
-
-	"github.com/interline-io/transitland-server/model"
 )
 
 // A private key for context that only this package can access. This is important
@@ -18,7 +16,7 @@ type contextKey struct {
 // User defines role access methods.
 type User struct {
 	Name  string
-	Roles []string
+	roles []string
 }
 
 func NewUser(name string) *User {
@@ -26,7 +24,7 @@ func NewUser(name string) *User {
 }
 
 func (user *User) WithRoles(roles ...string) *User {
-	user.Roles = roles
+	user.AddRoles(roles...)
 	return user
 }
 
@@ -41,9 +39,14 @@ func (user *User) IsAdmin() bool {
 	return user.HasRole("admin")
 }
 
+func (user *User) Merge(other *User) {
+	user.Name = other.Name
+	user.AddRoles(other.roles...)
+}
+
 // HasRole checks if a User is allowed to use a defined role.
-func (user *User) HasRole(role model.Role) bool {
-	checkRole := strings.ToLower(string(role))
+func (user *User) HasRole(role string) bool {
+	checkRole := strings.ToLower(role)
 	// Check for original roles
 	switch checkRole {
 	case "anon":
@@ -58,12 +61,27 @@ func (user *User) HasRole(role model.Role) bool {
 }
 
 func (user *User) hasRole(checkRole string) bool {
-	for _, r := range user.Roles {
+	for _, r := range user.roles {
 		if r == checkRole {
 			return true
 		}
 	}
 	return false
+}
+
+func (user *User) AddRoles(roles ...string) {
+	merged := map[string]bool{}
+	for _, r := range user.roles {
+		merged[r] = true
+	}
+	for _, r := range roles {
+		merged[r] = true
+	}
+	var rr []string
+	for k := range merged {
+		rr = append(rr, k)
+	}
+	user.roles = rr
 }
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.

@@ -9,12 +9,16 @@ import (
 func KongMiddleware() (func(http.Handler) http.Handler, error) {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var user *User
 			if v := r.Header.Get("x-consumer-username"); v != "" {
-				user = NewUser(v).WithRoles("user")
+				ctx := r.Context()
+				user := ForContext(ctx)
+				if user == nil {
+					user = NewUser(v)
+				}
+				user.Name = v
+				user.AddRoles("user")
+				r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
 			}
-			ctx := context.WithValue(r.Context(), userCtxKey, user)
-			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
 	}, nil
