@@ -38,7 +38,7 @@ func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 			t1 := time.Now()
 			user := auth.ForContext(ctx)
 			if user == nil {
-				user = &auth.User{IsAnon: true}
+				user = auth.NewUser("").WithRoles("anon")
 			}
 			// Get request body for logging if request is json and length under 20kb
 			var body []byte

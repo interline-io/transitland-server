@@ -11,12 +11,7 @@ func KongMiddleware() (func(http.Handler) http.Handler, error) {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var user *User
 			if v := r.Header.Get("x-consumer-username"); v != "" {
-				user = &User{
-					Name:    v,
-					IsAnon:  false,
-					IsUser:  true,
-					IsAdmin: false,
-				}
+				user = NewUser(v).WithRoles("user")
 			}
 			ctx := context.WithValue(r.Context(), userCtxKey, user)
 			r = r.WithContext(ctx)

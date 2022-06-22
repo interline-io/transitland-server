@@ -65,10 +65,6 @@ func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer stri
 	if !claims.VerifyIssuer(jwtIssuer, true) {
 		return nil, errors.New("invalid issuer")
 	}
-	user := &User{
-		Name:    claims.Subject,
-		IsUser:  true,
-		IsAdmin: true,
-	}
+	user := NewUser(claims.Subject).WithRoles("user", "admin")
 	return user, nil
 }

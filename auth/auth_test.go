@@ -24,9 +24,9 @@ func testAuthMiddleware(t *testing.T, req *http.Request, mwf mux.MiddlewareFunc,
 	assert.Equal(t, expectCode, w.Result().StatusCode)
 	if expectUser != nil && user != nil {
 		assert.Equal(t, user.Name, expectUser.Name)
-		assert.Equal(t, user.IsAdmin, expectUser.IsAdmin)
-		assert.Equal(t, user.IsAnon, expectUser.IsAnon)
-		assert.Equal(t, user.IsUser, expectUser.IsUser)
+		assert.Equal(t, user.IsAdmin(), expectUser.IsAdmin())
+		assert.Equal(t, user.IsAnon(), expectUser.IsAnon())
+		assert.Equal(t, user.IsUser(), expectUser.IsUser())
 	} else if expectUser == nil && user != nil {
 		t.Errorf("got user, expected none")
 	} else if expectUser != nil && user == nil {
@@ -36,13 +36,13 @@ func testAuthMiddleware(t *testing.T, req *http.Request, mwf mux.MiddlewareFunc,
 func TestUserMiddleware(t *testing.T) {
 	a := UserDefaultMiddleware()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	testAuthMiddleware(t, req, a, 200, &User{IsAnon: false, IsUser: true, IsAdmin: false})
+	testAuthMiddleware(t, req, a, 200, NewUser("").WithRoles("user"))
 }
 
 func TestAdminMiddleware(t *testing.T) {
 	a := AdminDefaultMiddleware()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	testAuthMiddleware(t, req, a, 200, &User{IsAnon: false, IsUser: true, IsAdmin: true})
+	testAuthMiddleware(t, req, a, 200, NewUser("").WithRoles("user", "admin"))
 }
 
 func TestNoMiddleware(t *testing.T) {
@@ -61,8 +61,8 @@ func TestUserRequired(t *testing.T) {
 		code int
 		user *User
 	}{
-		{"with user", func(next http.Handler) http.Handler { return AdminDefaultMiddleware()(UserRequired(next)) }, 200, &User{IsAdmin: true, IsUser: true}},
-		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware()(UserRequired(next)) }, 200, &User{IsUser: true}},
+		{"with user", func(next http.Handler) http.Handler { return AdminDefaultMiddleware()(UserRequired(next)) }, 200, NewUser("").WithRoles("user", "admin")},
+		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware()(UserRequired(next)) }, 200, NewUser("").WithRoles("user")},
 		{"no user", func(next http.Handler) http.Handler { return UserRequired(next) }, 401, nil},
 	}
 	for _, tc := range tcs {
@@ -80,7 +80,7 @@ func TestAdminRequired(t *testing.T) {
 		code int
 		user *User
 	}{
-		{"with admin", func(next http.Handler) http.Handler { return AdminDefaultMiddleware()(AdminRequired(next)) }, 200, &User{IsAdmin: true, IsUser: true}},
+		{"with admin", func(next http.Handler) http.Handler { return AdminDefaultMiddleware()(AdminRequired(next)) }, 200, NewUser("").WithRoles("user", "admin")},
 		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware()(AdminRequired(next)) }, 401, nil}, // mw kills request before handler
 		{"no user", func(next http.Handler) http.Handler { return AdminRequired(next) }, 401, nil},
 	}

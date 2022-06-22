@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"strings"
 
 	"github.com/interline-io/transitland-server/model"
 )
@@ -16,21 +17,51 @@ type contextKey struct {
 
 // User defines role access methods.
 type User struct {
-	Name    string
-	IsAnon  bool
-	IsUser  bool
-	IsAdmin bool
+	Name  string
+	Roles []string
+}
+
+func NewUser(name string) *User {
+	return &User{Name: name}
+}
+
+func (user *User) WithRoles(roles ...string) *User {
+	user.Roles = roles
+	return user
+}
+
+func (user *User) IsAnon() bool {
+	return user.HasRole("anon")
+}
+
+func (user *User) IsUser() bool {
+	return user.HasRole("user")
+}
+func (user *User) IsAdmin() bool {
+	return user.HasRole("admin")
 }
 
 // HasRole checks if a User is allowed to use a defined role.
 func (user *User) HasRole(role model.Role) bool {
-	switch role {
-	case model.RoleAnon:
-		return user.IsAnon || user.IsUser || user.IsAdmin
-	case model.RoleUser:
-		return user.IsUser || user.IsAdmin
-	case model.RoleAdmin:
-		return user.IsAdmin
+	checkRole := strings.ToLower(string(role))
+	// Check for original roles
+	switch checkRole {
+	case "anon":
+		return user.hasRole("anon") || user.hasRole("user") || user.hasRole("admin")
+	case "user":
+		return user.hasRole("user") || user.hasRole("admin")
+	case "admin":
+		return user.hasRole("admin")
+	}
+	// Check all other roles
+	return user.hasRole(checkRole)
+}
+
+func (user *User) hasRole(checkRole string) bool {
+	for _, r := range user.Roles {
+		if r == checkRole {
+			return true
+		}
 	}
 	return false
 }

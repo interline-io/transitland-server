@@ -128,7 +128,7 @@ func (cmd *ServerCommand) Run() error {
 
 	// Setup gatekeeper
 	if cmd.GatekeeperEndpoint != "" {
-		mw, _ := auth.Gatekeeper(cmd.GatekeeperEndpoint)
+		mw, _ := auth.Gatekeeper(cmd.GatekeeperEndpoint, "product_roles.tlv2_api")
 		root.Use(mw)
 	}
 

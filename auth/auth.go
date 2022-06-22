@@ -35,12 +35,7 @@ func GetUserMiddleware(authType string, cfg AuthConfig) (mux.MiddlewareFunc, err
 func AdminDefaultMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := &User{
-				Name:    "",
-				IsAnon:  false,
-				IsUser:  true,
-				IsAdmin: true,
-			}
+			user := NewUser("").WithRoles("user", "admin")
 			ctx := context.WithValue(r.Context(), userCtxKey, user)
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
@@ -52,12 +47,7 @@ func AdminDefaultMiddleware() func(http.Handler) http.Handler {
 func UserDefaultMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := &User{
-				Name:    "",
-				IsAnon:  false,
-				IsUser:  true,
-				IsAdmin: false,
-			}
+			user := NewUser("").WithRoles("user")
 			ctx := context.WithValue(r.Context(), userCtxKey, user)
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
@@ -70,7 +60,7 @@ func AdminRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		user := ForContext(ctx)
-		if user == nil || !user.IsAdmin {
+		if user == nil || !user.IsAdmin() {
 			http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
 			return
 		}
@@ -83,7 +73,19 @@ func UserRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		user := ForContext(ctx)
-		if user == nil || !user.IsUser {
+		if user == nil || !user.IsUser() {
+			http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func RoleRequired(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		user := ForContext(ctx)
+		if user == nil || !user.HasRole("admin") {
 			http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
 			return
 		}

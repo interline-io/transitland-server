@@ -9,25 +9,25 @@ import (
 func TestUser_HasRole(t *testing.T) {
 	testcases := []struct {
 		name    string
-		user    User
+		user    *User
 		role    model.Role
 		hasRole bool
 	}{
-		{"anon", User{IsAnon: true}, model.RoleAnon, true},
-		{"anon", User{IsAnon: true, IsUser: true}, model.RoleAnon, true},
-		{"anon", User{IsAnon: true, IsUser: true, IsAdmin: true}, model.RoleAnon, true},
-		{"anon", User{IsUser: true}, model.RoleAnon, true},
-		{"anon", User{IsAdmin: true}, model.RoleAnon, true},
+		{"anon", NewUser("").WithRoles("anon"), model.RoleAnon, true},
+		{"anon", NewUser("").WithRoles("anon", "user"), model.RoleAnon, true},
+		{"anon", NewUser("").WithRoles("anon", "user", "admin"), model.RoleAnon, true},
+		{"anon", NewUser("").WithRoles("user"), model.RoleAnon, true},
+		{"anon", NewUser("").WithRoles("admin"), model.RoleAnon, true},
 
-		{"user", User{IsAnon: true}, model.RoleUser, false},
-		{"user", User{IsUser: true}, model.RoleUser, true},
-		{"user", User{IsAdmin: true}, model.RoleUser, true},
+		{"user", NewUser("").WithRoles("anon"), model.RoleUser, false},
+		{"user", NewUser("").WithRoles("user"), model.RoleUser, true},
+		{"user", NewUser("").WithRoles("admin"), model.RoleUser, true},
 
-		{"admin", User{IsAnon: true}, model.RoleAdmin, false},
-		{"admin", User{IsAnon: true, IsUser: true}, model.RoleAdmin, false},
-		{"admin", User{IsAnon: true, IsAdmin: false}, model.RoleAdmin, false},
-		{"admin", User{IsUser: true}, model.RoleAdmin, false},
-		{"admin", User{IsAdmin: true}, model.RoleAdmin, true},
+		{"admin", NewUser("").WithRoles("anon"), model.RoleAdmin, false},
+		{"admin", NewUser("").WithRoles("anon", "user"), model.RoleAdmin, false},
+		{"admin", NewUser("").WithRoles("anon"), model.RoleAdmin, false},
+		{"admin", NewUser("").WithRoles("user"), model.RoleAdmin, false},
+		{"admin", NewUser("").WithRoles("admin"), model.RoleAdmin, true},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -10,24 +10,35 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
+	"github.com/tidwall/gjson"
 )
 
-// Gatekeeper checks an external endpoint
-func Gatekeeper(endpoint string) (mux.MiddlewareFunc, error) {
+// Gatekeeper checks an external endpoint for a list of roles
+func Gatekeeper(endpoint string, roleKey string) (mux.MiddlewareFunc, error) {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			user := ForContext(ctx)
-			if user == nil {
-				user = &User{IsAnon: true}
+			if user != nil {
+				log.Trace().Str("user", user.Name).Msg("checking gatekeeper")
+				checkedUser, err := getGatekeeperUser(ctx, endpoint, user.Name, roleKey)
+				if err != nil {
+					log.Trace().Err(err).Str("user", user.Name).Msg("gatekeeper error")
+					http.Error(w, "error", http.StatusInternalServerError)
+					return
+				}
+				if checkedUser != nil {
+					user.Roles = append(user.Roles, checkedUser.Roles...)
+				}
+				r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
 			}
-			r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
 			next.ServeHTTP(w, r)
 		})
 	}, nil
 }
 
-func getGatekeeperUser(ctx context.Context, endpoint string, email string) (*User, error) {
+func getGatekeeperUser(ctx context.Context, endpoint string, email string, roleKey string) (*User, error) {
 	u, _ := url.Parse(endpoint)
 	rq := u.Query()
 	rq.Set("email", email)
@@ -48,6 +59,9 @@ func getGatekeeperUser(ctx context.Context, endpoint string, email string) (*Use
 		return nil, fmt.Errorf("response status code: %d", resp.StatusCode)
 	}
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println("body:", string(body))
-	return nil, nil
+	user := User{}
+	for _, r := range gjson.Get(string(body), roleKey).Array() {
+		user.Roles = append(user.Roles, r.String())
+	}
+	return &user, nil
 }
