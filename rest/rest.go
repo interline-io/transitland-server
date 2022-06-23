@@ -15,6 +15,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 )
 
@@ -58,7 +59,7 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	r.HandleFunc("/feed_versions/{feed_version_key}.{format}", fvHandler)
 	r.HandleFunc("/feed_versions/{feed_version_key}", fvHandler)
 	r.HandleFunc("/feeds/{feed_key}/feed_versions", fvHandler)
-	r.HandleFunc("/feed_versions/{feed_version_key}/download", makeHandlerFunc(restcfg, fvDownloadHandler))
+	r.Handle("/feed_versions/{feed_version_key}/download", auth.RoleRequired("tl_user_pro")(makeHandlerFunc(restcfg, fvDownloadHandler)))
 
 	r.HandleFunc("/agencies.{format}", agencyHandler)
 	r.HandleFunc("/agencies", agencyHandler)
