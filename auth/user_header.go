@@ -5,11 +5,11 @@ import (
 	"net/http"
 )
 
-// KongMiddleware checks and pulls user information from Kong X-Consumer-* headers.
-func KongMiddleware() (func(http.Handler) http.Handler, error) {
+// UserHeaderMiddleware checks and pulls user ID from specified headers.
+func UserHeaderMiddleware(header string) (func(http.Handler) http.Handler, error) {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if v := r.Header.Get("x-consumer-username"); v != "" {
+			if v := r.Header.Get(header); v != "" {
 				ctx := r.Context()
 				user := ForContext(ctx)
 				if user == nil {

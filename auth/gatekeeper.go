@@ -17,9 +17,13 @@ import (
 )
 
 // GatekeeperMiddleware checks an external endpoint for a list of roles
-func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, roleKey string) (mux.MiddlewareFunc, error) {
+func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, roleKey string, allowError bool) (mux.MiddlewareFunc, error) {
 	gk := NewGatekeeper(client, endpoint, param, roleKey)
-	gk.Start()
+	gk.Start(1 * time.Second)
+	return newGatekeeperMiddleware(gk, allowError), nil
+}
+
+func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -27,69 +31,75 @@ func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, r
 			if user != nil && user.Name != "" {
 				checkedRoles, err := gk.GetUser(ctx, user.Name)
 				if err != nil {
-					log.Trace().Err(err).Str("user", user.Name).Msg("gatekeeper error")
-					http.Error(w, "error", http.StatusInternalServerError)
-					return
+					log.Error().Err(err).Str("user", user.Name).Msg("gatekeeper error")
+					if !allowError {
+						http.Error(w, "error", http.StatusUnauthorized)
+						return
+					}
+				} else {
+					log.Trace().Str("user", user.Name).Strs("roles", checkedRoles).Msg("gatekeeper roles")
+					user.AddRoles(checkedRoles...)
+					r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
 				}
-				log.Trace().Str("user", user.Name).Strs("roles", checkedRoles).Msg("gatekeeper roles")
-				user.AddRoles(checkedRoles...)
-				r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
 			}
 			next.ServeHTTP(w, r)
 		})
-	}, nil
-}
-
-type Gatekeeper struct {
-	endpoint string
-	roleKey  string
-	param    string
-	ttl      time.Duration
-	cache    *ecache.Cache[[]string]
-}
-
-func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey string) *Gatekeeper {
-	return &Gatekeeper{
-		endpoint: endpoint,
-		roleKey:  roleKey,
-		param:    param,
-		ttl:      5 * 60 * time.Second,
-		cache:    ecache.NewCache[[]string](client, "gatekeeper"),
 	}
 }
 
+type Gatekeeper struct {
+	RequestTimeout time.Duration
+	endpoint       string
+	roleKey        string
+	param          string
+	recheckTtl     time.Duration
+	cache          *ecache.Cache[[]string]
+}
+
+func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey string) *Gatekeeper {
+	gk := &Gatekeeper{
+		RequestTimeout: 1 * time.Second,
+		endpoint:       endpoint,
+		roleKey:        roleKey,
+		param:          param,
+		recheckTtl:     5 * 60 * time.Second,
+		cache:          ecache.NewCache[[]string](client, "gatekeeper"),
+	}
+	return gk
+}
+
 func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) ([]string, error) {
-	roles, ok := gk.cache.Get(userKey)
+	roles, ok := gk.cache.Get(ctx, userKey)
 	if !ok {
 		var err error
 		roles, err = gk.getUser(ctx, userKey)
 		if err != nil {
 			return nil, err
 		}
-		gk.cache.SetTTL(userKey, roles, gk.ttl, 24*time.Hour)
+		gk.cache.SetTTL(ctx, userKey, roles, gk.recheckTtl, 24*time.Hour)
 	}
 	return roles, nil
 }
 
-func (gk *Gatekeeper) Start() {
-	ticker := time.NewTicker(1 * time.Second)
+func (gk *Gatekeeper) Start(t time.Duration) {
+	ticker := time.NewTicker(t)
 	go func() {
 		for t := range ticker.C {
 			_ = t
-			gk.updateUsers(context.TODO())
+			gk.updateUsers(context.Background())
 		}
 	}()
 }
 
 func (gk *Gatekeeper) updateUsers(ctx context.Context) {
 	// This can be improved to avoid races
-	keys := gk.cache.GetRecheckKeys()
+	keys := gk.cache.GetRecheckKeys(ctx)
 	for _, k := range keys {
 		if roles, err := gk.getUser(ctx, k); err != nil {
 			// Failed :(
 			// Log but do not update cached value
 		} else {
-			gk.cache.SetTTL(k, roles, gk.ttl, 24*time.Hour)
+			gk.cache.SetTTL(ctx, k, roles, gk.recheckTtl, 24*time.Hour)
 		}
 	}
 }
@@ -99,7 +109,7 @@ func (gk *Gatekeeper) getUser(ctx context.Context, userKey string) ([]string, er
 	rq := u.Query()
 	rq.Set(gk.param, userKey)
 	u.RawQuery = rq.Encode()
-	rctx, cf := context.WithTimeout(ctx, 1*time.Second)
+	rctx, cf := context.WithTimeout(ctx, gk.RequestTimeout)
 	defer cf()
 	req, err := http.NewRequestWithContext(rctx, "GET", u.String(), nil)
 	if err != nil {
@@ -116,7 +126,11 @@ func (gk *Gatekeeper) getUser(ctx context.Context, userKey string) ([]string, er
 	}
 	body, err := io.ReadAll(resp.Body)
 	var roles []string
-	for _, r := range gjson.Get(string(body), gk.roleKey).Array() {
+	if !gjson.Valid(string(body)) {
+		return nil, errors.New("invalid json")
+	}
+	result := gjson.Get(string(body), gk.roleKey)
+	for _, r := range result.Array() {
 		roles = append(roles, r.String())
 	}
 	return roles, nil

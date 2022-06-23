@@ -28,6 +28,8 @@ func TestUser_HasRole(t *testing.T) {
 		{"admin", NewUser("").WithRoles("anon"), model.RoleAdmin, false},
 		{"admin", NewUser("").WithRoles("user"), model.RoleAdmin, false},
 		{"admin", NewUser("").WithRoles("admin"), model.RoleAdmin, true},
+
+		{"other roles", NewUser("").WithRoles("tlv2-admin"), model.Role("tlv2-admin"), true},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

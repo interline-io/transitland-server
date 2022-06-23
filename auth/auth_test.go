@@ -9,30 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testAuthMiddleware(t *testing.T, req *http.Request, mwf mux.MiddlewareFunc, expectCode int, expectUser *User) {
-	var user *User
-	testHandler := func(w http.ResponseWriter, r *http.Request) {
-		user = ForContext(r.Context())
-	}
-	router := http.NewServeMux()
-	router.HandleFunc("/", testHandler)
-	//
-	a := mwf(router)
-	w := httptest.NewRecorder()
-	a.ServeHTTP(w, req)
-	//
-	assert.Equal(t, expectCode, w.Result().StatusCode)
-	if expectUser != nil && user != nil {
-		assert.Equal(t, user.Name, expectUser.Name)
-		assert.Equal(t, user.IsAdmin(), expectUser.IsAdmin())
-		assert.Equal(t, user.IsAnon(), expectUser.IsAnon())
-		assert.Equal(t, user.IsUser(), expectUser.IsUser())
-	} else if expectUser == nil && user != nil {
-		t.Errorf("got user, expected none")
-	} else if expectUser != nil && user == nil {
-		t.Errorf("got no user, expected user")
-	}
-}
 func TestUserMiddleware(t *testing.T) {
 	a := UserDefaultMiddleware("")
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -46,7 +22,7 @@ func TestAdminMiddleware(t *testing.T) {
 }
 
 func TestNoMiddleware(t *testing.T) {
-	a, err := GetUserMiddleware("", AuthConfig{})
+	a, err := GetUserMiddleware("", AuthConfig{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,5 +65,28 @@ func TestAdminRequired(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			testAuthMiddleware(t, req, tc.mwf, tc.code, tc.user)
 		})
+	}
+}
+
+func testAuthMiddleware(t *testing.T, req *http.Request, mwf mux.MiddlewareFunc, expectCode int, expectUser *User) {
+	var user *User
+	testHandler := func(w http.ResponseWriter, r *http.Request) {
+		user = ForContext(r.Context())
+	}
+	router := http.NewServeMux()
+	router.HandleFunc("/", testHandler)
+	//
+	a := mwf(router)
+	w := httptest.NewRecorder()
+	a.ServeHTTP(w, req)
+	//
+	assert.Equal(t, expectCode, w.Result().StatusCode)
+	if expectUser != nil && user != nil {
+		assert.Equal(t, user.Name, expectUser.Name)
+		assert.ElementsMatch(t, user.Roles(), expectUser.Roles())
+	} else if expectUser == nil && user != nil {
+		t.Errorf("got user, expected none")
+	} else if expectUser != nil && user == nil {
+		t.Errorf("got no user, expected user")
 	}
 }

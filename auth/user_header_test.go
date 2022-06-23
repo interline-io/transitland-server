@@ -18,7 +18,7 @@ func TestKongMiddleware(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			mf, err := KongMiddleware()
+			mf, err := UserHeaderMiddleware("x-consumer-username")
 			if err != nil {
 				t.Fatal(err)
 			}

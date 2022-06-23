@@ -60,6 +60,10 @@ func (user *User) HasRole(role string) bool {
 	return user.hasRole(checkRole)
 }
 
+func (user *User) Roles() []string {
+	return user.roles
+}
+
 func (user *User) hasRole(checkRole string) bool {
 	for _, r := range user.roles {
 		if r == checkRole {
