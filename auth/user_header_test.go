@@ -13,12 +13,12 @@ func TestKongMiddleware(t *testing.T) {
 		code       int
 		user       *User
 	}{
-		{"test", "test@transitland", 200, &User{Name: "test@transitland", IsUser: true}},
+		{"test", "test@transitland", 200, NewUser("test@transitland").WithRoles("user")},
 		{"no user", "", 200, nil},
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			mf, err := KongMiddleware()
+			mf, err := UserHeaderMiddleware("x-consumer-username")
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -27,7 +27,7 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 		if user == nil {
 			user = &auth.User{}
 		}
-		if !user.HasRole(role) {
+		if !user.HasRole(string(role)) {
 			return nil, fmt.Errorf("access denied")
 		}
 		return next(ctx)

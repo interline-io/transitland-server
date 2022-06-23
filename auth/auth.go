@@ -4,27 +4,38 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 )
 
 type AuthConfig struct {
-	JwtAudience      string
-	JwtIssuer        string
-	JwtPublicKeyFile string
+	DefaultUsername      string
+	GatekeeperEndpoint   string
+	GatekeeperParam      string
+	GatekeeperSelector   string
+	GatekeeperAllowError bool
+	JwtAudience          string
+	JwtIssuer            string
+	JwtPublicKeyFile     string
+	UserHeader           string
 }
 
 // GetUserMiddleware returns a middleware that sets user details.
-func GetUserMiddleware(authType string, cfg AuthConfig) (mux.MiddlewareFunc, error) {
+func GetUserMiddleware(authType string, cfg AuthConfig, client *redis.Client) (mux.MiddlewareFunc, error) {
 	// Setup auth; default is all users will be anonymous.
 	switch authType {
 	case "admin":
-		return AdminDefaultMiddleware(), nil
+		return AdminDefaultMiddleware(cfg.DefaultUsername), nil
 	case "user":
-		return UserDefaultMiddleware(), nil
+		return UserDefaultMiddleware(cfg.DefaultUsername), nil
 	case "jwt":
 		return JWTMiddleware(cfg.JwtAudience, cfg.JwtIssuer, cfg.JwtPublicKeyFile)
+	case "header":
+		return UserHeaderMiddleware(cfg.UserHeader)
 	case "kong":
-		return KongMiddleware()
+		return UserHeaderMiddleware("x-consumer-username")
+	case "gatekeeper":
+		return GatekeeperMiddleware(client, cfg.GatekeeperEndpoint, cfg.GatekeeperParam, cfg.GatekeeperSelector, cfg.GatekeeperAllowError)
 	}
 	return func(next http.Handler) http.Handler {
 		return next
@@ -32,34 +43,21 @@ func GetUserMiddleware(authType string, cfg AuthConfig) (mux.MiddlewareFunc, err
 }
 
 // AdminDefaultMiddleware uses a default "admin" context.
-func AdminDefaultMiddleware() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := &User{
-				Name:    "",
-				IsAnon:  false,
-				IsUser:  true,
-				IsAdmin: true,
-			}
-			ctx := context.WithValue(r.Context(), userCtxKey, user)
-			r = r.WithContext(ctx)
-			next.ServeHTTP(w, r)
-		})
-	}
+func AdminDefaultMiddleware(defaultName string) func(http.Handler) http.Handler {
+	return NewUserDefaultMiddleware(func() *User { return NewUser(defaultName).WithRoles("user", "admin") })
 }
 
 // UserDefaultMiddleware uses a default "user" context.
-func UserDefaultMiddleware() func(http.Handler) http.Handler {
+func UserDefaultMiddleware(defaultName string) func(http.Handler) http.Handler {
+	return NewUserDefaultMiddleware(func() *User { return NewUser(defaultName).WithRoles("user") })
+}
+
+// NewUserDefaultMiddleware uses a default "user" context.
+func NewUserDefaultMiddleware(cb func() *User) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := &User{
-				Name:    "",
-				IsAnon:  false,
-				IsUser:  true,
-				IsAdmin: false,
-			}
-			ctx := context.WithValue(r.Context(), userCtxKey, user)
-			r = r.WithContext(ctx)
+			user := cb()
+			r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -67,26 +65,24 @@ func UserDefaultMiddleware() func(http.Handler) http.Handler {
 
 // AdminRequired limits a request to admin privileges.
 func AdminRequired(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		user := ForContext(ctx)
-		if user == nil || !user.IsAdmin {
-			http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+	return RoleRequired("admin")(next)
 }
 
 // UserRequired limits a request to user privileges.
 func UserRequired(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		user := ForContext(ctx)
-		if user == nil || !user.IsUser {
-			http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+	return RoleRequired("user")(next)
+}
+
+func RoleRequired(role string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			user := ForContext(ctx)
+			if user == nil || !user.HasRole(role) {
+				http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }

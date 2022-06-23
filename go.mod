@@ -36,6 +36,8 @@ require (
 	google.golang.org/protobuf v1.28.0
 )
 
+require github.com/go-redis/redismock/v8 v8.0.6
+
 require (
 	github.com/Wessie/appdirs v0.0.0-20141031215813-6573e894f8e2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect

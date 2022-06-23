@@ -27,7 +27,7 @@ func TestFetchResolver(t *testing.T) {
 	}))
 	t.Run("found sha1", func(t *testing.T) {
 		srv, _ := NewServer(cfg, TestDBFinder, nil)
-		srv = auth.AdminDefaultMiddleware()(srv) // Run all requests as admin
+		srv = auth.AdminDefaultMiddleware("")(srv) // Run all requests as admin
 		// Run all requests as admin
 		c := client.New(srv)
 		resp := make(map[string]interface{})
@@ -39,7 +39,7 @@ func TestFetchResolver(t *testing.T) {
 	})
 	t.Run("requires admin access", func(t *testing.T) {
 		srv, _ := NewServer(cfg, TestDBFinder, nil)
-		srv = auth.UserDefaultMiddleware()(srv) // Run all requests as regular user
+		srv = auth.UserDefaultMiddleware("")(srv) // Run all requests as regular user
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {feed_version_fetch(feed_onestop_id:"BA",url:$url){found_sha1}}`, &resp, client.Var("url", ts200.URL))
@@ -60,7 +60,7 @@ func TestValidationResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	srv, _ := NewServer(cfg, TestDBFinder, nil)
-	srv = auth.UserDefaultMiddleware()(srv) // Run all requests as user
+	srv = auth.UserDefaultMiddleware("")(srv) // Run all requests as user
 	c := client.New(srv)
 	vars := hw{"url": ts200.URL}
 	testcases := []testcase{
