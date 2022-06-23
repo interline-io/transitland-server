@@ -44,7 +44,7 @@ func GetUserMiddleware(authType string, cfg AuthConfig, client *redis.Client) (m
 
 // AdminDefaultMiddleware uses a default "admin" context.
 func AdminDefaultMiddleware(defaultName string) func(http.Handler) http.Handler {
-	return NewUserDefaultMiddleware(func() *User { return NewUser(defaultName).WithRoles("admin") })
+	return NewUserDefaultMiddleware(func() *User { return NewUser(defaultName).WithRoles("user", "admin") })
 }
 
 // UserDefaultMiddleware uses a default "user" context.

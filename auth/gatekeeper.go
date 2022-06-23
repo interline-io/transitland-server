@@ -2,13 +2,11 @@ package auth
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"sync"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -136,51 +134,4 @@ func (gk *Gatekeeper) getUser(ctx context.Context, userKey string) ([]string, er
 		roles = append(roles, r.String())
 	}
 	return roles, nil
-}
-
-////////
-
-// Trivial implementation of Gatekeeper for testing purposes
-type GatekeeperTestServer struct {
-	users  map[string]*User
-	counts map[string]int
-	lock   sync.Mutex
-}
-
-func (gk *GatekeeperTestServer) AddUser(key string, user *User) {
-	gk.lock.Lock()
-	defer gk.lock.Unlock()
-	if gk.users == nil {
-		gk.users = map[string]*User{}
-	}
-	gk.users[key] = NewUser(user.Name).WithRoles(user.roles...)
-
-}
-
-func (gk *GatekeeperTestServer) Handle(w http.ResponseWriter, r *http.Request) {
-	gk.lock.Lock()
-	defer gk.lock.Unlock()
-	u := r.URL.Query()
-	var user *User
-	if a := u["user"]; len(a) > 0 {
-		user = gk.users[a[0]]
-	}
-	if user != nil {
-		if gk.counts == nil {
-			gk.counts = map[string]int{}
-		}
-		gk.counts[user.Name] += 1
-		umap := map[string]any{
-			"name":  user.Name,
-			"roles": user.roles,
-		}
-		jb, err := json.Marshal(umap)
-		if err != nil {
-			http.Error(w, "json error", 500)
-		}
-		w.WriteHeader(200)
-		w.Write(jb)
-		return
-	}
-	http.Error(w, "error", 404)
 }
