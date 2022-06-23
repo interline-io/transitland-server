@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 	"time"
 
@@ -19,38 +18,16 @@ func TestGatekeeper(t *testing.T) {
 	// Mock users
 	testEmail := "test@transit.land"
 	testRole := "test_role"
-	users := map[string]*User{
-		testEmail:              NewUser(testEmail).WithRoles("user", testRole),
-		"refresh@transit.land": NewUser("refresh@transit.land").WithRoles("user", "refresh_test"),
-	}
+
+	// Test server
+	gkts := GatekeeperTestServer{}
+	gkts.AddUser(testEmail, NewUser(testEmail).WithRoles("user", testRole))
+	gkts.AddUser("refresh@transit.land", NewUser("refresh@transit.land").WithRoles("user", "refresh_test"))
 
 	// Mock gatekeeper api interface
-	requestCounts := map[string]int{}
-	requestCountLock := sync.Mutex{}
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Log("gatekeeper mock api get:", r.URL)
-		u := r.URL.Query()
-		var user *User
-		if a := u["user"]; len(a) > 0 {
-			user = users[a[0]]
-		}
-		if user != nil {
-			requestCountLock.Lock()
-			requestCounts[user.Name] += 1
-			requestCountLock.Unlock()
-			umap := map[string]any{
-				"name":  user.Name,
-				"roles": user.roles,
-			}
-			jb, err := json.Marshal(umap)
-			if err != nil {
-				panic(err)
-			}
-			w.WriteHeader(200)
-			w.Write(jb)
-			return
-		}
-		http.Error(w, "error", 404)
+		gkts.Handle(w, r)
 	}))
 	defer ts200.Close()
 
@@ -238,9 +215,7 @@ func TestGatekeeper(t *testing.T) {
 			func(t *testing.T) {
 				// Request count should be at least 10
 				time.Sleep(100 * time.Millisecond)
-				requestCountLock.Lock()
-				a := requestCounts["refresh@transit.land"]
-				requestCountLock.Unlock()
+				a := gkts.counts["refresh@transit.land"]
 				assert.GreaterOrEqual(t, a, 10)
 			},
 		},
