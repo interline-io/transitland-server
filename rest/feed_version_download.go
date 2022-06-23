@@ -122,9 +122,11 @@ func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 	allowed := false
 	fvsha1 := ""
 	if v, ok := checkfv["feed_versions"].([]interface{}); len(v) > 0 && ok {
-		found = true
 		if v2, ok := v[0].(hw); ok {
 			fvsha1 = v2["sha1"].(string)
+			if fvsha1 == key {
+				found = true
+			}
 			if v3, ok := v2["feed"].(hw); ok {
 				if v4, ok := v3["license"].(hw); ok {
 					if v4["redistribution_allowed"] != "no" {

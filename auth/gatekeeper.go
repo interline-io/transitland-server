@@ -19,7 +19,7 @@ import (
 // GatekeeperMiddleware checks an external endpoint for a list of roles
 func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, roleKey string, allowError bool) (mux.MiddlewareFunc, error) {
 	gk := NewGatekeeper(client, endpoint, param, roleKey)
-	gk.Start(1 * time.Second)
+	gk.Start(60 * time.Second)
 	return newGatekeeperMiddleware(gk, allowError), nil
 }
 
