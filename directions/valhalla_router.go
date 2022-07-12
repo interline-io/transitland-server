@@ -12,7 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
@@ -167,7 +167,7 @@ func makeValDirections(res *valhallaResponse, departAt time.Time) *model.Directi
 		// leg.From = awsWaypoint(awsleg.StartPosition)
 		// leg.To = awsWaypoint(awsleg.EndPosition)
 		prevLegDepartAt = leg.EndTime
-		leg.Geometry = tl.NewLineStringFromFlatCoords([]float64{})
+		leg.Geometry = tt.NewLineStringFromFlatCoords([]float64{})
 		itin.Legs = append(itin.Legs, &leg)
 	}
 	if len(itin.Legs) > 0 {

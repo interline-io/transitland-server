@@ -25,7 +25,7 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 			qView = qView.Where(sq.Eq{"tlros.onestop_id": where.RouteOnestopIds})
 		}
 		if where.ServiceDate != nil {
-			serviceDate := where.ServiceDate.Time
+			serviceDate := where.ServiceDate.Val
 			qView = qView.JoinClause(`
 			join lateral (
 				select gc.id

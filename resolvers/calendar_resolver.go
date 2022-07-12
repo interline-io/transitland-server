@@ -11,42 +11,42 @@ import (
 
 type calendarResolver struct{ *Resolver }
 
-// StartDate map time.Time to tl.ODate
-func (r *calendarResolver) StartDate(ctx context.Context, obj *model.Calendar) (*tl.ODate, error) {
-	a := tl.NewODate(obj.StartDate)
+// StartDate map time.Time to tl.Date
+func (r *calendarResolver) StartDate(ctx context.Context, obj *model.Calendar) (*tl.Date, error) {
+	a := tl.NewDate(obj.StartDate)
 	return &a, nil
 }
 
-// EndDate map time.Time to tl.ODate
-func (r *calendarResolver) EndDate(ctx context.Context, obj *model.Calendar) (*tl.ODate, error) {
-	a := tl.NewODate(obj.EndDate)
+// EndDate map time.Time to tl.Date
+func (r *calendarResolver) EndDate(ctx context.Context, obj *model.Calendar) (*tl.Date, error) {
+	a := tl.NewDate(obj.EndDate)
 	return &a, nil
 }
 
-func (r *calendarResolver) AddedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.ODate, error) {
+func (r *calendarResolver) AddedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.Date, error) {
 	ents, err := For(ctx).CalendarDatesByServiceID.Load(model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})
 	if err != nil {
 		return nil, err
 	}
-	ret := []*tl.ODate{}
+	ret := []*tl.Date{}
 	for _, ent := range ents {
 		if ent.ExceptionType == 1 {
-			x := tl.NewODate(ent.Date)
+			x := tl.NewDate(ent.Date)
 			ret = append(ret, &x)
 		}
 	}
 	return ret, nil
 }
 
-func (r *calendarResolver) RemovedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.ODate, error) {
+func (r *calendarResolver) RemovedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.Date, error) {
 	ents, err := For(ctx).CalendarDatesByServiceID.Load(model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})
 	if err != nil {
 		return nil, err
 	}
-	ret := []*tl.ODate{}
+	ret := []*tl.Date{}
 	for _, ent := range ents {
 		if ent.ExceptionType == 2 {
-			x := tl.NewODate(ent.Date)
+			x := tl.NewDate(ent.Date)
 			ret = append(ret, &x)
 		}
 	}

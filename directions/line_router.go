@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -90,7 +90,7 @@ func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, err
 	leg.Distance = valDistance(distance, "")
 	leg.StartTime = departAt
 	leg.EndTime = departAt.Add(time.Duration(duration) * time.Second)
-	leg.Geometry = tl.NewLineStringFromFlatCoords([]float64{
+	leg.Geometry = tt.NewLineStringFromFlatCoords([]float64{
 		req.From.Lon, req.From.Lat, 0.0,
 		req.To.Lon, req.To.Lat, 0.0,
 	})

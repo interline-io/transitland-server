@@ -8,6 +8,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 )
 
 type Feed struct {
@@ -95,7 +96,7 @@ type StopTimeEvent struct {
 	StopTimezone string      `json:"stop_timezone"`
 	Scheduled    tl.WideTime `json:"scheduled"`
 	Estimated    tl.WideTime `json:"estimated"`
-	EstimatedUtc tl.OTime    `json:"estimated_utc"`
+	EstimatedUtc tl.Time     `json:"estimated_utc"`
 	Delay        *int        `json:"delay"`
 	Uncertainty  *int        `json:"uncertainty"`
 }
@@ -160,16 +161,16 @@ type RouteStop struct {
 }
 
 type RouteHeadway struct {
-	ID             int      `json:"id"`
-	RouteID        int      `json:"route_id"`
-	SelectedStopID int      `json:"selected_stop_id"`
-	DirectionID    int      `json:"direction_id"`
-	HeadwaySecs    *int     `json:"headway_secs"`
-	DowCategory    *int     `json:"dow_category"`
-	ServiceDate    tl.ODate `json:"service_date"`
-	ServiceSeconds *int     `json:"service_seconds"`
-	StopTripCount  *int     `json:"stop_trip_count"`
-	Departures     tl.IntSlice
+	ID             int     `json:"id"`
+	RouteID        int     `json:"route_id"`
+	SelectedStopID int     `json:"selected_stop_id"`
+	DirectionID    int     `json:"direction_id"`
+	HeadwaySecs    *int    `json:"headway_secs"`
+	DowCategory    *int    `json:"dow_category"`
+	ServiceDate    tt.Date `json:"service_date"`
+	ServiceSeconds *int    `json:"service_seconds"`
+	StopTripCount  *int    `json:"stop_trip_count"`
+	Departures     tt.Ints
 }
 
 type RouteStopBuffer struct {
@@ -248,8 +249,8 @@ type ValidationResult struct {
 	Errors               []ValidationResultErrorGroup `json:"errors"`
 	Warnings             []ValidationResultErrorGroup `json:"warnings"`
 	Sha1                 string                       `json:"sha1"`
-	EarliestCalendarDate tl.ODate                     `json:"earliest_calendar_date"`
-	LatestCalendarDate   tl.ODate                     `json:"latest_calendar_date"`
+	EarliestCalendarDate tl.Date                      `json:"earliest_calendar_date"`
+	LatestCalendarDate   tl.Date                      `json:"latest_calendar_date"`
 	Files                []FeedVersionFileInfo        `json:"files"`
 	ServiceLevels        []FeedVersionServiceLevel    `json:"service_levels"`
 	Agencies             []Agency                     `json:"agencies"`

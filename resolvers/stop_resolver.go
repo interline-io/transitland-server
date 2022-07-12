@@ -31,14 +31,14 @@ func (r *stopResolver) Level(ctx context.Context, obj *model.Stop) (*model.Level
 	if !obj.LevelID.Valid {
 		return nil, nil
 	}
-	return For(ctx).LevelsByID.Load(atoi(obj.LevelID.Key))
+	return For(ctx).LevelsByID.Load(atoi(obj.LevelID.Val))
 }
 
 func (r *stopResolver) Parent(ctx context.Context, obj *model.Stop) (*model.Stop, error) {
 	if !obj.ParentStation.Valid {
 		return nil, nil
 	}
-	return For(ctx).StopsByID.Load(atoi(obj.ParentStation.Key))
+	return For(ctx).StopsByID.Load(atoi(obj.ParentStation.Val))
 }
 
 func (r *stopResolver) Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error) {
@@ -95,7 +95,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 			st, et := 0, 0
 			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
 			et = st + *where.Next
-			sd2 := tl.Date{Valid: true, Time: serviceDate}
+			sd2 := tl.NewDate(serviceDate)
 			where.ServiceDate = &sd2
 			where.StartTime = &st
 			where.EndTime = &et
@@ -107,19 +107,19 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 			if !ok {
 				return nil, errors.New("service level information not available for feed version")
 			}
-			s := where.ServiceDate.Time
+			s := where.ServiceDate.Val
 			if s.Before(sl.StartDate) || s.After(sl.EndDate) {
 				dow := int(s.Weekday()) - 1
 				if dow < 0 {
 					dow = 6
 				}
-				where.ServiceDate.Time = sl.BestWeek.AddDate(0, 0, dow)
+				where.ServiceDate.Val = sl.BestWeek.AddDate(0, 0, dow)
 				// fmt.Println(
 				// 	"service window, requested day:", s, s.Weekday(),
 				// 	"window start:", sl.StartDate,
 				// 	"window end:", sl.EndDate,
 				// 	"best week:", sl.BestWeek, sl.BestWeek.Weekday(),
-				// 	"switching to:", where.ServiceDate.Time, where.ServiceDate.Time.Weekday(),
+				// 	"switching to:", where.ServiceDate.Val, where.ServiceDate.Val.Weekday(),
 				// )
 			}
 		}
@@ -138,7 +138,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	// Add service date used in query, if any
 	if where != nil && where.ServiceDate != nil {
 		for _, st := range sts {
-			st.ServiceDate = tl.NewDate(where.ServiceDate.Time)
+			st.ServiceDate = tl.NewDate(where.ServiceDate.Val)
 		}
 	}
 

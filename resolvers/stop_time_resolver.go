@@ -82,7 +82,7 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, sched tl.WideTime, loc *time.Loca
 		t := time.Unix(ste.GetTime(), 0).UTC()
 		lt := t.In(loc)
 		a.Estimated = tl.NewWideTimeFromSeconds(lt.Hour()*3600 + lt.Minute()*60 + lt.Second())
-		a.EstimatedUtc = tl.NewOTime(t)
+		a.EstimatedUtc = tl.NewTime(t)
 	} else if ste.Delay != nil && sched.Valid {
 		// Create a local adjusted time
 		// Note: can't create an EstimatedUtc value because we'd have to guess the local date

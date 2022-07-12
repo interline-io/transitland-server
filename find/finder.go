@@ -154,25 +154,25 @@ func (f *DBFinder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (
 	}
 
 	// Check if we have feed infos, otherwise calculate based on fetched week or highest service week
-	fetched := ents[0].FetchedAt.Time
+	fetched := ents[0].FetchedAt.Val
 	if len(fis) > 0 && fis[0].FeedStartDate.Valid && fis[0].FeedEndDate.Valid {
 		// fmt.Println("using feed infos")
-		startDate = fis[0].FeedStartDate.Time
-		endDate = fis[0].FeedEndDate.Time
+		startDate = fis[0].FeedStartDate.Val
+		endDate = fis[0].FeedEndDate.Val
 	} else {
 		// Get the week which includes fetched_at date, and the highest service week
 		highestIdx := 0
 		highestService := -1
 		fetchedWeek := -1
 		for i, ent := range ents {
-			sd := ent.StartDate.Time
-			ed := ent.EndDate.Time
+			sd := ent.StartDate.Val
+			ed := ent.EndDate.Val
 			if (sd.Before(fetched) || sd.Equal(fetched)) && (ed.After(fetched) || ed.Equal(fetched)) {
 				fetchedWeek = i
 			}
-			if ent.TotalService.Int > highestService {
+			if ent.TotalService.Val > highestService {
 				highestIdx = i
-				highestService = ent.TotalService.Int
+				highestService = ent.TotalService.Val
 			}
 		}
 		if fetchedWeek < 0 {
@@ -182,48 +182,48 @@ func (f *DBFinder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (
 			// fmt.Println("using fetched week:", fetchedWeek)
 		}
 		// If the fetched week has bad service, use highest week
-		if float64(ents[fetchedWeek].TotalService.Int)/float64(highestService) < minServiceRatio {
+		if float64(ents[fetchedWeek].TotalService.Val)/float64(highestService) < minServiceRatio {
 			// fmt.Println("fetched week has poor service ratio, falling back to highest week:", fetchedWeek)
 			fetchedWeek = highestIdx
 		}
 
 		// Expand window in both directions from chosen week
-		startDate = ents[fetchedWeek].StartDate.Time
-		endDate = ents[fetchedWeek].EndDate.Time
+		startDate = ents[fetchedWeek].StartDate.Val
+		endDate = ents[fetchedWeek].EndDate.Val
 		for i := fetchedWeek; i < len(ents); i++ {
 			ent := ents[i]
-			if float64(ent.TotalService.Int)/float64(highestService) < minServiceRatio {
+			if float64(ent.TotalService.Val)/float64(highestService) < minServiceRatio {
 				break
 			}
-			if ent.StartDate.Time.Before(startDate) {
-				startDate = ent.StartDate.Time
+			if ent.StartDate.Val.Before(startDate) {
+				startDate = ent.StartDate.Val
 			}
-			endDate = ent.EndDate.Time
+			endDate = ent.EndDate.Val
 		}
 		for i := fetchedWeek - 1; i > 0; i-- {
 			ent := ents[i]
-			if float64(ent.TotalService.Int)/float64(highestService) < minServiceRatio {
+			if float64(ent.TotalService.Val)/float64(highestService) < minServiceRatio {
 				break
 			}
-			if ent.EndDate.Time.After(endDate) {
-				endDate = ent.EndDate.Time
+			if ent.EndDate.Val.After(endDate) {
+				endDate = ent.EndDate.Val
 			}
-			startDate = ent.StartDate.Time
+			startDate = ent.StartDate.Val
 		}
 	}
 
 	// Check again to find the highest service week in the window
 	// This will be used as the typical week for dates outside the window
 	// bestWeek must start with a Monday
-	bestWeek = ents[0].StartDate.Time
-	bestService := ents[0].TotalService.Int
+	bestWeek = ents[0].StartDate.Val
+	bestService := ents[0].TotalService.Val
 	for _, ent := range ents {
-		sd := ent.StartDate.Time
-		ed := ent.EndDate.Time
+		sd := ent.StartDate.Val
+		ed := ent.EndDate.Val
 		if (sd.Before(endDate) || sd.Equal(endDate)) && (ed.After(startDate) || ed.Equal(startDate)) {
-			if ent.TotalService.Int > bestService {
-				bestService = ent.TotalService.Int
-				bestWeek = ent.StartDate.Time
+			if ent.TotalService.Val > bestService {
+				bestService = ent.TotalService.Val
+				bestWeek = ent.StartDate.Val
 			}
 		}
 	}
