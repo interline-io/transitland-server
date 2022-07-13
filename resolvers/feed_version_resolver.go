@@ -80,5 +80,5 @@ func (r *feedVersionGtfsImportResolver) SkipEntityMarkedCount(ctx context.Contex
 }
 
 func (r *feedStateResolver) FeedVersion(ctx context.Context, obj *model.FeedState) (*model.FeedVersion, error) {
-	return For(ctx).FeedVersionsByID.Load(int(obj.FeedVersionID.Int))
+	return For(ctx).FeedVersionsByID.Load(int(obj.FeedVersionID.Val))
 }

@@ -51,7 +51,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 	// Where must already be set for local service date and timezone
 	serviceDate := time.Now()
 	if where != nil && where.ServiceDate != nil {
-		serviceDate = where.ServiceDate.Time
+		serviceDate = where.ServiceDate.Val
 	}
 	sids, fvids := pairKeys(spairs)
 	pqfvids := pq.Array(fvids)

@@ -252,6 +252,8 @@ github.com/imdario/mergo v0.3.9/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJ
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/interline-io/transitland-lib v0.10.4-0.20220607084244-3f75d5b3e4f5 h1:w64XADz7sWTK8fq/7lW+HPv02Ngn+FtHHtnPGtycinw=
 github.com/interline-io/transitland-lib v0.10.4-0.20220607084244-3f75d5b3e4f5/go.mod h1:nVCD68s2ug2qIwZoAIqzxmEt5UR4itbJLHWjvzXc8OY=
+github.com/interline-io/transitland-lib v0.10.4-0.20220713004518-6262a7235e0d h1:DlC3s6obUYuzy9mCEgTxgC9Dfb5+hZuHOz9ZtL5FG+Y=
+github.com/interline-io/transitland-lib v0.10.4-0.20220713004518-6262a7235e0d/go.mod h1:nVCD68s2ug2qIwZoAIqzxmEt5UR4itbJLHWjvzXc8OY=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af h1:sh8vAWJ+vr9izhkDAMS3JRGDIjj0tNVwxfwd+2U2xMo=
 github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af/go.mod h1:oZaomI+9/et52UBjvNU9LCIqmgt816+7ljXCx0EIPzo=
