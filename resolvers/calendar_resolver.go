@@ -12,13 +12,13 @@ import (
 
 type calendarResolver struct{ *Resolver }
 
-// StartDate map time.Time to tl.ODate
+// StartDate map time.Time to tl.Date
 func (r *calendarResolver) StartDate(ctx context.Context, obj *model.Calendar) (*tl.Date, error) {
 	a := tt.NewDate(obj.StartDate)
 	return &a, nil
 }
 
-// EndDate map time.Time to tl.ODate
+// EndDate map time.Time to tl.Date
 func (r *calendarResolver) EndDate(ctx context.Context, obj *model.Calendar) (*tl.Date, error) {
 	a := tt.NewDate(obj.EndDate)
 	return &a, nil

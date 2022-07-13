@@ -35,7 +35,7 @@ models:
   String:
     model:
       - "github.com/99designs/gqlgen/graphql.String"
-      - "github.com/interline-io/transitland-lib/tl.OString"
+      - "github.com/interline-io/transitland-lib/tl.String"
   Tags:
     model: "github.com/interline-io/transitland-lib/tl.Tags"
   Polygon:
@@ -50,11 +50,11 @@ models:
     model: "github.com/interline-io/transitland-lib/tl.Geometry"    
   Date:
     model: 
-      - "github.com/interline-io/transitland-lib/tl.ODate"      
+      - "github.com/interline-io/transitland-lib/tl.Date"      
   Time:
     model:
       - "github.com/99designs/gqlgen/graphql.Time"
-      - "github.com/interline-io/transitland-lib/tl.OTime"
+      - "github.com/interline-io/transitland-lib/tl.Time"
   ID:
     model:
       - "github.com/99designs/gqlgen/graphql.ID"
@@ -66,7 +66,7 @@ models:
       - "github.com/99designs/gqlgen/graphql.Int"
       - "github.com/99designs/gqlgen/graphql.Int64"
       - "github.com/99designs/gqlgen/graphql.Int32"
-      - "github.com/interline-io/transitland-lib/tl.OInt"
+      - "github.com/interline-io/transitland-lib/tl.Int"
   Float:
     model:
       - "github.com/99designs/gqlgen/graphql.Float"
