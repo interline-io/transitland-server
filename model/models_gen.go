@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 )
 
 type AgencyFilter struct {
@@ -18,7 +18,7 @@ type AgencyFilter struct {
 	AgencyID        *string `json:"agency_id"`
 	// Search for records with this GTFS agency_name
 	AgencyName *string     `json:"agency_name"`
-	Within     *tl.Polygon `json:"within"`
+	Within     *tt.Polygon `json:"within"`
 	// Search for agencies within a radius
 	Near *PointRadius `json:"near"`
 	// Full text search
@@ -53,7 +53,7 @@ type Alert struct {
 }
 
 type CalendarDateFilter struct {
-	Date          *tl.Date `json:"date"`
+	Date          *tt.Date `json:"date"`
 	ExceptionType *int     `json:"exception_type"`
 }
 
@@ -103,7 +103,7 @@ type FeedFilter struct {
 	// Full text search
 	Search *string `json:"search"`
 	// Search for feeds with a tag
-	Tags *tl.Tags `json:"tags"`
+	Tags *tt.Tags `json:"tags"`
 	// Search for feeds by their source URLs
 	SourceURL *FeedSourceURL `json:"source_url"`
 }
@@ -126,8 +126,8 @@ type FeedVersionFilter struct {
 }
 
 type FeedVersionServiceLevelFilter struct {
-	StartDate *tl.Date `json:"start_date"`
-	EndDate   *tl.Date `json:"end_date"`
+	StartDate *tt.Date `json:"start_date"`
+	EndDate   *tt.Date `json:"end_date"`
 }
 
 type FeedVersionSetInput struct {
@@ -157,7 +157,7 @@ type Leg struct {
 	From      *Waypoint     `json:"from"`
 	To        *Waypoint     `json:"to"`
 	Steps     []*Step       `json:"steps"`
-	Geometry  tl.LineString `json:"geometry"`
+	Geometry  tt.LineString `json:"geometry"`
 }
 
 type OperatorFilter struct {
@@ -166,7 +166,7 @@ type OperatorFilter struct {
 	FeedOnestopID *string  `json:"feed_onestop_id"`
 	AgencyID      *string  `json:"agency_id"`
 	Search        *string  `json:"search"`
-	Tags          *tl.Tags `json:"tags"`
+	Tags          *tt.Tags `json:"tags"`
 	CityName      *string  `json:"city_name"`
 	Adm0Name      *string  `json:"adm0_name"`
 	Adm1Name      *string  `json:"adm1_name"`
@@ -201,8 +201,8 @@ type RTTripDescriptor struct {
 	TripID               *string      `json:"trip_id"`
 	RouteID              *string      `json:"route_id"`
 	DirectionID          *int         `json:"direction_id"`
-	StartTime            *tl.WideTime `json:"start_time"`
-	StartDate            *tl.Date     `json:"start_date"`
+	StartTime            *tt.WideTime `json:"start_time"`
+	StartDate            *tt.Date     `json:"start_date"`
 	ScheduleRelationship *string      `json:"schedule_relationship"`
 }
 
@@ -221,7 +221,7 @@ type RouteFilter struct {
 	FeedOnestopID           *string      `json:"feed_onestop_id"`
 	RouteID                 *string      `json:"route_id"`
 	RouteType               *int         `json:"route_type"`
-	Within                  *tl.Polygon  `json:"within"`
+	Within                  *tt.Polygon  `json:"within"`
 	Near                    *PointRadius `json:"near"`
 	Search                  *string      `json:"search"`
 	OperatorOnestopID       *string      `json:"operator_onestop_id"`
@@ -247,7 +247,7 @@ type StopFilter struct {
 	FeedOnestopID           *string      `json:"feed_onestop_id"`
 	StopID                  *string      `json:"stop_id"`
 	StopCode                *string      `json:"stop_code"`
-	Within                  *tl.Polygon  `json:"within"`
+	Within                  *tt.Polygon  `json:"within"`
 	Near                    *PointRadius `json:"near"`
 	Search                  *string      `json:"search"`
 	ServedByOnestopIds      []string     `json:"served_by_onestop_ids"`
@@ -255,12 +255,12 @@ type StopFilter struct {
 }
 
 type StopTimeFilter struct {
-	ServiceDate                  *tl.Date     `json:"service_date"`
+	ServiceDate                  *tt.Date     `json:"service_date"`
 	UseServiceWindow             *bool        `json:"use_service_window"`
 	StartTime                    *int         `json:"start_time"`
 	EndTime                      *int         `json:"end_time"`
-	Start                        *tl.WideTime `json:"start"`
-	End                          *tl.WideTime `json:"end"`
+	Start                        *tt.WideTime `json:"start"`
+	End                          *tt.WideTime `json:"end"`
 	Next                         *int         `json:"next"`
 	RouteOnestopIds              []string     `json:"route_onestop_ids"`
 	AllowPreviousRouteOnestopIds *bool        `json:"allow_previous_route_onestop_ids"`
@@ -269,7 +269,7 @@ type StopTimeFilter struct {
 }
 
 type TripFilter struct {
-	ServiceDate     *tl.Date `json:"service_date"`
+	ServiceDate     *tt.Date `json:"service_date"`
 	TripID          *string  `json:"trip_id"`
 	RouteIds        []int    `json:"route_ids"`
 	RouteOnestopIds []string `json:"route_onestop_ids"`
@@ -280,7 +280,7 @@ type TripFilter struct {
 // [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
 type VehiclePosition struct {
 	Vehicle             *RTVehicleDescriptor `json:"vehicle"`
-	Position            *tl.Point            `json:"position"`
+	Position            *tt.Point            `json:"position"`
 	CurrentStopSequence *int                 `json:"current_stop_sequence"`
 	StopID              *Stop                `json:"stop_id"`
 	CurrentStatus       *string              `json:"current_status"`

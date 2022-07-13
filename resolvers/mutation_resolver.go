@@ -15,6 +15,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/causes"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlcsv"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/validator"
@@ -85,7 +86,7 @@ func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *strin
 		FeedID:    feed.ID,
 		Directory: cfg.GtfsDir,
 		S3:        cfg.GtfsS3Bucket,
-		CreatedBy: tl.NewOString(user.Name),
+		CreatedBy: tt.NewString(user.Name),
 	}
 	if src != nil {
 		// Prepare reader
@@ -151,8 +152,8 @@ func ValidateUpload(cfg config.Config, src io.Reader, feedURL *string, rturls []
 	}
 	//////
 	result := model.ValidationResult{}
-	result.EarliestCalendarDate = tl.ODate{}
-	result.LatestCalendarDate = tl.ODate{}
+	result.EarliestCalendarDate = tl.Date{}
+	result.LatestCalendarDate = tl.Date{}
 	var reader tl.Reader
 	if src != nil {
 		// Prepare reader

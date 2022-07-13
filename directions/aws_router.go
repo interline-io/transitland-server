@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/location/types"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
@@ -193,7 +194,7 @@ func awsLineString(v [][]float64) tl.LineString {
 			coords = append(coords, coord[0], coord[1], 0)
 		}
 	}
-	return tl.NewLineStringFromFlatCoords(coords)
+	return tt.NewLineStringFromFlatCoords(coords)
 }
 
 func awsWaypoint(v []float64) *model.Waypoint {

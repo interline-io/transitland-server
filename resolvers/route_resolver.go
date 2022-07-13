@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -71,8 +72,8 @@ func (r *routeHeadwayResolver) Stop(ctx context.Context, obj *model.RouteHeadway
 
 func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tl.WideTime, error) {
 	var ret []*tl.WideTime
-	for _, v := range obj.Departures.Ints {
-		w := tl.NewWideTimeFromSeconds(v)
+	for _, v := range obj.Departures.Val {
+		w := tt.NewWideTimeFromSeconds(v)
 		ret = append(ret, &w)
 	}
 	return ret, nil

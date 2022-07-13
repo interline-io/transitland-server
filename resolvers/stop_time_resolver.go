@@ -7,6 +7,7 @@ import (
 
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -81,12 +82,12 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, sched tl.WideTime, loc *time.Loca
 	if ste.Time != nil {
 		t := time.Unix(ste.GetTime(), 0).UTC()
 		lt := t.In(loc)
-		a.Estimated = tl.NewWideTimeFromSeconds(lt.Hour()*3600 + lt.Minute()*60 + lt.Second())
-		a.EstimatedUtc = tl.NewOTime(t)
+		a.Estimated = tt.NewWideTimeFromSeconds(lt.Hour()*3600 + lt.Minute()*60 + lt.Second())
+		a.EstimatedUtc = tt.NewTime(t)
 	} else if ste.Delay != nil && sched.Valid {
 		// Create a local adjusted time
 		// Note: can't create an EstimatedUtc value because we'd have to guess the local date
-		a.Estimated = tl.NewWideTimeFromSeconds(sched.Seconds + int(*ste.Delay))
+		a.Estimated = tt.NewWideTimeFromSeconds(sched.Seconds + int(*ste.Delay))
 	}
 	if ste.Delay != nil {
 		v := int(ste.GetDelay())
