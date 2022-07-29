@@ -54,6 +54,7 @@ type Loaders struct {
 	StopTimesByTripID                       dl.StopTimeWhereLoader
 	StopTimesByStopID                       dl.StopTimeWhereLoader
 	RouteStopsByRouteID                     dl.RouteStopWhereLoader
+	RouteStopPatternsByRouteID              dl.RouteStopPatternWhereLoader
 	RouteStopsByStopID                      dl.RouteStopWhereLoader
 	RouteHeadwaysByRouteID                  dl.RouteHeadwayWhereLoader
 	RoutesByAgencyID                        dl.RouteWhereLoader
@@ -187,6 +188,13 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				Wait:     WAIT,
 				Fetch: func(a []model.RouteHeadwayParam) ([][]*model.RouteHeadway, []error) {
 					return finder.RouteHeadwaysByRouteID(ctx, a)
+				},
+			}),
+			RouteStopPatternsByRouteID: *dl.NewRouteStopPatternWhereLoader(dl.RouteStopPatternWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch: func(a []model.RouteStopPatternParam) ([][]*model.RouteStopPattern, []error) {
+					return finder.RouteStopPatternsByRouteID(ctx, a)
 				},
 			}),
 			FeedVersionFileInfosByFeedVersionID: *dl.NewFeedVersionFileInfoWhereLoader(dl.FeedVersionFileInfoWhereLoaderConfig{

@@ -145,3 +145,7 @@ type RouteStopBufferParam struct {
 	Radius   *float64
 	Limit    *int
 }
+
+type RouteStopPatternParam struct {
+	RouteID int
+}

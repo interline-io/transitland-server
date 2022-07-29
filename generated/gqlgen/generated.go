@@ -53,6 +53,7 @@ type ResolverRoot interface {
 	Route() RouteResolver
 	RouteHeadway() RouteHeadwayResolver
 	RouteStop() RouteStopResolver
+	RouteStopPattern() RouteStopPatternResolver
 	Stop() StopResolver
 	StopTime() StopTimeResolver
 	Trip() TripResolver
@@ -451,6 +452,7 @@ type ComplexityRoot struct {
 		Headways          func(childComplexity int, limit *int) int
 		ID                func(childComplexity int) int
 		OnestopID         func(childComplexity int) int
+		Patterns          func(childComplexity int) int
 		RouteColor        func(childComplexity int) int
 		RouteDesc         func(childComplexity int) int
 		RouteID           func(childComplexity int) int
@@ -500,6 +502,13 @@ type ComplexityRoot struct {
 		StopBuffer     func(childComplexity int) int
 		StopConvexhull func(childComplexity int) int
 		StopPoints     func(childComplexity int) int
+	}
+
+	RouteStopPattern struct {
+		Count         func(childComplexity int) int
+		DirectionID   func(childComplexity int) int
+		StopPatternID func(childComplexity int) int
+		Trips         func(childComplexity int, limit *int) int
 	}
 
 	Shape struct {
@@ -747,6 +756,7 @@ type RouteResolver interface {
 	Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error)
 	CensusGeographies(ctx context.Context, obj *model.Route, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error)
+	Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error)
 	Alerts(ctx context.Context, obj *model.Route) ([]*model.Alert, error)
 }
 type RouteHeadwayResolver interface {
@@ -758,6 +768,9 @@ type RouteStopResolver interface {
 	Route(ctx context.Context, obj *model.RouteStop) (*model.Route, error)
 	Stop(ctx context.Context, obj *model.RouteStop) (*model.Stop, error)
 	Agency(ctx context.Context, obj *model.RouteStop) (*model.Agency, error)
+}
+type RouteStopPatternResolver interface {
+	Trips(ctx context.Context, obj *model.RouteStopPattern, limit *int) ([]*model.Trip, error)
 }
 type StopResolver interface {
 	FeedVersion(ctx context.Context, obj *model.Stop) (*model.FeedVersion, error)
@@ -2905,6 +2918,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Route.OnestopID(childComplexity), true
 
+	case "Route.patterns":
+		if e.complexity.Route.Patterns == nil {
+			break
+		}
+
+		return e.complexity.Route.Patterns(childComplexity), true
+
 	case "Route.route_color":
 		if e.complexity.Route.RouteColor == nil {
 			break
@@ -3183,6 +3203,39 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RouteStopBuffer.StopPoints(childComplexity), true
+
+	case "RouteStopPattern.count":
+		if e.complexity.RouteStopPattern.Count == nil {
+			break
+		}
+
+		return e.complexity.RouteStopPattern.Count(childComplexity), true
+
+	case "RouteStopPattern.direction_id":
+		if e.complexity.RouteStopPattern.DirectionID == nil {
+			break
+		}
+
+		return e.complexity.RouteStopPattern.DirectionID(childComplexity), true
+
+	case "RouteStopPattern.stop_pattern_id":
+		if e.complexity.RouteStopPattern.StopPatternID == nil {
+			break
+		}
+
+		return e.complexity.RouteStopPattern.StopPatternID(childComplexity), true
+
+	case "RouteStopPattern.trips":
+		if e.complexity.RouteStopPattern.Trips == nil {
+			break
+		}
+
+		args, err := ec.field_RouteStopPattern_trips_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.RouteStopPattern.Trips(childComplexity, args["limit"].(*int)), true
 
 	case "Shape.generated":
 		if e.complexity.Shape.Generated == nil {
@@ -4436,6 +4489,7 @@ type Route {
   geometries(limit: Int): [RouteGeometry!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   route_stop_buffer(radius: Float): RouteStopBuffer!
+  patterns: [RouteStopPattern!]
   alerts: [Alert!]
 }
 
@@ -4623,6 +4677,15 @@ type RouteStop {
   route: Route!
   stop: Stop!
   agency: Agency!
+}
+
+type RouteStopPattern {
+  stop_pattern_id: Int!
+  direction_id: Int!
+  count: Int!
+  trips(limit: Int): [Trip!]
+  # trip_headsign?
+  # shape?
 }
 
 type RouteGeometry {
@@ -5075,6 +5138,7 @@ input PathwayFilter {
 input TripFilter {
   service_date: Date
   trip_id: String
+  stop_pattern_id: Int
   route_ids: [Int!] # keep?
   route_onestop_ids: [String!] # keep?
   feed_version_sha1: String
@@ -5949,6 +6013,21 @@ func (ec *executionContext) field_Query_trips_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["where"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_RouteStopPattern_trips_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
 	return args, nil
 }
 
@@ -7360,6 +7439,8 @@ func (ec *executionContext) fieldContext_Agency_routes(ctx context.Context, fiel
 				return ec.fieldContext_Route_census_geographies(ctx, field)
 			case "route_stop_buffer":
 				return ec.fieldContext_Route_route_stop_buffer(ctx, field)
+			case "patterns":
+				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
 			}
@@ -13484,6 +13565,8 @@ func (ec *executionContext) fieldContext_FeedVersion_routes(ctx context.Context,
 				return ec.fieldContext_Route_census_geographies(ctx, field)
 			case "route_stop_buffer":
 				return ec.fieldContext_Route_route_stop_buffer(ctx, field)
+			case "patterns":
+				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
 			}
@@ -18775,6 +18858,8 @@ func (ec *executionContext) fieldContext_Query_routes(ctx context.Context, field
 				return ec.fieldContext_Route_census_geographies(ctx, field)
 			case "route_stop_buffer":
 				return ec.fieldContext_Route_route_stop_buffer(ctx, field)
+			case "patterns":
+				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
 			}
@@ -21285,6 +21370,57 @@ func (ec *executionContext) fieldContext_Route_route_stop_buffer(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Route_patterns(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Route_patterns(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Route().Patterns(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RouteStopPattern)
+	fc.Result = res
+	return ec.marshalORouteStopPattern2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopPatternᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Route_patterns(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "stop_pattern_id":
+				return ec.fieldContext_RouteStopPattern_stop_pattern_id(ctx, field)
+			case "direction_id":
+				return ec.fieldContext_RouteStopPattern_direction_id(ctx, field)
+			case "count":
+				return ec.fieldContext_RouteStopPattern_count(ctx, field)
+			case "trips":
+				return ec.fieldContext_RouteStopPattern_trips(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RouteStopPattern", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Route_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Route_alerts(ctx, field)
 	if err != nil {
@@ -22214,6 +22350,8 @@ func (ec *executionContext) fieldContext_RouteStop_route(ctx context.Context, fi
 				return ec.fieldContext_Route_census_geographies(ctx, field)
 			case "route_stop_buffer":
 				return ec.fieldContext_Route_route_stop_buffer(ctx, field)
+			case "patterns":
+				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
 			}
@@ -22534,6 +22672,228 @@ func (ec *executionContext) fieldContext_RouteStopBuffer_stop_convexhull(ctx con
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Polygon does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RouteStopPattern_stop_pattern_id(ctx context.Context, field graphql.CollectedField, obj *model.RouteStopPattern) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RouteStopPattern_stop_pattern_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopPatternID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RouteStopPattern_stop_pattern_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RouteStopPattern",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RouteStopPattern_direction_id(ctx context.Context, field graphql.CollectedField, obj *model.RouteStopPattern) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RouteStopPattern_direction_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DirectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RouteStopPattern_direction_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RouteStopPattern",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RouteStopPattern_count(ctx context.Context, field graphql.CollectedField, obj *model.RouteStopPattern) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RouteStopPattern_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RouteStopPattern_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RouteStopPattern",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RouteStopPattern_trips(ctx context.Context, field graphql.CollectedField, obj *model.RouteStopPattern) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RouteStopPattern_trips(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.RouteStopPattern().Trips(rctx, obj, fc.Args["limit"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Trip)
+	fc.Result = res
+	return ec.marshalOTrip2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RouteStopPattern_trips(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RouteStopPattern",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Trip_id(ctx, field)
+			case "trip_id":
+				return ec.fieldContext_Trip_trip_id(ctx, field)
+			case "trip_headsign":
+				return ec.fieldContext_Trip_trip_headsign(ctx, field)
+			case "trip_short_name":
+				return ec.fieldContext_Trip_trip_short_name(ctx, field)
+			case "direction_id":
+				return ec.fieldContext_Trip_direction_id(ctx, field)
+			case "block_id":
+				return ec.fieldContext_Trip_block_id(ctx, field)
+			case "wheelchair_accessible":
+				return ec.fieldContext_Trip_wheelchair_accessible(ctx, field)
+			case "bikes_allowed":
+				return ec.fieldContext_Trip_bikes_allowed(ctx, field)
+			case "stop_pattern_id":
+				return ec.fieldContext_Trip_stop_pattern_id(ctx, field)
+			case "calendar":
+				return ec.fieldContext_Trip_calendar(ctx, field)
+			case "route":
+				return ec.fieldContext_Trip_route(ctx, field)
+			case "shape":
+				return ec.fieldContext_Trip_shape(ctx, field)
+			case "feed_version":
+				return ec.fieldContext_Trip_feed_version(ctx, field)
+			case "stop_times":
+				return ec.fieldContext_Trip_stop_times(ctx, field)
+			case "frequencies":
+				return ec.fieldContext_Trip_frequencies(ctx, field)
+			case "schedule_relationship":
+				return ec.fieldContext_Trip_schedule_relationship(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_Trip_timestamp(ctx, field)
+			case "alerts":
+				return ec.fieldContext_Trip_alerts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Trip", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_RouteStopPattern_trips_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -26454,6 +26814,8 @@ func (ec *executionContext) fieldContext_Trip_route(ctx context.Context, field g
 				return ec.fieldContext_Route_census_geographies(ctx, field)
 			case "route_stop_buffer":
 				return ec.fieldContext_Route_route_stop_buffer(ctx, field)
+			case "patterns":
+				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
 			}
@@ -27548,6 +27910,8 @@ func (ec *executionContext) fieldContext_ValidationResult_routes(ctx context.Con
 				return ec.fieldContext_Route_census_geographies(ctx, field)
 			case "route_stop_buffer":
 				return ec.fieldContext_Route_route_stop_buffer(ctx, field)
+			case "patterns":
+				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
 			}
@@ -31558,7 +31922,7 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"service_date", "trip_id", "route_ids", "route_onestop_ids", "feed_version_sha1", "feed_onestop_id"}
+	fieldsInOrder := [...]string{"service_date", "trip_id", "stop_pattern_id", "route_ids", "route_onestop_ids", "feed_version_sha1", "feed_onestop_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31578,6 +31942,14 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trip_id"))
 			it.TripID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stop_pattern_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_pattern_id"))
+			it.StopPatternID, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34987,6 +35359,23 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 				return innerFunc(ctx)
 
 			})
+		case "patterns":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Route_patterns(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "alerts":
 			field := field
 
@@ -35272,6 +35661,65 @@ func (ec *executionContext) _RouteStopBuffer(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._RouteStopBuffer_stop_convexhull(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var routeStopPatternImplementors = []string{"RouteStopPattern"}
+
+func (ec *executionContext) _RouteStopPattern(ctx context.Context, sel ast.SelectionSet, obj *model.RouteStopPattern) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, routeStopPatternImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RouteStopPattern")
+		case "stop_pattern_id":
+
+			out.Values[i] = ec._RouteStopPattern_stop_pattern_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "direction_id":
+
+			out.Values[i] = ec._RouteStopPattern_direction_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "count":
+
+			out.Values[i] = ec._RouteStopPattern_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "trips":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RouteStopPattern_trips(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38306,6 +38754,16 @@ func (ec *executionContext) marshalNRouteStopBuffer2ᚖgithubᚗcomᚋinterline�
 	return ec._RouteStopBuffer(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNRouteStopPattern2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopPattern(ctx context.Context, sel ast.SelectionSet, v *model.RouteStopPattern) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RouteStopPattern(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, v interface{}) (tt.WideTime, error) {
 	var res tt.WideTime
 	err := res.UnmarshalGQL(v)
@@ -40110,6 +40568,53 @@ func (ec *executionContext) unmarshalORouteFilter2ᚖgithubᚗcomᚋinterlineᚑ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalORouteStopPattern2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopPatternᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RouteStopPattern) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRouteStopPattern2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopPattern(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOScheduleRelationship2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐScheduleRelationship(ctx context.Context, v interface{}) (*model.ScheduleRelationship, error) {
 	if v == nil {
 		return nil, nil
@@ -40471,6 +40976,53 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	}
 	res := graphql.MarshalTime(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTrip2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Trip) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTrip(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOTripFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripFilter(ctx context.Context, v interface{}) (*model.TripFilter, error) {
