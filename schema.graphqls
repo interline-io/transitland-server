@@ -316,6 +316,7 @@ type Stop {
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
+  nearby_stops(limit: Int, radius: Float): [Stop!]
   alerts: [Alert!]
 }
 

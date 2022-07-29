@@ -206,3 +206,18 @@ func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *mo
 	}
 	return directions.HandleRequest("", p)
 }
+
+func (r *stopResolver) NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error) {
+	c := obj.Coordinates()
+	nearbyStops, err := r.finder.FindStops(ctx, limit, nil, nil, &model.StopFilter{Near: &model.PointRadius{Lon: c[0], Lat: c[1], Radius: checkFloat(radius, 0, 10_000)}})
+	return nearbyStops, err
+}
+
+func checkFloat(v *float64, min float64, max float64) float64 {
+	if v == nil || *v < min {
+		return min
+	} else if *v > max {
+		return max
+	}
+	return *v
+}

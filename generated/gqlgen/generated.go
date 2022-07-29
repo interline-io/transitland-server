@@ -543,6 +543,7 @@ type ComplexityRoot struct {
 		ID                 func(childComplexity int) int
 		Level              func(childComplexity int) int
 		LocationType       func(childComplexity int) int
+		NearbyStops        func(childComplexity int, limit *int, radius *float64) int
 		OnestopID          func(childComplexity int) int
 		Parent             func(childComplexity int) int
 		PathwaysFromStop   func(childComplexity int, limit *int) int
@@ -786,6 +787,7 @@ type StopResolver interface {
 
 	CensusGeographies(ctx context.Context, obj *model.Stop, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	Directions(ctx context.Context, obj *model.Stop, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error)
+	NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error)
 	Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error)
 }
 type StopTimeResolver interface {
@@ -3437,6 +3439,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.LocationType(childComplexity), true
 
+	case "Stop.nearby_stops":
+		if e.complexity.Stop.NearbyStops == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_nearby_stops_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.NearbyStops(childComplexity, args["limit"].(*int), args["radius"].(*float64)), true
+
 	case "Stop.onestop_id":
 		if e.complexity.Stop.OnestopID == nil {
 			break
@@ -4526,6 +4540,7 @@ type Stop {
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
+  nearby_stops(limit: Int, radius: Float): [Stop!]
   alerts: [Alert!]
 }
 
@@ -6307,6 +6322,30 @@ func (ec *executionContext) field_Stop_directions_args(ctx context.Context, rawA
 		}
 	}
 	args["depart_at"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Stop_nearby_stops_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *float64
+	if tmp, ok := rawArgs["radius"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("radius"))
+		arg1, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["radius"] = arg1
 	return args, nil
 }
 
@@ -13684,6 +13723,8 @@ func (ec *executionContext) fieldContext_FeedVersion_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -18371,6 +18412,8 @@ func (ec *executionContext) fieldContext_Pathway_from_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -18477,6 +18520,8 @@ func (ec *executionContext) fieldContext_Pathway_to_stop(ctx context.Context, fi
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -18977,6 +19022,8 @@ func (ec *executionContext) fieldContext_Query_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -21006,6 +21053,8 @@ func (ec *executionContext) fieldContext_Route_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -21828,6 +21877,8 @@ func (ec *executionContext) fieldContext_RouteHeadway_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -22458,6 +22509,8 @@ func (ec *executionContext) fieldContext_RouteStop_stop(ctx context.Context, fie
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -24372,6 +24425,8 @@ func (ec *executionContext) fieldContext_Stop_parent(ctx context.Context, field 
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -24475,6 +24530,8 @@ func (ec *executionContext) fieldContext_Stop_children(ctx context.Context, fiel
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -25181,6 +25238,122 @@ func (ec *executionContext) fieldContext_Stop_directions(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Stop_nearby_stops(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stop_nearby_stops(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().NearbyStops(rctx, obj, fc.Args["limit"].(*int), fc.Args["radius"].(*float64))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Stop)
+	fc.Result = res
+	return ec.marshalOStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stop_nearby_stops(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Stop_id(ctx, field)
+			case "onestop_id":
+				return ec.fieldContext_Stop_onestop_id(ctx, field)
+			case "location_type":
+				return ec.fieldContext_Stop_location_type(ctx, field)
+			case "stop_code":
+				return ec.fieldContext_Stop_stop_code(ctx, field)
+			case "stop_desc":
+				return ec.fieldContext_Stop_stop_desc(ctx, field)
+			case "stop_id":
+				return ec.fieldContext_Stop_stop_id(ctx, field)
+			case "stop_name":
+				return ec.fieldContext_Stop_stop_name(ctx, field)
+			case "stop_timezone":
+				return ec.fieldContext_Stop_stop_timezone(ctx, field)
+			case "stop_url":
+				return ec.fieldContext_Stop_stop_url(ctx, field)
+			case "wheelchair_boarding":
+				return ec.fieldContext_Stop_wheelchair_boarding(ctx, field)
+			case "zone_id":
+				return ec.fieldContext_Stop_zone_id(ctx, field)
+			case "platform_code":
+				return ec.fieldContext_Stop_platform_code(ctx, field)
+			case "tts_stop_name":
+				return ec.fieldContext_Stop_tts_stop_name(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Stop_geometry(ctx, field)
+			case "feed_version_sha1":
+				return ec.fieldContext_Stop_feed_version_sha1(ctx, field)
+			case "feed_onestop_id":
+				return ec.fieldContext_Stop_feed_onestop_id(ctx, field)
+			case "feed_version":
+				return ec.fieldContext_Stop_feed_version(ctx, field)
+			case "level":
+				return ec.fieldContext_Stop_level(ctx, field)
+			case "parent":
+				return ec.fieldContext_Stop_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_Stop_children(ctx, field)
+			case "route_stops":
+				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "pathways_from_stop":
+				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
+			case "pathways_to_stop":
+				return ec.fieldContext_Stop_pathways_to_stop(ctx, field)
+			case "stop_times":
+				return ec.fieldContext_Stop_stop_times(ctx, field)
+			case "departures":
+				return ec.fieldContext_Stop_departures(ctx, field)
+			case "arrivals":
+				return ec.fieldContext_Stop_arrivals(ctx, field)
+			case "search_rank":
+				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "census_geographies":
+				return ec.fieldContext_Stop_census_geographies(ctx, field)
+			case "directions":
+				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
+			case "alerts":
+				return ec.fieldContext_Stop_alerts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Stop_nearby_stops_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Stop_alerts(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Stop_alerts(ctx, field)
 	if err != nil {
@@ -25676,6 +25849,8 @@ func (ec *executionContext) fieldContext_StopTime_stop(ctx context.Context, fiel
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -28029,6 +28204,8 @@ func (ec *executionContext) fieldContext_ValidationResult_stops(ctx context.Cont
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -28849,6 +29026,8 @@ func (ec *executionContext) fieldContext_VehiclePosition_stop_id(ctx context.Con
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
 				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
@@ -36195,6 +36374,23 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "nearby_stops":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_nearby_stops(ctx, field, obj)
 				return res
 			}
 
