@@ -861,6 +861,41 @@ func (f *DBFinder) RouteHeadwaysByRouteID(ctx context.Context, params []model.Ro
 	return ents, nil
 }
 
+func (f *DBFinder) RouteStopPatternsByRouteID(ctx context.Context, params []model.RouteStopPatternParam) ([][]*model.RouteStopPattern, []error) {
+	if len(params) == 0 {
+		return nil, nil
+	}
+	ids := []int{}
+	for _, p := range params {
+		ids = append(ids, p.RouteID)
+	}
+	var qents []*model.RouteStopPattern
+	q := sq.StatementBuilder.
+		Select("route_id", "direction_id", "stop_pattern_id", "count(*) as count").
+		From("gtfs_trips").
+		Where(sq.Eq{"route_id": ids}).
+		GroupBy("route_id,direction_id,stop_pattern_id").
+		OrderBy("route_id,count desc").
+		Limit(1000)
+	err := Select(ctx,
+		f.db,
+		q,
+		&qents,
+	)
+	if err != nil {
+		return nil, logExtendErr(len(params), err)
+	}
+	group := map[int][]*model.RouteStopPattern{}
+	for _, ent := range qents {
+		group[ent.RouteID] = append(group[ent.RouteID], ent)
+	}
+	var ents [][]*model.RouteStopPattern
+	for _, id := range ids {
+		ents = append(ents, group[id])
+	}
+	return ents, nil
+}
+
 func (f *DBFinder) FeedVersionFileInfosByFeedVersionID(ctx context.Context, params []model.FeedVersionFileInfoParam) ([][]*model.FeedVersionFileInfo, []error) {
 	if len(params) == 0 {
 		return nil, nil

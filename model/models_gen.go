@@ -271,6 +271,7 @@ type StopTimeFilter struct {
 type TripFilter struct {
 	ServiceDate     *tt.Date `json:"service_date"`
 	TripID          *string  `json:"trip_id"`
+	StopPatternID   *int     `json:"stop_pattern_id"`
 	RouteIds        []int    `json:"route_ids"`
 	RouteOnestopIds []string `json:"route_onestop_ids"`
 	FeedVersionSha1 *string  `json:"feed_version_sha1"`

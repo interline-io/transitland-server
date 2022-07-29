@@ -172,6 +172,13 @@ type RouteHeadway struct {
 	Departures     tl.Ints
 }
 
+type RouteStopPattern struct {
+	RouteID       int `json:"id"`
+	StopPatternID int `json:"stop_pattern_id"`
+	DirectionID   int `json:"direction_id"`
+	Count         int `json:"count"`
+}
+
 type RouteStopBuffer struct {
 	StopPoints     *tl.Geometry `json:"stop_points"`
 	StopBuffer     *tl.Geometry `json:"stop_buffer"`

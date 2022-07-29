@@ -20,6 +20,9 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
 	if where != nil {
+		if where.StopPatternID != nil {
+			qView = qView.Where(sq.Eq{"stop_pattern_id": where.StopPatternID})
+		}
 		if len(where.RouteOnestopIds) > 0 {
 			qView = qView.Join("tl_route_onestop_ids tlros on tlros.route_id = gtfs_trips.route_id")
 			qView = qView.Where(sq.Eq{"tlros.onestop_id": where.RouteOnestopIds})

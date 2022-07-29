@@ -62,6 +62,10 @@ func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route) ([]*model.
 	return r.rtfinder.FindAlertsForRoute(obj), nil
 }
 
+func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error) {
+	return For(ctx).RouteStopPatternsByRouteID.Load(model.RouteStopPatternParam{RouteID: obj.ID})
+}
+
 // ROUTE HEADWAYS
 
 type routeHeadwayResolver struct{ *Resolver }
@@ -94,3 +98,17 @@ func (r *routeStopResolver) Stop(ctx context.Context, obj *model.RouteStop) (*mo
 func (r *routeStopResolver) Agency(ctx context.Context, obj *model.RouteStop) (*model.Agency, error) {
 	return For(ctx).AgenciesByID.Load(obj.AgencyID)
 }
+
+// ROUTE PATTERN
+
+type routePatternResolver struct{ *Resolver }
+
+func (r *routePatternResolver) Trips(ctx context.Context, obj *model.RouteStopPattern, limit *int) ([]*model.Trip, error) {
+	trips, err := r.finder.FindTrips(ctx, limit, nil, nil, &model.TripFilter{StopPatternID: &obj.StopPatternID, RouteIds: []int{obj.RouteID}})
+	// filter...
+	return trips, err
+}
+
+// func (r *routePatternResolver) Stops(ctx context.Context, obj *model.RouteStopPattern) ([]*model.Stop, error) {
+// 	return nil, nil
+// }
