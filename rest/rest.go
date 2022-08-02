@@ -90,6 +90,8 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	r.HandleFunc("/operators/{operator_key}.{format}", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}", operatorHandler)
 
+	r.HandleFunc("/onestop_id/{onestop_id}", makeHandlerFunc(restcfg, onestopIdEntityRedirectHandler))
+
 	return r, nil
 }
 
