@@ -1,7 +1,10 @@
 package resolvers
 
 import (
+	"fmt"
 	"testing"
+
+	"github.com/tidwall/gjson"
 )
 
 func TestTripResolver(t *testing.T) {
@@ -80,4 +83,37 @@ func TestTripResolver(t *testing.T) {
 			testquery(t, c, tc)
 		})
 	}
+}
+
+func TestTripResolver_StopPatternID(t *testing.T) {
+	query := `query {
+		trips(where: {feed_onestop_id: "BA", trip_id:"3230742WKDY"}) {
+		  trip_id
+		  stop_pattern_id
+		}
+	}`
+	c := newTestClient()
+	var resp map[string]interface{}
+	c.MustPost(query, &resp)
+	jj := toJson(resp)
+	fmt.Println(resp)
+	patId := gjson.Get(jj, "trips.0.stop_pattern_id").Int()
+	tc := testcase{
+		"where trip_id",
+		`query($patid:Int!) {
+			trips(where: {feed_onestop_id: "BA", stop_pattern_id:$patid}) {
+			  trip_id
+			  stop_pattern_id
+			}
+		  }
+		`,
+		hw{"patid": patId},
+		``,
+		"trips.#.trip_id",
+		[]string{"3230742WKDY", "3250757WKDY", "3270812WKDY", "3310827WKDY", "3210842WKDY"},
+	}
+	t.Run(tc.name, func(t *testing.T) {
+		testquery(t, c, tc)
+	})
+
 }
