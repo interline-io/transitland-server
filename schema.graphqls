@@ -475,8 +475,6 @@ type RouteStopPattern {
   direction_id: Int!
   count: Int!
   trips(limit: Int): [Trip!]
-  # trip_headsign?
-  # shape?
 }
 
 type RouteGeometry {
