@@ -57,6 +57,7 @@ type EntityLoader interface {
 	StopsByRouteID(context.Context, []StopParam) ([][]*Stop, []error)
 	RouteStopsByRouteID(context.Context, []RouteStopParam) ([][]*RouteStop, []error)
 	RouteHeadwaysByRouteID(context.Context, []RouteHeadwayParam) ([][]*RouteHeadway, []error)
+	RouteStopPatternsByRouteID(context.Context, []RouteStopPatternParam) ([][]*RouteStopPattern, []error)
 	FeedVersionFileInfosByFeedVersionID(context.Context, []FeedVersionFileInfoParam) ([][]*FeedVersionFileInfo, []error)
 	StopsByParentStopID(context.Context, []StopParam) ([][]*Stop, []error)
 	FeedVersionsByFeedID(context.Context, []FeedVersionParam) ([][]*FeedVersion, []error)

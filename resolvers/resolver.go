@@ -52,6 +52,11 @@ func (r *Resolver) RouteStop() gqlgen.RouteStopResolver { return &routeStopResol
 // RouteHeadway .
 func (r *Resolver) RouteHeadway() gqlgen.RouteHeadwayResolver { return &routeHeadwayResolver{r} }
 
+// RouteStopPattern .
+func (r *Resolver) RouteStopPattern() gqlgen.RouteStopPatternResolver {
+	return &routePatternResolver{r}
+}
+
 // Stop .
 func (r *Resolver) Stop() gqlgen.StopResolver { return &stopResolver{r} }
 

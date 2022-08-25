@@ -187,6 +187,28 @@ func TestRouteResolver(t *testing.T) {
 			"routes.#.route_id",
 			[]string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130", "01", "05", "07", "11"},
 		},
+		// route patterns
+		{
+			"route patterns",
+			`{
+				routes(where: {feed_onestop_id: "BA", route_id: "03"}) {
+				  route_id
+				  patterns {
+					count
+					direction_id
+					stop_pattern_id
+					trips(limit: 1) {
+					  trip_id
+					}
+				  }
+				}
+			  }`,
+			hw{},
+			``,
+			"routes.0.patterns.#.count",
+			[]string{"132", "124", "56", "50", "2"},
+		},
+
 		// TODO: census_geographies
 	}
 	c := newTestClient()

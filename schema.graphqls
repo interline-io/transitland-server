@@ -279,6 +279,7 @@ type Route {
   geometries(limit: Int): [RouteGeometry!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   route_stop_buffer(radius: Float): RouteStopBuffer!
+  patterns: [RouteStopPattern!]
   alerts: [Alert!]
 }
 
@@ -315,6 +316,7 @@ type Stop {
   search_rank: String # only for search results
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
+  nearby_stops(limit: Int, radius: Float): [Stop!]
   alerts: [Alert!]
 }
 
@@ -466,6 +468,13 @@ type RouteStop {
   route: Route!
   stop: Stop!
   agency: Agency!
+}
+
+type RouteStopPattern {
+  stop_pattern_id: Int!
+  direction_id: Int!
+  count: Int!
+  trips(limit: Int): [Trip!]
 }
 
 type RouteGeometry {
@@ -918,6 +927,7 @@ input PathwayFilter {
 input TripFilter {
   service_date: Date
   trip_id: String
+  stop_pattern_id: Int
   route_ids: [Int!] # keep?
   route_onestop_ids: [String!] # keep?
   feed_version_sha1: String

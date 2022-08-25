@@ -236,6 +236,53 @@ func TestStopResolver(t *testing.T) {
 			"stops.0.stop_times.#.trip.trip_id",
 			[]string{"3611521SAT", "3631541SAT", "3651601SAT", "3671621SAT", "3691641SAT", "3711701SAT", "3731721SAT", "3751741SAT", "3771801SAT", "3791821SAT", "3611841SAT", "3631901SAT", "2231528SAT", "2251548SAT", "2271608SAT", "2291628SAT", "2311648SAT", "2331708SAT", "2351728SAT", "2211748SAT", "2231808SAT", "2251828SAT", "2271848SAT", "2291908SAT", "4471533SAT", "4491553SAT", "4511613SAT", "4531633SAT", "4411653SAT", "4431713SAT", "4451733SAT", "4471753SAT", "4491813SAT", "4511833SAT", "4531853SAT"},
 		},
+		// nearby stops
+		{
+			"nearby stops 1000m",
+			`query($stop_id:String!, $radius:Float!) {
+				stops(where: {feed_onestop_id: "BA", stop_id: $stop_id}) {
+				  stop_id
+				  nearby_stops(radius:$radius, limit:10) {
+					stop_id
+				  }
+				}
+			  }			  `,
+			hw{"stop_id": "19TH", "radius": 1000},
+			``,
+			"stops.0.nearby_stops.#.stop_id",
+			[]string{"19TH", "19TH_N", "12TH"},
+		},
+		{
+			"nearby stops 2000m",
+			`query($stop_id:String!, $radius:Float!) {
+				stops(where: {feed_onestop_id: "BA", stop_id: $stop_id}) {
+				  stop_id
+				  nearby_stops(radius:$radius, limit:10) {
+					stop_id
+				  }
+				}
+			  }			  `,
+			hw{"stop_id": "19TH", "radius": 2000},
+			``,
+			"stops.0.nearby_stops.#.stop_id",
+			[]string{"19TH", "19TH_N", "12TH", "LAKE"},
+		},
+		// this test is just for debugging purposes
+		{
+			"nearby stops check n+1 query",
+			`query($radius:Float!) {
+				stops(where: {feed_onestop_id: "BA"}) {
+				  stop_id
+				  nearby_stops(radius:$radius, limit:10) {
+					stop_id
+				  }
+				}
+			  }			  `,
+			hw{"radius": 1000},
+			``,
+			"stops.#.stop_id",
+			bartStops,
+		},
 		// TODO: census_geographies
 		// TODO: route_stop_buffer
 	}
