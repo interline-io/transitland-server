@@ -419,7 +419,7 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			c := newTestClientWithClock(&clock.Mock{T: when})
+			_, _, c := newTestClientWithClock(&clock.Mock{T: when})
 			testquery(t, c, tc.testcase)
 		})
 	}

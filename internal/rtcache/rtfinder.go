@@ -8,6 +8,7 @@ import (
 
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -23,12 +24,14 @@ type Cache interface {
 ////////
 
 type RTFinder struct {
+	Clock clock.Clock
 	cache Cache
 	lc    *lookupCache
 }
 
 func NewRTFinder(cache Cache, db sqlx.Ext) *RTFinder {
 	return &RTFinder{
+		Clock: &clock.Real{},
 		cache: cache,
 		lc:    newLookupCache(db),
 	}
@@ -59,14 +62,21 @@ func (f *RTFinder) FindTrip(t *model.Trip) *pb.TripUpdate {
 func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
+	tnow := f.Clock.Now()
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
-		if !ok {
+		if a == nil || !ok {
 			return nil
 		}
 		for _, alert := range a.alerts {
+			if alert == nil {
+				continue
+			}
+			if !checkAlertActivePeriod(tnow, alert) {
+				continue
+			}
 			for _, s := range alert.GetInformedEntity() {
-				if s.Trip == nil {
+				if s == nil || s.Trip == nil {
 					continue
 				}
 				if s.Trip.GetTripId() == t.TripID {
@@ -81,14 +91,21 @@ func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
 func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
+	tnow := f.Clock.Now()
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
-		if !ok {
+		if a == nil || !ok {
 			continue
 		}
 		for _, alert := range a.alerts {
+			if alert == nil {
+				continue
+			}
+			if !checkAlertActivePeriod(tnow, alert) {
+				continue
+			}
 			for _, s := range alert.GetInformedEntity() {
-				if s.Trip != nil {
+				if s == nil || s.Trip != nil {
 					continue
 				}
 				if s.GetRouteId() == t.RouteID {
@@ -103,14 +120,21 @@ func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
 func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
+	tnow := f.Clock.Now()
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
 		if !ok {
 			continue
 		}
 		for _, alert := range a.alerts {
+			if alert == nil {
+				continue
+			}
+			if !checkAlertActivePeriod(tnow, alert) {
+				continue
+			}
 			for _, s := range alert.GetInformedEntity() {
-				if s.Trip != nil {
+				if s == nil || s.Trip != nil {
 					continue
 				}
 				if s.GetAgencyId() == t.AgencyID {
@@ -125,14 +149,21 @@ func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
 func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
+	tnow := f.Clock.Now()
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
 		if !ok {
 			continue
 		}
 		for _, alert := range a.alerts {
+			if alert == nil {
+				continue
+			}
+			if !checkAlertActivePeriod(tnow, alert) {
+				continue
+			}
 			for _, s := range alert.GetInformedEntity() {
-				if s.StopId == nil {
+				if s == nil || s.StopId == nil {
 					continue
 				}
 				if s.GetStopId() == t.StopID {
@@ -237,10 +268,51 @@ func (f *RTFinder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
 	return trip, ok
 }
 
+func checkAlertActivePeriod(t time.Time, a *pb.Alert) bool {
+	tt := uint64(t.Unix())
+	if len(a.ActivePeriod) == 0 {
+		return true
+	}
+	for _, ap := range a.ActivePeriod {
+		if ap == nil {
+			continue
+		}
+		start := ap.Start
+		end := ap.End
+		if start != nil && end != nil && *start < tt && *end > tt {
+			// fmt.Printf("\tstart %d < now %d < end %d\n", nilor(start), tt, nilor(end))
+			return true
+		} else if start != nil && end == nil && *start < tt {
+			// fmt.Printf("\tstart %d < now %d\n", nilor(start), tt)
+			return true
+		} else if start == nil && end != nil && *end > tt {
+			// fmt.Printf("\tnow %d < end %d\n", tt, nilor(end))
+			return true
+		} else {
+			// fmt.Printf("not match: %d %d now: %d\n", nilor(start), nilor(end), tt)
+		}
+	}
+	return false
+}
+
+func nilor(v *uint64) uint64 {
+	if v == nil {
+		return 0
+	}
+	return *v
+}
+
 func makeAlert(a *pb.Alert) *model.Alert {
 	r := model.Alert{}
-	r.Cause = pstr(a.Cause.String())
-	r.Effect = pstr(a.Effect.String())
+	if a.Cause != nil {
+		r.Cause = pstr(a.Cause.String())
+	}
+	if a.Effect != nil {
+		r.Effect = pstr(a.Effect.String())
+	}
+	if a.SeverityLevel != nil {
+		r.SeverityLevel = pstr(a.SeverityLevel.String())
+	}
 	for _, tr := range a.ActivePeriod {
 		rttr := model.RTTimeRange{}
 		if tr.Start != nil {
@@ -258,7 +330,6 @@ func makeAlert(a *pb.Alert) *model.Alert {
 	r.TtsHeaderText = newTranslation(a.TtsHeaderText)
 	r.TtsDescriptionText = newTranslation(a.TtsDescriptionText)
 	r.URL = newTranslation(a.Url)
-	r.SeverityLevel = pstr(a.SeverityLevel.String())
 	return &r
 }
 

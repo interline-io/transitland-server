@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"testing"
+	"time"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/internal/rtcache"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -154,12 +154,13 @@ type rtFile struct {
 
 func testRt(t *testing.T, tc rtTestCase) {
 	// Create a new RT Finder for each test...
-	rtfinder := rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDBFinder.DBX())
-	cfg := config.Config{}
-	srv, _ := NewServer(cfg, TestDBFinder, rtfinder)
-	c := client.New(srv)
-	for _, rtf := range tc.rtfiles {
-		if err := rtFetchJson(rtf.feed, rtf.ftype, testutil.RelPath("test", "data", "rt", rtf.fname), rtfinder); err != nil {
+	when, err := time.Parse("2006-01-02T15:04:05", "2018-05-31T00:00:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, rtf, c := newTestClientWithClock(&clock.Mock{T: when})
+	for _, rtfile := range tc.rtfiles {
+		if err := rtFetchJson(rtfile.feed, rtfile.ftype, testutil.RelPath("test", "data", "rt", rtfile.fname), rtf); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -11,7 +11,7 @@ type Clock interface {
 type Real struct{}
 
 func (dc *Real) Now() time.Time {
-	return time.Now()
+	return time.Now().In(time.UTC)
 }
 
 // A mock clock with a fixed time
