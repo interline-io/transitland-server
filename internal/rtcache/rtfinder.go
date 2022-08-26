@@ -123,7 +123,7 @@ func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
-		if !ok {
+		if a == nil || ok {
 			continue
 		}
 		for _, alert := range a.alerts {
@@ -152,7 +152,7 @@ func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
-		if !ok {
+		if a == nil || !ok {
 			continue
 		}
 		for _, alert := range a.alerts {
