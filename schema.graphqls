@@ -246,7 +246,7 @@ type Agency {
   places(limit: Int, where: AgencyPlaceFilter): [AgencyPlace!]
   routes(limit: Int, where: RouteFilter): [Route!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
-  alerts: [Alert!]
+  alerts(active: Boolean, limit: Int): [Alert!]
 }
 
 """
@@ -280,7 +280,7 @@ type Route {
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   route_stop_buffer(radius: Float): RouteStopBuffer!
   patterns: [RouteStopPattern!]
-  alerts: [Alert!]
+  alerts(active: Boolean, limit: Int): [Alert!]
 }
 
 """
@@ -317,7 +317,7 @@ type Stop {
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
   nearby_stops(limit: Int, radius: Float): [Stop!]
-  alerts: [Alert!]
+  alerts(active: Boolean, limit: Int): [Alert!]
 }
 
 """
@@ -371,7 +371,7 @@ type Trip {
   # rt
   schedule_relationship: ScheduleRelationship
   timestamp: Time
-  alerts: [Alert!]
+  alerts(active: Boolean, limit: Int): [Alert!]
 }
 
 """

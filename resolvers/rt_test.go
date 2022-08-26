@@ -51,18 +51,18 @@ fragment alert on Alert {
 	}
 }
 
-query($stop_id:String!, $stf:StopTimeFilter!) {
+query($stop_id:String!, $stf:StopTimeFilter!, $active:Boolean) {
 	stops(where: { stop_id: $stop_id }) {
 	  id
 	  stop_id
 	  stop_name
-	  alerts {
+	  alerts(active:$active, limit:5) {
 		  ...alert
 	  }
 	  stop_times(where:$stf) {
 		stop_sequence
 		trip {
-		  alerts {
+		  alerts(active:$active) {
 			...alert
 		  }
 		  trip_id
@@ -72,13 +72,13 @@ query($stop_id:String!, $stf:StopTimeFilter!) {
 			  route_id
 			  route_short_name
 			  route_long_name
-			  alerts {
+			  alerts(active:$active) {
 				  ...alert
 			  }
 			  agency {
 				  agency_id
 				  agency_name
-				  alerts {
+				  alerts(active:$active) {
 					  ...alert
 				  }
 			  }
@@ -105,13 +105,15 @@ query($stop_id:String!, $stf:StopTimeFilter!) {
   }
 `
 
-var baseStopVars = hw{
-	"stop_id": "FTVL",
-	"stf": hw{
-		"service_date": "2018-05-30",
-		"start_time":   57600,
-		"end_time":     57900,
-	},
+func newBaseStopVars() hw {
+	return hw{
+		"stop_id": "FTVL",
+		"stf": hw{
+			"service_date": "2018-05-30",
+			"start_time":   57600,
+			"end_time":     57900,
+		},
+	}
 }
 
 var baseRTFiles = []rtFile{
@@ -154,7 +156,7 @@ type rtFile struct {
 
 func testRt(t *testing.T, tc rtTestCase) {
 	// Create a new RT Finder for each test...
-	when, err := time.Parse("2006-01-02T15:04:05", "2018-05-31T00:00:00")
+	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +182,7 @@ func TestStopRTBasic(t *testing.T) {
 	tc := rtTestCase{
 		"stop times basic",
 		baseStopQuery,
-		baseStopVars,
+		newBaseStopVars(),
 		baseRTFiles,
 		func(t *testing.T, jj string) {
 			// A little more explicit version of the string check test
@@ -220,7 +222,7 @@ func TestStopRTBasic_ArrivalFallback(t *testing.T) {
 	tc := rtTestCase{
 		"arrival will use departure if arrival is not present",
 		baseStopQuery,
-		baseStopVars,
+		newBaseStopVars(),
 		[]rtFile{{"BA", "realtime_trip_updates", "BA-arrival-fallback.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
@@ -245,7 +247,7 @@ func TestStopRTBasic_DepartureFallback(t *testing.T) {
 	tc := rtTestCase{
 		"departure will use arrival if departure is not present",
 		baseStopQuery,
-		baseStopVars,
+		newBaseStopVars(),
 		[]rtFile{{"BA", "realtime_trip_updates", "BA-departure-fallback.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
@@ -270,7 +272,7 @@ func TestStopRTBasic_StopIDFallback(t *testing.T) {
 	tc := rtTestCase{
 		"use stop_id as fallback if no matching stop sequence",
 		baseStopQuery,
-		baseStopVars,
+		newBaseStopVars(),
 		[]rtFile{{"BA", "realtime_trip_updates", "BA-stop-id-fallback.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
@@ -296,7 +298,7 @@ func TestStopRTBasic_StopIDFallback_NoDoubleVisit(t *testing.T) {
 	tc := rtTestCase{
 		"do not use stop_id as fallback if stop is visited twice",
 		baseStopQuery,
-		baseStopVars,
+		newBaseStopVars(),
 		[]rtFile{{"BA", "realtime_trip_updates", "BA-stop-double-visit.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
@@ -321,7 +323,7 @@ func TestStopRTBasic_NoRT(t *testing.T) {
 	tc := rtTestCase{
 		"no rt matches for trip 2211533WKDY",
 		baseStopQuery,
-		baseStopVars,
+		newBaseStopVars(),
 		[]rtFile{{"BA", "realtime_trip_updates", "BA-departure-fallback.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
@@ -349,7 +351,7 @@ func TestStopRTAddedTrip(t *testing.T) {
 	tc := rtTestCase{
 		"stop times added trip",
 		baseStopQuery,
-		baseStopVars,
+		newBaseStopVars(),
 		[]rtFile{{"BA", "realtime_trip_updates", "BA-added.json"}},
 		func(t *testing.T, jj string) {
 			checkTrip := "-123"
@@ -382,7 +384,7 @@ func TestStopRTCanceledTrip(t *testing.T) {
 	tc := rtTestCase{
 		"stop times canceled trip",
 		baseStopQuery,
-		baseStopVars,
+		newBaseStopVars(),
 		[]rtFile{{"BA", "realtime_trip_updates", "BA-added.json"}},
 		func(t *testing.T, jj string) {
 			checkTrip := "2211533WKDY"
@@ -411,127 +413,247 @@ func TestStopRTCanceledTrip(t *testing.T) {
 }
 
 func TestTripAlerts(t *testing.T) {
-	tc := rtTestCase{
-		"trip alerts",
-		baseStopQuery,
-		baseStopVars,
-		[]rtFile{
-			{"BA", "realtime_alerts", "BA-alerts.json"},
+	activeVars := newBaseStopVars()
+	activeVars["active"] = true
+	tcs := []rtTestCase{
+		{
+			"trip alerts",
+			baseStopQuery,
+			newBaseStopVars(),
+			[]rtFile{
+				{"BA", "realtime_alerts", "BA-alerts.json"},
+			},
+			func(t *testing.T, jj string) {
+				checkTrip := "1031527WKDY"
+				found := false
+				a := gjson.Get(jj, "stops.0.stop_times").Array()
+				for _, st := range a {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					alerts := st.Get("trip.alerts").Array()
+					if len(alerts) != 2 {
+						t.Errorf("got %d alerts, expected 2", len(alerts))
+					}
+				}
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+			},
 		},
-		func(t *testing.T, jj string) {
-			checkTrip := "1031527WKDY"
-			found := false
-			a := gjson.Get(jj, "stops.0.stop_times").Array()
-			for _, st := range a {
-				if st.Get("trip.trip_id").String() != checkTrip {
-					continue
+		{
+			"trip alerts active",
+			baseStopQuery,
+			activeVars,
+			[]rtFile{
+				{"BA", "realtime_alerts", "BA-alerts.json"},
+			},
+			func(t *testing.T, jj string) {
+				checkTrip := "1031527WKDY"
+				found := false
+				a := gjson.Get(jj, "stops.0.stop_times").Array()
+				for _, st := range a {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					alerts := st.Get("trip.alerts").Array()
+					if len(alerts) == 1 {
+						firstAlert := alerts[0]
+						assert.Equal(t, "Test trip header - active", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
+						assert.Equal(t, "Test trip description - active", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
+					} else {
+						t.Errorf("got %d alerts, expected 1", len(alerts))
+					}
 				}
-				found = true
-				alerts := st.Get("trip.alerts").Array()
-				if len(alerts) == 1 {
-					firstAlert := alerts[0]
-					assert.Equal(t, "Test trip header", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
-					assert.Equal(t, "Test trip description", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
-				} else {
-					t.Errorf("got %d alerts, expected 1", len(alerts))
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
 				}
-			}
-			if !found {
-				t.Errorf("expected to find trip '%s'", checkTrip)
-			}
+			},
 		},
 	}
-	testRt(t, tc)
+	for _, tc := range tcs {
+		testRt(t, tc)
+	}
 }
 
 func TestRouteAlerts(t *testing.T) {
-	tc := rtTestCase{
-		"stop alerts",
-		baseStopQuery,
-		baseStopVars,
-		[]rtFile{
-			{"BA", "realtime_alerts", "BA-alerts.json"},
+	activeVars := newBaseStopVars()
+	activeVars["active"] = true
+	tcs := []rtTestCase{
+		{
+			"stop alerts active",
+			baseStopQuery,
+			newBaseStopVars(),
+			[]rtFile{
+				{"BA", "realtime_alerts", "BA-alerts.json"},
+			},
+			func(t *testing.T, jj string) {
+				checkTrip := "1031527WKDY"
+				sts := gjson.Get(jj, "stops.0.stop_times").Array()
+				found := false
+				for _, st := range sts {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					assert.Equal(t, "05", st.Get("trip.route.route_id").String(), "trip.route.route_id")
+					alerts := st.Get("trip.route.alerts").Array()
+					if len(alerts) != 2 {
+						t.Errorf("got %d alerts, expected 2", len(alerts))
+					}
+				}
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+			},
 		},
-		func(t *testing.T, jj string) {
-			checkTrip := "1031527WKDY"
-			sts := gjson.Get(jj, "stops.0.stop_times").Array()
-			found := false
-			for _, st := range sts {
-				if st.Get("trip.trip_id").String() != checkTrip {
-					continue
+		{
+			"stop alerts active",
+			baseStopQuery,
+			activeVars,
+			[]rtFile{
+				{"BA", "realtime_alerts", "BA-alerts.json"},
+			},
+			func(t *testing.T, jj string) {
+				checkTrip := "1031527WKDY"
+				sts := gjson.Get(jj, "stops.0.stop_times").Array()
+				found := false
+				for _, st := range sts {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					assert.Equal(t, "05", st.Get("trip.route.route_id").String(), "trip.route.route_id")
+					alerts := st.Get("trip.route.alerts").Array()
+					if len(alerts) == 1 {
+						firstAlert := alerts[0]
+						assert.Equal(t, "Test route header - active", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
+						assert.Equal(t, "Test route description - active", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
+					} else {
+						t.Errorf("got %d alerts, expected 1", len(alerts))
+					}
 				}
-				found = true
-				assert.Equal(t, "05", st.Get("trip.route.route_id").String(), "trip.route.route_id")
-				alerts := st.Get("trip.route.alerts").Array()
-				if len(alerts) == 1 {
-					firstAlert := alerts[0]
-					assert.Equal(t, "Test route header", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
-					assert.Equal(t, "Test route description", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
-				} else {
-					t.Errorf("got %d alerts, expected 1", len(alerts))
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
 				}
-			}
-			if !found {
-				t.Errorf("expected to find trip '%s'", checkTrip)
-			}
+			},
 		},
 	}
-	testRt(t, tc)
+	for _, tc := range tcs {
+		testRt(t, tc)
+	}
+
 }
 
 func TestStopAlerts(t *testing.T) {
-	tc := rtTestCase{
-		"stop alerts",
-		baseStopQuery,
-		baseStopVars,
-		[]rtFile{
-			{"BA", "realtime_alerts", "BA-alerts.json"},
-		},
-		func(t *testing.T, jj string) {
-			alerts := gjson.Get(jj, "stops.0.alerts").Array()
-			if len(alerts) == 1 {
-				firstAlert := alerts[0]
-				assert.Equal(t, "Test stop header", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
-				assert.Equal(t, "Test stop description", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
-			} else {
-				t.Errorf("got %d alerts, expected 1", len(alerts))
-			}
-		},
-	}
-	testRt(t, tc)
-}
-
-func TestAgencyAlerts(t *testing.T) {
-	tc := rtTestCase{
-		"stop alerts",
-		baseStopQuery,
-		baseStopVars,
-		[]rtFile{
-			{"BA", "realtime_alerts", "BA-alerts.json"},
-		},
-		func(t *testing.T, jj string) {
-			checkTrip := "1031527WKDY"
-			sts := gjson.Get(jj, "stops.0.stop_times").Array()
-			found := false
-			for _, st := range sts {
-				if st.Get("trip.trip_id").String() != checkTrip {
-					continue
+	activeVars := newBaseStopVars()
+	activeVars["active"] = true
+	tcs := []rtTestCase{
+		{
+			"stop alerts",
+			baseStopQuery,
+			newBaseStopVars(),
+			[]rtFile{
+				{"BA", "realtime_alerts", "BA-alerts.json"},
+			},
+			func(t *testing.T, jj string) {
+				alerts := gjson.Get(jj, "stops.0.alerts").Array()
+				if len(alerts) != 2 {
+					t.Errorf("got %d alerts, expected 2", len(alerts))
 				}
-				found = true
-				assert.Equal(t, "BART", st.Get("trip.route.agency.agency_id").String(), "trip.route.agency.agency_id")
-				alerts := st.Get("trip.route.agency.alerts").Array()
+			},
+		},
+		{
+			"stop alerts active",
+			baseStopQuery,
+			activeVars,
+			[]rtFile{
+				{"BA", "realtime_alerts", "BA-alerts.json"},
+			},
+			func(t *testing.T, jj string) {
+				alerts := gjson.Get(jj, "stops.0.alerts").Array()
 				if len(alerts) == 1 {
 					firstAlert := alerts[0]
-					assert.Equal(t, "Test agency header", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
-					assert.Equal(t, "Test agency description", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
+					assert.Equal(t, "Test stop header - active", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
+					assert.Equal(t, "Test stop description - active", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
 				} else {
 					t.Errorf("got %d alerts, expected 1", len(alerts))
 				}
-			}
-			if !found {
-				t.Errorf("expected to find trip '%s'", checkTrip)
-			}
+			},
 		},
 	}
-	testRt(t, tc)
+	for _, tc := range tcs {
+		testRt(t, tc)
+	}
+
+}
+
+func TestAgencyAlerts(t *testing.T) {
+	activeVars := newBaseStopVars()
+	activeVars["active"] = true
+	tcs := []rtTestCase{
+		{
+			"stop alerts",
+			baseStopQuery,
+			newBaseStopVars(),
+			[]rtFile{
+				{"BA", "realtime_alerts", "BA-alerts.json"},
+			},
+			func(t *testing.T, jj string) {
+				checkTrip := "1031527WKDY"
+				sts := gjson.Get(jj, "stops.0.stop_times").Array()
+				found := false
+				for _, st := range sts {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					assert.Equal(t, "BART", st.Get("trip.route.agency.agency_id").String(), "trip.route.agency.agency_id")
+					alerts := st.Get("trip.route.agency.alerts").Array()
+					if len(alerts) != 2 {
+						t.Errorf("got %d alerts, expected 2", len(alerts))
+					}
+				}
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+			},
+		},
+		{
+			"stop alerts active",
+			baseStopQuery,
+			activeVars,
+			[]rtFile{
+				{"BA", "realtime_alerts", "BA-alerts.json"},
+			},
+			func(t *testing.T, jj string) {
+				checkTrip := "1031527WKDY"
+				sts := gjson.Get(jj, "stops.0.stop_times").Array()
+				found := false
+				for _, st := range sts {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					assert.Equal(t, "BART", st.Get("trip.route.agency.agency_id").String(), "trip.route.agency.agency_id")
+					alerts := st.Get("trip.route.agency.alerts").Array()
+					if len(alerts) == 1 {
+						firstAlert := alerts[0]
+						assert.Equal(t, "Test agency header - active", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
+						assert.Equal(t, "Test agency description - active", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
+					} else {
+						t.Errorf("got %d alerts, expected 1", len(alerts))
+					}
+				}
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+			},
+		},
+	}
+	for _, tc := range tcs {
+		testRt(t, tc)
+	}
 }

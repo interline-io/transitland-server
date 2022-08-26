@@ -71,7 +71,7 @@ func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Ti
 	return nil, nil
 }
 
-func (r *tripResolver) Alerts(ctx context.Context, obj *model.Trip) ([]*model.Alert, error) {
-	rtAlerts := r.rtfinder.FindAlertsForTrip(obj)
+func (r *tripResolver) Alerts(ctx context.Context, obj *model.Trip, active *bool, limit *int) ([]*model.Alert, error) {
+	rtAlerts := r.rtfinder.FindAlertsForTrip(obj, limit, active)
 	return rtAlerts, nil
 }

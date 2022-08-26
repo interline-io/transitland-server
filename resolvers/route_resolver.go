@@ -58,8 +58,8 @@ func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, r
 	return nil, nil
 }
 
-func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route) ([]*model.Alert, error) {
-	return r.rtfinder.FindAlertsForRoute(obj), nil
+func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route, active *bool, limit *int) ([]*model.Alert, error) {
+	return r.rtfinder.FindAlertsForRoute(obj, limit, active), nil
 }
 
 func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error) {

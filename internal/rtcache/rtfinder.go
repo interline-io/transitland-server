@@ -59,7 +59,7 @@ func (f *RTFinder) FindTrip(t *model.Trip) *pb.TripUpdate {
 	return nil
 }
 
-func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
+func (f *RTFinder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
@@ -72,7 +72,7 @@ func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
 			if alert == nil {
 				continue
 			}
-			if !checkAlertActivePeriod(tnow, alert) {
+			if !checkAlertActivePeriod(tnow, active, alert) {
 				continue
 			}
 			for _, s := range alert.GetInformedEntity() {
@@ -85,10 +85,10 @@ func (f *RTFinder) FindAlertsForTrip(t *model.Trip) []*model.Alert {
 			}
 		}
 	}
-	return foundAlerts
+	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
+func (f *RTFinder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
@@ -98,10 +98,10 @@ func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
 			continue
 		}
 		for _, alert := range a.alerts {
-			if alert == nil {
+			if !checkAlertActivePeriod(tnow, active, alert) {
 				continue
 			}
-			if !checkAlertActivePeriod(tnow, alert) {
+			if alert == nil {
 				continue
 			}
 			for _, s := range alert.GetInformedEntity() {
@@ -114,10 +114,10 @@ func (f *RTFinder) FindAlertsForRoute(t *model.Route) []*model.Alert {
 			}
 		}
 	}
-	return foundAlerts
+	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
+func (f *RTFinder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
@@ -130,7 +130,7 @@ func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
 			if alert == nil {
 				continue
 			}
-			if !checkAlertActivePeriod(tnow, alert) {
+			if !checkAlertActivePeriod(tnow, active, alert) {
 				continue
 			}
 			for _, s := range alert.GetInformedEntity() {
@@ -143,10 +143,10 @@ func (f *RTFinder) FindAlertsForAgency(t *model.Agency) []*model.Alert {
 			}
 		}
 	}
-	return foundAlerts
+	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
+func (f *RTFinder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
@@ -156,10 +156,10 @@ func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
 			continue
 		}
 		for _, alert := range a.alerts {
-			if alert == nil {
+			if !checkAlertActivePeriod(tnow, active, alert) {
 				continue
 			}
-			if !checkAlertActivePeriod(tnow, alert) {
+			if alert == nil {
 				continue
 			}
 			for _, s := range alert.GetInformedEntity() {
@@ -172,7 +172,7 @@ func (f *RTFinder) FindAlertsForStop(t *model.Stop) []*model.Alert {
 			}
 		}
 	}
-	return foundAlerts
+	return limitAlerts(foundAlerts, limit)
 }
 
 func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.TripUpdate_StopTimeUpdate, bool) {
@@ -268,7 +268,10 @@ func (f *RTFinder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
 	return trip, ok
 }
 
-func checkAlertActivePeriod(t time.Time, a *pb.Alert) bool {
+func checkAlertActivePeriod(t time.Time, active *bool, a *pb.Alert) bool {
+	if active == nil || *active == false {
+		return true
+	}
 	tt := uint64(t.Unix())
 	if len(a.ActivePeriod) == 0 {
 		return true
@@ -293,6 +296,17 @@ func checkAlertActivePeriod(t time.Time, a *pb.Alert) bool {
 		}
 	}
 	return false
+}
+
+func limitAlerts(alerts []*model.Alert, limit *int) []*model.Alert {
+	lim := len(alerts)
+	if limit != nil {
+		lim = *limit
+	}
+	if len(alerts) > lim {
+		return alerts[0:lim]
+	}
+	return alerts
 }
 
 func nilor(v *uint64) uint64 {

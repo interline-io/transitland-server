@@ -181,8 +181,8 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	return sts, nil
 }
 
-func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error) {
-	rtAlerts := r.rtfinder.FindAlertsForStop(obj)
+func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop, active *bool, limit *int) ([]*model.Alert, error) {
+	rtAlerts := r.rtfinder.FindAlertsForStop(obj, limit, active)
 	return rtAlerts, nil
 }
 

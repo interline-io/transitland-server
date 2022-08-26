@@ -73,7 +73,7 @@ type ComplexityRoot struct {
 		AgencyPhone       func(childComplexity int) int
 		AgencyTimezone    func(childComplexity int) int
 		AgencyURL         func(childComplexity int) int
-		Alerts            func(childComplexity int) int
+		Alerts            func(childComplexity int, active *bool, limit *int) int
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
 		FeedOnestopID     func(childComplexity int) int
 		FeedVersion       func(childComplexity int) int
@@ -440,7 +440,7 @@ type ComplexityRoot struct {
 
 	Route struct {
 		Agency            func(childComplexity int) int
-		Alerts            func(childComplexity int) int
+		Alerts            func(childComplexity int, active *bool, limit *int) int
 		CensusGeographies func(childComplexity int, layer string, radius *float64, limit *int) int
 		ContinuousDropOff func(childComplexity int) int
 		ContinuousPickup  func(childComplexity int) int
@@ -530,7 +530,7 @@ type ComplexityRoot struct {
 	}
 
 	Stop struct {
-		Alerts             func(childComplexity int) int
+		Alerts             func(childComplexity int, active *bool, limit *int) int
 		Arrivals           func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		CensusGeographies  func(childComplexity int, layer string, radius *float64, limit *int) int
 		Children           func(childComplexity int, limit *int) int
@@ -591,7 +591,7 @@ type ComplexityRoot struct {
 	}
 
 	Trip struct {
-		Alerts               func(childComplexity int) int
+		Alerts               func(childComplexity int, active *bool, limit *int) int
 		BikesAllowed         func(childComplexity int) int
 		BlockID              func(childComplexity int) int
 		Calendar             func(childComplexity int) int
@@ -668,7 +668,7 @@ type AgencyResolver interface {
 	Places(ctx context.Context, obj *model.Agency, limit *int, where *model.AgencyPlaceFilter) ([]*model.AgencyPlace, error)
 	Routes(ctx context.Context, obj *model.Agency, limit *int, where *model.RouteFilter) ([]*model.Route, error)
 	CensusGeographies(ctx context.Context, obj *model.Agency, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
-	Alerts(ctx context.Context, obj *model.Agency) ([]*model.Alert, error)
+	Alerts(ctx context.Context, obj *model.Agency, active *bool, limit *int) ([]*model.Alert, error)
 }
 type CalendarResolver interface {
 	StartDate(ctx context.Context, obj *model.Calendar) (*tt.Date, error)
@@ -758,7 +758,7 @@ type RouteResolver interface {
 	CensusGeographies(ctx context.Context, obj *model.Route, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error)
 	Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error)
-	Alerts(ctx context.Context, obj *model.Route) ([]*model.Alert, error)
+	Alerts(ctx context.Context, obj *model.Route, active *bool, limit *int) ([]*model.Alert, error)
 }
 type RouteHeadwayResolver interface {
 	Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error)
@@ -788,7 +788,7 @@ type StopResolver interface {
 	CensusGeographies(ctx context.Context, obj *model.Stop, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	Directions(ctx context.Context, obj *model.Stop, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error)
 	NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error)
-	Alerts(ctx context.Context, obj *model.Stop) ([]*model.Alert, error)
+	Alerts(ctx context.Context, obj *model.Stop, active *bool, limit *int) ([]*model.Alert, error)
 }
 type StopTimeResolver interface {
 	Stop(ctx context.Context, obj *model.StopTime) (*model.Stop, error)
@@ -805,7 +805,7 @@ type TripResolver interface {
 	Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error)
 	ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error)
 	Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error)
-	Alerts(ctx context.Context, obj *model.Trip) ([]*model.Alert, error)
+	Alerts(ctx context.Context, obj *model.Trip, active *bool, limit *int) ([]*model.Alert, error)
 }
 
 type executableSchema struct {
@@ -884,7 +884,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Agency.Alerts(childComplexity), true
+		args, err := ec.field_Agency_alerts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Agency.Alerts(childComplexity, args["active"].(*bool), args["limit"].(*int)), true
 
 	case "Agency.census_geographies":
 		if e.complexity.Agency.CensusGeographies == nil {
@@ -2826,7 +2831,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Route.Alerts(childComplexity), true
+		args, err := ec.field_Route_alerts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Route.Alerts(childComplexity, args["active"].(*bool), args["limit"].(*int)), true
 
 	case "Route.census_geographies":
 		if e.complexity.Route.CensusGeographies == nil {
@@ -3328,7 +3338,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Stop.Alerts(childComplexity), true
+		args, err := ec.field_Stop_alerts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.Alerts(childComplexity, args["active"].(*bool), args["limit"].(*int)), true
 
 	case "Stop.arrivals":
 		if e.complexity.Stop.Arrivals == nil {
@@ -3742,7 +3757,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Trip.Alerts(childComplexity), true
+		args, err := ec.field_Trip_alerts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Trip.Alerts(childComplexity, args["active"].(*bool), args["limit"].(*int)), true
 
 	case "Trip.bikes_allowed":
 		if e.complexity.Trip.BikesAllowed == nil {
@@ -4470,7 +4490,7 @@ type Agency {
   places(limit: Int, where: AgencyPlaceFilter): [AgencyPlace!]
   routes(limit: Int, where: RouteFilter): [Route!]!
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
-  alerts: [Alert!]
+  alerts(active: Boolean, limit: Int): [Alert!]
 }
 
 """
@@ -4504,7 +4524,7 @@ type Route {
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   route_stop_buffer(radius: Float): RouteStopBuffer!
   patterns: [RouteStopPattern!]
-  alerts: [Alert!]
+  alerts(active: Boolean, limit: Int): [Alert!]
 }
 
 """
@@ -4541,7 +4561,7 @@ type Stop {
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
   nearby_stops(limit: Int, radius: Float): [Stop!]
-  alerts: [Alert!]
+  alerts(active: Boolean, limit: Int): [Alert!]
 }
 
 """
@@ -4595,7 +4615,7 @@ type Trip {
   # rt
   schedule_relationship: ScheduleRelationship
   timestamp: Time
-  alerts: [Alert!]
+  alerts(active: Boolean, limit: Int): [Alert!]
 }
 
 """
@@ -4699,8 +4719,6 @@ type RouteStopPattern {
   direction_id: Int!
   count: Int!
   trips(limit: Int): [Trip!]
-  # trip_headsign?
-  # shape?
 }
 
 type RouteGeometry {
@@ -5212,6 +5230,30 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 		}
 	}
 	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Agency_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["active"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["active"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
 	return args, nil
 }
 
@@ -6046,6 +6088,30 @@ func (ec *executionContext) field_RouteStopPattern_trips_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Route_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["active"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["active"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Route_census_geographies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6184,6 +6250,30 @@ func (ec *executionContext) field_Route_trips_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["where"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Stop_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["active"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["active"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
 	return args, nil
 }
 
@@ -6415,6 +6505,30 @@ func (ec *executionContext) field_Stop_stop_times_args(ctx context.Context, rawA
 		}
 	}
 	args["where"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Trip_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["active"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["active"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
 	return args, nil
 }
 
@@ -7584,7 +7698,7 @@ func (ec *executionContext) _Agency_alerts(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Agency().Alerts(rctx, obj)
+		return ec.resolvers.Agency().Alerts(rctx, obj, fc.Args["active"].(*bool), fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7627,6 +7741,17 @@ func (ec *executionContext) fieldContext_Agency_alerts(ctx context.Context, fiel
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Agency_alerts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -21484,7 +21609,7 @@ func (ec *executionContext) _Route_alerts(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Route().Alerts(rctx, obj)
+		return ec.resolvers.Route().Alerts(rctx, obj, fc.Args["active"].(*bool), fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21527,6 +21652,17 @@ func (ec *executionContext) fieldContext_Route_alerts(ctx context.Context, field
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Route_alerts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -25368,7 +25504,7 @@ func (ec *executionContext) _Stop_alerts(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Stop().Alerts(rctx, obj)
+		return ec.resolvers.Stop().Alerts(rctx, obj, fc.Args["active"].(*bool), fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25411,6 +25547,17 @@ func (ec *executionContext) fieldContext_Stop_alerts(ctx context.Context, field 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Stop_alerts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -27387,7 +27534,7 @@ func (ec *executionContext) _Trip_alerts(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Trip().Alerts(rctx, obj)
+		return ec.resolvers.Trip().Alerts(rctx, obj, fc.Args["active"].(*bool), fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27430,6 +27577,17 @@ func (ec *executionContext) fieldContext_Trip_alerts(ctx context.Context, field 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Trip_alerts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }

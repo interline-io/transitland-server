@@ -35,7 +35,7 @@ func (r *agencyResolver) Operator(ctx context.Context, obj *model.Agency) (*mode
 
 }
 
-func (r *agencyResolver) Alerts(ctx context.Context, obj *model.Agency) ([]*model.Alert, error) {
-	rtAlerts := r.rtfinder.FindAlertsForAgency(obj)
+func (r *agencyResolver) Alerts(ctx context.Context, obj *model.Agency, active *bool, limit *int) ([]*model.Alert, error) {
+	rtAlerts := r.rtfinder.FindAlertsForAgency(obj, limit, active)
 	return rtAlerts, nil
 }

@@ -84,10 +84,10 @@ type RTFinder interface {
 	AddData(string, []byte) error
 	FindTrip(t *Trip) *pb.TripUpdate
 	MakeTrip(t *Trip) (*Trip, error)
-	FindAlertsForTrip(*Trip) []*Alert
-	FindAlertsForStop(*Stop) []*Alert
-	FindAlertsForRoute(*Route) []*Alert
-	FindAlertsForAgency(*Agency) []*Alert
+	FindAlertsForTrip(*Trip, *int, *bool) []*Alert
+	FindAlertsForStop(*Stop, *int, *bool) []*Alert
+	FindAlertsForRoute(*Route, *int, *bool) []*Alert
+	FindAlertsForAgency(*Agency, *int, *bool) []*Alert
 	GetAddedTripsForStop(*Stop) []*pb.TripUpdate
 	FindStopTimeUpdate(*Trip, *StopTime) (*pb.TripUpdate_StopTimeUpdate, bool)
 	// lookup cache methods
