@@ -1,7 +1,6 @@
 package resolvers
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/tidwall/gjson"
@@ -96,7 +95,6 @@ func TestTripResolver_StopPatternID(t *testing.T) {
 	var resp map[string]interface{}
 	c.MustPost(query, &resp)
 	jj := toJson(resp)
-	fmt.Println(resp)
 	patId := gjson.Get(jj, "trips.0.stop_pattern_id").Int()
 	tc := testcase{
 		"where trip_id",

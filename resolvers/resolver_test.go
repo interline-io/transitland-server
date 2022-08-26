@@ -39,13 +39,16 @@ func newTestClient() *client.Client {
 	return client.New(srv)
 }
 
-func newTestClientWithClock(cl clock.Clock) *client.Client {
+func newTestClientWithClock(cl clock.Clock) (model.Finder, model.RTFinder, *client.Client) {
 	// Create a new finder, with specified time
+	cfg := config.Config{Clock: cl}
 	db := TestDBFinder.DBX()
 	rtf := rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
-	cfg := config.Config{Clock: cl}
-	srv, _ := NewServer(cfg, find.NewDBFinder(db), rtf)
-	return client.New(srv)
+	rtf.Clock = cl
+	dbf := find.NewDBFinder(db)
+	dbf.Clock = cl
+	srv, _ := NewServer(cfg, dbf, rtf)
+	return dbf, rtf, client.New(srv)
 }
 
 func toJson(m map[string]interface{}) string {

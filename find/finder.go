@@ -9,6 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -16,7 +17,8 @@ import (
 ////////
 
 type DBFinder struct {
-	db sqlx.Ext
+	Clock clock.Clock
+	db    sqlx.Ext
 }
 
 func NewDBFinder(db sqlx.Ext) *DBFinder {
