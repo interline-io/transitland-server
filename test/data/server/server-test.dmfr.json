@@ -44,6 +44,13 @@
       ]
     },
     {
+      "spec": "gbfs",
+      "id": "test-gbfs",
+      "urls": {
+        "gbfs_auto_discovery": "file://../../test/data/gbfs/gbfs.json"
+      }
+    },
+    {
       "spec": "gtfs",
       "id": "BA",
       "tags": {

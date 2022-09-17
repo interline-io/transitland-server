@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-server/internal/gbfs"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -93,4 +94,10 @@ type RTFinder interface {
 	// lookup cache methods
 	StopTimezone(int, string) (*time.Location, bool)
 	GetGtfsTripID(int) (string, bool)
+}
+
+// GBFSFinder manages and looks up GBFS data
+type GbfsFinder interface {
+	AddData(context.Context, string, gbfs.GbfsFeed) error
+	FindBikes()
 }
