@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/interline-io/transitland-lib/gbfs"
 	"github.com/interline-io/transitland-lib/tl/tt"
 )
 
@@ -29,18 +28,18 @@ func (g *TestGbfsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (g *TestGbfsServer) open(host string, path string) ([]byte, error) {
 	if path == "/" || path == "" || path == "/gbfs.json" {
-		sf := gbfs.SystemFile{}
+		sf := SystemFile{}
 		fis, err := ioutil.ReadDir(g.Path)
 		_ = err
-		var sfs gbfs.SystemFeeds
+		var sfs SystemFeeds
 		for _, fi := range fis {
 			if strings.HasSuffix(fi.Name(), ".json") {
 				fn := strings.Replace(fi.Name(), ".json", "", -1)
 				url := fmt.Sprintf("http://%s/%s.json", host, fn)
-				sfs.Feeds = append(sfs.Feeds, gbfs.SystemFeed{Name: tt.NewString(fn), URL: tt.NewString(url)})
+				sfs.Feeds = append(sfs.Feeds, SystemFeed{Name: tt.NewString(fn), URL: tt.NewString(url)})
 			}
 		}
-		sf.Data = map[string]gbfs.SystemFeeds{}
+		sf.Data = map[string]SystemFeeds{}
 		sf.Data[g.Language] = sfs
 		data, err := json.Marshal(sf)
 		return data, err
