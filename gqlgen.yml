@@ -35,26 +35,26 @@ models:
   String:
     model:
       - "github.com/99designs/gqlgen/graphql.String"
-      - "github.com/interline-io/transitland-lib/tl.String"
+      - "github.com/interline-io/transitland-lib/tl/tt.String"
   Tags:
-    model: "github.com/interline-io/transitland-lib/tl.Tags"
+    model: "github.com/interline-io/transitland-lib/tl/tt.Tags"
   Polygon:
-    model: "github.com/interline-io/transitland-lib/tl.Polygon"
+    model: "github.com/interline-io/transitland-lib/tl/tt.Polygon"
   LineString:
-    model: "github.com/interline-io/transitland-lib/tl.LineString"
+    model: "github.com/interline-io/transitland-lib/tl/tt.LineString"
   Point:
-    model: "github.com/interline-io/transitland-lib/tl.Point"
+    model: "github.com/interline-io/transitland-lib/tl/tt.Point"
   Seconds:
-    model: "github.com/interline-io/transitland-lib/tl.WideTime"
+    model: "github.com/interline-io/transitland-lib/tl/tt.WideTime"
   Geometry:
-    model: "github.com/interline-io/transitland-lib/tl.Geometry"    
+    model: "github.com/interline-io/transitland-lib/tl/tt.Geometry"    
   Date:
     model: 
-      - "github.com/interline-io/transitland-lib/tl.Date"      
+      - "github.com/interline-io/transitland-lib/tl/tt.Date"      
   Time:
     model:
       - "github.com/99designs/gqlgen/graphql.Time"
-      - "github.com/interline-io/transitland-lib/tl.Time"
+      - "github.com/interline-io/transitland-lib/tl/tt.Time"
   ID:
     model:
       - "github.com/99designs/gqlgen/graphql.ID"
@@ -66,10 +66,19 @@ models:
       - "github.com/99designs/gqlgen/graphql.Int"
       - "github.com/99designs/gqlgen/graphql.Int64"
       - "github.com/99designs/gqlgen/graphql.Int32"
-      - "github.com/interline-io/transitland-lib/tl.Int"
+      - "github.com/interline-io/transitland-lib/tl/tt.Int"
   Float:
     model:
       - "github.com/99designs/gqlgen/graphql.Float"
-      - "github.com/interline-io/transitland-lib/tl.Float"
+      - "github.com/interline-io/transitland-lib/tl/tt.Float"
+  Key:
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Key"
+  Bool:
+    model:     
+      - "github.com/interline-io/transitland-lib/tl/tt.Bool"
+  Strings:
+    model:     
+      - "github.com/interline-io/transitland-lib/tl/tt.Strings"
 
 

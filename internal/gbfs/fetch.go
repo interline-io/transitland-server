@@ -64,9 +64,9 @@ func fetchAll(sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
 			ret.StationStatus = e.Data.Stations
 		case "free_bike_status":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Bikes = e.Bikes
+			ret.Bikes = e.Data.Bikes
 		case "system_hours":
 			e := GbfsFile{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)

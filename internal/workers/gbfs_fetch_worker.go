@@ -35,19 +35,13 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		opts.FeedURL = w.Url
 	}
 	feeds, result, err := gbfs.Fetch(opts)
+	_ = result
 	if err != nil {
 		return err
 	}
-	_ = result
 	for _, feed := range feeds {
-		fmt.Println("feed lang:", feed.SystemInformation.Language)
-		// Convert back to bytes...
-		if err != nil {
-			log.Error().Msg("gbfsfetch worker: invalid data")
-			return err
-		}
 		// Save to cache
-		key := fmt.Sprintf("gbfs:%s:%s", w.Target, feed.SystemInformation.Language.Val)
+		key := fmt.Sprintf("gbfs:%s:%s", w.SourceFeedID, feed.SystemInformation.Language.Val)
 		log.Info().Msg("gbfs fetch worker: success")
 		return job.Opts.GbfsFinder.AddData(ctx, key, feed)
 	}

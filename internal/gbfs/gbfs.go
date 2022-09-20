@@ -2,11 +2,6 @@ package gbfs
 
 import "github.com/interline-io/transitland-lib/tl/tt"
 
-type Bool struct {
-	Val   bool
-	Valid bool
-}
-
 type GbfsFeed struct {
 	SystemInformation  SystemInformation    `json:"system_information,omitempty"`
 	StationInformation []StationInformation `json:"station_information,omitempty"`
@@ -20,6 +15,10 @@ type GbfsFeed struct {
 	Plans              []SystemPricingPlan  `json:"plans,omitempty"`
 	Alerts             []SystemAlert        `json:"alerts,omitempty"`
 	GeofencingZones    []GeofenceZone       `json:"geofencing_zones,omitempty"`
+}
+
+type GbfsFeedData struct {
+	Data GbfsFeed
 }
 
 ///////////////
@@ -100,15 +99,15 @@ type StationInformation struct {
 	RegionID          tt.Key            `json:"region_id,omitempty"`
 	PostCode          tt.String         `json:"post_code,omitempty"`
 	RentalMethods     tt.Strings        `json:"rental_methods,omitempty"`
-	IsVirtualStation  Bool              `json:"is_virtual_station,omitempty"`
+	IsVirtualStation  tt.Bool           `json:"is_virtual_station,omitempty"`
 	StationArea       tt.Geometry       `json:"station_area,omitempty"`
 	ParkingType       tt.String         `json:"parking_type,omitempty"`
 	ParkingHoop       tt.Int            `json:"parking_hoop,omitempty"`
 	ContactPhone      tt.String         `json:"contact_phone,omitempty"`
 	Capacity          tt.Int            `json:"capacity,omitempty"`
 	VehicleCapacity   map[string]tt.Int `json:"vehicle_capacity,omitempty"`
-	IsValetStation    Bool              `json:"is_valet_station,omitempty"`
-	IsChargingStation Bool              `json:"is_charging_station,omitempty"`
+	IsValetStation    tt.Bool           `json:"is_valet_station,omitempty"`
+	IsChargingStation tt.Bool           `json:"is_charging_station,omitempty"`
 }
 
 type StationStatusFile struct {
@@ -125,9 +124,9 @@ type StationStatus struct {
 	NumBikesDisabled      tt.Int                 `json:"num_bikes_disabled,omitempty"`
 	NumDocksAvailable     tt.Int                 `json:"num_docks_available,omitempty"`
 	NumDocksDisabled      tt.Int                 `json:"num_docks_disabled,omitempty"`
-	IsReturning           Bool                   `json:"is_returning,omitempty"`
-	IsRenting             Bool                   `json:"is_renting,omitempty"`
-	IsInstalled           Bool                   `json:"is_installed,omitempty"`
+	IsReturning           tt.Bool                `json:"is_returning,omitempty"`
+	IsRenting             tt.Bool                `json:"is_renting,omitempty"`
+	IsInstalled           tt.Bool                `json:"is_installed,omitempty"`
 	LastReported          tt.Time                `json:"last_reported,omitempty"`
 	VehicleTypesAvailable []VehicleTypeAvailable `json:"vehicle_types_available,omitempty"`
 	VehicleDocksAvailable []VehicleDockAvailable `json:"vehicle_docks_available,omitempty"`
@@ -207,8 +206,8 @@ type FreeBikeStatus struct {
 	BikeID             tt.Key     `json:"bike_id,omitempty"`
 	Lat                tt.Float   `json:"lat,omitempty"`
 	Lon                tt.Float   `json:"lon,omitempty"`
-	IsReserved         Bool       `json:"is_reserved,omitempty"`
-	IsDisabled         Bool       `json:"is_disabled,omitempty"`
+	IsReserved         tt.Bool    `json:"is_reserved,omitempty"`
+	IsDisabled         tt.Bool    `json:"is_disabled,omitempty"`
 	VehicleTypeID      tt.Key     `json:"vehicle_type_id,omitempty"`
 	LastReported       tt.Time    `json:"last_reported,omitempty"`
 	CurrentRangeMeters tt.Float   `json:"current_range_meters,omitempty"`
@@ -252,9 +251,9 @@ type SystemPricingPlan struct {
 	Name          tt.String   `json:"name,omitempty"`
 	Currency      tt.String   `json:"currency,omitempty"`
 	Price         tt.Float    `json:"price,omitempty"`
-	IsTaxable     Bool        `json:"is_taxable,omitempty"`
+	IsTaxable     tt.Bool     `json:"is_taxable,omitempty"`
 	Description   tt.String   `json:"description,omitempty"`
-	SurgePricing  Bool        `json:"surge_pricing,omitempty"`
+	SurgePricing  tt.Bool     `json:"surge_pricing,omitempty"`
 	PerKmPricing  []PlanPrice `json:"per_km_pricing,omitempty"`
 	PerMinPricing []PlanPrice `json:"per_min_pricing,omitempty"`
 }
@@ -303,8 +302,8 @@ type GeofenceProperty struct {
 
 type GeofenceRule struct {
 	VehicleTypeID      tt.Strings `json:"vehicle_type_id,omitempty"`
-	RideAllowed        Bool       `json:"ride_allowed,omitempty"`
-	RideThroughAllowed Bool       `json:"ride_through_allowed,omitempty"`
+	RideAllowed        tt.Bool    `json:"ride_allowed,omitempty"`
+	RideThroughAllowed tt.Bool    `json:"ride_through_allowed,omitempty"`
 	MaximumSpeedKph    tt.Int     `json:"maximum_speed_kph,omitempty"`
-	StationParking     Bool       `json:"station_parking,omitempty"`
+	StationParking     tt.Bool    `json:"station_parking,omitempty"`
 }

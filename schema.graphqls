@@ -954,6 +954,7 @@ input PointRadius {
   radius: Float!
 }
 
+
 # Scalar types
 
 scalar Tags
@@ -967,3 +968,6 @@ scalar Polygon
 scalar Map
 scalar Any
 scalar Upload
+scalar Key
+scalar Bool
+scalar Strings

@@ -99,5 +99,5 @@ type RTFinder interface {
 // GBFSFinder manages and looks up GBFS data
 type GbfsFinder interface {
 	AddData(context.Context, string, gbfs.GbfsFeed) error
-	FindBikes()
+	FindBikes(context.Context, PointRadius)
 }

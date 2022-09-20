@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/gbfscache"
@@ -31,17 +32,19 @@ func TestMain(m *testing.M) {
 	dbf := find.NewDBFinder(db)
 	TestDBFinder = dbf
 	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
-	TestGbfsFinder = gbfscache.NewGbfsFinder()
+	TestGbfsFinder = gbfscache.NewGbfsFinder(nil)
 	os.Exit(m.Run())
 }
 
 func TestGbfsFetchWorker(t *testing.T) {
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
 	defer ts.Close()
+	redisClient := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+	gbfsFinder := gbfscache.NewGbfsFinder(redisClient)
 	job := jobs.Job{}
 	job.Opts.Finder = TestDBFinder
 	job.Opts.RTFinder = TestRTFinder
-	job.Opts.GbfsFinder = TestGbfsFinder
+	job.Opts.GbfsFinder = gbfsFinder
 	w := GbfsFetchWorker{
 		Url:          ts.URL + "/gbfs.json",
 		SourceType:   "gbfs",
@@ -51,4 +54,13 @@ func TestGbfsFetchWorker(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Test
+	gbfsFinder.FindBikes(
+		context.Background(),
+		model.PointRadius{
+			Lon:    -122.396445,
+			Lat:    37.793250,
+			Radius: 100,
+		},
+	)
 }
