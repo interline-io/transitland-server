@@ -10,7 +10,7 @@ import (
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/rtcache"
+	"github.com/interline-io/transitland-server/internal/rtfinder"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -33,7 +33,7 @@ func TestMain(m *testing.M) {
 // Test helpers
 
 func newTestClient() *client.Client {
-	rtf := rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDBFinder.DBX())
+	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), TestDBFinder.DBX())
 	cfg := config.Config{}
 	srv, _ := NewServer(cfg, TestDBFinder, rtf, nil)
 	return client.New(srv)
@@ -43,7 +43,7 @@ func newTestClientWithClock(cl clock.Clock) (model.Finder, model.RTFinder, *clie
 	// Create a new finder, with specified time
 	cfg := config.Config{Clock: cl}
 	db := TestDBFinder.DBX()
-	rtf := rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
+	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
 	dbf := find.NewDBFinder(db)
 	dbf.Clock = cl

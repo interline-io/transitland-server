@@ -16,7 +16,7 @@ import (
 func TestFetchResolver(t *testing.T) {
 	cfg := config.Config{}
 	// dbFinder := find.NewDBFinder(TestDB)
-	// rtFinder := rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDB)
+	// rtFinder := rtfinder.NewRTFinder(rtfinder.NewLocalCache(), TestDB)
 	expectFile := testutil.RelPath("test/data/external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)

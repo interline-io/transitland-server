@@ -12,7 +12,7 @@ import (
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/gbfsfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
-	"github.com/interline-io/transitland-server/internal/rtcache"
+	"github.com/interline-io/transitland-server/internal/rtfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 
 	"github.com/interline-io/transitland-server/model"
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	db := find.MustOpenDB(g)
 	dbf := find.NewDBFinder(db)
 	TestDBFinder = dbf
-	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
+	TestRTFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	TestGbfsFinder = gbfsfinder.NewFinder(nil)
 	os.Exit(m.Run())
 }

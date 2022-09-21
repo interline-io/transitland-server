@@ -23,7 +23,7 @@ import (
 	"github.com/interline-io/transitland-server/internal/gbfsfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/playground"
-	"github.com/interline-io/transitland-server/internal/rtcache"
+	"github.com/interline-io/transitland-server/internal/rtfinder"
 	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
@@ -123,12 +123,12 @@ func (cmd *ServerCommand) Run() error {
 	// Create RTFinder
 	if cmd.RedisURL != "" {
 		// Replace RTFinder; use redis backed cache now
-		rtFinder = rtcache.NewRTFinder(rtcache.NewRedisCache(redisClient), dbx)
+		rtFinder = rtfinder.NewFinder(rtfinder.NewRedisCache(redisClient), dbx)
 		gbfsFinder = gbfsfinder.NewFinder(redisClient)
 		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
 	} else {
 		// Default to in-memory cache
-		rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
+		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), dbx)
 		jobQueue = jobs.NewLocalJobs()
 	}
 

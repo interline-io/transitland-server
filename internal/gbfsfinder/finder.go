@@ -24,6 +24,7 @@ type Finder struct {
 func NewFinder(client *redis.Client) *Finder {
 	c := ecache.NewCache[gbfs.GbfsFeed](client, "gbfs")
 	return &Finder{
+		ttl:              1 * time.Hour,
 		cache:            c,
 		client:           client,
 		prefix:           "gbfs",
@@ -34,8 +35,8 @@ func NewFinder(client *redis.Client) *Finder {
 
 func (c *Finder) AddData(ctx context.Context, topic string, sf gbfs.GbfsFeed) error {
 	// Save basic data
-	c.cache.SetTTL(ctx, topic, sf, 1*time.Hour, 1*time.Hour)
-	// Geo index bikes and stations
+	c.cache.SetTTL(ctx, topic, sf, c.ttl, c.ttl)
+	// Geosearch index bikes and stations
 	ts := time.Now().UnixNano()
 	var locs []*redis.GeoLocation
 	for _, bike := range sf.Bikes {
@@ -54,10 +55,8 @@ func (c *Finder) AddData(ctx context.Context, topic string, sf gbfs.GbfsFeed) er
 
 func (c *Finder) FindBikes(ctx context.Context, pt model.PointRadius) ([]*model.GbfsFreeBikeStatus, error) {
 	q := redis.GeoRadiusQuery{
-		Radius:    pt.Radius,
-		Unit:      "m",
-		WithDist:  true,
-		WithCoord: true,
+		Radius: pt.Radius,
+		Unit:   "m",
 	}
 	cmd := c.client.GeoRadius(
 		ctx,
@@ -66,7 +65,7 @@ func (c *Finder) FindBikes(ctx context.Context, pt model.PointRadius) ([]*model.
 	)
 	locs, err := cmd.Result()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	getBikes := map[string][]string{}
 	for _, loc := range locs {
@@ -89,6 +88,7 @@ func (c *Finder) FindBikes(ctx context.Context, pt model.PointRadius) ([]*model.
 			continue
 		}
 		for _, bike := range sf.Bikes {
+			// TODO: redo distance search? use geosearch only for bike topic keys
 			if bikeSet[bike.BikeID.Val] {
 				b := model.GbfsFreeBikeStatus{
 					FreeBikeStatus: bike,
@@ -102,16 +102,4 @@ func (c *Finder) FindBikes(ctx context.Context, pt model.PointRadius) ([]*model.
 
 func (c *Finder) FindStations(pt model.PointRadius) {
 
-}
-
-func uniq(v []string) []string {
-	m := map[string]bool{}
-	for _, k := range v {
-		m[k] = true
-	}
-	var ret []string
-	for k := range m {
-		ret = append(ret, k)
-	}
-	return ret
 }
