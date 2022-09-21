@@ -632,6 +632,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Agencies     func(childComplexity int, limit *int, after *int, ids []int, where *model.AgencyFilter) int
+		Bikes        func(childComplexity int, where model.GbfsBikeRequest) int
 		Directions   func(childComplexity int, where model.DirectionRequest) int
 		FeedVersions func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedVersionFilter) int
 		Feeds        func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedFilter) int
@@ -973,6 +974,7 @@ type QueryResolver interface {
 	Trips(ctx context.Context, limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error)
 	Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error)
 	Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error)
+	Bikes(ctx context.Context, where model.GbfsBikeRequest) ([]*model.GbfsFreeBikeStatus, error)
 }
 type RouteResolver interface {
 	Agency(ctx context.Context, obj *model.Route) (*model.Agency, error)
@@ -4006,6 +4008,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Agencies(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.AgencyFilter)), true
 
+	case "Query.bikes":
+		if e.complexity.Query.Bikes == nil {
+			break
+		}
+
+		args, err := ec.field_Query_bikes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Bikes(childComplexity, args["where"].(model.GbfsBikeRequest)), true
+
 	case "Query.directions":
 		if e.complexity.Query.Directions == nil {
 			break
@@ -5536,6 +5550,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFeedVersionFilter,
 		ec.unmarshalInputFeedVersionServiceLevelFilter,
 		ec.unmarshalInputFeedVersionSetInput,
+		ec.unmarshalInputGbfsBikeRequest,
 		ec.unmarshalInputOperatorFilter,
 		ec.unmarshalInputPathwayFilter,
 		ec.unmarshalInputPointRadius,
@@ -5604,8 +5619,108 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../../gbfs.graphqls", Input: `
-# GBFS
+	{Name: "../../schema/directions.graphqls", Input: `# Directions API
+
+input DirectionRequest {
+  to: WaypointInput!
+  from: WaypointInput!
+  mode: StepMode!
+  depart_at: Time
+}
+
+input WaypointInput {
+  lon: Float!
+  lat: Float!
+  name: String
+}
+
+type Waypoint {
+  lon: Float!
+  lat: Float!
+  name: String
+}
+
+type Directions {
+  # metadata
+  success: Boolean!
+  exception: String
+  data_source: String
+  # input
+  origin: Waypoint
+  destination: Waypoint
+  # first itin summary
+  duration: Duration
+  distance: Distance
+  start_time: Time
+  end_time: Time
+  # itineraries
+  itineraries: [Itinerary!]
+}
+
+type Itinerary {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  from: Waypoint!
+  to: Waypoint!
+  legs: [Leg!]
+}
+
+type Leg {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  from: Waypoint
+  to: Waypoint
+  steps: [Step!]
+  geometry: LineString!
+}
+
+type Step {
+  duration: Duration!
+  distance: Distance!
+  start_time: Time!
+  end_time: Time!
+  to: Waypoint
+  mode: StepMode!
+  instruction: String!
+  geometry_offset: Int!
+}
+
+type Distance {
+  distance: Float!
+  units: DistanceUnit!
+}
+
+type Duration {
+  duration: Float!
+  units: DurationUnit!
+}
+
+enum DurationUnit {
+  SECONDS
+}
+
+enum DistanceUnit {
+  KILOMETERS
+  MILES
+}
+
+enum StepMode {
+  WALK
+  AUTO
+  BICYCLE
+  TRANSIT
+  LINE
+}
+`, BuiltIn: false},
+	{Name: "../../schema/gbfs.graphqls", Input: `# GBFS
+
+input GbfsBikeRequest {
+	near: PointRadius
+}
 
 type GbfsFeed {
 	system_information:  GbfsSystemInformation
@@ -5852,8 +5967,212 @@ type GbfsGeofenceRule  {
 	station_parking: Bool    
 }
 `, BuiltIn: false},
-	{Name: "../../schema.graphqls", Input: `directive @hasRole(role: Role!) on FIELD_DEFINITION
+	{Name: "../../schema/input.graphqls", Input: `
+# Update inputs
 
+input FeedVersionSetInput {
+  name: String
+  description: String
+}
+
+# Query filters
+
+input OperatorFilter {
+  merged: Boolean
+  onestop_id: String
+  feed_onestop_id: String
+  agency_id: String
+  search: String
+  tags: Tags
+  city_name: String
+  adm0_name: String
+  adm1_name: String
+  adm0_iso: String
+  adm1_iso: String
+}
+
+input FeedVersionFilter {
+  import_status: ImportStatus
+  feed_onestop_id: String
+  sha1: String
+  feed_ids: [Int!]
+}
+
+enum ImportStatus {
+  SUCCESS
+  ERROR
+  IN_PROGRESS
+}
+
+input FeedFilter {
+  "Search for feed with a specific Onestop ID"
+  onestop_id: String
+  "Search for feeds of certain data types"
+  spec: [FeedSpecTypes!]
+  "Search for feeds with or without a fetch error"
+  fetch_error: Boolean
+  "Search for feeds by their import status"
+  import_status: ImportStatus
+  "Full text search"
+  search: String
+  "Search for feeds with a tag"
+  tags: Tags,
+  "Search for feeds by their source URLs"
+  source_url: FeedSourceUrl
+}
+
+input FeedFetchFilter {
+  success: Boolean
+}
+
+input FeedSourceUrl {
+  url: String
+  type: FeedSourceUrlTypes
+  case_sensitive: Boolean
+}
+
+enum FeedSourceUrlTypes {
+  static_current
+  static_historic
+  static_planned
+  static_hypothetical
+  realtime_vehicle_positions
+  realtime_trip_updates
+  realtime_alerts
+  gbfs_auto_discovery
+  mds_provider
+}
+
+"""
+Type of data contained in a source feed
+"""
+enum FeedSpecTypes {
+  GTFS
+  GTFS_RT
+  GBFS
+  MDS
+}
+
+input AgencyFilter {
+  onestop_id: String
+  feed_version_sha1: String
+  feed_onestop_id: String
+  agency_id: String
+  "Search for records with this GTFS agency_name"
+  agency_name: String
+  within: Polygon
+  "Search for agencies within a radius"
+  near: PointRadius
+  "Full text search"
+  search: String
+  "Search by city name (provided by Natural Earth)"
+  city_name: String
+  "Search by country name (provided by Natural Earth)"
+  adm0_name: String
+  "Search by state/province/division name (provided by Natural Earth)"
+  adm1_name: String
+  "Search by country 2 letter ISO 3166 code (provided by Natural Earth)"
+  adm0_iso: String
+  "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
+  adm1_iso: String
+}
+
+input RouteFilter {
+  onestop_id: String
+  onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
+  feed_version_sha1: String
+  feed_onestop_id: String
+  route_id: String
+  route_type: Int
+  within: Polygon
+  near: PointRadius
+  search: String
+  operator_onestop_id: String
+  agency_ids: [Int!] # keep?
+}
+
+input StopFilter {
+  onestop_id: String
+  onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
+  feed_version_sha1: String
+  feed_onestop_id: String
+  stop_id: String
+  stop_code: String
+  within: Polygon
+  near: PointRadius
+  search: String
+  served_by_onestop_ids: [String!]
+  agency_ids: [Int!] # keep?
+}
+
+input StopTimeFilter {
+  service_date: Date
+  use_service_window: Boolean
+  start_time: Int
+  end_time: Int
+  start: Seconds
+  end: Seconds
+  next: Int
+  route_onestop_ids: [String!] # keep?
+  allow_previous_route_onestop_ids: Boolean
+  exclude_first: Boolean
+  exclude_last: Boolean
+}
+
+input PathwayFilter {
+  pathway_mode: Int
+}
+
+input TripFilter {
+  service_date: Date
+  trip_id: String
+  stop_pattern_id: Int
+  route_ids: [Int!] # keep?
+  route_onestop_ids: [String!] # keep?
+  feed_version_sha1: String
+  feed_onestop_id: String
+}
+
+input FeedVersionServiceLevelFilter {
+  start_date: Date
+  end_date: Date
+}
+
+input AgencyPlaceFilter {
+  min_rank: Float
+}
+
+input CalendarDateFilter {
+  date: Date
+  exception_type: Int
+}
+
+input PointRadius {
+  lat: Float!
+  lon: Float!
+  radius: Float!
+}
+`, BuiltIn: false},
+	{Name: "../../schema/schema.graphqls", Input: `# Scalar types
+scalar Tags
+scalar Geometry
+scalar Time
+scalar Date
+scalar Point
+scalar LineString
+scalar Seconds
+scalar Polygon
+scalar Map
+scalar Any
+scalar Upload
+scalar Key
+scalar Bool
+scalar Strings
+
+# Roles
+directive @hasRole(role: Role!) on FIELD_DEFINITION
 enum Role {
   ANON
   ADMIN
@@ -5871,6 +6190,8 @@ type Query {
   trips(limit: Int, after: Int, ids: [Int!], where: TripFilter): [Trip!]!
   operators(limit: Int, after: Int, ids: [Int!], where: OperatorFilter): [Operator!]!
   directions(where: DirectionRequest!): Directions!
+  bikes(where: GbfsBikeRequest!): [GbfsFreeBikeStatus!]
+  # docks(where: GbfsDockRequest!): [GbfsStationInformation!]
 }
 
 type Mutation {
@@ -6351,103 +6672,6 @@ type RouteHeadway {
   departures: [Seconds!]
 }
 
-# Directions API
-
-input DirectionRequest {
-  to: WaypointInput!
-  from: WaypointInput!
-  mode: StepMode!
-  depart_at: Time
-}
-
-input WaypointInput {
-  lon: Float!
-  lat: Float!
-  name: String
-}
-
-type Waypoint {
-  lon: Float!
-  lat: Float!
-  name: String
-}
-
-type Directions {
-  # metadata
-  success: Boolean!
-  exception: String
-  data_source: String
-  # input
-  origin: Waypoint
-  destination: Waypoint
-  # first itin summary
-  duration: Duration
-  distance: Distance
-  start_time: Time
-  end_time: Time
-  # itineraries
-  itineraries: [Itinerary!]
-}
-
-type Itinerary {
-  duration: Duration!
-  distance: Distance!
-  start_time: Time!
-  end_time: Time!
-  from: Waypoint!
-  to: Waypoint!
-  legs: [Leg!]
-}
-
-type Leg {
-  duration: Duration!
-  distance: Distance!
-  start_time: Time!
-  end_time: Time!
-  from: Waypoint
-  to: Waypoint
-  steps: [Step!]
-  geometry: LineString!
-}
-
-type Step {
-  duration: Duration!
-  distance: Distance!
-  start_time: Time!
-  end_time: Time!
-  to: Waypoint
-  mode: StepMode!
-  instruction: String!
-  geometry_offset: Int!
-}
-
-type Distance {
-  distance: Float!
-  units: DistanceUnit!
-}
-
-type Duration {
-  duration: Float!
-  units: DurationUnit!
-}
-
-enum DurationUnit {
-  SECONDS
-}
-
-enum DistanceUnit {
-  KILOMETERS
-  MILES
-}
-
-enum StepMode {
-  WALK
-  AUTO
-  BICYCLE
-  TRANSIT
-  LINE
-}
-
 # Census entities
 
 type CensusGeography {
@@ -6621,210 +6845,7 @@ type FeedVersionDeleteResult {
   success: Boolean!
 }
 
-# Update inputs
-
-input FeedVersionSetInput {
-  name: String
-  description: String
-}
-
-# Query filters
-
-input OperatorFilter {
-  merged: Boolean
-  onestop_id: String
-  feed_onestop_id: String
-  agency_id: String
-  search: String
-  tags: Tags
-  city_name: String
-  adm0_name: String
-  adm1_name: String
-  adm0_iso: String
-  adm1_iso: String
-}
-
-input FeedVersionFilter {
-  import_status: ImportStatus
-  feed_onestop_id: String
-  sha1: String
-  feed_ids: [Int!]
-}
-
-enum ImportStatus {
-  SUCCESS
-  ERROR
-  IN_PROGRESS
-}
-
-input FeedFilter {
-  "Search for feed with a specific Onestop ID"
-  onestop_id: String
-  "Search for feeds of certain data types"
-  spec: [FeedSpecTypes!]
-  "Search for feeds with or without a fetch error"
-  fetch_error: Boolean
-  "Search for feeds by their import status"
-  import_status: ImportStatus
-  "Full text search"
-  search: String
-  "Search for feeds with a tag"
-  tags: Tags,
-  "Search for feeds by their source URLs"
-  source_url: FeedSourceUrl
-}
-
-input FeedFetchFilter {
-  success: Boolean
-}
-
-input FeedSourceUrl {
-  url: String
-  type: FeedSourceUrlTypes
-  case_sensitive: Boolean
-}
-
-enum FeedSourceUrlTypes {
-  static_current
-  static_historic
-  static_planned
-  static_hypothetical
-  realtime_vehicle_positions
-  realtime_trip_updates
-  realtime_alerts
-  gbfs_auto_discovery
-  mds_provider
-}
-
-"""
-Type of data contained in a source feed
-"""
-enum FeedSpecTypes {
-  GTFS
-  GTFS_RT
-  GBFS
-  MDS
-}
-
-input AgencyFilter {
-  onestop_id: String
-  feed_version_sha1: String
-  feed_onestop_id: String
-  agency_id: String
-  "Search for records with this GTFS agency_name"
-  agency_name: String
-  within: Polygon
-  "Search for agencies within a radius"
-  near: PointRadius
-  "Full text search"
-  search: String
-  "Search by city name (provided by Natural Earth)"
-  city_name: String
-  "Search by country name (provided by Natural Earth)"
-  adm0_name: String
-  "Search by state/province/division name (provided by Natural Earth)"
-  adm1_name: String
-  "Search by country 2 letter ISO 3166 code (provided by Natural Earth)"
-  adm0_iso: String
-  "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
-  adm1_iso: String
-}
-
-input RouteFilter {
-  onestop_id: String
-  onestop_ids: [String!]
-  allow_previous_onestop_ids: Boolean
-  feed_version_sha1: String
-  feed_onestop_id: String
-  route_id: String
-  route_type: Int
-  within: Polygon
-  near: PointRadius
-  search: String
-  operator_onestop_id: String
-  agency_ids: [Int!] # keep?
-}
-
-input StopFilter {
-  onestop_id: String
-  onestop_ids: [String!]
-  allow_previous_onestop_ids: Boolean
-  feed_version_sha1: String
-  feed_onestop_id: String
-  stop_id: String
-  stop_code: String
-  within: Polygon
-  near: PointRadius
-  search: String
-  served_by_onestop_ids: [String!]
-  agency_ids: [Int!] # keep?
-}
-
-input StopTimeFilter {
-  service_date: Date
-  use_service_window: Boolean
-  start_time: Int
-  end_time: Int
-  start: Seconds
-  end: Seconds
-  next: Int
-  route_onestop_ids: [String!] # keep?
-  allow_previous_route_onestop_ids: Boolean
-  exclude_first: Boolean
-  exclude_last: Boolean
-}
-
-input PathwayFilter {
-  pathway_mode: Int
-}
-
-input TripFilter {
-  service_date: Date
-  trip_id: String
-  stop_pattern_id: Int
-  route_ids: [Int!] # keep?
-  route_onestop_ids: [String!] # keep?
-  feed_version_sha1: String
-  feed_onestop_id: String
-}
-
-input FeedVersionServiceLevelFilter {
-  start_date: Date
-  end_date: Date
-}
-
-input AgencyPlaceFilter {
-  min_rank: Float
-}
-
-input CalendarDateFilter {
-  date: Date
-  exception_type: Int
-}
-
-input PointRadius {
-  lat: Float!
-  lon: Float!
-  radius: Float!
-}
-
-
-# Scalar types
-
-scalar Tags
-scalar Geometry
-scalar Time
-scalar Date
-scalar Point
-scalar LineString
-scalar Seconds
-scalar Polygon
-scalar Map
-scalar Any
-scalar Upload
-scalar Key
-scalar Bool
-scalar Strings`, BuiltIn: false},
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -7417,6 +7438,21 @@ func (ec *executionContext) field_Query_agencies_args(ctx context.Context, rawAr
 		}
 	}
 	args["where"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_bikes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.GbfsBikeRequest
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg0, err = ec.unmarshalNGbfsBikeRequest2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsBikeRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg0
 	return args, nil
 }
 
@@ -28010,6 +28046,88 @@ func (ec *executionContext) fieldContext_Query_directions(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_bikes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_bikes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Bikes(rctx, fc.Args["where"].(model.GbfsBikeRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.GbfsFreeBikeStatus)
+	fc.Result = res
+	return ec.marshalOGbfsFreeBikeStatus2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsFreeBikeStatusᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_bikes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bike_id":
+				return ec.fieldContext_GbfsFreeBikeStatus_bike_id(ctx, field)
+			case "lat":
+				return ec.fieldContext_GbfsFreeBikeStatus_lat(ctx, field)
+			case "lon":
+				return ec.fieldContext_GbfsFreeBikeStatus_lon(ctx, field)
+			case "is_reserved":
+				return ec.fieldContext_GbfsFreeBikeStatus_is_reserved(ctx, field)
+			case "is_disabled":
+				return ec.fieldContext_GbfsFreeBikeStatus_is_disabled(ctx, field)
+			case "vehicle_type_id":
+				return ec.fieldContext_GbfsFreeBikeStatus_vehicle_type_id(ctx, field)
+			case "last_reported":
+				return ec.fieldContext_GbfsFreeBikeStatus_last_reported(ctx, field)
+			case "current_range_meters":
+				return ec.fieldContext_GbfsFreeBikeStatus_current_range_meters(ctx, field)
+			case "current_fuel_percent":
+				return ec.fieldContext_GbfsFreeBikeStatus_current_fuel_percent(ctx, field)
+			case "station_id":
+				return ec.fieldContext_GbfsFreeBikeStatus_station_id(ctx, field)
+			case "home_station_id":
+				return ec.fieldContext_GbfsFreeBikeStatus_home_station_id(ctx, field)
+			case "pricing_plan_id":
+				return ec.fieldContext_GbfsFreeBikeStatus_pricing_plan_id(ctx, field)
+			case "vehicle_equipment":
+				return ec.fieldContext_GbfsFreeBikeStatus_vehicle_equipment(ctx, field)
+			case "available_until":
+				return ec.fieldContext_GbfsFreeBikeStatus_available_until(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GbfsFreeBikeStatus", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_bikes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -40324,6 +40442,34 @@ func (ec *executionContext) unmarshalInputFeedVersionSetInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputGbfsBikeRequest(ctx context.Context, obj interface{}) (model.GbfsBikeRequest, error) {
+	var it model.GbfsBikeRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"near"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "near":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			it.Near, err = ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, obj interface{}) (model.OperatorFilter, error) {
 	var it model.OperatorFilter
 	asMap := map[string]interface{}{}
@@ -44945,6 +45091,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "bikes":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_bikes(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -48288,6 +48454,11 @@ func (ec *executionContext) marshalNGbfsAlertTime2ᚖgithubᚗcomᚋinterlineᚑ
 		return graphql.Null
 	}
 	return ec._GbfsAlertTime(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNGbfsBikeRequest2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsBikeRequest(ctx context.Context, v interface{}) (model.GbfsBikeRequest, error) {
+	res, err := ec.unmarshalInputGbfsBikeRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNGbfsFreeBikeStatus2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsFreeBikeStatus(ctx context.Context, sel ast.SelectionSet, v *model.GbfsFreeBikeStatus) graphql.Marshaler {

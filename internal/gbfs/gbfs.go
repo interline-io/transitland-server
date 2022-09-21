@@ -43,7 +43,7 @@ type SystemInformationFile struct {
 }
 
 type SystemInformation struct {
-	SystemID           tt.Key    `json:"system_id,omitempty"`
+	SystemID           tt.String `json:"system_id,omitempty"`
 	Language           tt.String `json:"language,omitempty"`
 	Name               tt.String `json:"name,omitempty"`
 	ShortName          tt.String `json:"short_name,omitempty"`

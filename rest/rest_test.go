@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 
 func testRestConfig() restConfig {
 	cfg := config.Config{}
-	srv, _ := resolvers.NewServer(cfg, TestDBFinder, TestRTFinder)
+	srv, _ := resolvers.NewServer(cfg, TestDBFinder, TestRTFinder, nil)
 	return restConfig{srv: srv, Config: cfg}
 }
 

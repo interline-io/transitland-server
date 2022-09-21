@@ -35,7 +35,7 @@ func TestMain(m *testing.M) {
 func newTestClient() *client.Client {
 	rtf := rtcache.NewRTFinder(rtcache.NewLocalCache(), TestDBFinder.DBX())
 	cfg := config.Config{}
-	srv, _ := NewServer(cfg, TestDBFinder, rtf)
+	srv, _ := NewServer(cfg, TestDBFinder, rtf, nil)
 	return client.New(srv)
 }
 
@@ -47,7 +47,7 @@ func newTestClientWithClock(cl clock.Clock) (model.Finder, model.RTFinder, *clie
 	rtf.Clock = cl
 	dbf := find.NewDBFinder(db)
 	dbf.Clock = cl
-	srv, _ := NewServer(cfg, dbf, rtf)
+	srv, _ := NewServer(cfg, dbf, rtf, nil)
 	return dbf, rtf, client.New(srv)
 }
 

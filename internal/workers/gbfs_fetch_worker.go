@@ -39,11 +39,11 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	if err != nil {
 		return err
 	}
+	// Save to cache
 	for _, feed := range feeds {
-		// Save to cache
-		key := fmt.Sprintf("gbfs:%s:%s", w.SourceFeedID, feed.SystemInformation.Language.Val)
-		log.Info().Msg("gbfs fetch worker: success")
-		return job.Opts.GbfsFinder.AddData(ctx, key, feed)
+		key := fmt.Sprintf("%s:%s", w.SourceFeedID, feed.SystemInformation.Language.Val)
+		job.Opts.GbfsFinder.AddData(ctx, key, feed)
 	}
+	log.Info().Msg("gbfs fetch worker: success")
 	return nil
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/gbfsfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/playground"
 	"github.com/interline-io/transitland-server/internal/rtcache"
@@ -99,6 +100,7 @@ func (cmd *ServerCommand) Run() error {
 	cfg := cmd.Config
 	var dbFinder model.Finder
 	var rtFinder model.RTFinder
+	var gbfsFinder model.GbfsFinder
 	var jobQueue jobs.JobQueue
 
 	// Open database
@@ -122,6 +124,7 @@ func (cmd *ServerCommand) Run() error {
 	if cmd.RedisURL != "" {
 		// Replace RTFinder; use redis backed cache now
 		rtFinder = rtcache.NewRTFinder(rtcache.NewRedisCache(redisClient), dbx)
+		gbfsFinder = gbfsfinder.NewFinder(redisClient)
 		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
 	} else {
 		// Default to in-memory cache
@@ -161,7 +164,7 @@ func (cmd *ServerCommand) Run() error {
 	}
 
 	// GraphQL API
-	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder)
+	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder, gbfsFinder)
 	if err != nil {
 		return err
 	}

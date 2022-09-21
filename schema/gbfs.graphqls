@@ -1,5 +1,8 @@
-
 # GBFS
+
+input GbfsBikeRequest {
+	near: PointRadius
+}
 
 type GbfsFeed {
 	system_information:  GbfsSystemInformation

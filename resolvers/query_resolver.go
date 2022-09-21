@@ -72,3 +72,10 @@ func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, i
 	}
 	return r.finder.FindOperators(ctx, limit, cursor, ids, where)
 }
+
+func (r *queryResolver) Bikes(ctx context.Context, where model.GbfsBikeRequest) ([]*model.GbfsFreeBikeStatus, error) {
+	if where.Near == nil {
+		return nil, nil
+	}
+	return r.gbfsFinder.FindBikes(ctx, *where.Near)
+}

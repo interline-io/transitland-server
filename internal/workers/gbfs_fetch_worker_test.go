@@ -10,7 +10,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/internal/gbfscache"
+	"github.com/interline-io/transitland-server/internal/gbfsfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/rtcache"
 	"github.com/interline-io/transitland-server/internal/testutil"
@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 	dbf := find.NewDBFinder(db)
 	TestDBFinder = dbf
 	TestRTFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), db)
-	TestGbfsFinder = gbfscache.NewGbfsFinder(nil)
+	TestGbfsFinder = gbfsfinder.NewFinder(nil)
 	os.Exit(m.Run())
 }
 
@@ -40,7 +40,7 @@ func TestGbfsFetchWorker(t *testing.T) {
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
 	defer ts.Close()
 	redisClient := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
-	gbfsFinder := gbfscache.NewGbfsFinder(redisClient)
+	gbfsFinder := gbfsfinder.NewFinder(redisClient)
 	job := jobs.Job{}
 	job.Opts.Finder = TestDBFinder
 	job.Opts.RTFinder = TestRTFinder

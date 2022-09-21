@@ -19,10 +19,11 @@ func atoi(v string) int {
 
 // Resolver .
 type Resolver struct {
-	cfg       config.Config
-	rtfinder  model.RTFinder
-	finder    model.Finder
-	fvslCache fvsl.FVSLCache
+	cfg        config.Config
+	rtfinder   model.RTFinder
+	finder     model.Finder
+	gbfsFinder model.GbfsFinder
+	fvslCache  fvsl.FVSLCache
 }
 
 // Query .
