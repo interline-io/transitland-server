@@ -35,9 +35,11 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		opts.FeedURL = w.Url
 	}
 	feeds, result, err := gbfs.Fetch(opts)
-	_ = result
 	if err != nil {
 		return err
+	}
+	if result.FetchError != nil {
+		return result.FetchError
 	}
 	// Save to cache
 	for _, feed := range feeds {
