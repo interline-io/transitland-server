@@ -43,6 +43,23 @@ func TestGbfsBikeResolver(t *testing.T) {
 			"bikes.#.bike_id",
 			[]string{"2e09a0ed99c8ad32cca516661618645e"},
 		},
+		{
+			"feed",
+			`{
+				bikes(where: {near:{lon: -122.396445, lat:37.793250, radius:100}}) {
+				  bike_id
+				  feed {
+					system_information {
+						name
+					}
+				  }
+				}
+			}`,
+			hw{},
+			``,
+			"bikes.#.feed.system_information.name",
+			[]string{"Bay Wheels"},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {

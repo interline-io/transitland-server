@@ -8,19 +8,19 @@ type GbfsFeed {
 	system_information:  GbfsSystemInformation
 	station_information: [GbfsStationInformation!]
 	station_status:  [GbfsStationStatus!]
-	versions: [GbfsSystemVersion!]
-	vehicle_types:  [GbfsVehicleType!]
-	bikes: [GbfsFreeBikeStatus!]
-	regions: [GbfsSystemRegion!]
-	rental_hours:  [GbfsSystemHour!]
-	calendars: [GbfsSystemCalendar!]
-	plans: [GbfsSystemPricingPlan!]
-	alerts: [GbfsSystemAlert!]
-	geofencing_zones: [GbfsGeofenceZone!] 
+	# versions: [GbfsSystemVersion!]
+	# vehicle_types:  [GbfsVehicleType!]
+	# bikes: [GbfsFreeBikeStatus!]
+	# regions: [GbfsSystemRegion!]
+	# rental_hours:  [GbfsSystemHour!]
+	# calendars: [GbfsSystemCalendar!]
+	# plans: [GbfsSystemPricingPlan!]
+	# alerts: [GbfsSystemAlert!]
+	# geofencing_zones: [GbfsGeofenceZone!] 
 }
 
 type GbfsSystemInformation  {
-  system_id: Key
+  system_id: String
   language: String
   name: String
   short_name: String
@@ -149,15 +149,16 @@ type GbfsFreeBikeStatus {
 	lon: Float   
 	is_reserved: Bool    
 	is_disabled: Bool    
-	vehicle_type_id: Key     
 	last_reported: Time
 	current_range_meters: Float   
 	current_fuel_percent: Float   
-	station_id: Key     
-	home_station_id: Key     
-	pricing_plan_id: Key     
 	vehicle_equipment: Strings
 	available_until: Time    
+	station: GbfsStationInformation    
+	home_station: GbfsStationInformation    
+	pricing_plan: GbfsSystemPricingPlan
+	vehicle_type: GbfsVehicleType
+	feed: GbfsFeed
 	# RentalURIs          {
 	# 	Android String android:
 	# 	IOS     String ios:
