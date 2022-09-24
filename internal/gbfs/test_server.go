@@ -36,11 +36,11 @@ func (g *TestGbfsServer) open(host string, path string) ([]byte, error) {
 			if strings.HasSuffix(fi.Name(), ".json") {
 				fn := strings.Replace(fi.Name(), ".json", "", -1)
 				url := fmt.Sprintf("http://%s/%s.json", host, fn)
-				sfs.Feeds = append(sfs.Feeds, SystemFeed{Name: tt.NewString(fn), URL: tt.NewString(url)})
+				sfs.Feeds = append(sfs.Feeds, &SystemFeed{Name: tt.NewString(fn), URL: tt.NewString(url)})
 			}
 		}
-		sf.Data = map[string]SystemFeeds{}
-		sf.Data[g.Language] = sfs
+		sf.Data = map[string]*SystemFeeds{}
+		sf.Data[g.Language] = &sfs
 		data, err := json.Marshal(sf)
 		return data, err
 	}

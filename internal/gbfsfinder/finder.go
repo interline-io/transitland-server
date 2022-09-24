@@ -102,7 +102,7 @@ func (c *Finder) FindBikes(ctx context.Context, pt model.PointRadius) ([]*model.
 			}
 			b := model.GbfsFreeBikeStatus{
 				FreeBikeStatus: bike,
-				Feed:           &model.GbfsFeed{GbfsFeed: sf},
+				Feed:           &model.GbfsFeed{GbfsFeed: &sf},
 			}
 			ret = append(ret, &b)
 		}

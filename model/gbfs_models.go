@@ -9,14 +9,17 @@ type GbfsAlertTime struct {
 }
 
 type GbfsBrandAsset struct {
-	gbfs.BrandAsset
+	*gbfs.BrandAsset
 }
 
 type GbfsFeed struct {
-	gbfs.GbfsFeed
+	*gbfs.GbfsFeed
 }
 
 func (g *GbfsFeed) SystemInformation() *GbfsSystemInformation {
+	if g.GbfsFeed.SystemInformation == nil {
+		return nil
+	}
 	return &GbfsSystemInformation{
 		Feed:              g,
 		SystemInformation: g.GbfsFeed.SystemInformation,
@@ -26,6 +29,9 @@ func (g *GbfsFeed) SystemInformation() *GbfsSystemInformation {
 func (g *GbfsFeed) StationInformation() []*GbfsStationInformation {
 	var ret []*GbfsStationInformation
 	for _, s := range g.GbfsFeed.StationInformation {
+		if s == nil {
+			continue
+		}
 		ret = append(ret, &GbfsStationInformation{
 			Feed:               g,
 			StationInformation: s,
@@ -34,35 +40,37 @@ func (g *GbfsFeed) StationInformation() []*GbfsStationInformation {
 	return ret
 }
 
-func (g *GbfsFeed) StationStatus() []*GbfsStationStatus {
-	var ret []*GbfsStationStatus
-	for _, s := range g.GbfsFeed.StationStatus {
-		ret = append(ret, &GbfsStationStatus{
-			Feed:          g,
-			StationStatus: s,
-		})
-	}
-	return ret
+func (g *GbfsFeed) VehicleTypes() []*GbfsVehicleType {
+	return nil
 }
 
-func (g *GbfsFeed) Versions() []*GbfsSystemVersion       { return nil }
-func (g *GbfsFeed) VehicleTypes() []*GbfsVehicleType     { return nil }
-func (g *GbfsFeed) Bikes() []*GbfsFreeBikeStatus         { return nil }
-func (g *GbfsFeed) Regions() []*GbfsSystemRegion         { return nil }
-func (g *GbfsFeed) RentalHours() []*GbfsSystemHour       { return nil }
-func (g *GbfsFeed) Calendars() []*GbfsSystemCalendar     { return nil }
-func (g *GbfsFeed) Plans() []*GbfsSystemPricingPlan      { return nil }
-func (g *GbfsFeed) Alerts() []*GbfsSystemAlert           { return nil }
-func (g *GbfsFeed) GeofencingZones() []*GbfsGeofenceZone { return nil }
+func (g *GbfsFeed) RentalHours() []*GbfsSystemHour {
+	return nil
+}
+
+func (g *GbfsFeed) Calendars() []*GbfsSystemCalendar {
+	return nil
+}
+
+func (g *GbfsFeed) GeofencingZones() []*GbfsGeofenceZone {
+	return nil
+}
+
+func (g *GbfsFeed) Alerts() []*GbfsSystemAlert {
+	return nil
+}
 
 type GbfsFreeBikeStatus struct {
 	Feed *GbfsFeed
-	gbfs.FreeBikeStatus
+	*gbfs.FreeBikeStatus
 }
 
 func (g *GbfsFreeBikeStatus) Station() *GbfsStationInformation {
 	if g.Feed != nil {
 		for _, s := range g.Feed.StationInformation() {
+			if s == nil {
+				continue
+			}
 			if s.StationID.Val == g.StationID.Val {
 				return s
 			}
@@ -74,6 +82,9 @@ func (g *GbfsFreeBikeStatus) Station() *GbfsStationInformation {
 func (g *GbfsFreeBikeStatus) HomeStation() *GbfsStationInformation {
 	if g.Feed != nil {
 		for _, s := range g.Feed.StationInformation() {
+			if s == nil {
+				continue
+			}
 			if s.StationID.Val == g.HomeStationID.Val {
 				return s
 			}
@@ -84,9 +95,12 @@ func (g *GbfsFreeBikeStatus) HomeStation() *GbfsStationInformation {
 
 func (g *GbfsFreeBikeStatus) PricingPlan() *GbfsSystemPricingPlan {
 	if g.Feed != nil {
-		for _, s := range g.Feed.Plans() {
+		for _, s := range g.Feed.Plans {
+			if s == nil {
+				continue
+			}
 			if s.PlanID.Val == g.PricingPlanID.Val {
-				return s
+				return &GbfsSystemPricingPlan{SystemPricingPlan: s}
 			}
 		}
 	}
@@ -94,18 +108,22 @@ func (g *GbfsFreeBikeStatus) PricingPlan() *GbfsSystemPricingPlan {
 }
 
 func (g *GbfsFreeBikeStatus) VehicleType() *GbfsVehicleType {
-	if g.Feed != nil {
-		for _, s := range g.Feed.VehicleTypes() {
-			if s.VehicleTypeID.Val == g.PricingPlanID.Val {
-				return s
-			}
-		}
-	}
 	return nil
 }
 
+func (g *GbfsFreeBikeStatus) RentalUris() *GbfsRentalUris {
+	if g.RentalURIs == nil {
+		return nil
+	}
+	return &GbfsRentalUris{RentalURIs: g.RentalURIs}
+}
+
 type GbfsGeofenceFeature struct {
-	gbfs.GeofenceFeature
+	*gbfs.GeofenceFeature
+}
+
+type GbfsVehicleAssets struct {
+	*gbfs.VehicleAssets
 }
 
 func (g *GbfsGeofenceFeature) Properties() []*GbfsGeofenceProperty {
@@ -113,7 +131,7 @@ func (g *GbfsGeofenceFeature) Properties() []*GbfsGeofenceProperty {
 }
 
 type GbfsGeofenceProperty struct {
-	gbfs.GeofenceProperty
+	*gbfs.GeofenceProperty
 }
 
 func (g *GbfsGeofenceProperty) Rules() []*GbfsGeofenceRule {
@@ -121,11 +139,15 @@ func (g *GbfsGeofenceProperty) Rules() []*GbfsGeofenceRule {
 }
 
 type GbfsGeofenceRule struct {
-	gbfs.GeofenceRule
+	*gbfs.GeofenceRule
+}
+
+func (g *GbfsGeofenceRule) VehicleType() *GbfsVehicleType {
+	return nil
 }
 
 type GbfsGeofenceZone struct {
-	gbfs.GeofenceZone
+	*gbfs.GeofenceZone
 }
 
 func (g *GbfsGeofenceZone) Features() []*GbfsGeofenceFeature {
@@ -133,21 +155,47 @@ func (g *GbfsGeofenceZone) Features() []*GbfsGeofenceFeature {
 }
 
 type GbfsPlanPrice struct {
-	gbfs.PlanPrice
+	*gbfs.PlanPrice
+}
+
+type GbfsRentalApps struct {
+	*gbfs.RentalApps
+}
+
+func (g *GbfsRentalApps) Android() *GbfsRentalApp {
+	if g.RentalApps == nil || g.RentalApps.Android == nil {
+		return nil
+	}
+	return &GbfsRentalApp{RentalApp: g.RentalApps.Android}
+}
+
+func (g *GbfsRentalApps) Ios() *GbfsRentalApp {
+	if g.RentalApps == nil || g.RentalApps.IOS == nil {
+		return nil
+	}
+	return &GbfsRentalApp{RentalApp: g.RentalApps.IOS}
 }
 
 type GbfsRentalApp struct {
-	gbfs.RentalApp
+	*gbfs.RentalApp
 }
 
 type GbfsStationInformation struct {
 	Feed *GbfsFeed
-	gbfs.StationInformation
+	*gbfs.StationInformation
+}
+
+func (g *GbfsStationInformation) Region() *GbfsSystemRegion {
+	return nil
+}
+
+func (g *GbfsStationInformation) Status() *GbfsStationStatus {
+	return nil
 }
 
 type GbfsStationStatus struct {
 	Feed *GbfsFeed
-	gbfs.StationStatus
+	*gbfs.StationStatus
 }
 
 func (g *GbfsStationStatus) VehicleTypesAvailable() []*GbfsVehicleTypeAvailable {
@@ -159,7 +207,7 @@ func (g *GbfsStationStatus) VehicleDocksAvailable() []*GbfsVehicleDockAvailable 
 }
 
 type GbfsSystemAlert struct {
-	gbfs.SystemAlert
+	*gbfs.SystemAlert
 }
 
 func (g *GbfsSystemAlert) Times() []*GbfsAlertTime {
@@ -167,24 +215,34 @@ func (g *GbfsSystemAlert) Times() []*GbfsAlertTime {
 }
 
 type GbfsSystemCalendar struct {
-	gbfs.SystemCalendar
+	*gbfs.SystemCalendar
 }
 
 type GbfsSystemHour struct {
-	gbfs.SystemHour
+	*gbfs.SystemHour
 }
 
 type GbfsSystemInformation struct {
 	Feed *GbfsFeed
-	gbfs.SystemInformation
+	*gbfs.SystemInformation
 }
 
 func (g *GbfsSystemInformation) BrandAssets() *GbfsBrandAsset {
-	return nil
+	if g.SystemInformation == nil || g.SystemInformation.BrandAssets == nil {
+		return nil
+	}
+	return &GbfsBrandAsset{BrandAsset: g.SystemInformation.BrandAssets}
+}
+
+func (g *GbfsSystemInformation) RentalApps() *GbfsRentalApps {
+	if g.SystemInformation == nil || g.SystemInformation.RentalApps == nil {
+		return nil
+	}
+	return &GbfsRentalApps{RentalApps: g.SystemInformation.RentalApps}
 }
 
 type GbfsSystemPricingPlan struct {
-	gbfs.SystemPricingPlan
+	*gbfs.SystemPricingPlan
 }
 
 func (g *GbfsSystemPricingPlan) PerKmPricing() []*GbfsPlanPrice {
@@ -196,21 +254,49 @@ func (g *GbfsSystemPricingPlan) PerMinPricing() []*GbfsPlanPrice {
 }
 
 type GbfsSystemRegion struct {
-	gbfs.SystemRegion
+	*gbfs.SystemRegion
 }
 
 type GbfsSystemVersion struct {
-	gbfs.SystemVersion
+	*gbfs.SystemVersion
 }
 
 type GbfsVehicleDockAvailable struct {
-	gbfs.VehicleDockAvailable
+	*gbfs.VehicleDockAvailable
+}
+
+func (g *GbfsVehicleDockAvailable) VehicleTypes() []*GbfsVehicleType {
+	return nil
 }
 
 type GbfsVehicleType struct {
-	gbfs.VehicleType
+	*gbfs.VehicleType
+}
+
+func (g *GbfsVehicleType) DefaultPricingPlan() *GbfsSystemPricingPlan {
+	return nil
+}
+
+func (g *GbfsVehicleType) PricingPlans() []*GbfsSystemPricingPlan {
+	return nil
+}
+
+func (g *GbfsVehicleType) RentalUris() *GbfsRentalUris {
+	return nil
+}
+
+func (g *GbfsVehicleType) VehicleAssets() *GbfsVehicleAssets {
+	return nil
 }
 
 type GbfsVehicleTypeAvailable struct {
-	gbfs.VehicleTypeAvailable
+	*gbfs.VehicleTypeAvailable
+}
+
+func (g *GbfsVehicleTypeAvailable) VehicleType() *GbfsVehicleType {
+	return nil
+}
+
+type GbfsRentalUris struct {
+	*gbfs.RentalURIs
 }

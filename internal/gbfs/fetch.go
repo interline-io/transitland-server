@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl/request"
 )
 
@@ -38,8 +39,10 @@ func Fetch(opts Options) ([]GbfsFeed, Result, error) {
 	}
 	var feeds []GbfsFeed
 	for _, sflang := range systemFile.Data {
-		feed, err := fetchAll(sflang)
-		if err == nil {
+		if sflang == nil {
+			continue
+		}
+		if feed, err := fetchAll(*sflang); err == nil {
 			feeds = append(feeds, feed)
 		}
 	}
@@ -99,6 +102,9 @@ func fetchAll(sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error
 			e := GbfsFile{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
 			ret.Versions = e.Versions
+		}
+		if err != nil {
+			log.Info().Err(err).Msgf("failed to parse %s", v.Name.Val)
 		}
 	}
 	return ret, err

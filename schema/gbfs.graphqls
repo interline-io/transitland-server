@@ -1,22 +1,12 @@
 # GBFS
 
-input GbfsBikeRequest {
-	near: PointRadius
-}
-
 type GbfsFeed {
 	system_information:  GbfsSystemInformation
 	station_information: [GbfsStationInformation!]
-	station_status:  [GbfsStationStatus!]
-	# versions: [GbfsSystemVersion!]
-	# vehicle_types:  [GbfsVehicleType!]
-	# bikes: [GbfsFreeBikeStatus!]
-	# regions: [GbfsSystemRegion!]
-	# rental_hours:  [GbfsSystemHour!]
-	# calendars: [GbfsSystemCalendar!]
-	# plans: [GbfsSystemPricingPlan!]
-	# alerts: [GbfsSystemAlert!]
-	# geofencing_zones: [GbfsGeofenceZone!] 
+	rental_hours:  [GbfsSystemHour!]
+	calendars: [GbfsSystemCalendar!]
+	geofencing_zones: [GbfsGeofenceZone!] 
+	alerts: [GbfsSystemAlert!]
 }
 
 type GbfsSystemInformation  {
@@ -38,6 +28,12 @@ type GbfsSystemInformation  {
   privacy_url: String
   privacy_last_updated: Date
   brand_assets: GbfsBrandAsset
+  rental_apps: GbfsRentalApps
+}
+
+type GbfsRentalApps {
+	ios: GbfsRentalApp
+	android: GbfsRentalApp
 }
 
 type GbfsRentalApp {
@@ -61,7 +57,6 @@ type GbfsStationInformation {
 	lon: Float
 	address: String
 	cross_street: String
-	region_id: Key
 	post_code: String
 	rental_methods: Strings
 	is_virtual_station: Bool
@@ -70,13 +65,15 @@ type GbfsStationInformation {
 	parking_hoop: Int
 	contact_phone: String
 	capacity: Int
-	# vehicle_capacity: map[string]int
 	is_valet_station: Bool
 	is_charging_station: Bool
+	# vehicle_capacity: map[string]int
+	region: GbfsSystemRegion
+	status: GbfsStationStatus
 }
 
 type GbfsStationStatus  {
-	station_id: Key                
+	station_id: String                
 	num_bikes_available: Int                
 	num_bikes_disabled: Int                
 	num_docks_available: Int                
@@ -84,20 +81,20 @@ type GbfsStationStatus  {
 	is_returning: Bool               
 	is_renting: Bool               
 	is_installed: Bool               
-	last_reported: Time               
+	last_reported: Int               
 	vehicle_types_available: [GbfsVehicleTypeAvailable!]
 	vehicle_docks_available: [GbfsVehicleDockAvailable!]
 }
 
 type GbfsVehicleTypeAvailable  {
-	vehicle_type_id: Key 
-	count: Int 
+	vehicle_type: GbfsVehicleType
 	num_bikes_disabled: Int 
 	num_docks_available: Int 
+	count: Int 
 }
 
 type GbfsVehicleDockAvailable  {
-	vehicle_type_ids: Strings
+	vehicle_types: [GbfsVehicleType!]
 	count: Int     
 }
 
@@ -107,7 +104,7 @@ type GbfsSystemVersion  {
 }
 
 type GbfsVehicleType  {
-	vehicle_type_id: Key     
+	vehicle_type_id: String     
 	form_factor: String  
 	rider_capacity: Int     
 	cargo_volume_capacity: Int     
@@ -129,41 +126,41 @@ type GbfsVehicleType  {
 	rated_power: Int     
 	default_reserve_time: Int     
 	return_constraint: String  
-	default_pricing_plan_id: Key     
-	pricing_plan_ids: Strings
-	# VehicleAssets         {
-	# 	IconURL          String icon_url:
-	# 	IconURLDark      String icon_url_dark:
-	# 	IconLastModified Date   icon_last_modified:
-	# } vehicle_assets:
-	# RentalURIs  {
-	# 	Android String android:
-	# 	IOS     String ios:
-	# 	Web     String web:
-	# } rental_ur_is:
+	default_pricing_plan: GbfsSystemPricingPlan
+	pricing_plans: [GbfsSystemPricingPlan!]
+	rental_uris: GbfsRentalUris
+	vehicle_assets: GbfsVehicleAssets
+}
+
+type GbfsVehicleAssets {
+	icon_url: String
+	icon_url_dark: String
+	icon_last_modified: Date
 }
 
 type GbfsFreeBikeStatus {
-	bike_id: Key
+	bike_id: String
 	lat: Float   
 	lon: Float   
 	is_reserved: Bool    
 	is_disabled: Bool    
-	last_reported: Time
+	last_reported: Int
 	current_range_meters: Float   
 	current_fuel_percent: Float   
 	vehicle_equipment: Strings
-	available_until: Time    
+	available_until: Int    
 	station: GbfsStationInformation    
 	home_station: GbfsStationInformation    
 	pricing_plan: GbfsSystemPricingPlan
 	vehicle_type: GbfsVehicleType
+	rental_uris: GbfsRentalUris
 	feed: GbfsFeed
-	# RentalURIs          {
-	# 	Android String android:
-	# 	IOS     String ios:
-	# 	Web     String web:
-	# } rental_ur_is:
+}
+
+type GbfsRentalUris {
+	android: String
+	ios: String
+	web: String
 }
 
 type GbfsSystemHour  {
@@ -183,12 +180,12 @@ type GbfsSystemCalendar  {
 }
 
 type GbfsSystemRegion  {
-	region_id: Key    
+	region_id: String    
 	name: String 
 }
 
 type GbfsSystemPricingPlan  {
-	plan_id: Key      
+	plan_id: String      
 	url: String   
 	name: String   
 	currency: String   
@@ -208,20 +205,20 @@ type GbfsPlanPrice  {
 }
 
 type GbfsSystemAlert  {
-	alert_id: Key      
+	alert_id: String      
 	type: String   
 	times: [GbfsAlertTime!]
-	station_ids: Strings
-	region_ids: Strings
 	url: String   
 	summary: String   
 	description: String   
-	last_updated: Time     
+	last_updated: Int     
+	# station_ids: Strings
+	# region_ids: Strings
 }
 
 type GbfsAlertTime  {
-	start:Time 
-	end:Time 
+	start: Int
+	end: Int
 }
 
 type GbfsGeofenceZone  {
@@ -237,15 +234,21 @@ type GbfsGeofenceFeature  {
 
 type GbfsGeofenceProperty  {
 	name: String      
-	start: Time        
-	end: Time        
+	start: Int        
+	end: Int        
 	rules: [GbfsGeofenceRule]
 }
 
 type GbfsGeofenceRule  {
-	vehicle_type_id: Strings
+	vehicle_type: GbfsVehicleType
 	ride_allowed: Bool    
 	ride_through_allowed: Bool    
 	maximum_speed_kph: Int     
 	station_parking: Bool    
+}
+
+########
+
+input GbfsBikeRequest {
+	near: PointRadius
 }
