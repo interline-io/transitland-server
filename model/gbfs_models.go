@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/interline-io/transitland-server/internal/gbfs"
 )
 
 type GbfsAlertTime struct {
-	gbfs.AlertTime
+	*gbfs.AlertTime
 }
 
 type GbfsBrandAsset struct {
@@ -17,7 +19,7 @@ type GbfsFeed struct {
 }
 
 func (g *GbfsFeed) SystemInformation() *GbfsSystemInformation {
-	if g.GbfsFeed.SystemInformation == nil {
+	if g.GbfsFeed == nil || g.GbfsFeed.SystemInformation == nil {
 		return nil
 	}
 	return &GbfsSystemInformation{
@@ -27,6 +29,9 @@ func (g *GbfsFeed) SystemInformation() *GbfsSystemInformation {
 }
 
 func (g *GbfsFeed) StationInformation() []*GbfsStationInformation {
+	if g.GbfsFeed == nil {
+		return nil
+	}
 	var ret []*GbfsStationInformation
 	for _, s := range g.GbfsFeed.StationInformation {
 		if s == nil {
@@ -40,24 +45,38 @@ func (g *GbfsFeed) StationInformation() []*GbfsStationInformation {
 	return ret
 }
 
-func (g *GbfsFeed) VehicleTypes() []*GbfsVehicleType {
-	return nil
-}
-
 func (g *GbfsFeed) RentalHours() []*GbfsSystemHour {
-	return nil
+	if g.GbfsFeed == nil {
+		return nil
+	}
+	var ret []*GbfsSystemHour
+	for _, s := range g.GbfsFeed.RentalHours {
+		ret = append(ret, &GbfsSystemHour{SystemHour: s})
+	}
+	return ret
 }
 
 func (g *GbfsFeed) Calendars() []*GbfsSystemCalendar {
-	return nil
-}
-
-func (g *GbfsFeed) GeofencingZones() []*GbfsGeofenceZone {
-	return nil
+	fmt.Println("CALENDARS():", g.GbfsFeed.Calendars)
+	if g.GbfsFeed == nil {
+		return nil
+	}
+	var ret []*GbfsSystemCalendar
+	for _, s := range g.GbfsFeed.Calendars {
+		ret = append(ret, &GbfsSystemCalendar{SystemCalendar: s})
+	}
+	return ret
 }
 
 func (g *GbfsFeed) Alerts() []*GbfsSystemAlert {
-	return nil
+	if g.GbfsFeed == nil {
+		return nil
+	}
+	var ret []*GbfsSystemAlert
+	for _, s := range g.GbfsFeed.Alerts {
+		ret = append(ret, &GbfsSystemAlert{SystemAlert: s})
+	}
+	return ret
 }
 
 type GbfsFreeBikeStatus struct {
@@ -66,53 +85,67 @@ type GbfsFreeBikeStatus struct {
 }
 
 func (g *GbfsFreeBikeStatus) Station() *GbfsStationInformation {
-	if g.Feed != nil {
-		for _, s := range g.Feed.StationInformation() {
-			if s == nil {
-				continue
-			}
-			if s.StationID.Val == g.StationID.Val {
-				return s
-			}
+	if g.Feed == nil {
+		return nil
+	}
+	for _, s := range g.Feed.StationInformation() {
+		if s == nil {
+			continue
+		}
+		if s.StationID.Val == g.StationID.Val {
+			return s
 		}
 	}
 	return nil
 }
 
 func (g *GbfsFreeBikeStatus) HomeStation() *GbfsStationInformation {
-	if g.Feed != nil {
-		for _, s := range g.Feed.StationInformation() {
-			if s == nil {
-				continue
-			}
-			if s.StationID.Val == g.HomeStationID.Val {
-				return s
-			}
+	if g.Feed == nil {
+		return nil
+	}
+	for _, s := range g.Feed.StationInformation() {
+		if s == nil {
+			continue
+		}
+		if s.StationID.Val == g.HomeStationID.Val {
+			return s
 		}
 	}
 	return nil
 }
 
 func (g *GbfsFreeBikeStatus) PricingPlan() *GbfsSystemPricingPlan {
-	if g.Feed != nil {
-		for _, s := range g.Feed.Plans {
-			if s == nil {
-				continue
-			}
-			if s.PlanID.Val == g.PricingPlanID.Val {
-				return &GbfsSystemPricingPlan{SystemPricingPlan: s}
-			}
+	if g.Feed == nil {
+		return nil
+	}
+	for _, s := range g.Feed.Plans {
+		if s == nil {
+			continue
+		}
+		if s.PlanID.Val == g.PricingPlanID.Val {
+			return &GbfsSystemPricingPlan{SystemPricingPlan: s}
 		}
 	}
 	return nil
 }
 
 func (g *GbfsFreeBikeStatus) VehicleType() *GbfsVehicleType {
+	if g.Feed == nil {
+		return nil
+	}
+	for _, s := range g.Feed.VehicleTypes {
+		if s == nil {
+			continue
+		}
+		if s.VehicleTypeID.Val == g.VehicleTypeID.Val {
+			return &GbfsVehicleType{VehicleType: s, Feed: g.Feed}
+		}
+	}
 	return nil
 }
 
 func (g *GbfsFreeBikeStatus) RentalUris() *GbfsRentalUris {
-	if g.RentalURIs == nil {
+	if g.FreeBikeStatus == nil || g.RentalURIs == nil {
 		return nil
 	}
 	return &GbfsRentalUris{RentalURIs: g.RentalURIs}
@@ -186,10 +219,32 @@ type GbfsStationInformation struct {
 }
 
 func (g *GbfsStationInformation) Region() *GbfsSystemRegion {
+	if g.Feed == nil {
+		return nil
+	}
+	for _, s := range g.Feed.Regions {
+		if s == nil {
+			continue
+		}
+		if s.RegionID.Val == g.RegionID.Val {
+			return &GbfsSystemRegion{SystemRegion: s}
+		}
+	}
 	return nil
 }
 
 func (g *GbfsStationInformation) Status() *GbfsStationStatus {
+	if g.Feed == nil {
+		return nil
+	}
+	for _, s := range g.Feed.StationStatus {
+		if s == nil {
+			continue
+		}
+		if s.StationID.Val == g.StationID.Val {
+			return &GbfsStationStatus{StationStatus: s}
+		}
+	}
 	return nil
 }
 
@@ -199,11 +254,31 @@ type GbfsStationStatus struct {
 }
 
 func (g *GbfsStationStatus) VehicleTypesAvailable() []*GbfsVehicleTypeAvailable {
-	return nil
+	if g.StationStatus == nil {
+		return nil
+	}
+	var ret []*GbfsVehicleTypeAvailable
+	for _, s := range g.StationStatus.VehicleTypesAvailable {
+		if s == nil {
+			continue
+		}
+		ret = append(ret, &GbfsVehicleTypeAvailable{VehicleTypeAvailable: s, Feed: g.Feed})
+	}
+	return ret
 }
 
 func (g *GbfsStationStatus) VehicleDocksAvailable() []*GbfsVehicleDockAvailable {
-	return nil
+	if g.StationStatus == nil {
+		return nil
+	}
+	var ret []*GbfsVehicleDockAvailable
+	for _, s := range g.StationStatus.VehicleDocksAvailable {
+		if s == nil {
+			continue
+		}
+		ret = append(ret, &GbfsVehicleDockAvailable{VehicleDockAvailable: s, Feed: g.Feed})
+	}
+	return ret
 }
 
 type GbfsSystemAlert struct {
@@ -211,7 +286,17 @@ type GbfsSystemAlert struct {
 }
 
 func (g *GbfsSystemAlert) Times() []*GbfsAlertTime {
-	return nil
+	if g.SystemAlert == nil {
+		return nil
+	}
+	var ret []*GbfsAlertTime
+	for _, s := range g.SystemAlert.Times {
+		if s == nil {
+			continue
+		}
+		ret = append(ret, &GbfsAlertTime{AlertTime: s})
+	}
+	return ret
 }
 
 type GbfsSystemCalendar struct {
@@ -246,11 +331,25 @@ type GbfsSystemPricingPlan struct {
 }
 
 func (g *GbfsSystemPricingPlan) PerKmPricing() []*GbfsPlanPrice {
-	return nil
+	if g.SystemPricingPlan == nil {
+		return nil
+	}
+	var ret []*GbfsPlanPrice
+	for _, s := range g.SystemPricingPlan.PerKmPricing {
+		ret = append(ret, &GbfsPlanPrice{PlanPrice: s})
+	}
+	return ret
 }
 
 func (g *GbfsSystemPricingPlan) PerMinPricing() []*GbfsPlanPrice {
-	return nil
+	if g.SystemPricingPlan == nil {
+		return nil
+	}
+	var ret []*GbfsPlanPrice
+	for _, s := range g.SystemPricingPlan.PerMinPricing {
+		ret = append(ret, &GbfsPlanPrice{PlanPrice: s})
+	}
+	return ret
 }
 
 type GbfsSystemRegion struct {
@@ -262,38 +361,86 @@ type GbfsSystemVersion struct {
 }
 
 type GbfsVehicleDockAvailable struct {
+	Feed *GbfsFeed
 	*gbfs.VehicleDockAvailable
 }
 
 func (g *GbfsVehicleDockAvailable) VehicleTypes() []*GbfsVehicleType {
-	return nil
+	if g.VehicleDockAvailable == nil {
+		return nil
+	}
+	var ret []*GbfsVehicleType
+	for _, s := range g.VehicleDockAvailable.VehicleTypeIDs {
+		for _, t := range g.Feed.VehicleTypes {
+			if s.Val == t.VehicleTypeID.Val {
+				ret = append(ret, &GbfsVehicleType{VehicleType: t, Feed: g.Feed})
+			}
+		}
+	}
+	return ret
 }
 
 type GbfsVehicleType struct {
+	Feed *GbfsFeed
 	*gbfs.VehicleType
 }
 
 func (g *GbfsVehicleType) DefaultPricingPlan() *GbfsSystemPricingPlan {
+	if g.Feed == nil || g.VehicleType == nil {
+		return nil
+	}
+	for _, s := range g.Feed.Plans {
+		if s.PlanID.Val == g.DefaultPricingPlanID.Val {
+			return &GbfsSystemPricingPlan{SystemPricingPlan: s}
+		}
+	}
 	return nil
 }
 
 func (g *GbfsVehicleType) PricingPlans() []*GbfsSystemPricingPlan {
-	return nil
+	if g.VehicleType == nil {
+		return nil
+	}
+	var ret []*GbfsSystemPricingPlan
+	for _, t := range g.PricingPlanIDs {
+		for _, s := range g.Feed.Plans {
+			if t.Val == s.PlanID.Val {
+				ret = append(ret, &GbfsSystemPricingPlan{SystemPricingPlan: s})
+			}
+		}
+	}
+	return ret
 }
 
 func (g *GbfsVehicleType) RentalUris() *GbfsRentalUris {
-	return nil
+	if g.RentalURIs == nil {
+		return nil
+	}
+	return &GbfsRentalUris{RentalURIs: g.RentalURIs}
 }
 
 func (g *GbfsVehicleType) VehicleAssets() *GbfsVehicleAssets {
-	return nil
+	if g.VehicleType == nil {
+		return nil
+	}
+	return &GbfsVehicleAssets{VehicleAssets: g.VehicleType.VehicleAssets}
 }
 
 type GbfsVehicleTypeAvailable struct {
+	Feed *GbfsFeed
 	*gbfs.VehicleTypeAvailable
 }
 
 func (g *GbfsVehicleTypeAvailable) VehicleType() *GbfsVehicleType {
+	if g.Feed == nil || g.VehicleTypeAvailable == nil {
+		return nil
+	}
+	for _, s := range g.Feed.VehicleTypes {
+		if s.VehicleTypeID.Val == g.VehicleTypeID.Val {
+			return &GbfsVehicleType{VehicleType: s, Feed: g.Feed}
+		}
+
+	}
 	return nil
 }
 

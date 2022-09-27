@@ -71,40 +71,40 @@ func fetchAll(sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
 			ret.Bikes = e.Data.Bikes
 		case "system_hours":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.RentalHours = e.RentalHours
+			ret.RentalHours = e.Data.RentalHours
 		case "system_calendar":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Calendars = e.Calendars
+			ret.Calendars = e.Data.Calendars
 		case "system_regions":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Regions = e.Regions
+			ret.Regions = e.Data.Regions
 		case "system_alerts":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Alerts = e.Alerts
+			ret.Alerts = e.Data.Alerts
 		case "vehicle_types":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.VehicleTypes = e.VehicleTypes
+			ret.VehicleTypes = e.Data.VehicleTypes
 		case "system_pricing_plans":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Plans = e.Plans
+			ret.Plans = e.Data.Plans
 		case "geofencing_zones":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.GeofencingZones = e.GeofencingZones
+			ret.GeofencingZones = e.Data.GeofencingZones
 		case "gbfs_versions":
-			e := GbfsFile{}
+			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Versions = e.Versions
+			ret.Versions = e.Data.Versions
 		}
 		if err != nil {
-			log.Info().Err(err).Msgf("failed to parse %s", v.Name.Val)
+			log.Info().Err(err).Str("url", v.URL.Val).Msgf("failed to parse %s", v.Name.Val)
 		}
 	}
 	return ret, err

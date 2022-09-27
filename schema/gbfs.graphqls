@@ -5,7 +5,6 @@ type GbfsFeed {
 	station_information: [GbfsStationInformation!]
 	rental_hours:  [GbfsSystemHour!]
 	calendars: [GbfsSystemCalendar!]
-	geofencing_zones: [GbfsGeofenceZone!] 
 	alerts: [GbfsSystemAlert!]
 }
 
@@ -87,15 +86,15 @@ type GbfsStationStatus  {
 }
 
 type GbfsVehicleTypeAvailable  {
-	vehicle_type: GbfsVehicleType
 	num_bikes_disabled: Int 
 	num_docks_available: Int 
 	count: Int 
+	vehicle_type: GbfsVehicleType
 }
 
 type GbfsVehicleDockAvailable  {
-	vehicle_types: [GbfsVehicleType!]
 	count: Int     
+	vehicle_types: [GbfsVehicleType!]
 }
 
 type GbfsSystemVersion  {
@@ -115,7 +114,7 @@ type GbfsVehicleType  {
 	eco_sticker: String  
 	max_range_meters: Float   
 	name: String  
-	vehicle_accessorites: Strings
+	vehicle_accessories: Strings
 	gco_2_km: Int     
 	vehicle_image: String  
 	make: String  
@@ -207,13 +206,13 @@ type GbfsPlanPrice  {
 type GbfsSystemAlert  {
 	alert_id: String      
 	type: String   
-	times: [GbfsAlertTime!]
 	url: String   
 	summary: String   
 	description: String   
 	last_updated: Int     
 	# station_ids: Strings
 	# region_ids: Strings
+	times: [GbfsAlertTime!]
 }
 
 type GbfsAlertTime  {
@@ -240,11 +239,11 @@ type GbfsGeofenceProperty  {
 }
 
 type GbfsGeofenceRule  {
-	vehicle_type: GbfsVehicleType
 	ride_allowed: Bool    
 	ride_through_allowed: Bool    
 	maximum_speed_kph: Int     
 	station_parking: Bool    
+	vehicle_type: GbfsVehicleType
 }
 
 ########

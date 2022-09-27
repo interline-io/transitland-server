@@ -156,7 +156,7 @@ type VehicleTypeAvailable struct {
 }
 
 type VehicleDockAvailable struct {
-	VehicleTypeIDs tt.Strings `json:"vehicle_type_i_ds,omitempty"`
+	VehicleTypeIDs tt.Strings `json:"vehicle_type_ids,omitempty"`
 	Count          tt.Int     `json:"count,omitempty"`
 }
 
@@ -179,8 +179,8 @@ type VehicleType struct {
 	EcoSticker           tt.String      `json:"eco_sticker,omitempty"`
 	MaxRangeMeters       tt.Float       `json:"max_range_meters,omitempty"`
 	Name                 tt.String      `json:"name,omitempty"`
-	VehicleAccessorites  tt.Strings     `json:"vehicle_accessorites,omitempty"`
-	GCO2Km               tt.Int         `json:"gco_2_km,omitempty"`
+	VehicleAccessories   tt.Strings     `json:"vehicle_accessories,omitempty"`
+	GCO2Km               tt.Int         `json:"g_CO2_km,omitempty"`
 	VehicleImage         tt.String      `json:"vehicle_image,omitempty"`
 	Make                 tt.String      `json:"make,omitempty"`
 	Model                tt.String      `json:"model,omitempty"`
@@ -191,7 +191,7 @@ type VehicleType struct {
 	DefaultReserveTime   tt.Int         `json:"default_reserve_time,omitempty"`
 	ReturnConstraint     tt.String      `json:"return_constraint,omitempty"`
 	DefaultPricingPlanID tt.String      `json:"default_pricing_plan_id,omitempty"`
-	PricingPlanIDs       tt.Strings     `json:"pricing_plan_i_ds,omitempty"`
+	PricingPlanIDs       tt.Strings     `json:"pricing_plan_ids,omitempty"`
 	VehicleAssets        *VehicleAssets `json:"vehicle_assets,omitempty"`
 	RentalURIs           *RentalURIs    `json:"rental_uris,omitempty"`
 }
@@ -225,7 +225,7 @@ type FreeBikeStatus struct {
 	PricingPlanID      tt.String   `json:"pricing_plan_id,omitempty"`
 	VehicleEquipment   tt.Strings  `json:"vehicle_equipment,omitempty"`
 	AvailableUntil     tt.Int      `json:"available_until,omitempty"`
-	RentalURIs         *RentalURIs `json:"rental_ur_is,omitempty"`
+	RentalURIs         *RentalURIs `json:"rental_uris,omitempty"`
 }
 
 type SystemHour struct {
@@ -272,8 +272,8 @@ type PlanPrice struct {
 type SystemAlert struct {
 	AlertID     tt.String    `json:"alert_id,omitempty"`
 	Type        tt.String    `json:"type,omitempty"`
-	StationIDs  tt.Strings   `json:"station_i_ds,omitempty"`
-	RegionIDs   tt.Strings   `json:"region_i_ds,omitempty"`
+	StationIDs  tt.Strings   `json:"station_ids,omitempty"`
+	RegionIDs   tt.Strings   `json:"region_ids,omitempty"`
 	URL         tt.String    `json:"url,omitempty"`
 	Summary     tt.String    `json:"summary,omitempty"`
 	Description tt.String    `json:"description,omitempty"`

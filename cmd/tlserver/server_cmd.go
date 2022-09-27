@@ -129,6 +129,7 @@ func (cmd *ServerCommand) Run() error {
 	} else {
 		// Default to in-memory cache
 		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), dbx)
+		gbfsFinder = gbfsfinder.NewFinder(nil)
 		jobQueue = jobs.NewLocalJobs()
 	}
 
@@ -201,11 +202,12 @@ func (cmd *ServerCommand) Run() error {
 		// Start workers/api
 		jobWorkers := 10
 		jobOptions := jobs.JobOptions{
-			Logger:   log.Logger,
-			JobQueue: jobQueue,
-			Finder:   dbFinder,
-			RTFinder: rtFinder,
-			Secrets:  secrets,
+			Logger:     log.Logger,
+			JobQueue:   jobQueue,
+			Finder:     dbFinder,
+			RTFinder:   rtFinder,
+			GbfsFinder: gbfsFinder,
+			Secrets:    secrets,
 		}
 		if cmd.EnableWorkers {
 			log.Print("enabling workers")

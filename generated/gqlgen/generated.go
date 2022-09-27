@@ -351,7 +351,6 @@ type ComplexityRoot struct {
 	GbfsFeed struct {
 		Alerts             func(childComplexity int) int
 		Calendars          func(childComplexity int) int
-		GeofencingZones    func(childComplexity int) int
 		RentalHours        func(childComplexity int) int
 		StationInformation func(childComplexity int) int
 		SystemInformation  func(childComplexity int) int
@@ -564,7 +563,7 @@ type ComplexityRoot struct {
 		RentalUris          func(childComplexity int) int
 		ReturnConstraint    func(childComplexity int) int
 		RiderCapacity       func(childComplexity int) int
-		VehicleAccessorites func(childComplexity int) int
+		VehicleAccessories  func(childComplexity int) int
 		VehicleAssets       func(childComplexity int) int
 		VehicleImage        func(childComplexity int) int
 		VehicleTypeID       func(childComplexity int) int
@@ -2562,13 +2561,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GbfsFeed.Calendars(childComplexity), true
 
-	case "GbfsFeed.geofencing_zones":
-		if e.complexity.GbfsFeed.GeofencingZones == nil {
-			break
-		}
-
-		return e.complexity.GbfsFeed.GeofencingZones(childComplexity), true
-
 	case "GbfsFeed.rental_hours":
 		if e.complexity.GbfsFeed.RentalHours == nil {
 			break
@@ -3612,12 +3604,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GbfsVehicleType.RiderCapacity(childComplexity), true
 
-	case "GbfsVehicleType.vehicle_accessorites":
-		if e.complexity.GbfsVehicleType.VehicleAccessorites == nil {
+	case "GbfsVehicleType.vehicle_accessories":
+		if e.complexity.GbfsVehicleType.VehicleAccessories == nil {
 			break
 		}
 
-		return e.complexity.GbfsVehicleType.VehicleAccessorites(childComplexity), true
+		return e.complexity.GbfsVehicleType.VehicleAccessories(childComplexity), true
 
 	case "GbfsVehicleType.vehicle_assets":
 		if e.complexity.GbfsVehicleType.VehicleAssets == nil {
@@ -5780,7 +5772,6 @@ type GbfsFeed {
 	station_information: [GbfsStationInformation!]
 	rental_hours:  [GbfsSystemHour!]
 	calendars: [GbfsSystemCalendar!]
-	geofencing_zones: [GbfsGeofenceZone!] 
 	alerts: [GbfsSystemAlert!]
 }
 
@@ -5862,15 +5853,15 @@ type GbfsStationStatus  {
 }
 
 type GbfsVehicleTypeAvailable  {
-	vehicle_type: GbfsVehicleType
 	num_bikes_disabled: Int 
 	num_docks_available: Int 
 	count: Int 
+	vehicle_type: GbfsVehicleType
 }
 
 type GbfsVehicleDockAvailable  {
-	vehicle_types: [GbfsVehicleType!]
 	count: Int     
+	vehicle_types: [GbfsVehicleType!]
 }
 
 type GbfsSystemVersion  {
@@ -5890,7 +5881,7 @@ type GbfsVehicleType  {
 	eco_sticker: String  
 	max_range_meters: Float   
 	name: String  
-	vehicle_accessorites: Strings
+	vehicle_accessories: Strings
 	gco_2_km: Int     
 	vehicle_image: String  
 	make: String  
@@ -5982,13 +5973,13 @@ type GbfsPlanPrice  {
 type GbfsSystemAlert  {
 	alert_id: String      
 	type: String   
-	times: [GbfsAlertTime!]
 	url: String   
 	summary: String   
 	description: String   
 	last_updated: Int     
 	# station_ids: Strings
 	# region_ids: Strings
+	times: [GbfsAlertTime!]
 }
 
 type GbfsAlertTime  {
@@ -6015,11 +6006,11 @@ type GbfsGeofenceProperty  {
 }
 
 type GbfsGeofenceRule  {
-	vehicle_type: GbfsVehicleType
 	ride_allowed: Bool    
 	ride_through_allowed: Bool    
 	maximum_speed_kph: Int     
 	station_parking: Bool    
+	vehicle_type: GbfsVehicleType
 }
 
 ########
@@ -18207,53 +18198,6 @@ func (ec *executionContext) fieldContext_GbfsFeed_calendars(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _GbfsFeed_geofencing_zones(ctx context.Context, field graphql.CollectedField, obj *model.GbfsFeed) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GbfsFeed_geofencing_zones(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.GeofencingZones(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.GbfsGeofenceZone)
-	fc.Result = res
-	return ec.marshalOGbfsGeofenceZone2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsGeofenceZoneᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_GbfsFeed_geofencing_zones(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "GbfsFeed",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "type":
-				return ec.fieldContext_GbfsGeofenceZone_type(ctx, field)
-			case "features":
-				return ec.fieldContext_GbfsGeofenceZone_features(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type GbfsGeofenceZone", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _GbfsFeed_alerts(ctx context.Context, field graphql.CollectedField, obj *model.GbfsFeed) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_GbfsFeed_alerts(ctx, field)
 	if err != nil {
@@ -18294,8 +18238,6 @@ func (ec *executionContext) fieldContext_GbfsFeed_alerts(ctx context.Context, fi
 				return ec.fieldContext_GbfsSystemAlert_alert_id(ctx, field)
 			case "type":
 				return ec.fieldContext_GbfsSystemAlert_type(ctx, field)
-			case "times":
-				return ec.fieldContext_GbfsSystemAlert_times(ctx, field)
 			case "url":
 				return ec.fieldContext_GbfsSystemAlert_url(ctx, field)
 			case "summary":
@@ -18304,6 +18246,8 @@ func (ec *executionContext) fieldContext_GbfsFeed_alerts(ctx context.Context, fi
 				return ec.fieldContext_GbfsSystemAlert_description(ctx, field)
 			case "last_updated":
 				return ec.fieldContext_GbfsSystemAlert_last_updated(ctx, field)
+			case "times":
+				return ec.fieldContext_GbfsSystemAlert_times(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GbfsSystemAlert", field.Name)
 		},
@@ -19004,8 +18948,8 @@ func (ec *executionContext) fieldContext_GbfsFreeBikeStatus_vehicle_type(ctx con
 				return ec.fieldContext_GbfsVehicleType_max_range_meters(ctx, field)
 			case "name":
 				return ec.fieldContext_GbfsVehicleType_name(ctx, field)
-			case "vehicle_accessorites":
-				return ec.fieldContext_GbfsVehicleType_vehicle_accessorites(ctx, field)
+			case "vehicle_accessories":
+				return ec.fieldContext_GbfsVehicleType_vehicle_accessories(ctx, field)
 			case "gco_2_km":
 				return ec.fieldContext_GbfsVehicleType_gco_2_km(ctx, field)
 			case "vehicle_image":
@@ -19134,8 +19078,6 @@ func (ec *executionContext) fieldContext_GbfsFreeBikeStatus_feed(ctx context.Con
 				return ec.fieldContext_GbfsFeed_rental_hours(ctx, field)
 			case "calendars":
 				return ec.fieldContext_GbfsFeed_calendars(ctx, field)
-			case "geofencing_zones":
-				return ec.fieldContext_GbfsFeed_geofencing_zones(ctx, field)
 			case "alerts":
 				return ec.fieldContext_GbfsFeed_alerts(ctx, field)
 			}
@@ -19386,8 +19328,6 @@ func (ec *executionContext) fieldContext_GbfsGeofenceProperty_rules(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "vehicle_type":
-				return ec.fieldContext_GbfsGeofenceRule_vehicle_type(ctx, field)
 			case "ride_allowed":
 				return ec.fieldContext_GbfsGeofenceRule_ride_allowed(ctx, field)
 			case "ride_through_allowed":
@@ -19396,103 +19336,10 @@ func (ec *executionContext) fieldContext_GbfsGeofenceProperty_rules(ctx context.
 				return ec.fieldContext_GbfsGeofenceRule_maximum_speed_kph(ctx, field)
 			case "station_parking":
 				return ec.fieldContext_GbfsGeofenceRule_station_parking(ctx, field)
+			case "vehicle_type":
+				return ec.fieldContext_GbfsGeofenceRule_vehicle_type(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GbfsGeofenceRule", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _GbfsGeofenceRule_vehicle_type(ctx context.Context, field graphql.CollectedField, obj *model.GbfsGeofenceRule) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GbfsGeofenceRule_vehicle_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VehicleType(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.GbfsVehicleType)
-	fc.Result = res
-	return ec.marshalOGbfsVehicleType2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsVehicleType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_GbfsGeofenceRule_vehicle_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "GbfsGeofenceRule",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "vehicle_type_id":
-				return ec.fieldContext_GbfsVehicleType_vehicle_type_id(ctx, field)
-			case "form_factor":
-				return ec.fieldContext_GbfsVehicleType_form_factor(ctx, field)
-			case "rider_capacity":
-				return ec.fieldContext_GbfsVehicleType_rider_capacity(ctx, field)
-			case "cargo_volume_capacity":
-				return ec.fieldContext_GbfsVehicleType_cargo_volume_capacity(ctx, field)
-			case "cargo_load_capacity":
-				return ec.fieldContext_GbfsVehicleType_cargo_load_capacity(ctx, field)
-			case "propulsion_type":
-				return ec.fieldContext_GbfsVehicleType_propulsion_type(ctx, field)
-			case "eco_label":
-				return ec.fieldContext_GbfsVehicleType_eco_label(ctx, field)
-			case "country_code":
-				return ec.fieldContext_GbfsVehicleType_country_code(ctx, field)
-			case "eco_sticker":
-				return ec.fieldContext_GbfsVehicleType_eco_sticker(ctx, field)
-			case "max_range_meters":
-				return ec.fieldContext_GbfsVehicleType_max_range_meters(ctx, field)
-			case "name":
-				return ec.fieldContext_GbfsVehicleType_name(ctx, field)
-			case "vehicle_accessorites":
-				return ec.fieldContext_GbfsVehicleType_vehicle_accessorites(ctx, field)
-			case "gco_2_km":
-				return ec.fieldContext_GbfsVehicleType_gco_2_km(ctx, field)
-			case "vehicle_image":
-				return ec.fieldContext_GbfsVehicleType_vehicle_image(ctx, field)
-			case "make":
-				return ec.fieldContext_GbfsVehicleType_make(ctx, field)
-			case "model":
-				return ec.fieldContext_GbfsVehicleType_model(ctx, field)
-			case "color":
-				return ec.fieldContext_GbfsVehicleType_color(ctx, field)
-			case "wheel_count":
-				return ec.fieldContext_GbfsVehicleType_wheel_count(ctx, field)
-			case "max_permitted_speed":
-				return ec.fieldContext_GbfsVehicleType_max_permitted_speed(ctx, field)
-			case "rated_power":
-				return ec.fieldContext_GbfsVehicleType_rated_power(ctx, field)
-			case "default_reserve_time":
-				return ec.fieldContext_GbfsVehicleType_default_reserve_time(ctx, field)
-			case "return_constraint":
-				return ec.fieldContext_GbfsVehicleType_return_constraint(ctx, field)
-			case "default_pricing_plan":
-				return ec.fieldContext_GbfsVehicleType_default_pricing_plan(ctx, field)
-			case "pricing_plans":
-				return ec.fieldContext_GbfsVehicleType_pricing_plans(ctx, field)
-			case "rental_uris":
-				return ec.fieldContext_GbfsVehicleType_rental_uris(ctx, field)
-			case "vehicle_assets":
-				return ec.fieldContext_GbfsVehicleType_vehicle_assets(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type GbfsVehicleType", field.Name)
 		},
 	}
 	return fc, nil
@@ -19657,6 +19504,101 @@ func (ec *executionContext) fieldContext_GbfsGeofenceRule_station_parking(ctx co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Bool does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GbfsGeofenceRule_vehicle_type(ctx context.Context, field graphql.CollectedField, obj *model.GbfsGeofenceRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GbfsGeofenceRule_vehicle_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VehicleType(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.GbfsVehicleType)
+	fc.Result = res
+	return ec.marshalOGbfsVehicleType2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsVehicleType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GbfsGeofenceRule_vehicle_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GbfsGeofenceRule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vehicle_type_id":
+				return ec.fieldContext_GbfsVehicleType_vehicle_type_id(ctx, field)
+			case "form_factor":
+				return ec.fieldContext_GbfsVehicleType_form_factor(ctx, field)
+			case "rider_capacity":
+				return ec.fieldContext_GbfsVehicleType_rider_capacity(ctx, field)
+			case "cargo_volume_capacity":
+				return ec.fieldContext_GbfsVehicleType_cargo_volume_capacity(ctx, field)
+			case "cargo_load_capacity":
+				return ec.fieldContext_GbfsVehicleType_cargo_load_capacity(ctx, field)
+			case "propulsion_type":
+				return ec.fieldContext_GbfsVehicleType_propulsion_type(ctx, field)
+			case "eco_label":
+				return ec.fieldContext_GbfsVehicleType_eco_label(ctx, field)
+			case "country_code":
+				return ec.fieldContext_GbfsVehicleType_country_code(ctx, field)
+			case "eco_sticker":
+				return ec.fieldContext_GbfsVehicleType_eco_sticker(ctx, field)
+			case "max_range_meters":
+				return ec.fieldContext_GbfsVehicleType_max_range_meters(ctx, field)
+			case "name":
+				return ec.fieldContext_GbfsVehicleType_name(ctx, field)
+			case "vehicle_accessories":
+				return ec.fieldContext_GbfsVehicleType_vehicle_accessories(ctx, field)
+			case "gco_2_km":
+				return ec.fieldContext_GbfsVehicleType_gco_2_km(ctx, field)
+			case "vehicle_image":
+				return ec.fieldContext_GbfsVehicleType_vehicle_image(ctx, field)
+			case "make":
+				return ec.fieldContext_GbfsVehicleType_make(ctx, field)
+			case "model":
+				return ec.fieldContext_GbfsVehicleType_model(ctx, field)
+			case "color":
+				return ec.fieldContext_GbfsVehicleType_color(ctx, field)
+			case "wheel_count":
+				return ec.fieldContext_GbfsVehicleType_wheel_count(ctx, field)
+			case "max_permitted_speed":
+				return ec.fieldContext_GbfsVehicleType_max_permitted_speed(ctx, field)
+			case "rated_power":
+				return ec.fieldContext_GbfsVehicleType_rated_power(ctx, field)
+			case "default_reserve_time":
+				return ec.fieldContext_GbfsVehicleType_default_reserve_time(ctx, field)
+			case "return_constraint":
+				return ec.fieldContext_GbfsVehicleType_return_constraint(ctx, field)
+			case "default_pricing_plan":
+				return ec.fieldContext_GbfsVehicleType_default_pricing_plan(ctx, field)
+			case "pricing_plans":
+				return ec.fieldContext_GbfsVehicleType_pricing_plans(ctx, field)
+			case "rental_uris":
+				return ec.fieldContext_GbfsVehicleType_rental_uris(ctx, field)
+			case "vehicle_assets":
+				return ec.fieldContext_GbfsVehicleType_vehicle_assets(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GbfsVehicleType", field.Name)
 		},
 	}
 	return fc, nil
@@ -21427,14 +21369,14 @@ func (ec *executionContext) fieldContext_GbfsStationStatus_vehicle_types_availab
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "vehicle_type":
-				return ec.fieldContext_GbfsVehicleTypeAvailable_vehicle_type(ctx, field)
 			case "num_bikes_disabled":
 				return ec.fieldContext_GbfsVehicleTypeAvailable_num_bikes_disabled(ctx, field)
 			case "num_docks_available":
 				return ec.fieldContext_GbfsVehicleTypeAvailable_num_docks_available(ctx, field)
 			case "count":
 				return ec.fieldContext_GbfsVehicleTypeAvailable_count(ctx, field)
+			case "vehicle_type":
+				return ec.fieldContext_GbfsVehicleTypeAvailable_vehicle_type(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GbfsVehicleTypeAvailable", field.Name)
 		},
@@ -21478,10 +21420,10 @@ func (ec *executionContext) fieldContext_GbfsStationStatus_vehicle_docks_availab
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "vehicle_types":
-				return ec.fieldContext_GbfsVehicleDockAvailable_vehicle_types(ctx, field)
 			case "count":
 				return ec.fieldContext_GbfsVehicleDockAvailable_count(ctx, field)
+			case "vehicle_types":
+				return ec.fieldContext_GbfsVehicleDockAvailable_vehicle_types(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GbfsVehicleDockAvailable", field.Name)
 		},
@@ -21566,53 +21508,6 @@ func (ec *executionContext) fieldContext_GbfsSystemAlert_type(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _GbfsSystemAlert_times(ctx context.Context, field graphql.CollectedField, obj *model.GbfsSystemAlert) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GbfsSystemAlert_times(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Times(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.GbfsAlertTime)
-	fc.Result = res
-	return ec.marshalOGbfsAlertTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsAlertTimeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_GbfsSystemAlert_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "GbfsSystemAlert",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "start":
-				return ec.fieldContext_GbfsAlertTime_start(ctx, field)
-			case "end":
-				return ec.fieldContext_GbfsAlertTime_end(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type GbfsAlertTime", field.Name)
 		},
 	}
 	return fc, nil
@@ -21777,6 +21672,53 @@ func (ec *executionContext) fieldContext_GbfsSystemAlert_last_updated(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GbfsSystemAlert_times(ctx context.Context, field graphql.CollectedField, obj *model.GbfsSystemAlert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GbfsSystemAlert_times(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Times(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.GbfsAlertTime)
+	fc.Result = res
+	return ec.marshalOGbfsAlertTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsAlertTimeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GbfsSystemAlert_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GbfsSystemAlert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "start":
+				return ec.fieldContext_GbfsAlertTime_start(ctx, field)
+			case "end":
+				return ec.fieldContext_GbfsAlertTime_end(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GbfsAlertTime", field.Name)
 		},
 	}
 	return fc, nil
@@ -23706,6 +23648,47 @@ func (ec *executionContext) fieldContext_GbfsVehicleAssets_icon_last_modified(ct
 	return fc, nil
 }
 
+func (ec *executionContext) _GbfsVehicleDockAvailable_count(ctx context.Context, field graphql.CollectedField, obj *model.GbfsVehicleDockAvailable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GbfsVehicleDockAvailable_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tt.Int)
+	fc.Result = res
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GbfsVehicleDockAvailable_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GbfsVehicleDockAvailable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _GbfsVehicleDockAvailable_vehicle_types(ctx context.Context, field graphql.CollectedField, obj *model.GbfsVehicleDockAvailable) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_GbfsVehicleDockAvailable_vehicle_types(ctx, field)
 	if err != nil {
@@ -23764,8 +23747,8 @@ func (ec *executionContext) fieldContext_GbfsVehicleDockAvailable_vehicle_types(
 				return ec.fieldContext_GbfsVehicleType_max_range_meters(ctx, field)
 			case "name":
 				return ec.fieldContext_GbfsVehicleType_name(ctx, field)
-			case "vehicle_accessorites":
-				return ec.fieldContext_GbfsVehicleType_vehicle_accessorites(ctx, field)
+			case "vehicle_accessories":
+				return ec.fieldContext_GbfsVehicleType_vehicle_accessories(ctx, field)
 			case "gco_2_km":
 				return ec.fieldContext_GbfsVehicleType_gco_2_km(ctx, field)
 			case "vehicle_image":
@@ -23796,47 +23779,6 @@ func (ec *executionContext) fieldContext_GbfsVehicleDockAvailable_vehicle_types(
 				return ec.fieldContext_GbfsVehicleType_vehicle_assets(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GbfsVehicleType", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _GbfsVehicleDockAvailable_count(ctx context.Context, field graphql.CollectedField, obj *model.GbfsVehicleDockAvailable) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GbfsVehicleDockAvailable_count(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Count, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(tt.Int)
-	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_GbfsVehicleDockAvailable_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "GbfsVehicleDockAvailable",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -24293,8 +24235,8 @@ func (ec *executionContext) fieldContext_GbfsVehicleType_name(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _GbfsVehicleType_vehicle_accessorites(ctx context.Context, field graphql.CollectedField, obj *model.GbfsVehicleType) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GbfsVehicleType_vehicle_accessorites(ctx, field)
+func (ec *executionContext) _GbfsVehicleType_vehicle_accessories(ctx context.Context, field graphql.CollectedField, obj *model.GbfsVehicleType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GbfsVehicleType_vehicle_accessories(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24307,7 +24249,7 @@ func (ec *executionContext) _GbfsVehicleType_vehicle_accessorites(ctx context.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.VehicleAccessorites, nil
+		return obj.VehicleAccessories, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24321,7 +24263,7 @@ func (ec *executionContext) _GbfsVehicleType_vehicle_accessorites(ctx context.Co
 	return ec.marshalOStrings2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐStrings(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GbfsVehicleType_vehicle_accessorites(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_GbfsVehicleType_vehicle_accessories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "GbfsVehicleType",
 		Field:      field,
@@ -24968,101 +24910,6 @@ func (ec *executionContext) fieldContext_GbfsVehicleType_vehicle_assets(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _GbfsVehicleTypeAvailable_vehicle_type(ctx context.Context, field graphql.CollectedField, obj *model.GbfsVehicleTypeAvailable) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GbfsVehicleTypeAvailable_vehicle_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VehicleType(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.GbfsVehicleType)
-	fc.Result = res
-	return ec.marshalOGbfsVehicleType2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsVehicleType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_GbfsVehicleTypeAvailable_vehicle_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "GbfsVehicleTypeAvailable",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "vehicle_type_id":
-				return ec.fieldContext_GbfsVehicleType_vehicle_type_id(ctx, field)
-			case "form_factor":
-				return ec.fieldContext_GbfsVehicleType_form_factor(ctx, field)
-			case "rider_capacity":
-				return ec.fieldContext_GbfsVehicleType_rider_capacity(ctx, field)
-			case "cargo_volume_capacity":
-				return ec.fieldContext_GbfsVehicleType_cargo_volume_capacity(ctx, field)
-			case "cargo_load_capacity":
-				return ec.fieldContext_GbfsVehicleType_cargo_load_capacity(ctx, field)
-			case "propulsion_type":
-				return ec.fieldContext_GbfsVehicleType_propulsion_type(ctx, field)
-			case "eco_label":
-				return ec.fieldContext_GbfsVehicleType_eco_label(ctx, field)
-			case "country_code":
-				return ec.fieldContext_GbfsVehicleType_country_code(ctx, field)
-			case "eco_sticker":
-				return ec.fieldContext_GbfsVehicleType_eco_sticker(ctx, field)
-			case "max_range_meters":
-				return ec.fieldContext_GbfsVehicleType_max_range_meters(ctx, field)
-			case "name":
-				return ec.fieldContext_GbfsVehicleType_name(ctx, field)
-			case "vehicle_accessorites":
-				return ec.fieldContext_GbfsVehicleType_vehicle_accessorites(ctx, field)
-			case "gco_2_km":
-				return ec.fieldContext_GbfsVehicleType_gco_2_km(ctx, field)
-			case "vehicle_image":
-				return ec.fieldContext_GbfsVehicleType_vehicle_image(ctx, field)
-			case "make":
-				return ec.fieldContext_GbfsVehicleType_make(ctx, field)
-			case "model":
-				return ec.fieldContext_GbfsVehicleType_model(ctx, field)
-			case "color":
-				return ec.fieldContext_GbfsVehicleType_color(ctx, field)
-			case "wheel_count":
-				return ec.fieldContext_GbfsVehicleType_wheel_count(ctx, field)
-			case "max_permitted_speed":
-				return ec.fieldContext_GbfsVehicleType_max_permitted_speed(ctx, field)
-			case "rated_power":
-				return ec.fieldContext_GbfsVehicleType_rated_power(ctx, field)
-			case "default_reserve_time":
-				return ec.fieldContext_GbfsVehicleType_default_reserve_time(ctx, field)
-			case "return_constraint":
-				return ec.fieldContext_GbfsVehicleType_return_constraint(ctx, field)
-			case "default_pricing_plan":
-				return ec.fieldContext_GbfsVehicleType_default_pricing_plan(ctx, field)
-			case "pricing_plans":
-				return ec.fieldContext_GbfsVehicleType_pricing_plans(ctx, field)
-			case "rental_uris":
-				return ec.fieldContext_GbfsVehicleType_rental_uris(ctx, field)
-			case "vehicle_assets":
-				return ec.fieldContext_GbfsVehicleType_vehicle_assets(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type GbfsVehicleType", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _GbfsVehicleTypeAvailable_num_bikes_disabled(ctx context.Context, field graphql.CollectedField, obj *model.GbfsVehicleTypeAvailable) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_GbfsVehicleTypeAvailable_num_bikes_disabled(ctx, field)
 	if err != nil {
@@ -25181,6 +25028,101 @@ func (ec *executionContext) fieldContext_GbfsVehicleTypeAvailable_count(ctx cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GbfsVehicleTypeAvailable_vehicle_type(ctx context.Context, field graphql.CollectedField, obj *model.GbfsVehicleTypeAvailable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GbfsVehicleTypeAvailable_vehicle_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VehicleType(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.GbfsVehicleType)
+	fc.Result = res
+	return ec.marshalOGbfsVehicleType2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsVehicleType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GbfsVehicleTypeAvailable_vehicle_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GbfsVehicleTypeAvailable",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vehicle_type_id":
+				return ec.fieldContext_GbfsVehicleType_vehicle_type_id(ctx, field)
+			case "form_factor":
+				return ec.fieldContext_GbfsVehicleType_form_factor(ctx, field)
+			case "rider_capacity":
+				return ec.fieldContext_GbfsVehicleType_rider_capacity(ctx, field)
+			case "cargo_volume_capacity":
+				return ec.fieldContext_GbfsVehicleType_cargo_volume_capacity(ctx, field)
+			case "cargo_load_capacity":
+				return ec.fieldContext_GbfsVehicleType_cargo_load_capacity(ctx, field)
+			case "propulsion_type":
+				return ec.fieldContext_GbfsVehicleType_propulsion_type(ctx, field)
+			case "eco_label":
+				return ec.fieldContext_GbfsVehicleType_eco_label(ctx, field)
+			case "country_code":
+				return ec.fieldContext_GbfsVehicleType_country_code(ctx, field)
+			case "eco_sticker":
+				return ec.fieldContext_GbfsVehicleType_eco_sticker(ctx, field)
+			case "max_range_meters":
+				return ec.fieldContext_GbfsVehicleType_max_range_meters(ctx, field)
+			case "name":
+				return ec.fieldContext_GbfsVehicleType_name(ctx, field)
+			case "vehicle_accessories":
+				return ec.fieldContext_GbfsVehicleType_vehicle_accessories(ctx, field)
+			case "gco_2_km":
+				return ec.fieldContext_GbfsVehicleType_gco_2_km(ctx, field)
+			case "vehicle_image":
+				return ec.fieldContext_GbfsVehicleType_vehicle_image(ctx, field)
+			case "make":
+				return ec.fieldContext_GbfsVehicleType_make(ctx, field)
+			case "model":
+				return ec.fieldContext_GbfsVehicleType_model(ctx, field)
+			case "color":
+				return ec.fieldContext_GbfsVehicleType_color(ctx, field)
+			case "wheel_count":
+				return ec.fieldContext_GbfsVehicleType_wheel_count(ctx, field)
+			case "max_permitted_speed":
+				return ec.fieldContext_GbfsVehicleType_max_permitted_speed(ctx, field)
+			case "rated_power":
+				return ec.fieldContext_GbfsVehicleType_rated_power(ctx, field)
+			case "default_reserve_time":
+				return ec.fieldContext_GbfsVehicleType_default_reserve_time(ctx, field)
+			case "return_constraint":
+				return ec.fieldContext_GbfsVehicleType_return_constraint(ctx, field)
+			case "default_pricing_plan":
+				return ec.fieldContext_GbfsVehicleType_default_pricing_plan(ctx, field)
+			case "pricing_plans":
+				return ec.fieldContext_GbfsVehicleType_pricing_plans(ctx, field)
+			case "rental_uris":
+				return ec.fieldContext_GbfsVehicleType_rental_uris(ctx, field)
+			case "vehicle_assets":
+				return ec.fieldContext_GbfsVehicleType_vehicle_assets(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GbfsVehicleType", field.Name)
 		},
 	}
 	return fc, nil
@@ -44001,10 +43943,6 @@ func (ec *executionContext) _GbfsFeed(ctx context.Context, sel ast.SelectionSet,
 
 			out.Values[i] = ec._GbfsFeed_calendars(ctx, field, obj)
 
-		case "geofencing_zones":
-
-			out.Values[i] = ec._GbfsFeed_geofencing_zones(ctx, field, obj)
-
 		case "alerts":
 
 			out.Values[i] = ec._GbfsFeed_alerts(ctx, field, obj)
@@ -44181,10 +44119,6 @@ func (ec *executionContext) _GbfsGeofenceRule(ctx context.Context, sel ast.Selec
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("GbfsGeofenceRule")
-		case "vehicle_type":
-
-			out.Values[i] = ec._GbfsGeofenceRule_vehicle_type(ctx, field, obj)
-
 		case "ride_allowed":
 
 			out.Values[i] = ec._GbfsGeofenceRule_ride_allowed(ctx, field, obj)
@@ -44200,6 +44134,10 @@ func (ec *executionContext) _GbfsGeofenceRule(ctx context.Context, sel ast.Selec
 		case "station_parking":
 
 			out.Values[i] = ec._GbfsGeofenceRule_station_parking(ctx, field, obj)
+
+		case "vehicle_type":
+
+			out.Values[i] = ec._GbfsGeofenceRule_vehicle_type(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -44549,10 +44487,6 @@ func (ec *executionContext) _GbfsSystemAlert(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._GbfsSystemAlert_type(ctx, field, obj)
 
-		case "times":
-
-			out.Values[i] = ec._GbfsSystemAlert_times(ctx, field, obj)
-
 		case "url":
 
 			out.Values[i] = ec._GbfsSystemAlert_url(ctx, field, obj)
@@ -44568,6 +44502,10 @@ func (ec *executionContext) _GbfsSystemAlert(ctx context.Context, sel ast.Select
 		case "last_updated":
 
 			out.Values[i] = ec._GbfsSystemAlert_last_updated(ctx, field, obj)
+
+		case "times":
+
+			out.Values[i] = ec._GbfsSystemAlert_times(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -44921,13 +44859,13 @@ func (ec *executionContext) _GbfsVehicleDockAvailable(ctx context.Context, sel a
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("GbfsVehicleDockAvailable")
-		case "vehicle_types":
-
-			out.Values[i] = ec._GbfsVehicleDockAvailable_vehicle_types(ctx, field, obj)
-
 		case "count":
 
 			out.Values[i] = ec._GbfsVehicleDockAvailable_count(ctx, field, obj)
+
+		case "vehicle_types":
+
+			out.Values[i] = ec._GbfsVehicleDockAvailable_vehicle_types(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -44994,9 +44932,9 @@ func (ec *executionContext) _GbfsVehicleType(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._GbfsVehicleType_name(ctx, field, obj)
 
-		case "vehicle_accessorites":
+		case "vehicle_accessories":
 
-			out.Values[i] = ec._GbfsVehicleType_vehicle_accessorites(ctx, field, obj)
+			out.Values[i] = ec._GbfsVehicleType_vehicle_accessories(ctx, field, obj)
 
 		case "gco_2_km":
 
@@ -45075,10 +45013,6 @@ func (ec *executionContext) _GbfsVehicleTypeAvailable(ctx context.Context, sel a
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("GbfsVehicleTypeAvailable")
-		case "vehicle_type":
-
-			out.Values[i] = ec._GbfsVehicleTypeAvailable_vehicle_type(ctx, field, obj)
-
 		case "num_bikes_disabled":
 
 			out.Values[i] = ec._GbfsVehicleTypeAvailable_num_bikes_disabled(ctx, field, obj)
@@ -45090,6 +45024,10 @@ func (ec *executionContext) _GbfsVehicleTypeAvailable(ctx context.Context, sel a
 		case "count":
 
 			out.Values[i] = ec._GbfsVehicleTypeAvailable_count(ctx, field, obj)
+
+		case "vehicle_type":
+
+			out.Values[i] = ec._GbfsVehicleTypeAvailable_vehicle_type(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -49189,16 +49127,6 @@ func (ec *executionContext) marshalNGbfsGeofenceFeature2ᚖgithubᚗcomᚋinterl
 	return ec._GbfsGeofenceFeature(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNGbfsGeofenceZone2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsGeofenceZone(ctx context.Context, sel ast.SelectionSet, v *model.GbfsGeofenceZone) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._GbfsGeofenceZone(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNGbfsPlanPrice2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsPlanPrice(ctx context.Context, sel ast.SelectionSet, v *model.GbfsPlanPrice) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -51406,53 +51334,6 @@ func (ec *executionContext) marshalOGbfsGeofenceRule2ᚖgithubᚗcomᚋinterline
 		return graphql.Null
 	}
 	return ec._GbfsGeofenceRule(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOGbfsGeofenceZone2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsGeofenceZoneᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GbfsGeofenceZone) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNGbfsGeofenceZone2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsGeofenceZone(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalOGbfsPlanPrice2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsPlanPriceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GbfsPlanPrice) graphql.Marshaler {
