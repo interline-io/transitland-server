@@ -428,6 +428,7 @@ type ComplexityRoot struct {
 		Capacity          func(childComplexity int) int
 		ContactPhone      func(childComplexity int) int
 		CrossStreet       func(childComplexity int) int
+		Feed              func(childComplexity int) int
 		IsChargingStation func(childComplexity int) int
 		IsValetStation    func(childComplexity int) int
 		IsVirtualStation  func(childComplexity int) int
@@ -2891,6 +2892,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GbfsStationInformation.CrossStreet(childComplexity), true
+
+	case "GbfsStationInformation.feed":
+		if e.complexity.GbfsStationInformation.Feed == nil {
+			break
+		}
+
+		return e.complexity.GbfsStationInformation.Feed(childComplexity), true
 
 	case "GbfsStationInformation.is_charging_station":
 		if e.complexity.GbfsStationInformation.IsChargingStation == nil {
@@ -5849,6 +5857,7 @@ type GbfsStationInformation {
 	is_valet_station: Bool
 	is_charging_station: Bool
 	# vehicle_capacity: map[string]int
+	feed: GbfsFeed
 	region: GbfsSystemRegion
 	status: GbfsStationStatus
 }
@@ -18133,6 +18142,8 @@ func (ec *executionContext) fieldContext_GbfsFeed_station_information(ctx contex
 				return ec.fieldContext_GbfsStationInformation_is_valet_station(ctx, field)
 			case "is_charging_station":
 				return ec.fieldContext_GbfsStationInformation_is_charging_station(ctx, field)
+			case "feed":
+				return ec.fieldContext_GbfsStationInformation_feed(ctx, field)
 			case "region":
 				return ec.fieldContext_GbfsStationInformation_region(ctx, field)
 			case "status":
@@ -18787,6 +18798,8 @@ func (ec *executionContext) fieldContext_GbfsFreeBikeStatus_station(ctx context.
 				return ec.fieldContext_GbfsStationInformation_is_valet_station(ctx, field)
 			case "is_charging_station":
 				return ec.fieldContext_GbfsStationInformation_is_charging_station(ctx, field)
+			case "feed":
+				return ec.fieldContext_GbfsStationInformation_feed(ctx, field)
 			case "region":
 				return ec.fieldContext_GbfsStationInformation_region(ctx, field)
 			case "status":
@@ -18868,6 +18881,8 @@ func (ec *executionContext) fieldContext_GbfsFreeBikeStatus_home_station(ctx con
 				return ec.fieldContext_GbfsStationInformation_is_valet_station(ctx, field)
 			case "is_charging_station":
 				return ec.fieldContext_GbfsStationInformation_is_charging_station(ctx, field)
+			case "feed":
+				return ec.fieldContext_GbfsStationInformation_feed(ctx, field)
 			case "region":
 				return ec.fieldContext_GbfsStationInformation_region(ctx, field)
 			case "status":
@@ -20899,6 +20914,59 @@ func (ec *executionContext) fieldContext_GbfsStationInformation_is_charging_stat
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Bool does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GbfsStationInformation_feed(ctx context.Context, field graphql.CollectedField, obj *model.GbfsStationInformation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GbfsStationInformation_feed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Feed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.GbfsFeed)
+	fc.Result = res
+	return ec.marshalOGbfsFeed2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsFeed(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GbfsStationInformation_feed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GbfsStationInformation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "system_information":
+				return ec.fieldContext_GbfsFeed_system_information(ctx, field)
+			case "station_information":
+				return ec.fieldContext_GbfsFeed_station_information(ctx, field)
+			case "rental_hours":
+				return ec.fieldContext_GbfsFeed_rental_hours(ctx, field)
+			case "calendars":
+				return ec.fieldContext_GbfsFeed_calendars(ctx, field)
+			case "alerts":
+				return ec.fieldContext_GbfsFeed_alerts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GbfsFeed", field.Name)
 		},
 	}
 	return fc, nil
@@ -28813,6 +28881,8 @@ func (ec *executionContext) fieldContext_Query_docks(ctx context.Context, field 
 				return ec.fieldContext_GbfsStationInformation_is_valet_station(ctx, field)
 			case "is_charging_station":
 				return ec.fieldContext_GbfsStationInformation_is_charging_station(ctx, field)
+			case "feed":
+				return ec.fieldContext_GbfsStationInformation_feed(ctx, field)
 			case "region":
 				return ec.fieldContext_GbfsStationInformation_region(ctx, field)
 			case "status":
@@ -44556,6 +44626,10 @@ func (ec *executionContext) _GbfsStationInformation(ctx context.Context, sel ast
 		case "is_charging_station":
 
 			out.Values[i] = ec._GbfsStationInformation_is_charging_station(ctx, field, obj)
+
+		case "feed":
+
+			out.Values[i] = ec._GbfsStationInformation_feed(ctx, field, obj)
 
 		case "region":
 

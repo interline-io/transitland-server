@@ -67,6 +67,7 @@ type GbfsStationInformation {
 	is_valet_station: Bool
 	is_charging_station: Bool
 	# vehicle_capacity: map[string]int
+	feed: GbfsFeed
 	region: GbfsSystemRegion
 	status: GbfsStationStatus
 }

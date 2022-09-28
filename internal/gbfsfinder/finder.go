@@ -3,6 +3,7 @@ package gbfsfinder
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -100,6 +101,12 @@ func (c *Finder) FindBikes(ctx context.Context, limit *int, where *model.GbfsBik
 			ret = append(ret, &b)
 		}
 	}
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].BikeID.Val < ret[j].BikeID.Val
+	})
+	if limit != nil && len(ret) > *limit {
+		ret = ret[0:*limit]
+	}
 	return ret, nil
 }
 
@@ -129,6 +136,12 @@ func (c *Finder) FindDocks(ctx context.Context, limit *int, where *model.GbfsDoc
 			}
 			ret = append(ret, &b)
 		}
+	}
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].StationID.Val < ret[j].StationID.Val
+	})
+	if limit != nil && len(ret) > *limit {
+		ret = ret[0:*limit]
 	}
 	return ret, nil
 }

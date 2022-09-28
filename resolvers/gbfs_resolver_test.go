@@ -60,6 +60,177 @@ func TestGbfsBikeResolver(t *testing.T) {
 			"bikes.#.feed.system_information.name",
 			[]string{"Bay Wheels"},
 		},
+		{
+			"limit 5",
+			`{
+				bikes(limit:5, where: {near:{lon: -122.396445, lat:37.793250, radius:1000}}) {
+				  bike_id
+				}
+			}`,
+			hw{},
+			``,
+			"bikes.#.bike_id",
+			[]string{"0cbf9b08f8b71a6362e20c8173c071a6", "1682088b2335fa5365610e6d299fde2d", "1bc913bf913729a147458cd6b2f91773", "1d61a000cb330f6c260fc439d29b20ab", "21667e59d3c6bc814b6716d87621ddde"},
+		},
+		{
+			"limit 1",
+			`{
+				bikes(limit:1, where: {near:{lon: -122.396445, lat:37.793250, radius:1000}}) {
+				  bike_id
+				}
+			}`,
+			hw{},
+			``,
+			"bikes.#.bike_id",
+			[]string{"0cbf9b08f8b71a6362e20c8173c071a6"},
+		},
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestGbfsStationResolver(t *testing.T) {
+	setupGbfs()
+	testcases := []testcase{
+		{
+			"basic",
+			`{
+				docks(where: {near: {lon: -121.908666, lat: 37.336289, radius: 100}}) {
+				  station_id
+				  address
+				  capacity
+				  contact_phone
+				  cross_street
+				  is_charging_station
+				  is_valet_station
+				  is_virtual_station
+				  lat
+				  lon
+				  name
+				  parking_hoop
+				  parking_type
+				  post_code
+				  rental_methods
+				  short_name
+				  station_area
+				}
+			  }
+			`,
+			hw{},
+			``,
+			"docks.#.station_id",
+			[]string{"d75591d7-080d-46cb-8ada-0fbe6af676fc"},
+		},
+		{
+			"feed",
+			`{
+				docks(where: {near:{lon: -121.908666, lat:37.336289, radius:100}}) {
+				  station_id
+				  feed {
+					system_information {
+						name
+					}
+				  }
+				}
+			}`,
+			hw{},
+			``,
+			"docks.#.feed.system_information.name",
+			[]string{"Bay Wheels"},
+		},
+		{
+			"region",
+			`{
+				docks(where: {near: {lon: -121.908666, lat: 37.336289, radius: 100}}) {
+				  station_id
+				  region {
+					name
+					region_id
+				  }
+				}
+			  }
+			  `,
+			hw{},
+			``,
+			"docks.#.region.name",
+			[]string{"San Jose"},
+		},
+		{
+			"calendars",
+			`{
+				docks(where: {near: {lon: -121.908666, lat: 37.336289, radius: 100}}) {
+				  station_id
+				  feed {
+					calendars {
+					  end_day
+					  end_month
+					  end_year
+					  start_day
+					  start_month
+					  start_year
+					}
+				  }
+				}
+			  }`,
+			hw{},
+			``,
+			"docks.0.feed.calendars.0.end_month",
+			[]string{"12"},
+		},
+		{
+			"status",
+			`{
+				docks(where: {near: {lon: -121.908666, lat: 37.336289, radius: 100}}) {
+				  station_id
+				  status {
+					is_installed
+					is_renting
+					is_returning
+					last_reported
+					num_bikes_available
+					num_bikes_disabled
+					num_docks_available
+					num_docks_disabled
+					station_id
+				  }
+				}
+			  }
+			`,
+			hw{},
+			``,
+			"docks.0.status.num_bikes_available",
+			[]string{"11"},
+		},
+		{
+			"limit 5",
+			`{
+				docks(limit: 5, where: {near: {lon: -121.908666, lat: 37.336289, radius: 1000}}) {
+				  station_id
+				}
+			  }
+			  `,
+			hw{},
+			``,
+			"docks.#.station_id",
+			[]string{"27045384-791c-4519-8087-fce2f7c48a69", "28988488-fb74-4bbc-9e69-613698b2dd8c", "2c7560e6-62c6-4403-8b97-8016471948b5", "3ebc4f3f-2941-47cd-a173-83f01a91bf57", "a96032c0-9ff2-4fbe-8f03-6b3f9816947d"},
+		},
+		{
+			"limit 1",
+			`{
+				docks(limit: 1, where: {near: {lon: -121.908666, lat: 37.336289, radius: 1000}}) {
+				  station_id
+				}
+			  }
+			  `,
+			hw{},
+			``,
+			"docks.#.station_id",
+			[]string{"27045384-791c-4519-8087-fce2f7c48a69"},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {
