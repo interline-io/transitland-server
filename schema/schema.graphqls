@@ -33,8 +33,8 @@ type Query {
   trips(limit: Int, after: Int, ids: [Int!], where: TripFilter): [Trip!]!
   operators(limit: Int, after: Int, ids: [Int!], where: OperatorFilter): [Operator!]!
   directions(where: DirectionRequest!): Directions!
-  bikes(where: GbfsBikeRequest!): [GbfsFreeBikeStatus!]
-  # docks(where: GbfsDockRequest!): [GbfsStationInformation!]
+  bikes(limit: Int, where: GbfsBikeRequest): [GbfsFreeBikeStatus!]
+  docks(limit: Int, where: GbfsDockRequest): [GbfsStationInformation!]
 }
 
 type Mutation {

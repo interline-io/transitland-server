@@ -173,7 +173,7 @@ func TestGatekeeper(t *testing.T) {
 				// Check at least 100ms have elapsed
 				elapsedTime := time.Now().UnixNano() - testStartTime.UnixNano()
 				assert.GreaterOrEqual(t, elapsedTime, int64(100*1e6)) // 100*1e6 = 100ms in nanoseconds
-				fmt.Println("elapsedTime:", elapsedTime)
+				t.Log("elapsedTime:", elapsedTime)
 			},
 		},
 		{

@@ -35,10 +35,13 @@ func TestGbfsFetchWorker(t *testing.T) {
 	// Test
 	gbfsFinder.FindBikes(
 		context.Background(),
-		model.PointRadius{
-			Lon:    -122.396445,
-			Lat:    37.793250,
-			Radius: 100,
+		nil,
+		&model.GbfsBikeRequest{
+			Near: &model.PointRadius{
+				Lon:    -122.396445,
+				Lat:    37.793250,
+				Radius: 100,
+			},
 		},
 	)
 }

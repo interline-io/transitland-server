@@ -1,8 +1,6 @@
 package model
 
 import (
-	"fmt"
-
 	"github.com/interline-io/transitland-server/internal/gbfs"
 )
 
@@ -57,7 +55,6 @@ func (g *GbfsFeed) RentalHours() []*GbfsSystemHour {
 }
 
 func (g *GbfsFeed) Calendars() []*GbfsSystemCalendar {
-	fmt.Println("CALENDARS():", g.GbfsFeed.Calendars)
 	if g.GbfsFeed == nil {
 		return nil
 	}

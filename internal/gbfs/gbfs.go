@@ -16,7 +16,7 @@ type GbfsFeed struct {
 	Calendars          []*SystemCalendar     `json:"calendars,omitempty"`
 	Plans              []*SystemPricingPlan  `json:"plans,omitempty"`
 	Alerts             []*SystemAlert        `json:"alerts,omitempty"`
-	GeofencingZones    []*GeofenceZone       `json:"geofencing_zones,omitempty"`
+	GeofencingZones    []*GeofenceZone       // `json:"geofencing_zones,omitempty"`
 }
 
 type GbfsFeedData struct {
@@ -50,18 +50,6 @@ type StationStatusFile struct {
 	Data struct {
 		Stations []*StationStatus
 	}
-}
-
-type GbfsFile struct {
-	Versions        []*SystemVersion     `json:"versions,omitempty"`
-	VehicleTypes    []*VehicleType       `json:"vehicle_types,omitempty"`
-	Bikes           []*FreeBikeStatus    `json:"bikes,omitempty"`
-	RentalHours     []*SystemHour        `json:"rental_hours,omitempty"`
-	Calendars       []*SystemCalendar    `json:"calendars,omitempty"`
-	Plans           []*SystemPricingPlan `json:"plans,omitempty"`
-	Alerts          []*SystemAlert       `json:"alerts,omitempty"`
-	Regions         []*SystemRegion      `json:"regions,omitempty"`
-	GeofencingZones []*GeofenceZone      `json:"geofencing_zones,omitempty"`
 }
 
 ///////////////
@@ -263,10 +251,10 @@ type SystemPricingPlan struct {
 }
 
 type PlanPrice struct {
-	Start    tt.Int `json:"start,omitempty"`
-	Rate     tt.Int `json:"rate,omitempty"`
-	Interval tt.Int `json:"interval,omitempty"`
-	End      tt.Int `json:"end,omitempty"`
+	Start    tt.Int   `json:"start,omitempty"`
+	Rate     tt.Float `json:"rate,omitempty"`
+	Interval tt.Int   `json:"interval,omitempty"`
+	End      tt.Int   `json:"end,omitempty"`
 }
 
 type SystemAlert struct {

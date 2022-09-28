@@ -17,5 +17,5 @@ func TestGbfsFetchWorker(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println("feed:", feed)
+	t.Log("feed:", feed)
 }

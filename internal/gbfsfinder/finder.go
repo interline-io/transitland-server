@@ -16,7 +16,8 @@ import (
 type Finder struct {
 	client           *redis.Client
 	cache            *ecache.Cache[gbfs.GbfsFeed]
-	ttl              time.Duration
+	ttlRecheck       time.Duration
+	ttlExpire        time.Duration
 	prefix           string
 	bikeSearchKey    string
 	stationSearchKey string
@@ -25,7 +26,8 @@ type Finder struct {
 func NewFinder(client *redis.Client) *Finder {
 	c := ecache.NewCache[gbfs.GbfsFeed](client, "gbfs")
 	return &Finder{
-		ttl:              1 * time.Hour,
+		ttlRecheck:       5 * time.Minute,
+		ttlExpire:        24 * time.Hour,
 		cache:            c,
 		client:           client,
 		prefix:           "gbfs",
@@ -36,72 +38,63 @@ func NewFinder(client *redis.Client) *Finder {
 
 func (c *Finder) AddData(ctx context.Context, topic string, sf gbfs.GbfsFeed) error {
 	// Save basic data
-	if err := c.cache.SetTTL(ctx, topic, sf, c.ttl, c.ttl); err != nil {
+	if err := c.cache.SetTTL(ctx, topic, sf, c.ttlRecheck, c.ttlExpire); err != nil {
 		return err
 	}
-	// Geosearch index bikes and stations
+	// Geosearch index bikes
+	ts := time.Now().Unix()
 	if c.client != nil {
-		ts := time.Now().Unix()
 		var locs []*redis.GeoLocation
-		for _, bike := range sf.Bikes {
+		for _, ent := range sf.Bikes {
 			locs = append(locs, &redis.GeoLocation{
-				Name:      fmt.Sprintf("%s:%s:%d", topic, bike.BikeID.Val, ts),
-				Longitude: bike.Lon.Val,
-				Latitude:  bike.Lat.Val,
+				Name:      fmt.Sprintf("%s:%s:%d", topic, ent.BikeID.Val, ts),
+				Longitude: ent.Lon.Val,
+				Latitude:  ent.Lat.Val,
 			})
 		}
 		if err := c.client.GeoAdd(ctx, c.bikeSearchKey, locs...).Err(); err != nil {
 			return err
 		}
 	}
+	// Geosearch index docks
+	if c.client != nil {
+		var locs []*redis.GeoLocation
+		for _, ent := range sf.StationInformation {
+			locs = append(locs, &redis.GeoLocation{
+				Name:      fmt.Sprintf("%s:%s:%d", topic, ent.StationID.Val, ts),
+				Longitude: ent.Lon.Val,
+				Latitude:  ent.Lat.Val,
+			})
+		}
+		if err := c.client.GeoAdd(ctx, c.stationSearchKey, locs...).Err(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (c *Finder) FindBikes(ctx context.Context, pt model.PointRadius) ([]*model.GbfsFreeBikeStatus, error) {
-	getBikes := map[string][]string{}
-	if c.client != nil {
-		q := redis.GeoRadiusQuery{
-			Radius: pt.Radius,
-			Unit:   "m",
-		}
-		cmd := c.client.GeoRadius(
-			ctx,
-			c.bikeSearchKey,
-			pt.Lon, pt.Lat, &q,
-		)
-		locs, err := cmd.Result()
-		if err != nil {
-			return nil, err
-		}
-		for _, loc := range locs {
-			bikeKey := strings.Split(loc.Name, ":")
-			if len(bikeKey) < 4 {
-				continue
-			}
-			bikeTopic := fmt.Sprintf("%s:%s", bikeKey[0], bikeKey[1])
-			bikeId := bikeKey[2]
-			getBikes[bikeTopic] = append(getBikes[bikeTopic], bikeId)
-		}
-	} else {
-		// If not using redis, get local keys. This is not perfect.
-		for _, k := range c.cache.LocalKeys() {
-			getBikes[k] = append(getBikes[k], "")
-		}
+func (c *Finder) FindBikes(ctx context.Context, limit *int, where *model.GbfsBikeRequest) ([]*model.GbfsFreeBikeStatus, error) {
+	if where == nil || where.Near == nil || c.client == nil {
+		return nil, nil
+	}
+	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 10_000)
+	pt := *where.Near
+	topicKeys, err := c.geosearch(ctx, c.bikeSearchKey, pt)
+	if err != nil {
+		return nil, err
 	}
 	var ret []*model.GbfsFreeBikeStatus
-	for bikeTopic := range getBikes {
-		// Check bikes in matched topics, redo distance check
-		sf, ok := c.cache.Get(ctx, bikeTopic)
+	for _, topicKey := range topicKeys {
+		sf, ok := c.cache.Get(ctx, topicKey)
 		if !ok {
 			continue
 		}
-		for _, bike := range sf.Bikes {
-			bikeDist := xy.DistanceHaversine(pt.Lon, pt.Lat, bike.Lon.Val, bike.Lat.Val)
-			if bikeDist > pt.Radius {
+		for _, ent := range sf.Bikes {
+			if d := xy.DistanceHaversine(pt.Lon, pt.Lat, ent.Lon.Val, ent.Lat.Val); d > pt.Radius {
 				continue
 			}
 			b := model.GbfsFreeBikeStatus{
-				FreeBikeStatus: bike,
+				FreeBikeStatus: ent,
 				Feed:           &model.GbfsFeed{GbfsFeed: &sf},
 			}
 			ret = append(ret, &b)
@@ -110,6 +103,81 @@ func (c *Finder) FindBikes(ctx context.Context, pt model.PointRadius) ([]*model.
 	return ret, nil
 }
 
-func (c *Finder) FindStations(pt model.PointRadius) {
+func (c *Finder) FindDocks(ctx context.Context, limit *int, where *model.GbfsDockRequest) ([]*model.GbfsStationInformation, error) {
+	if where == nil || where.Near == nil || c.client == nil {
+		return nil, nil
+	}
+	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 10_000)
+	pt := *where.Near
+	topicKeys, err := c.geosearch(ctx, c.stationSearchKey, pt)
+	if err != nil {
+		return nil, err
+	}
+	var ret []*model.GbfsStationInformation
+	for _, topicKey := range topicKeys {
+		sf, ok := c.cache.Get(ctx, topicKey)
+		if !ok {
+			continue
+		}
+		for _, ent := range sf.StationInformation {
+			if d := xy.DistanceHaversine(pt.Lon, pt.Lat, ent.Lon.Val, ent.Lat.Val); d > pt.Radius {
+				continue
+			}
+			b := model.GbfsStationInformation{
+				StationInformation: ent,
+				Feed:               &model.GbfsFeed{GbfsFeed: &sf},
+			}
+			ret = append(ret, &b)
+		}
+	}
+	return ret, nil
+}
 
+func (c *Finder) geosearch(ctx context.Context, key string, pt model.PointRadius) ([]string, error) {
+	topicKeys := map[string][]string{}
+	if c.client != nil {
+		q := redis.GeoRadiusQuery{
+			Radius: pt.Radius,
+			Unit:   "m",
+		}
+		cmd := c.client.GeoRadius(
+			ctx,
+			key,
+			pt.Lon,
+			pt.Lat,
+			&q,
+		)
+		locs, err := cmd.Result()
+		if err != nil {
+			return nil, err
+		}
+		for _, loc := range locs {
+			topic := strings.Split(loc.Name, ":")
+			if len(topic) < 4 {
+				continue
+			}
+			topicKey := fmt.Sprintf("%s:%s", topic[0], topic[1])
+			elemId := topic[2]
+			topicKeys[topicKey] = append(topicKeys[topicKey], elemId)
+		}
+	} else {
+		// If not using redis, get local keys. This is not perfect.
+		for _, k := range c.cache.LocalKeys() {
+			topicKeys[k] = append(topicKeys[k], "")
+		}
+	}
+	var ret []string
+	for k := range topicKeys {
+		ret = append(ret, k)
+	}
+	return ret, nil
+}
+
+func checkFloat(v *float64, min float64, max float64) float64 {
+	if v == nil || *v < min {
+		return min
+	} else if *v > max {
+		return max
+	}
+	return *v
 }

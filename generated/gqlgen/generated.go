@@ -646,8 +646,9 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Agencies     func(childComplexity int, limit *int, after *int, ids []int, where *model.AgencyFilter) int
-		Bikes        func(childComplexity int, where model.GbfsBikeRequest) int
+		Bikes        func(childComplexity int, limit *int, where *model.GbfsBikeRequest) int
 		Directions   func(childComplexity int, where model.DirectionRequest) int
+		Docks        func(childComplexity int, limit *int, where *model.GbfsDockRequest) int
 		FeedVersions func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedVersionFilter) int
 		Feeds        func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedFilter) int
 		Operators    func(childComplexity int, limit *int, after *int, ids []int, where *model.OperatorFilter) int
@@ -988,7 +989,8 @@ type QueryResolver interface {
 	Trips(ctx context.Context, limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error)
 	Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error)
 	Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error)
-	Bikes(ctx context.Context, where model.GbfsBikeRequest) ([]*model.GbfsFreeBikeStatus, error)
+	Bikes(ctx context.Context, limit *int, where *model.GbfsBikeRequest) ([]*model.GbfsFreeBikeStatus, error)
+	Docks(ctx context.Context, limit *int, where *model.GbfsDockRequest) ([]*model.GbfsStationInformation, error)
 }
 type RouteResolver interface {
 	Agency(ctx context.Context, obj *model.Route) (*model.Agency, error)
@@ -4067,7 +4069,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Bikes(childComplexity, args["where"].(model.GbfsBikeRequest)), true
+		return e.complexity.Query.Bikes(childComplexity, args["limit"].(*int), args["where"].(*model.GbfsBikeRequest)), true
 
 	case "Query.directions":
 		if e.complexity.Query.Directions == nil {
@@ -4080,6 +4082,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Directions(childComplexity, args["where"].(model.DirectionRequest)), true
+
+	case "Query.docks":
+		if e.complexity.Query.Docks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_docks_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Docks(childComplexity, args["limit"].(*int), args["where"].(*model.GbfsDockRequest)), true
 
 	case "Query.feed_versions":
 		if e.complexity.Query.FeedVersions == nil {
@@ -5600,6 +5614,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFeedVersionServiceLevelFilter,
 		ec.unmarshalInputFeedVersionSetInput,
 		ec.unmarshalInputGbfsBikeRequest,
+		ec.unmarshalInputGbfsDockRequest,
 		ec.unmarshalInputOperatorFilter,
 		ec.unmarshalInputPathwayFilter,
 		ec.unmarshalInputPointRadius,
@@ -5965,7 +5980,7 @@ type GbfsSystemPricingPlan  {
 
 type GbfsPlanPrice  {
 	start: Int 
-	rate: Int 
+	rate: Float
 	interval: Int 
 	end: Int 
 }
@@ -6016,6 +6031,10 @@ type GbfsGeofenceRule  {
 ########
 
 input GbfsBikeRequest {
+	near: PointRadius
+}
+
+input GbfsDockRequest {
 	near: PointRadius
 }
 `, BuiltIn: false},
@@ -6242,8 +6261,8 @@ type Query {
   trips(limit: Int, after: Int, ids: [Int!], where: TripFilter): [Trip!]!
   operators(limit: Int, after: Int, ids: [Int!], where: OperatorFilter): [Operator!]!
   directions(where: DirectionRequest!): Directions!
-  bikes(where: GbfsBikeRequest!): [GbfsFreeBikeStatus!]
-  # docks(where: GbfsDockRequest!): [GbfsStationInformation!]
+  bikes(limit: Int, where: GbfsBikeRequest): [GbfsFreeBikeStatus!]
+  docks(limit: Int, where: GbfsDockRequest): [GbfsStationInformation!]
 }
 
 type Mutation {
@@ -7496,15 +7515,24 @@ func (ec *executionContext) field_Query_agencies_args(ctx context.Context, rawAr
 func (ec *executionContext) field_Query_bikes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.GbfsBikeRequest
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg0, err = ec.unmarshalNGbfsBikeRequest2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsBikeRequest(ctx, tmp)
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["where"] = arg0
+	args["limit"] = arg0
+	var arg1 *model.GbfsBikeRequest
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOGbfsBikeRequest2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsBikeRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -7520,6 +7548,30 @@ func (ec *executionContext) field_Query_directions_args(ctx context.Context, raw
 		}
 	}
 	args["where"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_docks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.GbfsDockRequest
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOGbfsDockRequest2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsDockRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -19756,9 +19808,9 @@ func (ec *executionContext) _GbfsPlanPrice_rate(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Int)
+	res := resTmp.(tt.Float)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GbfsPlanPrice_rate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -19768,7 +19820,7 @@ func (ec *executionContext) fieldContext_GbfsPlanPrice_rate(ctx context.Context,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28619,7 +28671,7 @@ func (ec *executionContext) _Query_bikes(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Bikes(rctx, fc.Args["where"].(model.GbfsBikeRequest))
+		return ec.resolvers.Query().Bikes(rctx, fc.Args["limit"].(*int), fc.Args["where"].(*model.GbfsBikeRequest))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28685,6 +28737,98 @@ func (ec *executionContext) fieldContext_Query_bikes(ctx context.Context, field 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_bikes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_docks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_docks(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Docks(rctx, fc.Args["limit"].(*int), fc.Args["where"].(*model.GbfsDockRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.GbfsStationInformation)
+	fc.Result = res
+	return ec.marshalOGbfsStationInformation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsStationInformationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_docks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "station_id":
+				return ec.fieldContext_GbfsStationInformation_station_id(ctx, field)
+			case "name":
+				return ec.fieldContext_GbfsStationInformation_name(ctx, field)
+			case "short_name":
+				return ec.fieldContext_GbfsStationInformation_short_name(ctx, field)
+			case "lat":
+				return ec.fieldContext_GbfsStationInformation_lat(ctx, field)
+			case "lon":
+				return ec.fieldContext_GbfsStationInformation_lon(ctx, field)
+			case "address":
+				return ec.fieldContext_GbfsStationInformation_address(ctx, field)
+			case "cross_street":
+				return ec.fieldContext_GbfsStationInformation_cross_street(ctx, field)
+			case "post_code":
+				return ec.fieldContext_GbfsStationInformation_post_code(ctx, field)
+			case "rental_methods":
+				return ec.fieldContext_GbfsStationInformation_rental_methods(ctx, field)
+			case "is_virtual_station":
+				return ec.fieldContext_GbfsStationInformation_is_virtual_station(ctx, field)
+			case "station_area":
+				return ec.fieldContext_GbfsStationInformation_station_area(ctx, field)
+			case "parking_type":
+				return ec.fieldContext_GbfsStationInformation_parking_type(ctx, field)
+			case "parking_hoop":
+				return ec.fieldContext_GbfsStationInformation_parking_hoop(ctx, field)
+			case "contact_phone":
+				return ec.fieldContext_GbfsStationInformation_contact_phone(ctx, field)
+			case "capacity":
+				return ec.fieldContext_GbfsStationInformation_capacity(ctx, field)
+			case "is_valet_station":
+				return ec.fieldContext_GbfsStationInformation_is_valet_station(ctx, field)
+			case "is_charging_station":
+				return ec.fieldContext_GbfsStationInformation_is_charging_station(ctx, field)
+			case "region":
+				return ec.fieldContext_GbfsStationInformation_region(ctx, field)
+			case "status":
+				return ec.fieldContext_GbfsStationInformation_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GbfsStationInformation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_docks_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -41033,6 +41177,34 @@ func (ec *executionContext) unmarshalInputGbfsBikeRequest(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputGbfsDockRequest(ctx context.Context, obj interface{}) (model.GbfsDockRequest, error) {
+	var it model.GbfsDockRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"near"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "near":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			it.Near, err = ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, obj interface{}) (model.OperatorFilter, error) {
 	var it model.OperatorFilter
 	asMap := map[string]interface{}{}
@@ -45757,6 +45929,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "docks":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_docks(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -49102,11 +49294,6 @@ func (ec *executionContext) marshalNGbfsAlertTime2ᚖgithubᚗcomᚋinterlineᚑ
 	return ec._GbfsAlertTime(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGbfsBikeRequest2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsBikeRequest(ctx context.Context, v interface{}) (model.GbfsBikeRequest, error) {
-	res, err := ec.unmarshalInputGbfsBikeRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNGbfsFreeBikeStatus2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsFreeBikeStatus(ctx context.Context, sel ast.SelectionSet, v *model.GbfsFreeBikeStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -51180,11 +51367,27 @@ func (ec *executionContext) marshalOGbfsAlertTime2ᚕᚖgithubᚗcomᚋinterline
 	return ret
 }
 
+func (ec *executionContext) unmarshalOGbfsBikeRequest2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsBikeRequest(ctx context.Context, v interface{}) (*model.GbfsBikeRequest, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputGbfsBikeRequest(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOGbfsBrandAsset2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsBrandAsset(ctx context.Context, sel ast.SelectionSet, v *model.GbfsBrandAsset) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._GbfsBrandAsset(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOGbfsDockRequest2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsDockRequest(ctx context.Context, v interface{}) (*model.GbfsDockRequest, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputGbfsDockRequest(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOGbfsFeed2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsFeed(ctx context.Context, sel ast.SelectionSet, v *model.GbfsFeed) graphql.Marshaler {

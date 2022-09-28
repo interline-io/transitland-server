@@ -198,7 +198,7 @@ type GbfsSystemPricingPlan  {
 
 type GbfsPlanPrice  {
 	start: Int 
-	rate: Int 
+	rate: Float
 	interval: Int 
 	end: Int 
 }
@@ -249,5 +249,9 @@ type GbfsGeofenceRule  {
 ########
 
 input GbfsBikeRequest {
+	near: PointRadius
+}
+
+input GbfsDockRequest {
 	near: PointRadius
 }
