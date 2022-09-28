@@ -12,7 +12,7 @@ type GbfsEnqueueWorker struct {
 }
 
 func (w *GbfsEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
-	// Get all feeds, filter with RT urls
+	// Get all feeds, filter with GBFS urls
 	opts := job.Opts
 	rtfeeds, err := opts.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: w.FeedID})
 	if err != nil {

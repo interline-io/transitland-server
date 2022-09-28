@@ -10,6 +10,7 @@ import (
 	"github.com/interline-io/transitland-server/internal/gbfsfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/interline-io/transitland-server/model"
 )
@@ -33,7 +34,7 @@ func TestGbfsFetchWorker(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Test
-	gbfsFinder.FindBikes(
+	bikes, err := gbfsFinder.FindBikes(
 		context.Background(),
 		nil,
 		&model.GbfsBikeRequest{
@@ -44,4 +45,12 @@ func TestGbfsFetchWorker(t *testing.T) {
 			},
 		},
 	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bikeids := []string{}
+	for _, ent := range bikes {
+		bikeids = append(bikeids, ent.BikeID.Val)
+	}
+	assert.ElementsMatch(t, []string{"2e09a0ed99c8ad32cca516661618645e"}, bikeids)
 }
