@@ -18,7 +18,8 @@ import (
 func TestGbfsFetchWorker(t *testing.T) {
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
 	defer ts.Close()
-	redisClient := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+	var redisClient *redis.Client
+	// redisClient := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 	gbfsFinder := gbfsfinder.NewFinder(redisClient)
 	job := jobs.Job{}
 	job.Opts.Finder = TestDBFinder

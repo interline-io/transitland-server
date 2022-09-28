@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGbfsFetchWorker(t *testing.T) {
@@ -13,9 +14,13 @@ func TestGbfsFetchWorker(t *testing.T) {
 	defer ts.Close()
 	opts := Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")
-	feed, _, err := Fetch(opts)
+	feeds, _, err := Fetch(opts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log("feed:", feed)
+	fids := []string{}
+	for _, ent := range feeds {
+		fids = append(fids, ent.SystemInformation.Name.Val)
+	}
+	assert.ElementsMatch(t, []string{"Bay Wheels"}, fids)
 }
