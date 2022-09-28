@@ -74,7 +74,7 @@ func (c *Finder) AddData(ctx context.Context, topic string, sf gbfs.GbfsFeed) er
 }
 
 func (c *Finder) FindBikes(ctx context.Context, limit *int, where *model.GbfsBikeRequest) ([]*model.GbfsFreeBikeStatus, error) {
-	if where == nil || where.Near == nil || c.client == nil {
+	if where == nil || where.Near == nil {
 		return nil, nil
 	}
 	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 10_000)
@@ -104,7 +104,7 @@ func (c *Finder) FindBikes(ctx context.Context, limit *int, where *model.GbfsBik
 }
 
 func (c *Finder) FindDocks(ctx context.Context, limit *int, where *model.GbfsDockRequest) ([]*model.GbfsStationInformation, error) {
-	if where == nil || where.Near == nil || c.client == nil {
+	if where == nil || where.Near == nil {
 		return nil, nil
 	}
 	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 10_000)
