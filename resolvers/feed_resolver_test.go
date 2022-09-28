@@ -13,7 +13,7 @@ func TestFeedResolver(t *testing.T) {
 			hw{},
 			``,
 			"feeds.#.onestop_id",
-			[]string{"BA", "CT", "HA", "BA~rt", "CT~rt", "test"},
+			[]string{"CT", "test-gbfs", "BA", "HA", "BA~rt", "CT~rt", "test"},
 		},
 		{
 			"basic fields",

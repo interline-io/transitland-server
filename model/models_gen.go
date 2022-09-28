@@ -139,6 +139,14 @@ type FeedVersionUnimportResult struct {
 	Success bool `json:"success"`
 }
 
+type GbfsBikeRequest struct {
+	Near *PointRadius `json:"near"`
+}
+
+type GbfsDockRequest struct {
+	Near *PointRadius `json:"near"`
+}
+
 type Itinerary struct {
 	Duration  *Duration `json:"duration"`
 	Distance  *Distance `json:"distance"`

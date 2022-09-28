@@ -67,7 +67,17 @@ func (e *Cache[T]) Get(ctx context.Context, key string) (T, bool) {
 	return v.Value, ok
 }
 
-func (e *Cache[T]) SetTTL(ctx context.Context, key string, value T, ttl1 time.Duration, ttl2 time.Duration) {
+func (e *Cache[T]) LocalKeys() []string {
+	e.lock.Lock()
+	defer e.lock.Unlock()
+	var ret []string
+	for k := range e.m {
+		ret = append(ret, k)
+	}
+	return ret
+}
+
+func (e *Cache[T]) SetTTL(ctx context.Context, key string, value T, ttl1 time.Duration, ttl2 time.Duration) error {
 	e.lock.Lock()
 	defer e.lock.Unlock()
 	n := time.Now()
@@ -78,6 +88,7 @@ func (e *Cache[T]) SetTTL(ctx context.Context, key string, value T, ttl1 time.Du
 	}
 	e.setLocal(key, item, ttl1)
 	e.setRedis(ctx, key, item, ttl2)
+	return nil
 }
 
 func (e *Cache[T]) redisKey(key string) string {

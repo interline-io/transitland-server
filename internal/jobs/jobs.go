@@ -27,11 +27,12 @@ type Job struct {
 
 // JobOptions is configuration passed to worker.
 type JobOptions struct {
-	Finder   model.Finder
-	RTFinder model.RTFinder
-	JobQueue JobQueue
-	Secrets  []tl.Secret
-	Logger   zerolog.Logger
+	Finder     model.Finder
+	RTFinder   model.RTFinder
+	GbfsFinder model.GbfsFinder
+	JobQueue   JobQueue
+	Secrets    []tl.Secret
+	Logger     zerolog.Logger
 }
 
 // GetWorker returns a new worker for this job type

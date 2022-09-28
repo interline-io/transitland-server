@@ -20,6 +20,10 @@ func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
 		r = &RTEnqueueWorker{}
 	case "rt-fetch":
 		r = &RTFetchWorker{}
+	case "gbfs-enqueue":
+		r = &GbfsEnqueueWorker{}
+	case "gbfs-fetch":
+		r = &GbfsFetchWorker{}
 	case "test":
 		r = &testWorker{}
 	default:

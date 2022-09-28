@@ -1,4 +1,4 @@
-package rtcache
+package rtfinder
 
 import (
 	"github.com/interline-io/transitland-lib/log"

@@ -1,4 +1,4 @@
-package rtcache
+package rtfinder
 
 import (
 	"errors"
@@ -23,33 +23,33 @@ type Cache interface {
 
 ////////
 
-type RTFinder struct {
+type Finder struct {
 	Clock clock.Clock
 	cache Cache
 	lc    *lookupCache
 }
 
-func NewRTFinder(cache Cache, db sqlx.Ext) *RTFinder {
-	return &RTFinder{
+func NewFinder(cache Cache, db sqlx.Ext) *Finder {
+	return &Finder{
 		Clock: &clock.Real{},
 		cache: cache,
 		lc:    newLookupCache(db),
 	}
 }
 
-func (f *RTFinder) AddData(topic string, data []byte) error {
+func (f *Finder) AddData(topic string, data []byte) error {
 	return f.cache.AddData(topic, data)
 }
 
-func (f *RTFinder) GetGtfsTripID(id int) (string, bool) {
+func (f *Finder) GetGtfsTripID(id int) (string, bool) {
 	return f.lc.GetGtfsTripID(id)
 }
 
-func (f *RTFinder) StopTimezone(id int, known string) (*time.Location, bool) {
+func (f *Finder) StopTimezone(id int, known string) (*time.Location, bool) {
 	return f.lc.StopTimezone(id, known)
 }
 
-func (f *RTFinder) FindTrip(t *model.Trip) *pb.TripUpdate {
+func (f *Finder) FindTrip(t *model.Trip) *pb.TripUpdate {
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
 		if a, ok := f.getTrip(topic, t.TripID); ok {
@@ -59,7 +59,7 @@ func (f *RTFinder) FindTrip(t *model.Trip) *pb.TripUpdate {
 	return nil
 }
 
-func (f *RTFinder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*model.Alert {
+func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
@@ -88,7 +88,7 @@ func (f *RTFinder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []
 	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *RTFinder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []*model.Alert {
+func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
@@ -117,7 +117,7 @@ func (f *RTFinder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) 
 	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *RTFinder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) []*model.Alert {
+func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
@@ -146,7 +146,7 @@ func (f *RTFinder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool
 	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *RTFinder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*model.Alert {
+func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*model.Alert {
 	var foundAlerts []*model.Alert
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
@@ -175,7 +175,7 @@ func (f *RTFinder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []
 	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.TripUpdate_StopTimeUpdate, bool) {
+func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.TripUpdate_StopTimeUpdate, bool) {
 	tid := t.TripID
 	seq := st.StopSequence
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
@@ -213,7 +213,7 @@ func (f *RTFinder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*pb.Tr
 }
 
 // TODO: put this method on consumer and wrap, as with GetTrip
-func (f *RTFinder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
+func (f *Finder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
 	sid := t.StopID
 	var ret []*pb.TripUpdate
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
@@ -238,7 +238,7 @@ func (f *RTFinder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
 	return ret
 }
 
-func (f *RTFinder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
+func (f *Finder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
 	t := model.Trip{}
 	t.FeedVersionID = obj.FeedVersionID
 	t.TripID = obj.TripID
@@ -256,7 +256,7 @@ func (f *RTFinder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
 	return nil, errors.New("not found")
 }
 
-func (f *RTFinder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
+func (f *Finder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
 	if tid == "" {
 		return nil, false
 	}

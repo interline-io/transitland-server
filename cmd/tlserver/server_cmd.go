@@ -20,9 +20,10 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/gbfsfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/playground"
-	"github.com/interline-io/transitland-server/internal/rtcache"
+	"github.com/interline-io/transitland-server/internal/rtfinder"
 	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
@@ -99,6 +100,7 @@ func (cmd *ServerCommand) Run() error {
 	cfg := cmd.Config
 	var dbFinder model.Finder
 	var rtFinder model.RTFinder
+	var gbfsFinder model.GbfsFinder
 	var jobQueue jobs.JobQueue
 
 	// Open database
@@ -121,11 +123,13 @@ func (cmd *ServerCommand) Run() error {
 	// Create RTFinder
 	if cmd.RedisURL != "" {
 		// Replace RTFinder; use redis backed cache now
-		rtFinder = rtcache.NewRTFinder(rtcache.NewRedisCache(redisClient), dbx)
+		rtFinder = rtfinder.NewFinder(rtfinder.NewRedisCache(redisClient), dbx)
+		gbfsFinder = gbfsfinder.NewFinder(redisClient)
 		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
 	} else {
 		// Default to in-memory cache
-		rtFinder = rtcache.NewRTFinder(rtcache.NewLocalCache(), dbx)
+		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), dbx)
+		gbfsFinder = gbfsfinder.NewFinder(nil)
 		jobQueue = jobs.NewLocalJobs()
 	}
 
@@ -161,7 +165,7 @@ func (cmd *ServerCommand) Run() error {
 	}
 
 	// GraphQL API
-	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder)
+	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder, gbfsFinder)
 	if err != nil {
 		return err
 	}
@@ -198,11 +202,12 @@ func (cmd *ServerCommand) Run() error {
 		// Start workers/api
 		jobWorkers := 10
 		jobOptions := jobs.JobOptions{
-			Logger:   log.Logger,
-			JobQueue: jobQueue,
-			Finder:   dbFinder,
-			RTFinder: rtFinder,
-			Secrets:  secrets,
+			Logger:     log.Logger,
+			JobQueue:   jobQueue,
+			Finder:     dbFinder,
+			RTFinder:   rtFinder,
+			GbfsFinder: gbfsFinder,
+			Secrets:    secrets,
 		}
 		if cmd.EnableWorkers {
 			log.Print("enabling workers")
