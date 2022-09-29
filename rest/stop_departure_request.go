@@ -17,7 +17,7 @@ type StopDepartureRequest struct {
 	StopID           string `json:"stop_id"`
 	FeedOnestopID    string `json:"feed_onestop_id"`
 	OnestopID        string `json:"onestop_id"`
-	Next             int    `json:"next"`
+	Next             int    `json:"next,string"`
 	ServiceDate      string `json:"service_date"`
 	StartTime        string `json:"start_time"`
 	EndTime          string `json:"end_time"`
