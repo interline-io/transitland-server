@@ -12,7 +12,7 @@ var routeQuery string
 // RouteRequest holds options for a Route request
 type RouteRequest struct {
 	ID                int     `json:"id,string"`
-	Key               string  `json:"key"`
+	RouteKey          string  `json:"route_key"`
 	Limit             int     `json:"limit,string"`
 	After             int     `json:"after,string"`
 	AgencyKey         string  `json:"agency_key"`
@@ -45,15 +45,15 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 		r.OperatorOnestopID = r.AgencyKey
 	}
 	// Handle route key
-	if r.Key == "" {
+	if r.RouteKey == "" {
 		// pass
-	} else if key := strings.SplitN(r.Key, ":", 2); len(key) == 2 {
+	} else if key := strings.SplitN(r.RouteKey, ":", 2); len(key) == 2 {
 		r.FeedOnestopID = key[0]
 		r.RouteID = key[1]
-	} else if v, err := strconv.Atoi(r.Key); err == nil {
+	} else if v, err := strconv.Atoi(r.RouteKey); err == nil {
 		r.ID = v
 	} else {
-		r.OnestopID = r.Key
+		r.OnestopID = r.RouteKey
 	}
 	where := hw{}
 	if r.FeedVersionSHA1 != "" {

@@ -11,10 +11,10 @@ func TestStopDepartureRequest(t *testing.T) {
 	cfg := testRestConfig()
 	sid := "s-9q9nfsxn67-fruitvale"
 	testcases := []testRest{
-		{"basic", StopDepartureRequest{Key: sid}, "", "stops.#.stop_id", nil, 1},
+		{"basic", StopDepartureRequest{StopKey: sid}, "", "stops.#.stop_id", nil, 1},
 		{
 			"departure 10:00:00",
-			StopDepartureRequest{Key: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", Limit: 5},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", Limit: 5},
 			"",
 			"stops.0.departures.#.departure_time",
 			[]string{"10:02:00", "10:02:00", "10:05:00", "10:09:00", "10:12:00"},
@@ -22,7 +22,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"departure 10:00:00 to 10:10:00",
-			StopDepartureRequest{Key: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", EndTime: "10:10:00"},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", EndTime: "10:10:00"},
 			"",
 			"stops.0.departures.#.departure_time",
 			[]string{"10:02:00", "10:02:00", "10:05:00", "10:09:00"},
@@ -30,7 +30,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"include_geometry=true",
-			StopDepartureRequest{Key: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", EndTime: "10:10:00", IncludeGeometry: true},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", EndTime: "10:10:00", IncludeGeometry: true},
 			"",
 			"stops.0.departures.0.trip.shape.geometry.type",
 			[]string{"LineString"},
@@ -38,7 +38,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"include_geometry=false",
-			StopDepartureRequest{Key: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", EndTime: "10:10:00", IncludeGeometry: false},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", EndTime: "10:10:00", IncludeGeometry: false},
 			"",
 			"stops.0.departures.0.trip.shape.geometry.type",
 			[]string{},
@@ -46,7 +46,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"use_service_window=true",
-			StopDepartureRequest{Key: sid, ServiceDate: "2022-05-30", StartTime: "10:00:00", EndTime: "10:10:00", UseServiceWindow: bp(true)},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2022-05-30", StartTime: "10:00:00", EndTime: "10:10:00", UseServiceWindow: bp(true)},
 			"",
 			"stops.0.departures.#.service_date",
 			[]string{"2018-06-04", "2018-06-04", "2018-06-04", "2018-06-04"},
@@ -54,7 +54,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"use_service_window=false",
-			StopDepartureRequest{Key: sid, ServiceDate: "2022-05-30", StartTime: "10:00:00", EndTime: "10:10:00", UseServiceWindow: bp(false)},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2022-05-30", StartTime: "10:00:00", EndTime: "10:10:00", UseServiceWindow: bp(false)},
 			"",
 			"stops.0.departures.#.service_date",
 			[]string{},
@@ -62,7 +62,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"use_service_window=false good date",
-			StopDepartureRequest{Key: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", EndTime: "10:10:00", UseServiceWindow: bp(false)},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", EndTime: "10:10:00", UseServiceWindow: bp(false)},
 			"",
 			"stops.0.departures.#.service_date",
 			[]string{"2018-06-04", "2018-06-04", "2018-06-04", "2018-06-04"},
@@ -70,7 +70,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"selects best service window date",
-			StopDepartureRequest{Key: sid, ServiceDate: "2022-05-30", StartTime: "10:00:00", EndTime: "10:10:00"},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2022-05-30", StartTime: "10:00:00", EndTime: "10:10:00"},
 			"",
 			"stops.0.departures.#.service_date",
 			[]string{"2018-06-04", "2018-06-04", "2018-06-04", "2018-06-04"},
@@ -78,7 +78,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"no pagination",
-			StopDepartureRequest{Key: sid, ServiceDate: "2018-06-04", Limit: 1},
+			StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", Limit: 1},
 			"",
 			"meta.next",
 			[]string{},
@@ -86,7 +86,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"requires valid stop key",
-			StopDepartureRequest{Key: "0"},
+			StopDepartureRequest{StopKey: "0"},
 			"",
 			"stops.0.onestop_id",
 			[]string{},
@@ -94,7 +94,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"requires valid stop key 2",
-			StopDepartureRequest{Key: "-1"},
+			StopDepartureRequest{StopKey: "-1"},
 			"",
 			"stops.0.onestop_id",
 			[]string{},
@@ -102,7 +102,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			"feed_key",
-			StopDepartureRequest{Key: "BA:FTVL"},
+			StopDepartureRequest{StopKey: "BA:FTVL"},
 			"",
 			"stops.0.stop_id",
 			[]string{"FTVL"},

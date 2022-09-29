@@ -11,7 +11,7 @@ var stopDepartureQuery string
 
 // StopDepartureRequest holds options for a /stops/_/departures request
 type StopDepartureRequest struct {
-	Key              string `json:"key"`
+	StopKey          string `json:"stop_key"`
 	ID               int    `json:"id,string"`
 	Limit            int    `json:"limit,string"`
 	StopID           string `json:"stop_id"`
@@ -33,16 +33,16 @@ func (r StopDepartureRequest) IncludeNext() bool { return false }
 
 // Query returns a GraphQL query string and variables.
 func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
-	if r.Key == "" {
+	if r.StopKey == "" {
 		// TODO: add a way to reject request as invalid
-	} else if key := strings.SplitN(r.Key, ":", 2); len(key) == 2 {
+	} else if key := strings.SplitN(r.StopKey, ":", 2); len(key) == 2 {
 		r.FeedOnestopID = key[0]
 		r.StopID = key[1]
-	} else if v, err := strconv.Atoi(r.Key); err == nil && v > 0 {
+	} else if v, err := strconv.Atoi(r.StopKey); err == nil && v > 0 {
 		// require an actual ID, not just 0
 		r.ID = v
 	} else {
-		r.OnestopID = r.Key
+		r.OnestopID = r.StopKey
 	}
 	where := hw{}
 	if r.OnestopID != "" {

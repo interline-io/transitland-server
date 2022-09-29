@@ -26,7 +26,7 @@ func TestAgencyRequest(t *testing.T) {
 		{"agency_name", AgencyRequest{AgencyName: "Bay Area Rapid Transit"}, "", "agencies.#.agency_name", []string{"Bay Area Rapid Transit"}, 0},
 		{"onestop_id", AgencyRequest{OnestopID: "o-9q9-bayarearapidtransit"}, "", "agencies.#.onestop_id", []string{"o-9q9-bayarearapidtransit"}, 0},
 		{"onestop_id,feed_version_sha1", AgencyRequest{OnestopID: "o-9q9-bayarearapidtransit", FeedVersionSHA1: fv}, "", "agencies.#.feed_version.sha1", []string{fv}, 0},
-		{"agency_key onestop_id", AgencyRequest{Key: "o-9q9-bayarearapidtransit"}, "", "agencies.#.onestop_id", []string{"o-9q9-bayarearapidtransit"}, 0},
+		{"agency_key onestop_id", AgencyRequest{AgencyKey: "o-9q9-bayarearapidtransit"}, "", "agencies.#.onestop_id", []string{"o-9q9-bayarearapidtransit"}, 0},
 		{"lat,lon,radius 10m", AgencyRequest{Lon: -122.407974, Lat: 37.784471, Radius: 10}, "", "agencies.#.agency_id", []string{"BART"}, 0},
 		{"lat,lon,radius 2000m", AgencyRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000}, "", "agencies.#.agency_id", []string{"caltrain-ca-us", "BART"}, 0},
 		{"search", AgencyRequest{Search: "caltrain"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us"}, 0},
@@ -41,7 +41,7 @@ func TestAgencyRequest(t *testing.T) {
 		{"pagination exists", AgencyRequest{}, "", "meta.after", nil, 1}, // just check presence
 		{"pagination limit 1", AgencyRequest{Limit: 1}, "", "agencies.#.agency_id", allIds[:1], 0},
 		{"pagination after 1", AgencyRequest{Limit: 1, After: allEnts[0].ID}, "", "agencies.#.agency_id", allIds[1:2], 0},
-		{"feed:agency_id", AgencyRequest{Key: "CT:caltrain-ca-us"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us"}, 0},
+		{"feed:agency_id", AgencyRequest{AgencyKey: "CT:caltrain-ca-us"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us"}, 0},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
