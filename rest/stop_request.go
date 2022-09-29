@@ -3,6 +3,7 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+	"strings"
 )
 
 //go:embed stop_request.gql
@@ -10,9 +11,9 @@ var stopQuery string
 
 // StopRequest holds options for a /stops request
 type StopRequest struct {
-	StopKey            string  `json:"stop_key"`
 	ID                 int     `json:"id,string"`
 	Limit              int     `json:"limit,string"`
+	Key                string  `json:"key"`
 	After              int     `json:"after,string"`
 	StopID             string  `json:"stop_id"`
 	OnestopID          string  `json:"onestop_id"`
@@ -30,12 +31,15 @@ func (r StopRequest) ResponseKey() string { return "stops" }
 
 // Query returns a GraphQL query string and variables.
 func (r StopRequest) Query() (string, map[string]interface{}) {
-	if r.StopKey == "" {
+	if r.Key == "" {
 		// pass
-	} else if v, err := strconv.Atoi(r.StopKey); err == nil {
+	} else if key := strings.SplitN(r.Key, ":", 2); len(key) == 2 {
+		r.FeedOnestopID = key[0]
+		r.StopID = key[1]
+	} else if v, err := strconv.Atoi(r.Key); err == nil {
 		r.ID = v
 	} else {
-		r.OnestopID = r.StopKey
+		r.OnestopID = r.Key
 	}
 	where := hw{}
 	if r.FeedVersionSHA1 != "" {

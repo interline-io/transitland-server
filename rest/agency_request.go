@@ -3,6 +3,7 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+	"strings"
 )
 
 //go:embed agency_request.gql
@@ -12,8 +13,8 @@ var agencyQuery string
 type AgencyRequest struct {
 	ID              int     `json:"id,string"`
 	Limit           int     `json:"limit,string"`
+	Key             string  `json:"key"`
 	After           int     `json:"after,string"`
-	AgencyKey       string  `json:"agency_key"`
 	AgencyID        string  `json:"agency_id"`
 	AgencyName      string  `json:"agency_name"`
 	OnestopID       string  `json:"onestop_id"`
@@ -35,12 +36,15 @@ func (r AgencyRequest) ResponseKey() string { return "agencies" }
 
 // Query returns a GraphQL query string and variables.
 func (r AgencyRequest) Query() (string, map[string]interface{}) {
-	if r.AgencyKey == "" {
+	if r.Key == "" {
 		// pass
-	} else if v, err := strconv.Atoi(r.AgencyKey); err == nil {
+	} else if key := strings.SplitN(r.Key, ":", 2); len(key) == 2 {
+		r.FeedOnestopID = key[0]
+		r.AgencyID = key[1]
+	} else if v, err := strconv.Atoi(r.Key); err == nil {
 		r.ID = v
 	} else {
-		r.OnestopID = r.AgencyKey
+		r.OnestopID = r.Key
 	}
 	where := hw{}
 	if r.FeedVersionSHA1 != "" {

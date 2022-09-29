@@ -3,6 +3,7 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+	"strings"
 )
 
 //go:embed route_request.gql
@@ -11,10 +12,10 @@ var routeQuery string
 // RouteRequest holds options for a Route request
 type RouteRequest struct {
 	ID                int     `json:"id,string"`
+	Key               string  `json:"key"`
 	Limit             int     `json:"limit,string"`
 	After             int     `json:"after,string"`
 	AgencyKey         string  `json:"agency_key"`
-	RouteKey          string  `json:"route_key"`
 	RouteID           string  `json:"route_id"`
 	RouteType         string  `json:"route_type"`
 	OnestopID         string  `json:"onestop_id"`
@@ -44,12 +45,15 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 		r.OperatorOnestopID = r.AgencyKey
 	}
 	// Handle route key
-	if r.RouteKey == "" {
+	if r.Key == "" {
 		// pass
-	} else if v, err := strconv.Atoi(r.RouteKey); err == nil {
+	} else if key := strings.SplitN(r.Key, ":", 2); len(key) == 2 {
+		r.FeedOnestopID = key[0]
+		r.RouteID = key[1]
+	} else if v, err := strconv.Atoi(r.Key); err == nil {
 		r.ID = v
 	} else {
-		r.OnestopID = r.RouteKey
+		r.OnestopID = r.Key
 	}
 	where := hw{}
 	if r.FeedVersionSHA1 != "" {
