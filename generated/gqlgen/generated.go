@@ -819,6 +819,7 @@ type ComplexityRoot struct {
 		Interpolated      func(childComplexity int) int
 		PickupType        func(childComplexity int) int
 		ServiceDate       func(childComplexity int) int
+		ShapeDistTraveled func(childComplexity int) int
 		Stop              func(childComplexity int) int
 		StopHeadsign      func(childComplexity int) int
 		StopSequence      func(childComplexity int) int
@@ -5122,6 +5123,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StopTime.ServiceDate(childComplexity), true
 
+	case "StopTime.shape_dist_traveled":
+		if e.complexity.StopTime.ShapeDistTraveled == nil {
+			break
+		}
+
+		return e.complexity.StopTime.ShapeDistTraveled(childComplexity), true
+
 	case "StopTime.stop":
 		if e.complexity.StopTime.Stop == nil {
 			break
@@ -6687,6 +6695,7 @@ type StopTime {
   departure: StopTimeEvent!
   continuous_drop_off: Int
   continuous_pickup: Int
+  shape_dist_traveled: Float
   service_date: Date
 }
 
@@ -34479,6 +34488,8 @@ func (ec *executionContext) fieldContext_Stop_stop_times(ctx context.Context, fi
 				return ec.fieldContext_StopTime_continuous_drop_off(ctx, field)
 			case "continuous_pickup":
 				return ec.fieldContext_StopTime_continuous_pickup(ctx, field)
+			case "shape_dist_traveled":
+				return ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
 			case "service_date":
 				return ec.fieldContext_StopTime_service_date(ctx, field)
 			}
@@ -34566,6 +34577,8 @@ func (ec *executionContext) fieldContext_Stop_departures(ctx context.Context, fi
 				return ec.fieldContext_StopTime_continuous_drop_off(ctx, field)
 			case "continuous_pickup":
 				return ec.fieldContext_StopTime_continuous_pickup(ctx, field)
+			case "shape_dist_traveled":
+				return ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
 			case "service_date":
 				return ec.fieldContext_StopTime_service_date(ctx, field)
 			}
@@ -34653,6 +34666,8 @@ func (ec *executionContext) fieldContext_Stop_arrivals(ctx context.Context, fiel
 				return ec.fieldContext_StopTime_continuous_drop_off(ctx, field)
 			case "continuous_pickup":
 				return ec.fieldContext_StopTime_continuous_pickup(ctx, field)
+			case "shape_dist_traveled":
+				return ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
 			case "service_date":
 				return ec.fieldContext_StopTime_service_date(ctx, field)
 			}
@@ -35774,6 +35789,47 @@ func (ec *executionContext) fieldContext_StopTime_continuous_pickup(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _StopTime_shape_dist_traveled(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ShapeDistTraveled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tt.Float)
+	fc.Result = res
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopTime_shape_dist_traveled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _StopTime_service_date(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_StopTime_service_date(ctx, field)
 	if err != nil {
@@ -36838,6 +36894,8 @@ func (ec *executionContext) fieldContext_Trip_stop_times(ctx context.Context, fi
 				return ec.fieldContext_StopTime_continuous_drop_off(ctx, field)
 			case "continuous_pickup":
 				return ec.fieldContext_StopTime_continuous_pickup(ctx, field)
+			case "shape_dist_traveled":
+				return ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
 			case "service_date":
 				return ec.fieldContext_StopTime_service_date(ctx, field)
 			}
@@ -47502,6 +47560,10 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 		case "continuous_pickup":
 
 			out.Values[i] = ec._StopTime_continuous_pickup(ctx, field, obj)
+
+		case "shape_dist_traveled":
+
+			out.Values[i] = ec._StopTime_shape_dist_traveled(ctx, field, obj)
 
 		case "service_date":
 

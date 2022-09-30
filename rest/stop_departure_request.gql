@@ -62,6 +62,7 @@ fragment departure on StopTime {
   service_date
   arrival_time
   departure_time
+  shape_dist_traveled
   arrival {
     scheduled
     estimated
