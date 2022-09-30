@@ -3,6 +3,7 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+	"strings"
 )
 
 //go:embed stop_departure_request.gql
@@ -13,8 +14,10 @@ type StopDepartureRequest struct {
 	StopKey          string `json:"stop_key"`
 	ID               int    `json:"id,string"`
 	Limit            int    `json:"limit,string"`
+	StopID           string `json:"stop_id"`
+	FeedOnestopID    string `json:"feed_onestop_id"`
 	OnestopID        string `json:"onestop_id"`
-	Next             int    `json:"next"`
+	Next             int    `json:"next,string"`
 	ServiceDate      string `json:"service_date"`
 	StartTime        string `json:"start_time"`
 	EndTime          string `json:"end_time"`
@@ -32,6 +35,9 @@ func (r StopDepartureRequest) IncludeNext() bool { return false }
 func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	if r.StopKey == "" {
 		// TODO: add a way to reject request as invalid
+	} else if key := strings.SplitN(r.StopKey, ":", 2); len(key) == 2 {
+		r.FeedOnestopID = key[0]
+		r.StopID = key[1]
 	} else if v, err := strconv.Atoi(r.StopKey); err == nil && v > 0 {
 		// require an actual ID, not just 0
 		r.ID = v
@@ -41,6 +47,12 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	where := hw{}
 	if r.OnestopID != "" {
 		where["onestop_id"] = r.OnestopID
+	}
+	if r.FeedOnestopID != "" {
+		where["feed_onestop_id"] = r.FeedOnestopID
+	}
+	if r.StopID != "" {
+		where["stop_id"] = r.StopID
 	}
 	//
 	stwhere := hw{}

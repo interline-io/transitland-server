@@ -12,6 +12,8 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: FeedFilter) {
 		realtime_vehicle_positions
 		realtime_trip_updates
 		realtime_alerts
+		gbfs_auto_discovery
+		mds_provider
 	  }
 	  license {
 		spdx_identifier

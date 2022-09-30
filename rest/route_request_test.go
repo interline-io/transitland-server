@@ -33,6 +33,7 @@ func TestRouteRequest(t *testing.T) {
 		{"pagination exists", RouteRequest{}, "", "meta.after", nil, 1}, // just check presence
 		{"pagination limit 10", RouteRequest{Limit: 10}, "", "routes.#.route_id", allIds[:10], 0},
 		{"pagination after 10", RouteRequest{Limit: 10, After: allEnts[10].ID}, "", "routes.#.route_id", allIds[11:21], 0},
+		{"feed:route_id", RouteRequest{RouteKey: "BA:01"}, "", "routes.#.route_id", []string{"01"}, 0},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

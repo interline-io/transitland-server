@@ -45,6 +45,7 @@ func TestStopRequest(t *testing.T) {
 		{"pagination exists", StopRequest{}, "", "meta.after", nil, 1},                                     // just check presence
 		{"pagination limit 10", StopRequest{Limit: 10}, "", "stops.#.stop_id", allIds[:10], 0},
 		{"pagination after 10", StopRequest{Limit: 10, After: allEnts[10].ID}, "", "stops.#.stop_id", allIds[11:21], 0},
+		{"feed:stop_id", StopRequest{StopKey: "BA:FTVL"}, "", "stops.#.stop_id", []string{"FTVL"}, 0},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

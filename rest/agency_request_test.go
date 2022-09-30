@@ -41,6 +41,7 @@ func TestAgencyRequest(t *testing.T) {
 		{"pagination exists", AgencyRequest{}, "", "meta.after", nil, 1}, // just check presence
 		{"pagination limit 1", AgencyRequest{Limit: 1}, "", "agencies.#.agency_id", allIds[:1], 0},
 		{"pagination after 1", AgencyRequest{Limit: 1, After: allEnts[0].ID}, "", "agencies.#.agency_id", allIds[1:2], 0},
+		{"feed:agency_id", AgencyRequest{AgencyKey: "CT:caltrain-ca-us"}, "", "agencies.#.agency_id", []string{"caltrain-ca-us"}, 0},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

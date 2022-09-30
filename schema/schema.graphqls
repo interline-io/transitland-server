@@ -450,6 +450,7 @@ type StopTime {
   departure: StopTimeEvent!
   continuous_drop_off: Int
   continuous_pickup: Int
+  shape_dist_traveled: Float
   service_date: Date
 }
 

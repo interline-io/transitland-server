@@ -3,6 +3,7 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+	"strings"
 )
 
 //go:embed stop_request.gql
@@ -10,9 +11,9 @@ var stopQuery string
 
 // StopRequest holds options for a /stops request
 type StopRequest struct {
-	StopKey            string  `json:"stop_key"`
 	ID                 int     `json:"id,string"`
 	Limit              int     `json:"limit,string"`
+	StopKey            string  `json:"stop_key"`
 	After              int     `json:"after,string"`
 	StopID             string  `json:"stop_id"`
 	OnestopID          string  `json:"onestop_id"`
@@ -32,6 +33,9 @@ func (r StopRequest) ResponseKey() string { return "stops" }
 func (r StopRequest) Query() (string, map[string]interface{}) {
 	if r.StopKey == "" {
 		// pass
+	} else if key := strings.SplitN(r.StopKey, ":", 2); len(key) == 2 {
+		r.FeedOnestopID = key[0]
+		r.StopID = key[1]
 	} else if v, err := strconv.Atoi(r.StopKey); err == nil {
 		r.ID = v
 	} else {

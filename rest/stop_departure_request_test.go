@@ -100,6 +100,14 @@ func TestStopDepartureRequest(t *testing.T) {
 			[]string{},
 			0,
 		},
+		{
+			"feed_key",
+			StopDepartureRequest{StopKey: "BA:FTVL"},
+			"",
+			"stops.0.stop_id",
+			[]string{"FTVL"},
+			0,
+		},
 		// TODO
 		// {
 		// 	"requires valid stop key 3",
