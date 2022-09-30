@@ -44,11 +44,12 @@ func (c *Finder) AddData(ctx context.Context, topic string, sf gbfs.GbfsFeed) er
 	}
 	// Geosearch index bikes
 	ts := time.Now().Unix()
+	_ = ts
 	if c.client != nil {
 		var locs []*redis.GeoLocation
 		for _, ent := range sf.Bikes {
 			locs = append(locs, &redis.GeoLocation{
-				Name:      fmt.Sprintf("%s:%s:%d", topic, ent.BikeID.Val, ts),
+				Name:      fmt.Sprintf("%s:%s", topic, ent.BikeID.Val),
 				Longitude: ent.Lon.Val,
 				Latitude:  ent.Lat.Val,
 			})
@@ -62,7 +63,7 @@ func (c *Finder) AddData(ctx context.Context, topic string, sf gbfs.GbfsFeed) er
 		var locs []*redis.GeoLocation
 		for _, ent := range sf.StationInformation {
 			locs = append(locs, &redis.GeoLocation{
-				Name:      fmt.Sprintf("%s:%s:%d", topic, ent.StationID.Val, ts),
+				Name:      fmt.Sprintf("%s:%s", topic, ent.StationID.Val),
 				Longitude: ent.Lon.Val,
 				Latitude:  ent.Lat.Val,
 			})
