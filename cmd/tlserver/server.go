@@ -46,7 +46,7 @@ func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 				body, _ = ioutil.ReadAll(r.Body)
 				r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 			}
-			// Wrap response to get error code
+			// Wrap context to get error code and errors
 			wr := wrapResponseWriter(w)
 			next.ServeHTTP(wr, r)
 			// Extra logging of request body if duration > 1s
@@ -58,6 +58,7 @@ func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 				Str("query", r.URL.Query().Encode()).
 				Str("user", user.Name).
 				Int("status", wr.status)
+			// Add duration info
 			if durationMs > int64(longQueryDuration) {
 				// Verify it's valid json
 				msg = msg.Bool("long_query", true)
@@ -66,6 +67,12 @@ func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 					msg = msg.RawJSON("body", body)
 				}
 			}
+			// Get any GraphQL errors. We need to log these because the response
+			// code will always be 200.
+			// var gqlErrs []string
+			// if len(gqlErrs) > 0 {
+			// 	msg = msg.Strs("gql_errors", gqlErrs)
+			// }
 			msg.Msg("request")
 		})
 	}
@@ -100,9 +107,9 @@ func getRedisOpts(v string) (*redis.Options, error) {
 // responseWriter is a minimal wrapper for http.ResponseWriter that allows the
 // written HTTP status code to be captured for logging.
 type responseWriter struct {
-	http.ResponseWriter
 	status      int
 	wroteHeader bool
+	http.ResponseWriter
 }
 
 func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
@@ -114,10 +121,17 @@ func (rw *responseWriter) Status() int {
 }
 
 func (rw *responseWriter) WriteHeader(code int) {
-	if rw.wroteHeader {
-		return
+	if !rw.wroteHeader {
+		rw.status = code
+		rw.wroteHeader = true
 	}
-	rw.status = code
 	rw.ResponseWriter.WriteHeader(code)
-	rw.wroteHeader = true
+}
+
+func (rw *responseWriter) Write(response []byte) (int, error) {
+	if !rw.wroteHeader {
+		rw.status = http.StatusOK
+		rw.wroteHeader = true
+	}
+	return rw.ResponseWriter.Write(response)
 }
