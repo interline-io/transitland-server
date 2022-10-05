@@ -70,6 +70,11 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 		if where.StopID != nil {
 			qView = qView.Where(sq.Eq{"gtfs_stops.stop_id": *where.StopID})
 		}
+		// Served by agency ID
+		if len(where.AgencyIds) > 0 {
+			distinct = true
+			qView = qView.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(sq.Eq{"tl_route_stops.agency_id": where.AgencyIds})
+		}
 		// Accepts both route and operator Onestop IDs
 		if len(where.ServedByOnestopIds) > 0 {
 			distinct = true
