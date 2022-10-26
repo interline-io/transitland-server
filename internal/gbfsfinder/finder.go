@@ -167,7 +167,7 @@ func (c *Finder) geosearch(ctx context.Context, key string, pt model.PointRadius
 		}
 		for _, loc := range locs {
 			topic := strings.Split(loc.Name, ":")
-			if len(topic) < 4 {
+			if len(topic) < 2 {
 				continue
 			}
 			topicKey := fmt.Sprintf("%s:%s", topic[0], topic[1])
