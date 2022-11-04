@@ -68,8 +68,10 @@ func main() {
 	}
 	if err := r.Parse(args[1:]); err != nil {
 		log.Errorf("Error: %s", err.Error())
+		os.Exit(1)
 	}
 	if err := r.Run(); err != nil {
 		log.Errorf("Error: %s", err.Error())
+		os.Exit(1)
 	}
 }

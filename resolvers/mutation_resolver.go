@@ -84,8 +84,7 @@ func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *strin
 		URLType:   "manual",
 		FetchedAt: time.Now(),
 		FeedID:    feed.ID,
-		Directory: cfg.GtfsDir,
-		S3:        cfg.GtfsS3Bucket,
+		Storage:   cfg.GtfsS3Bucket,
 		CreatedBy: tt.NewString(user.Name),
 	}
 	if src != nil {
