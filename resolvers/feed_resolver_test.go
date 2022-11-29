@@ -293,6 +293,38 @@ func TestFeedResolver(t *testing.T) {
 			"feeds.#.onestop_id",
 			[]string{"BA"},
 		},
+		{
+			"license filter: redistribution_allowed = true",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"redistribution_allowed": true}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"HA"},
+		},
+		{
+			"license filter: redistribution_allowed = false",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"redistribution_allowed": false}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"CT", "BA"},
+		},
+		{
+			"license filter: use_without_attribution = true",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"use_without_attribution": true}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"HA"},
+		},
+		{
+			"license filter: use_without_attribution = false",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"use_without_attribution": false}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"CT", "BA"},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {
