@@ -177,6 +177,8 @@ input LicenseFilter {
   share_alike_optional: Boolean
   create_derived_product: Boolean
   commercial_use_allowed: Boolean
+  use_without_attribution: Boolean
+  redistribution_allowed: Boolean
 }
 
 input FeedVersionServiceLevelFilter {

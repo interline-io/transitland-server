@@ -171,9 +171,11 @@ type Leg struct {
 }
 
 type LicenseFilter struct {
-	ShareAlikeOptional   *bool `json:"share_alike_optional"`
-	CreateDerivedProduct *bool `json:"create_derived_product"`
-	CommercialUseAllowed *bool `json:"commercial_use_allowed"`
+	ShareAlikeOptional    *bool `json:"share_alike_optional"`
+	CreateDerivedProduct  *bool `json:"create_derived_product"`
+	CommercialUseAllowed  *bool `json:"commercial_use_allowed"`
+	UseWithoutAttribution *bool `json:"use_without_attribution"`
+	RedistributionAllowed *bool `json:"redistribution_allowed"`
 }
 
 type OperatorFilter struct {

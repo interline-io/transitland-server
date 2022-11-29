@@ -52,5 +52,17 @@ func licenseFilterT(license *model.LicenseFilter, qView sq.SelectBuilder) sq.Sel
 	} else {
 		qView = qView.Where(sq.Eq{"t.license->>'create_derived_product'": "no"})
 	}
+	if v := license.RedistributionAllowed; v == nil {
+	} else if *v {
+		qView = qView.Where(sq.Eq{"t.license->>'redistribution_allowed'": "yes"})
+	} else {
+		qView = qView.Where(sq.Eq{"t.license->>'redistribution_allowed'": "no"})
+	}
+	if v := license.UseWithoutAttribution; v == nil {
+	} else if *v {
+		qView = qView.Where(sq.Eq{"t.license->>'use_without_attribution'": "yes"})
+	} else {
+		qView = qView.Where(sq.Eq{"t.license->>'use_without_attribution'": "no"})
+	}
 	return qView
 }

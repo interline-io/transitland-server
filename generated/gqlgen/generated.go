@@ -6235,6 +6235,8 @@ input LicenseFilter {
   share_alike_optional: Boolean
   create_derived_product: Boolean
   commercial_use_allowed: Boolean
+  use_without_attribution: Boolean
+  redistribution_allowed: Boolean
 }
 
 input FeedVersionServiceLevelFilter {
@@ -41370,7 +41372,7 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"share_alike_optional", "create_derived_product", "commercial_use_allowed"}
+	fieldsInOrder := [...]string{"share_alike_optional", "create_derived_product", "commercial_use_allowed", "use_without_attribution", "redistribution_allowed"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41398,6 +41400,22 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commercial_use_allowed"))
 			it.CommercialUseAllowed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "use_without_attribution":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_without_attribution"))
+			it.UseWithoutAttribution, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "redistribution_allowed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redistribution_allowed"))
+			it.RedistributionAllowed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
