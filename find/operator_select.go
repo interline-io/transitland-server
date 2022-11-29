@@ -76,6 +76,8 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, w
 				qView = qView.Where(sq.ILike{"tlap.name": *where.CityName})
 			}
 		}
+		// Handle license filtering
+		qView = licenseFilter(where.License, qView)
 	}
 	if distinct {
 		qView = qView.Distinct().Options("on (coif.resolved_onestop_id)")

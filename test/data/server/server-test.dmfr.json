@@ -57,13 +57,29 @@
         "test": "ok",
         "foo": "bar"
       },
+      "license": {
+        "spdx_identifier": "test-restrictive",
+        "use_without_attribution": "no",
+        "create_derived_product": "no",
+        "redistribution_allowed": "no",
+        "commercial_use_allowed": "no",
+        "share_alike_optional": "no"
+      }, 
       "urls": {
         "static_current": "file://test/data/external/bart.zip"
       }
     },
     {
       "spec": "gtfs",
-      "id": "HA",
+      "id": "HA",  
+      "license": {
+        "spdx_identifier": "test-permissive",
+        "use_without_attribution": "yes",
+        "create_derived_product": "yes",
+        "redistribution_allowed": "yes",
+        "commercial_use_allowed": "yes",
+        "share_alike_optional": "yes"
+      },    
       "urls": {
         "static_current": "file://test/data/external/hart.zip"
       }

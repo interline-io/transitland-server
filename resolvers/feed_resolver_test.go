@@ -244,6 +244,55 @@ func TestFeedResolver(t *testing.T) {
 			"feeds.0.fail.#.success",
 			[]string{},
 		},
+		// license
+		{
+			"license filter: share_alike_optional = true",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"share_alike_optional": true}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"CT", "HA"},
+		},
+		{
+			"license filter: share_alike_optional = false",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"share_alike_optional": false}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"BA"},
+		},
+		{
+			"license filter: create_derived_product = true",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"create_derived_product": true}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"CT", "HA"},
+		},
+		{
+			"license filter: create_derived_product = false",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"create_derived_product": false}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"BA"},
+		},
+		{
+			"license filter: commercial_use_allowed = true",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"commercial_use_allowed": true}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"CT", "HA"},
+		},
+		{
+			"license filter: commercial_use_allowed = false",
+			`query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
+			hw{"lic": hw{"commercial_use_allowed": false}},
+			``,
+			"feeds.#.onestop_id",
+			[]string{"BA"},
+		},
 	}
 	c := newTestClient()
 	for _, tc := range testcases {

@@ -32,7 +32,8 @@ type AgencyFilter struct {
 	// Search by country 2 letter ISO 3166 code (provided by Natural Earth)
 	Adm0Iso *string `json:"adm0_iso"`
 	// Search by state/province/division ISO 3166-2 code (provided by Natural Earth)
-	Adm1Iso *string `json:"adm1_iso"`
+	Adm1Iso *string        `json:"adm1_iso"`
+	License *LicenseFilter `json:"license"`
 }
 
 type AgencyPlaceFilter struct {
@@ -106,6 +107,7 @@ type FeedFilter struct {
 	Tags *tt.Tags `json:"tags"`
 	// Search for feeds by their source URLs
 	SourceURL *FeedSourceURL `json:"source_url"`
+	License   *LicenseFilter `json:"license"`
 }
 
 type FeedSourceURL struct {
@@ -168,18 +170,25 @@ type Leg struct {
 	Geometry  tt.LineString `json:"geometry"`
 }
 
+type LicenseFilter struct {
+	ShareAlikeOptional   *bool `json:"share_alike_optional"`
+	CreateDerivedProduct *bool `json:"create_derived_product"`
+	CommercialUseAllowed *bool `json:"commercial_use_allowed"`
+}
+
 type OperatorFilter struct {
-	Merged        *bool    `json:"merged"`
-	OnestopID     *string  `json:"onestop_id"`
-	FeedOnestopID *string  `json:"feed_onestop_id"`
-	AgencyID      *string  `json:"agency_id"`
-	Search        *string  `json:"search"`
-	Tags          *tt.Tags `json:"tags"`
-	CityName      *string  `json:"city_name"`
-	Adm0Name      *string  `json:"adm0_name"`
-	Adm1Name      *string  `json:"adm1_name"`
-	Adm0Iso       *string  `json:"adm0_iso"`
-	Adm1Iso       *string  `json:"adm1_iso"`
+	Merged        *bool          `json:"merged"`
+	OnestopID     *string        `json:"onestop_id"`
+	FeedOnestopID *string        `json:"feed_onestop_id"`
+	AgencyID      *string        `json:"agency_id"`
+	Search        *string        `json:"search"`
+	Tags          *tt.Tags       `json:"tags"`
+	CityName      *string        `json:"city_name"`
+	Adm0Name      *string        `json:"adm0_name"`
+	Adm1Name      *string        `json:"adm1_name"`
+	Adm0Iso       *string        `json:"adm0_iso"`
+	Adm1Iso       *string        `json:"adm1_iso"`
+	License       *LicenseFilter `json:"license"`
 }
 
 type PathwayFilter struct {
@@ -222,18 +231,19 @@ type RTVehicleDescriptor struct {
 }
 
 type RouteFilter struct {
-	OnestopID               *string      `json:"onestop_id"`
-	OnestopIds              []string     `json:"onestop_ids"`
-	AllowPreviousOnestopIds *bool        `json:"allow_previous_onestop_ids"`
-	FeedVersionSha1         *string      `json:"feed_version_sha1"`
-	FeedOnestopID           *string      `json:"feed_onestop_id"`
-	RouteID                 *string      `json:"route_id"`
-	RouteType               *int         `json:"route_type"`
-	Within                  *tt.Polygon  `json:"within"`
-	Near                    *PointRadius `json:"near"`
-	Search                  *string      `json:"search"`
-	OperatorOnestopID       *string      `json:"operator_onestop_id"`
-	AgencyIds               []int        `json:"agency_ids"`
+	OnestopID               *string        `json:"onestop_id"`
+	OnestopIds              []string       `json:"onestop_ids"`
+	AllowPreviousOnestopIds *bool          `json:"allow_previous_onestop_ids"`
+	FeedVersionSha1         *string        `json:"feed_version_sha1"`
+	FeedOnestopID           *string        `json:"feed_onestop_id"`
+	RouteID                 *string        `json:"route_id"`
+	RouteType               *int           `json:"route_type"`
+	Within                  *tt.Polygon    `json:"within"`
+	Near                    *PointRadius   `json:"near"`
+	Search                  *string        `json:"search"`
+	OperatorOnestopID       *string        `json:"operator_onestop_id"`
+	License                 *LicenseFilter `json:"license"`
+	AgencyIds               []int          `json:"agency_ids"`
 }
 
 type Step struct {
@@ -248,18 +258,19 @@ type Step struct {
 }
 
 type StopFilter struct {
-	OnestopID               *string      `json:"onestop_id"`
-	OnestopIds              []string     `json:"onestop_ids"`
-	AllowPreviousOnestopIds *bool        `json:"allow_previous_onestop_ids"`
-	FeedVersionSha1         *string      `json:"feed_version_sha1"`
-	FeedOnestopID           *string      `json:"feed_onestop_id"`
-	StopID                  *string      `json:"stop_id"`
-	StopCode                *string      `json:"stop_code"`
-	Within                  *tt.Polygon  `json:"within"`
-	Near                    *PointRadius `json:"near"`
-	Search                  *string      `json:"search"`
-	ServedByOnestopIds      []string     `json:"served_by_onestop_ids"`
-	AgencyIds               []int        `json:"agency_ids"`
+	OnestopID               *string        `json:"onestop_id"`
+	OnestopIds              []string       `json:"onestop_ids"`
+	AllowPreviousOnestopIds *bool          `json:"allow_previous_onestop_ids"`
+	FeedVersionSha1         *string        `json:"feed_version_sha1"`
+	FeedOnestopID           *string        `json:"feed_onestop_id"`
+	StopID                  *string        `json:"stop_id"`
+	StopCode                *string        `json:"stop_code"`
+	Within                  *tt.Polygon    `json:"within"`
+	Near                    *PointRadius   `json:"near"`
+	Search                  *string        `json:"search"`
+	License                 *LicenseFilter `json:"license"`
+	ServedByOnestopIds      []string       `json:"served_by_onestop_ids"`
+	AgencyIds               []int          `json:"agency_ids"`
 }
 
 type StopTimeFilter struct {
@@ -277,13 +288,14 @@ type StopTimeFilter struct {
 }
 
 type TripFilter struct {
-	ServiceDate     *tt.Date `json:"service_date"`
-	TripID          *string  `json:"trip_id"`
-	StopPatternID   *int     `json:"stop_pattern_id"`
-	RouteIds        []int    `json:"route_ids"`
-	RouteOnestopIds []string `json:"route_onestop_ids"`
-	FeedVersionSha1 *string  `json:"feed_version_sha1"`
-	FeedOnestopID   *string  `json:"feed_onestop_id"`
+	ServiceDate     *tt.Date       `json:"service_date"`
+	TripID          *string        `json:"trip_id"`
+	StopPatternID   *int           `json:"stop_pattern_id"`
+	License         *LicenseFilter `json:"license"`
+	RouteIds        []int          `json:"route_ids"`
+	RouteOnestopIds []string       `json:"route_onestop_ids"`
+	FeedVersionSha1 *string        `json:"feed_version_sha1"`
+	FeedOnestopID   *string        `json:"feed_onestop_id"`
 }
 
 // [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.

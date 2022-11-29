@@ -73,6 +73,56 @@ func TestTripResolver(t *testing.T) {
 			"trips.#.trip_id",
 			[]string{"101", "103", "305", "207", "309", "211", "313", "215", "217", "319", "221", "323", "225", "227", "329", "231", "233", "135", "237", "139", "143", "147", "151", "155", "257", "159", "261", "263", "365", "267", "269", "371", "273", "375", "277", "279", "381", "283", "385", "287", "289", "191", "193", "195", "197", "199", "102", "104", "206", "208", "310", "212", "314", "216", "218", "320", "222", "324", "226", "228", "330", "232", "134", "236", "138", "142", "146", "150", "152", "254", "156", "258", "360", "262", "264", "366", "268", "370", "272", "274", "376", "278", "380", "282", "284", "386", "288", "190", "192", "194", "196", "198"},
 		},
+		// license
+		{
+			"license filter: share_alike_optional = true",
+			`query($lic:LicenseFilter) {trips(limit:1,where: {license: $lic}) {trip_id feed_version{feed{license{share_alike_optional}}}}}`,
+			hw{"lic": hw{"share_alike_optional": true}},
+			``,
+			"trips.0.feed_version.feed.license.share_alike_optional",
+			[]string{"yes"},
+		},
+		{
+			"license filter: share_alike_optional = false",
+			`query($lic:LicenseFilter) {trips(limit:1,where: {license: $lic}) {trip_id feed_version{feed{license{share_alike_optional}}}}}`,
+			hw{"lic": hw{"share_alike_optional": false}},
+			``,
+			"trips.0.feed_version.feed.license.share_alike_optional",
+			[]string{"no"},
+		},
+		{
+			"license filter: create_derived_product = true",
+			`query($lic:LicenseFilter) {trips(limit:1,where: {license: $lic}) {trip_id feed_version{feed{license{create_derived_product}}}}}`,
+			hw{"lic": hw{"create_derived_product": true}},
+			``,
+			"trips.0.feed_version.feed.license.create_derived_product",
+			[]string{"yes"},
+		},
+		{
+			"license filter: create_derived_product = false",
+			`query($lic:LicenseFilter) {trips(limit:1,where: {license: $lic}) {trip_id feed_version{feed{license{create_derived_product}}}}}`,
+			hw{"lic": hw{"create_derived_product": false}},
+			``,
+			"trips.0.feed_version.feed.license.create_derived_product",
+			[]string{"no"},
+		},
+		{
+			"license filter: commercial_use_allowed = true",
+			`query($lic:LicenseFilter) {trips(limit:1,where: {license: $lic}) {trip_id feed_version{feed{license{commercial_use_allowed}}}}}`,
+			hw{"lic": hw{"commercial_use_allowed": true}},
+			``,
+			"trips.0.feed_version.feed.license.commercial_use_allowed",
+			[]string{"yes"},
+		},
+		{
+			"license filter: commercial_use_allowed = false",
+			`query($lic:LicenseFilter) {trips(limit:1,where: {license: $lic}) {trip_id feed_version{feed{license{commercial_use_allowed}}}}}`,
+			hw{"lic": hw{"commercial_use_allowed": false}},
+			``,
+			"trips.0.feed_version.feed.license.commercial_use_allowed",
+			[]string{"no"},
+		},
+
 		// TODO: check where feed_version_sha1, feed_onestop_id but only check count
 		// TODO: frequencies
 	}
