@@ -16,13 +16,13 @@ func TestOperatorResolver(t *testing.T) {
 			name:         "feeds",
 			query:        `query{operators(where:{onestop_id:"o-9q9-bayarearapidtransit"}) {feeds{onestop_id}}}`,
 			selector:     "operators.0.feeds.#.onestop_id",
-			selectExpect: []string{"o-9q9-bayarearapidtransit"},
+			selectExpect: []string{"BA"},
 		},
 		{
 			name:         "feeds incl rt",
 			query:        `query{operators(where:{onestop_id:"o-9q9-caltrain"}) {feeds{onestop_id}}}`,
 			selector:     "operators.0.feeds.#.onestop_id",
-			selectExpect: []string{"o-9q9-caltrain", "CT~rt"},
+			selectExpect: []string{"CT", "CT~rt"},
 		},
 		{
 			name:         "feeds only gtfs-rt",
@@ -34,7 +34,7 @@ func TestOperatorResolver(t *testing.T) {
 			name:         "feeds only gtfs",
 			query:        `query{operators(where:{onestop_id:"o-9q9-caltrain"}) {feeds(where:{spec:GTFS}) {onestop_id}}}`,
 			selector:     "operators.0.feeds.#.onestop_id",
-			selectExpect: []string{"o-9q9-caltrain"},
+			selectExpect: []string{"CT"},
 		},
 		{
 			name:   "tags us_ntd_id=90134",
