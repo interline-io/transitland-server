@@ -23,6 +23,7 @@ type TripRequest struct {
 	IncludeStopTimes string `json:"include_stop_times"`
 	ServiceDate      string `json:"service_date"`
 	Format           string
+	LicenseFilter
 }
 
 // ResponseKey .
@@ -59,6 +60,7 @@ func (r TripRequest) Query() (string, map[string]interface{}) {
 	if r.ServiceDate != "" {
 		where["service_date"] = r.ServiceDate
 	}
+	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	// Include geometry when in geojson format
 	includeGeometry := false
 	if r.ID > 0 || r.IncludeGeometry == "true" || r.Format == "geojson" {

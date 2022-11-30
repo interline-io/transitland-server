@@ -24,6 +24,7 @@ type OperatorRequest struct {
 	Adm1Name      string `json:"adm1_name"`
 	Adm1Iso       string `json:"adm1_iso"`
 	CityName      string `json:"city_name"`
+	LicenseFilter
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -67,5 +68,6 @@ func (r OperatorRequest) Query() (string, map[string]interface{}) {
 	if r.CityName != "" {
 		where["city_name"] = r.CityName
 	}
+	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return operatorQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }

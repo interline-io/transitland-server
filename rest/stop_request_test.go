@@ -6,7 +6,6 @@ import (
 )
 
 func TestStopRequest(t *testing.T) {
-	cfg := testRestConfig()
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
 	osid := "s-9q8yyufxmv-sanfranciscocaltrain"
 	bartstops := []string{"12TH", "16TH", "19TH", "19TH_N", "24TH", "ANTC", "ASHB", "BALB", "BAYF", "CAST", "CIVC", "COLS", "COLM", "CONC", "DALY", "DBRK", "DUBL", "DELN", "PLZA", "EMBR", "FRMT", "FTVL", "GLEN", "HAYW", "LAFY", "LAKE", "MCAR", "MCAR_S", "MLBR", "MONT", "NBRK", "NCON", "OAKL", "ORIN", "PITT", "PCTR", "PHIL", "POWL", "RICH", "ROCK", "SBRN", "SFIA", "SANL", "SHAY", "SSAN", "UCTY", "WCRK", "WARM", "WDUB", "WOAK"}
@@ -14,6 +13,134 @@ func TestStopRequest(t *testing.T) {
 	caltrainBusStops := []string{"777402", "777403"}
 	_ = caltrainRailStops
 	_ = caltrainBusStops
+	testcases := []testRest{
+		{
+			name:         "basic",
+			h:            StopRequest{},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 20,
+		},
+		// default
+		{
+			name:         "onestop_id",
+			h:            StopRequest{OnestopID: osid},
+			selector:     "stops.#.onestop_id",
+			expectSelect: []string{osid},
+			expectLength: 0,
+		}, // default
+		{
+			name:         "stop_id",
+			h:            StopRequest{StopID: "70011"},
+			selector:     "stops.#.stop_id",
+			expectSelect: []string{"70011"},
+			expectLength: 0,
+		}, // default
+		{
+			name:         "limit:1",
+			h:            StopRequest{Limit: 1},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 1,
+		},
+		{
+			name:         "limit:100",
+			h:            StopRequest{Limit: 100},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 100,
+		},
+		{
+			name:         "limit:1000",
+			h:            StopRequest{Limit: 1000},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 1000,
+		},
+		{
+			name:         "feed_onestop_id",
+			h:            StopRequest{FeedOnestopID: "BA", Limit: 100},
+			selector:     "stops.#.stop_id",
+			expectSelect: bartstops,
+			expectLength: 0,
+		},
+		{
+			name:         "feed_onestop_id,stop_id",
+			h:            StopRequest{FeedOnestopID: "BA", StopID: "12TH"},
+			selector:     "stops.#.stop_id",
+			expectSelect: []string{"12TH"},
+			expectLength: 0,
+		},
+		{
+			name:         "feed_version_sha1",
+			h:            StopRequest{FeedVersionSHA1: fv},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 20,
+		},
+		{
+			name:         "feed_version_sha1,limit:100",
+			h:            StopRequest{FeedVersionSHA1: fv, Limit: 100},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 50,
+		},
+		// {"served_by_route_types=1", StopRequest{ServedByRouteTypes: []int{1}, Limit: 100}, "", "stops.#.stop_id", bartstops, 0},
+		// {"served_by_route_types=2", StopRequest{ServedByRouteTypes: []int{2}, Limit: 100}, "", "stops.#.stop_id", caltrainRailStops, 0},
+		// {"served_by_route_types=3", StopRequest{ServedByRouteTypes: []int{3}, Limit: 100}, "", "stops.#.stop_id", caltrainBusStops, 0},
+		{
+			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit",
+			h:            StopRequest{ServedByOnestopIds: "o-9q9-bayarearapidtransit", Limit: 100},
+			selector:     "stops.#.stop_id",
+			expectSelect: bartstops,
+			expectLength: 0,
+		},
+		{
+			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit,o-9q9-caltrain",
+			h:            StopRequest{ServedByOnestopIds: "o-9q9-bayarearapidtransit,o-9q9-caltrain", Limit: 1000},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 114,
+		},
+		// {"served_by_onestop_ids=o-9q9-caltrain,served_by_route_types=3", StopRequest{ServedByOnestopIds: []string{"o-9q9-caltrain"}, ServedByRouteTypes: []int{3}, Limit: 100}, "", "stops.#.stop_id", caltrainBusStops, 0},
+		{
+			name:         "lat,lon,radius 10m",
+			h:            StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 10},
+			selector:     "stops.#.stop_id",
+			expectSelect: []string{"POWL"},
+			expectLength: 0,
+		},
+		{
+			name:         "lat,lon,radius 2000m",
+			h:            StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000},
+			selector:     "stops.#.stop_id",
+			expectSelect: []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"},
+			expectLength: 0,
+		},
+		{
+			name:         "search",
+			h:            StopRequest{Search: "macarthur"},
+			selector:     "stops.#.stop_id",
+			expectSelect: []string{"MCAR", "MCAR_S"},
+			expectLength: 0,
+		}, // default
+		{
+			name:         "feed:stop_id",
+			h:            StopRequest{StopKey: "BA:FTVL"},
+			selector:     "stops.#.stop_id",
+			expectSelect: []string{"FTVL"},
+			expectLength: 0,
+		},
+	}
+	cfg := testRestConfig()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, cfg, tc)
+		})
+	}
+}
+
+func TestStopRequest_Pagination(t *testing.T) {
 	allEnts, err := TestDBFinder.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -23,30 +150,104 @@ func TestStopRequest(t *testing.T) {
 		allIds = append(allIds, ent.StopID)
 	}
 	testcases := []testRest{
-		{"basic", StopRequest{}, "", "stops.#.stop_id", nil, 20},                                  // default
-		{"onestop_id", StopRequest{OnestopID: osid}, "", "stops.#.onestop_id", []string{osid}, 0}, // default
-		{"stop_id", StopRequest{StopID: "70011"}, "", "stops.#.stop_id", []string{"70011"}, 0},    // default
-		{"limit:1", StopRequest{Limit: 1}, "", "stops.#.stop_id", nil, 1},
-		{"limit:100", StopRequest{Limit: 100}, "", "stops.#.stop_id", nil, 100},
-		{"limit:1000", StopRequest{Limit: 1000}, "", "stops.#.stop_id", nil, 1000},
-		{"feed_onestop_id", StopRequest{FeedOnestopID: "BA", Limit: 100}, "", "stops.#.stop_id", bartstops, 0},
-		{"feed_onestop_id,stop_id", StopRequest{FeedOnestopID: "BA", StopID: "12TH"}, "", "stops.#.stop_id", []string{"12TH"}, 0},
-		{"feed_version_sha1", StopRequest{FeedVersionSHA1: fv}, "", "stops.#.stop_id", nil, 20},
-		{"feed_version_sha1,limit:100", StopRequest{FeedVersionSHA1: fv, Limit: 100}, "", "stops.#.stop_id", nil, 50},
-		// {"served_by_route_types=1", StopRequest{ServedByRouteTypes: []int{1}, Limit: 100}, "", "stops.#.stop_id", bartstops, 0},
-		// {"served_by_route_types=2", StopRequest{ServedByRouteTypes: []int{2}, Limit: 100}, "", "stops.#.stop_id", caltrainRailStops, 0},
-		// {"served_by_route_types=3", StopRequest{ServedByRouteTypes: []int{3}, Limit: 100}, "", "stops.#.stop_id", caltrainBusStops, 0},
-		{"served_by_onestop_ids=o-9q9-bayarearapidtransit", StopRequest{ServedByOnestopIds: "o-9q9-bayarearapidtransit", Limit: 100}, "", "stops.#.stop_id", bartstops, 0},
-		{"served_by_onestop_ids=o-9q9-bayarearapidtransit,o-9q9-caltrain", StopRequest{ServedByOnestopIds: "o-9q9-bayarearapidtransit,o-9q9-caltrain", Limit: 1000}, "", "stops.#.stop_id", nil, 114},
-		// {"served_by_onestop_ids=o-9q9-caltrain,served_by_route_types=3", StopRequest{ServedByOnestopIds: []string{"o-9q9-caltrain"}, ServedByRouteTypes: []int{3}, Limit: 100}, "", "stops.#.stop_id", caltrainBusStops, 0},
-		{"lat,lon,radius 10m", StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 10}, "", "stops.#.stop_id", []string{"POWL"}, 0},
-		{"lat,lon,radius 2000m", StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000}, "", "stops.#.stop_id", []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"}, 0},
-		{"search", StopRequest{Search: "macarthur"}, "", "stops.#.stop_id", []string{"MCAR", "MCAR_S"}, 0}, // default
-		{"pagination exists", StopRequest{}, "", "meta.after", nil, 1},                                     // just check presence
-		{"pagination limit 10", StopRequest{Limit: 10}, "", "stops.#.stop_id", allIds[:10], 0},
-		{"pagination after 10", StopRequest{Limit: 10, After: allEnts[10].ID}, "", "stops.#.stop_id", allIds[11:21], 0},
-		{"feed:stop_id", StopRequest{StopKey: "BA:FTVL"}, "", "stops.#.stop_id", []string{"FTVL"}, 0},
+		{
+			name:         "pagination exists",
+			h:            StopRequest{},
+			selector:     "meta.after",
+			expectSelect: nil,
+			expectLength: 1,
+		},
+		// just check presence
+		{
+			name:         "pagination limit 10",
+			h:            StopRequest{Limit: 10},
+			selector:     "stops.#.stop_id",
+			expectSelect: allIds[:10],
+			expectLength: 0,
+		},
+		{
+			name:         "pagination after 10",
+			h:            StopRequest{Limit: 10, After: allEnts[10].ID},
+			selector:     "stops.#.stop_id",
+			expectSelect: allIds[11:21],
+			expectLength: 0,
+		},
 	}
+	cfg := testRestConfig()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, cfg, tc)
+		})
+	}
+}
+
+func TestStopRequest_License(t *testing.T) {
+	testcases := []testRest{
+		{
+			name:         "license:share_alike_optional yes",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 2349,
+		},
+		{
+			name:         "license:share_alike_optional no",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "no"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 50,
+		},
+		{
+			name:         "license:share_alike_optional exclude_no",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "exclude_no"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 2413,
+		},
+		{
+			name:         "license:commercial_use_allowed yes",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "yes"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 2349,
+		},
+		{
+			name:         "license:commercial_use_allowed no",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "no"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 50,
+		},
+		{
+			name:         "license:commercial_use_allowed exclude_no",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "exclude_no"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 2413,
+		},
+		{
+			name:         "license:create_derived_product yes",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "yes"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 2349,
+		},
+		{
+			name:         "license:create_derived_product no",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "no"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 50,
+		},
+		{
+			name:         "license:create_derived_product exclude_no",
+			h:            StopRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "exclude_no"}},
+			selector:     "stops.#.stop_id",
+			expectSelect: nil,
+			expectLength: 2413,
+		},
+	}
+	cfg := testRestConfig()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
