@@ -2,7 +2,6 @@ package resolvers
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -23,7 +22,6 @@ var TestRTFinder model.RTFinder
 var TestGbfsFinder model.GbfsFinder
 
 func TestMain(m *testing.M) {
-	fmt.Println("INIT TEST MAIN")
 	maxlimit := find.MAXLIMIT
 	find.MAXLIMIT = 100_000
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
