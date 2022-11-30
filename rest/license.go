@@ -1,5 +1,7 @@
 package rest
 
+import "strings"
+
 type LicenseFilter struct {
 	LicenseCommercialUseAllowed  string `json:"license_commercial_use_allowed"`
 	LicenseShareAlikeOptional    string `json:"license_share_alike_optional"`
@@ -32,6 +34,7 @@ func checkLicenseFilter(lic LicenseFilter) hw {
 }
 
 func checkLicenseFilterValue(v string) string {
+	v = strings.ToLower(v)
 	switch v {
 	case "yes":
 		return "YES"
