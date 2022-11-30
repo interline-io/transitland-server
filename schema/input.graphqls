@@ -36,6 +36,13 @@ enum ImportStatus {
   IN_PROGRESS
 }
 
+enum LicenseValue {
+  YES
+  NO
+  EXCLUDE_NO
+  UNKNOWN
+}
+
 input FeedFilter {
   "Search for feed with a specific Onestop ID"
   onestop_id: String
@@ -174,11 +181,11 @@ input TripFilter {
 
 
 input LicenseFilter {
-  share_alike_optional: Boolean
-  create_derived_product: Boolean
-  commercial_use_allowed: Boolean
-  use_without_attribution: Boolean
-  redistribution_allowed: Boolean
+  share_alike_optional: LicenseValue
+  create_derived_product: LicenseValue
+  commercial_use_allowed: LicenseValue
+  use_without_attribution: LicenseValue
+  redistribution_allowed: LicenseValue
 }
 
 input FeedVersionServiceLevelFilter {

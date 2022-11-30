@@ -70,6 +70,7 @@ type testcase struct {
 	expect       string
 	selector     string
 	expectSelect []string
+	f            func(t *testing.T)
 }
 
 func testquery(t *testing.T, c *client.Client, tc testcase) {

@@ -91,7 +91,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedFil
 			}
 		}
 		// Handle license filtering
-		q = licenseFilterT(where.License, q)
+		q = licenseFilterTable("t", where.License, q)
 	}
 	return q
 }

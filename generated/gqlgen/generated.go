@@ -6094,6 +6094,13 @@ enum ImportStatus {
   IN_PROGRESS
 }
 
+enum LicenseValue {
+  YES
+  NO
+  EXCLUDE_NO
+  UNKNOWN
+}
+
 input FeedFilter {
   "Search for feed with a specific Onestop ID"
   onestop_id: String
@@ -6232,11 +6239,11 @@ input TripFilter {
 
 
 input LicenseFilter {
-  share_alike_optional: Boolean
-  create_derived_product: Boolean
-  commercial_use_allowed: Boolean
-  use_without_attribution: Boolean
-  redistribution_allowed: Boolean
+  share_alike_optional: LicenseValue
+  create_derived_product: LicenseValue
+  commercial_use_allowed: LicenseValue
+  use_without_attribution: LicenseValue
+  redistribution_allowed: LicenseValue
 }
 
 input FeedVersionServiceLevelFilter {
@@ -41383,7 +41390,7 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("share_alike_optional"))
-			it.ShareAlikeOptional, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.ShareAlikeOptional, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41391,7 +41398,7 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("create_derived_product"))
-			it.CreateDerivedProduct, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.CreateDerivedProduct, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41399,7 +41406,7 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commercial_use_allowed"))
-			it.CommercialUseAllowed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.CommercialUseAllowed, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41407,7 +41414,7 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_without_attribution"))
-			it.UseWithoutAttribution, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.UseWithoutAttribution, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41415,7 +41422,7 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redistribution_allowed"))
-			it.RedistributionAllowed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.RedistributionAllowed, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -52515,6 +52522,22 @@ func (ec *executionContext) unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterline�
 	}
 	res, err := ec.unmarshalInputLicenseFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx context.Context, v interface{}) (*model.LicenseValue, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.LicenseValue)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx context.Context, sel ast.SelectionSet, v *model.LicenseValue) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, v interface{}) (tt.LineString, error) {

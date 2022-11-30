@@ -171,11 +171,11 @@ type Leg struct {
 }
 
 type LicenseFilter struct {
-	ShareAlikeOptional    *bool `json:"share_alike_optional"`
-	CreateDerivedProduct  *bool `json:"create_derived_product"`
-	CommercialUseAllowed  *bool `json:"commercial_use_allowed"`
-	UseWithoutAttribution *bool `json:"use_without_attribution"`
-	RedistributionAllowed *bool `json:"redistribution_allowed"`
+	ShareAlikeOptional    *LicenseValue `json:"share_alike_optional"`
+	CreateDerivedProduct  *LicenseValue `json:"create_derived_product"`
+	CommercialUseAllowed  *LicenseValue `json:"commercial_use_allowed"`
+	UseWithoutAttribution *LicenseValue `json:"use_without_attribution"`
+	RedistributionAllowed *LicenseValue `json:"redistribution_allowed"`
 }
 
 type OperatorFilter struct {
@@ -544,6 +544,51 @@ func (e *ImportStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ImportStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type LicenseValue string
+
+const (
+	LicenseValueYes       LicenseValue = "YES"
+	LicenseValueNo        LicenseValue = "NO"
+	LicenseValueExcludeNo LicenseValue = "EXCLUDE_NO"
+	LicenseValueUnknown   LicenseValue = "UNKNOWN"
+)
+
+var AllLicenseValue = []LicenseValue{
+	LicenseValueYes,
+	LicenseValueNo,
+	LicenseValueExcludeNo,
+	LicenseValueUnknown,
+}
+
+func (e LicenseValue) IsValid() bool {
+	switch e {
+	case LicenseValueYes, LicenseValueNo, LicenseValueExcludeNo, LicenseValueUnknown:
+		return true
+	}
+	return false
+}
+
+func (e LicenseValue) String() string {
+	return string(e)
+}
+
+func (e *LicenseValue) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LicenseValue(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LicenseValue", str)
+	}
+	return nil
+}
+
+func (e LicenseValue) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
