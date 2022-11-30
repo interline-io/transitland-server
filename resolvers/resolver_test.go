@@ -69,8 +69,8 @@ type testcase struct {
 	vars         hw
 	expect       string
 	selector     string
-	expectSelect []string
-	f            func(t *testing.T)
+	selectExpect []string
+	f            func(*testing.T, string)
 }
 
 func testquery(t *testing.T, c *client.Client, tc testcase) {
@@ -86,16 +86,19 @@ func testquery(t *testing.T, c *client.Client, tc testcase) {
 			t.Errorf("got %s -- expect %s\n", jj, tc.expect)
 		}
 	}
+	if tc.f != nil {
+		tc.f(t, jj)
+	}
 	if tc.selector != "" {
 		a := []string{}
 		for _, v := range gjson.Get(jj, tc.selector).Array() {
 			a = append(a, v.String())
 		}
-		if len(a) == 0 && tc.expectSelect == nil {
+		if len(a) == 0 && tc.selectExpect == nil {
 			t.Errorf("selector '%s' returned zero elements", tc.selector)
 		} else {
-			if !assert.ElementsMatch(t, tc.expectSelect, a) {
-				t.Errorf("got %#v -- expect %#v\n\n", a, tc.expectSelect)
+			if !assert.ElementsMatch(t, tc.selectExpect, a) {
+				t.Errorf("got %#v -- expect %#v\n\n", a, tc.selectExpect)
 			}
 		}
 	}

@@ -38,10 +38,9 @@ func TestGbfsBikeResolver(t *testing.T) {
 				  bike_id
 				}
 			}`,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "bikes.#.bike_id",
-			expectSelect: []string{"2e09a0ed99c8ad32cca516661618645e"},
+			selectExpect: []string{"2e09a0ed99c8ad32cca516661618645e"},
 		},
 		{
 			name: "feed",
@@ -55,10 +54,9 @@ func TestGbfsBikeResolver(t *testing.T) {
 				  }
 				}
 			}`,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "bikes.#.feed.system_information.name",
-			expectSelect: []string{"Bay Wheels"},
+			selectExpect: []string{"Bay Wheels"},
 		},
 		{
 			name: "limit 5",
@@ -67,10 +65,9 @@ func TestGbfsBikeResolver(t *testing.T) {
 				  bike_id
 				}
 			}`,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "bikes.#.bike_id",
-			expectSelect: []string{"0cbf9b08f8b71a6362e20c8173c071a6", "1682088b2335fa5365610e6d299fde2d", "1bc913bf913729a147458cd6b2f91773", "1d61a000cb330f6c260fc439d29b20ab", "21667e59d3c6bc814b6716d87621ddde"},
+			selectExpect: []string{"0cbf9b08f8b71a6362e20c8173c071a6", "1682088b2335fa5365610e6d299fde2d", "1bc913bf913729a147458cd6b2f91773", "1d61a000cb330f6c260fc439d29b20ab", "21667e59d3c6bc814b6716d87621ddde"},
 		},
 		{
 			name: "limit 1",
@@ -79,10 +76,9 @@ func TestGbfsBikeResolver(t *testing.T) {
 				  bike_id
 				}
 			}`,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "bikes.#.bike_id",
-			expectSelect: []string{"0cbf9b08f8b71a6362e20c8173c071a6"},
+			selectExpect: []string{"0cbf9b08f8b71a6362e20c8173c071a6"},
 		},
 	}
 	c := newTestClient()
@@ -120,10 +116,9 @@ func TestGbfsStationResolver(t *testing.T) {
 				}
 			  }
 			`,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "docks.#.station_id",
-			expectSelect: []string{"d75591d7-080d-46cb-8ada-0fbe6af676fc"},
+			selectExpect: []string{"d75591d7-080d-46cb-8ada-0fbe6af676fc"},
 		},
 		{
 			name: "feed",
@@ -137,10 +132,9 @@ func TestGbfsStationResolver(t *testing.T) {
 				  }
 				}
 			}`,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "docks.#.feed.system_information.name",
-			expectSelect: []string{"Bay Wheels"},
+			selectExpect: []string{"Bay Wheels"},
 		},
 		{
 			name: "region",
@@ -154,10 +148,9 @@ func TestGbfsStationResolver(t *testing.T) {
 				}
 			  }
 			  `,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "docks.#.region.name",
-			expectSelect: []string{"San Jose"},
+			selectExpect: []string{"San Jose"},
 		},
 		{
 			name: "calendars",
@@ -176,10 +169,9 @@ func TestGbfsStationResolver(t *testing.T) {
 				  }
 				}
 			  }`,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "docks.0.feed.calendars.0.end_month",
-			expectSelect: []string{"12"},
+			selectExpect: []string{"12"},
 		},
 		{
 			name: "status",
@@ -200,10 +192,9 @@ func TestGbfsStationResolver(t *testing.T) {
 				}
 			  }
 			`,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "docks.0.status.num_bikes_available",
-			expectSelect: []string{"11"},
+			selectExpect: []string{"11"},
 		},
 		{
 			name: "limit 5",
@@ -213,10 +204,9 @@ func TestGbfsStationResolver(t *testing.T) {
 				}
 			  }
 			  `,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "docks.#.station_id",
-			expectSelect: []string{"27045384-791c-4519-8087-fce2f7c48a69", "28988488-fb74-4bbc-9e69-613698b2dd8c", "2c7560e6-62c6-4403-8b97-8016471948b5", "3ebc4f3f-2941-47cd-a173-83f01a91bf57", "a96032c0-9ff2-4fbe-8f03-6b3f9816947d"},
+			selectExpect: []string{"27045384-791c-4519-8087-fce2f7c48a69", "28988488-fb74-4bbc-9e69-613698b2dd8c", "2c7560e6-62c6-4403-8b97-8016471948b5", "3ebc4f3f-2941-47cd-a173-83f01a91bf57", "a96032c0-9ff2-4fbe-8f03-6b3f9816947d"},
 		},
 		{
 			name: "limit 1",
@@ -226,10 +216,9 @@ func TestGbfsStationResolver(t *testing.T) {
 				}
 			  }
 			  `,
-			vars:         hw{},
-			expect:       ``,
+
 			selector:     "docks.#.station_id",
-			expectSelect: []string{"27045384-791c-4519-8087-fce2f7c48a69"},
+			selectExpect: []string{"27045384-791c-4519-8087-fce2f7c48a69"},
 		},
 	}
 	c := newTestClient()

@@ -65,76 +65,66 @@ func TestValidationResolver(t *testing.T) {
 	vars := hw{"url": ts200.URL}
 	testcases := []testcase{
 		{
-			name:         "basic",
-			query:        `mutation($url:String!) {validate_gtfs(url:$url){success failure_reason sha1 earliest_calendar_date latest_calendar_date}}`,
-			vars:         vars,
-			expect:       `{"validate_gtfs":{"earliest_calendar_date":"2017-10-02","failure_reason":"","latest_calendar_date":"2019-10-06","sha1":"d2813c293bcfd7a97dde599527ae6c62c98e66c6","success":true}}`,
-			selector:     "",
-			expectSelect: nil,
+			name:   "basic",
+			query:  `mutation($url:String!) {validate_gtfs(url:$url){success failure_reason sha1 earliest_calendar_date latest_calendar_date}}`,
+			vars:   vars,
+			expect: `{"validate_gtfs":{"earliest_calendar_date":"2017-10-02","failure_reason":"","latest_calendar_date":"2019-10-06","sha1":"d2813c293bcfd7a97dde599527ae6c62c98e66c6","success":true}}`,
 		},
 		{
 			name:         "files",
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){files{name size rows sha1 header csv_like}}}`,
 			vars:         vars,
-			expect:       ``,
 			selector:     "validate_gtfs.files.#.name",
-			expectSelect: []string{"agency.txt", "calendar.txt", "calendar_attributes.txt", "calendar_dates.txt", "directions.txt", "fare_attributes.txt", "fare_rules.txt", "farezone_attributes.txt", "frequencies.txt", "realtime_routes.txt", "routes.txt", "shapes.txt", "stop_attributes.txt", "stop_times.txt", "stops.txt", "transfers.txt", "trips.txt"},
+			selectExpect: []string{"agency.txt", "calendar.txt", "calendar_attributes.txt", "calendar_dates.txt", "directions.txt", "fare_attributes.txt", "fare_rules.txt", "farezone_attributes.txt", "frequencies.txt", "realtime_routes.txt", "routes.txt", "shapes.txt", "stop_attributes.txt", "stop_times.txt", "stops.txt", "transfers.txt", "trips.txt"},
 		},
 		{
 			name:         "agencies",
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){agencies{agency_id}}}`,
 			vars:         vars,
-			expect:       ``,
 			selector:     "validate_gtfs.agencies.#.agency_id",
-			expectSelect: []string{"caltrain-ca-us"},
+			selectExpect: []string{"caltrain-ca-us"},
 		},
 		{
 			name:         "routes",
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){routes{route_id}}}`,
 			vars:         vars,
-			expect:       ``,
 			selector:     "validate_gtfs.routes.#.route_id",
-			expectSelect: []string{"Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"},
+			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"},
 		},
 		{
 			name:         "stops",
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){stops{stop_id}}}`,
 			vars:         vars,
-			expect:       ``,
 			selector:     "validate_gtfs.stops.#.stop_id",
-			expectSelect: []string{"70011", "70012", "70021", "70022", "70031", "70032", "70041", "70042", "70051", "70052", "70061", "70062", "70071", "70072", "70081", "70082", "70091", "70092", "70101", "70102", "70111", "70112", "70121", "70122", "70131", "70132", "70141", "70142", "70151", "70152", "70161", "70162", "70171", "70172", "70191", "70192", "70201", "70202", "70211", "70212", "70221", "70222", "70231", "70232", "70241", "70242", "70251", "70252", "70261", "70262", "70271", "70272", "70281", "70282", "70291", "70292", "70301", "70302", "70311", "70312", "70321", "70322", "777402", "777403"},
+			selectExpect: []string{"70011", "70012", "70021", "70022", "70031", "70032", "70041", "70042", "70051", "70052", "70061", "70062", "70071", "70072", "70081", "70082", "70091", "70092", "70101", "70102", "70111", "70112", "70121", "70122", "70131", "70132", "70141", "70142", "70151", "70152", "70161", "70162", "70171", "70172", "70191", "70192", "70201", "70202", "70211", "70212", "70221", "70222", "70231", "70232", "70241", "70242", "70251", "70252", "70261", "70262", "70271", "70272", "70281", "70282", "70291", "70292", "70301", "70302", "70311", "70312", "70321", "70322", "777402", "777403"},
 		},
 		{
 			name:         "feed_infos", // none present :(
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){feed_infos{feed_publisher_name}}}`,
 			vars:         vars,
-			expect:       ``,
 			selector:     "validate_gtfs.feed_infos.#.feed_publisher_name",
-			expectSelect: []string{},
+			selectExpect: []string{},
 		},
 		{
 			name:         "errors", // none present :(
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){errors{filename}}}`,
 			vars:         vars,
-			expect:       ``,
 			selector:     "validate_gtfs.errors.#.filename",
-			expectSelect: []string{},
+			selectExpect: []string{},
 		},
 		{
 			name:         "warnings",
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){warnings{filename}}}`,
 			vars:         vars,
-			expect:       ``,
 			selector:     "validate_gtfs.warnings.#.filename",
-			expectSelect: []string{"routes.txt", "trips.txt"},
+			selectExpect: []string{"routes.txt", "trips.txt"},
 		},
 		{
 			name:         "service_levels",
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){service_levels{start_date end_date monday tuesday wednesday thursday friday saturday sunday}}}`,
 			vars:         vars,
-			expect:       ``,
 			selector:     "validate_gtfs.service_levels.#.thursday",
-			expectSelect: []string{"485220", "485220", "485220", "485220", "155940", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "490680", "485220", "485220", "485220", "485220"}, // todo: better checking...
+			selectExpect: []string{"485220", "485220", "485220", "485220", "155940", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "490680", "485220", "485220", "485220", "485220"}, // todo: better checking...
 		},
 	}
 	for _, tc := range testcases {
