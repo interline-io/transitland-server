@@ -24,6 +24,7 @@ type StopRequest struct {
 	Lat                float64 `json:"lat,string"`
 	Radius             float64 `json:"radius,string"`
 	ServedByOnestopIds string  `json:"served_by_onestop_ids"`
+	LicenseFilter
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -63,5 +64,11 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	if r.ServedByOnestopIds != "" {
 		where["served_by_onestop_ids"] = commaSplit(r.ServedByOnestopIds)
 	}
-	return stopQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
+	where["license"] = checkLicenseFilter(r.LicenseFilter)
+	return stopQuery, hw{
+		"limit": checkLimit(r.Limit),
+		"after": checkAfter(r.After),
+		"ids":   checkIds(r.ID),
+		"where": where,
+	}
 }

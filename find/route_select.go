@@ -87,6 +87,8 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where 
 				JoinClause("LEFT JOIN current_operators_in_feed coif ON coif.feed_id = feed_versions.feed_id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 				Where(sq.Eq{"coif.resolved_onestop_id": *where.OperatorOnestopID})
 		}
+		// Handle license filtering
+		qView = licenseFilter(where.License, qView)
 	}
 	if active {
 		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")

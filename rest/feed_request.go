@@ -23,9 +23,7 @@ type FeedRequest struct {
 	URL              string `json:"url"`
 	URLType          string `json:"url_type"`
 	URLCaseSensitive bool   `json:"url_case_sensitive"`
-	// Lat       float64 `json:"lat,string"`
-	// Lon       float64 `json:"lon,string"`
-	// Radius    float64 `json:"radius,string"`
+	LicenseFilter
 }
 
 // ResponseKey .
@@ -70,6 +68,7 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 		}
 		where["source_url"] = sourceUrl
 	}
+	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return feedQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }
 

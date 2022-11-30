@@ -23,6 +23,8 @@ const LON = 37.803613
 const LAT = -122.271556
 
 func TestMain(m *testing.M) {
+	find.MAXLIMIT = 100_000
+	MAXLIMIT = 100_000
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
 	if g == "" {
 		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")

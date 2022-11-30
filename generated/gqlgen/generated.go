@@ -5631,6 +5631,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFeedVersionSetInput,
 		ec.unmarshalInputGbfsBikeRequest,
 		ec.unmarshalInputGbfsDockRequest,
+		ec.unmarshalInputLicenseFilter,
 		ec.unmarshalInputOperatorFilter,
 		ec.unmarshalInputPathwayFilter,
 		ec.unmarshalInputPointRadius,
@@ -6077,6 +6078,7 @@ input OperatorFilter {
   adm1_name: String
   adm0_iso: String
   adm1_iso: String
+  license: LicenseFilter
 }
 
 input FeedVersionFilter {
@@ -6090,6 +6092,13 @@ enum ImportStatus {
   SUCCESS
   ERROR
   IN_PROGRESS
+}
+
+enum LicenseValue {
+  YES
+  NO
+  EXCLUDE_NO
+  UNKNOWN
 }
 
 input FeedFilter {
@@ -6107,6 +6116,7 @@ input FeedFilter {
   tags: Tags,
   "Search for feeds by their source URLs"
   source_url: FeedSourceUrl
+  license: LicenseFilter
 }
 
 input FeedFetchFilter {
@@ -6163,6 +6173,7 @@ input AgencyFilter {
   adm0_iso: String
   "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
   adm1_iso: String
+  license: LicenseFilter
 }
 
 input RouteFilter {
@@ -6177,6 +6188,7 @@ input RouteFilter {
   near: PointRadius
   search: String
   operator_onestop_id: String
+  license: LicenseFilter
   agency_ids: [Int!] # keep?
 }
 
@@ -6191,6 +6203,7 @@ input StopFilter {
   within: Polygon
   near: PointRadius
   search: String
+  license: LicenseFilter
   served_by_onestop_ids: [String!]
   agency_ids: [Int!] # keep?
 }
@@ -6217,10 +6230,20 @@ input TripFilter {
   service_date: Date
   trip_id: String
   stop_pattern_id: Int
+  license: LicenseFilter
   route_ids: [Int!] # keep?
   route_onestop_ids: [String!] # keep?
   feed_version_sha1: String
   feed_onestop_id: String
+}
+
+
+input LicenseFilter {
+  share_alike_optional: LicenseValue
+  create_derived_product: LicenseValue
+  commercial_use_allowed: LicenseValue
+  use_without_attribution: LicenseValue
+  redistribution_allowed: LicenseValue
 }
 
 input FeedVersionServiceLevelFilter {
@@ -40772,7 +40795,7 @@ func (ec *executionContext) unmarshalInputAgencyFilter(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "feed_version_sha1", "feed_onestop_id", "agency_id", "agency_name", "within", "near", "search", "city_name", "adm0_name", "adm1_name", "adm0_iso", "adm1_iso"}
+	fieldsInOrder := [...]string{"onestop_id", "feed_version_sha1", "feed_onestop_id", "agency_id", "agency_name", "within", "near", "search", "city_name", "adm0_name", "adm1_name", "adm0_iso", "adm1_iso", "license"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -40880,6 +40903,14 @@ func (ec *executionContext) unmarshalInputAgencyFilter(ctx context.Context, obj 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_iso"))
 			it.Adm1Iso, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "license":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
+			it.License, err = ec.unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41040,7 +41071,7 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "spec", "fetch_error", "import_status", "search", "tags", "source_url"}
+	fieldsInOrder := [...]string{"onestop_id", "spec", "fetch_error", "import_status", "search", "tags", "source_url", "license"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41100,6 +41131,14 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source_url"))
 			it.SourceURL, err = ec.unmarshalOFeedSourceUrl2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedSourceURL(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "license":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
+			it.License, err = ec.unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41333,6 +41372,66 @@ func (ec *executionContext) unmarshalInputGbfsDockRequest(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj interface{}) (model.LicenseFilter, error) {
+	var it model.LicenseFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"share_alike_optional", "create_derived_product", "commercial_use_allowed", "use_without_attribution", "redistribution_allowed"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "share_alike_optional":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("share_alike_optional"))
+			it.ShareAlikeOptional, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "create_derived_product":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("create_derived_product"))
+			it.CreateDerivedProduct, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "commercial_use_allowed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commercial_use_allowed"))
+			it.CommercialUseAllowed, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "use_without_attribution":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_without_attribution"))
+			it.UseWithoutAttribution, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "redistribution_allowed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redistribution_allowed"))
+			it.RedistributionAllowed, err = ec.unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, obj interface{}) (model.OperatorFilter, error) {
 	var it model.OperatorFilter
 	asMap := map[string]interface{}{}
@@ -41340,7 +41439,7 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"merged", "onestop_id", "feed_onestop_id", "agency_id", "search", "tags", "city_name", "adm0_name", "adm1_name", "adm0_iso", "adm1_iso"}
+	fieldsInOrder := [...]string{"merged", "onestop_id", "feed_onestop_id", "agency_id", "search", "tags", "city_name", "adm0_name", "adm1_name", "adm0_iso", "adm1_iso", "license"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41435,6 +41534,14 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
+		case "license":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
+			it.License, err = ec.unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -41520,7 +41627,7 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "route_id", "route_type", "within", "near", "search", "operator_onestop_id", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "route_id", "route_type", "within", "near", "search", "operator_onestop_id", "license", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41615,6 +41722,14 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 			if err != nil {
 				return it, err
 			}
+		case "license":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
+			it.License, err = ec.unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "agency_ids":
 			var err error
 
@@ -41636,7 +41751,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "within", "near", "search", "served_by_onestop_ids", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "within", "near", "search", "license", "served_by_onestop_ids", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41720,6 +41835,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
 			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "license":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
+			it.License, err = ec.unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41860,7 +41983,7 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"service_date", "trip_id", "stop_pattern_id", "route_ids", "route_onestop_ids", "feed_version_sha1", "feed_onestop_id"}
+	fieldsInOrder := [...]string{"service_date", "trip_id", "stop_pattern_id", "license", "route_ids", "route_onestop_ids", "feed_version_sha1", "feed_onestop_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41888,6 +42011,14 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_pattern_id"))
 			it.StopPatternID, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "license":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
+			it.License, err = ec.unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -52383,6 +52514,30 @@ func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtra
 		return graphql.Null
 	}
 	return ec._Level(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx context.Context, v interface{}) (*model.LicenseFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLicenseFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx context.Context, v interface{}) (*model.LicenseValue, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.LicenseValue)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseValue(ctx context.Context, sel ast.SelectionSet, v *model.LicenseValue) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, v interface{}) (tt.LineString, error) {

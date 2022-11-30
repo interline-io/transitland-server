@@ -105,6 +105,8 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 				qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
 			}
 		}
+		// Handle license filtering
+		qView = licenseFilter(where.License, qView)
 	}
 	if distinct {
 		qView = qView.Distinct().Options("on (gtfs_stops.feed_version_id,gtfs_stops.id)")
