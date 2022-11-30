@@ -15,15 +15,15 @@
         ]
       },
       "license": {
-        "spdx_identifier": "test",
+        "spdx_identifier": "test-unknown",
         "url": "http://assets.511.org/pdf/nextgen/developers/511_Data_Agreement_Final.pdf",
-        "use_without_attribution": "no",
-        "create_derived_product": "yes",
-        "redistribution_allowed": "no",
-        "commercial_use_allowed": "yes",
-        "share_alike_optional": "yes",
-        "attribution_text": "data provided by 511.org",
-        "attribution_instructions": "test attribution instructions"
+        "attribution_text": "test attribution text",
+        "attribution_instructions": "test attribution instructions",
+        "use_without_attribution": "unknown",
+        "create_derived_product": "unknown",
+        "redistribution_allowed": "unknown",
+        "commercial_use_allowed": "unknown",
+        "share_alike_optional": "unknown"
       },
       "operators": [
         {

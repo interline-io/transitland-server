@@ -17,8 +17,8 @@ import (
 	"github.com/jmoiron/sqlx/reflectx"
 )
 
-// MAXLIMIT .
-const MAXLIMIT = 1000
+// Maximum query result limit
+var MAXLIMIT = 1_000
 
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")

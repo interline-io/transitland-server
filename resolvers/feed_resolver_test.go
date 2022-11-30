@@ -60,7 +60,7 @@ func TestFeedResolver(t *testing.T) {
 			name:   "license",
 			query:  `query($onestop_id:String!) { feeds(where:{onestop_id:$onestop_id}) {license {spdx_identifier url use_without_attribution create_derived_product redistribution_allowed commercial_use_allowed share_alike_optional attribution_text attribution_instructions}}}`,
 			vars:   hw{"onestop_id": "CT"},
-			expect: ` {"feeds":[{"license":{"attribution_instructions":"test attribution instructions","attribution_text":"data provided by 511.org","commercial_use_allowed":"yes","create_derived_product":"yes","redistribution_allowed":"no","share_alike_optional":"yes","spdx_identifier":"test","url":"http://assets.511.org/pdf/nextgen/developers/511_Data_Agreement_Final.pdf","use_without_attribution":"no"}}]}`,
+			expect: ` {"feeds":[{"license":{"attribution_instructions":"test attribution instructions","attribution_text":"test attribution text","commercial_use_allowed":"unknown","create_derived_product":"unknown","redistribution_allowed":"unknown","share_alike_optional":"unknown","spdx_identifier":"test-unknown","url":"http://assets.511.org/pdf/nextgen/developers/511_Data_Agreement_Final.pdf","use_without_attribution":"unknown"}}]}`,
 		},
 		{
 			name:         "feed_versions",
@@ -186,77 +186,6 @@ func TestFeedResolver(t *testing.T) {
 			selector:     "feeds.0.fail.#.success",
 			selectExpect: []string{},
 		},
-		// license
-		{
-			name:         "license filter: share_alike_optional = yes",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"share_alike_optional": "YES"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"CT", "HA"},
-		},
-		{
-			name:         "license filter: share_alike_optional = no",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"share_alike_optional": "NO"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"BA"},
-		},
-		{
-			name:         "license filter: create_derived_product = yes",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"create_derived_product": "YES"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"CT", "HA"},
-		},
-		{
-			name:         "license filter: create_derived_product = no",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"create_derived_product": "NO"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"BA"},
-		},
-		{
-			name:         "license filter: commercial_use_allowed = yes",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"commercial_use_allowed": "YES"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"CT", "HA"},
-		},
-		{
-			name:         "license filter: commercial_use_allowed = no",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"commercial_use_allowed": "NO"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"BA"},
-		},
-		{
-			name:         "license filter: redistribution_allowed = yes",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"redistribution_allowed": "YES"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"HA"},
-		},
-		{
-			name:         "license filter: redistribution_allowed = no",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"redistribution_allowed": "NO"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"CT", "BA"},
-		},
-		{
-			name:         "license filter: use_without_attribution = yes",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"use_without_attribution": "YES"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"HA"},
-		},
-		{
-			name:         "license filter: use_without_attribution = no",
-			query:        `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`,
-			vars:         hw{"lic": hw{"use_without_attribution": "NO"}},
-			selector:     "feeds.#.onestop_id",
-			selectExpect: []string{"CT", "BA"},
-		},
 		// TODO: authorization,
 		// TODO: associated_operators
 	}
@@ -296,6 +225,164 @@ func TestFeedResolver_Cursor(t *testing.T) {
 			vars:         hw{"after": allEnts[1].ID},
 			selector:     "feeds.#.onestop_id",
 			selectExpect: allIds[2:],
+		},
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestFeedResolver_License(t *testing.T) {
+	q := `query($lic:LicenseFilter) {feeds(where: {license: $lic}) {onestop_id}}`
+	testcases := []testcase{
+		// license: share_alike_optional
+		{
+			name:         "license filter: share_alike_optional = yes",
+			query:        q,
+			vars:         hw{"lic": hw{"share_alike_optional": "YES"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"HA"},
+		},
+		{
+			name:         "license filter: share_alike_optional = no",
+			query:        q,
+			vars:         hw{"lic": hw{"share_alike_optional": "NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"BA"},
+		},
+		{
+			name:         "license filter: share_alike_optional = unknown",
+			query:        q,
+			vars:         hw{"lic": hw{"share_alike_optional": "UNKNOWN"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT"},
+		},
+		{
+			name:         "license filter: share_alike_optional = exclude_no",
+			query:        q,
+			vars:         hw{"lic": hw{"share_alike_optional": "EXCLUDE_NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
+		},
+		// license: create_derived_product
+		{
+			name:         "license filter: create_derived_product = yes",
+			query:        q,
+			vars:         hw{"lic": hw{"create_derived_product": "YES"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"HA"},
+		},
+		{
+			name:         "license filter: create_derived_product = no",
+			query:        q,
+			vars:         hw{"lic": hw{"create_derived_product": "NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"BA"},
+		},
+		{
+			name:         "license filter: create_derived_product = unknown",
+			query:        q,
+			vars:         hw{"lic": hw{"create_derived_product": "UNKNOWN"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT"},
+		},
+		{
+			name:         "license filter: create_derived_product = exclude_no",
+			query:        q,
+			vars:         hw{"lic": hw{"create_derived_product": "EXCLUDE_NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
+		},
+		// license: commercial_use_allowed
+		{
+			name:         "license filter: commercial_use_allowed = yes",
+			query:        q,
+			vars:         hw{"lic": hw{"commercial_use_allowed": "YES"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"HA"},
+		},
+		{
+			name:         "license filter: commercial_use_allowed = no",
+			query:        q,
+			vars:         hw{"lic": hw{"commercial_use_allowed": "NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"BA"},
+		},
+		{
+			name:         "license filter: commercial_use_allowed = unknown",
+			query:        q,
+			vars:         hw{"lic": hw{"commercial_use_allowed": "UNKNOWN"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT"},
+		},
+		{
+			name:         "license filter: commercial_use_allowed = exclude_no",
+			query:        q,
+			vars:         hw{"lic": hw{"commercial_use_allowed": "EXCLUDE_NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
+		},
+		// license: redistribution_allowed
+		{
+			name:         "license filter: redistribution_allowed = yes",
+			query:        q,
+			vars:         hw{"lic": hw{"redistribution_allowed": "YES"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"HA"},
+		},
+		{
+			name:         "license filter: redistribution_allowed = no",
+			query:        q,
+			vars:         hw{"lic": hw{"redistribution_allowed": "NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"BA"},
+		},
+		{
+			name:         "license filter: redistribution_allowed = unknown",
+			query:        q,
+			vars:         hw{"lic": hw{"redistribution_allowed": "UNKNOWN"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT"},
+		},
+		{
+			name:         "license filter: redistribution_allowed = exclude_no",
+			query:        q,
+			vars:         hw{"lic": hw{"redistribution_allowed": "EXCLUDE_NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
+		},
+
+		// license: use_without_attribution
+		{
+			name:         "license filter: use_without_attribution = yes",
+			query:        q,
+			vars:         hw{"lic": hw{"use_without_attribution": "YES"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"HA"},
+		},
+		{
+			name:         "license filter: use_without_attribution = no",
+			query:        q,
+			vars:         hw{"lic": hw{"use_without_attribution": "NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"BA"},
+		},
+		{
+			name:         "license filter: use_without_attribution = unknown",
+			query:        q,
+			vars:         hw{"lic": hw{"use_without_attribution": "UNKNOWN"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT"},
+		},
+		{
+			name:         "license filter: use_without_attribution = exclude_no",
+			query:        q,
+			vars:         hw{"lic": hw{"use_without_attribution": "EXCLUDE_NO"}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
 		},
 	}
 	c := newTestClient()

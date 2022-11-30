@@ -172,56 +172,6 @@ func TestRouteResolver(t *testing.T) {
 			selector:     "routes.0.patterns.#.count",
 			selectExpect: []string{"132", "124", "56", "50", "2"},
 		},
-		// license
-		{
-			name:         "license filter: share_alike_optional = yes",
-			query:        `query($lic:LicenseFilter) {routes(limit:1,where: {license: $lic}) {route_id feed_version{feed{license{share_alike_optional}}}}}`,
-			vars:         hw{"lic": hw{"share_alike_optional": "YES"}},
-			selector:     "routes.0.feed_version.feed.license.share_alike_optional",
-			selectExpect: []string{"yes"},
-		},
-		{
-			name:         "license filter: share_alike_optional = no",
-			query:        `query($lic:LicenseFilter) {routes(limit:1,where: {license: $lic}) {route_id feed_version{feed{license{share_alike_optional}}}}}`,
-			vars:         hw{"lic": hw{"share_alike_optional": "NO"}},
-			selector:     "routes.0.feed_version.feed.license.share_alike_optional",
-			selectExpect: []string{"no"},
-		},
-		{
-			name:         "license filter: share_alike_optional = exclude_no",
-			query:        `query($lic:LicenseFilter) {routes(limit:1000,where: {license: $lic}) {route_id feed_version{feed{license{share_alike_optional}}}}}`,
-			vars:         hw{"lic": hw{"share_alike_optional": "EXCLUDE_NO"}},
-			selector:     "routes.#.feed_version.feed.license.share_alike_optional",
-			selectExpect: []string{"yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes", "yes"}, // 51 routes
-		},
-		{
-			name:         "license filter: create_derived_product = yes",
-			query:        `query($lic:LicenseFilter) {routes(limit:1,where: {license: $lic}) {route_id feed_version{feed{license{create_derived_product}}}}}`,
-			vars:         hw{"lic": hw{"create_derived_product": "YES"}},
-			selector:     "routes.0.feed_version.feed.license.create_derived_product",
-			selectExpect: []string{"yes"},
-		},
-		{
-			name:         "license filter: create_derived_product = no",
-			query:        `query($lic:LicenseFilter) {routes(limit:1,where: {license: $lic}) {route_id feed_version{feed{license{create_derived_product}}}}}`,
-			vars:         hw{"lic": hw{"create_derived_product": "NO"}},
-			selector:     "routes.0.feed_version.feed.license.create_derived_product",
-			selectExpect: []string{"no"},
-		},
-		{
-			name:         "license filter: commercial_use_allowed = yes",
-			query:        `query($lic:LicenseFilter) {routes(limit:1,where: {license: $lic}) {route_id feed_version{feed{license{commercial_use_allowed}}}}}`,
-			vars:         hw{"lic": hw{"commercial_use_allowed": "YES"}},
-			selector:     "routes.0.feed_version.feed.license.commercial_use_allowed",
-			selectExpect: []string{"yes"},
-		},
-		{
-			name:         "license filter: commercial_use_allowed = no",
-			query:        `query($lic:LicenseFilter) {routes(limit:1,where: {license: $lic}) {route_id feed_version{feed{license{commercial_use_allowed}}}}}`,
-			vars:         hw{"lic": hw{"commercial_use_allowed": "NO"}},
-			selector:     "routes.0.feed_version.feed.license.commercial_use_allowed",
-			selectExpect: []string{"no"},
-		},
 		// TODO: census_geographies
 	}
 	c := newTestClient()
@@ -313,6 +263,160 @@ func TestRouteResolver_Cursor(t *testing.T) {
 			vars:         hw{"after": 10_000_000},
 			selector:     "routes.#.route_id",
 			selectExpect: []string{},
+		},
+	}
+	c := newTestClient()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, c, tc)
+		})
+	}
+}
+
+func TestRouteResolver_License(t *testing.T) {
+	q := `
+	query ($lic: LicenseFilter) {
+		routes(limit: 10000, where: {license: $lic}) {
+		  route_id
+		  feed_version {
+			feed {
+			  onestop_id
+			  license {
+				share_alike_optional
+				create_derived_product
+				commercial_use_allowed
+				redistribution_allowed
+			  }
+			}
+		  }
+		}
+	  }	  
+	`
+	testcases := []testcase{
+		// license: share_alike_optional
+		{
+			name:               "license filter: share_alike_optional = yes",
+			query:              q,
+			vars:               hw{"lic": hw{"share_alike_optional": "YES"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"HA"},
+			selectExpectCount:  45,
+		},
+		{
+			name:               "license filter: share_alike_optional = no",
+			query:              q,
+			vars:               hw{"lic": hw{"share_alike_optional": "NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"BA"},
+			selectExpectCount:  6,
+		},
+		{
+			name:               "license filter: share_alike_optional = exclude_no",
+			query:              q,
+			vars:               hw{"lic": hw{"share_alike_optional": "EXCLUDE_NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"CT", "HA"},
+			selectExpectCount:  51,
+		},
+		// license: create_derived_product
+		{
+			name:               "license filter: create_derived_product = yes",
+			query:              q,
+			vars:               hw{"lic": hw{"create_derived_product": "YES"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"HA"},
+			selectExpectCount:  45,
+		},
+		{
+			name:               "license filter: create_derived_product = no",
+			query:              q,
+			vars:               hw{"lic": hw{"create_derived_product": "NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"BA"},
+			selectExpectCount:  6,
+		},
+		{
+			name:               "license filter: create_derived_product = exclude_no",
+			query:              q,
+			vars:               hw{"lic": hw{"create_derived_product": "EXCLUDE_NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"CT", "HA"},
+			selectExpectCount:  51,
+		},
+		// license: commercial_use_allowed
+		{
+			name:               "license filter: commercial_use_allowed = yes",
+			query:              q,
+			vars:               hw{"lic": hw{"commercial_use_allowed": "YES"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"HA"},
+			selectExpectCount:  45,
+		},
+		{
+			name:               "license filter: commercial_use_allowed = no",
+			query:              q,
+			vars:               hw{"lic": hw{"commercial_use_allowed": "NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"BA"},
+			selectExpectCount:  6,
+		},
+		{
+			name:               "license filter: commercial_use_allowed = exclude_no",
+			query:              q,
+			vars:               hw{"lic": hw{"commercial_use_allowed": "EXCLUDE_NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"CT", "HA"},
+			selectExpectCount:  51,
+		},
+		// license: redistribution_allowed
+		{
+			name:               "license filter: redistribution_allowed = yes",
+			query:              q,
+			vars:               hw{"lic": hw{"redistribution_allowed": "YES"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"HA"},
+			selectExpectCount:  45,
+		},
+		{
+			name:               "license filter: redistribution_allowed = no",
+			query:              q,
+			vars:               hw{"lic": hw{"redistribution_allowed": "NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"BA"},
+			selectExpectCount:  6,
+		},
+		{
+			name:               "license filter: redistribution_allowed = exclude_no",
+			query:              q,
+			vars:               hw{"lic": hw{"redistribution_allowed": "EXCLUDE_NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"CT", "HA"},
+			selectExpectCount:  51,
+		},
+		// license: use_without_attribution
+		{
+			name:               "license filter: use_without_attribution = yes",
+			query:              q,
+			vars:               hw{"lic": hw{"use_without_attribution": "YES"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"HA"},
+			selectExpectCount:  45,
+		},
+		{
+			name:               "license filter: use_without_attribution = no",
+			query:              q,
+			vars:               hw{"lic": hw{"use_without_attribution": "NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"BA"},
+			selectExpectCount:  6,
+		},
+		{
+			name:               "license filter: use_without_attribution = exclude_no",
+			query:              q,
+			vars:               hw{"lic": hw{"use_without_attribution": "EXCLUDE_NO"}},
+			selector:           "routes.#.feed_version.feed.onestop_id",
+			selectExpectUnique: []string{"CT", "HA"},
+			selectExpectCount:  51,
 		},
 	}
 	c := newTestClient()
