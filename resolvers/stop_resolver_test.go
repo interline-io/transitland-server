@@ -87,80 +87,69 @@ func TestStopResolver(t *testing.T) {
 			selectExpect: bartStops,
 		},
 		{
-			name:  "where feed_onestop_id",
-			query: `query{stops(where:{feed_onestop_id:"BA"}) { stop_id } }`, // just check BART
-
+			name:         "where feed_onestop_id",
+			query:        `query{stops(where:{feed_onestop_id:"BA"}) { stop_id } }`, // just check BART
 			selector:     "stops.#.stop_id",
 			selectExpect: bartStops,
 		},
 		{
-			name:  "where stop_id",
-			query: `query{stops(where:{stop_id:"12TH"}) { stop_id } }`,
-
+			name:         "where stop_id",
+			query:        `query{stops(where:{stop_id:"12TH"}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"12TH"},
 		},
 		{
-			name:  "where search",
-			query: `query{stops(where:{search:"macarthur"}) { stop_id } }`,
-
+			name:         "where search",
+			query:        `query{stops(where:{search:"macarthur"}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"MCAR", "MCAR_S"},
 		},
 		{
-			name:  "where search 2",
-			query: `query{stops(where:{search:"ftvl"}) { stop_id } }`,
-
+			name:         "where search 2",
+			query:        `query{stops(where:{search:"ftvl"}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"FTVL"},
 		},
 		{
-			name:  "where search 3",
-			query: `query{stops(where:{search:"warm springs"}) { stop_id } }`,
-
+			name:         "where search 3",
+			query:        `query{stops(where:{search:"warm springs"}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"WARM"},
 		},
 		// served_by_onestop_ids
 		{
-			name:  "served_by_onestop_ids=o-9q9-bayarearapidtransit",
-			query: `query{stops(where:{served_by_onestop_ids:["o-9q9-bayarearapidtransit"]}) { stop_id } }`,
-
+			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit",
+			query:        `query{stops(where:{served_by_onestop_ids:["o-9q9-bayarearapidtransit"]}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: bartStops,
 		},
 		{
-			name:  "served_by_onestop_ids=o-9q9-caltrain",
-			query: `query{stops(where:{served_by_onestop_ids:["o-9q9-caltrain"]}) { stop_id } }`,
-
+			name:         "served_by_onestop_ids=o-9q9-caltrain",
+			query:        `query{stops(where:{served_by_onestop_ids:["o-9q9-caltrain"]}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: caltrainStops, // caltrain stops minus a couple non-service stops
 		},
 		{
-			name:  "served_by_onestop_ids=r-9q9-antioch~sfia~millbrae",
-			query: `query{stops(where:{served_by_onestop_ids:["r-9q9-antioch~sfia~millbrae"]}) { stop_id } }`,
-
+			name:         "served_by_onestop_ids=r-9q9-antioch~sfia~millbrae",
+			query:        `query{stops(where:{served_by_onestop_ids:["r-9q9-antioch~sfia~millbrae"]}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"12TH", "16TH", "19TH", "19TH_N", "24TH", "ANTC", "BALB", "CIVC", "COLM", "CONC", "DALY", "EMBR", "GLEN", "LAFY", "MCAR", "MCAR_S", "MLBR", "MONT", "NCON", "ORIN", "PITT", "PCTR", "PHIL", "POWL", "ROCK", "SBRN", "SFIA", "SSAN", "WCRK", "WOAK"}, // yellow line stops
 		},
 		{
-			name:  "served_by_onestop_ids=r-9q9-antioch~sfia~millbrae,r-9q8y-richmond~dalycity~millbrae",
-			query: `query{stops(where:{served_by_onestop_ids:["r-9q9-antioch~sfia~millbrae","r-9q8y-richmond~dalycity~millbrae"]}) { stop_id } }`,
-
+			name:         "served_by_onestop_ids=r-9q9-antioch~sfia~millbrae,r-9q8y-richmond~dalycity~millbrae",
+			query:        `query{stops(where:{served_by_onestop_ids:["r-9q9-antioch~sfia~millbrae","r-9q8y-richmond~dalycity~millbrae"]}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"12TH", "16TH", "19TH", "19TH_N", "24TH", "ANTC", "ASHB", "BALB", "CIVC", "COLM", "CONC", "DALY", "DBRK", "DELN", "PLZA", "EMBR", "GLEN", "LAFY", "MCAR", "MCAR_S", "MLBR", "MONT", "NBRK", "NCON", "ORIN", "PITT", "PCTR", "PHIL", "POWL", "RICH", "ROCK", "SBRN", "SFIA", "SSAN", "WCRK", "WOAK"}, // combination of yellow and red line stops
 		},
 		{
-			name:  "served_by_onestop_ids=o-9q9-bayarearapidtransit,r-9q9-antioch~sfia~millbrae",
-			query: `query{stops(where:{served_by_onestop_ids:["o-9q9-bayarearapidtransit","r-9q9-antioch~sfia~millbrae"]}) { stop_id } }`,
-
+			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit,r-9q9-antioch~sfia~millbrae",
+			query:        `query{stops(where:{served_by_onestop_ids:["o-9q9-bayarearapidtransit","r-9q9-antioch~sfia~millbrae"]}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: bartStops, // all bart stops
 		},
 		{
-			name:  "served_by_onestop_ids=o-9q9-bayarearapidtransit,o-9q9-caltrain",
-			query: `query{stops(where:{served_by_onestop_ids:["o-9q9-bayarearapidtransit","o-9q9-caltrain"]}) { stop_id } }`,
-
+			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit,o-9q9-caltrain",
+			query:        `query{stops(where:{served_by_onestop_ids:["o-9q9-bayarearapidtransit","o-9q9-caltrain"]}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: allStops, // all stops
 		},
@@ -317,14 +306,12 @@ func TestStopResolver_Cursor(t *testing.T) {
 		{
 			name:         "no cursor",
 			query:        "query{stops(limit:100){feed_version{id} id stop_id}}",
-			vars:         nil,
 			selector:     "stops.#.stop_id",
 			selectExpect: allIds[:100],
 		},
 		{
 			name:         "after 0",
 			query:        "query{stops(after: 0, limit:100){feed_version{id} id stop_id}}",
-			vars:         nil,
 			selector:     "stops.#.stop_id",
 			selectExpect: allIds[:100],
 		},

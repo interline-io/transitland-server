@@ -281,14 +281,12 @@ func TestFeedResolver_Cursor(t *testing.T) {
 		{
 			name:         "no cursor",
 			query:        "query{feeds(limit:10){id onestop_id}}",
-			vars:         nil,
 			selector:     "feeds.#.onestop_id",
 			selectExpect: allIds,
 		},
 		{
 			name:         "after 0",
 			query:        "query{feeds(after: 0, limit:10){id onestop_id}}",
-			vars:         nil,
 			selector:     "feeds.#.onestop_id",
 			selectExpect: allIds,
 		},

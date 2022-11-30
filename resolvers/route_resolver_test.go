@@ -9,9 +9,8 @@ func TestRouteResolver(t *testing.T) {
 	vars := hw{"route_id": "03"}
 	testcases := []testcase{
 		{
-			name:  "basic",
-			query: `query {  routes { route_id } }`,
-
+			name:         "basic",
+			query:        `query {  routes { route_id } }`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"1", "12", "14", "15", "16", "17", "19", "20", "24", "25", "275", "30", "31", "32", "33", "34", "35", "36", "360", "37", "38", "39", "400", "42", "45", "46", "48", "5", "51", "6", "60", "7", "75", "8", "9", "96", "97", "570", "571", "572", "573", "574", "800", "PWT", "SKY", "01", "03", "05", "07", "11", "19", "Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"},
 		},
@@ -86,9 +85,8 @@ func TestRouteResolver(t *testing.T) {
 			selectExpect: []string{"1", "6", "7", "1", "6", "7"}, // now includes one for each direction and dow category
 		},
 		{
-			name:  "where onestop_id",
-			query: `query {routes(where:{onestop_id:"r-9q9j-bullet"}) {route_id} }`,
-
+			name:         "where onestop_id",
+			query:        `query {routes(where:{onestop_id:"r-9q9j-bullet"}) {route_id} }`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"Bu-130"},
 		},
@@ -100,66 +98,57 @@ func TestRouteResolver(t *testing.T) {
 			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"},
 		},
 		{
-			name:  "where feed_onestop_id",
-			query: `query {routes(where:{feed_onestop_id:"CT"}) {route_id} }`,
-
+			name:         "where feed_onestop_id",
+			query:        `query {routes(where:{feed_onestop_id:"CT"}) {route_id} }`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"},
 		},
 		{
-			name:  "where route_id",
-			query: `query {routes(where:{route_id:"Lo-130"}) {route_id} }`,
-
+			name:         "where route_id",
+			query:        `query {routes(where:{route_id:"Lo-130"}) {route_id} }`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"Lo-130"},
 		},
 		{
-			name:  "where route_type=2",
-			query: `query {routes(where:{route_type:2}) {route_id} }`,
-
+			name:         "where route_type=2",
+			query:        `query {routes(where:{route_type:2}) {route_id} }`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130"},
 		},
 		{
-			name:  "where search",
-			query: `query {routes(where:{search:"warm"}) {route_id} }`,
-
+			name:         "where search",
+			query:        `query {routes(where:{search:"warm"}) {route_id} }`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"03", "05"},
 		},
 		{
-			name:  "where search 2",
-			query: `query {routes(where:{search:"bullet"}) {route_id} }`,
-
+			name:         "where search 2",
+			query:        `query {routes(where:{search:"bullet"}) {route_id} }`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"Bu-130"},
 		},
 		// just ensure geometry queries complete successfully; checking coordinates is a pain and flaky.
 		{
-			name:  "where near 100m",
-			query: `query {routes(where:{near:{lon:-122.407974,lat:37.784471,radius:100.0}}) {route_id route_long_name}}`,
-
+			name:         "where near 100m",
+			query:        `query {routes(where:{near:{lon:-122.407974,lat:37.784471,radius:100.0}}) {route_id route_long_name}}`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"01", "05", "07", "11"},
 		},
 		{
-			name:  "where near 10000m",
-			query: `query {routes(where:{near:{lon:-122.407974,lat:37.784471,radius:10000.0}}) {route_id route_long_name}}`,
-
+			name:         "where near 10000m",
+			query:        `query {routes(where:{near:{lon:-122.407974,lat:37.784471,radius:10000.0}}) {route_id route_long_name}}`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130", "01", "05", "07", "11"},
 		},
 		{
-			name:  "where within polygon",
-			query: `query{routes(where:{within:{type:"Polygon",coordinates:[[[-122.396,37.8],[-122.408,37.79],[-122.393,37.778],[-122.38,37.787],[-122.396,37.8]]]}}){id route_id}}`,
-
+			name:         "where within polygon",
+			query:        `query{routes(where:{within:{type:"Polygon",coordinates:[[[-122.396,37.8],[-122.408,37.79],[-122.393,37.778],[-122.38,37.787],[-122.396,37.8]]]}}){id route_id}}`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"01", "05", "07", "11"},
 		},
 		{
-			name:  "where within polygon big",
-			query: `query{routes(where:{within:{type:"Polygon",coordinates:[[[-122.39481925964355,37.80151060070086],[-122.41653442382812,37.78652126637423],[-122.39662170410156,37.76847577247014],[-122.37301826477051,37.784757615348575],[-122.39481925964355,37.80151060070086]]]}}){id route_id}}`,
-
+			name:         "where within polygon big",
+			query:        `query{routes(where:{within:{type:"Polygon",coordinates:[[[-122.39481925964355,37.80151060070086],[-122.41653442382812,37.78652126637423],[-122.39662170410156,37.76847577247014],[-122.37301826477051,37.784757615348575],[-122.39481925964355,37.80151060070086]]]}}){id route_id}}`,
 			selector:     "routes.#.route_id",
 			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130", "01", "05", "07", "11"},
 		},
@@ -295,14 +284,12 @@ func TestRouteResolver_Cursor(t *testing.T) {
 		{
 			name:         "no cursor",
 			query:        "query{routes(limit:10){feed_version{id} id route_id}}",
-			vars:         nil,
 			selector:     "routes.#.route_id",
 			selectExpect: allIds[:10],
 		},
 		{
 			name:         "after 0",
 			query:        "query{routes(after: 0, limit:10){feed_version{id} id route_id}}",
-			vars:         nil,
 			selector:     "routes.#.route_id",
 			selectExpect: allIds[:10],
 		},

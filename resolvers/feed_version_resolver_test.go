@@ -8,9 +8,8 @@ func TestFeedVersionResolver(t *testing.T) {
 	vars := hw{"feed_version_sha1": "d2813c293bcfd7a97dde599527ae6c62c98e66c6"}
 	testcases := []testcase{
 		{
-			name:  "basic",
-			query: `query {  feed_versions {sha1} }`,
-
+			name:         "basic",
+			query:        `query {  feed_versions {sha1} }`,
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "c969427f56d3a645195dd8365cde6d7feae7e99b", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
 		},
@@ -69,39 +68,34 @@ func TestFeedVersionResolver(t *testing.T) {
 		},
 		// where
 		{
-			name:  "where feed_onestop_id",
-			query: `query{feed_versions(where:{feed_onestop_id:"CT"}) {sha1} }`,
-
+			name:         "where feed_onestop_id",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT"}) {sha1} }`,
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
 		},
 		{
-			name:  "where sha1",
-			query: `query{feed_versions(where:{sha1:"d2813c293bcfd7a97dde599527ae6c62c98e66c6"}) {sha1} }`,
-
+			name:         "where sha1",
+			query:        `query{feed_versions(where:{sha1:"d2813c293bcfd7a97dde599527ae6c62c98e66c6"}) {sha1} }`,
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
 		},
 		{
-			name:  "where import_status success",
-			query: `query{feed_versions(where:{feed_onestop_id:"CT", import_status:SUCCESS}) {sha1} }`,
-
+			name:         "where import_status success",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT", import_status:SUCCESS}) {sha1} }`,
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
 		},
 		// there isnt a fv with this import status in test db
 		{
-			name:  "where import_status error",
-			query: `query{feed_versions(where:{feed_onestop_id:"CT", import_status:ERROR}) {sha1} }`,
-
+			name:         "where import_status error",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT", import_status:ERROR}) {sha1} }`,
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{},
 		},
 		// there isnt a fv with this import status in test db
 		{
-			name:  "where import_status error",
-			query: `query{feed_versions(where:{feed_onestop_id:"CT", import_status:IN_PROGRESS}) {sha1} }`,
-
+			name:         "where import_status error",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT", import_status:IN_PROGRESS}) {sha1} }`,
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{},
 		},

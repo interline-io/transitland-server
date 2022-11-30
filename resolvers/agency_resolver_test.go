@@ -216,14 +216,12 @@ func TestAgencyResolver_Cursor(t *testing.T) {
 		{
 			name:         "no cursor",
 			query:        "query{agencies(limit:10){feed_version{id} id agency_id}}",
-			vars:         nil,
 			selector:     "agencies.#.agency_id",
 			selectExpect: allIds,
 		},
 		{
 			name:         "after 0",
 			query:        "query{agencies(after: 0, limit:10){feed_version{id} id agency_id}}",
-			vars:         nil,
 			selector:     "agencies.#.agency_id",
 			selectExpect: allIds,
 		},

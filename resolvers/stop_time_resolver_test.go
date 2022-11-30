@@ -42,76 +42,66 @@ func TestStopResolver_StopTimes(t *testing.T) {
 		},
 		// check StopTimeFilter through a stop
 		{
-			name:  "where service_date start_time end_time",
-			query: `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{service_date:"2018-05-30", start_time: 26000, end_time: 30000}) {arrival_time}}}`,
-
+			name:         "where service_date start_time end_time",
+			query:        `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{service_date:"2018-05-30", start_time: 26000, end_time: 30000}) {arrival_time}}}`,
 			selector:     "stops.0.stop_times.#.arrival_time",
 			selectExpect: []string{"07:18:00", "07:24:00", "07:28:00", "07:33:00", "07:39:00", "07:43:00", "07:48:00", "07:54:00", "07:58:00", "08:03:00", "08:09:00", "08:18:00", "07:24:00", "07:39:00", "07:54:00", "08:09:00", "07:16:00", "07:31:00", "07:46:00", "08:01:00", "08:16:00"},
 		},
 		{
-			name:  "where service_date end_time",
-			query: `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{service_date:"2018-05-30", end_time: 20000}) {arrival_time}}}`,
-
+			name:         "where service_date end_time",
+			query:        `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{service_date:"2018-05-30", end_time: 20000}) {arrival_time}}}`,
 			selector:     "stops.0.stop_times.#.arrival_time",
 			selectExpect: []string{"04:39:00", "04:54:00", "05:09:00", "05:24:00", "04:39:00", "04:54:00", "05:09:00", "05:24:00", "04:31:00", "04:46:00", "05:01:00", "05:16:00", "05:31:00"},
 		},
 		{
-			name:  "where service_date start_time",
-			query: `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{service_date:"2018-05-30", start_time: 76000}) {arrival_time}}}`,
-
+			name:         "where service_date start_time",
+			query:        `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{service_date:"2018-05-30", start_time: 76000}) {arrival_time}}}`,
 			selector:     "stops.0.stop_times.#.arrival_time",
 			selectExpect: []string{"21:14:00", "21:34:00", "21:54:00", "22:14:00", "22:34:00", "22:54:00", "23:14:00", "23:34:00", "23:54:00", "24:14:00", "24:47:00", "21:14:00", "21:34:00", "21:54:00", "22:14:00", "22:34:00", "22:54:00", "23:14:00", "23:34:00", "23:54:00", "24:14:00", "24:47:00"},
 		},
 		// accept strings for Start / End
 		{
-			name:  "start time string",
-			query: `query{ stops(where:{stop_id:"RICH"}) { stop_times(where:{service_date:"2018-05-30", start: "10:00:00", end: "10:10:00"}) {departure_time}}}`,
-
+			name:         "start time string",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { stop_times(where:{service_date:"2018-05-30", start: "10:00:00", end: "10:10:00"}) {departure_time}}}`,
 			selector:     "stops.0.stop_times.#.departure_time",
 			selectExpect: []string{"10:02:00", "10:05:00", "10:10:00"},
 		},
 
 		// check arrival and departure resolvers
 		{
-			name:  "arrival departure base case",
-			query: `query{ stops(where:{stop_id:"RICH"}) { stop_times(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {departure_time}}}`,
-
+			name:         "arrival departure base case",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { stop_times(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {departure_time}}}`,
 			selector:     "stops.0.stop_times.#.departure_time",
 			selectExpect: []string{"21:09:00", "21:14:00", "21:15:00"},
 		},
 		{
-			name:  "departures",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {departure_time}}}`,
-
+			name:         "departures",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{"21:15:00"},
 		},
 		{
-			name:  "arrivals",
-			query: `query{ stops(where:{stop_id:"RICH"}) { arrivals(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {arrival_time}}}`,
-
+			name:         "arrivals",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { arrivals(where:{service_date:"2018-05-30", start_time: 76000, end_time: 76900}) {arrival_time}}}`,
 			selector:     "stops.0.arrivals.#.arrival_time",
 			selectExpect: []string{"21:09:00", "21:14:00"},
 		},
 		// route_onestop_ids
 		{
-			name:  "departure route_onestop_ids",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
-
+			name:         "departure route_onestop_ids",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{"10:05:00", "10:12:00", "10:20:00", "10:27:00", "10:35:00", "10:42:00", "10:50:00", "10:57:00"},
 		},
 		{
-			name:  "departure route_onestop_ids 1",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{route_onestop_ids: ["r-9q8y-richmond~dalycity~millbrae"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
-
+			name:         "departure route_onestop_ids 1",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{route_onestop_ids: ["r-9q8y-richmond~dalycity~millbrae"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{"10:12:00", "10:27:00", "10:42:00", "10:57:00"},
 		},
 		{
-			name:  "departure route_onestop_ids 2",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
-
+			name:         "departure route_onestop_ids 2",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
 		},
@@ -119,37 +109,32 @@ func TestStopResolver_StopTimes(t *testing.T) {
 		// OLD: r-9q9n-fremont~richmond
 		// NEW: r-9q9n-warmsprings~southfremont~richmond
 		{
-			name:  "departure route_onestop_ids use previous id current ok",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
-
+			name:         "departure route_onestop_ids use previous id current ok",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
 		},
 		{
-			name:  "departure route_onestop_ids, use previous id, both at once ok",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond","r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
-
+			name:         "departure route_onestop_ids, use previous id, both at once ok",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond","r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
 		},
 		{
-			name:  "departure route_onestop_ids, use previous id, both at once, no duplicates",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: true, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond","r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
-
+			name:         "departure route_onestop_ids, use previous id, both at once, no duplicates",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: true, route_onestop_ids: ["r-9q9n-warmsprings~southfremont~richmond","r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
 		},
 		{
-			name:  "departure route_onestop_ids, use previous id, old, fail",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
-
+			name:         "departure route_onestop_ids, use previous id, old, fail",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: false, route_onestop_ids: ["r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{},
 		},
 		{
-			name:  "departure route_onestop_ids, use previous id, old, ok",
-			query: `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: true, route_onestop_ids: ["r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
-
+			name:         "departure route_onestop_ids, use previous id, old, ok",
+			query:        `query{ stops(where:{stop_id:"RICH"}) { departures(where:{allow_previous_route_onestop_ids: true, route_onestop_ids: ["r-9q9n-fremont~richmond"], service_date:"2018-05-30", start_time: 36000, end_time: 39600}) {departure_time}}}`,
 			selector:     "stops.0.departures.#.departure_time",
 			selectExpect: []string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
 		},
