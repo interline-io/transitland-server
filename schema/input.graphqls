@@ -20,6 +20,7 @@ input OperatorFilter {
   adm1_name: String
   adm0_iso: String
   adm1_iso: String
+  license: LicenseFilter
 }
 
 input FeedVersionFilter {
@@ -33,6 +34,13 @@ enum ImportStatus {
   SUCCESS
   ERROR
   IN_PROGRESS
+}
+
+enum LicenseValue {
+  YES
+  NO
+  EXCLUDE_NO
+  UNKNOWN
 }
 
 input FeedFilter {
@@ -50,6 +58,7 @@ input FeedFilter {
   tags: Tags,
   "Search for feeds by their source URLs"
   source_url: FeedSourceUrl
+  license: LicenseFilter
 }
 
 input FeedFetchFilter {
@@ -106,6 +115,7 @@ input AgencyFilter {
   adm0_iso: String
   "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
   adm1_iso: String
+  license: LicenseFilter
 }
 
 input RouteFilter {
@@ -120,6 +130,7 @@ input RouteFilter {
   near: PointRadius
   search: String
   operator_onestop_id: String
+  license: LicenseFilter
   agency_ids: [Int!] # keep?
 }
 
@@ -134,6 +145,7 @@ input StopFilter {
   within: Polygon
   near: PointRadius
   search: String
+  license: LicenseFilter
   served_by_onestop_ids: [String!]
   agency_ids: [Int!] # keep?
 }
@@ -160,10 +172,20 @@ input TripFilter {
   service_date: Date
   trip_id: String
   stop_pattern_id: Int
+  license: LicenseFilter
   route_ids: [Int!] # keep?
   route_onestop_ids: [String!] # keep?
   feed_version_sha1: String
   feed_onestop_id: String
+}
+
+
+input LicenseFilter {
+  share_alike_optional: LicenseValue
+  create_derived_product: LicenseValue
+  commercial_use_allowed: LicenseValue
+  use_without_attribution: LicenseValue
+  redistribution_allowed: LicenseValue
 }
 
 input FeedVersionServiceLevelFilter {

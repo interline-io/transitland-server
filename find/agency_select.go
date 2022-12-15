@@ -70,6 +70,8 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, where
 				qView = qView.Where(sq.ILike{"tlap.name": *where.CityName})
 			}
 		}
+		// Handle license filtering
+		qView = licenseFilter(where.License, qView)
 	}
 	if distinct {
 		qView = qView.Distinct().Options("on (gtfs_agencies.feed_version_id,gtfs_agencies.id)")

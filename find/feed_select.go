@@ -90,6 +90,8 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedFil
 				q = q.Where("lower(urls->>?) = lower(?)", urlType, where.SourceURL.URL)
 			}
 		}
+		// Handle license filtering
+		q = licenseFilterTable("t", where.License, q)
 	}
 	return q
 }

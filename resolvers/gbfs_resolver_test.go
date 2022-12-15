@@ -32,20 +32,18 @@ func TestGbfsBikeResolver(t *testing.T) {
 	setupGbfs()
 	testcases := []testcase{
 		{
-			"basic",
-			`{
+			name: "basic",
+			query: `{
 				bikes(where: {near:{lon: -122.396445, lat:37.793250, radius:100}}) {
 				  bike_id
 				}
 			}`,
-			hw{},
-			``,
-			"bikes.#.bike_id",
-			[]string{"2e09a0ed99c8ad32cca516661618645e"},
+			selector:     "bikes.#.bike_id",
+			selectExpect: []string{"2e09a0ed99c8ad32cca516661618645e"},
 		},
 		{
-			"feed",
-			`{
+			name: "feed",
+			query: `{
 				bikes(where: {near:{lon: -122.396445, lat:37.793250, radius:100}}) {
 				  bike_id
 				  feed {
@@ -55,34 +53,28 @@ func TestGbfsBikeResolver(t *testing.T) {
 				  }
 				}
 			}`,
-			hw{},
-			``,
-			"bikes.#.feed.system_information.name",
-			[]string{"Bay Wheels"},
+			selector:     "bikes.#.feed.system_information.name",
+			selectExpect: []string{"Bay Wheels"},
 		},
 		{
-			"limit 5",
-			`{
+			name: "limit 5",
+			query: `{
 				bikes(limit:5, where: {near:{lon: -122.396445, lat:37.793250, radius:1000}}) {
 				  bike_id
 				}
 			}`,
-			hw{},
-			``,
-			"bikes.#.bike_id",
-			[]string{"0cbf9b08f8b71a6362e20c8173c071a6", "1682088b2335fa5365610e6d299fde2d", "1bc913bf913729a147458cd6b2f91773", "1d61a000cb330f6c260fc439d29b20ab", "21667e59d3c6bc814b6716d87621ddde"},
+			selector:     "bikes.#.bike_id",
+			selectExpect: []string{"0cbf9b08f8b71a6362e20c8173c071a6", "1682088b2335fa5365610e6d299fde2d", "1bc913bf913729a147458cd6b2f91773", "1d61a000cb330f6c260fc439d29b20ab", "21667e59d3c6bc814b6716d87621ddde"},
 		},
 		{
-			"limit 1",
-			`{
+			name: "limit 1",
+			query: `{
 				bikes(limit:1, where: {near:{lon: -122.396445, lat:37.793250, radius:1000}}) {
 				  bike_id
 				}
 			}`,
-			hw{},
-			``,
-			"bikes.#.bike_id",
-			[]string{"0cbf9b08f8b71a6362e20c8173c071a6"},
+			selector:     "bikes.#.bike_id",
+			selectExpect: []string{"0cbf9b08f8b71a6362e20c8173c071a6"},
 		},
 	}
 	c := newTestClient()
@@ -97,8 +89,8 @@ func TestGbfsStationResolver(t *testing.T) {
 	setupGbfs()
 	testcases := []testcase{
 		{
-			"basic",
-			`{
+			name: "basic",
+			query: `{
 				docks(where: {near: {lon: -121.908666, lat: 37.336289, radius: 100}}) {
 				  station_id
 				  address
@@ -120,14 +112,12 @@ func TestGbfsStationResolver(t *testing.T) {
 				}
 			  }
 			`,
-			hw{},
-			``,
-			"docks.#.station_id",
-			[]string{"d75591d7-080d-46cb-8ada-0fbe6af676fc"},
+			selector:     "docks.#.station_id",
+			selectExpect: []string{"d75591d7-080d-46cb-8ada-0fbe6af676fc"},
 		},
 		{
-			"feed",
-			`{
+			name: "feed",
+			query: `{
 				docks(where: {near:{lon: -121.908666, lat:37.336289, radius:100}}) {
 				  station_id
 				  feed {
@@ -137,14 +127,12 @@ func TestGbfsStationResolver(t *testing.T) {
 				  }
 				}
 			}`,
-			hw{},
-			``,
-			"docks.#.feed.system_information.name",
-			[]string{"Bay Wheels"},
+			selector:     "docks.#.feed.system_information.name",
+			selectExpect: []string{"Bay Wheels"},
 		},
 		{
-			"region",
-			`{
+			name: "region",
+			query: `{
 				docks(where: {near: {lon: -121.908666, lat: 37.336289, radius: 100}}) {
 				  station_id
 				  region {
@@ -154,14 +142,12 @@ func TestGbfsStationResolver(t *testing.T) {
 				}
 			  }
 			  `,
-			hw{},
-			``,
-			"docks.#.region.name",
-			[]string{"San Jose"},
+			selector:     "docks.#.region.name",
+			selectExpect: []string{"San Jose"},
 		},
 		{
-			"calendars",
-			`{
+			name: "calendars",
+			query: `{
 				docks(where: {near: {lon: -121.908666, lat: 37.336289, radius: 100}}) {
 				  station_id
 				  feed {
@@ -176,14 +162,12 @@ func TestGbfsStationResolver(t *testing.T) {
 				  }
 				}
 			  }`,
-			hw{},
-			``,
-			"docks.0.feed.calendars.0.end_month",
-			[]string{"12"},
+			selector:     "docks.0.feed.calendars.0.end_month",
+			selectExpect: []string{"12"},
 		},
 		{
-			"status",
-			`{
+			name: "status",
+			query: `{
 				docks(where: {near: {lon: -121.908666, lat: 37.336289, radius: 100}}) {
 				  station_id
 				  status {
@@ -200,36 +184,30 @@ func TestGbfsStationResolver(t *testing.T) {
 				}
 			  }
 			`,
-			hw{},
-			``,
-			"docks.0.status.num_bikes_available",
-			[]string{"11"},
+			selector:     "docks.0.status.num_bikes_available",
+			selectExpect: []string{"11"},
 		},
 		{
-			"limit 5",
-			`{
+			name: "limit 5",
+			query: `{
 				docks(limit: 5, where: {near: {lon: -121.908666, lat: 37.336289, radius: 1000}}) {
 				  station_id
 				}
 			  }
 			  `,
-			hw{},
-			``,
-			"docks.#.station_id",
-			[]string{"27045384-791c-4519-8087-fce2f7c48a69", "28988488-fb74-4bbc-9e69-613698b2dd8c", "2c7560e6-62c6-4403-8b97-8016471948b5", "3ebc4f3f-2941-47cd-a173-83f01a91bf57", "a96032c0-9ff2-4fbe-8f03-6b3f9816947d"},
+			selector:     "docks.#.station_id",
+			selectExpect: []string{"27045384-791c-4519-8087-fce2f7c48a69", "28988488-fb74-4bbc-9e69-613698b2dd8c", "2c7560e6-62c6-4403-8b97-8016471948b5", "3ebc4f3f-2941-47cd-a173-83f01a91bf57", "a96032c0-9ff2-4fbe-8f03-6b3f9816947d"},
 		},
 		{
-			"limit 1",
-			`{
+			name: "limit 1",
+			query: `{
 				docks(limit: 1, where: {near: {lon: -121.908666, lat: 37.336289, radius: 1000}}) {
 				  station_id
 				}
 			  }
 			  `,
-			hw{},
-			``,
-			"docks.#.station_id",
-			[]string{"27045384-791c-4519-8087-fce2f7c48a69"},
+			selector:     "docks.#.station_id",
+			selectExpect: []string{"27045384-791c-4519-8087-fce2f7c48a69"},
 		},
 	}
 	c := newTestClient()

@@ -23,7 +23,7 @@ import (
 const DEFAULTLIMIT = 20
 
 // MAXLIMIT is the API limit maximum
-const MAXLIMIT = 1000
+var MAXLIMIT = 1_000
 
 // MAXRADIUS is the maximum point search radius
 const MAXRADIUS = 100 * 1000.0

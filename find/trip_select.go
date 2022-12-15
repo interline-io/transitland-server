@@ -54,6 +54,8 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 			) gc on true
 			`, serviceDate, serviceDate, serviceDate, serviceDate, serviceDate)
 		}
+		// Handle license filtering
+		qView = licenseFilter(where.License, qView)
 	}
 	// Outer query
 	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")

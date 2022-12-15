@@ -29,6 +29,7 @@ type AgencyRequest struct {
 	Adm1Name        string  `json:"adm1_name"`
 	Adm1Iso         string  `json:"adm1_iso"`
 	CityName        string  `json:"city_name"`
+	LicenseFilter
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -83,5 +84,6 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 	if r.CityName != "" {
 		where["city_name"] = r.CityName
 	}
+	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return agencyQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }

@@ -29,6 +29,7 @@ type RouteRequest struct {
 	Lon               float64 `json:"lon,string"`
 	Lat               float64 `json:"lat,string"`
 	Radius            float64 `json:"radius,string"`
+	LicenseFilter
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -83,9 +84,16 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 	if r.Search != "" {
 		where["search"] = r.Search
 	}
+	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	includeGeometry := false
 	if r.IncludeGeometry == "true" || r.Format == "geojson" || r.Format == "png" {
 		includeGeometry = true
 	}
-	return routeQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where, "include_geometry": includeGeometry}
+	return routeQuery, hw{
+		"limit":            checkLimit(r.Limit),
+		"after":            checkAfter(r.After),
+		"ids":              checkIds(r.ID),
+		"where":            where,
+		"include_geometry": includeGeometry,
+	}
 }
