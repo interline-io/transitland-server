@@ -22,6 +22,7 @@ type StopDepartureRequest struct {
 	StartTime        string `json:"start_time"`
 	EndTime          string `json:"end_time"`
 	IncludeGeometry  bool   `json:"include_geometry,string"`
+	IncludeAlerts    bool   `json:"include_alerts,string"` // TODO: change default value to true?
 	UseServiceWindow *bool  `json:"use_service_window,string"`
 }
 
@@ -73,6 +74,7 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	}
 	return stopDepartureQuery, hw{
 		"include_geometry": r.IncludeGeometry,
+		"include_alerts":   r.IncludeAlerts,
 		"limit":            checkLimit(r.Limit),
 		"ids":              checkIds(r.ID),
 		"where":            where,

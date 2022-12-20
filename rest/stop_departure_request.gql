@@ -109,7 +109,7 @@ fragment alert on Alert {
   }
 }
 
-query ($include_geometry: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
+query ($include_geometry: Boolean!, @include_alerts: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
   stops(limit: 100, ids: $ids, after: $after, where: $where) {
     ...stop
     feed_version {
@@ -131,7 +131,7 @@ query ($include_geometry: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $whe
             ...agency
             alerts {
               ...alert
-            }
+            } @include(if: $include_alerts)
           }
         }
         shape {
@@ -149,17 +149,17 @@ query ($include_geometry: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $whe
         }
         alerts {
           ...alert
-        }
+        } @include(if: $include_alerts)
       }
     }
     parent {
       ...stop
       alerts {
         ...alert
-      }
+      } @include(if: $include_alerts)
     }
     alerts {
       ...alert
-    }
+    } @include(if: $include_alerts)
   }
 }
