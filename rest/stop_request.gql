@@ -1,4 +1,34 @@
-query($limit: Int, $after: Int, $ids: [Int!], $where: StopFilter) {
+fragment alert on Alert {
+  cause
+  effect
+  severity_level
+  url {
+    language
+    text
+  }
+  header_text {
+    language
+    text
+  }
+  description_text {
+    language
+    text
+  }
+  tts_header_text {
+    language
+    text
+  }
+  tts_description_text {
+    language
+    text
+  }
+  active_period {
+    start
+    end
+  }
+}
+
+query ($limit: Int, $after: Int, $ids: [Int!], $include_alerts: Boolean!, $where: StopFilter) {
   stops(limit: $limit, ids: $ids, after: $after, where: $where) {
     id
     stop_id
@@ -33,6 +63,12 @@ query($limit: Int, $after: Int, $ids: [Int!], $where: StopFilter) {
       stop_id
       stop_name
       geometry
+      alerts @include(if: $include_alerts) {
+        ...alert
+      }
+    }
+    alerts @include(if: $include_alerts) {
+      ...alert
     }
     route_stops(limit: 1000) {
       route {
@@ -41,11 +77,17 @@ query($limit: Int, $after: Int, $ids: [Int!], $where: StopFilter) {
         route_short_name
         route_long_name
         route_type
+        alerts @include(if: $include_alerts) {
+          ...alert
+        }
         agency {
           id
           agency_id
           agency_name
           onestop_id
+          alerts @include(if: $include_alerts) {
+            ...alert
+          }
         }
       }
     }

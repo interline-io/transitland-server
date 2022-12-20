@@ -22,7 +22,7 @@ type StopDepartureRequest struct {
 	StartTime        string `json:"start_time"`
 	EndTime          string `json:"end_time"`
 	IncludeGeometry  bool   `json:"include_geometry,string"`
-	IncludeAlerts    bool   `json:"include_alerts,string"` // TODO: change default value to true?
+	IncludeAlerts    bool   `json:"include_alerts,string"`
 	UseServiceWindow *bool  `json:"use_service_window,string"`
 }
 

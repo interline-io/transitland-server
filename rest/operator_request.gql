@@ -1,4 +1,34 @@
-query($limit: Int, $after: Int, $where: OperatorFilter) {
+fragment alert on Alert {
+  cause
+  effect
+  severity_level
+  url {
+    language
+    text
+  }
+  header_text {
+    language
+    text
+  }
+  description_text {
+    language
+    text
+  }
+  tts_header_text {
+    language
+    text
+  }
+  tts_description_text {
+    language
+    text
+  }
+  active_period {
+    start
+    end
+  }
+}
+
+query ($limit: Int, $after: Int, $include_alerts: Boolean!, $where: OperatorFilter) {
   operators(after: $after, limit: $limit, where: $where) {
     id
     onestop_id
@@ -16,7 +46,10 @@ query($limit: Int, $after: Int, $where: OperatorFilter) {
       id
       agency_id
       agency_name
-      places(where: { min_rank: 0.2 }) {
+      alerts @include(if: $include_alerts) {
+        ...alert
+      }
+      places(where: {min_rank: 0.2}) {
         city_name
         adm0_name
         adm1_name

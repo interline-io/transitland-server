@@ -24,6 +24,7 @@ type StopRequest struct {
 	Lat                float64 `json:"lat,string"`
 	Radius             float64 `json:"radius,string"`
 	ServedByOnestopIds string  `json:"served_by_onestop_ids"`
+	IncludeAlerts      bool    `json:"include_alerts,string"`
 	LicenseFilter
 }
 
@@ -66,9 +67,10 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return stopQuery, hw{
-		"limit": checkLimit(r.Limit),
-		"after": checkAfter(r.After),
-		"ids":   checkIds(r.ID),
-		"where": where,
+		"limit":          checkLimit(r.Limit),
+		"after":          checkAfter(r.After),
+		"ids":            checkIds(r.ID),
+		"include_alerts": r.IncludeAlerts,
+		"where":          where,
 	}
 }
