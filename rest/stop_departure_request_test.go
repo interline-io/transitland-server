@@ -115,6 +115,15 @@ func TestStopDepartureRequest(t *testing.T) {
 			expectSelect: []string{"FTVL"},
 			expectLength: 0,
 		},
+		//
+		{
+			name:         "include_alerts",
+			h:            StopDepartureRequest{StopKey: "BA:FTVL", IncludeAlerts: true},
+			format:       "",
+			selector:     "stops.0.stop_id",
+			expectSelect: []string{"FTVL"},
+			expectLength: 1,
+		},
 		// TODO
 		// {
 		// 	"requires valid stop key 3",

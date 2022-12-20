@@ -60,7 +60,7 @@ func (f *Finder) FindTrip(t *model.Trip) *pb.TripUpdate {
 }
 
 func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*model.Alert {
-	var foundAlerts []*model.Alert
+	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
@@ -75,13 +75,17 @@ func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*m
 			if !checkAlertActivePeriod(tnow, active, alert) {
 				continue
 			}
+			found := false
 			for _, s := range alert.GetInformedEntity() {
 				if s == nil || s.Trip == nil {
 					continue
 				}
 				if s.Trip.GetTripId() == t.TripID {
-					foundAlerts = append(foundAlerts, makeAlert(alert))
+					found = true
 				}
+			}
+			if found {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
 	}
@@ -89,7 +93,7 @@ func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*m
 }
 
 func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []*model.Alert {
-	var foundAlerts []*model.Alert
+	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
@@ -104,13 +108,18 @@ func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []
 			if alert == nil {
 				continue
 			}
+			found := false
 			for _, s := range alert.GetInformedEntity() {
-				if s == nil || s.Trip != nil {
+				// Only applies to bare routes
+				if s == nil || s.Trip != nil || s.StopId != nil {
 					continue
 				}
 				if s.GetRouteId() == t.RouteID {
-					foundAlerts = append(foundAlerts, makeAlert(alert))
+					found = true
 				}
+			}
+			if found {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
 	}
@@ -118,7 +127,7 @@ func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []
 }
 
 func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) []*model.Alert {
-	var foundAlerts []*model.Alert
+	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
@@ -133,13 +142,18 @@ func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) 
 			if !checkAlertActivePeriod(tnow, active, alert) {
 				continue
 			}
+			found := false
 			for _, s := range alert.GetInformedEntity() {
-				if s == nil || s.Trip != nil {
+				// Only applies to bare agencies
+				if s == nil || s.Trip != nil || s.RouteId != nil || s.StopId != nil {
 					continue
 				}
 				if s.GetAgencyId() == t.AgencyID {
-					foundAlerts = append(foundAlerts, makeAlert(alert))
+					found = true
 				}
+			}
+			if found {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
 	}
@@ -147,7 +161,7 @@ func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) 
 }
 
 func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*model.Alert {
-	var foundAlerts []*model.Alert
+	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
@@ -162,13 +176,17 @@ func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*m
 			if alert == nil {
 				continue
 			}
+			found := false
 			for _, s := range alert.GetInformedEntity() {
-				if s == nil || s.StopId == nil {
+				if s == nil || s.Trip != nil {
 					continue
 				}
 				if s.GetStopId() == t.StopID {
-					foundAlerts = append(foundAlerts, makeAlert(alert))
+					found = true
 				}
+			}
+			if found {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
 	}
