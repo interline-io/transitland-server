@@ -1,4 +1,6 @@
 #!/bin/bash
+# Remove import files
+rm *.zip
 # export TL_LOG=debug
 tlserver sync -dburl="$TL_TEST_SERVER_DATABASE_URL" test/data/server/server-test.dmfr.json
 # older data
