@@ -41,6 +41,7 @@ func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		FeedURL:   w.Url,
 		Secrets:   job.Opts.Secrets,
 		FetchedAt: time.Now(),
+		Storage:   ".",
 	}
 	rtmsg, fr, err := fetch.RTFetch(atx, fetchOpts)
 	if err != nil {
