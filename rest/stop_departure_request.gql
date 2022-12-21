@@ -127,6 +127,9 @@ query ($include_geometry: Boolean!, $include_alerts: Boolean!, $limit: Int, $ids
         ...trip
         route {
           ...route
+          alerts @include(if: $include_alerts) {
+            ...alert
+          }
           agency {
             ...agency
             alerts @include(if: $include_alerts) {

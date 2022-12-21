@@ -77,6 +77,8 @@ func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*m
 			}
 			found := false
 			for _, s := range alert.GetInformedEntity() {
+				// trip must match
+				// route, stop, agency are not checked
 				if s == nil || s.Trip == nil {
 					continue
 				}
@@ -110,7 +112,8 @@ func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []
 			}
 			found := false
 			for _, s := range alert.GetInformedEntity() {
-				// Only applies to bare routes
+				// trip and stop must be empty
+				// route must match
 				if s == nil || s.Trip != nil || s.StopId != nil {
 					continue
 				}
@@ -144,7 +147,8 @@ func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) 
 			}
 			found := false
 			for _, s := range alert.GetInformedEntity() {
-				// Only applies to bare agencies
+				// trip, route, stop must be empty
+				// agency must match
 				if s == nil || s.Trip != nil || s.RouteId != nil || s.StopId != nil {
 					continue
 				}
@@ -178,6 +182,8 @@ func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*m
 			}
 			found := false
 			for _, s := range alert.GetInformedEntity() {
+				// agency, route can be anything
+				// trip must be empty
 				if s == nil || s.Trip != nil {
 					continue
 				}
