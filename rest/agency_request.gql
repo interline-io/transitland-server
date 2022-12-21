@@ -1,4 +1,34 @@
-query($limit: Int, $ids: [Int!], $after: Int, $where: AgencyFilter) {
+fragment alert on Alert {
+  cause
+  effect
+  severity_level
+  url {
+    language
+    text
+  }
+  header_text {
+    language
+    text
+  }
+  description_text {
+    language
+    text
+  }
+  tts_header_text {
+    language
+    text
+  }
+  tts_description_text {
+    language
+    text
+  }
+  active_period {
+    start
+    end
+  }
+}
+
+query ($limit: Int, $ids: [Int!], $after: Int, $include_alerts: Boolean!, $where: AgencyFilter) {
   agencies(limit: $limit, after: $after, ids: $ids, where: $where) {
     id
     agency_name
@@ -23,7 +53,10 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: AgencyFilter) {
         spec
       }
     }
-    places(where: { min_rank: 0.2 }) {
+    alerts @include(if: $include_alerts) {
+      ...alert
+    }
+    places(where: {min_rank: 0.2}) {
       city_name
       adm0_name
       adm1_name
@@ -42,6 +75,9 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: AgencyFilter) {
       route_id
       route_short_name
       route_long_name
+      alerts @include(if: $include_alerts) {
+        ...alert
+      }
     }
   }
 }

@@ -9,9 +9,8 @@ func TestAgencyResolver(t *testing.T) {
 	vars := hw{"agency_id": "caltrain-ca-us"}
 	testcases := []testcase{
 		{
-			name:  "basic",
-			query: `query { agencies {agency_id}}`,
-
+			name:         "basic",
+			query:        `query { agencies {agency_id}}`,
 			selector:     "agencies.#.agency_id",
 			selectExpect: []string{"caltrain-ca-us", "BART", ""},
 		},
@@ -30,30 +29,26 @@ func TestAgencyResolver(t *testing.T) {
 			selectExpect: []string{"Polygon"},
 		},
 		{
-			name:  "near 100m",
-			query: `query {agencies(where:{near:{lon:-122.407974,lat:37.784471,radius:100.0}}) {agency_id}}`,
-
+			name:         "near 100m",
+			query:        `query {agencies(where:{near:{lon:-122.407974,lat:37.784471,radius:100.0}}) {agency_id}}`,
 			selector:     "agencies.#.agency_id",
 			selectExpect: []string{"BART"},
 		},
 		{
-			name:  "near 10000m",
-			query: `query {agencies(where:{near:{lon:-122.407974,lat:37.784471,radius:10000.0}}) {agency_id}}`,
-
+			name:         "near 10000m",
+			query:        `query {agencies(where:{near:{lon:-122.407974,lat:37.784471,radius:10000.0}}) {agency_id}}`,
 			selector:     "agencies.#.agency_id",
 			selectExpect: []string{"caltrain-ca-us", "BART"},
 		},
 		{
-			name:  "within polygon",
-			query: `query{agencies(where:{within:{type:"Polygon",coordinates:[[[-122.39803791046143,37.794626736533836],[-122.40106344223022,37.792303711508595],[-122.3965573310852,37.789641468930114],[-122.3938751220703,37.792354581451946],[-122.39803791046143,37.794626736533836]]]}}){agency_id}}`,
-
+			name:         "within polygon",
+			query:        `query{agencies(where:{within:{type:"Polygon",coordinates:[[[-122.39803791046143,37.794626736533836],[-122.40106344223022,37.792303711508595],[-122.3965573310852,37.789641468930114],[-122.3938751220703,37.792354581451946],[-122.39803791046143,37.794626736533836]]]}}){agency_id}}`,
 			selector:     "agencies.#.agency_id",
 			selectExpect: []string{"BART"},
 		},
 		{
-			name:  "within polygon big",
-			query: `query{agencies(where:{within:{type:"Polygon",coordinates:[[[-122.39481925964355,37.80151060070086],[-122.41653442382812,37.78652126637423],[-122.39662170410156,37.76847577247014],[-122.37301826477051,37.784757615348575],[-122.39481925964355,37.80151060070086]]]}}){id agency_id}}`,
-
+			name:         "within polygon big",
+			query:        `query{agencies(where:{within:{type:"Polygon",coordinates:[[[-122.39481925964355,37.80151060070086],[-122.41653442382812,37.78652126637423],[-122.39662170410156,37.76847577247014],[-122.37301826477051,37.784757615348575],[-122.39481925964355,37.80151060070086]]]}}){id agency_id}}`,
 			selector:     "agencies.#.agency_id",
 			selectExpect: []string{"caltrain-ca-us", "BART"},
 		},
@@ -195,7 +190,7 @@ func TestAgencyResolver(t *testing.T) {
 		// TODO
 		// {"census_geographies", }
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -204,7 +199,8 @@ func TestAgencyResolver(t *testing.T) {
 }
 
 func TestAgencyResolver_Cursor(t *testing.T) {
-	allEnts, err := TestDBFinder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	c, dbf, _, _ := newTestClient(t)
+	allEnts, err := dbf.FindAgencies(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -233,7 +229,6 @@ func TestAgencyResolver_Cursor(t *testing.T) {
 			selectExpect: allIds[2:],
 		},
 	}
-	c := newTestClient()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -387,7 +382,7 @@ func TestAgencyResolver_License(t *testing.T) {
 			selectExpectCount:  2,
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)

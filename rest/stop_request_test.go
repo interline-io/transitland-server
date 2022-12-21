@@ -3,6 +3,9 @@ package rest
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestStopRequest(t *testing.T) {
@@ -132,7 +135,7 @@ func TestStopRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -141,7 +144,8 @@ func TestStopRequest(t *testing.T) {
 }
 
 func TestStopRequest_Pagination(t *testing.T) {
-	allEnts, err := TestDBFinder.FindStops(context.Background(), nil, nil, nil, nil)
+	cfg, dbf, _, _ := testRestConfig(t)
+	allEnts, err := dbf.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +177,6 @@ func TestStopRequest_Pagination(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	cfg := testRestConfig()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -246,8 +249,24 @@ func TestStopRequest_License(t *testing.T) {
 			expectSelect: nil,
 			expectLength: 2413,
 		},
+		{
+			name: "include_alerts:true",
+			h:    StopRequest{StopKey: "BA:FTVL", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    StopRequest{StopKey: "BA:FTVL", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
+		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

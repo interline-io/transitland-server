@@ -2,13 +2,15 @@ package rest
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestStopDepartureRequest(t *testing.T) {
 	bp := func(v bool) *bool {
 		return &v
 	}
-	cfg := testRestConfig()
 	sid := "s-9q9nfsxn67-fruitvale"
 	testcases := []testRest{
 		{
@@ -115,6 +117,23 @@ func TestStopDepartureRequest(t *testing.T) {
 			expectSelect: []string{"FTVL"},
 			expectLength: 0,
 		},
+		//
+		{
+			name: "include_alerts:true",
+			h:    StopDepartureRequest{StopKey: "BA:FTVL", ServiceDate: "2018-05-30", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    StopDepartureRequest{StopKey: "BA:FTVL", ServiceDate: "2018-05-30", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
+		},
 		// TODO
 		// {
 		// 	"requires valid stop key 3",
@@ -125,6 +144,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		// 	0,
 		// },
 	}
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

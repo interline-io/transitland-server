@@ -5,7 +5,6 @@ import (
 )
 
 func TestFeedRequest(t *testing.T) {
-	cfg := testRestConfig()
 	// fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
 	testcases := []testRest{
 		{
@@ -113,6 +112,7 @@ func TestFeedRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -168,7 +168,7 @@ func TestFeedRequest_License(t *testing.T) {
 			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

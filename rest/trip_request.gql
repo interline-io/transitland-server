@@ -1,12 +1,34 @@
-query(
-  $limit: Int
-  $ids: [Int!]
-  $after: Int,
-  $include_route: Boolean!
-  $include_stop_times: Boolean!
-  $include_geometry: Boolean!
-  $where: TripFilter
-) {
+fragment alert on Alert {
+  cause
+  effect
+  severity_level
+  url {
+    language
+    text
+  }
+  header_text {
+    language
+    text
+  }
+  description_text {
+    language
+    text
+  }
+  tts_header_text {
+    language
+    text
+  }
+  tts_description_text {
+    language
+    text
+  }
+  active_period {
+    start
+    end
+  }
+}
+
+query ($limit: Int, $ids: [Int!], $after: Int, $include_route: Boolean!, $include_stop_times: Boolean!, $include_geometry: Boolean!, $include_alerts: Boolean!, $where: TripFilter) {
   trips(limit: $limit, ids: $ids, after: $after, where: $where) {
     id
     trip_id
@@ -50,17 +72,26 @@ query(
       headway_secs
       exact_times
     }
+    alerts @include(if: $include_alerts) {
+      ...alert
+    }
     route @include(if: $include_route) {
       id
       onestop_id
       route_id
       route_short_name
       route_long_name
+      alerts @include(if: $include_alerts) {
+        ...alert
+      }
       agency {
         id
         agency_id
         agency_name
         onestop_id
+        alerts @include(if: $include_alerts) {
+          ...alert
+        }
       }
     }
     stop_times @include(if: $include_stop_times) {
@@ -77,6 +108,9 @@ query(
         stop_id
         stop_name
         geometry
+        alerts @include(if: $include_alerts) {
+          ...alert
+        }
       }
     }
   }

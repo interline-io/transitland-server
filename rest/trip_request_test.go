@@ -5,11 +5,12 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
 func TestTripRequest(t *testing.T) {
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	d, err := makeGraphQLRequest(context.Background(), cfg.srv, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
@@ -158,6 +159,22 @@ func TestTripRequest(t *testing.T) {
 			expectSelect: nil,
 			expectLength: 364,
 		},
+		{
+			name: "include_alerts:true",
+			h:    TripRequest{TripID: "1031527WKDY", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "trips.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    TripRequest{TripID: "1031527WKDY", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "trips.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
+		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -197,7 +214,7 @@ func TestTripRequest_Pagination(t *testing.T) {
 			expectLength: 10_000,
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -253,7 +270,7 @@ func TestTripRequest_License(t *testing.T) {
 			expectLength: 14903,
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

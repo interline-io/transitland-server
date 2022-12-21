@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/internal/testfinder"
 )
 
 func TestStopResolver_StopTimes(t *testing.T) {
@@ -139,7 +140,7 @@ func TestStopResolver_StopTimes(t *testing.T) {
 			selectExpect: []string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -181,7 +182,7 @@ func TestStopResolver_StopTimes_ServiceDate(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			c := newTestClient()
+			c, _, _, _ := newTestClient(t)
 			testquery(t, c, tc)
 		})
 	}
@@ -258,7 +259,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			c := newTestClient()
+			c, _, _, _ := newTestClient(t)
 			testquery(t, c, tc)
 		})
 	}
@@ -366,7 +367,7 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, _, c := newTestClientWithClock(&clock.Mock{T: when})
+			c, _, _, _ := newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
 			testquery(t, c, tc.testcase)
 		})
 	}

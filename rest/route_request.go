@@ -29,6 +29,7 @@ type RouteRequest struct {
 	Lon               float64 `json:"lon,string"`
 	Lat               float64 `json:"lat,string"`
 	Radius            float64 `json:"radius,string"`
+	IncludeAlerts     bool    `json:"include_alerts,string"`
 	LicenseFilter
 }
 
@@ -94,6 +95,7 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 		"after":            checkAfter(r.After),
 		"ids":              checkIds(r.ID),
 		"where":            where,
+		"include_alerts":   r.IncludeAlerts,
 		"include_geometry": includeGeometry,
 	}
 }

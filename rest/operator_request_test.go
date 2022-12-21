@@ -5,7 +5,6 @@ import (
 )
 
 func TestOperatorRequest(t *testing.T) {
-	cfg := testRestConfig()
 	testcases := []testRest{
 		{
 			name:         "basic",
@@ -108,6 +107,7 @@ func TestOperatorRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -130,7 +130,7 @@ func TestOperatorRequest_Pagination(t *testing.T) {
 			expectLength: 3,
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -195,7 +195,7 @@ func TestOperatorRequest_License(t *testing.T) {
 			expectSelect: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

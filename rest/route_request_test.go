@@ -2,11 +2,14 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestRouteRequest(t *testing.T) {
-	cfg := testRestConfig()
 	routeIds := []string{"1", "12", "14", "15", "16", "17", "19", "20", "24", "25", "275", "30", "31", "32", "33", "34", "35", "36", "360", "37", "38", "39", "400", "42", "45", "46", "48", "5", "51", "6", "60", "7", "75", "8", "9", "96", "97", "570", "571", "572", "573", "574", "800", "PWT", "SKY", "01", "03", "05", "07", "11", "19", "Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"}
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
 	testcases := []testRest{
@@ -88,7 +91,25 @@ func TestRouteRequest(t *testing.T) {
 			expectSelect: []string{"01"},
 			expectLength: 0,
 		},
+		{
+			name: "include_alerts:true",
+			h:    RouteRequest{RouteKey: "BA:05", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				fmt.Println(jj)
+				a := gjson.Get(jj, "routes.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    RouteRequest{RouteKey: "BA:05", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "routes.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
+		},
 	}
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -97,7 +118,8 @@ func TestRouteRequest(t *testing.T) {
 }
 
 func TestRouteRequest_Pagination(t *testing.T) {
-	allEnts, err := TestDBFinder.FindRoutes(context.Background(), nil, nil, nil, nil)
+	cfg, dbf, _, _ := testRestConfig(t)
+	allEnts, err := dbf.FindRoutes(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +164,6 @@ func TestRouteRequest_Pagination(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	cfg := testRestConfig()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -198,7 +219,7 @@ func TestRouteRequest_License(t *testing.T) {
 			expectLength: 51,
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

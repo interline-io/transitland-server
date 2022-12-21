@@ -3,10 +3,13 @@ package rest
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestAgencyRequest(t *testing.T) {
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
 	testcases := []testRest{
 		{
@@ -130,12 +133,27 @@ func TestAgencyRequest(t *testing.T) {
 			selector:     "agencies.#.agency_id",
 			expectSelect: []string{},
 		},
-
 		{
 			name:         "feed:agency_id",
 			h:            AgencyRequest{AgencyKey: "CT:caltrain-ca-us"},
 			selector:     "agencies.#.agency_id",
 			expectSelect: []string{"caltrain-ca-us"},
+		},
+		{
+			name: "include_alerts:true",
+			h:    AgencyRequest{AgencyKey: "BA:BART", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "agencies.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    AgencyRequest{AgencyKey: "BA:BART", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "agencies.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
 		},
 	}
 	for _, tc := range testcases {
@@ -146,7 +164,8 @@ func TestAgencyRequest(t *testing.T) {
 }
 
 func TestAgencyRequest_Pagination(t *testing.T) {
-	allEnts, err := TestDBFinder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	cfg, dbf, _, _ := testRestConfig(t)
+	allEnts, err := dbf.FindAgencies(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -182,7 +201,6 @@ func TestAgencyRequest_Pagination(t *testing.T) {
 			expectSelect: allIds[1:2],
 		},
 	}
-	cfg := testRestConfig()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -238,7 +256,7 @@ func TestAgencyRequest_License(t *testing.T) {
 			expectSelect: []string{"caltrain-ca-us", ""},
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

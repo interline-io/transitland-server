@@ -8,15 +8,13 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/auth"
-	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFetchResolver(t *testing.T) {
-	cfg := config.Config{}
-	// dbFinder := find.NewDBFinder(TestDB)
-	// rtFinder := rtfinder.NewRTFinder(rtfinder.NewLocalCache(), TestDB)
+	cfg, dbf, _, _ := testfinder.Finders(t, nil, nil)
 	expectFile := testutil.RelPath("test/data/external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
@@ -26,7 +24,7 @@ func TestFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		srv, _ := NewServer(cfg, TestDBFinder, nil, nil)
+		srv, _ := NewServer(cfg, dbf, nil, nil)
 		srv = auth.AdminDefaultMiddleware("")(srv) // Run all requests as admin
 		// Run all requests as admin
 		c := client.New(srv)
@@ -38,7 +36,7 @@ func TestFetchResolver(t *testing.T) {
 		assert.JSONEq(t, `{"feed_version_fetch":{"found_sha1":true,"feed_version":{"sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0"}}}`, toJson(resp))
 	})
 	t.Run("requires admin access", func(t *testing.T) {
-		srv, _ := NewServer(cfg, TestDBFinder, nil, nil)
+		srv, _ := NewServer(cfg, dbf, nil, nil)
 		srv = auth.UserDefaultMiddleware("")(srv) // Run all requests as regular user
 		c := client.New(srv)
 		resp := make(map[string]interface{})
@@ -50,7 +48,7 @@ func TestFetchResolver(t *testing.T) {
 }
 
 func TestValidationResolver(t *testing.T) {
-	cfg := config.Config{}
+	cfg, dbf, _, _ := testfinder.Finders(t, nil, nil)
 	expectFile := testutil.RelPath("test/data/external/caltrain.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
@@ -59,7 +57,7 @@ func TestValidationResolver(t *testing.T) {
 		}
 		w.Write(buf)
 	}))
-	srv, _ := NewServer(cfg, TestDBFinder, nil, nil)
+	srv, _ := NewServer(cfg, dbf, nil, nil)
 	srv = auth.UserDefaultMiddleware("")(srv) // Run all requests as user
 	c := client.New(srv)
 	vars := hw{"url": ts200.URL}
@@ -133,7 +131,7 @@ func TestValidationResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		srv, _ := NewServer(cfg, TestDBFinder, nil, nil) // all requests run as anonymous context by default
+		srv, _ := NewServer(cfg, dbf, nil, nil) // all requests run as anonymous context by default
 		c := client.New(srv)
 		resp := make(map[string]interface{})
 		err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))

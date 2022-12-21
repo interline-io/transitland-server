@@ -60,13 +60,13 @@ func (f *Finder) FindTrip(t *model.Trip) *pb.TripUpdate {
 }
 
 func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*model.Alert {
-	var foundAlerts []*model.Alert
+	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
 		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
 		if a == nil || !ok {
-			return nil
+			return foundAlerts
 		}
 		for _, alert := range a.alerts {
 			if alert == nil {
@@ -75,13 +75,19 @@ func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*m
 			if !checkAlertActivePeriod(tnow, active, alert) {
 				continue
 			}
+			found := false
 			for _, s := range alert.GetInformedEntity() {
+				// trip must match
+				// route, stop, agency are not checked
 				if s == nil || s.Trip == nil {
 					continue
 				}
 				if s.Trip.GetTripId() == t.TripID {
-					foundAlerts = append(foundAlerts, makeAlert(alert))
+					found = true
 				}
+			}
+			if found {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
 	}
@@ -89,7 +95,7 @@ func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*m
 }
 
 func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []*model.Alert {
-	var foundAlerts []*model.Alert
+	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
@@ -104,13 +110,19 @@ func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []
 			if alert == nil {
 				continue
 			}
+			found := false
 			for _, s := range alert.GetInformedEntity() {
-				if s == nil || s.Trip != nil {
+				// trip and stop must be empty
+				// route must match
+				if s == nil || s.Trip != nil || s.GetStopId() != "" {
 					continue
 				}
 				if s.GetRouteId() == t.RouteID {
-					foundAlerts = append(foundAlerts, makeAlert(alert))
+					found = true
 				}
+			}
+			if found {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
 	}
@@ -118,7 +130,7 @@ func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []
 }
 
 func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) []*model.Alert {
-	var foundAlerts []*model.Alert
+	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
@@ -133,13 +145,19 @@ func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) 
 			if !checkAlertActivePeriod(tnow, active, alert) {
 				continue
 			}
+			found := false
 			for _, s := range alert.GetInformedEntity() {
-				if s == nil || s.Trip != nil {
+				// trip, route, stop must be empty
+				// agency must match
+				if s == nil || s.Trip != nil || s.GetRouteId() != "" || s.GetStopId() != "" {
 					continue
 				}
 				if s.GetAgencyId() == t.AgencyID {
-					foundAlerts = append(foundAlerts, makeAlert(alert))
+					found = true
 				}
+			}
+			if found {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
 	}
@@ -147,7 +165,7 @@ func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) 
 }
 
 func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*model.Alert {
-	var foundAlerts []*model.Alert
+	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
@@ -162,13 +180,19 @@ func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*m
 			if alert == nil {
 				continue
 			}
+			found := false
 			for _, s := range alert.GetInformedEntity() {
-				if s == nil || s.StopId == nil {
+				// agency, route can be anything
+				// trip must be empty
+				if s == nil || s.Trip != nil {
 					continue
 				}
 				if s.GetStopId() == t.StopID {
-					foundAlerts = append(foundAlerts, makeAlert(alert))
+					found = true
 				}
+			}
+			if found {
+				foundAlerts = append(foundAlerts, makeAlert(alert))
 			}
 		}
 	}

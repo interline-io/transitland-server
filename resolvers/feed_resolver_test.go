@@ -189,7 +189,7 @@ func TestFeedResolver(t *testing.T) {
 		// TODO: authorization,
 		// TODO: associated_operators
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -198,7 +198,8 @@ func TestFeedResolver(t *testing.T) {
 }
 
 func TestFeedResolver_Cursor(t *testing.T) {
-	allEnts, err := TestDBFinder.FindFeeds(context.Background(), nil, nil, nil, nil)
+	c, dbf, _, _ := newTestClient(t)
+	allEnts, err := dbf.FindFeeds(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -227,7 +228,6 @@ func TestFeedResolver_Cursor(t *testing.T) {
 			selectExpect: allIds[2:],
 		},
 	}
-	c := newTestClient()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -385,7 +385,7 @@ func TestFeedResolver_License(t *testing.T) {
 			selectExpect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)

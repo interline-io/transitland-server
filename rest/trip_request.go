@@ -22,6 +22,7 @@ type TripRequest struct {
 	IncludeGeometry  string `json:"include_geometry"`
 	IncludeStopTimes string `json:"include_stop_times"`
 	ServiceDate      string `json:"service_date"`
+	IncludeAlerts    bool   `json:"include_alerts,string"`
 	Format           string
 	LicenseFilter
 }
@@ -73,7 +74,16 @@ func (r TripRequest) Query() (string, map[string]interface{}) {
 		includeStopTimes = true
 	}
 	includeRoute := false
-	return tripQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where, "include_geometry": includeGeometry, "include_stop_times": includeStopTimes, "include_route": includeRoute}
+	return tripQuery, hw{
+		"limit":              checkLimit(r.Limit),
+		"after":              checkAfter(r.After),
+		"ids":                checkIds(r.ID),
+		"where":              where,
+		"include_geometry":   includeGeometry,
+		"include_stop_times": includeStopTimes,
+		"include_route":      includeRoute,
+		"include_alerts":     r.IncludeAlerts,
+	}
 }
 
 // ProcessGeoJSON .

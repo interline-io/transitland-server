@@ -109,7 +109,7 @@ fragment alert on Alert {
   }
 }
 
-query ($include_geometry: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
+query ($include_geometry: Boolean!, $include_alerts: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
   stops(limit: 100, ids: $ids, after: $after, where: $where) {
     ...stop
     feed_version {
@@ -127,9 +127,12 @@ query ($include_geometry: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $whe
         ...trip
         route {
           ...route
+          alerts @include(if: $include_alerts) {
+            ...alert
+          }
           agency {
             ...agency
-            alerts {
+            alerts @include(if: $include_alerts) {
               ...alert
             }
           }
@@ -147,18 +150,18 @@ query ($include_geometry: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $whe
           headway_secs
           exact_times
         }
-        alerts {
+        alerts @include(if: $include_alerts) {
           ...alert
         }
       }
     }
     parent {
       ...stop
-      alerts {
+      alerts @include(if: $include_alerts) {
         ...alert
       }
     }
-    alerts {
+    alerts @include(if: $include_alerts) {
       ...alert
     }
   }
