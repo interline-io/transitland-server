@@ -174,7 +174,7 @@ func TestRouteResolver(t *testing.T) {
 		},
 		// TODO: census_geographies
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -213,7 +213,7 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 			selectExpect: []string{"r-9q9-pittsburg~baypoint~sfia~millbrae"},
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -222,7 +222,8 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 }
 
 func TestRouteResolver_Cursor(t *testing.T) {
-	allEnts, err := TestDBFinder.FindRoutes(context.Background(), nil, nil, nil, nil)
+	c, dbf, _, _ := newTestClient(t)
+	allEnts, err := dbf.FindRoutes(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -265,7 +266,6 @@ func TestRouteResolver_Cursor(t *testing.T) {
 			selectExpect: []string{},
 		},
 	}
-	c := newTestClient()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -419,7 +419,7 @@ func TestRouteResolver_License(t *testing.T) {
 			selectExpectCount:  51,
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)

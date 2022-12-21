@@ -8,9 +8,10 @@ import (
 
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-server/model"
 )
 
-func setupGbfs() error {
+func setupGbfs(gbf model.GbfsFinder) error {
 	// Setup
 	sourceFeedId := "gbfs-test"
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
@@ -23,13 +24,14 @@ func setupGbfs() error {
 	}
 	for _, feed := range feeds {
 		key := fmt.Sprintf("%s:%s", sourceFeedId, feed.SystemInformation.Language.Val)
-		TestGbfsFinder.AddData(context.Background(), key, feed)
+		gbf.AddData(context.Background(), key, feed)
 	}
 	return nil
 }
 
 func TestGbfsBikeResolver(t *testing.T) {
-	setupGbfs()
+	c, _, _, gbf := newTestClient(t)
+	setupGbfs(gbf)
 	testcases := []testcase{
 		{
 			name: "basic",
@@ -77,7 +79,6 @@ func TestGbfsBikeResolver(t *testing.T) {
 			selectExpect: []string{"0cbf9b08f8b71a6362e20c8173c071a6"},
 		},
 	}
-	c := newTestClient()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -86,7 +87,8 @@ func TestGbfsBikeResolver(t *testing.T) {
 }
 
 func TestGbfsStationResolver(t *testing.T) {
-	setupGbfs()
+	c, _, _, gbf := newTestClient(t)
+	setupGbfs(gbf)
 	testcases := []testcase{
 		{
 			name: "basic",
@@ -210,7 +212,7 @@ func TestGbfsStationResolver(t *testing.T) {
 			selectExpect: []string{"27045384-791c-4519-8087-fce2f7c48a69"},
 		},
 	}
-	c := newTestClient()
+
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)

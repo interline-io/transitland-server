@@ -7,63 +7,13 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/gbfsfinder"
-	"github.com/interline-io/transitland-server/internal/rtfinder"
+	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
-
-var TestDBFinder model.Finder
-var TestRTFinder model.RTFinder
-var TestGbfsFinder model.GbfsFinder
-
-func TestMain(m *testing.M) {
-	maxlimit := find.MAXLIMIT
-	find.MAXLIMIT = 100_000
-	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
-	if g == "" {
-		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
-		return
-	}
-	db := find.MustOpenDB(g)
-	dbf := find.NewDBFinder(db)
-	TestDBFinder = dbf
-	TestRTFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
-	TestGbfsFinder = gbfsfinder.NewFinder(nil)
-	result := m.Run()
-	find.MAXLIMIT = maxlimit
-	os.Exit(result)
-}
-
-// Test helpers
-
-func newTestClient() *client.Client {
-	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), TestDBFinder.DBX())
-	cfg := config.Config{}
-	srv, _ := NewServer(cfg, TestDBFinder, rtf, TestGbfsFinder)
-	return client.New(srv)
-}
-
-func newTestClientWithClock(cl clock.Clock) (model.Finder, model.RTFinder, *client.Client) {
-	// Create a new finder, with specified time
-	cfg := config.Config{Clock: cl}
-	db := TestDBFinder.DBX()
-	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
-	rtf.Clock = cl
-	dbf := find.NewDBFinder(db)
-	dbf.Clock = cl
-	srv, _ := NewServer(cfg, dbf, rtf, nil)
-	return dbf, rtf, client.New(srv)
-}
-
-func toJson(m map[string]interface{}) string {
-	rr, _ := json.Marshal(&m)
-	return string(rr)
-}
 
 type hw = map[string]interface{}
 
@@ -76,7 +26,38 @@ type testcase struct {
 	selectExpect       []string
 	selectExpectUnique []string
 	selectExpectCount  int
+	rtfiles            []testfinder.RTJsonFile
 	f                  func(*testing.T, string)
+}
+
+func TestMain(m *testing.M) {
+	maxlimit := find.MAXLIMIT
+	find.MAXLIMIT = 100_000
+	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
+	if g == "" {
+		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
+		return
+	}
+	result := m.Run()
+	find.MAXLIMIT = maxlimit
+	os.Exit(result)
+}
+
+// Test helpers
+
+func newTestClient(t testing.TB) (*client.Client, model.Finder, model.RTFinder, model.GbfsFinder) {
+	return newTestClientWithClock(t, &clock.Real{}, testfinder.DefaultRTJson())
+}
+
+func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Finder, model.RTFinder, model.GbfsFinder) {
+	cfg, dbf, rtf, gbf := testfinder.Finders(t, cl, rtfiles)
+	srv, _ := NewServer(cfg, dbf, rtf, gbf)
+	return client.New(srv), dbf, rtf, gbf
+}
+
+func toJson(m map[string]interface{}) string {
+	rr, _ := json.Marshal(&m)
+	return string(rr)
 }
 
 func testquery(t *testing.T, c *client.Client, tc testcase) {

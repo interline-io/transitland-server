@@ -100,7 +100,7 @@ func TestFeedVersionResolver(t *testing.T) {
 			selectExpect: []string{},
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)

@@ -244,7 +244,7 @@ func TestStopResolver(t *testing.T) {
 		// TODO: route_stop_buffer
 
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -254,7 +254,8 @@ func TestStopResolver(t *testing.T) {
 
 func TestStopResolver_Cursor(t *testing.T) {
 	// First 1000 stops...
-	allEnts, err := TestDBFinder.FindStops(context.Background(), nil, nil, nil, nil)
+	c, dbf, _, _ := newTestClient(t)
+	allEnts, err := dbf.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -300,7 +301,6 @@ func TestStopResolver_Cursor(t *testing.T) {
 		// 	stopIds[:100],
 		// },
 	}
-	c := newTestClient()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -339,7 +339,7 @@ func TestStopResolver_PreviousOnestopID(t *testing.T) {
 			selectExpect: []string{"s-9q9nfswzpg-fruitvale"},
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -494,7 +494,7 @@ func TestStopResolver_License(t *testing.T) {
 			selectExpectCount:  2413,
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)

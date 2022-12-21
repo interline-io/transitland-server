@@ -195,7 +195,7 @@ func TestAgencyResolver(t *testing.T) {
 		// TODO
 		// {"census_geographies", }
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -204,7 +204,8 @@ func TestAgencyResolver(t *testing.T) {
 }
 
 func TestAgencyResolver_Cursor(t *testing.T) {
-	allEnts, err := TestDBFinder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	c, dbf, _, _ := newTestClient(t)
+	allEnts, err := dbf.FindAgencies(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -233,7 +234,6 @@ func TestAgencyResolver_Cursor(t *testing.T) {
 			selectExpect: allIds[2:],
 		},
 	}
-	c := newTestClient()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)
@@ -387,7 +387,7 @@ func TestAgencyResolver_License(t *testing.T) {
 			selectExpectCount:  2,
 		},
 	}
-	c := newTestClient()
+	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, c, tc)

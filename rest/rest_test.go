@@ -3,17 +3,23 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/rtfinder"
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 var TestDBFinder model.Finder
@@ -37,11 +43,44 @@ func TestMain(m *testing.M) {
 }
 
 // Test helpers
+type rtFile struct {
+	feed  string
+	ftype string
+	fname string
+}
 
 func testRestConfig() restConfig {
 	cfg := config.Config{}
-	srv, _ := resolvers.NewServer(cfg, TestDBFinder, TestRTFinder, nil)
+
+	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), TestDBFinder.DBX())
+	var baseRTFiles = []rtFile{
+		{"BA", "realtime_trip_updates", "BA.json"},
+		{"CT", "realtime_trip_updates", "CT.json"},
+	}
+	for _, rtfile := range baseRTFiles {
+		if err := rtFetchJson(rtfile.feed, rtfile.ftype, testutil.RelPath("test", "data", "rt", rtfile.fname), rtf); err != nil {
+			panic(err)
+		}
+	}
+	srv, _ := resolvers.NewServer(cfg, TestDBFinder, rtf, nil)
 	return restConfig{srv: srv, Config: cfg}
+}
+
+func rtFetchJson(feed string, ftype string, url string, rtfinder model.RTFinder) error {
+	var msg pb.FeedMessage
+	jdata, err := ioutil.ReadFile(url)
+	if err != nil {
+		return err
+	}
+	if err := protojson.Unmarshal(jdata, &msg); err != nil {
+		return err
+	}
+	rtdata, err := proto.Marshal(&msg)
+	if err != nil {
+		return err
+	}
+	key := fmt.Sprintf("rtdata:%s:%s", feed, ftype)
+	return rtfinder.AddData(key, rtdata)
 }
 
 func toJson(m map[string]interface{}) string {
