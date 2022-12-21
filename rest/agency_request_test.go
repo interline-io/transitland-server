@@ -3,6 +3,9 @@ package rest
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestAgencyRequest(t *testing.T) {
@@ -130,12 +133,27 @@ func TestAgencyRequest(t *testing.T) {
 			selector:     "agencies.#.agency_id",
 			expectSelect: []string{},
 		},
-
 		{
 			name:         "feed:agency_id",
 			h:            AgencyRequest{AgencyKey: "CT:caltrain-ca-us"},
 			selector:     "agencies.#.agency_id",
 			expectSelect: []string{"caltrain-ca-us"},
+		},
+		{
+			name: "include_alerts:true",
+			h:    AgencyRequest{AgencyKey: "BA:BART", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "agencies.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    AgencyRequest{AgencyKey: "BA:BART", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "agencies.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
 		},
 	}
 	for _, tc := range testcases {

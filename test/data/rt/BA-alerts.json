@@ -35,7 +35,7 @@
                 "descriptionText": {
                     "translation": [
                         {
-                            "text": "Test trip description",
+                            "text": "Test trip description. trip_id:1031527WKDY",
                             "language": "en"
                         }
                     ]
@@ -73,7 +73,7 @@
                 "descriptionText": {
                     "translation": [
                         {
-                            "text": "Test trip description - active",
+                            "text": "Test trip description - active. trip_id:1031527WKDY",
                             "language": "en"
                         }
                     ]
@@ -108,7 +108,7 @@
                 "descriptionText": {
                     "translation": [
                         {
-                            "text": "Test agency description",
+                            "text": "Test agency description. agency_id:BART",
                             "language": "en"
                         }
                     ]
@@ -143,7 +143,7 @@
                 "descriptionText": {
                     "translation": [
                         {
-                            "text": "Test agency description - active",
+                            "text": "Test agency description - active. agency_id:BART",
                             "language": "en"
                         }
                     ]
@@ -178,7 +178,7 @@
                 "descriptionText": {
                     "translation": [
                         {
-                            "text": "Test stop description",
+                            "text": "Test stop description. stop_id:FTVL",
                             "language": "en"
                         }
                     ]
@@ -213,7 +213,7 @@
                 "descriptionText": {
                     "translation": [
                         {
-                            "text": "Test stop description - active",
+                            "text": "Test stop description - active. stop_id:FTVL",
                             "language": "en"
                         }
                     ]
@@ -248,7 +248,7 @@
                 "descriptionText": {
                     "translation": [
                         {
-                            "text": "Test route description",
+                            "text": "Test route description. route_id:05",
                             "language": "en"
                         }
                     ]
@@ -283,7 +283,7 @@
                 "descriptionText": {
                     "translation": [
                         {
-                            "text": "Test route description - active",
+                            "text": "Test route description - active. route_id:05",
                             "language": "en"
                         }
                     ]

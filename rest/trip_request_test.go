@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
@@ -157,6 +158,22 @@ func TestTripRequest(t *testing.T) {
 			selector:     "trips.#.trip_id",
 			expectSelect: nil,
 			expectLength: 364,
+		},
+		{
+			name: "include_alerts:true",
+			h:    TripRequest{TripID: "1031527WKDY", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "trips.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    TripRequest{TripID: "1031527WKDY", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "trips.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
 		},
 	}
 	for _, tc := range testcases {

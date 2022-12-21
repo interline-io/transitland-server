@@ -3,6 +3,9 @@ package rest
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestStopRequest(t *testing.T) {
@@ -245,6 +248,22 @@ func TestStopRequest_License(t *testing.T) {
 			selector:     "stops.#.stop_id",
 			expectSelect: nil,
 			expectLength: 2413,
+		},
+		{
+			name: "include_alerts:true",
+			h:    StopRequest{StopKey: "BA:FTVL", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    StopRequest{StopKey: "BA:FTVL", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
 		},
 	}
 	cfg, _, _, _ := testRestConfig(t)

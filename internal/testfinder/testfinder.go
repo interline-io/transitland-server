@@ -62,6 +62,7 @@ type RTJsonFile struct {
 func DefaultRTJson() []RTJsonFile {
 	return []RTJsonFile{
 		{"BA", "realtime_trip_updates", "BA.json"},
+		{"BA", "realtime_alerts", "BA-alerts.json"},
 		{"CT", "realtime_trip_updates", "CT.json"},
 	}
 }

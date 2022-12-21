@@ -2,7 +2,11 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestRouteRequest(t *testing.T) {
@@ -86,6 +90,23 @@ func TestRouteRequest(t *testing.T) {
 			selector:     "routes.#.route_id",
 			expectSelect: []string{"01"},
 			expectLength: 0,
+		},
+		{
+			name: "include_alerts:true",
+			h:    RouteRequest{RouteKey: "BA:05", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				fmt.Println(jj)
+				a := gjson.Get(jj, "routes.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    RouteRequest{RouteKey: "BA:05", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "routes.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
 		},
 	}
 	cfg, _, _, _ := testRestConfig(t)

@@ -5,18 +5,17 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
-
-const LON = 37.803613
-const LAT = -122.271556
 
 func TestMain(m *testing.M) {
 	find.MAXLIMIT = 100_000
@@ -29,15 +28,12 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// Test helpers
-type rtFile struct {
-	feed  string
-	ftype string
-	fname string
-}
-
 func testRestConfig(t testing.TB) (restConfig, model.Finder, model.RTFinder, model.GbfsFinder) {
-	cfg, dbf, rtf, gbf := testfinder.Finders(t, nil, testfinder.DefaultRTJson())
+	when, err := time.Parse("2006-01-02T15:04:05", "2018-06-01T00:00:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg, dbf, rtf, gbf := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
 	srv, _ := resolvers.NewServer(cfg, dbf, rtf, gbf)
 	return restConfig{srv: srv, Config: cfg}, dbf, rtf, gbf
 }
@@ -54,6 +50,7 @@ type testRest struct {
 	selector     string
 	expectSelect []string
 	expectLength int
+	f            func(*testing.T, string)
 }
 
 func testquery(t *testing.T, cfg restConfig, tc testRest) {
@@ -63,7 +60,13 @@ func testquery(t *testing.T, cfg restConfig, tc testRest) {
 		return
 	}
 	jj := string(data)
+	tested := false
+	if tc.f != nil {
+		tested = true
+		tc.f(t, jj)
+	}
 	if tc.selector != "" {
+		tested = true
 		a := []string{}
 		for _, v := range gjson.Get(jj, tc.selector).Array() {
 			a = append(a, v.String())
@@ -81,5 +84,8 @@ func testquery(t *testing.T, cfg restConfig, tc testRest) {
 				t.Errorf("got %d elements, expected %d", len(a), tc.expectLength)
 			}
 		}
+	}
+	if !tested {
+		t.Errorf("no test performed, check test case")
 	}
 }

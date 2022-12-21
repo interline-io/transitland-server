@@ -2,6 +2,9 @@ package rest
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestStopDepartureRequest(t *testing.T) {
@@ -116,12 +119,20 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		//
 		{
-			name:         "include_alerts",
-			h:            StopDepartureRequest{StopKey: "BA:FTVL", IncludeAlerts: true},
-			format:       "",
-			selector:     "stops.0.stop_id",
-			expectSelect: []string{"FTVL"},
-			expectLength: 1,
+			name: "include_alerts:true",
+			h:    StopDepartureRequest{StopKey: "BA:FTVL", ServiceDate: "2018-05-30", IncludeAlerts: true},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.alerts").Array()
+				assert.Equal(t, 2, len(a), "alert count")
+			},
+		},
+		{
+			name: "include_alerts:false",
+			h:    StopDepartureRequest{StopKey: "BA:FTVL", ServiceDate: "2018-05-30", IncludeAlerts: false},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.alerts").Array()
+				assert.Equal(t, 0, len(a), "alert count")
+			},
 		},
 		// TODO
 		// {

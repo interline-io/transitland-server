@@ -125,7 +125,6 @@ func testRt(t *testing.T, tc rtTestCase) {
 		t.Fatal(err)
 	}
 	c, _, _, _ := newTestClientWithClock(t, &clock.Mock{T: when}, tc.rtfiles)
-
 	var resp map[string]interface{}
 	opts := []client.Option{}
 	for k, v := range tc.vars {
@@ -422,7 +421,7 @@ func TestTripAlerts(t *testing.T) {
 					if len(alerts) == 1 {
 						firstAlert := alerts[0]
 						assert.Equal(t, "Test trip header - active", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
-						assert.Equal(t, "Test trip description - active", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
+						assert.Contains(t, firstAlert.Get("description_text.0.text").String(), "trip_id:1031527WKDY", "description_text.0.text")
 					} else {
 						t.Errorf("got %d alerts, expected 1", len(alerts))
 					}
@@ -491,7 +490,7 @@ func TestRouteAlerts(t *testing.T) {
 					if len(alerts) == 1 {
 						firstAlert := alerts[0]
 						assert.Equal(t, "Test route header - active", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
-						assert.Equal(t, "Test route description - active", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
+						assert.Contains(t, firstAlert.Get("description_text.0.text").String(), "route_id:05", "description_text.0.text")
 					} else {
 						t.Errorf("got %d alerts, expected 1", len(alerts))
 					}
@@ -538,7 +537,7 @@ func TestStopAlerts(t *testing.T) {
 				if len(alerts) == 1 {
 					firstAlert := alerts[0]
 					assert.Equal(t, "Test stop header - active", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
-					assert.Equal(t, "Test stop description - active", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
+					assert.Contains(t, firstAlert.Get("description_text.0.text").String(), "stop_id:FTVL", "description_text.0.text")
 				} else {
 					t.Errorf("got %d alerts, expected 1", len(alerts))
 				}
@@ -603,7 +602,7 @@ func TestAgencyAlerts(t *testing.T) {
 					if len(alerts) == 1 {
 						firstAlert := alerts[0]
 						assert.Equal(t, "Test agency header - active", firstAlert.Get("header_text.0.text").String(), "header_text.0.text")
-						assert.Equal(t, "Test agency description - active", firstAlert.Get("description_text.0.text").String(), "description_text.0.text")
+						assert.Contains(t, firstAlert.Get("description_text.0.text").String(), "agency_id:BART", "description_text.0.text")
 					} else {
 						t.Errorf("got %d alerts, expected 1", len(alerts))
 					}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-lib/log"
@@ -43,7 +44,11 @@ func TestMain(m *testing.M) {
 // Test helpers
 
 func newTestClient(t testing.TB) (*client.Client, model.Finder, model.RTFinder, model.GbfsFinder) {
-	return newTestClientWithClock(t, &clock.Real{}, testfinder.DefaultRTJson())
+	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
 }
 
 func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Finder, model.RTFinder, model.GbfsFinder) {
