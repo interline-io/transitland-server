@@ -31,16 +31,13 @@ type testcase struct {
 }
 
 func TestMain(m *testing.M) {
-	maxlimit := find.MAXLIMIT
 	find.MAXLIMIT = 100_000
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
 	if g == "" {
 		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		return
 	}
-	result := m.Run()
-	find.MAXLIMIT = maxlimit
-	os.Exit(result)
+	os.Exit(m.Run())
 }
 
 // Test helpers

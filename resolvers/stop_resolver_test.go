@@ -2,10 +2,7 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 	"testing"
-
-	"github.com/interline-io/transitland-server/find"
 )
 
 func TestStopResolver(t *testing.T) {
@@ -366,7 +363,6 @@ func TestStopResolver_License(t *testing.T) {
 		}
 	  }	  
 	`
-	fmt.Println("limit:", find.MAXLIMIT)
 	testcases := []testcase{
 		// license: share_alike_optional
 		{

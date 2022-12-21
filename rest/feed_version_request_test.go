@@ -5,7 +5,6 @@ import (
 )
 
 func TestFeedVersionRequest(t *testing.T) {
-	cfg := testRestConfig()
 	fv := "d2813c293bcfd7a97dde599527ae6c62c98e66c6"
 	testcases := []testRest{
 		{
@@ -41,6 +40,7 @@ func TestFeedVersionRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

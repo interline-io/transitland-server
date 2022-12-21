@@ -6,7 +6,7 @@ import (
 )
 
 func TestAgencyRequest(t *testing.T) {
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
 	testcases := []testRest{
 		{
@@ -146,7 +146,8 @@ func TestAgencyRequest(t *testing.T) {
 }
 
 func TestAgencyRequest_Pagination(t *testing.T) {
-	allEnts, err := TestDBFinder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	cfg, dbf, _, _ := testRestConfig(t)
+	allEnts, err := dbf.FindAgencies(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -182,7 +183,6 @@ func TestAgencyRequest_Pagination(t *testing.T) {
 			expectSelect: allIds[1:2],
 		},
 	}
-	cfg := testRestConfig()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -238,7 +238,7 @@ func TestAgencyRequest_License(t *testing.T) {
 			expectSelect: []string{"caltrain-ca-us", ""},
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

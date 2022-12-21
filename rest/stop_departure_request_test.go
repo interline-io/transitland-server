@@ -8,7 +8,6 @@ func TestStopDepartureRequest(t *testing.T) {
 	bp := func(v bool) *bool {
 		return &v
 	}
-	cfg := testRestConfig()
 	sid := "s-9q9nfsxn67-fruitvale"
 	testcases := []testRest{
 		{
@@ -134,6 +133,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		// 	0,
 		// },
 	}
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

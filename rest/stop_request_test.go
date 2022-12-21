@@ -132,7 +132,7 @@ func TestStopRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -141,7 +141,8 @@ func TestStopRequest(t *testing.T) {
 }
 
 func TestStopRequest_Pagination(t *testing.T) {
-	allEnts, err := TestDBFinder.FindStops(context.Background(), nil, nil, nil, nil)
+	cfg, dbf, _, _ := testRestConfig(t)
+	allEnts, err := dbf.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +174,6 @@ func TestStopRequest_Pagination(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	cfg := testRestConfig()
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)
@@ -247,7 +247,7 @@ func TestStopRequest_License(t *testing.T) {
 			expectLength: 2413,
 		},
 	}
-	cfg := testRestConfig()
+	cfg, _, _, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, cfg, tc)

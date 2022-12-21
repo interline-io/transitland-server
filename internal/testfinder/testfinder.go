@@ -1,7 +1,6 @@
 package testfinder
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -84,9 +83,4 @@ func FetchRTJson(feed string, ftype string, url string, rtfinder model.RTFinder)
 	}
 	key := fmt.Sprintf("rtdata:%s:%s", feed, ftype)
 	return rtfinder.AddData(key, rtdata)
-}
-
-func HWToJson(m map[string]interface{}) string {
-	rr, _ := json.Marshal(&m)
-	return string(rr)
 }
