@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -34,8 +35,15 @@ func testRestConfig(t testing.TB) (restConfig, model.Finder, model.RTFinder, mod
 		t.Fatal(err)
 	}
 	cfg, dbf, rtf, gbf := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
-	srv, _ := resolvers.NewServer(cfg, dbf, rtf, gbf)
+	srv, err := resolvers.NewServer(cfg, dbf, rtf, gbf)
+	if err != nil {
+		panic(err)
+	}
 	return restConfig{srv: srv, Config: cfg}, dbf, rtf, gbf
+}
+
+func testRestServer(t testing.TB, rcfg restConfig) (http.Handler, error) {
+	return NewServer(rcfg.Config, rcfg.srv)
 }
 
 func toJson(m map[string]interface{}) string {
