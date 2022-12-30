@@ -3,16 +3,14 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"net/url"
-	"path/filepath"
 	"strconv"
-	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gorilla/mux"
+	"github.com/interline-io/transitland-lib/dmfr/store"
+	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/request"
 	"github.com/tidwall/gjson"
 )
 
@@ -42,6 +40,7 @@ func feedDownloadLatestFeedVersionHandler(cfg restConfig, w http.ResponseWriter,
 	} else {
 		gvars["feed_onestop_id"] = key
 	}
+
 	// Check if we're allowed to redistribute feed and look up latest feed version
 	feedResponse, err := makeGraphQLRequest(r.Context(), cfg.srv, latestFeedVersionQuery, gvars)
 	if err != nil {
@@ -70,18 +69,7 @@ func feedDownloadLatestFeedVersionHandler(cfg restConfig, w http.ResponseWriter,
 		http.Error(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
-	if cfg.GtfsS3Bucket != "" {
-		signedURL, err := generatePresignedURLForFeedVersion(cfg.GtfsS3Bucket, fvsha1)
-		if err != nil {
-			http.Error(w, "failed to create signed url", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Add("Location", signedURL)
-		w.WriteHeader(http.StatusFound)
-	} else {
-		p := filepath.Join(cfg.GtfsDir, fmt.Sprintf("%s.zip", fvsha1))
-		http.ServeFile(w, r, p)
-	}
+	serveFromStorage(w, r, cfg.Storage, fvsha1)
 }
 
 const feedVersionFileQuery = `
@@ -144,37 +132,32 @@ func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
-	if cfg.GtfsS3Bucket != "" {
-		signedURL, err := generatePresignedURLForFeedVersion(cfg.GtfsS3Bucket, fvsha1)
-		if err != nil {
-			http.Error(w, "failed to create signed url", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Add("Location", signedURL)
-		w.WriteHeader(http.StatusFound)
-	} else {
-		p := filepath.Join(cfg.GtfsDir, fmt.Sprintf("%s.zip", fvsha1))
-		http.ServeFile(w, r, p)
-	}
+	serveFromStorage(w, r, cfg.Storage, fvsha1)
 }
 
-func generatePresignedURLForFeedVersion(s3bucket string, fvHash string) (string, error) {
-	// Initialize a session in that the SDK will use to load
-	// credentials from the shared credentials file ~/.aws/credentials.
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("us-east-1")},
-	)
+func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string) {
+	store, err := store.GetStore(storage)
 	if err != nil {
-		return "", err
+		http.Error(w, "failed access file", http.StatusInternalServerError)
+		return
 	}
-	// Create S3 service client
-	u, _ := url.Parse(s3bucket)
-	bucket := u.Host
-	prefix := u.Path
-	svc := s3.New(sess)
-	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(fmt.Sprintf("%s/%s.zip", prefix, fvHash)),
-	})
-	return req.Presign(1 * time.Hour)
+	fvkey := fmt.Sprintf("%s.zip", fvsha1)
+	if v, ok := store.(request.Presigner); ok {
+		signedUrl, err := v.CreateSignedUrl(r.Context(), fvkey, tl.Secret{})
+		if err != nil {
+			http.Error(w, "failed access file", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Add("Location", signedUrl)
+		w.WriteHeader(http.StatusFound)
+	} else {
+		rdr, _, err := store.Download(r.Context(), fvkey, tl.Secret{}, tl.FeedAuthorization{})
+		if err != nil {
+			http.Error(w, "failed access file", http.StatusInternalServerError)
+			return
+		}
+		if _, err := io.Copy(w, rdr); err != nil {
+			http.Error(w, "failed access file", http.StatusInternalServerError)
+		}
+	}
 }

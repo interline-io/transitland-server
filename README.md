@@ -52,8 +52,8 @@ Usage: server
     	Disable image generation
   -disable-rest
     	Disable REST endpoint
-  -gtfsdir string
-    	Directory to store GTFS files
+  -storage string
+    	Storage backend
   -jwt-audience string
     	JWT Audience
   -jwt-issuer string
