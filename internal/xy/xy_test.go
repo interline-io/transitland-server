@@ -1,7 +1,6 @@
 package xy
 
 import (
-	"fmt"
 	"math"
 	"testing"
 
@@ -21,9 +20,7 @@ func TestPointRadiusBounds(t *testing.T) {
 			a, b, err := PointRadiusBounds(tc.p, tc.radius)
 			_ = err
 			d := DistanceHaversine(a.Lon, a.Lat, b.Lon, b.Lat)
-			fmt.Println("d:", d)
 			assert.InDelta(t, tc.radius*math.Sqrt2*2, d, 10)
-			t.Log("a:", a, "b:", b)
 		})
 	}
 }
