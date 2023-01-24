@@ -33,8 +33,10 @@ func TestGbfsFinder(t *testing.T) {
 	}{
 		{xy.Point{Lon: -122.396185, Lat: 37.793412}, 1000, 60, 30},
 		{xy.Point{Lon: -122.396185, Lat: 37.793412}, 500, 20, 10},
+		{xy.Point{Lon: -122.41926403193607, Lat: 37.77508791392819}, 1000, 34, 27},
 		{xy.Point{Lon: -120.99515, Lat: 37.640}, 1000, 0, 0},
 	}
+
 	for _, tc := range tcs {
 		t.Run("FindBikes", func(t *testing.T) {
 			where := model.GbfsBikeRequest{Near: &model.PointRadius{Lon: tc.p.Lon, Lat: tc.p.Lat, Radius: tc.r}}

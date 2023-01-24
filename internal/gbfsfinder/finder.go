@@ -163,8 +163,12 @@ func (c *Finder) geosearch(ctx context.Context, key string, pt model.PointRadius
 			bbox := geom.NewBounds(geom.XY)
 			bbox.Set(coords...)
 			if bbox.OverlapsPoint(geom.XY, geom.Coord{pt.Lon, pt.Lat}) {
+				// fmt.Println("in box", topicKey, pt.Lon, pt.Lat)
 				topicKeys[topicKey] = true
+			} else {
+				// fmt.Println("not in box", topicKey, pt.Lon, pt.Lat)
 			}
+
 		}
 	} else {
 		// If not using redis, get local keys. This is not perfect.
