@@ -68,10 +68,19 @@ func renderMap(data []byte, width int, height int) ([]byte, error) {
 				positions = append(positions, s2.LatLngFromDegrees(coord.Y(), coord.X()))
 			}
 			ctx.AddPath(sm.NewPath(positions, color.RGBA{0x1c, 0x96, 0xd6, 0xff}, 4.0)) // #1c96d6
+		} else if g, ok := feature.Geometry.(*geom.MultiLineString); ok {
+			for i := 0; i < g.NumLineStrings(); i++ {
+				ls := g.LineString(i)
+				positions := []s2.LatLng{}
+				for _, coord := range ls.Coords() {
+					positions = append(positions, s2.LatLngFromDegrees(coord.Y(), coord.X()))
+				}
+				ctx.AddPath(sm.NewPath(positions, color.RGBA{0x1c, 0x96, 0xd6, 0xff}, 4.0)) // #1c96d6
+			}
 		} else if g, ok := feature.Geometry.(*geom.Point); ok {
 			ctx.AddCircle(sm.NewCircle(s2.LatLngFromDegrees(g.Coords().Y(), g.Coords().X()), color.RGBA{0xff, 0x00, 0x00, 0xff}, color.RGBA{0xff, 0x00, 0x00, 0xff}, CIRCLESIZE, CIRCLEWIDTH))
 		} else {
-			log.Info().Msgf("cant draw geom type: %T", feature.Geometry)
+			log.Info().Msgf("can not draw geom type: %T", feature.Geometry)
 		}
 	}
 	img, err := ctx.Render()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/twpayne/go-geom"
 )
 
 type Finder struct {
@@ -32,8 +34,8 @@ func NewFinder(client *redis.Client) *Finder {
 		cache:            c,
 		client:           client,
 		prefix:           "gbfs",
-		bikeSearchKey:    fmt.Sprintf("%s:bikes", "gbfs"),
-		stationSearchKey: fmt.Sprintf("%s:stations", "gbfs"),
+		bikeSearchKey:    fmt.Sprintf("%s:bike-bbox", "gbfs"),
+		stationSearchKey: fmt.Sprintf("%s:station-bbox", "gbfs"),
 	}
 }
 
@@ -46,29 +48,23 @@ func (c *Finder) AddData(ctx context.Context, topic string, sf gbfs.GbfsFeed) er
 	ts := time.Now().Unix()
 	_ = ts
 	if c.client != nil {
-		var locs []*redis.GeoLocation
+		bbox := geom.NewBounds(geom.XY)
 		for _, ent := range sf.Bikes {
-			locs = append(locs, &redis.GeoLocation{
-				Name:      fmt.Sprintf("%s:%s", topic, ent.BikeID.Val),
-				Longitude: ent.Lon.Val,
-				Latitude:  ent.Lat.Val,
-			})
+			bbox.Extend(geom.NewPoint(geom.XY).MustSetCoords(geom.Coord{ent.Lon.Val, ent.Lat.Val}))
 		}
-		if err := c.client.GeoAdd(ctx, c.bikeSearchKey, locs...).Err(); err != nil {
+		bc := fmt.Sprintf("%0.5f,%0.5f,%0.5f,%0.5f", bbox.Min(0), bbox.Min(1), bbox.Max(0), bbox.Max(1))
+		if err := c.client.HSet(ctx, c.bikeSearchKey, topic, bc).Err(); err != nil {
 			return err
 		}
 	}
 	// Geosearch index docks
 	if c.client != nil {
-		var locs []*redis.GeoLocation
+		bbox := geom.NewBounds(geom.XY)
 		for _, ent := range sf.StationInformation {
-			locs = append(locs, &redis.GeoLocation{
-				Name:      fmt.Sprintf("%s:%s", topic, ent.StationID.Val),
-				Longitude: ent.Lon.Val,
-				Latitude:  ent.Lat.Val,
-			})
+			bbox.Extend(geom.NewPoint(geom.XY).MustSetCoords(geom.Coord{ent.Lon.Val, ent.Lat.Val}))
 		}
-		if err := c.client.GeoAdd(ctx, c.stationSearchKey, locs...).Err(); err != nil {
+		bc := fmt.Sprintf("%0.5f,%0.5f,%0.5f,%0.5f", bbox.Min(0), bbox.Min(1), bbox.Max(0), bbox.Max(1))
+		if err := c.client.HSet(ctx, c.stationSearchKey, topic, bc).Err(); err != nil {
 			return err
 		}
 	}
@@ -148,36 +144,32 @@ func (c *Finder) FindDocks(ctx context.Context, limit *int, where *model.GbfsDoc
 }
 
 func (c *Finder) geosearch(ctx context.Context, key string, pt model.PointRadius) ([]string, error) {
-	topicKeys := map[string][]string{}
+	topicKeys := map[string]bool{}
 	if c.client != nil {
-		q := redis.GeoRadiusQuery{
-			Radius: pt.Radius,
-			Unit:   "m",
-		}
-		cmd := c.client.GeoRadius(
-			ctx,
-			key,
-			pt.Lon,
-			pt.Lat,
-			&q,
-		)
+		cmd := c.client.HGetAll(ctx, key)
 		locs, err := cmd.Result()
 		if err != nil {
 			return nil, err
 		}
-		for _, loc := range locs {
-			topic := strings.Split(loc.Name, ":")
-			if len(topic) < 2 {
-				continue
+		for topicKey, loc := range locs {
+			var coords []float64
+			for _, c := range strings.Split(loc, ",") {
+				cf, err := strconv.ParseFloat(c, 64)
+				if err != nil {
+					return nil, err
+				}
+				coords = append(coords, cf)
 			}
-			topicKey := fmt.Sprintf("%s:%s", topic[0], topic[1])
-			elemId := topic[2]
-			topicKeys[topicKey] = append(topicKeys[topicKey], elemId)
+			bbox := geom.NewBounds(geom.XY)
+			bbox.Set(coords...)
+			if bbox.OverlapsPoint(geom.XY, geom.Coord{pt.Lon, pt.Lat}) {
+				topicKeys[topicKey] = true
+			}
 		}
 	} else {
 		// If not using redis, get local keys. This is not perfect.
 		for _, k := range c.cache.LocalKeys() {
-			topicKeys[k] = append(topicKeys[k], "")
+			topicKeys[k] = true
 		}
 	}
 	var ret []string
