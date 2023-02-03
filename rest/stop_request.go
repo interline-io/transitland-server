@@ -36,9 +36,9 @@ func (r StopRequest) ResponseKey() string { return "stops" }
 func (r StopRequest) Query() (string, map[string]interface{}) {
 	if r.StopKey == "" {
 		// pass
-	} else if key := strings.SplitN(r.StopKey, ":", 2); len(key) == 2 {
-		r.FeedOnestopID = key[0]
-		r.StopID = key[1]
+	} else if fsid, eid, ok := strings.Cut(r.StopKey, ":"); ok {
+		r.FeedOnestopID = fsid
+		r.StopID = eid
 		r.IncludeRoutes = true
 	} else if v, err := strconv.Atoi(r.StopKey); err == nil {
 		r.ID = v

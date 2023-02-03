@@ -50,9 +50,9 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 	// Handle route key
 	if r.RouteKey == "" {
 		// pass
-	} else if key := strings.SplitN(r.RouteKey, ":", 2); len(key) == 2 {
-		r.FeedOnestopID = key[0]
-		r.RouteID = key[1]
+	} else if fsid, eid, ok := strings.Cut(r.RouteKey, ":"); ok {
+		r.FeedOnestopID = fsid
+		r.RouteID = eid
 		r.IncludeGeometry = true
 		r.IncludeStops = true
 	} else if v, err := strconv.Atoi(r.RouteKey); err == nil {

@@ -36,9 +36,9 @@ func (r StopDepartureRequest) IncludeNext() bool { return false }
 func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	if r.StopKey == "" {
 		// TODO: add a way to reject request as invalid
-	} else if key := strings.SplitN(r.StopKey, ":", 2); len(key) == 2 {
-		r.FeedOnestopID = key[0]
-		r.StopID = key[1]
+	} else if fsid, eid, ok := strings.Cut(r.StopKey, ":"); ok {
+		r.FeedOnestopID = fsid
+		r.StopID = eid
 	} else if v, err := strconv.Atoi(r.StopKey); err == nil && v > 0 {
 		// require an actual ID, not just 0
 		r.ID = v

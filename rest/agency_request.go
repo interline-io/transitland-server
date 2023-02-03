@@ -41,9 +41,9 @@ func (r AgencyRequest) ResponseKey() string { return "agencies" }
 func (r AgencyRequest) Query() (string, map[string]interface{}) {
 	if r.AgencyKey == "" {
 		// pass
-	} else if key := strings.SplitN(r.AgencyKey, ":", 2); len(key) == 2 {
-		r.FeedOnestopID = key[0]
-		r.AgencyID = key[1]
+	} else if fsid, eid, ok := strings.Cut(r.AgencyKey, ":"); ok {
+		r.FeedOnestopID = fsid
+		r.AgencyID = eid
 		r.IncludeRoutes = true
 	} else if v, err := strconv.Atoi(r.AgencyKey); err == nil {
 		r.ID = v
