@@ -28,7 +28,7 @@ fragment alert on Alert {
   }
 }
 
-query ($limit: Int, $ids: [Int!], $after: Int, $include_alerts: Boolean!, $where: AgencyFilter) {
+query ($limit: Int, $ids: [Int!], $after: Int, $include_alerts: Boolean!, $include_routes: Boolean!, $where: AgencyFilter) {
   agencies(limit: $limit, after: $after, ids: $ids, where: $where) {
     id
     agency_name
@@ -70,7 +70,7 @@ query ($limit: Int, $ids: [Int!], $after: Int, $include_alerts: Boolean!, $where
         onestop_id
       }
     }
-    routes(limit: 1000) {
+    routes(limit: 1000) @include(if: $include_routes) {
       id
       route_id
       route_short_name

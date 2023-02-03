@@ -25,6 +25,7 @@ type StopRequest struct {
 	Radius             float64 `json:"radius,string"`
 	ServedByOnestopIds string  `json:"served_by_onestop_ids"`
 	IncludeAlerts      bool    `json:"include_alerts,string"`
+	IncludeRoutes      bool    `json:"include_routes,string"`
 	LicenseFilter
 }
 
@@ -38,11 +39,15 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	} else if key := strings.SplitN(r.StopKey, ":", 2); len(key) == 2 {
 		r.FeedOnestopID = key[0]
 		r.StopID = key[1]
+		r.IncludeRoutes = true
 	} else if v, err := strconv.Atoi(r.StopKey); err == nil {
 		r.ID = v
+		r.IncludeRoutes = true
 	} else {
 		r.OnestopID = r.StopKey
+		r.IncludeRoutes = true
 	}
+
 	where := hw{}
 	if r.FeedVersionSHA1 != "" {
 		where["feed_version_sha1"] = r.FeedVersionSHA1
@@ -71,6 +76,7 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 		"after":          checkAfter(r.After),
 		"ids":            checkIds(r.ID),
 		"include_alerts": r.IncludeAlerts,
+		"include_routes": r.IncludeRoutes,
 		"where":          where,
 	}
 }

@@ -28,7 +28,7 @@ fragment alert on Alert {
   }
 }
 
-query ($limit: Int, $ids: [Int!], $after: Int, $where: RouteFilter, $include_geometry: Boolean!, $include_alerts: Boolean!) {
+query ($limit: Int, $ids: [Int!], $after: Int, $where: RouteFilter, $include_geometry: Boolean!, $include_alerts: Boolean!, $include_stops: Boolean!) {
   routes(limit: $limit, ids: $ids, after: $after, where: $where) {
     id
     route_color
@@ -65,7 +65,7 @@ query ($limit: Int, $ids: [Int!], $after: Int, $where: RouteFilter, $include_geo
         onestop_id
       }
     }
-    route_stops(limit: 1000) {
+    route_stops(limit: 1000) @include(if: $include_stops) {
       stop {
         id
         stop_id

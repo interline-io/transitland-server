@@ -30,6 +30,7 @@ type AgencyRequest struct {
 	Adm1Iso         string  `json:"adm1_iso"`
 	CityName        string  `json:"city_name"`
 	IncludeAlerts   bool    `json:"include_alerts,string"`
+	IncludeRoutes   bool    `json:"include_routes,string"`
 	LicenseFilter
 }
 
@@ -43,11 +44,15 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 	} else if key := strings.SplitN(r.AgencyKey, ":", 2); len(key) == 2 {
 		r.FeedOnestopID = key[0]
 		r.AgencyID = key[1]
+		r.IncludeRoutes = true
 	} else if v, err := strconv.Atoi(r.AgencyKey); err == nil {
 		r.ID = v
+		r.IncludeRoutes = true
 	} else {
 		r.OnestopID = r.AgencyKey
+		r.IncludeRoutes = true
 	}
+
 	where := hw{}
 	if r.FeedVersionSHA1 != "" {
 		where["feed_version_sha1"] = r.FeedVersionSHA1
@@ -91,6 +96,7 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 		"after":          checkAfter(r.After),
 		"ids":            checkIds(r.ID),
 		"include_alerts": r.IncludeAlerts,
+		"include_routes": r.IncludeRoutes,
 		"where":          where,
 	}
 }
