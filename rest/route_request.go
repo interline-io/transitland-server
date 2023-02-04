@@ -20,7 +20,6 @@ type RouteRequest struct {
 	RouteType         string  `json:"route_type"`
 	OnestopID         string  `json:"onestop_id"`
 	OperatorOnestopID string  `json:"operator_onestop_id"`
-	IncludeGeometry   string  `json:"include_geometry"`
 	Format            string  `json:"format"`
 	Search            string  `json:"search"`
 	AgencyID          int     `json:"agency_id,string"`
@@ -29,7 +28,9 @@ type RouteRequest struct {
 	Lon               float64 `json:"lon,string"`
 	Lat               float64 `json:"lat,string"`
 	Radius            float64 `json:"radius,string"`
+	IncludeGeometry   bool    `json:"include_geometry,string"`
 	IncludeAlerts     bool    `json:"include_alerts,string"`
+	IncludeStops      bool    `json:"include_stops,string"`
 	LicenseFilter
 }
 
@@ -49,14 +50,21 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 	// Handle route key
 	if r.RouteKey == "" {
 		// pass
-	} else if key := strings.SplitN(r.RouteKey, ":", 2); len(key) == 2 {
-		r.FeedOnestopID = key[0]
-		r.RouteID = key[1]
+	} else if fsid, eid, ok := strings.Cut(r.RouteKey, ":"); ok {
+		r.FeedOnestopID = fsid
+		r.RouteID = eid
+		r.IncludeGeometry = true
+		r.IncludeStops = true
 	} else if v, err := strconv.Atoi(r.RouteKey); err == nil {
 		r.ID = v
+		r.IncludeGeometry = true
+		r.IncludeStops = true
 	} else {
 		r.OnestopID = r.RouteKey
+		r.IncludeGeometry = true
+		r.IncludeStops = true
 	}
+
 	where := hw{}
 	if r.FeedVersionSHA1 != "" {
 		where["feed_version_sha1"] = r.FeedVersionSHA1
@@ -86,16 +94,13 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 		where["search"] = r.Search
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
-	includeGeometry := false
-	if r.IncludeGeometry == "true" || r.Format == "geojson" || r.Format == "png" {
-		includeGeometry = true
-	}
 	return routeQuery, hw{
 		"limit":            checkLimit(r.Limit),
 		"after":            checkAfter(r.After),
 		"ids":              checkIds(r.ID),
 		"where":            where,
 		"include_alerts":   r.IncludeAlerts,
-		"include_geometry": includeGeometry,
+		"include_geometry": r.IncludeGeometry,
+		"include_stops":    r.IncludeStops,
 	}
 }
