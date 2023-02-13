@@ -346,6 +346,23 @@ func (f *DBFinder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []e
 	return ents2, nil
 }
 
+func (f *DBFinder) StopExternalReferencesByStopID(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
+	var ents []*model.StopExternalReference
+	q := sq.StatementBuilder.Select("*").From("tl_stop_external_references").Where(sq.Eq{"id": ids})
+	if err := Select(ctx, f.db, q, &ents); err != nil {
+		return nil, []error{err}
+	}
+	byid := map[int]*model.StopExternalReference{}
+	for _, ent := range ents {
+		byid[ent.ID] = ent
+	}
+	ents2 := make([]*model.StopExternalReference, len(ids))
+	for i, id := range ids {
+		ents2[i] = byid[id]
+	}
+	return ents2, nil
+}
+
 func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
 	var ents []*model.Agency
 	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil)
@@ -948,6 +965,39 @@ func (f *DBFinder) StopsByParentStopID(ctx context.Context, params []model.StopP
 		group[ent.ParentStation.Int()] = append(group[ent.ParentStation.Int()], ent)
 	}
 	var ents [][]*model.Stop
+	for _, id := range ids {
+		ents = append(ents, group[id])
+	}
+	return ents, nil
+}
+
+func (f *DBFinder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	// TODO: this is moderately cursed
+	type qlookup struct {
+		SourceID int
+		Stop     model.Stop
+	}
+
+	qents := []*qlookup{}
+	q := StopSelect(nil, nil, nil, true, nil)
+	q = q.Column("tlse.id as source_id")
+	q = q.Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id")
+	q = q.Where(sq.Eq{"tlse.id": ids})
+	if err := Select(ctx,
+		f.db,
+		q,
+		&qents,
+	); err != nil {
+		return nil, logExtendErr(0, err)
+	}
+	group := map[int]*model.Stop{}
+	for _, ent := range qents {
+		group[ent.SourceID] = &ent.Stop
+	}
+	var ents []*model.Stop
 	for _, id := range ids {
 		ents = append(ents, group[id])
 	}

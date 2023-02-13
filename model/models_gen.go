@@ -124,6 +124,7 @@ type FeedVersionFilter struct {
 	ImportStatus  *ImportStatus `json:"import_status"`
 	FeedOnestopID *string       `json:"feed_onestop_id"`
 	Sha1          *string       `json:"sha1"`
+	File          *string       `json:"file"`
 	FeedIds       []int         `json:"feed_ids"`
 }
 
@@ -267,6 +268,7 @@ type StopFilter struct {
 	FeedOnestopID           *string        `json:"feed_onestop_id"`
 	StopID                  *string        `json:"stop_id"`
 	StopCode                *string        `json:"stop_code"`
+	LocationType            *int           `json:"location_type"`
 	Within                  *tt.Polygon    `json:"within"`
 	Near                    *PointRadius   `json:"near"`
 	Search                  *string        `json:"search"`

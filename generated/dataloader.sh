@@ -4,7 +4,7 @@ REPO="github.com/interline-io/transitland-server/model"
 
 rm dataloader/*_gen.go
 
-arrayName=( Feed Agency Calendar Route Stop Level Shape FeedVersion FeedState FeedVersionGtfsImport RouteHeadway CensusTable Trip Operator )
+arrayName=( Feed Agency Calendar Route Stop Level Shape FeedVersion FeedState FeedVersionGtfsImport RouteHeadway CensusTable Trip Operator StopExternalReference )
 arrayWhereName=( Feed FeedVersion FeedVersionFileInfo FeedVersionServiceLevel FeedFetch Agency Route StopTime Trip Frequency RouteStop RouteHeadway RouteGeometry Stop AgencyPlace Operator CensusGeography CensusValue Pathway FeedInfo CalendarDate RouteStopPattern )
 
 cwd=${PWD}

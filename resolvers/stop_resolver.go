@@ -58,6 +58,10 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 	return For(ctx).PathwaysByToStopID.Load(model.PathwayParam{ToStopID: obj.ID, Limit: limit})
 }
 
+func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (*model.StopExternalReference, error) {
+	return For(ctx).StopExternalReferencesByStopID.Load(obj.ID)
+}
+
 func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
 	if where == nil {
 		where = &model.StopTimeFilter{}
@@ -220,4 +224,14 @@ func checkFloat(v *float64, min float64, max float64) float64 {
 		return max
 	}
 	return *v
+}
+
+//////////
+
+type stopExternalReferenceResolver struct {
+	*Resolver
+}
+
+func (r *stopExternalReferenceResolver) TargetActiveStop(ctx context.Context, obj *model.StopExternalReference) (*model.Stop, error) {
+	return For(ctx).TargetStopsByStopID.Load(obj.ID)
 }

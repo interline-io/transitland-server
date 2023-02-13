@@ -55,6 +55,7 @@ type ResolverRoot interface {
 	RouteStop() RouteStopResolver
 	RouteStopPattern() RouteStopPatternResolver
 	Stop() StopResolver
+	StopExternalReference() StopExternalReferenceResolver
 	StopTime() StopTimeResolver
 	Trip() TripResolver
 }
@@ -254,6 +255,7 @@ type ComplexityRoot struct {
 		FeedInfos             func(childComplexity int, limit *int) int
 		FeedVersionGtfsImport func(childComplexity int) int
 		FetchedAt             func(childComplexity int) int
+		File                  func(childComplexity int) int
 		Files                 func(childComplexity int, limit *int) int
 		Geometry              func(childComplexity int) int
 		ID                    func(childComplexity int) int
@@ -600,6 +602,7 @@ type ComplexityRoot struct {
 	}
 
 	Level struct {
+		Geometry   func(childComplexity int) int
 		ID         func(childComplexity int) int
 		LevelID    func(childComplexity int) int
 		LevelIndex func(childComplexity int) int
@@ -781,6 +784,7 @@ type ComplexityRoot struct {
 		Children           func(childComplexity int, limit *int) int
 		Departures         func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		Directions         func(childComplexity int, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) int
+		ExternalReference  func(childComplexity int) int
 		FeedOnestopID      func(childComplexity int) int
 		FeedVersion        func(childComplexity int) int
 		FeedVersionSHA1    func(childComplexity int) int
@@ -806,6 +810,14 @@ type ComplexityRoot struct {
 		TtsStopName        func(childComplexity int) int
 		WheelchairBoarding func(childComplexity int) int
 		ZoneID             func(childComplexity int) int
+	}
+
+	StopExternalReference struct {
+		ID                  func(childComplexity int) int
+		Inactive            func(childComplexity int) int
+		TargetActiveStop    func(childComplexity int) int
+		TargetFeedOnestopID func(childComplexity int) int
+		TargetStopID        func(childComplexity int) int
 	}
 
 	StopTime struct {
@@ -1025,6 +1037,7 @@ type StopResolver interface {
 	FeedVersion(ctx context.Context, obj *model.Stop) (*model.FeedVersion, error)
 	Level(ctx context.Context, obj *model.Stop) (*model.Level, error)
 	Parent(ctx context.Context, obj *model.Stop) (*model.Stop, error)
+	ExternalReference(ctx context.Context, obj *model.Stop) (*model.StopExternalReference, error)
 	Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error)
 	RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error)
 	PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
@@ -1037,6 +1050,9 @@ type StopResolver interface {
 	Directions(ctx context.Context, obj *model.Stop, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error)
 	NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error)
 	Alerts(ctx context.Context, obj *model.Stop, active *bool, limit *int) ([]*model.Alert, error)
+}
+type StopExternalReferenceResolver interface {
+	TargetActiveStop(ctx context.Context, obj *model.StopExternalReference) (*model.Stop, error)
 }
 type StopTimeResolver interface {
 	Stop(ctx context.Context, obj *model.StopTime) (*model.Stop, error)
@@ -2091,6 +2107,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedVersion.FetchedAt(childComplexity), true
+
+	case "FeedVersion.file":
+		if e.complexity.FeedVersion.File == nil {
+			break
+		}
+
+		return e.complexity.FeedVersion.File(childComplexity), true
 
 	case "FeedVersion.files":
 		if e.complexity.FeedVersion.Files == nil {
@@ -3783,6 +3806,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Leg.To(childComplexity), true
 
+	case "Level.geometry":
+		if e.complexity.Level.Geometry == nil {
+			break
+		}
+
+		return e.complexity.Level.Geometry(childComplexity), true
+
 	case "Level.id":
 		if e.complexity.Level.ID == nil {
 			break
@@ -4853,6 +4883,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.Directions(childComplexity, args["to"].(*model.WaypointInput), args["from"].(*model.WaypointInput), args["mode"].(*model.StepMode), args["depart_at"].(*time.Time)), true
 
+	case "Stop.external_reference":
+		if e.complexity.Stop.ExternalReference == nil {
+			break
+		}
+
+		return e.complexity.Stop.ExternalReference(childComplexity), true
+
 	case "Stop.feed_onestop_id":
 		if e.complexity.Stop.FeedOnestopID == nil {
 			break
@@ -5052,6 +5089,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Stop.ZoneID(childComplexity), true
+
+	case "StopExternalReference.id":
+		if e.complexity.StopExternalReference.ID == nil {
+			break
+		}
+
+		return e.complexity.StopExternalReference.ID(childComplexity), true
+
+	case "StopExternalReference.inactive":
+		if e.complexity.StopExternalReference.Inactive == nil {
+			break
+		}
+
+		return e.complexity.StopExternalReference.Inactive(childComplexity), true
+
+	case "StopExternalReference.target_active_stop":
+		if e.complexity.StopExternalReference.TargetActiveStop == nil {
+			break
+		}
+
+		return e.complexity.StopExternalReference.TargetActiveStop(childComplexity), true
+
+	case "StopExternalReference.target_feed_onestop_id":
+		if e.complexity.StopExternalReference.TargetFeedOnestopID == nil {
+			break
+		}
+
+		return e.complexity.StopExternalReference.TargetFeedOnestopID(childComplexity), true
+
+	case "StopExternalReference.target_stop_id":
+		if e.complexity.StopExternalReference.TargetStopID == nil {
+			break
+		}
+
+		return e.complexity.StopExternalReference.TargetStopID(childComplexity), true
 
 	case "StopTime.arrival":
 		if e.complexity.StopTime.Arrival == nil {
@@ -6085,6 +6157,7 @@ input FeedVersionFilter {
   import_status: ImportStatus
   feed_onestop_id: String
   sha1: String
+  file: String
   feed_ids: [Int!]
 }
 
@@ -6200,6 +6273,7 @@ input StopFilter {
   feed_onestop_id: String
   stop_id: String
   stop_code: String
+  location_type: Int
   within: Polygon
   near: PointRadius
   search: String
@@ -6433,6 +6507,7 @@ type FeedVersion {
   updated_by: String
   name: String
   description: String
+  file: String  
   "Convex hull around all active stops in the feed version"
   geometry: Polygon
   feed: Feed!
@@ -6592,6 +6667,7 @@ type Stop {
   feed_version: FeedVersion!
   level: Level
   parent: Stop
+  external_reference: StopExternalReference  
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
   pathways_from_stop(limit: Int): [Pathway!]!
@@ -6633,6 +6709,7 @@ type Level {
   level_id: String!
   level_name: String!
   level_index: Float!
+  geometry: Polygon!  
 }
 
 """
@@ -6739,6 +6816,14 @@ type FeedInfo {
 }
 
 # GTFS Support Entities
+
+type StopExternalReference {
+  id: Int!
+  target_feed_onestop_id: String
+  target_stop_id: String
+  inactive: Boolean
+  target_active_stop: Stop
+}
 
 type AgencyPlace {
   city_name: String
@@ -9060,6 +9145,8 @@ func (ec *executionContext) fieldContext_Agency_feed_version(ctx context.Context
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -12730,6 +12817,8 @@ func (ec *executionContext) fieldContext_Feed_feed_versions(ctx context.Context,
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -14193,6 +14282,8 @@ func (ec *executionContext) fieldContext_FeedState_feed_version(ctx context.Cont
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -15000,6 +15091,47 @@ func (ec *executionContext) fieldContext_FeedVersion_description(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _FeedVersion_file(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersion_file(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.File, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersion_file(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FeedVersion_geometry(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FeedVersion_geometry(ctx, field)
 	if err != nil {
@@ -15623,6 +15755,8 @@ func (ec *executionContext) fieldContext_FeedVersion_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -15935,6 +16069,8 @@ func (ec *executionContext) fieldContext_FeedVersionFetchResult_feed_version(ctx
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -26196,6 +26332,50 @@ func (ec *executionContext) fieldContext_Level_level_index(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Level_geometry(ctx context.Context, field graphql.CollectedField, obj *model.Level) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Level_geometry(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Geometry, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(tt.Polygon)
+	fc.Result = res
+	return ec.marshalNPolygon2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPolygon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Level_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Level",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Polygon does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_validate_gtfs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_validate_gtfs(ctx, field)
 	if err != nil {
@@ -26380,6 +26560,8 @@ func (ec *executionContext) fieldContext_Mutation_feed_version_update(ctx contex
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -27856,6 +28038,8 @@ func (ec *executionContext) fieldContext_Pathway_from_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -27964,6 +28148,8 @@ func (ec *executionContext) fieldContext_Pathway_to_stop(ctx context.Context, fi
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -28054,6 +28240,8 @@ func (ec *executionContext) fieldContext_Query_feed_versions(ctx context.Context
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -28466,6 +28654,8 @@ func (ec *executionContext) fieldContext_Query_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -30351,6 +30541,8 @@ func (ec *executionContext) fieldContext_Route_feed_version(ctx context.Context,
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -30677,6 +30869,8 @@ func (ec *executionContext) fieldContext_Route_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -31512,6 +31706,8 @@ func (ec *executionContext) fieldContext_RouteHeadway_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -32144,6 +32340,8 @@ func (ec *executionContext) fieldContext_RouteStop_stop(ctx context.Context, fie
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -33908,6 +34106,8 @@ func (ec *executionContext) fieldContext_Stop_feed_version(ctx context.Context, 
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -33979,6 +34179,8 @@ func (ec *executionContext) fieldContext_Stop_level(ctx context.Context, field g
 				return ec.fieldContext_Level_level_name(ctx, field)
 			case "level_index":
 				return ec.fieldContext_Level_level_index(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Level_geometry(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Level", field.Name)
 		},
@@ -34060,6 +34262,8 @@ func (ec *executionContext) fieldContext_Stop_parent(ctx context.Context, field 
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -34086,6 +34290,59 @@ func (ec *executionContext) fieldContext_Stop_parent(ctx context.Context, field 
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Stop_external_reference(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stop_external_reference(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().ExternalReference(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StopExternalReference)
+	fc.Result = res
+	return ec.marshalOStopExternalReference2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopExternalReference(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stop_external_reference(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StopExternalReference_id(ctx, field)
+			case "target_feed_onestop_id":
+				return ec.fieldContext_StopExternalReference_target_feed_onestop_id(ctx, field)
+			case "target_stop_id":
+				return ec.fieldContext_StopExternalReference_target_stop_id(ctx, field)
+			case "inactive":
+				return ec.fieldContext_StopExternalReference_inactive(ctx, field)
+			case "target_active_stop":
+				return ec.fieldContext_StopExternalReference_target_active_stop(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StopExternalReference", field.Name)
 		},
 	}
 	return fc, nil
@@ -34165,6 +34422,8 @@ func (ec *executionContext) fieldContext_Stop_children(ctx context.Context, fiel
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -34973,6 +35232,8 @@ func (ec *executionContext) fieldContext_Stop_nearby_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -35083,6 +35344,280 @@ func (ec *executionContext) fieldContext_Stop_alerts(ctx context.Context, field 
 	if fc.Args, err = ec.field_Stop_alerts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopExternalReference_id(ctx context.Context, field graphql.CollectedField, obj *model.StopExternalReference) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopExternalReference_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopExternalReference_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopExternalReference",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopExternalReference_target_feed_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.StopExternalReference) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopExternalReference_target_feed_onestop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TargetFeedOnestopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopExternalReference_target_feed_onestop_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopExternalReference",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopExternalReference_target_stop_id(ctx context.Context, field graphql.CollectedField, obj *model.StopExternalReference) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopExternalReference_target_stop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TargetStopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopExternalReference_target_stop_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopExternalReference",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopExternalReference_inactive(ctx context.Context, field graphql.CollectedField, obj *model.StopExternalReference) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopExternalReference_inactive(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Inactive, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopExternalReference_inactive(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopExternalReference",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopExternalReference_target_active_stop(ctx context.Context, field graphql.CollectedField, obj *model.StopExternalReference) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopExternalReference_target_active_stop(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StopExternalReference().TargetActiveStop(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Stop)
+	fc.Result = res
+	return ec.marshalOStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopExternalReference_target_active_stop(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopExternalReference",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Stop_id(ctx, field)
+			case "onestop_id":
+				return ec.fieldContext_Stop_onestop_id(ctx, field)
+			case "location_type":
+				return ec.fieldContext_Stop_location_type(ctx, field)
+			case "stop_code":
+				return ec.fieldContext_Stop_stop_code(ctx, field)
+			case "stop_desc":
+				return ec.fieldContext_Stop_stop_desc(ctx, field)
+			case "stop_id":
+				return ec.fieldContext_Stop_stop_id(ctx, field)
+			case "stop_name":
+				return ec.fieldContext_Stop_stop_name(ctx, field)
+			case "stop_timezone":
+				return ec.fieldContext_Stop_stop_timezone(ctx, field)
+			case "stop_url":
+				return ec.fieldContext_Stop_stop_url(ctx, field)
+			case "wheelchair_boarding":
+				return ec.fieldContext_Stop_wheelchair_boarding(ctx, field)
+			case "zone_id":
+				return ec.fieldContext_Stop_zone_id(ctx, field)
+			case "platform_code":
+				return ec.fieldContext_Stop_platform_code(ctx, field)
+			case "tts_stop_name":
+				return ec.fieldContext_Stop_tts_stop_name(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Stop_geometry(ctx, field)
+			case "feed_version_sha1":
+				return ec.fieldContext_Stop_feed_version_sha1(ctx, field)
+			case "feed_onestop_id":
+				return ec.fieldContext_Stop_feed_onestop_id(ctx, field)
+			case "feed_version":
+				return ec.fieldContext_Stop_feed_version(ctx, field)
+			case "level":
+				return ec.fieldContext_Stop_level(ctx, field)
+			case "parent":
+				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "children":
+				return ec.fieldContext_Stop_children(ctx, field)
+			case "route_stops":
+				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "pathways_from_stop":
+				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
+			case "pathways_to_stop":
+				return ec.fieldContext_Stop_pathways_to_stop(ctx, field)
+			case "stop_times":
+				return ec.fieldContext_Stop_stop_times(ctx, field)
+			case "departures":
+				return ec.fieldContext_Stop_departures(ctx, field)
+			case "arrivals":
+				return ec.fieldContext_Stop_arrivals(ctx, field)
+			case "search_rank":
+				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "census_geographies":
+				return ec.fieldContext_Stop_census_geographies(ctx, field)
+			case "directions":
+				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
+			case "alerts":
+				return ec.fieldContext_Stop_alerts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -35501,6 +36036,8 @@ func (ec *executionContext) fieldContext_StopTime_stop(ctx context.Context, fiel
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -36823,6 +37360,8 @@ func (ec *executionContext) fieldContext_Trip_feed_version(ctx context.Context, 
 				return ec.fieldContext_FeedVersion_name(ctx, field)
 			case "description":
 				return ec.fieldContext_FeedVersion_description(ctx, field)
+			case "file":
+				return ec.fieldContext_FeedVersion_file(ctx, field)
 			case "geometry":
 				return ec.fieldContext_FeedVersion_geometry(ctx, field)
 			case "feed":
@@ -37910,6 +38449,8 @@ func (ec *executionContext) fieldContext_ValidationResult_stops(ctx context.Cont
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -38732,6 +39273,8 @@ func (ec *executionContext) fieldContext_VehiclePosition_stop_id(ctx context.Con
 				return ec.fieldContext_Stop_level(ctx, field)
 			case "parent":
 				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -41199,7 +41742,7 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "feed_ids"}
+	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "file", "feed_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41227,6 +41770,14 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sha1"))
 			it.Sha1, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "file":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+			it.File, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41751,7 +42302,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "within", "near", "search", "license", "served_by_onestop_ids", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "within", "near", "search", "license", "served_by_onestop_ids", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41811,6 +42362,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_code"))
 			it.StopCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "location_type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location_type"))
+			it.LocationType, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43571,6 +44130,10 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 		case "description":
 
 			out.Values[i] = ec._FeedVersion_description(ctx, field, obj)
+
+		case "file":
+
+			out.Values[i] = ec._FeedVersion_file(ctx, field, obj)
 
 		case "geometry":
 
@@ -45648,6 +46211,13 @@ func (ec *executionContext) _Level(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "geometry":
+
+			out.Values[i] = ec._Level_geometry(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47330,6 +47900,23 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
+		case "external_reference":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_external_reference(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "children":
 			field := field
 
@@ -47535,6 +48122,63 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Stop_alerts(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stopExternalReferenceImplementors = []string{"StopExternalReference"}
+
+func (ec *executionContext) _StopExternalReference(ctx context.Context, sel ast.SelectionSet, obj *model.StopExternalReference) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stopExternalReferenceImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StopExternalReference")
+		case "id":
+
+			out.Values[i] = ec._StopExternalReference_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "target_feed_onestop_id":
+
+			out.Values[i] = ec._StopExternalReference_target_feed_onestop_id(ctx, field, obj)
+
+		case "target_stop_id":
+
+			out.Values[i] = ec._StopExternalReference_target_stop_id(ctx, field, obj)
+
+		case "inactive":
+
+			out.Values[i] = ec._StopExternalReference_inactive(ctx, field, obj)
+
+		case "target_active_stop":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StopExternalReference_target_active_stop(ctx, field, obj)
 				return res
 			}
 
@@ -49846,6 +50490,16 @@ func (ec *executionContext) unmarshalNPoint2githubᚗcomᚋinterlineᚑioᚋtran
 }
 
 func (ec *executionContext) marshalNPoint2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPoint(ctx context.Context, sel ast.SelectionSet, v tt.Point) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNPolygon2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPolygon(ctx context.Context, v interface{}) (tt.Polygon, error) {
+	var res tt.Polygon
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPolygon2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPolygon(ctx context.Context, sel ast.SelectionSet, v tt.Polygon) graphql.Marshaler {
 	return v
 }
 
@@ -53010,6 +53664,13 @@ func (ec *executionContext) marshalOStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		return graphql.Null
 	}
 	return ec._Stop(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOStopExternalReference2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopExternalReference(ctx context.Context, sel ast.SelectionSet, v *model.StopExternalReference) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._StopExternalReference(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOStopFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopFilter(ctx context.Context, v interface{}) (*model.StopFilter, error) {
