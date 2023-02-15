@@ -62,6 +62,10 @@ func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (
 	return For(ctx).StopExternalReferencesByStopID.Load(obj.ID)
 }
 
+func (r *stopResolver) Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error) {
+	return For(ctx).StopObservationsByStopID.Load(model.StopObservationParam{StopID: obj.ID, Where: where, Limit: limit})
+}
+
 func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
 	if where == nil {
 		where = &model.StopTimeFilter{}

@@ -46,6 +46,7 @@ type ResolverRoot interface {
 	FeedState() FeedStateResolver
 	FeedVersion() FeedVersionResolver
 	FeedVersionGtfsImport() FeedVersionGtfsImportResolver
+	Level() LevelResolver
 	Mutation() MutationResolver
 	Operator() OperatorResolver
 	Pathway() PathwayResolver
@@ -607,6 +608,7 @@ type ComplexityRoot struct {
 		LevelID    func(childComplexity int) int
 		LevelIndex func(childComplexity int) int
 		LevelName  func(childComplexity int) int
+		Stops      func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -793,6 +795,7 @@ type ComplexityRoot struct {
 		Level              func(childComplexity int) int
 		LocationType       func(childComplexity int) int
 		NearbyStops        func(childComplexity int, limit *int, radius *float64) int
+		Observations       func(childComplexity int, limit *int, where *model.StopObservationFilter) int
 		OnestopID          func(childComplexity int) int
 		Parent             func(childComplexity int) int
 		PathwaysFromStop   func(childComplexity int, limit *int) int
@@ -818,6 +821,23 @@ type ComplexityRoot struct {
 		TargetActiveStop    func(childComplexity int) int
 		TargetFeedOnestopID func(childComplexity int) int
 		TargetStopID        func(childComplexity int) int
+	}
+
+	StopObservation struct {
+		AgencyID               func(childComplexity int) int
+		FromStopID             func(childComplexity int) int
+		ObservedArrivalTime    func(childComplexity int) int
+		ObservedDepartureTime  func(childComplexity int) int
+		RouteID                func(childComplexity int) int
+		ScheduleRelationship   func(childComplexity int) int
+		ScheduledArrivalTime   func(childComplexity int) int
+		ScheduledDepartureTime func(childComplexity int) int
+		Source                 func(childComplexity int) int
+		StopSequence           func(childComplexity int) int
+		ToStopID               func(childComplexity int) int
+		TripID                 func(childComplexity int) int
+		TripStartDate          func(childComplexity int) int
+		TripStartTime          func(childComplexity int) int
 	}
 
 	StopTime struct {
@@ -978,6 +998,9 @@ type FeedVersionGtfsImportResolver interface {
 	SkipEntityFilterCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
 	SkipEntityMarkedCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
 }
+type LevelResolver interface {
+	Stops(ctx context.Context, obj *model.Level) ([]*model.Stop, error)
+}
 type MutationResolver interface {
 	ValidateGtfs(ctx context.Context, file *graphql.Upload, url *string, realtimeUrls []string) (*model.ValidationResult, error)
 	FeedVersionUpdate(ctx context.Context, id int, set model.FeedVersionSetInput) (*model.FeedVersion, error)
@@ -1038,6 +1061,7 @@ type StopResolver interface {
 	Level(ctx context.Context, obj *model.Stop) (*model.Level, error)
 	Parent(ctx context.Context, obj *model.Stop) (*model.Stop, error)
 	ExternalReference(ctx context.Context, obj *model.Stop) (*model.StopExternalReference, error)
+	Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error)
 	Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error)
 	RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error)
 	PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
@@ -3841,6 +3865,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Level.LevelName(childComplexity), true
 
+	case "Level.stops":
+		if e.complexity.Level.Stops == nil {
+			break
+		}
+
+		return e.complexity.Level.Stops(childComplexity), true
+
 	case "Mutation.feed_version_delete":
 		if e.complexity.Mutation.FeedVersionDelete == nil {
 			break
@@ -4951,6 +4982,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.NearbyStops(childComplexity, args["limit"].(*int), args["radius"].(*float64)), true
 
+	case "Stop.observations":
+		if e.complexity.Stop.Observations == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_observations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.Observations(childComplexity, args["limit"].(*int), args["where"].(*model.StopObservationFilter)), true
+
 	case "Stop.onestop_id":
 		if e.complexity.Stop.OnestopID == nil {
 			break
@@ -5124,6 +5167,104 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StopExternalReference.TargetStopID(childComplexity), true
+
+	case "StopObservation.agency_id":
+		if e.complexity.StopObservation.AgencyID == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.AgencyID(childComplexity), true
+
+	case "StopObservation.from_stop_id":
+		if e.complexity.StopObservation.FromStopID == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.FromStopID(childComplexity), true
+
+	case "StopObservation.observed_arrival_time":
+		if e.complexity.StopObservation.ObservedArrivalTime == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.ObservedArrivalTime(childComplexity), true
+
+	case "StopObservation.observed_departure_time":
+		if e.complexity.StopObservation.ObservedDepartureTime == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.ObservedDepartureTime(childComplexity), true
+
+	case "StopObservation.route_id":
+		if e.complexity.StopObservation.RouteID == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.RouteID(childComplexity), true
+
+	case "StopObservation.schedule_relationship":
+		if e.complexity.StopObservation.ScheduleRelationship == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.ScheduleRelationship(childComplexity), true
+
+	case "StopObservation.scheduled_arrival_time":
+		if e.complexity.StopObservation.ScheduledArrivalTime == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.ScheduledArrivalTime(childComplexity), true
+
+	case "StopObservation.scheduled_departure_time":
+		if e.complexity.StopObservation.ScheduledDepartureTime == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.ScheduledDepartureTime(childComplexity), true
+
+	case "StopObservation.source":
+		if e.complexity.StopObservation.Source == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.Source(childComplexity), true
+
+	case "StopObservation.stop_sequence":
+		if e.complexity.StopObservation.StopSequence == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.StopSequence(childComplexity), true
+
+	case "StopObservation.to_stop_id":
+		if e.complexity.StopObservation.ToStopID == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.ToStopID(childComplexity), true
+
+	case "StopObservation.trip_id":
+		if e.complexity.StopObservation.TripID == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.TripID(childComplexity), true
+
+	case "StopObservation.trip_start_date":
+		if e.complexity.StopObservation.TripStartDate == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.TripStartDate(childComplexity), true
+
+	case "StopObservation.trip_start_time":
+		if e.complexity.StopObservation.TripStartTime == nil {
+			break
+		}
+
+		return e.complexity.StopObservation.TripStartTime(childComplexity), true
 
 	case "StopTime.arrival":
 		if e.complexity.StopTime.Arrival == nil {
@@ -5709,6 +5850,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPointRadius,
 		ec.unmarshalInputRouteFilter,
 		ec.unmarshalInputStopFilter,
+		ec.unmarshalInputStopObservationFilter,
 		ec.unmarshalInputStopTimeFilter,
 		ec.unmarshalInputTripFilter,
 		ec.unmarshalInputWaypointInput,
@@ -6296,6 +6438,12 @@ input StopTimeFilter {
   exclude_last: Boolean
 }
 
+input StopObservationFilter {
+  feed_version_id: Int!
+  source: String
+  trip_start_date: Date
+}
+
 input PathwayFilter {
   pathway_mode: Int
 }
@@ -6668,6 +6816,7 @@ type Stop {
   level: Level
   parent: Stop
   external_reference: StopExternalReference  
+  observations(limit: Int, where: StopObservationFilter): [StopObservation!]
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
   pathways_from_stop(limit: Int): [Pathway!]!
@@ -6709,7 +6858,8 @@ type Level {
   level_id: String!
   level_name: String!
   level_index: Float!
-  geometry: Polygon!  
+  geometry: Polygon!
+  stops: [Stop!]
 }
 
 """
@@ -6813,6 +6963,25 @@ type FeedInfo {
   feed_end_date: Date
   feed_contact_email: String
   feed_contact_url: String
+}
+
+# Archived observed stop-times
+
+type StopObservation {
+  schedule_relationship: String
+  trip_start_date: Date
+  trip_start_time: Seconds
+  from_stop_id: String
+  to_stop_id: String
+  agency_id: String
+  route_id: String
+  trip_id: String
+  stop_sequence: Int
+  source: String
+  scheduled_arrival_time: Seconds
+  scheduled_departure_time: Seconds
+  observed_arrival_time: Seconds
+  observed_departure_time: Seconds
 }
 
 # GTFS Support Entities
@@ -8316,6 +8485,30 @@ func (ec *executionContext) field_Stop_nearby_stops_args(ctx context.Context, ra
 		}
 	}
 	args["radius"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Stop_observations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.StopObservationFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOStopObservationFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopObservationFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -15757,6 +15950,8 @@ func (ec *executionContext) fieldContext_FeedVersion_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -26376,6 +26571,115 @@ func (ec *executionContext) fieldContext_Level_geometry(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Level_stops(ctx context.Context, field graphql.CollectedField, obj *model.Level) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Level_stops(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Level().Stops(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Stop)
+	fc.Result = res
+	return ec.marshalOStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Level_stops(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Level",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Stop_id(ctx, field)
+			case "onestop_id":
+				return ec.fieldContext_Stop_onestop_id(ctx, field)
+			case "location_type":
+				return ec.fieldContext_Stop_location_type(ctx, field)
+			case "stop_code":
+				return ec.fieldContext_Stop_stop_code(ctx, field)
+			case "stop_desc":
+				return ec.fieldContext_Stop_stop_desc(ctx, field)
+			case "stop_id":
+				return ec.fieldContext_Stop_stop_id(ctx, field)
+			case "stop_name":
+				return ec.fieldContext_Stop_stop_name(ctx, field)
+			case "stop_timezone":
+				return ec.fieldContext_Stop_stop_timezone(ctx, field)
+			case "stop_url":
+				return ec.fieldContext_Stop_stop_url(ctx, field)
+			case "wheelchair_boarding":
+				return ec.fieldContext_Stop_wheelchair_boarding(ctx, field)
+			case "zone_id":
+				return ec.fieldContext_Stop_zone_id(ctx, field)
+			case "platform_code":
+				return ec.fieldContext_Stop_platform_code(ctx, field)
+			case "tts_stop_name":
+				return ec.fieldContext_Stop_tts_stop_name(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Stop_geometry(ctx, field)
+			case "feed_version_sha1":
+				return ec.fieldContext_Stop_feed_version_sha1(ctx, field)
+			case "feed_onestop_id":
+				return ec.fieldContext_Stop_feed_onestop_id(ctx, field)
+			case "feed_version":
+				return ec.fieldContext_Stop_feed_version(ctx, field)
+			case "level":
+				return ec.fieldContext_Stop_level(ctx, field)
+			case "parent":
+				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
+			case "children":
+				return ec.fieldContext_Stop_children(ctx, field)
+			case "route_stops":
+				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "pathways_from_stop":
+				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
+			case "pathways_to_stop":
+				return ec.fieldContext_Stop_pathways_to_stop(ctx, field)
+			case "stop_times":
+				return ec.fieldContext_Stop_stop_times(ctx, field)
+			case "departures":
+				return ec.fieldContext_Stop_departures(ctx, field)
+			case "arrivals":
+				return ec.fieldContext_Stop_arrivals(ctx, field)
+			case "search_rank":
+				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "census_geographies":
+				return ec.fieldContext_Stop_census_geographies(ctx, field)
+			case "directions":
+				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
+			case "alerts":
+				return ec.fieldContext_Stop_alerts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_validate_gtfs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_validate_gtfs(ctx, field)
 	if err != nil {
@@ -28040,6 +28344,8 @@ func (ec *executionContext) fieldContext_Pathway_from_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -28150,6 +28456,8 @@ func (ec *executionContext) fieldContext_Pathway_to_stop(ctx context.Context, fi
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -28656,6 +28964,8 @@ func (ec *executionContext) fieldContext_Query_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -30871,6 +31181,8 @@ func (ec *executionContext) fieldContext_Route_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -31708,6 +32020,8 @@ func (ec *executionContext) fieldContext_RouteHeadway_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -32342,6 +32656,8 @@ func (ec *executionContext) fieldContext_RouteStop_stop(ctx context.Context, fie
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -34181,6 +34497,8 @@ func (ec *executionContext) fieldContext_Stop_level(ctx context.Context, field g
 				return ec.fieldContext_Level_level_index(ctx, field)
 			case "geometry":
 				return ec.fieldContext_Level_geometry(ctx, field)
+			case "stops":
+				return ec.fieldContext_Level_stops(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Level", field.Name)
 		},
@@ -34264,6 +34582,8 @@ func (ec *executionContext) fieldContext_Stop_parent(ctx context.Context, field 
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -34348,6 +34668,88 @@ func (ec *executionContext) fieldContext_Stop_external_reference(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Stop_observations(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stop_observations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Observations(rctx, obj, fc.Args["limit"].(*int), fc.Args["where"].(*model.StopObservationFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.StopObservation)
+	fc.Result = res
+	return ec.marshalOStopObservation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopObservationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stop_observations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "schedule_relationship":
+				return ec.fieldContext_StopObservation_schedule_relationship(ctx, field)
+			case "trip_start_date":
+				return ec.fieldContext_StopObservation_trip_start_date(ctx, field)
+			case "trip_start_time":
+				return ec.fieldContext_StopObservation_trip_start_time(ctx, field)
+			case "from_stop_id":
+				return ec.fieldContext_StopObservation_from_stop_id(ctx, field)
+			case "to_stop_id":
+				return ec.fieldContext_StopObservation_to_stop_id(ctx, field)
+			case "agency_id":
+				return ec.fieldContext_StopObservation_agency_id(ctx, field)
+			case "route_id":
+				return ec.fieldContext_StopObservation_route_id(ctx, field)
+			case "trip_id":
+				return ec.fieldContext_StopObservation_trip_id(ctx, field)
+			case "stop_sequence":
+				return ec.fieldContext_StopObservation_stop_sequence(ctx, field)
+			case "source":
+				return ec.fieldContext_StopObservation_source(ctx, field)
+			case "scheduled_arrival_time":
+				return ec.fieldContext_StopObservation_scheduled_arrival_time(ctx, field)
+			case "scheduled_departure_time":
+				return ec.fieldContext_StopObservation_scheduled_departure_time(ctx, field)
+			case "observed_arrival_time":
+				return ec.fieldContext_StopObservation_observed_arrival_time(ctx, field)
+			case "observed_departure_time":
+				return ec.fieldContext_StopObservation_observed_departure_time(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StopObservation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Stop_observations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Stop_children(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Stop_children(ctx, field)
 	if err != nil {
@@ -34424,6 +34826,8 @@ func (ec *executionContext) fieldContext_Stop_children(ctx context.Context, fiel
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -35234,6 +35638,8 @@ func (ec *executionContext) fieldContext_Stop_nearby_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -35591,6 +35997,8 @@ func (ec *executionContext) fieldContext_StopExternalReference_target_active_sto
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -35617,6 +36025,580 @@ func (ec *executionContext) fieldContext_StopExternalReference_target_active_sto
 				return ec.fieldContext_Stop_alerts(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_schedule_relationship(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_schedule_relationship(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduleRelationship, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_schedule_relationship(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_trip_start_date(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_trip_start_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TripStartDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_trip_start_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Date does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_trip_start_time(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_trip_start_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TripStartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_trip_start_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Seconds does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_from_stop_id(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_from_stop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FromStopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_from_stop_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_to_stop_id(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_to_stop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ToStopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_to_stop_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_agency_id(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_agency_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AgencyID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_agency_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_route_id(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_route_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_route_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_trip_id(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_trip_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TripID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_trip_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_stop_sequence(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_stop_sequence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopSequence, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_stop_sequence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_source(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_source(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_source(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_scheduled_arrival_time(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_scheduled_arrival_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduledArrivalTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_scheduled_arrival_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Seconds does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_scheduled_departure_time(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_scheduled_departure_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduledDepartureTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_scheduled_departure_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Seconds does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_observed_arrival_time(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_observed_arrival_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ObservedArrivalTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_observed_arrival_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Seconds does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopObservation_observed_departure_time(ctx context.Context, field graphql.CollectedField, obj *model.StopObservation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopObservation_observed_departure_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ObservedDepartureTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopObservation_observed_departure_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopObservation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Seconds does not have child fields")
 		},
 	}
 	return fc, nil
@@ -36038,6 +37020,8 @@ func (ec *executionContext) fieldContext_StopTime_stop(ctx context.Context, fiel
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -38451,6 +39435,8 @@ func (ec *executionContext) fieldContext_ValidationResult_stops(ctx context.Cont
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -39275,6 +40261,8 @@ func (ec *executionContext) fieldContext_VehiclePosition_stop_id(ctx context.Con
 				return ec.fieldContext_Stop_parent(ctx, field)
 			case "external_reference":
 				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
 			case "children":
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
@@ -42418,6 +43406,50 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agency_ids"))
 			it.AgencyIds, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStopObservationFilter(ctx context.Context, obj interface{}) (model.StopObservationFilter, error) {
+	var it model.StopObservationFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"feed_version_id", "source", "trip_start_date"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "feed_version_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_version_id"))
+			it.FeedVersionID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "source":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
+			it.Source, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "trip_start_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trip_start_date"))
+			it.TripStartDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46188,36 +47220,53 @@ func (ec *executionContext) _Level(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Level_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "level_id":
 
 			out.Values[i] = ec._Level_level_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "level_name":
 
 			out.Values[i] = ec._Level_level_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "level_index":
 
 			out.Values[i] = ec._Level_level_index(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "geometry":
 
 			out.Values[i] = ec._Level_geometry(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "stops":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Level_stops(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47917,6 +48966,23 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
+		case "observations":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_observations(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "children":
 			field := field
 
@@ -48186,6 +49252,83 @@ func (ec *executionContext) _StopExternalReference(ctx context.Context, sel ast.
 				return innerFunc(ctx)
 
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stopObservationImplementors = []string{"StopObservation"}
+
+func (ec *executionContext) _StopObservation(ctx context.Context, sel ast.SelectionSet, obj *model.StopObservation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stopObservationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StopObservation")
+		case "schedule_relationship":
+
+			out.Values[i] = ec._StopObservation_schedule_relationship(ctx, field, obj)
+
+		case "trip_start_date":
+
+			out.Values[i] = ec._StopObservation_trip_start_date(ctx, field, obj)
+
+		case "trip_start_time":
+
+			out.Values[i] = ec._StopObservation_trip_start_time(ctx, field, obj)
+
+		case "from_stop_id":
+
+			out.Values[i] = ec._StopObservation_from_stop_id(ctx, field, obj)
+
+		case "to_stop_id":
+
+			out.Values[i] = ec._StopObservation_to_stop_id(ctx, field, obj)
+
+		case "agency_id":
+
+			out.Values[i] = ec._StopObservation_agency_id(ctx, field, obj)
+
+		case "route_id":
+
+			out.Values[i] = ec._StopObservation_route_id(ctx, field, obj)
+
+		case "trip_id":
+
+			out.Values[i] = ec._StopObservation_trip_id(ctx, field, obj)
+
+		case "stop_sequence":
+
+			out.Values[i] = ec._StopObservation_stop_sequence(ctx, field, obj)
+
+		case "source":
+
+			out.Values[i] = ec._StopObservation_source(ctx, field, obj)
+
+		case "scheduled_arrival_time":
+
+			out.Values[i] = ec._StopObservation_scheduled_arrival_time(ctx, field, obj)
+
+		case "scheduled_departure_time":
+
+			out.Values[i] = ec._StopObservation_scheduled_departure_time(ctx, field, obj)
+
+		case "observed_arrival_time":
+
+			out.Values[i] = ec._StopObservation_observed_arrival_time(ctx, field, obj)
+
+		case "observed_departure_time":
+
+			out.Values[i] = ec._StopObservation_observed_departure_time(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -51013,6 +52156,16 @@ func (ec *executionContext) marshalNStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 	return ec._Stop(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNStopObservation2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopObservation(ctx context.Context, sel ast.SelectionSet, v *model.StopObservation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StopObservation(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNStopTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTime(ctx context.Context, sel ast.SelectionSet, v []*model.StopTime) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -53678,6 +54831,61 @@ func (ec *executionContext) unmarshalOStopFilter2ᚖgithubᚗcomᚋinterlineᚑi
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputStopFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOStopObservation2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopObservationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.StopObservation) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNStopObservation2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopObservation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOStopObservationFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopObservationFilter(ctx context.Context, v interface{}) (*model.StopObservationFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStopObservationFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

@@ -182,7 +182,7 @@ func TestStopRTBasic_ArrivalFallback(t *testing.T) {
 		"arrival will use departure if arrival is not present",
 		baseStopQuery,
 		newBaseStopVars(),
-		[]testfinder.RTJsonFile{{"BA", "realtime_trip_updates", "BA-arrival-fallback.json"}},
+		[]testfinder.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-arrival-fallback.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
 			checkTrip := "1031527WKDY"
@@ -207,7 +207,7 @@ func TestStopRTBasic_DepartureFallback(t *testing.T) {
 		"departure will use arrival if departure is not present",
 		baseStopQuery,
 		newBaseStopVars(),
-		[]testfinder.RTJsonFile{{"BA", "realtime_trip_updates", "BA-departure-fallback.json"}},
+		[]testfinder.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-departure-fallback.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
 			checkTrip := "1031527WKDY"
@@ -232,7 +232,7 @@ func TestStopRTBasic_StopIDFallback(t *testing.T) {
 		"use stop_id as fallback if no matching stop sequence",
 		baseStopQuery,
 		newBaseStopVars(),
-		[]testfinder.RTJsonFile{{"BA", "realtime_trip_updates", "BA-stop-id-fallback.json"}},
+		[]testfinder.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-stop-id-fallback.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
 			checkTrip := "1031527WKDY"
@@ -258,7 +258,7 @@ func TestStopRTBasic_StopIDFallback_NoDoubleVisit(t *testing.T) {
 		"do not use stop_id as fallback if stop is visited twice",
 		baseStopQuery,
 		newBaseStopVars(),
-		[]testfinder.RTJsonFile{{"BA", "realtime_trip_updates", "BA-stop-double-visit.json"}},
+		[]testfinder.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-stop-double-visit.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
 			checkTrip := "1031527WKDY"
@@ -283,7 +283,7 @@ func TestStopRTBasic_NoRT(t *testing.T) {
 		"no rt matches for trip 2211533WKDY",
 		baseStopQuery,
 		newBaseStopVars(),
-		[]testfinder.RTJsonFile{{"BA", "realtime_trip_updates", "BA-departure-fallback.json"}},
+		[]testfinder.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-departure-fallback.json"}},
 		func(t *testing.T, jj string) {
 			a := gjson.Get(jj, "stops.0.stop_times").Array()
 			checkTrip := "2211533WKDY"
@@ -311,7 +311,7 @@ func TestStopRTAddedTrip(t *testing.T) {
 		"stop times added trip",
 		baseStopQuery,
 		newBaseStopVars(),
-		[]testfinder.RTJsonFile{{"BA", "realtime_trip_updates", "BA-added.json"}},
+		[]testfinder.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-added.json"}},
 		func(t *testing.T, jj string) {
 			checkTrip := "-123"
 			found := false
@@ -344,7 +344,7 @@ func TestStopRTCanceledTrip(t *testing.T) {
 		"stop times canceled trip",
 		baseStopQuery,
 		newBaseStopVars(),
-		[]testfinder.RTJsonFile{{"BA", "realtime_trip_updates", "BA-added.json"}},
+		[]testfinder.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-added.json"}},
 		func(t *testing.T, jj string) {
 			checkTrip := "2211533WKDY"
 			found := false
@@ -380,7 +380,7 @@ func TestTripAlerts(t *testing.T) {
 			baseStopQuery,
 			newBaseStopVars(),
 			[]testfinder.RTJsonFile{
-				{"BA", "realtime_alerts", "BA-alerts.json"},
+				{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			},
 			func(t *testing.T, jj string) {
 				checkTrip := "1031527WKDY"
@@ -406,7 +406,7 @@ func TestTripAlerts(t *testing.T) {
 			baseStopQuery,
 			activeVars,
 			[]testfinder.RTJsonFile{
-				{"BA", "realtime_alerts", "BA-alerts.json"},
+				{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			},
 			func(t *testing.T, jj string) {
 				checkTrip := "1031527WKDY"
@@ -446,7 +446,7 @@ func TestRouteAlerts(t *testing.T) {
 			baseStopQuery,
 			newBaseStopVars(),
 			[]testfinder.RTJsonFile{
-				{"BA", "realtime_alerts", "BA-alerts.json"},
+				{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			},
 			func(t *testing.T, jj string) {
 				fmt.Println("jj:", jj)
@@ -474,7 +474,7 @@ func TestRouteAlerts(t *testing.T) {
 			baseStopQuery,
 			activeVars,
 			[]testfinder.RTJsonFile{
-				{"BA", "realtime_alerts", "BA-alerts.json"},
+				{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			},
 			func(t *testing.T, jj string) {
 				checkTrip := "1031527WKDY"
@@ -516,7 +516,7 @@ func TestStopAlerts(t *testing.T) {
 			baseStopQuery,
 			newBaseStopVars(),
 			[]testfinder.RTJsonFile{
-				{"BA", "realtime_alerts", "BA-alerts.json"},
+				{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			},
 			func(t *testing.T, jj string) {
 				alerts := gjson.Get(jj, "stops.0.alerts").Array()
@@ -530,7 +530,7 @@ func TestStopAlerts(t *testing.T) {
 			baseStopQuery,
 			activeVars,
 			[]testfinder.RTJsonFile{
-				{"BA", "realtime_alerts", "BA-alerts.json"},
+				{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			},
 			func(t *testing.T, jj string) {
 				alerts := gjson.Get(jj, "stops.0.alerts").Array()
@@ -559,7 +559,7 @@ func TestAgencyAlerts(t *testing.T) {
 			baseStopQuery,
 			newBaseStopVars(),
 			[]testfinder.RTJsonFile{
-				{"BA", "realtime_alerts", "BA-alerts.json"},
+				{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			},
 			func(t *testing.T, jj string) {
 				checkTrip := "1031527WKDY"
@@ -585,9 +585,7 @@ func TestAgencyAlerts(t *testing.T) {
 			"stop alerts active",
 			baseStopQuery,
 			activeVars,
-			[]testfinder.RTJsonFile{
-				{"BA", "realtime_alerts", "BA-alerts.json"},
-			},
+			[]testfinder.RTJsonFile{{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"}},
 			func(t *testing.T, jj string) {
 				checkTrip := "1031527WKDY"
 				sts := gjson.Get(jj, "stops.0.stop_times").Array()

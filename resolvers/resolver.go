@@ -73,6 +73,10 @@ func (r *Resolver) FeedVersionGtfsImport() gqlgen.FeedVersionGtfsImportResolver 
 	return &feedVersionGtfsImportResolver{r}
 }
 
+func (r *Resolver) Level() gqlgen.LevelResolver {
+	return &levelResolver{r}
+}
+
 // Calendar .
 func (r *Resolver) Calendar() gqlgen.CalendarResolver {
 	return &calendarResolver{r}

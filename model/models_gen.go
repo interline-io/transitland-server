@@ -277,6 +277,29 @@ type StopFilter struct {
 	AgencyIds               []int          `json:"agency_ids"`
 }
 
+type StopObservation struct {
+	ScheduleRelationship   *string      `json:"schedule_relationship"`
+	TripStartDate          *tt.Date     `json:"trip_start_date"`
+	TripStartTime          *tt.WideTime `json:"trip_start_time"`
+	FromStopID             *string      `json:"from_stop_id"`
+	ToStopID               *string      `json:"to_stop_id"`
+	AgencyID               *string      `json:"agency_id"`
+	RouteID                *string      `json:"route_id"`
+	TripID                 *string      `json:"trip_id"`
+	StopSequence           *int         `json:"stop_sequence"`
+	Source                 *string      `json:"source"`
+	ScheduledArrivalTime   *tt.WideTime `json:"scheduled_arrival_time"`
+	ScheduledDepartureTime *tt.WideTime `json:"scheduled_departure_time"`
+	ObservedArrivalTime    *tt.WideTime `json:"observed_arrival_time"`
+	ObservedDepartureTime  *tt.WideTime `json:"observed_departure_time"`
+}
+
+type StopObservationFilter struct {
+	FeedVersionID int      `json:"feed_version_id"`
+	Source        *string  `json:"source"`
+	TripStartDate *tt.Date `json:"trip_start_date"`
+}
+
 type StopTimeFilter struct {
 	ServiceDate                  *tt.Date     `json:"service_date"`
 	UseServiceWindow             *bool        `json:"use_service_window"`

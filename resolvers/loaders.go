@@ -31,6 +31,7 @@ type Loaders struct {
 	StopsByID                               dl.StopLoader
 	FeedVersionsByID                        dl.FeedVersionLoader
 	StopExternalReferencesByStopID          dl.StopExternalReferenceLoader
+	StopObservationsByStopID                dl.StopObservationWhereLoader
 	LevelsByID                              dl.LevelLoader
 	TripsByID                               dl.TripLoader
 	FeedStatesByFeedID                      dl.FeedStateLoader
@@ -43,6 +44,7 @@ type Loaders struct {
 	AgenciesByFeedVersionID                 dl.AgencyWhereLoader
 	RoutesByFeedVersionID                   dl.RouteWhereLoader
 	StopsByFeedVersionID                    dl.StopWhereLoader
+	StopsByLevelID                          dl.StopWhereLoader
 	TargetStopsByStopID                     dl.StopLoader
 	TripsByFeedVersionID                    dl.TripWhereLoader
 	FeedInfosByFeedVersionID                dl.FeedInfoWhereLoader
@@ -105,6 +107,13 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				Wait:     WAIT,
 				Fetch: func(a []int) ([]*model.StopExternalReference, []error) {
 					return finder.StopExternalReferencesByStopID(ctx, a)
+				},
+			}),
+			StopObservationsByStopID: *dl.NewStopObservationWhereLoader(dl.StopObservationWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch: func(a []model.StopObservationParam) ([][]*model.StopObservation, []error) {
+					return finder.StopObservationsByStopID(ctx, a)
 				},
 			}),
 			FeedsByID: *dl.NewFeedLoader(dl.FeedLoaderConfig{
@@ -278,6 +287,11 @@ func Middleware(cfg config.Config, finder model.Finder, next http.Handler) http.
 				MaxBatch: MAXBATCH,
 				Wait:     WAIT,
 				Fetch:    func(a []model.StopParam) ([][]*model.Stop, []error) { return finder.StopsByFeedVersionID(ctx, a) },
+			}),
+			StopsByLevelID: *dl.NewStopWhereLoader(dl.StopWhereLoaderConfig{
+				MaxBatch: MAXBATCH,
+				Wait:     WAIT,
+				Fetch:    func(a []model.StopParam) ([][]*model.Stop, []error) { return finder.StopsByLevelID(ctx, a) },
 			}),
 			TripsByFeedVersionID: *dl.NewTripWhereLoader(dl.TripWhereLoaderConfig{
 				MaxBatch: MAXBATCH,

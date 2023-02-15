@@ -166,6 +166,12 @@ input StopTimeFilter {
   exclude_last: Boolean
 }
 
+input StopObservationFilter {
+  feed_version_id: Int!
+  source: String
+  trip_start_date: Date
+}
+
 input PathwayFilter {
   pathway_mode: Int
 }

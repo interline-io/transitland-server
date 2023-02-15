@@ -43,6 +43,7 @@ type EntityLoader interface {
 	StopsByID(context.Context, []int) ([]*Stop, []error)
 	RoutesByID(context.Context, []int) ([]*Route, []error)
 	StopExternalReferencesByStopID(context.Context, []int) ([]*StopExternalReference, []error)
+	StopObservationsByStopID(context.Context, []StopObservationParam) ([][]*StopObservation, []error)
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
 	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 	// Other loaders
@@ -71,6 +72,7 @@ type EntityLoader interface {
 	AgenciesByFeedVersionID(context.Context, []AgencyParam) ([][]*Agency, []error)
 	AgenciesByOnestopID(context.Context, []AgencyParam) ([][]*Agency, []error)
 	StopsByFeedVersionID(context.Context, []StopParam) ([][]*Stop, []error)
+	StopsByLevelID(context.Context, []StopParam) ([][]*Stop, []error)
 	TripsByFeedVersionID(context.Context, []TripParam) ([][]*Trip, []error)
 	FeedInfosByFeedVersionID(context.Context, []FeedInfoParam) ([][]*FeedInfo, []error)
 	RoutesByFeedVersionID(context.Context, []RouteParam) ([][]*Route, []error)
