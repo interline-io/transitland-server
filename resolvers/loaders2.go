@@ -4,6 +4,7 @@ package resolvers
 import (
 	"context"
 	"net/http"
+	"time"
 
 	dataloader "github.com/graph-gophers/dataloader/v7"
 	"github.com/interline-io/transitland-server/config"
@@ -65,50 +66,51 @@ type Loaders struct {
 
 // NewLoaders instantiates data loaders for the middleware
 func NewLoaders(dbf model.Finder) *Loaders {
+	d := 2 * time.Millisecond
 	loaders := &Loaders{
-		FeedStatesByFeedID:                      dataloader.NewBatchedLoader(Unwrap(dbf.FeedStatesByFeedID)),
-		AgenciesByID:                            dataloader.NewBatchedLoader(Unwrap(dbf.AgenciesByID)),
-		CalendarsByID:                           dataloader.NewBatchedLoader(Unwrap(dbf.CalendarsByID)),
-		FeedsByID:                               dataloader.NewBatchedLoader(Unwrap(dbf.FeedsByID)),
-		RoutesByID:                              dataloader.NewBatchedLoader(Unwrap(dbf.RoutesByID)),
-		ShapesByID:                              dataloader.NewBatchedLoader(Unwrap(dbf.ShapesByID)),
-		StopsByID:                               dataloader.NewBatchedLoader(Unwrap(dbf.StopsByID)),
-		FeedVersionsByID:                        dataloader.NewBatchedLoader(Unwrap(dbf.FeedVersionsByID)),
-		LevelsByID:                              dataloader.NewBatchedLoader(Unwrap(dbf.LevelsByID)),
-		TripsByID:                               dataloader.NewBatchedLoader(Unwrap(dbf.TripsByID)),
-		OperatorsByCOIF:                         dataloader.NewBatchedLoader(Unwrap(dbf.OperatorsByCOIF)),
-		FeedVersionGtfsImportsByFeedVersionID:   dataloader.NewBatchedLoader(Unwrap(dbf.FeedVersionGtfsImportsByFeedVersionID)),
-		FeedVersionsByFeedID:                    dataloader.NewBatchedLoader(Unwrap(dbf.FeedVersionsByFeedID)),
-		FeedFetchesByFeedID:                     dataloader.NewBatchedLoader(Unwrap(dbf.FeedFetchesByFeedID)),
-		OperatorsByFeedID:                       dataloader.NewBatchedLoader(Unwrap(dbf.OperatorsByFeedID)),
-		AgenciesByOnestopID:                     dataloader.NewBatchedLoader(Unwrap(dbf.AgenciesByOnestopID)),
-		FeedVersionServiceLevelsByFeedVersionID: dataloader.NewBatchedLoader(Unwrap(dbf.FeedVersionServiceLevelsByFeedVersionID)),
-		FeedVersionFileInfosByFeedVersionID:     dataloader.NewBatchedLoader(Unwrap(dbf.FeedVersionFileInfosByFeedVersionID)),
-		AgenciesByFeedVersionID:                 dataloader.NewBatchedLoader(Unwrap(dbf.AgenciesByFeedVersionID)),
-		RoutesByFeedVersionID:                   dataloader.NewBatchedLoader(Unwrap(dbf.RoutesByFeedVersionID)),
-		StopsByFeedVersionID:                    dataloader.NewBatchedLoader(Unwrap(dbf.StopsByFeedVersionID)),
-		TripsByFeedVersionID:                    dataloader.NewBatchedLoader(Unwrap(dbf.TripsByFeedVersionID)),
-		FeedInfosByFeedVersionID:                dataloader.NewBatchedLoader(Unwrap(dbf.FeedInfosByFeedVersionID)),
-		FeedsByOperatorOnestopID:                dataloader.NewBatchedLoader(Unwrap(dbf.FeedsByOperatorOnestopID)),
-		StopsByRouteID:                          dataloader.NewBatchedLoader(Unwrap(dbf.StopsByRouteID)),
-		StopsByParentStopID:                     dataloader.NewBatchedLoader(Unwrap(dbf.StopsByParentStopID)),
-		AgencyPlacesByAgencyID:                  dataloader.NewBatchedLoader(Unwrap(dbf.AgencyPlacesByAgencyID)),
-		RouteGeometriesByRouteID:                dataloader.NewBatchedLoader(Unwrap(dbf.RouteGeometriesByRouteID)),
-		TripsByRouteID:                          dataloader.NewBatchedLoader(Unwrap(dbf.TripsByRouteID)),
-		FrequenciesByTripID:                     dataloader.NewBatchedLoader(Unwrap(dbf.FrequenciesByTripID)),
-		StopTimesByTripID:                       dataloader.NewBatchedLoader(Unwrap(dbf.StopTimesByTripID)),
-		StopTimesByStopID:                       dataloader.NewBatchedLoader(Unwrap(dbf.StopTimesByStopID)),
-		RouteStopsByRouteID:                     dataloader.NewBatchedLoader(Unwrap(dbf.RouteStopsByRouteID)),
-		RouteStopPatternsByRouteID:              dataloader.NewBatchedLoader(Unwrap(dbf.RouteStopPatternsByRouteID)),
-		RouteStopsByStopID:                      dataloader.NewBatchedLoader(Unwrap(dbf.RouteStopsByStopID)),
-		RouteHeadwaysByRouteID:                  dataloader.NewBatchedLoader(Unwrap(dbf.RouteHeadwaysByRouteID)),
-		RoutesByAgencyID:                        dataloader.NewBatchedLoader(Unwrap(dbf.RoutesByAgencyID)),
-		PathwaysByFromStopID:                    dataloader.NewBatchedLoader(Unwrap(dbf.PathwaysByFromStopID)),
-		PathwaysByToStopID:                      dataloader.NewBatchedLoader(Unwrap(dbf.PathwaysByToStopID)),
-		CalendarDatesByServiceID:                dataloader.NewBatchedLoader(Unwrap(dbf.CalendarDatesByServiceID)),
-		CensusTableByID:                         dataloader.NewBatchedLoader(Unwrap(dbf.CensusTableByID)),
-		CensusGeographiesByEntityID:             dataloader.NewBatchedLoader(Unwrap(dbf.CensusGeographiesByEntityID)),
-		CensusValuesByGeographyID:               dataloader.NewBatchedLoader(Unwrap(dbf.CensusValuesByGeographyID)),
+		FeedStatesByFeedID:                      withWait(d, dbf.FeedStatesByFeedID),
+		AgenciesByID:                            withWait(d, dbf.AgenciesByID),
+		CalendarsByID:                           withWait(d, dbf.CalendarsByID),
+		FeedsByID:                               withWait(d, dbf.FeedsByID),
+		RoutesByID:                              withWait(d, dbf.RoutesByID),
+		ShapesByID:                              withWait(d, dbf.ShapesByID),
+		StopsByID:                               withWait(d, dbf.StopsByID),
+		FeedVersionsByID:                        withWait(d, dbf.FeedVersionsByID),
+		LevelsByID:                              withWait(d, dbf.LevelsByID),
+		TripsByID:                               withWait(d, dbf.TripsByID),
+		OperatorsByCOIF:                         withWait(d, dbf.OperatorsByCOIF),
+		FeedVersionGtfsImportsByFeedVersionID:   withWait(d, dbf.FeedVersionGtfsImportsByFeedVersionID),
+		FeedVersionsByFeedID:                    withWait(d, dbf.FeedVersionsByFeedID),
+		FeedFetchesByFeedID:                     withWait(d, dbf.FeedFetchesByFeedID),
+		OperatorsByFeedID:                       withWait(d, dbf.OperatorsByFeedID),
+		AgenciesByOnestopID:                     withWait(d, dbf.AgenciesByOnestopID),
+		FeedVersionServiceLevelsByFeedVersionID: withWait(d, dbf.FeedVersionServiceLevelsByFeedVersionID),
+		FeedVersionFileInfosByFeedVersionID:     withWait(d, dbf.FeedVersionFileInfosByFeedVersionID),
+		AgenciesByFeedVersionID:                 withWait(d, dbf.AgenciesByFeedVersionID),
+		RoutesByFeedVersionID:                   withWait(d, dbf.RoutesByFeedVersionID),
+		StopsByFeedVersionID:                    withWait(d, dbf.StopsByFeedVersionID),
+		TripsByFeedVersionID:                    withWait(d, dbf.TripsByFeedVersionID),
+		FeedInfosByFeedVersionID:                withWait(d, dbf.FeedInfosByFeedVersionID),
+		FeedsByOperatorOnestopID:                withWait(d, dbf.FeedsByOperatorOnestopID),
+		StopsByRouteID:                          withWait(d, dbf.StopsByRouteID),
+		StopsByParentStopID:                     withWait(d, dbf.StopsByParentStopID),
+		AgencyPlacesByAgencyID:                  withWait(d, dbf.AgencyPlacesByAgencyID),
+		RouteGeometriesByRouteID:                withWait(d, dbf.RouteGeometriesByRouteID),
+		TripsByRouteID:                          withWait(d, dbf.TripsByRouteID),
+		FrequenciesByTripID:                     withWait(d, dbf.FrequenciesByTripID),
+		StopTimesByTripID:                       withWait(d, dbf.StopTimesByTripID),
+		StopTimesByStopID:                       withWait(d, dbf.StopTimesByStopID),
+		RouteStopsByRouteID:                     withWait(d, dbf.RouteStopsByRouteID),
+		RouteStopPatternsByRouteID:              withWait(d, dbf.RouteStopPatternsByRouteID),
+		RouteStopsByStopID:                      withWait(d, dbf.RouteStopsByStopID),
+		RouteHeadwaysByRouteID:                  withWait(d, dbf.RouteHeadwaysByRouteID),
+		RoutesByAgencyID:                        withWait(d, dbf.RoutesByAgencyID),
+		PathwaysByFromStopID:                    withWait(d, dbf.PathwaysByFromStopID),
+		PathwaysByToStopID:                      withWait(d, dbf.PathwaysByToStopID),
+		CalendarDatesByServiceID:                withWait(d, dbf.CalendarDatesByServiceID),
+		CensusTableByID:                         withWait(d, dbf.CensusTableByID),
+		CensusGeographiesByEntityID:             withWait(d, dbf.CensusGeographiesByEntityID),
+		CensusValuesByGeographyID:               withWait(d, dbf.CensusValuesByGeographyID),
 	}
 	return loaders
 }
@@ -147,21 +149,9 @@ func Unwrap[
 	return x
 }
 
-// This function adapts existing DBFinder methods to dataloader Result type
-func UnwrapMulti[
+func withWait[
 	T any,
-	AT []T,
 	ParamT comparable,
-](
-	cb func(context.Context, []ParamT) ([]AT, []error),
-) func(context.Context, []ParamT) []*dataloader.Result[AT] {
-	x := func(ctx context.Context, ps []ParamT) []*dataloader.Result[AT] {
-		a, _ := cb(ctx, ps)
-		ret := make([]*dataloader.Result[AT], len(ps))
-		for idx := range ps {
-			ret[idx] = &dataloader.Result[AT]{Data: a[idx]}
-		}
-		return ret
-	}
-	return x
+](d time.Duration, cb func(context.Context, []ParamT) ([]T, []error)) *dataloader.Loader[ParamT, T] {
+	return dataloader.NewBatchedLoader(Unwrap(cb), dataloader.WithWait[ParamT, T](d))
 }
