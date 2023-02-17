@@ -86,7 +86,6 @@ func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *mode
 	if err := Select(ctx, f.db, FeedVersionSelect(limit, after, ids, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
-
 	return ents, nil
 }
 
@@ -239,15 +238,7 @@ func (f *DBFinder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Trip{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Trip, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Trip) int { return ent.ID }), nil
 }
 
 // Simple ID loaders
@@ -261,15 +252,7 @@ func (f *DBFinder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, [
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Level{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Level, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Level) int { return ent.ID }), nil
 }
 
 func (f *DBFinder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
@@ -282,15 +265,7 @@ func (f *DBFinder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calen
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Calendar{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Calendar, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Calendar) int { return ent.ID }), nil
 }
 
 func (f *DBFinder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []error) {
@@ -303,15 +278,7 @@ func (f *DBFinder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, [
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Shape{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Shape, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Shape) int { return ent.ID }), nil
 }
 
 func (f *DBFinder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
@@ -319,15 +286,7 @@ func (f *DBFinder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.Fe
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.FeedVersion{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.FeedVersion, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.FeedVersion) int { return ent.ID }), nil
 }
 
 func (f *DBFinder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
@@ -335,15 +294,7 @@ func (f *DBFinder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []e
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Feed{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Feed, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Feed) int { return ent.ID }), nil
 }
 
 func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
@@ -352,15 +303,8 @@ func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Agency{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Agency, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Agency) int { return ent.ID }), nil
+
 }
 
 func (f *DBFinder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
@@ -368,15 +312,7 @@ func (f *DBFinder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []e
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Stop{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Stop, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Stop) int { return ent.ID }), nil
 }
 
 func (f *DBFinder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
@@ -384,15 +320,7 @@ func (f *DBFinder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, [
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Route{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Route, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Route) int { return ent.ID }), nil
 }
 
 func (f *DBFinder) CensusTableByID(ctx context.Context, ids []int) ([]*model.CensusTable, []error) {
@@ -405,15 +333,7 @@ func (f *DBFinder) CensusTableByID(ctx context.Context, ids []int) ([]*model.Cen
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.CensusTable{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.CensusTable, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.CensusTable) int { return ent.ID }), nil
 }
 
 func (f *DBFinder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
@@ -426,15 +346,7 @@ func (f *DBFinder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, id
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.FeedVersionGtfsImport{}
-	for _, ent := range ents {
-		byid[ent.FeedVersionID] = ent
-	}
-	ents2 := make([]*model.FeedVersionGtfsImport, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.FeedVersionGtfsImport) int { return ent.FeedVersionID }), nil
 }
 
 func (f *DBFinder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
@@ -447,15 +359,7 @@ func (f *DBFinder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.FeedState{}
-	for _, ent := range ents {
-		byid[ent.FeedID] = ent
-	}
-	ents2 := make([]*model.FeedState, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
 }
 
 func (f *DBFinder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Operator, []error) {
@@ -468,15 +372,7 @@ func (f *DBFinder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Ope
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	byid := map[int]*model.Operator{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.Operator, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.ID }), nil
 }
 
 // Param loaders
@@ -503,18 +399,12 @@ func (f *DBFinder) OperatorsByFeedID(ctx context.Context, params []model.Operato
 		if v := ent.FeedID; v > 0 {
 			group[v] = append(group[v], ent)
 		}
-
 	}
 	var ents [][]*model.Operator
 	for _, id := range ids {
 		ents = append(ents, group[id])
 	}
 	return ents, nil
-}
-
-func marshalParam(param interface{}) string {
-	a, _ := json.Marshal(param)
-	return string(a)
 }
 
 func (f *DBFinder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
@@ -971,15 +861,7 @@ func (f *DBFinder) FeedVersionsByFeedID(ctx context.Context, params []model.Feed
 	if err != nil {
 		return nil, logExtendErr(len(params), err)
 	}
-	group := map[int][]*model.FeedVersion{}
-	for _, ent := range qents {
-		group[ent.FeedID] = append(group[ent.FeedID], ent)
-	}
-	var ents [][]*model.FeedVersion
-	for _, id := range ids {
-		ents = append(ents, group[id])
-	}
-	return ents, nil
+	return groupBy(ids, qents, func(ent *model.FeedVersion) int { return ent.FeedID }), nil
 }
 
 func (f *DBFinder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
@@ -1438,4 +1320,34 @@ func logExtendErr(size int, err error) []error {
 		errs[i] = errors.New("database error")
 	}
 	return errs
+}
+
+func marshalParam(param interface{}) string {
+	a, _ := json.Marshal(param)
+	return string(a)
+}
+
+func groupBy[K comparable, T any](keys []K, ents []T, cb func(T) K) [][]T {
+	bykey := map[K][]T{}
+	for _, ent := range ents {
+		key := cb(ent)
+		bykey[key] = append(bykey[key], ent)
+	}
+	ret := make([][]T, len(keys))
+	for idx, key := range keys {
+		ret[idx] = bykey[key]
+	}
+	return ret
+}
+
+func arrangeBy[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
+	bykey := map[K]T{}
+	for _, ent := range ents {
+		bykey[cb(ent)] = ent
+	}
+	ret := make([]T, len(keys))
+	for idx, key := range keys {
+		ret[idx] = bykey[key]
+	}
+	return ret
 }
