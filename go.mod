@@ -35,7 +35,10 @@ require (
 	google.golang.org/protobuf v1.28.0
 )
 
-require github.com/go-redis/redismock/v8 v8.0.6
+require (
+	github.com/go-redis/redismock/v8 v8.0.6
+	github.com/graph-gophers/dataloader/v7 v7.1.0
+)
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.1.4 // indirect
@@ -78,7 +81,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect

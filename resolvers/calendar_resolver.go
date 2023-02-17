@@ -25,7 +25,7 @@ func (r *calendarResolver) EndDate(ctx context.Context, obj *model.Calendar) (*t
 }
 
 func (r *calendarResolver) AddedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.Date, error) {
-	ents, err := For(ctx).CalendarDatesByServiceID.Load(model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})
+	ents, err := For(ctx).CalendarDatesByServiceID.Load(ctx, model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})()
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (r *calendarResolver) AddedDates(ctx context.Context, obj *model.Calendar, 
 }
 
 func (r *calendarResolver) RemovedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tl.Date, error) {
-	ents, err := For(ctx).CalendarDatesByServiceID.Load(model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})
+	ents, err := For(ctx).CalendarDatesByServiceID.Load(ctx, model.CalendarDateParam{ServiceID: obj.ID, Limit: limit, Where: nil})()
 	if err != nil {
 		return nil, err
 	}

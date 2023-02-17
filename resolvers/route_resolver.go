@@ -18,31 +18,31 @@ func (r *routeResolver) Cursor(ctx context.Context, obj *model.Route) (*model.Cu
 }
 
 func (r *routeResolver) Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error) {
-	return For(ctx).RouteGeometriesByRouteID.Load(model.RouteGeometryParam{RouteID: obj.ID, Limit: limit})
+	return For(ctx).RouteGeometriesByRouteID.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID, Limit: limit})()
 }
 
 func (r *routeResolver) Trips(ctx context.Context, obj *model.Route, limit *int, where *model.TripFilter) ([]*model.Trip, error) {
-	return For(ctx).TripsByRouteID.Load(model.TripParam{RouteID: obj.ID, Limit: limit, Where: where})
+	return For(ctx).TripsByRouteID.Load(ctx, model.TripParam{RouteID: obj.ID, Limit: limit, Where: where})()
 }
 
 func (r *routeResolver) Agency(ctx context.Context, obj *model.Route) (*model.Agency, error) {
-	return For(ctx).AgenciesByID.Load(atoi(obj.AgencyID))
+	return For(ctx).AgenciesByID.Load(ctx, atoi(obj.AgencyID))()
 }
 
 func (r *routeResolver) FeedVersion(ctx context.Context, obj *model.Route) (*model.FeedVersion, error) {
-	return For(ctx).FeedVersionsByID.Load(obj.FeedVersionID)
+	return For(ctx).FeedVersionsByID.Load(ctx, obj.FeedVersionID)()
 }
 
 func (r *routeResolver) Stops(ctx context.Context, obj *model.Route, limit *int, where *model.StopFilter) ([]*model.Stop, error) {
-	return For(ctx).StopsByRouteID.Load(model.StopParam{RouteID: obj.ID, Limit: limit, Where: where})
+	return For(ctx).StopsByRouteID.Load(ctx, model.StopParam{RouteID: obj.ID, Limit: limit, Where: where})()
 }
 
 func (r *routeResolver) RouteStops(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteStop, error) {
-	return For(ctx).RouteStopsByRouteID.Load(model.RouteStopParam{RouteID: obj.ID, Limit: limit})
+	return For(ctx).RouteStopsByRouteID.Load(ctx, model.RouteStopParam{RouteID: obj.ID, Limit: limit})()
 }
 
 func (r *routeResolver) Headways(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteHeadway, error) {
-	return For(ctx).RouteHeadwaysByRouteID.Load(model.RouteHeadwayParam{RouteID: obj.ID, Limit: limit})
+	return For(ctx).RouteHeadwaysByRouteID.Load(ctx, model.RouteHeadwayParam{RouteID: obj.ID, Limit: limit})()
 }
 
 func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error) {
@@ -63,7 +63,7 @@ func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route, active *bo
 }
 
 func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error) {
-	return For(ctx).RouteStopPatternsByRouteID.Load(model.RouteStopPatternParam{RouteID: obj.ID})
+	return For(ctx).RouteStopPatternsByRouteID.Load(ctx, model.RouteStopPatternParam{RouteID: obj.ID})()
 }
 
 // ROUTE HEADWAYS
@@ -71,7 +71,7 @@ func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*mode
 type routeHeadwayResolver struct{ *Resolver }
 
 func (r *routeHeadwayResolver) Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error) {
-	return For(ctx).StopsByID.Load(obj.SelectedStopID)
+	return For(ctx).StopsByID.Load(ctx, obj.SelectedStopID)()
 }
 
 func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tl.WideTime, error) {
@@ -88,15 +88,15 @@ func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteH
 type routeStopResolver struct{ *Resolver }
 
 func (r *routeStopResolver) Route(ctx context.Context, obj *model.RouteStop) (*model.Route, error) {
-	return For(ctx).RoutesByID.Load(obj.RouteID)
+	return For(ctx).RoutesByID.Load(ctx, obj.RouteID)()
 }
 
 func (r *routeStopResolver) Stop(ctx context.Context, obj *model.RouteStop) (*model.Stop, error) {
-	return For(ctx).StopsByID.Load(obj.StopID)
+	return For(ctx).StopsByID.Load(ctx, obj.StopID)()
 }
 
 func (r *routeStopResolver) Agency(ctx context.Context, obj *model.RouteStop) (*model.Agency, error) {
-	return For(ctx).AgenciesByID.Load(obj.AgencyID)
+	return For(ctx).AgenciesByID.Load(ctx, obj.AgencyID)()
 }
 
 // ROUTE PATTERN
