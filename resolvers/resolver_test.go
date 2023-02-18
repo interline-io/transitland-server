@@ -43,6 +43,27 @@ func TestMain(m *testing.M) {
 
 // Test helpers
 
+type testEnv struct {
+	client *client.Client
+	dbf    model.Finder
+	rtf    model.RTFinder
+	gbf    model.GbfsFinder
+}
+
+func newTestEnv(t testing.TB) testEnv {
+	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, dbf, rtf, gbf := newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
+	return testEnv{
+		client: c,
+		dbf:    dbf,
+		rtf:    rtf,
+		gbf:    gbf,
+	}
+}
+
 func newTestClient(t testing.TB) (*client.Client, model.Finder, model.RTFinder, model.GbfsFinder) {
 	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
 	if err != nil {
@@ -62,7 +83,7 @@ func toJson(m map[string]interface{}) string {
 	return string(rr)
 }
 
-func testquery(t *testing.T, c *client.Client, tc testcase) {
+func queryTestcase(t *testing.T, c *client.Client, tc testcase) {
 	tested := false
 	var resp map[string]interface{}
 	opts := []client.Option{}
@@ -113,5 +134,33 @@ func testquery(t *testing.T, c *client.Client, tc testcase) {
 	}
 	if !tested {
 		t.Errorf("no test performed, check test case")
+	}
+}
+
+func queryTestcases(t *testing.T, c *client.Client, tcs []testcase) {
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			queryTestcase(t, c, tc)
+		})
+	}
+}
+
+func benchmarkTestcases(b *testing.B, c *client.Client, tcs []testcase) {
+	for _, tc := range tcs {
+		b.Run(tc.name, func(b *testing.B) {
+			benchmarkTestcase(b, c, tc)
+		})
+	}
+}
+
+func benchmarkTestcase(b *testing.B, c *client.Client, tc testcase) {
+	opts := []client.Option{}
+	for k, v := range tc.vars {
+		opts = append(opts, client.Var(k, v))
+	}
+	var resp map[string]any
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		c.MustPost(tc.query, &resp, opts...)
 	}
 }

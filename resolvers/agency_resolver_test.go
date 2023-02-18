@@ -193,7 +193,7 @@ func TestAgencyResolver(t *testing.T) {
 	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }
@@ -231,7 +231,7 @@ func TestAgencyResolver_Cursor(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }
@@ -385,7 +385,7 @@ func TestAgencyResolver_License(t *testing.T) {
 	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }

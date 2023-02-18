@@ -6,6 +6,31 @@ import (
 )
 
 func TestStopResolver(t *testing.T) {
+	te := newTestEnv(t)
+	queryTestcases(t, te.client, stopResolverTestcases(t, te))
+}
+
+func TestStopResolver_Cursor(t *testing.T) {
+	te := newTestEnv(t)
+	queryTestcases(t, te.client, stopResolverCursorTestcases(t, te))
+}
+
+func TestStopResolver_PreviousOnestopID(t *testing.T) {
+	te := newTestEnv(t)
+	queryTestcases(t, te.client, stopResolverPreviousOnestopIDTestcases(t, te))
+}
+
+func TestStopResolver_License(t *testing.T) {
+	te := newTestEnv(t)
+	queryTestcases(t, te.client, stopResolverLicenseTestcases(t, te))
+}
+
+func BenchmarkStopResolver(b *testing.B) {
+	te := newTestEnv(b)
+	benchmarkTestcases(b, te.client, stopResolverTestcases(b, te))
+}
+
+func stopResolverTestcases(t testing.TB, te testEnv) []testcase {
 	bartStops := []string{"12TH", "16TH", "19TH", "19TH_N", "24TH", "ANTC", "ASHB", "BALB", "BAYF", "CAST", "CIVC", "COLS", "COLM", "CONC", "DALY", "DBRK", "DUBL", "DELN", "PLZA", "EMBR", "FRMT", "FTVL", "GLEN", "HAYW", "LAFY", "LAKE", "MCAR", "MCAR_S", "MLBR", "MONT", "NBRK", "NCON", "OAKL", "ORIN", "PITT", "PCTR", "PHIL", "POWL", "RICH", "ROCK", "SBRN", "SFIA", "SANL", "SHAY", "SSAN", "UCTY", "WCRK", "WARM", "WDUB", "WOAK"}
 	caltrainRailStops := []string{"70011", "70012", "70021", "70022", "70031", "70032", "70041", "70042", "70051", "70052", "70061", "70062", "70071", "70072", "70081", "70082", "70091", "70092", "70101", "70102", "70111", "70112", "70121", "70122", "70131", "70132", "70141", "70142", "70151", "70152", "70161", "70162", "70171", "70172", "70191", "70192", "70201", "70202", "70211", "70212", "70221", "70222", "70231", "70232", "70241", "70242", "70251", "70252", "70261", "70262", "70271", "70272", "70281", "70282", "70291", "70292", "70301", "70302", "70311", "70312", "70321", "70322"}
 	caltrainBusStops := []string{"777402", "777403"}
@@ -239,19 +264,13 @@ func TestStopResolver(t *testing.T) {
 		},
 		// TODO: census_geographies
 		// TODO: route_stop_buffer
-
 	}
-	c, _, _, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
-		})
-	}
+	return testcases
 }
 
-func TestStopResolver_Cursor(t *testing.T) {
+func stopResolverCursorTestcases(t *testing.T, te testEnv) []testcase {
 	// First 1000 stops...
-	c, dbf, _, _ := newTestClient(t)
+	dbf := te.dbf
 	allEnts, err := dbf.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -298,14 +317,10 @@ func TestStopResolver_Cursor(t *testing.T) {
 		// 	stopIds[:100],
 		// },
 	}
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
-		})
-	}
+	return testcases
 }
 
-func TestStopResolver_PreviousOnestopID(t *testing.T) {
+func stopResolverPreviousOnestopIDTestcases(t testing.TB, te testEnv) []testcase {
 	testcases := []testcase{
 		{
 			name:         "default",
@@ -336,15 +351,10 @@ func TestStopResolver_PreviousOnestopID(t *testing.T) {
 			selectExpect: []string{"s-9q9nfswzpg-fruitvale"},
 		},
 	}
-	c, _, _, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
-		})
-	}
+	return testcases
 }
 
-func TestStopResolver_License(t *testing.T) {
+func stopResolverLicenseTestcases(t testing.TB, te testEnv) []testcase {
 	q := `
 	query ($lic: LicenseFilter) {
 		stops(limit: 10000, where: {license: $lic}) {
@@ -490,10 +500,5 @@ func TestStopResolver_License(t *testing.T) {
 			selectExpectCount:  2413,
 		},
 	}
-	c, _, _, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
-		})
-	}
+	return testcases
 }
