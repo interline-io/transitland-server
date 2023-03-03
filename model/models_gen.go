@@ -295,9 +295,9 @@ type StopObservation struct {
 }
 
 type StopObservationFilter struct {
-	FeedVersionID int      `json:"feed_version_id"`
-	Source        *string  `json:"source"`
-	TripStartDate *tt.Date `json:"trip_start_date"`
+	Source        string  `json:"source"`
+	FeedVersionID int     `json:"feed_version_id"`
+	TripStartDate tt.Date `json:"trip_start_date"`
 }
 
 type StopTimeFilter struct {

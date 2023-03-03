@@ -167,9 +167,9 @@ input StopTimeFilter {
 }
 
 input StopObservationFilter {
+  source: String!
   feed_version_id: Int!
-  source: String
-  trip_start_date: Date
+  trip_start_date: Date!
 }
 
 input PathwayFilter {

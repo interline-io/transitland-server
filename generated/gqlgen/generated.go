@@ -6439,9 +6439,9 @@ input StopTimeFilter {
 }
 
 input StopObservationFilter {
+  source: String!
   feed_version_id: Int!
-  source: String
-  trip_start_date: Date
+  trip_start_date: Date!
 }
 
 input PathwayFilter {
@@ -43422,13 +43422,21 @@ func (ec *executionContext) unmarshalInputStopObservationFilter(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"feed_version_id", "source", "trip_start_date"}
+	fieldsInOrder := [...]string{"source", "feed_version_id", "trip_start_date"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "source":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
+			it.Source, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "feed_version_id":
 			var err error
 
@@ -43437,19 +43445,11 @@ func (ec *executionContext) unmarshalInputStopObservationFilter(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
-		case "source":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
-			it.Source, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "trip_start_date":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trip_start_date"))
-			it.TripStartDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			it.TripStartDate, err = ec.unmarshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}

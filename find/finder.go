@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -380,24 +381,18 @@ func (f *DBFinder) StopObservationsByStopID(ctx context.Context, params []model.
 	// Currently Where must not be nil for this query
 	// This may not be required in the future.
 	if where == nil {
-		where = &model.StopObservationFilter{}
+		return nil, nil
 	}
 	q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
 		From("ext_performance_stop_observations obs").
 		Join("gtfs_stops on gtfs_stops.stop_id = obs.to_stop_id").
 		Where(sq.Eq{"gtfs_stops.id": ids}).
 		Limit(100000)
-	if where != nil {
-		q = q.Where("obs.feed_version_id = ?", where.FeedVersionID)
-		if where.TripStartDate != nil {
-			q = q.Where("obs.trip_start_date = ?", where.TripStartDate)
-		} else {
-			q = q.Where("obs.trip_start_date = ?", time.Now())
-		}
-		if where.Source != nil {
-			q = q.Where("obs.source = ?", where.Source)
-		}
-	}
+	q = q.Where("obs.feed_version_id = ?", where.FeedVersionID)
+	q = q.Where("obs.trip_start_date = ?", where.TripStartDate)
+	q = q.Where("obs.source = ?", where.Source)
+	// q = q.Where("start_time >= ?", where.StartTime)
+	// q = q.Where("end_time <= ?", where.EndTime)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
@@ -1028,9 +1023,8 @@ func (f *DBFinder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model
 	// TODO: this is moderately cursed
 	type qlookup struct {
 		SourceID int
-		Stop     model.Stop
+		*model.Stop
 	}
-
 	qents := []*qlookup{}
 	q := StopSelect(nil, nil, nil, true, nil)
 	q = q.Column("tlse.id as source_id")
@@ -1045,7 +1039,8 @@ func (f *DBFinder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model
 	}
 	group := map[int]*model.Stop{}
 	for _, ent := range qents {
-		group[ent.SourceID] = &ent.Stop
+		fmt.Printf("qent: %#v\n", ent)
+		group[ent.SourceID] = ent.Stop
 	}
 	var ents []*model.Stop
 	for _, id := range ids {
