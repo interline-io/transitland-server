@@ -124,6 +124,7 @@ type FeedVersionFilter struct {
 	ImportStatus  *ImportStatus `json:"import_status"`
 	FeedOnestopID *string       `json:"feed_onestop_id"`
 	Sha1          *string       `json:"sha1"`
+	File          *string       `json:"file"`
 	FeedIds       []int         `json:"feed_ids"`
 }
 
@@ -267,12 +268,36 @@ type StopFilter struct {
 	FeedOnestopID           *string        `json:"feed_onestop_id"`
 	StopID                  *string        `json:"stop_id"`
 	StopCode                *string        `json:"stop_code"`
+	LocationType            *int           `json:"location_type"`
 	Within                  *tt.Polygon    `json:"within"`
 	Near                    *PointRadius   `json:"near"`
 	Search                  *string        `json:"search"`
 	License                 *LicenseFilter `json:"license"`
 	ServedByOnestopIds      []string       `json:"served_by_onestop_ids"`
 	AgencyIds               []int          `json:"agency_ids"`
+}
+
+type StopObservation struct {
+	ScheduleRelationship   *string      `json:"schedule_relationship"`
+	TripStartDate          *tt.Date     `json:"trip_start_date"`
+	TripStartTime          *tt.WideTime `json:"trip_start_time"`
+	FromStopID             *string      `json:"from_stop_id"`
+	ToStopID               *string      `json:"to_stop_id"`
+	AgencyID               *string      `json:"agency_id"`
+	RouteID                *string      `json:"route_id"`
+	TripID                 *string      `json:"trip_id"`
+	StopSequence           *int         `json:"stop_sequence"`
+	Source                 *string      `json:"source"`
+	ScheduledArrivalTime   *tt.WideTime `json:"scheduled_arrival_time"`
+	ScheduledDepartureTime *tt.WideTime `json:"scheduled_departure_time"`
+	ObservedArrivalTime    *tt.WideTime `json:"observed_arrival_time"`
+	ObservedDepartureTime  *tt.WideTime `json:"observed_departure_time"`
+}
+
+type StopObservationFilter struct {
+	Source        string  `json:"source"`
+	FeedVersionID int     `json:"feed_version_id"`
+	TripStartDate tt.Date `json:"trip_start_date"`
 }
 
 type StopTimeFilter struct {

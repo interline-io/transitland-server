@@ -73,6 +73,10 @@ func (r *Resolver) FeedVersionGtfsImport() gqlgen.FeedVersionGtfsImportResolver 
 	return &feedVersionGtfsImportResolver{r}
 }
 
+func (r *Resolver) Level() gqlgen.LevelResolver {
+	return &levelResolver{r}
+}
+
 // Calendar .
 func (r *Resolver) Calendar() gqlgen.CalendarResolver {
 	return &calendarResolver{r}
@@ -91,6 +95,11 @@ func (r *Resolver) CensusValue() gqlgen.CensusValueResolver {
 // Pathway .
 func (r *Resolver) Pathway() gqlgen.PathwayResolver {
 	return &pathwayResolver{r}
+}
+
+// StopExternalReference .
+func (r *Resolver) StopExternalReference() gqlgen.StopExternalReferenceResolver {
+	return &stopExternalReferenceResolver{r}
 }
 
 // Directions .

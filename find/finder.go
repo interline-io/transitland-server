@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -340,6 +341,67 @@ func (f *DBFinder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []e
 		byid[ent.ID] = ent
 	}
 	ents2 := make([]*model.Feed, len(ids))
+	for i, id := range ids {
+		ents2[i] = byid[id]
+	}
+	return ents2, nil
+}
+
+func (f *DBFinder) StopExternalReferencesByStopID(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
+	var ents []*model.StopExternalReference
+	q := sq.StatementBuilder.Select("*").From("tl_stop_external_references").Where(sq.Eq{"id": ids})
+	if err := Select(ctx, f.db, q, &ents); err != nil {
+		return nil, []error{err}
+	}
+	byid := map[int]*model.StopExternalReference{}
+	for _, ent := range ents {
+		byid[ent.ID] = ent
+	}
+	ents2 := make([]*model.StopExternalReference, len(ids))
+	for i, id := range ids {
+		ents2[i] = byid[id]
+	}
+	return ents2, nil
+}
+
+func (f *DBFinder) StopObservationsByStopID(ctx context.Context, params []model.StopObservationParam) ([][]*model.StopObservation, []error) {
+	type wrappedStopObservation struct {
+		StopID int
+		model.StopObservation
+	}
+	var ents []*wrappedStopObservation
+	var ids []int
+	var where *model.StopObservationFilter
+	for _, p := range params {
+		if where == nil && p.Where != nil {
+			where = p.Where
+		}
+		ids = append(ids, p.StopID)
+	}
+	// Currently Where must not be nil for this query
+	// This may not be required in the future.
+	if where == nil {
+		return nil, nil
+	}
+	q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
+		From("ext_performance_stop_observations obs").
+		Join("gtfs_stops on gtfs_stops.stop_id = obs.to_stop_id").
+		Where(sq.Eq{"gtfs_stops.id": ids}).
+		Limit(100000)
+	q = q.Where("obs.feed_version_id = ?", where.FeedVersionID)
+	q = q.Where("obs.trip_start_date = ?", where.TripStartDate)
+	q = q.Where("obs.source = ?", where.Source)
+	// q = q.Where("start_time >= ?", where.StartTime)
+	// q = q.Where("end_time <= ?", where.EndTime)
+	if err := Select(ctx, f.db, q, &ents); err != nil {
+		return nil, logExtendErr(len(ids), err)
+	}
+	byid := map[int][]*model.StopObservation{}
+	for _, ent := range ents {
+		ent := ent
+		byid[ent.StopID] = append(byid[ent.StopID], &ent.StopObservation)
+	}
+	ents2 := make([][]*model.StopObservation, len(ids))
 	for i, id := range ids {
 		ents2[i] = byid[id]
 	}
@@ -954,6 +1016,39 @@ func (f *DBFinder) StopsByParentStopID(ctx context.Context, params []model.StopP
 	return ents, nil
 }
 
+func (f *DBFinder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	// TODO: this is moderately cursed
+	type qlookup struct {
+		SourceID int
+		*model.Stop
+	}
+	qents := []*qlookup{}
+	q := StopSelect(nil, nil, nil, true, nil)
+	q = q.Column("tlse.id as source_id")
+	q = q.Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id")
+	q = q.Where(sq.Eq{"tlse.id": ids})
+	if err := Select(ctx,
+		f.db,
+		q,
+		&qents,
+	); err != nil {
+		return nil, logExtendErr(0, err)
+	}
+	group := map[int]*model.Stop{}
+	for _, ent := range qents {
+		fmt.Printf("qent: %#v\n", ent)
+		group[ent.SourceID] = ent.Stop
+	}
+	var ents []*model.Stop
+	for _, id := range ids {
+		ents = append(ents, group[id])
+	}
+	return ents, nil
+}
+
 func (f *DBFinder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
 	if len(params) == 0 {
 		return nil, nil
@@ -1166,6 +1261,34 @@ func (f *DBFinder) StopsByFeedVersionID(ctx context.Context, params []model.Stop
 	err := Select(ctx,
 		f.db,
 		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		&qents,
+	)
+	if err != nil {
+		return nil, logExtendErr(len(params), err)
+	}
+	group := map[int][]*model.Stop{}
+	for _, ent := range qents {
+		group[ent.FeedVersionID] = append(group[ent.FeedVersionID], ent)
+	}
+	var ents [][]*model.Stop
+	for _, id := range ids {
+		ents = append(ents, group[id])
+	}
+	return ents, nil
+}
+
+func (f *DBFinder) StopsByLevelID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
+	if len(params) == 0 {
+		return nil, nil
+	}
+	ids := []int{}
+	for _, p := range params {
+		ids = append(ids, p.FeedVersionID)
+	}
+	qents := []*model.Stop{}
+	err := Select(ctx,
+		f.db,
+		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_levels", "id", "level_id", ids),
 		&qents,
 	)
 	if err != nil {

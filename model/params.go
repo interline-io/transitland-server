@@ -87,6 +87,7 @@ type StopParam struct {
 	FeedVersionID int
 	ParentStopID  int
 	AgencyID      int
+	LevelID       int
 	Limit         *int
 	Where         *StopFilter
 	RouteID       int
@@ -114,6 +115,12 @@ type OperatorParam struct {
 	FeedID int
 	Limit  *int
 	Where  *OperatorFilter
+}
+
+type StopObservationParam struct {
+	StopID int
+	Limit  *int
+	Where  *StopObservationFilter
 }
 
 type CalendarDateParam struct {

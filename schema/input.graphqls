@@ -27,6 +27,7 @@ input FeedVersionFilter {
   import_status: ImportStatus
   feed_onestop_id: String
   sha1: String
+  file: String
   feed_ids: [Int!]
 }
 
@@ -142,6 +143,7 @@ input StopFilter {
   feed_onestop_id: String
   stop_id: String
   stop_code: String
+  location_type: Int
   within: Polygon
   near: PointRadius
   search: String
@@ -162,6 +164,12 @@ input StopTimeFilter {
   allow_previous_route_onestop_ids: Boolean
   exclude_first: Boolean
   exclude_last: Boolean
+}
+
+input StopObservationFilter {
+  source: String!
+  feed_version_id: Int!
+  trip_start_date: Date!
 }
 
 input PathwayFilter {
