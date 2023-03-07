@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"errors"
@@ -31,7 +31,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type ServerCommand struct {
+type Command struct {
 	Timeout           int
 	Port              string
 	LongQueryDuration int
@@ -49,7 +49,7 @@ type ServerCommand struct {
 	config.Config
 }
 
-func (cmd *ServerCommand) Parse(args []string) error {
+func (cmd *Command) Parse(args []string) error {
 	fl := flag.NewFlagSet("sync", flag.ExitOnError)
 	fl.Usage = func() {
 		log.Print("Usage: server")
@@ -94,7 +94,7 @@ func (cmd *ServerCommand) Parse(args []string) error {
 	return nil
 }
 
-func (cmd *ServerCommand) Run() error {
+func (cmd *Command) Run() error {
 	// Default finders and job queue
 	cfg := cmd.Config
 	var dbFinder model.Finder
