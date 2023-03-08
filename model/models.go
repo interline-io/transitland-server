@@ -56,6 +56,7 @@ type FeedFetch struct {
 }
 
 type FeedVersion struct {
+	SHA1Dir  tl.String   `json:"sha1_dir"`
 	Geometry *tl.Polygon `json:"geometry"`
 	tl.FeedVersion
 }
@@ -121,6 +122,7 @@ type Shape struct {
 }
 
 type Level struct {
+	Geometry tl.Polygon
 	tl.Level
 }
 
@@ -295,4 +297,13 @@ type FeedVersionFetchResult struct {
 
 type FeedVersionImportResult struct {
 	Success bool
+}
+
+///////////////////// Analyst
+
+type StopExternalReference struct {
+	ID                  int     `json:"id"`
+	TargetFeedOnestopID *string `json:"target_feed_onestop_id"`
+	TargetStopID        *string `json:"target_stop_id"`
+	Inactive            *bool   `json:"inactive"`
 }

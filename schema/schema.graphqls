@@ -165,6 +165,7 @@ type FeedVersion {
   updated_by: String
   name: String
   description: String
+  file: String  
   "Convex hull around all active stops in the feed version"
   geometry: Polygon
   feed: Feed!
@@ -324,6 +325,8 @@ type Stop {
   feed_version: FeedVersion!
   level: Level
   parent: Stop
+  external_reference: StopExternalReference  
+  observations(limit: Int, where: StopObservationFilter): [StopObservation!]
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
   pathways_from_stop(limit: Int): [Pathway!]!
@@ -365,6 +368,8 @@ type Level {
   level_id: String!
   level_name: String!
   level_index: Float!
+  geometry: Polygon!
+  stops: [Stop!]
 }
 
 """
@@ -470,7 +475,34 @@ type FeedInfo {
   feed_contact_url: String
 }
 
+# Archived observed stop-times
+
+type StopObservation {
+  schedule_relationship: String
+  trip_start_date: Date
+  trip_start_time: Seconds
+  from_stop_id: String
+  to_stop_id: String
+  agency_id: String
+  route_id: String
+  trip_id: String
+  stop_sequence: Int
+  source: String
+  scheduled_arrival_time: Seconds
+  scheduled_departure_time: Seconds
+  observed_arrival_time: Seconds
+  observed_departure_time: Seconds
+}
+
 # GTFS Support Entities
+
+type StopExternalReference {
+  id: Int!
+  target_feed_onestop_id: String
+  target_stop_id: String
+  inactive: Boolean
+  target_active_stop: Stop
+}
 
 type AgencyPlace {
   city_name: String
