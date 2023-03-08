@@ -63,6 +63,10 @@ type Loaders struct {
 	CalendarDatesByServiceID                *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
 	CensusGeographiesByEntityID             *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
 	CensusValuesByGeographyID               *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
+	StopObservationsByStopID                *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
+	StopExternalReferencesByStopID          *dataloader.Loader[int, *model.StopExternalReference]
+	StopsByLevelID                          *dataloader.Loader[model.StopParam, []*model.Stop]
+	TargetStopsByStopID                     *dataloader.Loader[int, *model.Stop]
 }
 
 // NewLoaders instantiates data loaders for the middleware
@@ -111,6 +115,10 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		CensusTableByID:                         withWait(waitTime, dbf.CensusTableByID),
 		CensusGeographiesByEntityID:             withWait(waitTime, dbf.CensusGeographiesByEntityID),
 		CensusValuesByGeographyID:               withWait(waitTime, dbf.CensusValuesByGeographyID),
+		StopObservationsByStopID:                withWait(waitTime, dbf.StopObservationsByStopID),
+		StopExternalReferencesByStopID:          withWait(waitTime, dbf.StopExternalReferencesByStopID),
+		StopsByLevelID:                          withWait(waitTime, dbf.StopsByLevelID),
+		TargetStopsByStopID:                     withWait(waitTime, dbf.TargetStopsByStopID),
 	}
 	return loaders
 }

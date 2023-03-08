@@ -11,5 +11,5 @@ type levelResolver struct {
 }
 
 func (r *levelResolver) Stops(ctx context.Context, obj *model.Level) ([]*model.Stop, error) {
-	return For(ctx).StopsByLevelID.Load(model.StopParam{LevelID: obj.ID})
+	return For(ctx).StopsByLevelID.Load(ctx, model.StopParam{LevelID: obj.ID})()
 }

@@ -59,11 +59,11 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 }
 
 func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (*model.StopExternalReference, error) {
-	return For(ctx).StopExternalReferencesByStopID.Load(obj.ID)
+	return For(ctx).StopExternalReferencesByStopID.Load(ctx, obj.ID)()
 }
 
 func (r *stopResolver) Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error) {
-	return For(ctx).StopObservationsByStopID.Load(model.StopObservationParam{StopID: obj.ID, Where: where, Limit: limit})
+	return For(ctx).StopObservationsByStopID.Load(ctx, model.StopObservationParam{StopID: obj.ID, Where: where, Limit: limit})()
 }
 
 func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
@@ -237,5 +237,5 @@ type stopExternalReferenceResolver struct {
 }
 
 func (r *stopExternalReferenceResolver) TargetActiveStop(ctx context.Context, obj *model.StopExternalReference) (*model.Stop, error) {
-	return For(ctx).TargetStopsByStopID.Load(obj.ID)
+	return For(ctx).TargetStopsByStopID.Load(ctx, obj.ID)()
 }
