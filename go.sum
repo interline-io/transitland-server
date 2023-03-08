@@ -265,6 +265,8 @@ github.com/iancoleman/orderedmap v0.2.0 h1:sq1N/TFpYH++aViPcaKjys3bDClUEU7s5B+z6
 github.com/iancoleman/orderedmap v0.2.0/go.mod h1:N0Wam8K1arqPXNWjMo21EXnBPOPp36vB07FNRdD2geA=
 github.com/imdario/mergo v0.3.9/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
+github.com/interline-io/transitland-lib v0.12.1-0.20230308192229-5135fef92d6d h1:3UYAS2hcuWHbqIrw11Y8McJQfhJbEOga+34ten5Buno=
+github.com/interline-io/transitland-lib v0.12.1-0.20230308192229-5135fef92d6d/go.mod h1:EnN1BuWqBAQzyIBOH+Ait7S8i4uC5fLqGzmX8FmQ2a8=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af h1:sh8vAWJ+vr9izhkDAMS3JRGDIjj0tNVwxfwd+2U2xMo=
 github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af/go.mod h1:oZaomI+9/et52UBjvNU9LCIqmgt816+7ljXCx0EIPzo=

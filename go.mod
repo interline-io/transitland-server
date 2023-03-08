@@ -20,7 +20,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/transitland-lib v0.11.2-0.20221230033427-7745077d8cc3
+	github.com/interline-io/transitland-lib v0.12.1-0.20230308192229-5135fef92d6d
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.6
 	github.com/prometheus/client_golang v0.9.3
@@ -103,4 +103,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
