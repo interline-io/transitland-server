@@ -115,7 +115,7 @@ func TestValidationResolver(t *testing.T) {
 			query:        `mutation($url:String!) {validate_gtfs(url:$url){warnings{filename}}}`,
 			vars:         vars,
 			selector:     "validate_gtfs.warnings.#.filename",
-			selectExpect: []string{"routes.txt", "trips.txt"},
+			selectExpect: []string{"routes.txt", "routes.txt", "trips.txt"}, // now includes an additional validation warning
 		},
 		{
 			name:         "service_levels",
