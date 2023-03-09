@@ -173,9 +173,9 @@ func (f *DBFinder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (
 			if (sd.Before(fetched) || sd.Equal(fetched)) && (ed.After(fetched) || ed.Equal(fetched)) {
 				fetchedWeek = i
 			}
-			if ent.TotalService.Val > highestService {
+			if ent.TotalService.Int() > highestService {
 				highestIdx = i
-				highestService = ent.TotalService.Val
+				highestService = ent.TotalService.Int()
 			}
 		}
 		if fetchedWeek < 0 {
