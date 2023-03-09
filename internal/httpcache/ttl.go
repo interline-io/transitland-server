@@ -3,7 +3,7 @@ package httpcache
 import (
 	"time"
 
-	"github.com/ReneKroon/ttlcache/v2"
+	"github.com/jellydator/ttlcache/v2"
 )
 
 type TTLCache struct {
