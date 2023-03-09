@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dnaeon/go-vcr/v2/cassette"
-	"github.com/dnaeon/go-vcr/v2/recorder"
 	"github.com/interline-io/transitland-lib/log"
+	"gopkg.in/dnaeon/go-vcr.v2/cassette"
+	"gopkg.in/dnaeon/go-vcr.v2/recorder"
 )
 
 // NewRecorder returns a configured recorder.
