@@ -9,26 +9,12 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth"
 )
-
-func mount(r *mux.Router, path string, handler http.Handler) {
-	r.PathPrefix(path).Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// If requesting /query rewrite to /query/ to match subrouter's "/"
-		if r.URL.Path == path {
-			r.URL.Path = r.URL.Path + "/"
-		}
-		// Remove path prefix
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, path)
-		handler.ServeHTTP(w, r)
-	}))
-}
 
 // log request and duration
 func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {

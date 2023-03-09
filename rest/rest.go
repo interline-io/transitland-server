@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
@@ -37,7 +37,7 @@ type restConfig struct {
 // NewServer .
 func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	restcfg := restConfig{Config: cfg, srv: srv}
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 
 	feedHandler := makeHandler(restcfg, func() apiHandler { return &FeedRequest{} })
 	fvHandler := makeHandler(restcfg, func() apiHandler { return &FeedVersionRequest{} })
@@ -177,9 +177,17 @@ func makeHandler(cfg restConfig, f func() apiHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ent := f()
 		opts := queryToMap(r.URL.Query())
-		for k, v := range mux.Vars(r) {
-			opts[k] = v
+
+		// Extract URL params from request
+		if rctx := chi.RouteContext(r.Context()); rctx != nil {
+			for _, k := range rctx.URLParams.Keys {
+				if k == "*" {
+					continue
+				}
+				opts[k] = rctx.URLParam(k)
+			}
 		}
+
 		format := opts["format"]
 		if format == "png" && cfg.DisableImage {
 			http.Error(w, "image generation disabled", http.StatusInternalServerError)
@@ -286,9 +294,13 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 		} else if lastId > 0 {
 			meta := hw{"after": lastId}
 			if u != nil {
-				rq := u.Query()
+				newUrl, err := url.Parse(u.String())
+				if err != nil {
+					panic(err)
+				}
+				rq := newUrl.Query()
 				rq.Set("after", strconv.Itoa(lastId))
-				u.RawQuery = rq.Encode()
+				newUrl.RawQuery = rq.Encode()
 				meta["next"] = cfg.RestPrefix + u.String()
 			}
 			response["meta"] = meta

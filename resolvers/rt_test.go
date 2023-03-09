@@ -1,7 +1,6 @@
 package resolvers
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -449,7 +448,6 @@ func TestRouteAlerts(t *testing.T) {
 				{Feed: "BA", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			},
 			func(t *testing.T, jj string) {
-				fmt.Println("jj:", jj)
 				checkTrip := "1031527WKDY"
 				sts := gjson.Get(jj, "stops.0.stop_times").Array()
 				found := false

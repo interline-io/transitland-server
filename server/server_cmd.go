@@ -11,9 +11,8 @@ import (
 	"net/http/pprof"
 	"os"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
@@ -133,7 +132,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// Setup router
-	root := mux.NewRouter()
+	root := chi.NewRouter()
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
@@ -146,8 +145,15 @@ func (cmd *Command) Run() error {
 
 	// Timeout and logging
 	timeOut := time.Duration(cmd.Timeout) * time.Second
-	// root.Use(timeoutMiddleware(timeOut))
 	root.Use(loggingMiddleware(cmd.LongQueryDuration))
+
+	// Setup CORS
+	// cors := handlers.CORS(
+	// 	handlers.AllowedHeaders([]string{"content-type", "apikey", "authorization"}),
+	// 	handlers.AllowedOrigins([]string{"*"}),
+	// 	handlers.AllowCredentials(),
+	// )
+	// root.Use(cors)
 
 	// Profiling
 	if cmd.EnableProfiler {
@@ -170,12 +176,12 @@ func (cmd *Command) Run() error {
 	}
 	if !cmd.DisableGraphql {
 		// Mount with user permissions required
-		mount(root, "/query", auth.UserRequired(graphqlServer))
+		root.Mount("/query", auth.UserRequired(graphqlServer))
 	}
 
 	// GraphQL Playground
 	if cmd.EnablePlayground && !cmd.DisableGraphql {
-		root.Handle("/", playground.Handler("GraphQL playground", "/query/"))
+		root.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	}
 
 	// REST API
@@ -184,7 +190,7 @@ func (cmd *Command) Run() error {
 		if err != nil {
 			return err
 		}
-		mount(root, "/rest", auth.UserRequired(restServer))
+		root.Mount("/rest", auth.UserRequired(restServer))
 	}
 
 	// Workers
@@ -220,17 +226,9 @@ func (cmd *Command) Run() error {
 				return err
 			}
 			// Mount with admin permissions required
-			mount(root, "/jobs", auth.AdminRequired(jobServer))
+			root.Mount("/jobs", auth.AdminRequired(jobServer))
 		}
 	}
-
-	// Setup CORS
-	cors := handlers.CORS(
-		handlers.AllowedHeaders([]string{"content-type", "apikey", "authorization"}),
-		handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowCredentials(),
-	)
-	root.Use(cors)
 
 	// Start server
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
