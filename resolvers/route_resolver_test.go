@@ -177,7 +177,7 @@ func TestRouteResolver(t *testing.T) {
 	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }
@@ -216,7 +216,7 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }
@@ -268,7 +268,7 @@ func TestRouteResolver_Cursor(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }
@@ -422,7 +422,7 @@ func TestRouteResolver_License(t *testing.T) {
 	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }

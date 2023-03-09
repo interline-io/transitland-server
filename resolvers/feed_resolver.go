@@ -16,15 +16,11 @@ func (r *feedResolver) Cursor(ctx context.Context, obj *model.Feed) (*model.Curs
 }
 
 func (r *feedResolver) FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error) {
-	return For(ctx).FeedStatesByFeedID.Load(obj.ID)
+	return For(ctx).FeedStatesByFeedID.Load(ctx, obj.ID)()
 }
 
 func (r *feedResolver) FeedVersions(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
-	return For(ctx).FeedVersionsByFeedID.Load(model.FeedVersionParam{
-		FeedID: obj.ID,
-		Limit:  limit,
-		Where:  where,
-	})
+	return For(ctx).FeedVersionsByFeedID.Load(ctx, model.FeedVersionParam{FeedID: obj.ID, Limit: limit})()
 }
 
 func (r *feedResolver) License(ctx context.Context, obj *model.Feed) (*model.FeedLicense, error) {
@@ -40,7 +36,7 @@ func (r *feedResolver) Urls(ctx context.Context, obj *model.Feed) (*model.FeedUr
 }
 
 func (r *feedResolver) AssociatedOperators(ctx context.Context, obj *model.Feed) ([]*model.Operator, error) {
-	return For(ctx).OperatorsByFeedID.Load(model.OperatorParam{FeedID: obj.ID})
+	return For(ctx).OperatorsByFeedID.Load(ctx, model.OperatorParam{FeedID: obj.ID})()
 }
 
 func (r *feedResolver) Authorization(ctx context.Context, obj *model.Feed) (*model.FeedAuthorization, error) {
@@ -48,7 +44,7 @@ func (r *feedResolver) Authorization(ctx context.Context, obj *model.Feed) (*mod
 }
 
 func (r *feedResolver) FeedFetches(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedFetchFilter) ([]*model.FeedFetch, error) {
-	return For(ctx).FeedFetchesByFeedID.Load(model.FeedFetchParam{FeedID: obj.ID, Limit: limit, Where: where})
+	return For(ctx).FeedFetchesByFeedID.Load(ctx, model.FeedFetchParam{FeedID: obj.ID, Limit: limit, Where: where})()
 }
 
 func (r *feedResolver) Spec(ctx context.Context, obj *model.Feed) (*model.FeedSpecTypes, error) {

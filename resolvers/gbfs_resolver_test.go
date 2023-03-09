@@ -81,7 +81,7 @@ func TestGbfsBikeResolver(t *testing.T) {
 	setupGbfs(gbf)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }
@@ -214,7 +214,7 @@ func TestGbfsStationResolver(t *testing.T) {
 	setupGbfs(gbf)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }

@@ -17,30 +17,30 @@ func (r *tripResolver) Cursor(ctx context.Context, obj *model.Trip) (*model.Curs
 }
 
 func (r *tripResolver) Route(ctx context.Context, obj *model.Trip) (*model.Route, error) {
-	return For(ctx).RoutesByID.Load(atoi(obj.RouteID))
+	return For(ctx).RoutesByID.Load(ctx, atoi(obj.RouteID))()
 }
 
 func (r *tripResolver) FeedVersion(ctx context.Context, obj *model.Trip) (*model.FeedVersion, error) {
-	return For(ctx).FeedVersionsByID.Load(obj.FeedVersionID)
+	return For(ctx).FeedVersionsByID.Load(ctx, obj.FeedVersionID)()
 }
 
 func (r *tripResolver) Shape(ctx context.Context, obj *model.Trip) (*model.Shape, error) {
 	if !obj.ShapeID.Valid {
 		return nil, nil
 	}
-	return For(ctx).ShapesByID.Load(obj.ShapeID.Int())
+	return For(ctx).ShapesByID.Load(ctx, obj.ShapeID.Int())()
 }
 
 func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Calendar, error) {
-	return For(ctx).CalendarsByID.Load(atoi(obj.ServiceID))
+	return For(ctx).CalendarsByID.Load(ctx, atoi(obj.ServiceID))()
 }
 
 func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int) ([]*model.StopTime, error) {
-	return For(ctx).StopTimesByTripID.Load(model.StopTimeParam{FeedVersionID: obj.FeedVersionID, TripID: obj.ID, Limit: limit})
+	return For(ctx).StopTimesByTripID.Load(ctx, model.StopTimeParam{FeedVersionID: obj.FeedVersionID, TripID: obj.ID, Limit: limit})()
 }
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {
-	return For(ctx).FrequenciesByTripID.Load(model.FrequencyParam{TripID: obj.ID, Limit: limit})
+	return For(ctx).FrequenciesByTripID.Load(ctx, model.FrequencyParam{TripID: obj.ID, Limit: limit})()
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {

@@ -25,45 +25,45 @@ func (r *stopResolver) Cursor(ctx context.Context, obj *model.Stop) (*model.Curs
 }
 
 func (r *stopResolver) FeedVersion(ctx context.Context, obj *model.Stop) (*model.FeedVersion, error) {
-	return For(ctx).FeedVersionsByID.Load(obj.FeedVersionID)
+	return For(ctx).FeedVersionsByID.Load(ctx, obj.FeedVersionID)()
 }
 
 func (r *stopResolver) Level(ctx context.Context, obj *model.Stop) (*model.Level, error) {
 	if !obj.LevelID.Valid {
 		return nil, nil
 	}
-	return For(ctx).LevelsByID.Load(atoi(obj.LevelID.Val))
+	return For(ctx).LevelsByID.Load(ctx, atoi(obj.LevelID.Val))()
 }
 
 func (r *stopResolver) Parent(ctx context.Context, obj *model.Stop) (*model.Stop, error) {
 	if !obj.ParentStation.Valid {
 		return nil, nil
 	}
-	return For(ctx).StopsByID.Load(atoi(obj.ParentStation.Val))
+	return For(ctx).StopsByID.Load(ctx, atoi(obj.ParentStation.Val))()
 }
 
 func (r *stopResolver) Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error) {
-	return For(ctx).StopsByParentStopID.Load(model.StopParam{ParentStopID: obj.ID, Limit: limit})
+	return For(ctx).StopsByParentStopID.Load(ctx, model.StopParam{ParentStopID: obj.ID, Limit: limit})()
 }
 
 func (r *stopResolver) RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error) {
-	return For(ctx).RouteStopsByStopID.Load(model.RouteStopParam{StopID: obj.ID, Limit: limit})
+	return For(ctx).RouteStopsByStopID.Load(ctx, model.RouteStopParam{StopID: obj.ID, Limit: limit})()
 }
 
 func (r *stopResolver) PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {
-	return For(ctx).PathwaysByFromStopID.Load(model.PathwayParam{FromStopID: obj.ID, Limit: limit})
+	return For(ctx).PathwaysByFromStopID.Load(ctx, model.PathwayParam{FromStopID: obj.ID, Limit: limit})()
 }
 
 func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {
-	return For(ctx).PathwaysByToStopID.Load(model.PathwayParam{ToStopID: obj.ID, Limit: limit})
+	return For(ctx).PathwaysByToStopID.Load(ctx, model.PathwayParam{ToStopID: obj.ID, Limit: limit})()
 }
 
 func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (*model.StopExternalReference, error) {
-	return For(ctx).StopExternalReferencesByStopID.Load(obj.ID)
+	return For(ctx).StopExternalReferencesByStopID.Load(ctx, obj.ID)()
 }
 
 func (r *stopResolver) Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error) {
-	return For(ctx).StopObservationsByStopID.Load(model.StopObservationParam{StopID: obj.ID, Where: where, Limit: limit})
+	return For(ctx).StopObservationsByStopID.Load(ctx, model.StopObservationParam{StopID: obj.ID, Where: where, Limit: limit})()
 }
 
 func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
@@ -134,12 +134,12 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 		}
 	}
 	//
-	sts, err := For(ctx).StopTimesByStopID.Load(model.StopTimeParam{
+	sts, err := (For(ctx).StopTimesByStopID.Load(ctx, model.StopTimeParam{
 		StopID:        obj.ID,
 		FeedVersionID: obj.FeedVersionID,
 		Limit:         limit,
 		Where:         where,
-	})
+	})())
 	if err != nil {
 		return nil, err
 	}
@@ -237,5 +237,5 @@ type stopExternalReferenceResolver struct {
 }
 
 func (r *stopExternalReferenceResolver) TargetActiveStop(ctx context.Context, obj *model.StopExternalReference) (*model.Stop, error) {
-	return For(ctx).TargetStopsByStopID.Load(obj.ID)
+	return For(ctx).TargetStopsByStopID.Load(ctx, obj.ID)()
 }

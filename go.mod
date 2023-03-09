@@ -35,7 +35,10 @@ require (
 	google.golang.org/protobuf v1.28.0
 )
 
-require github.com/go-redis/redismock/v8 v8.0.6
+require (
+	github.com/go-redis/redismock/v8 v8.0.6
+	github.com/graph-gophers/dataloader/v7 v7.1.0
+)
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.1.4 // indirect

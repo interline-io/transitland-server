@@ -18,7 +18,7 @@ type stopTimeResolver struct {
 }
 
 func (r *stopTimeResolver) Stop(ctx context.Context, obj *model.StopTime) (*model.Stop, error) {
-	return For(ctx).StopsByID.Load(atoi(obj.StopID))
+	return For(ctx).StopsByID.Load(ctx, atoi(obj.StopID))()
 }
 
 func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*model.Trip, error) {
@@ -29,7 +29,7 @@ func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*mode
 		a, err := r.rtfinder.MakeTrip(&t)
 		return a, err
 	}
-	return For(ctx).TripsByID.Load(atoi(obj.TripID))
+	return For(ctx).TripsByID.Load(ctx, atoi(obj.TripID))()
 }
 
 func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {

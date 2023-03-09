@@ -110,7 +110,7 @@ func TestTripResolver(t *testing.T) {
 	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }
@@ -142,7 +142,7 @@ func TestTripResolver_StopPatternID(t *testing.T) {
 		selectExpect: []string{"3230742WKDY", "3250757WKDY", "3270812WKDY", "3310827WKDY", "3210842WKDY"},
 	}
 	t.Run(tc.name, func(t *testing.T) {
-		testquery(t, c, tc)
+		queryTestcase(t, c, tc)
 	})
 }
 
@@ -295,7 +295,7 @@ func TestTripResolver_License(t *testing.T) {
 	c, _, _, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, c, tc)
+			queryTestcase(t, c, tc)
 		})
 	}
 }

@@ -11,9 +11,9 @@ import (
 type pathwayResolver struct{ *Resolver }
 
 func (r *pathwayResolver) FromStop(ctx context.Context, obj *model.Pathway) (*model.Stop, error) {
-	return For(ctx).StopsByID.Load(atoi(obj.FromStopID))
+	return For(ctx).StopsByID.Load(ctx, atoi(obj.FromStopID))()
 }
 
 func (r *pathwayResolver) ToStop(ctx context.Context, obj *model.Pathway) (*model.Stop, error) {
-	return For(ctx).StopsByID.Load(atoi(obj.ToStopID))
+	return For(ctx).StopsByID.Load(ctx, atoi(obj.ToStopID))()
 }
