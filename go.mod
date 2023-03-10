@@ -12,7 +12,9 @@ require (
 	github.com/digitalocean/go-workers2 v0.10.3
 	github.com/flopp/go-staticmaps v0.0.0-20220221183018-c226716bec53
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
+	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/cors v1.2.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redismock/v8 v8.11.5
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
@@ -64,8 +66,6 @@ require (
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/flopp/go-coordsparser v0.0.0-20201115094714-8baaeb7062d5 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
-	github.com/go-chi/chi v1.5.4 // indirect
-	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -329,10 +328,11 @@ func (f *DBFinder) StopObservationsByStopID(ctx context.Context, params []model.
 		}
 		ids = append(ids, p.StopID)
 	}
+	// Prepare output
 	// Currently Where must not be nil for this query
 	// This may not be required in the future.
 	if where == nil {
-		return nil, nil
+		return retEmpty[[]*model.StopObservation](len(params))
 	}
 	q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
 		From("ext_performance_stop_observations obs").
@@ -345,6 +345,7 @@ func (f *DBFinder) StopObservationsByStopID(ctx context.Context, params []model.
 	// q = q.Where("start_time >= ?", where.StartTime)
 	// q = q.Where("end_time <= ?", where.EndTime)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
+		// return retError[[]*model.StopObservation](len(params))
 		return nil, logExtendErr(len(ids), err)
 	}
 	byid := map[int][]*model.StopObservation{}
@@ -352,11 +353,11 @@ func (f *DBFinder) StopObservationsByStopID(ctx context.Context, params []model.
 		ent := ent
 		byid[ent.StopID] = append(byid[ent.StopID], &ent.StopObservation)
 	}
-	ents2 := make([][]*model.StopObservation, len(ids))
+	ret := make([][]*model.StopObservation, len(ids))
 	for i, id := range ids {
-		ents2[i] = byid[id]
+		ret[i] = byid[id]
 	}
-	return ents2, nil
+	return ret, nil
 }
 
 func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
@@ -929,7 +930,6 @@ func (f *DBFinder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model
 	}
 	group := map[int]*model.Stop{}
 	for _, ent := range qents {
-		fmt.Printf("qent: %#v\n", ent)
 		group[ent.SourceID] = ent.Stop
 	}
 	var ents []*model.Stop
@@ -1448,6 +1448,21 @@ func logExtendErr(size int, err error) []error {
 func marshalParam(param interface{}) string {
 	a, _ := json.Marshal(param)
 	return string(a)
+}
+
+func retEmpty[T any](size int) ([]T, []error) {
+	ret := make([]T, size)
+	return ret, nil
+}
+
+func retLogErr[T any](size int, err error) ([]T, []error) {
+	log.Error().Err(err).Msg("query failed")
+	ret := make([]T, size)
+	errs := make([]error, size)
+	for i := range errs {
+		errs[i] = errors.New("database error")
+	}
+	return ret, errs
 }
 
 func groupBy[K comparable, T any](keys []K, ents []T, cb func(T) K) [][]T {

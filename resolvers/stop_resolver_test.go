@@ -3,6 +3,9 @@ package resolvers
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestStopResolver(t *testing.T) {
@@ -262,6 +265,85 @@ func stopResolverTestcases(t testing.TB, te testEnv) []testcase {
 			selector:     "stops.#.stop_id",
 			selectExpect: bartStops,
 		},
+		// stop external references
+		{
+			name: "external reference: working",
+			query: `query {
+				stops(where:{feed_onestop_id: "BA", stop_id:"FTVL"}) {
+				  external_reference {
+					target_stop_id
+					target_feed_onestop_id
+					target_active_stop {
+					  stop_id
+					}
+				  }
+				}
+			  }`,
+			f: func(t *testing.T, jj string) {
+				assert.EqualValues(t, "CT", gjson.Get(jj, "stops.0.external_reference.target_feed_onestop_id").String())
+				assert.EqualValues(t, "70041", gjson.Get(jj, "stops.0.external_reference.target_stop_id").String())
+				assert.EqualValues(t, "70041", gjson.Get(jj, "stops.0.external_reference.target_active_stop.stop_id").String())
+			},
+		},
+		{
+			name: "external reference: broken",
+			query: `query {
+				stops(where:{feed_onestop_id: "BA", stop_id:"POWL"}) {
+				  external_reference {
+					target_stop_id
+					target_feed_onestop_id
+					target_active_stop {
+					  stop_id
+					}
+				  }
+				}
+			  }`,
+			f: func(t *testing.T, jj string) {
+				assert.EqualValues(t, "CT", gjson.Get(jj, "stops.0.external_reference.target_feed_onestop_id").String())
+				assert.EqualValues(t, "missing", gjson.Get(jj, "stops.0.external_reference.target_stop_id").String())
+				assert.EqualValues(t, nil, gjson.Get(jj, "stops.0.external_reference.target_active_stop").Value())
+			},
+		},
+		// stop observations
+		{
+			name: "observations: found",
+			query: `query($fvid:Int!,$day:Date!) {
+				stops(where:{feed_onestop_id: "BA", stop_id:"FTVL"}) {
+					observations(where:{feed_version_id:$fvid, source:"TripUpdate", trip_start_date:$day}) {
+						trip_id
+						route_id
+						observed_arrival_time
+						observed_departure_time
+					}
+				}
+			  }`,
+			vars: hw{"fvid": 3, "day": "2023-03-09"},
+			f: func(t *testing.T, jj string) {
+				assert.EqualValues(t, "test", gjson.Get(jj, "stops.0.observations.0.trip_id").String())
+				assert.EqualValues(t, "03", gjson.Get(jj, "stops.0.observations.0.route_id").String())
+				assert.EqualValues(t, "10:00:00", gjson.Get(jj, "stops.0.observations.0.observed_arrival_time").String())
+				assert.EqualValues(t, "10:00:10", gjson.Get(jj, "stops.0.observations.0.observed_departure_time").String())
+				assert.EqualValues(t, 1, len(gjson.Get(jj, "stops.0.observations").Array()))
+			},
+		},
+		{
+			name: "observations: none",
+			query: `query($fvid:Int!,$day:Date!) {
+				stops(where:{feed_onestop_id: "BA", stop_id:"FTVL"}) {
+					observations(where:{feed_version_id:$fvid, source:"TripUpdate", trip_start_date:$day}) {
+						trip_id
+						route_id
+						observed_arrival_time
+						observed_departure_time
+					}
+				}
+			  }`,
+			vars: hw{"fvid": 3, "day": "2023-03-08"},
+			f: func(t *testing.T, jj string) {
+				assert.EqualValues(t, 0, len(gjson.Get(jj, "stops.0.observations").Array()))
+			},
+		},
+
 		// TODO: census_geographies
 		// TODO: route_stop_buffer
 	}
