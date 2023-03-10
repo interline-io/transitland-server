@@ -44,6 +44,12 @@ func stopResolverTestcases(t testing.TB, te testEnv) []testcase {
 	allStops = append(allStops, bartStops...)
 	allStops = append(allStops, caltrainStops...)
 	vars := hw{"stop_id": "MCAR"}
+
+	stopObsFvid := 0
+	if err := te.dbf.DBX().QueryRowx("select feed_version_id from ext_performance_stop_observations limit 1").Scan(&stopObsFvid); err != nil {
+		t.Errorf("could not get fvid for stop observation test: %s", err.Error())
+	}
+
 	testcases := []testcase{
 		{
 			name:         "basic",
@@ -317,7 +323,7 @@ func stopResolverTestcases(t testing.TB, te testEnv) []testcase {
 					}
 				}
 			  }`,
-			vars: hw{"fvid": 3, "day": "2023-03-09"},
+			vars: hw{"fvid": stopObsFvid, "day": "2023-03-09"},
 			f: func(t *testing.T, jj string) {
 				assert.EqualValues(t, "test", gjson.Get(jj, "stops.0.observations.0.trip_id").String())
 				assert.EqualValues(t, "03", gjson.Get(jj, "stops.0.observations.0.route_id").String())
@@ -338,7 +344,7 @@ func stopResolverTestcases(t testing.TB, te testEnv) []testcase {
 					}
 				}
 			  }`,
-			vars: hw{"fvid": 3, "day": "2023-03-08"},
+			vars: hw{"fvid": stopObsFvid, "day": "2023-03-08"},
 			f: func(t *testing.T, jj string) {
 				assert.EqualValues(t, 0, len(gjson.Get(jj, "stops.0.observations").Array()))
 			},
