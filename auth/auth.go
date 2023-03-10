@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/mux"
 )
+
+type MiddlewareFunc func(http.Handler) http.Handler
 
 type AuthConfig struct {
 	DefaultUsername      string
@@ -21,7 +22,7 @@ type AuthConfig struct {
 }
 
 // GetUserMiddleware returns a middleware that sets user details.
-func GetUserMiddleware(authType string, cfg AuthConfig, client *redis.Client) (mux.MiddlewareFunc, error) {
+func GetUserMiddleware(authType string, cfg AuthConfig, client *redis.Client) (MiddlewareFunc, error) {
 	// Setup auth; default is all users will be anonymous.
 	switch authType {
 	case "admin":

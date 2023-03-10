@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +32,7 @@ func TestNoMiddleware(t *testing.T) {
 func TestUserRequired(t *testing.T) {
 	tcs := []struct {
 		name string
-		mwf  mux.MiddlewareFunc
+		mwf  MiddlewareFunc
 		code int
 		user *User
 	}{
@@ -52,7 +51,7 @@ func TestUserRequired(t *testing.T) {
 func TestAdminRequired(t *testing.T) {
 	tcs := []struct {
 		name string
-		mwf  mux.MiddlewareFunc
+		mwf  MiddlewareFunc
 		code int
 		user *User
 	}{
@@ -68,7 +67,7 @@ func TestAdminRequired(t *testing.T) {
 	}
 }
 
-func testAuthMiddleware(t *testing.T, req *http.Request, mwf mux.MiddlewareFunc, expectCode int, expectUser *User) {
+func testAuthMiddleware(t *testing.T, req *http.Request, mwf MiddlewareFunc, expectCode int, expectUser *User) {
 	var user *User
 	testHandler := func(w http.ResponseWriter, r *http.Request) {
 		user = ForContext(r.Context())

@@ -10,20 +10,19 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/internal/ecache"
 	"github.com/tidwall/gjson"
 )
 
 // GatekeeperMiddleware checks an external endpoint for a list of roles
-func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, roleKey string, allowError bool) (mux.MiddlewareFunc, error) {
+func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, roleKey string, allowError bool) (MiddlewareFunc, error) {
 	gk := NewGatekeeper(client, endpoint, param, roleKey)
 	gk.Start(60 * time.Second)
 	return newGatekeeperMiddleware(gk, allowError), nil
 }
 
-func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) mux.MiddlewareFunc {
+func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()

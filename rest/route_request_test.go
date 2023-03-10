@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -95,7 +94,6 @@ func TestRouteRequest(t *testing.T) {
 			name: "include_alerts:true",
 			h:    RouteRequest{RouteKey: "BA:05", IncludeAlerts: true},
 			f: func(t *testing.T, jj string) {
-				fmt.Println(jj)
 				a := gjson.Get(jj, "routes.0.alerts").Array()
 				assert.Equal(t, 2, len(a), "alert count")
 			},

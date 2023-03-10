@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-lib/dmfr/store"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/request"
@@ -30,7 +30,7 @@ query($feed_onestop_id: String!, $ids: [Int!]) {
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
 func feedDownloadLatestFeedVersionHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
-	key := mux.Vars(r)["feed_key"]
+	key := chi.URLParam(r, "feed_key")
 	gvars := hw{}
 	if key == "" {
 		http.Error(w, "not found", http.StatusNotFound)
@@ -88,9 +88,8 @@ query($feed_version_sha1:String!, $ids: [Int!]) {
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
 func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	gvars := hw{}
-	key := vars["feed_version_key"]
+	key := chi.URLParam(r, "feed_version_key")
 	if key == "" {
 		http.Error(w, "not found", http.StatusNotFound)
 		return

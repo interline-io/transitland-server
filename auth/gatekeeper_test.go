@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-redis/redismock/v8"
-	"github.com/gorilla/mux"
 	"github.com/interline-io/transitland-server/internal/ecache"
 	"github.com/stretchr/testify/assert"
 )
@@ -68,7 +67,7 @@ func TestGatekeeper(t *testing.T) {
 	testStartTime := time.Now()
 	tcs := []struct {
 		name  string
-		mwf   mux.MiddlewareFunc
+		mwf   MiddlewareFunc
 		code  int
 		user  *User
 		after func(*testing.T)
