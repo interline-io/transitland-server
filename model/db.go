@@ -45,6 +45,7 @@ type EntityLoader interface {
 	StopExternalReferencesByStopID(context.Context, []int) ([]*StopExternalReference, []error)
 	StopObservationsByStopID(context.Context, []StopObservationParam) ([][]*StopObservation, []error)
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
+	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
 	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 	// Other loaders
 	FeedVersionGtfsImportsByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
