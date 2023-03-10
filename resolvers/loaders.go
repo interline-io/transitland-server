@@ -67,6 +67,7 @@ type Loaders struct {
 	StopExternalReferencesByStopID          *dataloader.Loader[int, *model.StopExternalReference]
 	StopsByLevelID                          *dataloader.Loader[model.StopParam, []*model.Stop]
 	TargetStopsByStopID                     *dataloader.Loader[int, *model.Stop]
+	RouteAttributesByRouteID                *dataloader.Loader[int, *model.RouteAttribute]
 }
 
 // NewLoaders instantiates data loaders for the middleware
@@ -119,6 +120,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		StopExternalReferencesByStopID:          withWait(waitTime, dbf.StopExternalReferencesByStopID),
 		StopsByLevelID:                          withWait(waitTime, dbf.StopsByLevelID),
 		TargetStopsByStopID:                     withWait(waitTime, dbf.TargetStopsByStopID),
+		RouteAttributesByRouteID:                withWait(waitTime, dbf.RouteAttributesByRouteID),
 	}
 	return loaders
 }

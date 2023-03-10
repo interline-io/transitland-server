@@ -8,6 +8,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 )
 
 type Feed struct {
@@ -195,6 +196,14 @@ type RouteGeometry struct {
 	Length                tl.Float      `json:"length"`
 	MaxSegmentLength      tl.Float      `json:"max_segment_length"`
 	FirstPointMaxDistance tl.Float      `json:"first_point_max_distance"`
+}
+
+// MTC GTFS+ Extension: route_attributes.txt
+type RouteAttribute struct {
+	RouteID     int
+	Category    tt.Int `json:"Category"`
+	Subcategory tt.Int `json:"Subcategory"`
+	RunningWay  tt.Int `json:"RunningWay"`
 }
 
 type AgencyPlace struct {

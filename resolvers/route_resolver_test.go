@@ -3,6 +3,9 @@ package resolvers
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestRouteResolver(t *testing.T) {
@@ -171,6 +174,25 @@ func TestRouteResolver(t *testing.T) {
 
 			selector:     "routes.0.patterns.#.count",
 			selectExpect: []string{"132", "124", "56", "50", "2"},
+		},
+		// route attributes
+		{
+			name: "route attributes",
+			query: `{
+						routes(where: {feed_onestop_id: "BA", route_id: "01"}) {
+						  route_id
+						  route_attribute {
+							category
+							subcategory
+							running_way
+						  }
+						}
+					  }`,
+			f: func(t *testing.T, jj string) {
+				assert.EqualValues(t, 2, gjson.Get(jj, "routes.0.route_attribute.category").Int())
+				assert.EqualValues(t, 201, gjson.Get(jj, "routes.0.route_attribute.subcategory").Int())
+				assert.EqualValues(t, 1, gjson.Get(jj, "routes.0.route_attribute.running_way").Int())
+			},
 		},
 		// TODO: census_geographies
 	}

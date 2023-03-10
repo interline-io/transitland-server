@@ -291,6 +291,7 @@ type Route {
   feed_version_sha1: String!
   feed_onestop_id: String!
   search_rank: String # only for search results
+  route_attribute: RouteAttribute
   trips(limit: Int, where: TripFilter): [Trip!]!
   stops(limit: Int, where: StopFilter): [Stop!]!
   route_stops(limit: Int): [RouteStop!]!
@@ -546,6 +547,15 @@ type RouteHeadway {
   service_date: Date
   stop_trip_count: Int
   departures: [Seconds!]
+}
+
+"""
+MTC GTFS+ Extension: route_attributes.txt
+"""
+type RouteAttribute {
+  category: Int
+  subcategory: Int
+  running_way: Int
 }
 
 # Census entities
