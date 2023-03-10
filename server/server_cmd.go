@@ -11,7 +11,9 @@ import (
 	"net/http/pprof"
 	"os"
 
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/log"
@@ -134,6 +136,11 @@ func (cmd *Command) Run() error {
 	// Setup router
 	root := chi.NewRouter()
 
+	root.Use(middleware.RequestID)
+	root.Use(middleware.RealIP)
+	root.Use(middleware.Logger)
+	root.Use(middleware.Recoverer)
+
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
 		if userMiddleware, err := auth.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
@@ -148,12 +155,12 @@ func (cmd *Command) Run() error {
 	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Setup CORS
-	// cors := handlers.CORS(
-	// 	handlers.AllowedHeaders([]string{"content-type", "apikey", "authorization"}),
-	// 	handlers.AllowedOrigins([]string{"*"}),
-	// 	handlers.AllowCredentials(),
-	// )
-	// root.Use(cors)
+	root.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
+		AllowCredentials: true,
+	}))
 
 	// Profiling
 	if cmd.EnableProfiler {
