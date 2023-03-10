@@ -78,6 +78,10 @@ func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*mode
 	return For(ctx).RouteStopPatternsByRouteID.Load(ctx, model.RouteStopPatternParam{RouteID: obj.ID})()
 }
 
+func (r *routeResolver) RouteAttribute(ctx context.Context, obj *model.Route) (*model.RouteAttribute, error) {
+	return For(ctx).RouteAttributesByRouteID.Load(ctx, obj.ID)()
+}
+
 // ROUTE HEADWAYS
 
 type routeHeadwayResolver struct{ *Resolver }

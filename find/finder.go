@@ -360,6 +360,23 @@ func (f *DBFinder) StopObservationsByStopID(ctx context.Context, params []model.
 	return ret, nil
 }
 
+func (f *DBFinder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*model.RouteAttribute, []error) {
+	var ents []*model.RouteAttribute
+	q := sq.StatementBuilder.Select("*").From("ext_plus_route_attributes").Where(sq.Eq{"route_id": ids})
+	if err := Select(ctx, f.db, q, &ents); err != nil {
+		return nil, []error{err}
+	}
+	byid := map[int]*model.RouteAttribute{}
+	for _, ent := range ents {
+		byid[ent.RouteID] = ent
+	}
+	ents2 := make([]*model.RouteAttribute, len(ids))
+	for i, id := range ids {
+		ents2[i] = byid[id]
+	}
+	return ents2, nil
+}
+
 func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
 	var ents []*model.Agency
 	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil)
