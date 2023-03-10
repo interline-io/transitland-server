@@ -64,6 +64,7 @@ require (
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/flopp/go-coordsparser v0.0.0-20201115094714-8baaeb7062d5 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
+	github.com/go-chi/chi v1.5.4 // indirect
 	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect

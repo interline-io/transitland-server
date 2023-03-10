@@ -135,10 +135,8 @@ func (cmd *Command) Run() error {
 
 	// Setup router
 	root := chi.NewRouter()
-
 	root.Use(middleware.RequestID)
 	root.Use(middleware.RealIP)
-	root.Use(middleware.Logger)
 	root.Use(middleware.Recoverer)
 
 	// Setup user middleware
