@@ -138,6 +138,7 @@ func (cmd *Command) Run() error {
 	root.Use(middleware.RequestID)
 	root.Use(middleware.RealIP)
 	root.Use(middleware.Recoverer)
+	root.Use(middleware.StripSlashes)
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
