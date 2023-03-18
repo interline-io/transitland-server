@@ -13,10 +13,11 @@ import (
 
 // RedisJobs is a simple wrapper around go-workers
 type RedisJobs struct {
-	queueName string
-	producer  *workers.Producer
-	manager   *workers.Manager
-	client    *redis.Client
+	queueName   string
+	producer    *workers.Producer
+	manager     *workers.Manager
+	client      *redis.Client
+	middlewares []JobMiddleware
 }
 
 func NewRedisJobs(client *redis.Client, queueName string) *RedisJobs {
@@ -24,7 +25,12 @@ func NewRedisJobs(client *redis.Client, queueName string) *RedisJobs {
 		queueName: queueName,
 		client:    client,
 	}
+	f.AddMiddleware(newLog())
 	return &f
+}
+
+func (f *RedisJobs) AddMiddleware(mwf JobMiddleware) {
+	f.middlewares = append(f.middlewares, mwf)
 }
 
 func (f *RedisJobs) AddJob(job Job) error {

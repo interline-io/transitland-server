@@ -14,6 +14,7 @@ type JobArgs map[string]interface{}
 type JobQueue interface {
 	AddJob(Job) error
 	AddWorker(GetWorker, JobOptions, int) error
+	AddMiddleware(JobMiddleware)
 	Run() error
 	Stop() error
 }
@@ -23,6 +24,7 @@ type Job struct {
 	JobType string     `json:"job_type"`
 	JobArgs JobArgs    `json:"job_args"`
 	Opts    JobOptions `json:"-"`
+	jobId   string
 }
 
 // JobOptions is configuration passed to worker.
@@ -42,3 +44,5 @@ type GetWorker func(Job) (JobWorker, error)
 type JobWorker interface {
 	Run(context.Context, Job) error
 }
+
+type JobMiddleware func(JobWorker) JobWorker

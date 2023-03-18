@@ -29,7 +29,7 @@ func toSnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
-func MustOpenDB(url string) sqlx.Ext {
+func MustOpenDB(url string) *sqlx.DB {
 	db, err := sqlx.Open("postgres", url)
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not open database")
@@ -41,8 +41,11 @@ func MustOpenDB(url string) sqlx.Ext {
 		log.Fatal().Err(err).Msgf("could not connect to database")
 	}
 	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
-	//return db.Unsafe()
-	return &tldb.QueryLogger{Ext: db.Unsafe()}
+	return db.Unsafe()
+}
+
+func LogDB(db *sqlx.DB) sqlx.Ext {
+	return &tldb.QueryLogger{Ext: db}
 }
 
 // MustSelect runs a query and reads results into dest.

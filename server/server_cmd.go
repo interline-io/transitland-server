@@ -23,13 +23,17 @@ import (
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/gbfsfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
+	"github.com/interline-io/transitland-server/internal/metrics"
 	"github.com/interline-io/transitland-server/internal/playground"
 	"github.com/interline-io/transitland-server/internal/rtfinder"
 	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
+	"github.com/jmoiron/sqlx"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/zerolog"
 )
 
 type Command struct {
@@ -104,7 +108,12 @@ func (cmd *Command) Run() error {
 	var jobQueue jobs.JobQueue
 
 	// Open database
+	var db sqlx.Ext
 	dbx := find.MustOpenDB(cfg.DBURL)
+	db = dbx
+	if log.Logger.GetLevel() == zerolog.TraceLevel {
+		db = find.LogDB(dbx)
+	}
 
 	// Open redis
 	var redisClient *redis.Client
@@ -118,17 +127,17 @@ func (cmd *Command) Run() error {
 	}
 
 	// Create Finder
-	dbFinder = find.NewDBFinder(dbx)
+	dbFinder = find.NewDBFinder(db)
 
 	// Create RTFinder
 	if cmd.RedisURL != "" {
-		// Replace RTFinder; use redis backed cache now
-		rtFinder = rtfinder.NewFinder(rtfinder.NewRedisCache(redisClient), dbx)
+		// Use redis backed finders
+		rtFinder = rtfinder.NewFinder(rtfinder.NewRedisCache(redisClient), db)
 		gbfsFinder = gbfsfinder.NewFinder(redisClient)
 		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
 	} else {
 		// Default to in-memory cache
-		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), dbx)
+		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 		gbfsFinder = gbfsfinder.NewFinder(nil)
 		jobQueue = jobs.NewLocalJobs()
 	}
@@ -169,10 +178,16 @@ func (cmd *Command) Run() error {
 		root.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
 
+	// Metrics
+	var metricMiddleware metrics.HttpWrapper
+	metricMiddleware = metrics.NewPassthroughMiddleware()
+	registry := metrics.NewRegistry()
 	if cmd.EnableMetrics {
-		// TODO: turn on when meaningful metrics added
-		// metrics.RecordPromMetrics()
-		root.Handle("/metrics", promhttp.Handler())
+		// Need to use underlying *sql.DB
+		dbStats := collectors.NewDBStatsCollector(dbx.DB, "db")
+		registry.MustRegister(dbStats)
+		metricMiddleware = metrics.NewHttpMiddleware(registry, nil)
+		root.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	}
 
 	// GraphQL API
@@ -182,12 +197,7 @@ func (cmd *Command) Run() error {
 	}
 	if !cmd.DisableGraphql {
 		// Mount with user permissions required
-		root.Mount("/query", auth.UserRequired(graphqlServer))
-	}
-
-	// GraphQL Playground
-	if cmd.EnablePlayground && !cmd.DisableGraphql {
-		root.Handle("/", playground.Handler("GraphQL playground", "/query"))
+		root.Mount("/query", metricMiddleware.WrapHandler("graphql", auth.UserRequired(graphqlServer)))
 	}
 
 	// REST API
@@ -196,7 +206,7 @@ func (cmd *Command) Run() error {
 		if err != nil {
 			return err
 		}
-		root.Mount("/rest", auth.UserRequired(restServer))
+		root.Mount("/rest", metricMiddleware.WrapHandler("rest", auth.UserRequired(restServer)))
 	}
 
 	// Workers
@@ -220,13 +230,16 @@ func (cmd *Command) Run() error {
 			GbfsFinder: gbfsFinder,
 			Secrets:    secrets,
 		}
+		if cmd.EnableMetrics {
+			jobQueue.AddMiddleware(metrics.NewJobMiddleware(registry, "default"))
+		}
 		if cmd.EnableWorkers {
-			log.Print("enabling workers")
+			log.Infof("Enabling job workers")
 			jobQueue.AddWorker(workers.GetWorker, jobOptions, jobWorkers)
 			go jobQueue.Run()
 		}
 		if cmd.EnableJobsApi {
-			log.Print("enabling jobs api")
+			log.Infof("Enabling job api")
 			jobServer, err := workers.NewServer(cfg, cmd.DefaultQueue, jobWorkers, jobOptions)
 			if err != nil {
 				return err
@@ -236,9 +249,14 @@ func (cmd *Command) Run() error {
 		}
 	}
 
+	// GraphQL Playground
+	if cmd.EnablePlayground && !cmd.DisableGraphql {
+		root.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	}
+
 	// Start server
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
-	log.Infof("listening on: %s", addr)
+	log.Infof("Listening on: %s", addr)
 	srv := &http.Server{
 		Handler:      http.TimeoutHandler(root, timeOut, "timeout"),
 		Addr:         addr,
