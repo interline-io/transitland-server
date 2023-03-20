@@ -100,7 +100,6 @@ func NewHttpMiddleware(registry prometheus.Registerer, buckets []float64) HttpWr
 	if buckets == nil {
 		buckets = prometheus.ExponentialBuckets(0.1, 1.5, 5)
 	}
-
 	return &httpMiddleware{
 		buckets:  buckets,
 		registry: registry,
