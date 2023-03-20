@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"strconv"
-	"time"
 
 	workers "github.com/digitalocean/go-workers2"
 	"github.com/go-redis/redis/v8"
@@ -72,16 +71,10 @@ func (f *RedisJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 		if err != nil {
 			return err
 		}
-		t1 := time.Now()
-		job.Opts = jo
-		job.Opts.Logger = log.Logger.With().Str("job_type", job.JobType).Str("job_id", msg.Jid()).Logger()
-		job.Opts.Logger.Info().Msg("job: started")
-		if err := w.Run(context.TODO(), job); err != nil {
-			job.Opts.Logger.Error().Err(err).Msg("job: error")
-			return err
+		for _, mwf := range f.middlewares {
+			w = mwf(w)
 		}
-		job.Opts.Logger.Info().Int64("job_time_ms", (time.Now().UnixNano()-t1.UnixNano())/1e6).Msg("job: completed")
-		return nil
+		return w.Run(context.TODO(), job)
 	}
 	manager.AddWorker(f.queueName, count, processMessage)
 	return nil
