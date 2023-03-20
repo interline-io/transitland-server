@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/interline-io/transitland-lib/log"
 )
@@ -14,15 +13,22 @@ import (
 var jobCounter = uint64(0)
 
 type LocalJobs struct {
-	jobs     chan Job
-	jobfuncs []func(Job) error
-	running  bool
+	jobs        chan Job
+	jobfuncs    []func(Job) error
+	running     bool
+	middlewares []JobMiddleware
 }
 
 func NewLocalJobs() *LocalJobs {
-	return &LocalJobs{
+	f := &LocalJobs{
 		jobs: make(chan Job, 1000),
 	}
+	f.middlewares = append(f.middlewares, newLog())
+	return f
+}
+
+func (f *LocalJobs) AddMiddleware(mwf JobMiddleware) {
+	f.middlewares = append(f.middlewares, mwf)
 }
 
 func (f *LocalJobs) AddJob(job Job) error {
@@ -43,17 +49,11 @@ func (f *LocalJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 		if err != nil {
 			return err
 		}
-		t1 := time.Now()
-		jobId := atomic.AddUint64(&jobCounter, 1)
-		job.Opts = jo
-		job.Opts.Logger = log.Logger.With().Str("job_type", job.JobType).Str("job_id", fmt.Sprintf("%d", jobId)).Logger()
-		job.Opts.Logger.Info().Msg("job: started")
-		if err := w.Run(context.TODO(), job); err != nil {
-			job.Opts.Logger.Error().Err(err).Msg("job: error")
-			return err
+		job.jobId = fmt.Sprintf("%d", atomic.AddUint64(&jobCounter, 1))
+		for _, mwf := range f.middlewares {
+			w = mwf(w)
 		}
-		job.Opts.Logger.Info().Int64("job_time_ms", (time.Now().UnixNano()-t1.UnixNano())/1e6).Msg("job: completed")
-		return nil
+		return w.Run(context.TODO(), job)
 	}
 	log.Infof("jobs: created job listener")
 	for i := 0; i < count; i++ {

@@ -24,8 +24,8 @@ func (t *testWorker) Run(ctx context.Context, job Job) error {
 }
 
 func testJobs(t *testing.T, rtJobs JobQueue) {
-	count := int64(0)
 	// Ugly :(
+	count := int64(0)
 	testGetWorker := func(job Job) (JobWorker, error) {
 		w := testWorker{count: &count}
 		return &w, nil

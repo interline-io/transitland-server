@@ -24,8 +24,10 @@ func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
 		r = &GbfsEnqueueWorker{}
 	case "gbfs-fetch":
 		r = &GbfsFetchWorker{}
-	case "test":
-		r = &testWorker{}
+	case "test-ok":
+		r = &testOkWorker{}
+	case "test-fail":
+		r = &testFailWorker{}
 	default:
 		return nil, errors.New("unknown job type")
 	}

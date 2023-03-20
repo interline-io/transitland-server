@@ -92,38 +92,6 @@ func renderMap(data []byte, width int, height int) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-func getAfterID(ent apiHandler, response map[string]interface{}) (int, error) {
-	maxid := 0
-	fkey := ""
-	if v, ok := ent.(hasResponseKey); ok {
-		fkey = v.ResponseKey()
-	} else {
-		return 0, errors.New("pagination: response key missing")
-	}
-	entities, ok := response[fkey].([]interface{})
-	if !ok {
-		return 0, errors.New("pagination: unknown response key value")
-	}
-	if len(entities) == 0 {
-		return 0, errors.New("pagination: no entities in response")
-	}
-	lastEnt, ok := entities[len(entities)-1].(map[string]interface{})
-	if !ok {
-		return 0, errors.New("pagination: last entity not map[string]interface{}")
-	}
-	switch id := lastEnt["id"].(type) {
-	case int:
-		maxid = id
-	case float64:
-		maxid = int(id)
-	case int64:
-		maxid = int(id)
-	default:
-		return 0, errors.New("pagination: last entity id not numeric")
-	}
-	return maxid, nil
-}
-
 func processGeoJSON(ent apiHandler, response map[string]interface{}) error {
 	fkey := ""
 	if v, ok := ent.(hasResponseKey); ok {

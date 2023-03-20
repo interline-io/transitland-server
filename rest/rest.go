@@ -301,7 +301,7 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 				rq := newUrl.Query()
 				rq.Set("after", strconv.Itoa(lastId))
 				newUrl.RawQuery = rq.Encode()
-				meta["next"] = cfg.RestPrefix + u.String()
+				meta["next"] = cfg.RestPrefix + newUrl.String()
 			}
 			response["meta"] = meta
 		}
@@ -333,4 +333,36 @@ func makeHandlerFunc(cfg restConfig, f func(restConfig, http.ResponseWriter, *ht
 	return func(w http.ResponseWriter, r *http.Request) {
 		f(cfg, w, r)
 	}
+}
+
+func getAfterID(ent apiHandler, response map[string]interface{}) (int, error) {
+	maxid := 0
+	fkey := ""
+	if v, ok := ent.(hasResponseKey); ok {
+		fkey = v.ResponseKey()
+	} else {
+		return 0, errors.New("pagination: response key missing")
+	}
+	entities, ok := response[fkey].([]interface{})
+	if !ok {
+		return 0, errors.New("pagination: unknown response key value")
+	}
+	if len(entities) == 0 {
+		return 0, nil
+	}
+	lastEnt, ok := entities[len(entities)-1].(map[string]interface{})
+	if !ok {
+		return 0, errors.New("pagination: last entity not map[string]interface{}")
+	}
+	switch id := lastEnt["id"].(type) {
+	case int:
+		maxid = id
+	case float64:
+		maxid = int(id)
+	case int64:
+		maxid = int(id)
+	default:
+		return 0, errors.New("pagination: last entity id not numeric")
+	}
+	return maxid, nil
 }
