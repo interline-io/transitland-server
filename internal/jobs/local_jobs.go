@@ -45,13 +45,19 @@ func (f *LocalJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 		return errors.New("already running")
 	}
 	processMessage := func(job Job) error {
+		job = Job{JobType: job.JobType, JobArgs: job.JobArgs, Opts: jo, jobId: fmt.Sprintf("%d", atomic.AddUint64(&jobCounter, 1))}
 		w, err := getWorker(job)
 		if err != nil {
 			return err
 		}
-		job.jobId = fmt.Sprintf("%d", atomic.AddUint64(&jobCounter, 1))
+		if w == nil {
+			return errors.New("no job")
+		}
 		for _, mwf := range f.middlewares {
 			w = mwf(w)
+			if w == nil {
+				return errors.New("no job")
+			}
 		}
 		return w.Run(context.TODO(), job)
 	}

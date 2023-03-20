@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strconv"
 
@@ -66,13 +67,19 @@ func (f *RedisJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 		if err != nil {
 			return err
 		}
-		job := Job{JobType: msg.Class(), JobArgs: jargs}
+		job := Job{JobType: msg.Class(), JobArgs: jargs, Opts: jo, jobId: msg.Jid()}
 		w, err := getWorker(job)
 		if err != nil {
 			return err
 		}
+		if w == nil {
+			return errors.New("no job")
+		}
 		for _, mwf := range f.middlewares {
 			w = mwf(w)
+			if w == nil {
+				return errors.New("no job")
+			}
 		}
 		return w.Run(context.TODO(), job)
 	}
