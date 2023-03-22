@@ -14,7 +14,7 @@ type JobArgs map[string]interface{}
 type JobQueue interface {
 	AddJob(Job) error
 	AddWorker(GetWorker, JobOptions, int) error
-	AddMiddleware(JobMiddleware)
+	Use(JobMiddleware)
 	Run() error
 	Stop() error
 }
