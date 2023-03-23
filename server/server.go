@@ -22,9 +22,9 @@ func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			t1 := time.Now()
-			user := auth.ForContext(ctx)
-			if user == nil {
-				user = auth.NewUser("").WithRoles("anon")
+			userName := ""
+			if user := auth.ForContext(ctx); user != nil {
+				userName = user.Name()
 			}
 			// Get request body for logging if request is json and length under 20kb
 			var body []byte
@@ -42,7 +42,7 @@ func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 				Str("method", r.Method).
 				Str("path", r.URL.EscapedPath()).
 				Str("query", r.URL.Query().Encode()).
-				Str("user", user.Name).
+				Str("user", userName).
 				Int("status", wr.status)
 			// Add duration info
 			if durationMs > int64(longQueryDuration) {

@@ -25,20 +25,19 @@ func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, r
 func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Check context for a user name; if it is present, replace user context with gatekeeper user
 			ctx := r.Context()
-			user := ForContext(ctx)
-			if user != nil && user.Name != "" {
-				checkedRoles, err := gk.GetUser(ctx, user.Name)
+			if user := ForContext(ctx); user != nil && user.Name() != "" {
+				checkUser, err := gk.GetUser(ctx, user.Name())
 				if err != nil {
-					log.Error().Err(err).Str("user", user.Name).Msg("gatekeeper error")
+					log.Error().Err(err).Str("user", user.Name()).Msg("gatekeeper error")
 					if !allowError {
 						http.Error(w, "error", http.StatusUnauthorized)
 						return
 					}
 				} else {
-					log.Trace().Str("user", user.Name).Strs("roles", checkedRoles).Msg("gatekeeper roles")
-					user.AddRoles(checkedRoles...)
-					r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
+					log.Trace().Str("user", checkUser.Name()).Strs("roles", checkUser.Roles()).Msg("gatekeeper roles")
+					r = r.WithContext(context.WithValue(r.Context(), userCtxKey, checkUser))
 				}
 			}
 			next.ServeHTTP(w, r)
@@ -52,7 +51,7 @@ type Gatekeeper struct {
 	roleKey        string
 	param          string
 	recheckTtl     time.Duration
-	cache          *ecache.Cache[[]string]
+	cache          *ecache.Cache[gkCacheItem]
 }
 
 func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey string) *Gatekeeper {
@@ -62,22 +61,31 @@ func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey 
 		roleKey:        roleKey,
 		param:          param,
 		recheckTtl:     5 * 60 * time.Second,
-		cache:          ecache.NewCache[[]string](client, "gatekeeper"),
+		cache:          ecache.NewCache[gkCacheItem](client, "gatekeeper"),
 	}
 	return gk
 }
 
-func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) ([]string, error) {
-	roles, ok := gk.cache.Get(ctx, userKey)
+func (gk *Gatekeeper) GetUserRoles(ctx context.Context, userKey string) ([]string, error) {
+	u, err := gk.GetUser(ctx, userKey)
+	if err != nil {
+		return nil, err
+	}
+	return u.Roles(), nil
+}
+
+func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (User, error) {
+	gkUser, ok := gk.cache.Get(ctx, userKey)
 	if !ok {
 		var err error
-		roles, err = gk.getUser(ctx, userKey)
+		gkUser, err = gk.requestUser(ctx, userKey)
 		if err != nil {
 			return nil, err
 		}
-		gk.cache.SetTTL(ctx, userKey, roles, gk.recheckTtl, 24*time.Hour)
+		gk.cache.SetTTL(ctx, userKey, gkUser, gk.recheckTtl, 24*time.Hour)
 	}
-	return roles, nil
+	user := newCtxUser(gkUser.Name).WithRoles(gkUser.Roles...)
+	return user, nil
 }
 
 func (gk *Gatekeeper) Start(t time.Duration) {
@@ -94,16 +102,16 @@ func (gk *Gatekeeper) updateUsers(ctx context.Context) {
 	// This can be improved to avoid races
 	keys := gk.cache.GetRecheckKeys(ctx)
 	for _, k := range keys {
-		if roles, err := gk.getUser(ctx, k); err != nil {
+		if gkUser, err := gk.requestUser(ctx, k); err != nil {
 			// Failed :(
 			// Log but do not update cached value
 		} else {
-			gk.cache.SetTTL(ctx, k, roles, gk.recheckTtl, 24*time.Hour)
+			gk.cache.SetTTL(ctx, k, gkUser, gk.recheckTtl, 24*time.Hour)
 		}
 	}
 }
 
-func (gk *Gatekeeper) getUser(ctx context.Context, userKey string) ([]string, error) {
+func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheItem, error) {
 	u, _ := url.Parse(gk.endpoint)
 	rq := u.Query()
 	rq.Set(gk.param, userKey)
@@ -112,25 +120,33 @@ func (gk *Gatekeeper) getUser(ctx context.Context, userKey string) ([]string, er
 	defer cf()
 	req, err := http.NewRequestWithContext(rctx, "GET", u.String(), nil)
 	if err != nil {
-		return nil, errors.New("invalid request")
+		return gkCacheItem{}, errors.New("invalid request")
 	}
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return gkCacheItem{}, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("response status code: %d", resp.StatusCode)
+		return gkCacheItem{}, fmt.Errorf("response status code: %d", resp.StatusCode)
 	}
 	body, err := io.ReadAll(resp.Body)
 	var roles []string
 	if !gjson.Valid(string(body)) {
-		return nil, errors.New("invalid json")
+		return gkCacheItem{}, errors.New("invalid json")
 	}
 	result := gjson.Get(string(body), gk.roleKey)
+	roles = append(roles, "user")
 	for _, r := range result.Array() {
 		roles = append(roles, r.String())
 	}
-	return roles, nil
+	return gkCacheItem{Name: userKey, Roles: roles}, nil
+}
+
+// gkCacheItem needed for internal cached representation of ctxUser (Roles/ExternalIDs as exported fields)
+type gkCacheItem struct {
+	Name        string
+	Roles       []string
+	ExternalIDs map[string]string
 }

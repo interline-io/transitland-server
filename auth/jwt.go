@@ -32,13 +32,7 @@ func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (fun
 					http.Error(w, "Unauthorized", http.StatusUnauthorized)
 					return
 				}
-				ctx := r.Context()
-				user := ForContext(ctx)
-				if user == nil {
-					user = NewUser(jwtUser.Name)
-				}
-				user.Merge(jwtUser)
-				r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
+				r = r.WithContext(context.WithValue(r.Context(), userCtxKey, jwtUser))
 			}
 			next.ServeHTTP(w, r)
 		})
@@ -53,7 +47,7 @@ func (c *CustomClaimsExample) Valid() error {
 	return nil
 }
 
-func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer string, tokenString string) (*User, error) {
+func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer string, tokenString string) (User, error) {
 	// Parse the token
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaimsExample{}, func(token *jwt.Token) (interface{}, error) {
 		return rsaPublicKey, nil
@@ -68,6 +62,6 @@ func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer stri
 	if !claims.VerifyIssuer(jwtIssuer, true) {
 		return nil, errors.New("invalid issuer")
 	}
-	user := NewUser(claims.Subject).WithRoles("user")
+	user := newCtxUser(claims.Subject).WithRoles("user")
 	return user, nil
 }
