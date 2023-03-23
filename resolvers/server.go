@@ -24,10 +24,7 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := auth.ForContext(ctx)
-		if user == nil {
-			user = &auth.User{}
-		}
-		if !user.HasRole(string(role)) {
+		if user == nil || !user.HasRole(string(role)) {
 			return nil, fmt.Errorf("access denied")
 		}
 		return next(ctx)

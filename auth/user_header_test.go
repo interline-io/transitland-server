@@ -11,9 +11,9 @@ func TestKongMiddleware(t *testing.T) {
 		name       string
 		consumerId string
 		code       int
-		user       *User
+		user       User
 	}{
-		{"test", "test@transitland", 200, NewUser("test@transitland").WithRoles("user")},
+		{"test", "test@transitland", 200, newCtxUser("test@transitland").WithRoles("user")},
 		{"no user", "", 200, nil},
 	}
 	for _, tc := range tcs {
