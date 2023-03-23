@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/go-redis/redis/v8"
@@ -100,7 +99,6 @@ func RoleRequired(role string) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			user := ForContext(ctx)
-			fmt.Println("Got USER:", user, "checking ROLE:", role)
 			if user == nil || !user.HasRole(role) {
 				http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
 				return

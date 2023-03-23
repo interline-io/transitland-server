@@ -155,7 +155,7 @@ func (cmd *Command) Run() error {
 	meterProvider = meters.NewDefaultMeter()
 	if cmd.EnableMetering {
 		if cmd.MeteringProvider == "amberflo" {
-			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"))
+			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"), 30, 50)
 			if cmd.MeteringAmberfloConfig != "" {
 				if err := a.LoadConfig(cmd.MeteringAmberfloConfig); err != nil {
 					return err

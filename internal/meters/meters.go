@@ -3,7 +3,6 @@ package meters
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth"
@@ -16,27 +15,19 @@ type contextKey struct {
 }
 
 type ApiMeter interface {
-	Meter(auth.User, float64, map[string]string) error
+	Meter(MeterUser, float64, map[string]string) error
+	GetValue(MeterUser) (float64, bool)
 }
 
 type MeterProvider interface {
 	NewMeter(string) ApiMeter
 	Close() error
+	Flush() error
 }
 
-type MeterEvent struct {
-	UserID     string
-	MeterName  string
-	MeterValue float64
-	MeterTime  int64
-	Dimensions map[string]string
-}
-
-func NewEvent() MeterEvent {
-	t := time.Now().UnixNano() / int64(time.Millisecond)
-	return MeterEvent{
-		MeterTime: t,
-	}
+type MeterUser interface {
+	Name() string
+	GetExternalID(string) (string, bool)
 }
 
 func NewHttpMiddleware(apiMeter ApiMeter) func(http.Handler) http.Handler {
