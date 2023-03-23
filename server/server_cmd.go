@@ -23,6 +23,7 @@ import (
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/gbfsfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
+	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/metrics"
 	"github.com/interline-io/transitland-server/internal/playground"
 	"github.com/interline-io/transitland-server/internal/rtfinder"
@@ -31,8 +32,6 @@ import (
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/interline-io/transitland-server/rest"
 	"github.com/jmoiron/sqlx"
-	"github.com/prometheus/client_golang/prometheus/collectors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 )
 
@@ -46,12 +45,24 @@ type Command struct {
 	EnableJobsApi     bool
 	EnableWorkers     bool
 	EnableProfiler    bool
-	EnableMetrics     bool
 	AuthMiddlewares   ArrayFlags
 	DefaultQueue      string
 	SecretsFile       string
+	metersConfig
+	metricsConfig
 	auth.AuthConfig
 	config.Config
+}
+
+type metricsConfig struct {
+	EnableMetrics   bool
+	MetricsProvider string
+}
+
+type metersConfig struct {
+	EnableMetering         bool
+	MeteringProvider       string
+	MeteringAmberfloConfig string
 }
 
 func (cmd *Command) Parse(args []string) error {
@@ -86,10 +97,29 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
 	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
 	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
-	fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", true, "Enable metrics endpoint for Prometheus")
+
+	// Metrics
+	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
+	fl.StringVar(&cmd.MetricsProvider, "metrics-provider", "", "Specify metrics provider")
+
+	// Metering
+	// fl.BoolVar(&cmd.EnableMetering, "enable-metering", false, "Enable metering")
+	fl.StringVar(&cmd.MeteringProvider, "metering-provider", "", "Use metering provider")
+	fl.StringVar(&cmd.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for AmberFlo metering")
+
+	// Jobs
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
 	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
 	fl.Parse(args)
+
+	if cmd.MetricsProvider != "" {
+		cmd.EnableMetrics = true
+	}
+	if cmd.MeteringProvider != "" {
+		cmd.EnableMetering = true
+	}
+
+	// DB
 	if cmd.DBURL == "" {
 		cmd.DBURL = os.Getenv("TL_DATABASE_URL")
 	}
@@ -106,6 +136,30 @@ func (cmd *Command) Run() error {
 	var rtFinder model.RTFinder
 	var gbfsFinder model.GbfsFinder
 	var jobQueue jobs.JobQueue
+
+	// Open metrics
+	var metricProvider metrics.MetricProvider
+	metricProvider = metrics.NewDefaultMetric()
+	if cmd.EnableMetrics {
+		if cmd.MetricsProvider == "prometheus" {
+			metricProvider = metrics.NewPromMetrics()
+		}
+	}
+
+	// Open metering
+	var meterProvider meters.MeterProvider
+	meterProvider = meters.NewDefaultMeter()
+	if cmd.EnableMetering {
+		if cmd.MeteringProvider == "amberflo" {
+			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"))
+			if cmd.MeteringAmberfloConfig != "" {
+				if err := a.LoadMeterMap(cmd.MeteringAmberfloConfig); err != nil {
+					return err
+				}
+			}
+			meterProvider = a
+		}
+	}
 
 	// Open database
 	var db sqlx.Ext
@@ -179,15 +233,8 @@ func (cmd *Command) Run() error {
 	}
 
 	// Metrics
-	var metricMiddleware metrics.HttpWrapper
-	metricMiddleware = metrics.NewPassthroughMiddleware()
-	registry := metrics.NewRegistry()
 	if cmd.EnableMetrics {
-		// Need to use underlying *sql.DB
-		dbStats := collectors.NewDBStatsCollector(dbx.DB, "db")
-		registry.MustRegister(dbStats)
-		metricMiddleware = metrics.NewHttpMiddleware(registry, nil)
-		root.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
+		root.Handle("/metrics", metricProvider.MetricsHandler())
 	}
 
 	// GraphQL API
@@ -197,7 +244,12 @@ func (cmd *Command) Run() error {
 	}
 	if !cmd.DisableGraphql {
 		// Mount with user permissions required
-		root.Mount("/query", metricMiddleware.WrapHandler("graphql", auth.UserRequired(graphqlServer)))
+		r := chi.NewRouter()
+		r.Use(metrics.NewHttpMiddleware(metricProvider.NewApiMetric("graphql")))
+		r.Use(meters.NewHttpMiddleware(meterProvider.NewMeter("graphql")))
+		r.Use(auth.UserRequired)
+		r.Handle("/", graphqlServer)
+		root.Mount("/query", r)
 	}
 
 	// REST API
@@ -206,7 +258,12 @@ func (cmd *Command) Run() error {
 		if err != nil {
 			return err
 		}
-		root.Mount("/rest", metricMiddleware.WrapHandler("rest", auth.UserRequired(restServer)))
+		r := chi.NewRouter()
+		r.Use(metrics.NewHttpMiddleware(metricProvider.NewApiMetric("rest")))
+		r.Use(meters.NewHttpMiddleware(meterProvider.NewMeter("rest")))
+		r.Use(auth.UserRequired)
+		r.Mount("/", restServer)
+		root.Mount("/rest", r)
 	}
 
 	// Workers
@@ -230,9 +287,8 @@ func (cmd *Command) Run() error {
 			GbfsFinder: gbfsFinder,
 			Secrets:    secrets,
 		}
-		if cmd.EnableMetrics {
-			jobQueue.AddMiddleware(metrics.NewJobMiddleware(registry, "default"))
-		}
+		// Add metrics
+		jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
 		if cmd.EnableWorkers {
 			log.Infof("Enabling job workers")
 			jobQueue.AddWorker(workers.GetWorker, jobOptions, jobWorkers)
@@ -245,7 +301,10 @@ func (cmd *Command) Run() error {
 				return err
 			}
 			// Mount with admin permissions required
-			root.Mount("/jobs", auth.AdminRequired(jobServer))
+			r := chi.NewRouter()
+			r.Use(auth.AdminRequired)
+			r.Handle("/", jobServer)
+			root.Mount("/jobs", r)
 		}
 	}
 

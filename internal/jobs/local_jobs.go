@@ -27,7 +27,7 @@ func NewLocalJobs() *LocalJobs {
 	return f
 }
 
-func (f *LocalJobs) AddMiddleware(mwf JobMiddleware) {
+func (f *LocalJobs) Use(mwf JobMiddleware) {
 	f.middlewares = append(f.middlewares, mwf)
 }
 

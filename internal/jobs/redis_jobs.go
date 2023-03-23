@@ -25,11 +25,11 @@ func NewRedisJobs(client *redis.Client, queueName string) *RedisJobs {
 		queueName: queueName,
 		client:    client,
 	}
-	f.AddMiddleware(newLog())
+	f.Use(newLog())
 	return &f
 }
 
-func (f *RedisJobs) AddMiddleware(mwf JobMiddleware) {
+func (f *RedisJobs) Use(mwf JobMiddleware) {
 	f.middlewares = append(f.middlewares, mwf)
 }
 
