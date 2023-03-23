@@ -13,23 +13,21 @@ func TestUser_HasRole(t *testing.T) {
 		role    model.Role
 		hasRole bool
 	}{
-		{"anon", newCtxUser("").WithRoles("anon"), model.RoleAnon, true},
-		{"anon", newCtxUser("").WithRoles("anon", "user"), model.RoleAnon, true},
-		{"anon", newCtxUser("").WithRoles("anon", "user", "admin"), model.RoleAnon, true},
-		{"anon", newCtxUser("").WithRoles("user"), model.RoleAnon, true},
-		{"anon", newCtxUser("").WithRoles("admin"), model.RoleAnon, true},
+		{"anon", newCtxUser(""), model.RoleAnon, true},
+		{"anon", newCtxUser("test"), model.RoleAnon, true},
+		{"anon", newCtxUser("test").WithRoles("admin"), model.RoleAnon, true},
 
-		{"user", newCtxUser("").WithRoles("anon"), model.RoleUser, false},
-		{"user", newCtxUser("").WithRoles("user"), model.RoleUser, true},
-		{"user", newCtxUser("").WithRoles("admin"), model.RoleUser, true},
+		{"user", newCtxUser(""), model.RoleUser, false},
+		{"user", newCtxUser("test"), model.RoleUser, true},
+		{"user", newCtxUser("test").WithRoles("admin"), model.RoleUser, true},
 
-		{"admin", newCtxUser("").WithRoles("anon"), model.RoleAdmin, false},
-		{"admin", newCtxUser("").WithRoles("anon", "user"), model.RoleAdmin, false},
-		{"admin", newCtxUser("").WithRoles("anon"), model.RoleAdmin, false},
-		{"admin", newCtxUser("").WithRoles("user"), model.RoleAdmin, false},
-		{"admin", newCtxUser("").WithRoles("admin"), model.RoleAdmin, true},
+		{"admin", newCtxUser(""), model.RoleAdmin, false},
+		{"admin", newCtxUser(""), model.RoleAdmin, false},
+		{"admin", newCtxUser("test"), model.RoleAdmin, false},
+		{"admin", newCtxUser("test"), model.RoleAdmin, false},
+		{"admin", newCtxUser("test").WithRoles("admin"), model.RoleAdmin, true},
 
-		{"other roles", newCtxUser("").WithRoles("tlv2-admin"), model.Role("tlv2-admin"), true},
+		{"other roles", newCtxUser("test").WithRoles("tlv2-admin"), model.Role("tlv2-admin"), true},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -16,7 +16,11 @@ type contextKey struct {
 }
 
 type ApiMeter interface {
-	Meter(MeterEvent) error
+	Meter(auth.User, float64, map[string]string) error
+}
+
+type MeterProvider interface {
+	NewMeter(string) ApiMeter
 	Close() error
 }
 
@@ -26,10 +30,6 @@ type MeterEvent struct {
 	MeterValue float64
 	MeterTime  int64
 	Dimensions map[string]string
-}
-
-type MeterProvider interface {
-	NewMeter(string) ApiMeter
 }
 
 func NewEvent() MeterEvent {
@@ -42,16 +42,15 @@ func NewEvent() MeterEvent {
 func NewHttpMiddleware(apiMeter ApiMeter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(context.WithValue(r.Context(), meterCtxKey, apiMeter))
+			ctx := r.Context()
+			// Make ApiMeter available in context
+			r = r.WithContext(context.WithValue(ctx, meterCtxKey, apiMeter))
+			// Wrap
 			next.ServeHTTP(w, r)
-			m := MeterEvent{
-				MeterValue: 1.0,
-			}
-			if user := auth.ForContext(r.Context()); user != nil {
-				m.UserID = user.Name()
-			}
-			if err := apiMeter.Meter(m); err != nil {
-				log.Error().Err(err).Msg("amberflo error")
+			// On successful HTTP, log event
+			user := auth.ForContext(ctx)
+			if err := apiMeter.Meter(user, 1.0, nil); err != nil {
+				log.Error().Err(err).Msg("metering error")
 			}
 		})
 	}

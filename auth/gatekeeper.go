@@ -16,8 +16,8 @@ import (
 )
 
 // GatekeeperMiddleware checks an external endpoint for a list of roles
-func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, roleKey string, allowError bool) (MiddlewareFunc, error) {
-	gk := NewGatekeeper(client, endpoint, param, roleKey)
+func GatekeeperMiddleware(client *redis.Client, endpoint string, param string, roleKey string, eidKey string, allowError bool) (MiddlewareFunc, error) {
+	gk := NewGatekeeper(client, endpoint, param, roleKey, eidKey)
 	gk.Start(60 * time.Second)
 	return newGatekeeperMiddleware(gk, allowError), nil
 }
@@ -49,16 +49,18 @@ type Gatekeeper struct {
 	RequestTimeout time.Duration
 	endpoint       string
 	roleKey        string
+	eidKey         string
 	param          string
 	recheckTtl     time.Duration
 	cache          *ecache.Cache[gkCacheItem]
 }
 
-func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey string) *Gatekeeper {
+func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey string, eidKey string) *Gatekeeper {
 	gk := &Gatekeeper{
 		RequestTimeout: 1 * time.Second,
 		endpoint:       endpoint,
 		roleKey:        roleKey,
+		eidKey:         eidKey,
 		param:          param,
 		recheckTtl:     5 * 60 * time.Second,
 		cache:          ecache.NewCache[gkCacheItem](client, "gatekeeper"),
@@ -131,17 +133,26 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 	if resp.StatusCode >= 400 {
 		return gkCacheItem{}, fmt.Errorf("response status code: %d", resp.StatusCode)
 	}
+	// Read response
 	body, err := io.ReadAll(resp.Body)
-	var roles []string
 	if !gjson.Valid(string(body)) {
 		return gkCacheItem{}, errors.New("invalid json")
 	}
-	result := gjson.Get(string(body), gk.roleKey)
-	roles = append(roles, "user")
-	for _, r := range result.Array() {
-		roles = append(roles, r.String())
+	parsed := gjson.ParseBytes(body)
+
+	// Process roles and external IDs
+	item := gkCacheItem{
+		Name:        userKey,
+		Roles:       []string{},
+		ExternalIDs: map[string]string{},
 	}
-	return gkCacheItem{Name: userKey, Roles: roles}, nil
+	for _, r := range parsed.Get(gk.roleKey).Array() {
+		item.Roles = append(item.Roles, r.String())
+	}
+	for k, v := range parsed.Get(gk.eidKey).Map() {
+		item.ExternalIDs[k] = v.String()
+	}
+	return item, nil
 }
 
 // gkCacheItem needed for internal cached representation of ctxUser (Roles/ExternalIDs as exported fields)

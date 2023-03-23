@@ -1,10 +1,13 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"net/http"
@@ -86,7 +89,8 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.AuthConfig.JwtIssuer, "jwt-issuer", "", "JWT Issuer (use with -auth=jwt)")
 	fl.StringVar(&cmd.AuthConfig.JwtPublicKeyFile, "jwt-public-key-file", "", "Path to JWT public key file (use with -auth=jwt)")
 	fl.StringVar(&cmd.AuthConfig.GatekeeperEndpoint, "gatekeeper-endpoint", "", "Gatekeeper endpoint (use with -auth=gatekeeper)")
-	fl.StringVar(&cmd.AuthConfig.GatekeeperSelector, "gatekeeper-selector", "", "Gatekeeper selector (use with -auth=gatekeeper)")
+	fl.StringVar(&cmd.AuthConfig.GatekeeperRoleSelector, "gatekeeper-selector", "", "Gatekeeper role selector (use with -auth=gatekeeper)")
+	fl.StringVar(&cmd.AuthConfig.GatekeeperExternalIDSelector, "gatekeeper-eid-selector", "", "Gatekeeper External ID selector (use with -auth=gatekeeper)")
 	fl.StringVar(&cmd.AuthConfig.GatekeeperParam, "gatekeeper-param", "", "Gatekeeper param (use with -auth=gatekeeper)")
 	fl.BoolVar(&cmd.AuthConfig.GatekeeperAllowError, "gatekeeper-allow-error", false, "Gatekeeper ignore errors (use with -auth=gatekeeper)")
 	fl.StringVar(&cmd.AuthConfig.UserHeader, "user-header", "", "Header to check for username (use with -auth=header)")
@@ -153,12 +157,13 @@ func (cmd *Command) Run() error {
 		if cmd.MeteringProvider == "amberflo" {
 			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"))
 			if cmd.MeteringAmberfloConfig != "" {
-				if err := a.LoadMeterMap(cmd.MeteringAmberfloConfig); err != nil {
+				if err := a.LoadConfig(cmd.MeteringAmberfloConfig); err != nil {
 					return err
 				}
 			}
 			meterProvider = a
 		}
+		defer meterProvider.Close()
 	}
 
 	// Open database
@@ -322,7 +327,24 @@ func (cmd *Command) Run() error {
 		WriteTimeout: 2 * timeOut,
 		ReadTimeout:  2 * timeOut,
 	}
-	return srv.ListenAndServe()
+	go func() {
+		srv.ListenAndServe()
+	}()
+
+	// Listen for shutdown
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(
+		signalChan,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGQUIT,
+	)
+	<-signalChan
+	// Start http server shutdown with 5 second timeout
+	// Run this in main thread so we block for shutdown to succeed
+	gracefullCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelShutdown()
+	return srv.Shutdown(gracefullCtx)
 }
 
 // ArrayFlags allow repeatable command line options.

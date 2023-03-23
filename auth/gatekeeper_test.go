@@ -21,8 +21,8 @@ func TestGatekeeper(t *testing.T) {
 
 	// Test server
 	gkts := GatekeeperTestServer{}
-	gkts.AddUser(testEmail, newCtxUser(testEmail).WithRoles("user", testRole))
-	gkts.AddUser("refresh@transit.land", newCtxUser("refresh@transit.land").WithRoles("user", "refresh_test"))
+	gkts.AddUser(testEmail, newCtxUser(testEmail).WithRoles(testRole))
+	gkts.AddUser("refresh@transit.land", newCtxUser("refresh@transit.land").WithRoles("refresh_test"))
 
 	// Mock gatekeeper api interface
 	ts200 := httptest.NewServer(&gkts)
@@ -57,9 +57,9 @@ func TestGatekeeper(t *testing.T) {
 	defer tsTimeout.Close()
 
 	// Middleware create helpers
-	gkHelper := func(next http.Handler, em string, endpoint string, param string, roleKey string, allowError bool) http.Handler {
+	gkHelper := func(next http.Handler, em string, endpoint string, param string, roleKey string, eidKey string, allowError bool) http.Handler {
 		// Does not start update process
-		gk := NewGatekeeper(nil, endpoint, param, roleKey)
+		gk := NewGatekeeper(nil, endpoint, param, roleKey, eidKey)
 		return UserDefaultMiddleware(em)(newGatekeeperMiddleware(gk, allowError)(next))
 	}
 
@@ -75,16 +75,16 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"endpoint returns specified roles",
 			func(next http.Handler) http.Handler {
-				return gkHelper(next, testEmail, ts200.URL, "user", "roles", false)
+				return gkHelper(next, testEmail, ts200.URL, "user", "roles", "external_ids", false)
 			},
 			200,
-			newCtxUser(testEmail).WithRoles("user", testRole),
+			newCtxUser(testEmail).WithRoles(testRole),
 			nil,
 		},
 		{
 			"unknown user returns 401",
 			func(next http.Handler) http.Handler {
-				return gkHelper(next, "unknown@transit.land", ts200.URL, "user", "roles", false)
+				return gkHelper(next, "unknown@transit.land", ts200.URL, "user", "roles", "external_ids", false)
 			},
 			401,
 			nil,
@@ -93,41 +93,41 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"locally cached value ok when endpoint available",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{"user", testRole}}
-				gk := NewGatekeeper(nil, ts200.URL, "user", "roles")
+				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
+				gk := NewGatekeeper(nil, ts200.URL, "user", "roles", "external_ids")
 				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
-			newCtxUser(testEmail).WithRoles("user", testRole),
+			newCtxUser(testEmail).WithRoles(testRole),
 			nil,
 		},
 		{
 			"locally cached value ok when endpoint down",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{"user", testRole}}
-				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles")
+				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
+				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles", "external_ids")
 				gk.RequestTimeout = 100 * time.Millisecond
 				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
-			newCtxUser(testEmail).WithRoles("user", testRole),
+			newCtxUser(testEmail).WithRoles(testRole),
 			nil,
 		},
 		{
 			"unknown user skipped when allowFail = true",
 			func(next http.Handler) http.Handler {
-				return gkHelper(next, "other@transit.land", ts200.URL, "user", "roles", true)
+				return gkHelper(next, "other@transit.land", ts200.URL, "user", "roles", "external_ids", true)
 			},
 			200,
-			newCtxUser("other@transit.land").WithRoles("user"),
+			newCtxUser("other@transit.land"),
 			nil,
 		},
 		{
 			"invalid data returns 401",
 			func(next http.Handler) http.Handler {
-				return gkHelper(next, testEmail, tsInvalidOk.URL, "user", "roles", false)
+				return gkHelper(next, testEmail, tsInvalidOk.URL, "user", "roles", "external_ids", false)
 			},
 			401,
 			nil,
@@ -136,25 +136,25 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"invalid data allowed when allowFail = true",
 			func(next http.Handler) http.Handler {
-				return gkHelper(next, testEmail, tsInvalidOk.URL, "user", "roles", true)
+				return gkHelper(next, testEmail, tsInvalidOk.URL, "user", "roles", "external_ids", true)
 			},
 			200,
-			newCtxUser(testEmail).WithRoles("user"),
+			newCtxUser(testEmail),
 			nil,
 		},
 		{
 			"invalid response allowed when allowFail = true",
 			func(next http.Handler) http.Handler {
-				return gkHelper(next, "other@transit.land", tsInvalid.URL, "user", "roles", true)
+				return gkHelper(next, "other@transit.land", tsInvalid.URL, "user", "roles", "external_ids", true)
 			},
 			200,
-			newCtxUser("other@transit.land").WithRoles("user"),
+			newCtxUser("other@transit.land"),
 			nil,
 		},
 		{
 			"invalid response returns 401",
 			func(next http.Handler) http.Handler {
-				return gkHelper(next, "other@transit.land", tsInvalid.URL, "user", "roles", false)
+				return gkHelper(next, "other@transit.land", tsInvalid.URL, "user", "roles", "external_ids", false)
 			},
 			401,
 			nil,
@@ -164,7 +164,7 @@ func TestGatekeeper(t *testing.T) {
 			"endpoint down, returns 401 after request timeout",
 			func(next http.Handler) http.Handler {
 				testStartTime = time.Now()
-				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles")
+				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles", "external_ids")
 				gk.RequestTimeout = 100 * time.Millisecond
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
@@ -180,38 +180,38 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"endpoint down, ignored when allowFail = true",
 			func(next http.Handler) http.Handler {
-				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles")
+				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles", "external_ids")
 				gk.RequestTimeout = 100 * time.Millisecond
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, true)(next))
 			},
 			200,
-			newCtxUser(testEmail).WithRoles("user"),
+			newCtxUser(testEmail),
 			nil,
 		},
 		{
 			"redis cached value ok when endpoint down",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{"user", testRole}}
+				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
 				db, mock := redismock.NewClientMock()
 				mock.ExpectGet(cacheRedisKey("gatekeeper", testEmail)).SetVal(cacheItemJson(u, 0))
-				gk := NewGatekeeper(db, tsTimeout.URL, "user", "roles")
+				gk := NewGatekeeper(db, tsTimeout.URL, "user", "roles", "external_ids")
 				gk.RequestTimeout = 100 * time.Millisecond
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
-			newCtxUser(testEmail).WithRoles("user", testRole),
+			newCtxUser(testEmail).WithRoles(testRole),
 			nil,
 		},
 		{
 			"gatekeeper refreshes contexts in background",
 			func(next http.Handler) http.Handler {
-				gk := NewGatekeeper(nil, ts200.URL, "user", "roles")
+				gk := NewGatekeeper(nil, ts200.URL, "user", "roles", "external_ids")
 				gk.recheckTtl = 1 * time.Millisecond
 				gk.Start(10 * time.Millisecond)
 				return UserDefaultMiddleware("refresh@transit.land")(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
-			newCtxUser("refresh@transit.land").WithRoles("user", "refresh_test"),
+			newCtxUser("refresh@transit.land").WithRoles("refresh_test"),
 			func(t *testing.T) {
 				// Request count should be at least 10
 				time.Sleep(100 * time.Millisecond)

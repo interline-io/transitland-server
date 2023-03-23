@@ -45,12 +45,17 @@ func (user ctxUser) IsValid() bool {
 	return user.valid
 }
 
-func (user ctxUser) GetExternalID(string) (string, bool) {
-	return "", false
+func (user ctxUser) GetExternalID(eid string) (string, bool) {
+	a, ok := user.externalIds[eid]
+	return a, ok
 }
 
 func (user ctxUser) WithExternalIDs(m map[string]string) User {
-	return user
+	newUser := user.clone()
+	for k, v := range m {
+		newUser.externalIds[k] = v
+	}
+	return newUser
 }
 
 func (user ctxUser) WithRoles(roles ...string) User {
@@ -67,11 +72,9 @@ func (user ctxUser) HasRole(role string) bool {
 	// Check for original roles
 	switch checkRole {
 	case "anon":
-		return user.hasRole("anon") || user.hasRole("user") || user.hasRole("admin")
+		return true
 	case "user":
-		return user.hasRole("user") || user.hasRole("admin")
-	case "admin":
-		return user.hasRole("admin")
+		return user.name != ""
 	}
 	// Check all other roles
 	return user.hasRole(checkRole)

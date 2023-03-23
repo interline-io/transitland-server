@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/amberflo/metering-go/v2"
+	"github.com/interline-io/transitland-server/auth"
 	"github.com/xtgo/uuid"
 )
 
@@ -17,12 +18,15 @@ type AmberFlo struct {
 func NewAmberFlo(apikey string) *AmberFlo {
 	intervalSeconds := 30 * time.Second
 	batchSize := 5
-	debug := true
+	// debug := false
+	// if log.Logger.GetLevel() == zerolog.TraceLevel {
+	// 	debug = true
+	// }
 	meteringClient := metering.NewMeteringClient(
 		apikey,
 		metering.WithBatchSize(batchSize),
 		metering.WithIntervalSeconds(intervalSeconds),
-		metering.WithDebug(debug),
+		// metering.WithDebug(debug),
 	)
 	return &AmberFlo{
 		client:   meteringClient,
@@ -31,12 +35,13 @@ func NewAmberFlo(apikey string) *AmberFlo {
 }
 
 type amberFloConfig struct {
-	Name        string            `json:"name,omitempty"`
-	DefaultUser string            `json:"default_user,omitempty"`
-	Dimensions  map[string]string `json:"dimensions,omitempty"`
+	Name           string            `json:"name,omitempty"`
+	DefaultUser    string            `json:"default_user,omitempty"`
+	UserExternalID string            `json:"user_external_id,omitempty"`
+	Dimensions     map[string]string `json:"dimensions,omitempty"`
 }
 
-func (m *AmberFlo) LoadMeterMap(path string) error {
+func (m *AmberFlo) LoadConfig(path string) error {
 	meterMap := map[string]amberFloConfig{}
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -55,8 +60,9 @@ func (m *AmberFlo) NewMeter(handlerName string) ApiMeter {
 	}
 	if a, ok := m.meterMap[handlerName]; ok {
 		cfg = amberFloConfig{
-			Name:        a.Name,
-			DefaultUser: a.DefaultUser,
+			Name:           a.Name,
+			DefaultUser:    a.DefaultUser,
+			UserExternalID: a.UserExternalID,
 		}
 		for k, v := range a.Dimensions {
 			cfg.Dimensions[k] = v
@@ -68,25 +74,30 @@ func (m *AmberFlo) NewMeter(handlerName string) ApiMeter {
 	}
 }
 
+func (m *AmberFlo) Close() error {
+	return m.client.Shutdown()
+}
+
 type amberFloMeter struct {
 	cfg    amberFloConfig
 	client *metering.Metering
 }
 
-func (m *amberFloMeter) Meter(e MeterEvent) error {
+func (m *amberFloMeter) Meter(user auth.User, value float64, extraDimensions map[string]string) error {
 	uniqueId := uuid.NewRandom().String()
 	utcMillis := time.Now().UnixNano() / int64(time.Millisecond)
 	userId := m.cfg.DefaultUser
-	if e.UserID != "" {
-		userId = e.UserID
+	if user != nil {
+		if a, ok := user.GetExternalID(m.cfg.UserExternalID); ok {
+			userId = a
+		}
 	}
-	value := e.MeterValue
-	dims := map[string]string{}
+	dimensions := map[string]string{}
 	for k, v := range m.cfg.Dimensions {
-		dims[k] = v
+		dimensions[k] = v
 	}
-	for k, v := range e.Dimensions {
-		dims[k] = v
+	for k, v := range extraDimensions {
+		dimensions[k] = v
 	}
 	return m.client.Meter(&metering.MeterMessage{
 		MeterApiName:      m.cfg.Name,
@@ -94,10 +105,6 @@ func (m *amberFloMeter) Meter(e MeterEvent) error {
 		MeterTimeInMillis: utcMillis,
 		CustomerId:        userId,
 		MeterValue:        value,
-		Dimensions:        dims,
+		Dimensions:        dimensions,
 	})
-}
-
-func (m *amberFloMeter) Close() error {
-	return m.client.Shutdown()
 }

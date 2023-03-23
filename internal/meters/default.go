@@ -3,27 +3,28 @@ package meters
 import (
 	"fmt"
 	"sync"
+
+	"github.com/interline-io/transitland-server/auth"
 )
 
 type DefaultMeter struct {
-	handlerName string
-	values      map[string]int
-	lock        sync.Mutex
+	meterName string
+	values    map[string]int
+	lock      sync.Mutex
 }
 
 func NewDefaultMeter() *DefaultMeter {
 	return &DefaultMeter{}
 }
 
-func (m *DefaultMeter) Meter(e MeterEvent) error {
+func (m *DefaultMeter) Meter(u auth.User, value float64, dims map[string]string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	m.values[e.MeterName] += 1
+	m.values[m.meterName] += 1
 	fmt.Printf(
-		"meter '%s' handling meter event: %#v new val: %d\n",
-		m.handlerName,
-		e,
-		m.values[e.MeterName],
+		"meter '%s': new val: %d\n",
+		m.meterName,
+		m.values[m.meterName],
 	)
 	return nil
 }
@@ -32,9 +33,9 @@ func (m *DefaultMeter) Close() error {
 	return nil
 }
 
-func (m *DefaultMeter) NewMeter(handlerName string) ApiMeter {
+func (m *DefaultMeter) NewMeter(meterName string) ApiMeter {
 	return &DefaultMeter{
-		handlerName: handlerName,
-		values:      map[string]int{},
+		meterName: meterName,
+		values:    map[string]int{},
 	}
 }
