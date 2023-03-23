@@ -21,8 +21,8 @@ func TestGatekeeper(t *testing.T) {
 
 	// Test server
 	gkts := GatekeeperTestServer{}
-	gkts.AddUser(testEmail, NewUser(testEmail).WithRoles("user", testRole))
-	gkts.AddUser("refresh@transit.land", NewUser("refresh@transit.land").WithRoles("user", "refresh_test"))
+	gkts.AddUser(testEmail, newCtxUser(testEmail).WithRoles("user", testRole))
+	gkts.AddUser("refresh@transit.land", newCtxUser("refresh@transit.land").WithRoles("user", "refresh_test"))
 
 	// Mock gatekeeper api interface
 	ts200 := httptest.NewServer(&gkts)
@@ -69,7 +69,7 @@ func TestGatekeeper(t *testing.T) {
 		name  string
 		mwf   MiddlewareFunc
 		code  int
-		user  *User
+		user  User
 		after func(*testing.T)
 	}{
 		{
@@ -78,7 +78,7 @@ func TestGatekeeper(t *testing.T) {
 				return gkHelper(next, testEmail, ts200.URL, "user", "roles", false)
 			},
 			200,
-			NewUser(testEmail).WithRoles("user", testRole),
+			newCtxUser(testEmail).WithRoles("user", testRole),
 			nil,
 		},
 		{
@@ -93,24 +93,26 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"locally cached value ok when endpoint available",
 			func(next http.Handler) http.Handler {
+				u := gkCacheItem{Name: testEmail, Roles: []string{"user", testRole}}
 				gk := NewGatekeeper(nil, ts200.URL, "user", "roles")
-				gk.cache.SetTTL(nil, testEmail, []string{"user", testRole}, 0, 0)
+				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
-			NewUser(testEmail).WithRoles("user", testRole),
+			newCtxUser(testEmail).WithRoles("user", testRole),
 			nil,
 		},
 		{
 			"locally cached value ok when endpoint down",
 			func(next http.Handler) http.Handler {
+				u := gkCacheItem{Name: testEmail, Roles: []string{"user", testRole}}
 				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles")
 				gk.RequestTimeout = 100 * time.Millisecond
-				gk.cache.SetTTL(nil, testEmail, []string{"user", testRole}, 0, 0)
+				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
-			NewUser(testEmail).WithRoles("user", testRole),
+			newCtxUser(testEmail).WithRoles("user", testRole),
 			nil,
 		},
 		{
@@ -119,7 +121,7 @@ func TestGatekeeper(t *testing.T) {
 				return gkHelper(next, "other@transit.land", ts200.URL, "user", "roles", true)
 			},
 			200,
-			NewUser("other@transit.land").WithRoles("user"),
+			newCtxUser("other@transit.land").WithRoles("user"),
 			nil,
 		},
 		{
@@ -137,7 +139,7 @@ func TestGatekeeper(t *testing.T) {
 				return gkHelper(next, testEmail, tsInvalidOk.URL, "user", "roles", true)
 			},
 			200,
-			NewUser(testEmail).WithRoles("user"),
+			newCtxUser(testEmail).WithRoles("user"),
 			nil,
 		},
 		{
@@ -146,7 +148,7 @@ func TestGatekeeper(t *testing.T) {
 				return gkHelper(next, "other@transit.land", tsInvalid.URL, "user", "roles", true)
 			},
 			200,
-			NewUser("other@transit.land").WithRoles("user"),
+			newCtxUser("other@transit.land").WithRoles("user"),
 			nil,
 		},
 		{
@@ -183,20 +185,21 @@ func TestGatekeeper(t *testing.T) {
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, true)(next))
 			},
 			200,
-			NewUser(testEmail).WithRoles("user"),
+			newCtxUser(testEmail).WithRoles("user"),
 			nil,
 		},
 		{
 			"redis cached value ok when endpoint down",
 			func(next http.Handler) http.Handler {
+				u := gkCacheItem{Name: testEmail, Roles: []string{"user", testRole}}
 				db, mock := redismock.NewClientMock()
-				mock.ExpectGet(cacheRedisKey("gatekeeper", testEmail)).SetVal(cacheItemJson([]string{testRole}, 0))
+				mock.ExpectGet(cacheRedisKey("gatekeeper", testEmail)).SetVal(cacheItemJson(u, 0))
 				gk := NewGatekeeper(db, tsTimeout.URL, "user", "roles")
 				gk.RequestTimeout = 100 * time.Millisecond
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
-			NewUser(testEmail).WithRoles("user", testRole),
+			newCtxUser(testEmail).WithRoles("user", testRole),
 			nil,
 		},
 		{
@@ -208,7 +211,7 @@ func TestGatekeeper(t *testing.T) {
 				return UserDefaultMiddleware("refresh@transit.land")(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
-			NewUser("refresh@transit.land").WithRoles("user", "refresh_test"),
+			newCtxUser("refresh@transit.land").WithRoles("user", "refresh_test"),
 			func(t *testing.T) {
 				// Request count should be at least 10
 				time.Sleep(100 * time.Millisecond)
@@ -229,8 +232,8 @@ func TestGatekeeper(t *testing.T) {
 }
 
 // Must be the same as ecache
-func cacheItemJson(roles []string, ttl time.Duration) string {
-	a := ecache.Item[[]string]{Value: roles, ExpiresAt: time.Now().Add(ttl), RecheckAt: time.Now().Add(ttl)}
+func cacheItemJson(user gkCacheItem, ttl time.Duration) string {
+	a := ecache.Item[gkCacheItem]{Value: user, ExpiresAt: time.Now().Add(ttl), RecheckAt: time.Now().Add(ttl)}
 	b, err := json.Marshal(&a)
 	if err != nil {
 		panic(err)
@@ -247,18 +250,18 @@ func cacheRedisKey(topic string, key string) string {
 
 // Trivial implementation of Gatekeeper for testing purposes
 type GatekeeperTestServer struct {
-	users  map[string]*User
+	users  map[string]User
 	counts map[string]int
 	lock   sync.Mutex
 }
 
-func (gk *GatekeeperTestServer) AddUser(key string, user *User) {
+func (gk *GatekeeperTestServer) AddUser(key string, user User) {
 	gk.lock.Lock()
 	defer gk.lock.Unlock()
 	if gk.users == nil {
-		gk.users = map[string]*User{}
+		gk.users = map[string]User{}
 	}
-	gk.users[key] = NewUser(user.Name).WithRoles(user.roles...)
+	gk.users[key] = newCtxUser(user.Name()).WithRoles(user.Roles()...)
 
 }
 
@@ -266,7 +269,7 @@ func (gk *GatekeeperTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 	gk.lock.Lock()
 	defer gk.lock.Unlock()
 	u := r.URL.Query()
-	var user *User
+	var user User
 	if a := u["user"]; len(a) > 0 {
 		user = gk.users[a[0]]
 	}
@@ -274,10 +277,10 @@ func (gk *GatekeeperTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 		if gk.counts == nil {
 			gk.counts = map[string]int{}
 		}
-		gk.counts[user.Name] += 1
+		gk.counts[user.Name()] += 1
 		umap := map[string]any{
-			"name":  user.Name,
-			"roles": user.roles,
+			"name":  user.Name(),
+			"roles": user.Roles(),
 		}
 		jb, err := json.Marshal(umap)
 		if err != nil {

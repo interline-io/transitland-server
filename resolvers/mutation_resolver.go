@@ -61,7 +61,7 @@ func (r *mutationResolver) FeedVersionDelete(ctx context.Context, id int) (*mode
 }
 
 // Fetch adds a feed version to the database.
-func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *string, feedId string, user *auth.User) (*model.FeedVersionFetchResult, error) {
+func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *string, feedId string, user auth.User) (*model.FeedVersionFetchResult, error) {
 	if user == nil {
 		return nil, errors.New("no user")
 	}
@@ -85,7 +85,7 @@ func Fetch(cfg config.Config, finder model.Finder, src io.Reader, feedURL *strin
 		FetchedAt: time.Now(),
 		FeedID:    feed.ID,
 		Storage:   cfg.Storage,
-		CreatedBy: tt.NewString(user.Name),
+		CreatedBy: tt.NewString(user.Name()),
 	}
 	if src != nil {
 		// Prepare reader
@@ -137,7 +137,7 @@ func checkurl(address string) bool {
 }
 
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
-func ValidateUpload(cfg config.Config, src io.Reader, feedURL *string, rturls []string, user *auth.User) (*model.ValidationResult, error) {
+func ValidateUpload(cfg config.Config, src io.Reader, feedURL *string, rturls []string, user auth.User) (*model.ValidationResult, error) {
 	// Check inputs
 	rturlsok := []string{}
 	for _, rturl := range rturls {

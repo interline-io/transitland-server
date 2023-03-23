@@ -48,7 +48,7 @@ func NewHttpMiddleware(apiMeter ApiMeter) func(http.Handler) http.Handler {
 				MeterValue: 1.0,
 			}
 			if user := auth.ForContext(r.Context()); user != nil {
-				m.UserID = user.Name
+				m.UserID = user.Name()
 			}
 			if err := apiMeter.Meter(m); err != nil {
 				log.Error().Err(err).Msg("amberflo error")
