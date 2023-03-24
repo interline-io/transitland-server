@@ -207,6 +207,7 @@ func (cmd *Command) Run() error {
 	root.Use(middleware.RealIP)
 	root.Use(middleware.Recoverer)
 	root.Use(middleware.StripSlashes)
+	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
@@ -216,10 +217,6 @@ func (cmd *Command) Run() error {
 			root.Use(userMiddleware)
 		}
 	}
-
-	// Timeout and logging
-	timeOut := time.Duration(cmd.Timeout) * time.Second
-	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Setup CORS
 	root.Use(cors.Handler(cors.Options{
@@ -319,6 +316,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// Start server
+	timeOut := time.Duration(cmd.Timeout) * time.Second
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
 	log.Infof("Listening on: %s", addr)
 	srv := &http.Server{

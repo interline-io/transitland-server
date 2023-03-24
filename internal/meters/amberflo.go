@@ -191,11 +191,31 @@ type amberFloEvent struct {
 
 type amberFloMeter struct {
 	user MeterUser
+	dims []string
 	mp   *AmberFlo
 }
 
 func (m *amberFloMeter) Meter(meterName string, value float64, extraDimensions map[string]string) error {
-	return m.mp.sendMeter(m.user, meterName, value, extraDimensions)
+	var dm2 map[string]string
+	if len(extraDimensions) > 0 || len(m.dims) > 0 {
+		dm2 = map[string]string{}
+	}
+	for k, v := range extraDimensions {
+		dm2[k] = v
+	}
+	for i := 0; i < len(m.dims); i += 3 {
+		a := m.dims[i]
+		k := m.dims[i+1]
+		v := m.dims[i+2]
+		if a == "" || a == meterName {
+			dm2[k] = v
+		}
+	}
+	return m.mp.sendMeter(m.user, meterName, value, dm2)
+}
+
+func (m *amberFloMeter) AddDimension(meterName string, key string, value string) {
+	m.dims = append(m.dims, meterName, key, value)
 }
 
 func (m *amberFloMeter) GetValue(meterName string) (float64, bool) {

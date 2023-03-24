@@ -31,7 +31,7 @@ query($feed_onestop_id: String!, $ids: [Int!]) {
 
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
-func feedDownloadLatestFeedVersionHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
+func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 	key := chi.URLParam(r, "feed_key")
 	gvars := hw{}
 	if key == "" {
@@ -101,7 +101,7 @@ query($feed_version_sha1:String!, $ids: [Int!]) {
 
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
-func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
+func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 	gvars := hw{}
 	key := chi.URLParam(r, "feed_version_key")
 	if key == "" {

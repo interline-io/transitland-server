@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth"
 )
 
@@ -16,6 +15,7 @@ type contextKey struct {
 
 type ApiMeter interface {
 	Meter(string, float64, map[string]string) error
+	AddDimension(string, string, string)
 	GetValue(string) (float64, bool)
 }
 
@@ -33,16 +33,11 @@ type MeterUser interface {
 func NewHttpMiddleware(meterName string, apiMeter MeterProvider) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Make ctxMeter available in context
 			ctx := r.Context()
 			ctxMeter := apiMeter.NewMeter(auth.ForContext(ctx))
-			// Make ApiMeter available in context
 			r = r.WithContext(context.WithValue(ctx, meterCtxKey, ctxMeter))
-			// Wrap
 			next.ServeHTTP(w, r)
-			// On successful HTTP, log event
-			if err := ctxMeter.Meter(meterName, 1.0, nil); err != nil {
-				log.Error().Err(err).Msg("metering error")
-			}
 		})
 	}
 }

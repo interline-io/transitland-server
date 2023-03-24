@@ -64,11 +64,31 @@ func (m *DefaultMeter) getValue(u MeterUser, meterName string) (float64, bool) {
 
 type defaultUserMeter struct {
 	user MeterUser
+	dims []string
 	mp   *DefaultMeter
 }
 
 func (m *defaultUserMeter) Meter(meterName string, value float64, extraDimensions map[string]string) error {
-	return m.mp.sendMeter(m.user, meterName, value, extraDimensions)
+	var dm2 map[string]string
+	if len(extraDimensions) > 0 || len(m.dims) > 0 {
+		dm2 = map[string]string{}
+	}
+	for i := 0; i < len(m.dims); i += 3 {
+		a := m.dims[i]
+		k := m.dims[i+1]
+		v := m.dims[i+2]
+		if a == meterName {
+			dm2[k] = v
+		}
+	}
+	for k, v := range extraDimensions {
+		dm2[k] = v
+	}
+	return m.mp.sendMeter(m.user, meterName, value, dm2)
+}
+
+func (m *defaultUserMeter) AddDimension(meterName string, key string, value string) {
+	m.dims = append(m.dims, meterName, key, value)
 }
 
 func (m *defaultUserMeter) GetValue(meterName string) (float64, bool) {

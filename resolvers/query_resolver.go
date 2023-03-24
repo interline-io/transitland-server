@@ -2,7 +2,9 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -16,6 +18,7 @@ func (r *queryResolver) Agencies(ctx context.Context, limit *int, after *int, id
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
+	addMetric(ctx, "agencies")
 	return r.finder.FindAgencies(ctx, limit, cursor, ids, where)
 }
 
@@ -25,6 +28,7 @@ func (r *queryResolver) Routes(ctx context.Context, limit *int, after *int, ids 
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
+	addMetric(ctx, "routes")
 	return r.finder.FindRoutes(ctx, limit, cursor, ids, where)
 }
 
@@ -34,6 +38,7 @@ func (r *queryResolver) Stops(ctx context.Context, limit *int, after *int, ids [
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
+	addMetric(ctx, "stops")
 	return r.finder.FindStops(ctx, limit, cursor, ids, where)
 }
 
@@ -43,6 +48,7 @@ func (r *queryResolver) Trips(ctx context.Context, limit *int, after *int, ids [
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
+	addMetric(ctx, "trips")
 	return r.finder.FindTrips(ctx, limit, cursor, ids, where)
 }
 
@@ -52,6 +58,7 @@ func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
+	addMetric(ctx, "feedVersions")
 	return r.finder.FindFeedVersions(ctx, limit, cursor, ids, where)
 }
 
@@ -61,6 +68,7 @@ func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids [
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
+	addMetric(ctx, "feeds")
 	return r.finder.FindFeeds(ctx, limit, cursor, ids, where)
 }
 
@@ -70,5 +78,13 @@ func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, i
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
+	addMetric(ctx, "operators")
 	return r.finder.FindOperators(ctx, limit, cursor, ids, where)
+}
+
+func addMetric(ctx context.Context, resolverName string) {
+	fmt.Println("???", resolverName)
+	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
+		apiMeter.AddDimension("graphql", "resolver", resolverName)
+	}
 }

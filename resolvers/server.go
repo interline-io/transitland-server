@@ -11,6 +11,7 @@ import (
 	"github.com/interline-io/transitland-server/config"
 	generated "github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/internal/fvsl"
+	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -31,6 +32,16 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 	}
 	// Setup server
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
-	graphqlServer := Middleware(cfg, dbfinder, srv)
+	graphqlServer := meterMiddleware(loaderMiddleware(cfg, dbfinder, srv))
 	return graphqlServer, nil
+}
+
+func meterMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
+		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+			// default to "unknown"
+			apiMeter.Meter("graphql", 1.0, map[string]string{"resolver": "unknown"})
+		}
+	})
 }
