@@ -30,13 +30,11 @@ func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 			if user := ForContext(ctx); user != nil && user.Name() != "" {
 				checkUser, err := gk.GetUser(ctx, user.Name())
 				if err != nil {
-					log.Error().Err(err).Str("user", user.Name()).Msg("gatekeeper error")
 					if !allowError {
 						http.Error(w, "error", http.StatusUnauthorized)
 						return
 					}
 				} else {
-					log.Trace().Str("user", checkUser.Name()).Strs("roles", checkUser.Roles()).Msg("gatekeeper roles")
 					r = r.WithContext(context.WithValue(r.Context(), userCtxKey, checkUser))
 				}
 			}
@@ -80,13 +78,12 @@ func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (User, error)
 	gkUser, ok := gk.cache.Get(ctx, userKey)
 	if !ok {
 		var err error
-		gkUser, err = gk.requestUser(ctx, userKey)
+		gkUser, err = gk.updateUser(ctx, userKey)
 		if err != nil {
 			return nil, err
 		}
-		gk.cache.SetTTL(ctx, userKey, gkUser, gk.recheckTtl, 24*time.Hour)
 	}
-	user := newCtxUser(gkUser.Name).WithRoles(gkUser.Roles...)
+	user := newCtxUser(gkUser.Name).WithRoles(gkUser.Roles...).WithExternalIDs(gkUser.ExternalIDs)
 	return user, nil
 }
 
@@ -103,14 +100,22 @@ func (gk *Gatekeeper) Start(t time.Duration) {
 func (gk *Gatekeeper) updateUsers(ctx context.Context) {
 	// This can be improved to avoid races
 	keys := gk.cache.GetRecheckKeys(ctx)
-	for _, k := range keys {
-		if gkUser, err := gk.requestUser(ctx, k); err != nil {
+	for _, userKey := range keys {
+		if _, err := gk.updateUser(ctx, userKey); err != nil {
 			// Failed :(
-			// Log but do not update cached value
-		} else {
-			gk.cache.SetTTL(ctx, k, gkUser, gk.recheckTtl, 24*time.Hour)
 		}
 	}
+}
+
+func (gk *Gatekeeper) updateUser(ctx context.Context, userKey string) (gkCacheItem, error) {
+	gkUser, err := gk.requestUser(ctx, userKey)
+	if err != nil {
+		log.Error().Err(err).Str("user", userKey).Msg("gatekeeper requestUser failed")
+		return gkUser, err
+	}
+	log.Trace().Str("user", userKey).Strs("roles", gkUser.Roles).Any("external_ids", gkUser.ExternalIDs).Msg("gatekeeper requestUser ok")
+	gk.cache.SetTTL(ctx, userKey, gkUser, gk.recheckTtl, 24*time.Hour)
+	return gkUser, nil
 }
 
 func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheItem, error) {

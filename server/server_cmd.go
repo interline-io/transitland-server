@@ -155,7 +155,7 @@ func (cmd *Command) Run() error {
 	meterProvider = meters.NewDefaultMeter()
 	if cmd.EnableMetering {
 		if cmd.MeteringProvider == "amberflo" {
-			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"), 30, 50)
+			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
 			if cmd.MeteringAmberfloConfig != "" {
 				if err := a.LoadConfig(cmd.MeteringAmberfloConfig); err != nil {
 					return err
@@ -251,7 +251,7 @@ func (cmd *Command) Run() error {
 		// Mount with user permissions required
 		r := chi.NewRouter()
 		r.Use(metrics.NewHttpMiddleware(metricProvider.NewApiMetric("graphql")))
-		r.Use(meters.NewHttpMiddleware(meterProvider.NewMeter("graphql")))
+		r.Use(meters.NewHttpMiddleware("graphql", meterProvider))
 		r.Use(auth.UserRequired)
 		r.Handle("/", graphqlServer)
 		root.Mount("/query", r)
@@ -265,7 +265,7 @@ func (cmd *Command) Run() error {
 		}
 		r := chi.NewRouter()
 		r.Use(metrics.NewHttpMiddleware(metricProvider.NewApiMetric("rest")))
-		r.Use(meters.NewHttpMiddleware(meterProvider.NewMeter("rest")))
+		r.Use(meters.NewHttpMiddleware("rest", meterProvider))
 		r.Use(auth.UserRequired)
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)

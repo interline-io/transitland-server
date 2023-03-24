@@ -46,7 +46,7 @@ func TestAmberFloMeter(t *testing.T) {
 		user3:      &amberfloTestUser{name: os.Getenv("TL_TEST_AMBERFLO_USER3")},
 	}
 	mp := NewAmberFlo(os.Getenv("TL_TEST_AMBERFLO_APIKEY"), 1*time.Second, 1)
-	mp.cfgs[testConfig.testMeter1] = amberFloConfig{Name: testConfig.testMeter1, UserExternalIDKey: "amberflo"}
-	mp.cfgs[testConfig.testMeter2] = amberFloConfig{Name: testConfig.testMeter2, UserExternalIDKey: "amberflo"}
+	mp.cfgs[testConfig.testMeter1] = amberFloConfig{Name: testConfig.testMeter1, ExternalIDKey: "amberflo"}
+	mp.cfgs[testConfig.testMeter2] = amberFloConfig{Name: testConfig.testMeter2, ExternalIDKey: "amberflo"}
 	testMeter(t, mp, testConfig)
 }

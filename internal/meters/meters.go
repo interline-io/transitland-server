@@ -15,12 +15,12 @@ type contextKey struct {
 }
 
 type ApiMeter interface {
-	Meter(MeterUser, float64, map[string]string) error
-	GetValue(MeterUser) (float64, bool)
+	Meter(string, float64, map[string]string) error
+	GetValue(string) (float64, bool)
 }
 
 type MeterProvider interface {
-	NewMeter(string) ApiMeter
+	NewMeter(MeterUser) ApiMeter
 	Close() error
 	Flush() error
 }
@@ -30,17 +30,17 @@ type MeterUser interface {
 	GetExternalID(string) (string, bool)
 }
 
-func NewHttpMiddleware(apiMeter ApiMeter) func(http.Handler) http.Handler {
+func NewHttpMiddleware(meterName string, apiMeter MeterProvider) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
+			ctxMeter := apiMeter.NewMeter(auth.ForContext(ctx))
 			// Make ApiMeter available in context
-			r = r.WithContext(context.WithValue(ctx, meterCtxKey, apiMeter))
+			r = r.WithContext(context.WithValue(ctx, meterCtxKey, ctxMeter))
 			// Wrap
 			next.ServeHTTP(w, r)
 			// On successful HTTP, log event
-			user := auth.ForContext(ctx)
-			if err := apiMeter.Meter(user, 1.0, nil); err != nil {
+			if err := ctxMeter.Meter(meterName, 1.0, nil); err != nil {
 				log.Error().Err(err).Msg("metering error")
 			}
 		})
