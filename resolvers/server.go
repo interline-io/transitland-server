@@ -40,8 +40,7 @@ func meterMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
 		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
-			// default to "unknown"
-			apiMeter.Meter("graphql", 1.0, map[string]string{"resolver": "unknown"})
+			apiMeter.Meter("graphql", 1.0, nil)
 		}
 	})
 }
