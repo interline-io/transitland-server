@@ -13,7 +13,7 @@ func TestKongMiddleware(t *testing.T) {
 		code       int
 		user       User
 	}{
-		{"test", "test@transitland", 200, newCtxUser("test@transitland").WithRoles("user")},
+		{"test", "test@transitland", 200, newCtxUser("test@transitland")},
 		{"no user", "", 200, nil},
 	}
 	for _, tc := range tcs {

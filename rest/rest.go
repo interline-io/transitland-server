@@ -17,6 +17,7 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/internal/meters"
 )
 
 // DEFAULTLIMIT is the default API limit
@@ -39,27 +40,27 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	restcfg := restConfig{Config: cfg, srv: srv}
 	r := chi.NewRouter()
 
-	feedHandler := makeHandler(restcfg, func() apiHandler { return &FeedRequest{} })
-	fvHandler := makeHandler(restcfg, func() apiHandler { return &FeedVersionRequest{} })
-	agencyHandler := makeHandler(restcfg, func() apiHandler { return &AgencyRequest{} })
-	routeHandler := makeHandler(restcfg, func() apiHandler { return &RouteRequest{} })
-	tripHandler := makeHandler(restcfg, func() apiHandler { return &TripRequest{} })
-	stopHandler := makeHandler(restcfg, func() apiHandler { return &StopRequest{} })
-	stopDepartureHandler := makeHandler(restcfg, func() apiHandler { return &StopDepartureRequest{} })
-	operatorHandler := makeHandler(restcfg, func() apiHandler { return &OperatorRequest{} })
+	feedHandler := makeHandler(restcfg, "feeds", func() apiHandler { return &FeedRequest{} })
+	feedVersionHandler := makeHandler(restcfg, "feedVersions", func() apiHandler { return &FeedVersionRequest{} })
+	agencyHandler := makeHandler(restcfg, "agencies", func() apiHandler { return &AgencyRequest{} })
+	routeHandler := makeHandler(restcfg, "routes", func() apiHandler { return &RouteRequest{} })
+	tripHandler := makeHandler(restcfg, "trips", func() apiHandler { return &TripRequest{} })
+	stopHandler := makeHandler(restcfg, "stops", func() apiHandler { return &StopRequest{} })
+	stopDepartureHandler := makeHandler(restcfg, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
+	operatorHandler := makeHandler(restcfg, "operators", func() apiHandler { return &OperatorRequest{} })
 
 	r.HandleFunc("/feeds.{format}", feedHandler)
 	r.HandleFunc("/feeds", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}.{format}", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}", feedHandler)
-	r.HandleFunc("/feeds/{feed_key}/download_latest_feed_version", makeHandlerFunc(restcfg, feedDownloadLatestFeedVersionHandler))
+	r.HandleFunc("/feeds/{feed_key}/download_latest_feed_version", makeHandlerFunc(restcfg, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler))
 
-	r.HandleFunc("/feed_versions.{format}", fvHandler)
-	r.HandleFunc("/feed_versions", fvHandler)
-	r.HandleFunc("/feed_versions/{feed_version_key}.{format}", fvHandler)
-	r.HandleFunc("/feed_versions/{feed_version_key}", fvHandler)
-	r.HandleFunc("/feeds/{feed_key}/feed_versions", fvHandler)
-	r.Handle("/feed_versions/{feed_version_key}/download", auth.RoleRequired("tl_user_pro")(makeHandlerFunc(restcfg, fvDownloadHandler)))
+	r.HandleFunc("/feed_versions.{format}", feedVersionHandler)
+	r.HandleFunc("/feed_versions", feedVersionHandler)
+	r.HandleFunc("/feed_versions/{feed_version_key}.{format}", feedVersionHandler)
+	r.HandleFunc("/feed_versions/{feed_version_key}", feedVersionHandler)
+	r.HandleFunc("/feeds/{feed_key}/feed_versions", feedVersionHandler)
+	r.Handle("/feed_versions/{feed_version_key}/download", auth.RoleRequired("tl_user_pro")(makeHandlerFunc(restcfg, "feedVersionDownload", feedVersionDownloadHandler)))
 
 	r.HandleFunc("/agencies.{format}", agencyHandler)
 	r.HandleFunc("/agencies", agencyHandler)
@@ -173,7 +174,7 @@ func queryToMap(vars url.Values) map[string]string {
 }
 
 // makeHandler wraps an apiHandler into an HandlerFunc and performs common checks.
-func makeHandler(cfg restConfig, f func() apiHandler) http.HandlerFunc {
+func makeHandler(cfg restConfig, handlerName string, f func() apiHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ent := f()
 		opts := queryToMap(r.URL.Query())
@@ -186,6 +187,11 @@ func makeHandler(cfg restConfig, f func() apiHandler) http.HandlerFunc {
 				}
 				opts[k] = rctx.URLParam(k)
 			}
+		}
+
+		// Metrics
+		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+			apiMeter.Meter("rest", 1.0, map[string]string{"handler": handlerName})
 		}
 
 		format := opts["format"]
@@ -329,9 +335,13 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 	return json.Marshal(response)
 }
 
-func makeHandlerFunc(cfg restConfig, f func(restConfig, http.ResponseWriter, *http.Request)) http.HandlerFunc {
+func makeHandlerFunc(cfg restConfig, handlerName string, f func(restConfig, http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		f(cfg, w, r)
+		// Metrics
+		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+			apiMeter.Meter("rest", 1.0, map[string]string{"handler": handlerName})
+		}
 	}
 }
 

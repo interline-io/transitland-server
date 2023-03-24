@@ -9,15 +9,15 @@ import (
 )
 
 func TestUserMiddleware(t *testing.T) {
-	a := UserDefaultMiddleware("")
+	a := UserDefaultMiddleware("test")
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	testAuthMiddleware(t, req, a, 200, newCtxUser("").WithRoles("user"))
+	testAuthMiddleware(t, req, a, 200, newCtxUser("test"))
 }
 
 func TestAdminMiddleware(t *testing.T) {
-	a := AdminDefaultMiddleware("")
+	a := AdminDefaultMiddleware("test")
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	testAuthMiddleware(t, req, a, 200, newCtxUser("").WithRoles("user", "admin"))
+	testAuthMiddleware(t, req, a, 200, newCtxUser("test").WithRoles("admin"))
 }
 
 func TestNoMiddleware(t *testing.T) {
@@ -36,8 +36,8 @@ func TestUserRequired(t *testing.T) {
 		code int
 		user User
 	}{
-		{"with user", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("")(UserRequired(next)) }, 200, newCtxUser("").WithRoles("user", "admin")},
-		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("")(UserRequired(next)) }, 200, newCtxUser("").WithRoles("user")},
+		{"with user", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("test")(UserRequired(next)) }, 200, newCtxUser("test").WithRoles("admin")},
+		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("test")(UserRequired(next)) }, 200, newCtxUser("test")},
 		{"no user", func(next http.Handler) http.Handler { return UserRequired(next) }, 401, nil},
 	}
 	for _, tc := range tcs {
@@ -55,8 +55,8 @@ func TestAdminRequired(t *testing.T) {
 		code int
 		user User
 	}{
-		{"with admin", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("")(AdminRequired(next)) }, 200, newCtxUser("").WithRoles("user", "admin")},
-		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("")(AdminRequired(next)) }, 401, nil}, // mw kills request before handler
+		{"with admin", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("test")(AdminRequired(next)) }, 200, newCtxUser("test").WithRoles("admin")},
+		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("test")(AdminRequired(next)) }, 401, nil}, // mw kills request before handler
 		{"no user", func(next http.Handler) http.Handler { return AdminRequired(next) }, 401, nil},
 	}
 	for _, tc := range tcs {

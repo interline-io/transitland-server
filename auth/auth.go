@@ -10,15 +10,16 @@ import (
 type MiddlewareFunc func(http.Handler) http.Handler
 
 type AuthConfig struct {
-	DefaultUsername      string
-	GatekeeperEndpoint   string
-	GatekeeperParam      string
-	GatekeeperSelector   string
-	GatekeeperAllowError bool
-	JwtAudience          string
-	JwtIssuer            string
-	JwtPublicKeyFile     string
-	UserHeader           string
+	DefaultUsername              string
+	GatekeeperEndpoint           string
+	GatekeeperParam              string
+	GatekeeperRoleSelector       string
+	GatekeeperExternalIDSelector string
+	GatekeeperAllowError         bool
+	JwtAudience                  string
+	JwtIssuer                    string
+	JwtPublicKeyFile             string
+	UserHeader                   string
 }
 
 // User provides access to key user metadata and roles.
@@ -55,7 +56,7 @@ func GetUserMiddleware(authType string, cfg AuthConfig, client *redis.Client) (M
 	case "kong":
 		return UserHeaderMiddleware("x-consumer-username")
 	case "gatekeeper":
-		return GatekeeperMiddleware(client, cfg.GatekeeperEndpoint, cfg.GatekeeperParam, cfg.GatekeeperSelector, cfg.GatekeeperAllowError)
+		return GatekeeperMiddleware(client, cfg.GatekeeperEndpoint, cfg.GatekeeperParam, cfg.GatekeeperRoleSelector, cfg.GatekeeperExternalIDSelector, cfg.GatekeeperAllowError)
 	}
 	return func(next http.Handler) http.Handler {
 		return next
@@ -64,12 +65,12 @@ func GetUserMiddleware(authType string, cfg AuthConfig, client *redis.Client) (M
 
 // AdminDefaultMiddleware uses a default "admin" context.
 func AdminDefaultMiddleware(defaultName string) func(http.Handler) http.Handler {
-	return NewUserDefaultMiddleware(func() User { return newCtxUser(defaultName).WithRoles("user", "admin") })
+	return NewUserDefaultMiddleware(func() User { return newCtxUser(defaultName).WithRoles("admin") })
 }
 
 // UserDefaultMiddleware uses a default "user" context.
 func UserDefaultMiddleware(defaultName string) func(http.Handler) http.Handler {
-	return NewUserDefaultMiddleware(func() User { return newCtxUser(defaultName).WithRoles("user") })
+	return NewUserDefaultMiddleware(func() User { return newCtxUser(defaultName) })
 }
 
 // NewUserDefaultMiddleware uses a default "user" context.

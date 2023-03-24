@@ -11,12 +11,14 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr/store"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/request"
+	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/tidwall/gjson"
 )
 
 const latestFeedVersionQuery = `
 query($feed_onestop_id: String!, $ids: [Int!]) {
 	feeds(ids: $ids, where: { onestop_id: $feed_onestop_id }) {
+	  onestop_id
 	  license {
 		redistribution_allowed
 	  }
@@ -29,7 +31,7 @@ query($feed_onestop_id: String!, $ids: [Int!]) {
 
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
-func feedDownloadLatestFeedVersionHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
+func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 	key := chi.URLParam(r, "feed_key")
 	gvars := hw{}
 	if key == "" {
@@ -60,6 +62,7 @@ func feedDownloadLatestFeedVersionHandler(cfg restConfig, w http.ResponseWriter,
 	if gjson.Get(string(json), "feeds.0.license.redistribution_allowed").String() != "no" {
 		allowed = true
 	}
+	fid := gjson.Get(string(json), "feeds.0.onestop_id").String()
 	fvsha1 := gjson.Get(string(json), "feeds.0.feed_versions.0.sha1").String()
 	if !found {
 		http.Error(w, "not found", http.StatusNotFound)
@@ -69,6 +72,17 @@ func feedDownloadLatestFeedVersionHandler(cfg restConfig, w http.ResponseWriter,
 		http.Error(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
+
+	// Send request to metering
+	if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+		dims := map[string]string{
+			"fv_sha1":                fvsha1,
+			"feed_onestop_id":        fid,
+			"is_latest_feed_version": "true",
+		}
+		apiMeter.Meter("feed-version-downloads", 1.0, dims)
+	}
+
 	serveFromStorage(w, r, cfg.Storage, fvsha1)
 }
 
@@ -87,7 +101,7 @@ query($feed_version_sha1:String!, $ids: [Int!]) {
 
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
-func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
+func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 	gvars := hw{}
 	key := chi.URLParam(r, "feed_version_key")
 	if key == "" {
@@ -107,6 +121,7 @@ func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 	// todo: use gjson
 	found := false
 	allowed := false
+	fid := ""
 	fvsha1 := ""
 	if v, ok := checkfv["feed_versions"].([]interface{}); len(v) > 0 && ok {
 		if v2, ok := v[0].(hw); ok {
@@ -115,6 +130,7 @@ func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 				found = true
 			}
 			if v3, ok := v2["feed"].(hw); ok {
+				fid = v3["onestop_id"].(string)
 				if v4, ok := v3["license"].(hw); ok {
 					if v4["redistribution_allowed"] != "no" {
 						allowed = true
@@ -131,6 +147,17 @@ func fvDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
+
+	// Send request to metering
+	if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+		dims := map[string]string{
+			"fv_sha1":                fvsha1,
+			"feed_onestop_id":        fid,
+			"is_latest_feed_version": "false",
+		}
+		apiMeter.Meter("feed-version-downloads", 1.0, dims)
+	}
+
 	serveFromStorage(w, r, cfg.Storage, fvsha1)
 }
 
