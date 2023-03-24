@@ -2,7 +2,6 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
@@ -83,7 +82,6 @@ func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, i
 }
 
 func addMetric(ctx context.Context, resolverName string) {
-	fmt.Println("???", resolverName)
 	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
 		apiMeter.AddDimension("graphql", "resolver", resolverName)
 	}
