@@ -250,7 +250,7 @@ func (cmd *Command) Run() error {
 		r.Use(metrics.NewHttpMiddleware(metricProvider.NewApiMetric("graphql")))
 		r.Use(meters.NewHttpMiddleware(meterProvider))
 		r.Use(auth.UserRequired)
-		r.Handle("/", graphqlServer)
+		r.Mount("/", graphqlServer)
 		root.Mount("/query", r)
 	}
 
@@ -305,7 +305,7 @@ func (cmd *Command) Run() error {
 			// Mount with admin permissions required
 			r := chi.NewRouter()
 			r.Use(auth.AdminRequired)
-			r.Handle("/", jobServer)
+			r.Mount("/", jobServer)
 			root.Mount("/jobs", r)
 		}
 	}
