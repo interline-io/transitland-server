@@ -30,7 +30,7 @@ type MeterUser interface {
 	GetExternalID(string) (string, bool)
 }
 
-func NewHttpMiddleware(meterName string, apiMeter MeterProvider) func(http.Handler) http.Handler {
+func NewHttpMiddleware(apiMeter MeterProvider) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Make ctxMeter available in context

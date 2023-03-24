@@ -3,12 +3,10 @@ package metrics
 import (
 	"context"
 
-	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/internal/jobs"
 )
 
 func NewJobMiddleware(queue string, m JobMetric) jobs.JobMiddleware {
-	log.Infof("Registering metrics jobs middleware: %s", queue)
 	return func(w jobs.JobWorker) jobs.JobWorker {
 		return &jobWorker{
 			jobWorker: w,

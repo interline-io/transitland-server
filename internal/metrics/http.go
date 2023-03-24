@@ -14,7 +14,7 @@ func NewHttpMiddleware(m ApiMetric) func(http.Handler) http.Handler {
 			sw := newstatusResponseWriter(w)
 			next.ServeHTTP(sw, r)
 			td := float64(time.Now().Sub(t).Milliseconds()) / 1000.0
-			log.Debug().
+			log.Trace().
 				Str("method", r.Method).
 				Int("code", sw.statusCode).
 				Int64("http_request_size_bytes", r.ContentLength).
