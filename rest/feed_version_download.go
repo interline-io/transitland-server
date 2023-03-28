@@ -91,6 +91,7 @@ query($feed_version_sha1:String!, $ids: [Int!]) {
 	feed_versions(limit:1, ids: $ids, where:{sha1:$feed_version_sha1}) {
 	  sha1
 	  feed {
+		onestop_id
 		license {
 			redistribution_allowed
 		}
