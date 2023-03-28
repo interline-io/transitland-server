@@ -68,6 +68,9 @@ func (user ctxUser) WithRoles(roles ...string) User {
 
 // HasRole checks if a User is allowed to use a defined role.
 func (user ctxUser) HasRole(role string) bool {
+	if user.hasRole("admin") {
+		return true
+	}
 	checkRole := strings.ToLower(role)
 	// Check for original roles
 	switch checkRole {
