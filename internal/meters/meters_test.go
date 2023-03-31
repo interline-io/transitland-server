@@ -78,7 +78,7 @@ func testMeter(t *testing.T, mp MeterProvider, cfg testMeterConfig) {
 		assert.Equal(t, 2.0, a-v2)
 		assert.Equal(t, true, ok)
 
-		a, ok = m3.GetValue(cfg.testMeter1)
+		a, _ = m3.GetValue(cfg.testMeter1)
 		assert.Equal(t, 0.0, a-v3)
 	})
 }

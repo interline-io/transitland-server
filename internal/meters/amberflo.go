@@ -182,13 +182,6 @@ func (m *AmberFlo) getcfg(meterName string) (amberFloConfig, bool) {
 
 //////////
 
-type amberFloEvent struct {
-	// user MeterUser
-	meter      string
-	value      float64
-	dimensions map[string]string
-}
-
 type amberFloMeter struct {
 	user MeterUser
 	dims []string
@@ -211,6 +204,11 @@ func (m *amberFloMeter) Meter(meterName string, value float64, extraDimensions m
 			dm2[k] = v
 		}
 	}
+	log.Trace().
+		Str("user", m.user.Name()).
+		Str("meter", meterName).
+		Float64("meter_value", value).
+		Msg("meter")
 	return m.mp.sendMeter(m.user, meterName, value, dm2)
 }
 

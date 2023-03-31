@@ -3,7 +3,7 @@ package meters
 import (
 	"sync"
 
-	"github.com/rs/zerolog/log"
+	"github.com/interline-io/transitland-lib/log"
 )
 
 type DefaultMeter struct {

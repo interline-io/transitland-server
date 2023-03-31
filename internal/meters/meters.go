@@ -7,11 +7,7 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 )
 
-var meterCtxKey = &contextKey{"apiMeter"}
-
-type contextKey struct {
-	name string
-}
+var meterCtxKey = struct{ name string }{"apiMeter"}
 
 type ApiMeter interface {
 	Meter(string, float64, map[string]string) error
@@ -30,7 +26,7 @@ type MeterUser interface {
 	GetExternalID(string) (string, bool)
 }
 
-func NewHttpMiddleware(apiMeter MeterProvider) func(http.Handler) http.Handler {
+func WithMeter(apiMeter MeterProvider, meterName string, meterValue float64, dims map[string]string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Make ctxMeter available in context
@@ -38,6 +34,7 @@ func NewHttpMiddleware(apiMeter MeterProvider) func(http.Handler) http.Handler {
 			ctxMeter := apiMeter.NewMeter(auth.ForContext(ctx))
 			r = r.WithContext(context.WithValue(ctx, meterCtxKey, ctxMeter))
 			next.ServeHTTP(w, r)
+			ctxMeter.Meter(meterName, meterValue, dims)
 		})
 	}
 }

@@ -7,13 +7,13 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 )
 
-func NewHttpMiddleware(m ApiMetric) func(http.Handler) http.Handler {
+func WithMetric(m ApiMetric) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t := time.Now()
 			sw := newstatusResponseWriter(w)
 			next.ServeHTTP(sw, r)
-			td := float64(time.Now().Sub(t).Milliseconds()) / 1000.0
+			td := float64(time.Since(t).Milliseconds()) / 1000.0
 			log.Trace().
 				Str("method", r.Method).
 				Int("code", sw.statusCode).

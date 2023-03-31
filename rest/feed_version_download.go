@@ -82,7 +82,6 @@ func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *
 		}
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
-
 	serveFromStorage(w, r, cfg.Storage, fvsha1)
 }
 
