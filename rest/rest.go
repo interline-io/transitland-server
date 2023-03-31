@@ -191,7 +191,7 @@ func makeHandler(cfg restConfig, handlerName string, f func() apiHandler) http.H
 
 		// Metrics
 		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
-			apiMeter.Meter("rest", 1.0, map[string]string{"handler": handlerName})
+			apiMeter.AddDimension("rest", "handler", handlerName)
 		}
 
 		format := opts["format"]
@@ -337,11 +337,10 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 
 func makeHandlerFunc(cfg restConfig, handlerName string, f func(restConfig, http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		f(cfg, w, r)
-		// Metrics
 		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
-			apiMeter.Meter("rest", 1.0, map[string]string{"handler": handlerName})
+			apiMeter.AddDimension("rest", "handler", handlerName)
 		}
+		f(cfg, w, r)
 	}
 }
 

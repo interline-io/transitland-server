@@ -207,7 +207,6 @@ func (cmd *Command) Run() error {
 	root.Use(middleware.RealIP)
 	root.Use(middleware.Recoverer)
 	root.Use(middleware.StripSlashes)
-	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
@@ -217,6 +216,9 @@ func (cmd *Command) Run() error {
 			root.Use(userMiddleware)
 		}
 	}
+
+	// Add logging middleware - must be after auth
+	root.Use(loggingMiddleware(cmd.LongQueryDuration))
 
 	// Setup CORS
 	root.Use(cors.Handler(cors.Options{
@@ -247,8 +249,8 @@ func (cmd *Command) Run() error {
 	if !cmd.DisableGraphql {
 		// Mount with user permissions required
 		r := chi.NewRouter()
-		r.Use(metrics.NewHttpMiddleware(metricProvider.NewApiMetric("graphql")))
-		r.Use(meters.NewHttpMiddleware(meterProvider))
+		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("graphql")))
+		r.Use(meters.WithMeter(meterProvider, "graphql", 1.0, nil))
 		r.Use(auth.UserRequired)
 		r.Mount("/", graphqlServer)
 		root.Mount("/query", r)
@@ -261,8 +263,8 @@ func (cmd *Command) Run() error {
 			return err
 		}
 		r := chi.NewRouter()
-		r.Use(metrics.NewHttpMiddleware(metricProvider.NewApiMetric("rest")))
-		r.Use(meters.NewHttpMiddleware(meterProvider))
+		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("rest")))
+		r.Use(meters.WithMeter(meterProvider, "rest", 1.0, nil))
 		r.Use(auth.UserRequired)
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)
