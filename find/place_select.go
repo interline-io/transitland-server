@@ -5,22 +5,26 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func PlaceSelect(limit *int, after *model.Cursor, ids []int, level int, where *model.PlaceFilter) sq.SelectBuilder {
+func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) sq.SelectBuilder {
 	var groupKeys []string
-	switch level {
-	case 0: // COUNTRY
-		groupKeys = []string{"adm0name"}
-	case 1: // COUNTRY/STATE
-		groupKeys = []string{"adm0name", "adm1name"}
-	case 2: // COUNTRY/STATE/CITY
-		groupKeys = []string{"adm0name", "adm1name", "name"}
-	case 3: // COUNTRY/CITY
-		groupKeys = []string{"adm0name", "name"}
-	case 4: // STATE/CITY
-		groupKeys = []string{"adm1name", "name"}
-	case 5: // CITY
-		groupKeys = []string{"name"}
+	groupKeys = []string{"adm0name"}
+	if level != nil {
+		switch *level {
+		case model.PlaceAggregationLevelAdm0:
+			groupKeys = []string{"adm0name"}
+		case model.PlaceAggregationLevelAdm0Adm1:
+			groupKeys = []string{"adm0name", "adm1name"}
+		case model.PlaceAggregationLevelAdm0Adm1City:
+			groupKeys = []string{"adm0name", "adm1name", "name"}
+		case model.PlaceAggregationLevelAdm0City:
+			groupKeys = []string{"adm0name", "name"}
+		case model.PlaceAggregationLevelAdm1City:
+			groupKeys = []string{"adm1name", "name"}
+		case model.PlaceAggregationLevelCity:
+			groupKeys = []string{"name"}
+		}
 	}
+
 	// TODO: is it necessary to check for deleted feeds? Or just deleted operators?
 	q := sq.StatementBuilder.
 		Select(groupKeys...).

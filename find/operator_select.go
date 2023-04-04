@@ -5,7 +5,42 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, operatorOnestopIds []string, where *model.OperatorFilter) sq.SelectBuilder {
+func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int, onestopIds []string) sq.SelectBuilder {
+	qView := sq.StatementBuilder.
+		Select(
+			"coif.id as id",
+			"coif.feed_id as feed_id",
+			"coif.resolved_name as name",
+			"coif.resolved_short_name as short_name",
+			"coif.resolved_onestop_id as onestop_id",
+			"coif.textsearch as textsearch",
+			"current_feeds.onestop_id as feed_onestop_id",
+			"co.file as file",
+			"co.id as operator_id",
+			"co.website as website",
+			"co.operator_tags as operator_tags",
+			"a.id as agency_id",
+		).
+		From("current_operators_in_feed coif").
+		Join("current_feeds on current_feeds.id = coif.feed_id").
+		LeftJoin("current_operators co on co.id = coif.operator_id").
+		Where(sq.Eq{"current_feeds.deleted_at": nil}).
+		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
+		OrderBy("coif.resolved_onestop_id, coif.operator_id")
+
+	if len(agencyIds) > 0 {
+		qView = qView.
+			Join("feed_states fs on fs.feed_id = cf.id").
+			Join("gtfs_agencies a on a.feed_version_id = fs.feed_version_id").
+			Where(sq.Eq{"a.id": agencyIds})
+	}
+	if len(onestopIds) > 0 {
+		qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": onestopIds})
+	}
+	return qView
+}
+
+func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, where *model.OperatorFilter) sq.SelectBuilder {
 	distinct := true
 	qView := sq.StatementBuilder.
 		Select(
@@ -23,7 +58,7 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, o
 		).
 		From("current_operators_in_feed coif").
 		Join("current_feeds on current_feeds.id = coif.feed_id").
-		JoinClause("left join current_operators co on co.id = coif.operator_id").
+		LeftJoin("current_operators co on co.id = coif.operator_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
 		OrderBy("coif.resolved_onestop_id, coif.operator_id")
@@ -33,10 +68,10 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, o
 			distinct = false
 		}
 		if where.FeedOnestopID != nil {
-			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
+			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": where.FeedOnestopID})
 		}
 		if where.AgencyID != nil {
-			qView = qView.Where(sq.Eq{"coif.resolved_gtfs_agency_id": *where.AgencyID})
+			qView = qView.Where(sq.Eq{"coif.resolved_gtfs_agency_id": where.AgencyID})
 		}
 		if where.OnestopID != nil {
 			qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": where.OnestopID})
@@ -87,9 +122,6 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, o
 	}
 	if len(feedIds) > 0 {
 		qView = qView.Where(sq.Eq{"coif.feed_id": feedIds})
-	}
-	if len(operatorOnestopIds) > 0 {
-		qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": operatorOnestopIds})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		qView = qView.Where(sq.Gt{"coif.id": after.ID})

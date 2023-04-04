@@ -87,24 +87,7 @@ func (r *queryResolver) Places(ctx context.Context, limit *int, after *int, leve
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
-	lvlInt := 0
-	if level != nil {
-		switch *level {
-		case model.PlaceAggregationLevelAdm0:
-			lvlInt = 0
-		case model.PlaceAggregationLevelAdm0Adm1:
-			lvlInt = 1
-		case model.PlaceAggregationLevelAdm0Adm1City:
-			lvlInt = 2
-		case model.PlaceAggregationLevelAdm0City:
-			lvlInt = 3
-		case model.PlaceAggregationLevelAdm1City:
-			lvlInt = 4
-		case model.PlaceAggregationLevelCity:
-			lvlInt = 5
-		}
-	}
-	return r.finder.FindPlaces(ctx, limit, cursor, nil, lvlInt, where)
+	return r.finder.FindPlaces(ctx, limit, cursor, nil, level, where)
 }
 
 func addMetric(ctx context.Context, resolverName string) {

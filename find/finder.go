@@ -100,14 +100,13 @@ func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Curso
 
 func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
-	if err := Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, nil, where), &ents); err != nil {
+	if err := Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level int, where *model.PlaceFilter) ([]*model.Place, error) {
-	fmt.Println("LEVEL:", level)
+func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {
 	var ents []*model.Place
 	q := PlaceSelect(limit, after, ids, level, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
@@ -457,7 +456,7 @@ func (f *DBFinder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Ope
 	var ents []*model.Operator
 	err := Select(ctx,
 		f.db,
-		OperatorSelect(nil, nil, ids, nil, nil, nil),
+		OperatorSelect(nil, nil, ids, nil, nil),
 		&ents,
 	)
 	if err != nil {
@@ -470,7 +469,20 @@ func (f *DBFinder) OperatorsByOnestopID(ctx context.Context, ids []string) ([]*m
 	var ents []*model.Operator
 	err := Select(ctx,
 		f.db,
-		OperatorSelect(nil, nil, nil, nil, ids, nil),
+		OperatorsByAgencyID(nil, nil, nil, ids),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Operator) string { return ent.OnestopID.Val }), nil
+}
+
+func (f *DBFinder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.Operator, []error) {
+	var ents []*model.Operator
+	err := Select(ctx,
+		f.db,
+		OperatorsByAgencyID(nil, nil, ids, nil),
 		&ents,
 	)
 	for _, ent := range ents {
@@ -479,7 +491,7 @@ func (f *DBFinder) OperatorsByOnestopID(ctx context.Context, ids []string) ([]*m
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
-	return arrangeBy(ids, ents, func(ent *model.Operator) string { return ent.OnestopID.Val }), nil
+	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.AgencyID }), nil
 }
 
 // Param loaders
@@ -495,7 +507,7 @@ func (f *DBFinder) OperatorsByFeedID(ctx context.Context, params []model.Operato
 	qents := []*model.Operator{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(OperatorSelect(params[0].Limit, nil, nil, ids, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
+		lateralWrap(OperatorSelect(params[0].Limit, nil, nil, ids, params[0].Where), "current_feeds", "id", "feed_id", ids),
 		&qents,
 	)
 	if err != nil {

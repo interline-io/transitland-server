@@ -67,7 +67,8 @@ type Operator struct {
 	Generated     bool
 	FeedID        int
 	FeedOnestopID *string
-	SearchRank    *string
+	SearchRank    *string // internal
+	AgencyID      int     // internal
 	tl.Operator
 }
 
