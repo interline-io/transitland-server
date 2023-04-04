@@ -6581,6 +6581,12 @@ input AgencyPlaceFilter {
   city_name: String
 }
 
+input PlaceFilter {
+  adm0_name: String
+  adm1_name: String
+  city_name: String
+}
+
 input CalendarDateFilter {
   date: Date
   exception_type: Int
@@ -7114,12 +7120,6 @@ enum PlaceAggregationLevel {
   ADM0_CITY
   ADM1_CITY
   CITY
-}
-
-input PlaceFilter {
-  adm0_name: String
-  adm1_name: String
-  city_name: String
 }
 
 type Place {

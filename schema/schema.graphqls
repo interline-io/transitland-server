@@ -522,12 +522,6 @@ enum PlaceAggregationLevel {
   CITY
 }
 
-input PlaceFilter {
-  adm0_name: String
-  adm1_name: String
-  city_name: String
-}
-
 type Place {
   adm0_name: String
   adm1_name: String
