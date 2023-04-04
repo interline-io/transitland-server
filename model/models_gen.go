@@ -37,12 +37,7 @@ type AgencyFilter struct {
 }
 
 type AgencyPlaceFilter struct {
-	MinRank  *float64 `json:"min_rank"`
-	Adm0Iso  *string  `json:"adm0_iso"`
-	Adm0Name *string  `json:"adm0_name"`
-	Adm1Iso  *string  `json:"adm1_iso"`
-	Adm1Name *string  `json:"adm1_name"`
-	CityName *string  `json:"city_name"`
+	MinRank *float64 `json:"min_rank"`
 }
 
 // [Alert](https://gtfs.org/reference/realtime/v2/#message-alert) message, also called a service alert, provided by a source GTFS Realtime feed.
@@ -204,9 +199,10 @@ type PathwayFilter struct {
 }
 
 type PlaceFilter struct {
-	Adm0Name *string `json:"adm0_name"`
-	Adm1Name *string `json:"adm1_name"`
-	CityName *string `json:"city_name"`
+	MinRank  *float64 `json:"min_rank"`
+	Adm0Name *string  `json:"adm0_name"`
+	Adm1Name *string  `json:"adm1_name"`
+	CityName *string  `json:"city_name"`
 }
 
 type PointRadius struct {
