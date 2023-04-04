@@ -316,3 +316,12 @@ type StopExternalReference struct {
 	TargetStopID        *string `json:"target_stop_id"`
 	Inactive            *bool   `json:"inactive"`
 }
+
+// Places
+
+type Place struct {
+	Adm0Name           *string    `json:"adm0_name" db:"adm0name"`
+	Adm1Name           *string    `json:"adm1_name" db:"adm1name"`
+	CityName           *string    `json:"city_name" db:"name"`
+	OperatorOnestopIDs tt.Strings `json:"-" db:"operator_onestop_ids"` // internal
+}

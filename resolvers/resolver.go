@@ -107,3 +107,7 @@ func (r *Resolver) Directions(ctx context.Context, where model.DirectionRequest)
 	dr := directionsResolver{r}
 	return dr.Directions(ctx, where)
 }
+
+func (r *Resolver) Place() gqlgen.PlaceResolver {
+	return &placeResolver{r}
+}

@@ -25,6 +25,7 @@ type EntityFinder interface {
 	FindFeedVersions(context.Context, *int, *Cursor, []int, *FeedVersionFilter) ([]*FeedVersion, error)
 	FindFeeds(context.Context, *int, *Cursor, []int, *FeedFilter) ([]*Feed, error)
 	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
+	FindPlaces(context.Context, *int, *Cursor, []int, int, *PlaceFilter) ([]*Place, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (time.Time, time.Time, time.Time, error)
 	DBX() sqlx.Ext // escape hatch, for now
@@ -52,6 +53,7 @@ type EntityLoader interface {
 	FeedStatesByFeedID(context.Context, []int) ([]*FeedState, []error)
 	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
 	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
+	OperatorsByOnestopID(context.Context, []string) ([]*Operator, []error)
 	// Param loaders
 	FeedFetchesByFeedID(context.Context, []FeedFetchParam) ([][]*FeedFetch, []error)
 	FeedsByOperatorOnestopID(context.Context, []FeedParam) ([][]*Feed, []error)

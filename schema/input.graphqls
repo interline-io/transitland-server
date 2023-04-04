@@ -203,6 +203,11 @@ input FeedVersionServiceLevelFilter {
 
 input AgencyPlaceFilter {
   min_rank: Float
+  adm0_iso: String
+  adm0_name: String
+  adm1_iso: String
+  adm1_name: String
+  city_name: String
 }
 
 input CalendarDateFilter {

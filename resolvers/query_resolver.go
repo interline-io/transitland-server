@@ -81,6 +81,32 @@ func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, i
 	return r.finder.FindOperators(ctx, limit, cursor, ids, where)
 }
 
+func (r *queryResolver) Places(ctx context.Context, limit *int, after *int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {
+	var cursor *model.Cursor
+	if after != nil {
+		c := model.NewCursor(0, *after)
+		cursor = &c
+	}
+	lvlInt := 0
+	if level != nil {
+		switch *level {
+		case model.PlaceAggregationLevelAdm0:
+			lvlInt = 0
+		case model.PlaceAggregationLevelAdm0Adm1:
+			lvlInt = 1
+		case model.PlaceAggregationLevelAdm0Adm1City:
+			lvlInt = 2
+		case model.PlaceAggregationLevelAdm0City:
+			lvlInt = 3
+		case model.PlaceAggregationLevelAdm1City:
+			lvlInt = 4
+		case model.PlaceAggregationLevelCity:
+			lvlInt = 5
+		}
+	}
+	return r.finder.FindPlaces(ctx, limit, cursor, nil, lvlInt, where)
+}
+
 func addMetric(ctx context.Context, resolverName string) {
 	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
 		apiMeter.AddDimension("graphql", "resolver", resolverName)

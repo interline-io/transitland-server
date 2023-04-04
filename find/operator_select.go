@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, where *model.OperatorFilter) sq.SelectBuilder {
+func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, operatorOnestopIds []string, where *model.OperatorFilter) sq.SelectBuilder {
 	distinct := true
 	qView := sq.StatementBuilder.
 		Select(
@@ -87,6 +87,9 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, w
 	}
 	if len(feedIds) > 0 {
 		qView = qView.Where(sq.Eq{"coif.feed_id": feedIds})
+	}
+	if len(operatorOnestopIds) > 0 {
+		qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": operatorOnestopIds})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		qView = qView.Where(sq.Gt{"coif.id": after.ID})
