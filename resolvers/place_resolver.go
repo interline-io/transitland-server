@@ -21,7 +21,7 @@ func (r *placeResolver) Operators(ctx context.Context, obj *model.Place) ([]*mod
 		// oid := obj.AgencyIDs.Val[i]
 		o, err := thunks[i]()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		if o != nil {
 			// oj, _ := json.Marshal(o)
