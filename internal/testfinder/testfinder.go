@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
@@ -16,7 +15,6 @@ import (
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
-	"github.com/rs/zerolog"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -35,12 +33,16 @@ func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) (config.Config,
 	}
 	cfg := config.Config{Clock: cl}
 
-	var db sqlx.Ext
-	dbx := find.MustOpenDB(g)
-	db = dbx
-	if log.Logger.GetLevel() == zerolog.TraceLevel {
-		db = find.LogDB(dbx)
+	// var db sqlx.Ext
+	// dbx := find.MustOpenDB(g)
+	// db = dbx
+	// if log.Logger.GetLevel() == zerolog.TraceLevel {
+	// 	db = find.LogDB(dbx)
+	// }
+	if db == nil {
+		db = find.MustOpenDB(g)
 	}
+
 	dbf := find.NewDBFinder(db)
 	dbf.Clock = cl
 
