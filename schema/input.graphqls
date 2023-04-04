@@ -205,6 +205,13 @@ input AgencyPlaceFilter {
   min_rank: Float
 }
 
+input PlaceFilter {
+  min_rank: Float
+  adm0_name: String
+  adm1_name: String
+  city_name: String
+}
+
 input CalendarDateFilter {
   date: Date
   exception_type: Int

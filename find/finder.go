@@ -105,6 +105,15 @@ func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.C
 	return ents, nil
 }
 
+func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {
+	var ents []*model.Place
+	q := PlaceSelect(limit, after, ids, level, where)
+	if err := Select(ctx, f.db, q, &ents); err != nil {
+		return nil, err
+	}
+	return ents, nil
+}
+
 func (f *DBFinder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBufferParam) ([]*model.RouteStopBuffer, error) {
 	if param == nil {
 		return nil, nil
@@ -453,6 +462,32 @@ func (f *DBFinder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Ope
 		return nil, logExtendErr(len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.ID }), nil
+}
+
+func (f *DBFinder) OperatorsByOnestopID(ctx context.Context, ids []string) ([]*model.Operator, []error) {
+	var ents []*model.Operator
+	err := Select(ctx,
+		f.db,
+		OperatorsByAgencyID(nil, nil, nil, ids),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Operator) string { return ent.OnestopID.Val }), nil
+}
+
+func (f *DBFinder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.Operator, []error) {
+	var ents []*model.Operator
+	err := Select(ctx,
+		f.db,
+		OperatorsByAgencyID(nil, nil, ids, nil),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.AgencyID }), nil
 }
 
 // Param loaders

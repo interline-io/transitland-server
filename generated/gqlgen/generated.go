@@ -50,6 +50,7 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Operator() OperatorResolver
 	Pathway() PathwayResolver
+	Place() PlaceResolver
 	Query() QueryResolver
 	Route() RouteResolver
 	RouteHeadway() RouteHeadwayResolver
@@ -650,6 +651,14 @@ type ComplexityRoot struct {
 		TraversalTime       func(childComplexity int) int
 	}
 
+	Place struct {
+		Adm0Name  func(childComplexity int) int
+		Adm1Name  func(childComplexity int) int
+		CityName  func(childComplexity int) int
+		Count     func(childComplexity int) int
+		Operators func(childComplexity int) int
+	}
+
 	Query struct {
 		Agencies     func(childComplexity int, limit *int, after *int, ids []int, where *model.AgencyFilter) int
 		Bikes        func(childComplexity int, limit *int, where *model.GbfsBikeRequest) int
@@ -658,6 +667,7 @@ type ComplexityRoot struct {
 		FeedVersions func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedVersionFilter) int
 		Feeds        func(childComplexity int, limit *int, after *int, ids []int, where *model.FeedFilter) int
 		Operators    func(childComplexity int, limit *int, after *int, ids []int, where *model.OperatorFilter) int
+		Places       func(childComplexity int, limit *int, after *int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) int
 		Routes       func(childComplexity int, limit *int, after *int, ids []int, where *model.RouteFilter) int
 		Stops        func(childComplexity int, limit *int, after *int, ids []int, where *model.StopFilter) int
 		Trips        func(childComplexity int, limit *int, after *int, ids []int, where *model.TripFilter) int
@@ -1024,6 +1034,10 @@ type PathwayResolver interface {
 	FromStop(ctx context.Context, obj *model.Pathway) (*model.Stop, error)
 	ToStop(ctx context.Context, obj *model.Pathway) (*model.Stop, error)
 }
+type PlaceResolver interface {
+	Count(ctx context.Context, obj *model.Place) (int, error)
+	Operators(ctx context.Context, obj *model.Place) ([]*model.Operator, error)
+}
 type QueryResolver interface {
 	FeedVersions(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error)
 	Feeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error)
@@ -1035,6 +1049,7 @@ type QueryResolver interface {
 	Directions(ctx context.Context, where model.DirectionRequest) (*model.Directions, error)
 	Bikes(ctx context.Context, limit *int, where *model.GbfsBikeRequest) ([]*model.GbfsFreeBikeStatus, error)
 	Docks(ctx context.Context, limit *int, where *model.GbfsDockRequest) ([]*model.GbfsStationInformation, error)
+	Places(ctx context.Context, limit *int, after *int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error)
 }
 type RouteResolver interface {
 	Agency(ctx context.Context, obj *model.Route) (*model.Agency, error)
@@ -4125,6 +4140,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Pathway.TraversalTime(childComplexity), true
 
+	case "Place.adm0_name":
+		if e.complexity.Place.Adm0Name == nil {
+			break
+		}
+
+		return e.complexity.Place.Adm0Name(childComplexity), true
+
+	case "Place.adm1_name":
+		if e.complexity.Place.Adm1Name == nil {
+			break
+		}
+
+		return e.complexity.Place.Adm1Name(childComplexity), true
+
+	case "Place.city_name":
+		if e.complexity.Place.CityName == nil {
+			break
+		}
+
+		return e.complexity.Place.CityName(childComplexity), true
+
+	case "Place.count":
+		if e.complexity.Place.Count == nil {
+			break
+		}
+
+		return e.complexity.Place.Count(childComplexity), true
+
+	case "Place.operators":
+		if e.complexity.Place.Operators == nil {
+			break
+		}
+
+		return e.complexity.Place.Operators(childComplexity), true
+
 	case "Query.agencies":
 		if e.complexity.Query.Agencies == nil {
 			break
@@ -4208,6 +4258,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Operators(childComplexity, args["limit"].(*int), args["after"].(*int), args["ids"].([]int), args["where"].(*model.OperatorFilter)), true
+
+	case "Query.places":
+		if e.complexity.Query.Places == nil {
+			break
+		}
+
+		args, err := ec.field_Query_places_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Places(childComplexity, args["limit"].(*int), args["after"].(*int), args["level"].(*model.PlaceAggregationLevel), args["where"].(*model.PlaceFilter)), true
 
 	case "Query.routes":
 		if e.complexity.Query.Routes == nil {
@@ -5883,6 +5945,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputLicenseFilter,
 		ec.unmarshalInputOperatorFilter,
 		ec.unmarshalInputPathwayFilter,
+		ec.unmarshalInputPlaceFilter,
 		ec.unmarshalInputPointRadius,
 		ec.unmarshalInputRouteFilter,
 		ec.unmarshalInputStopFilter,
@@ -6513,6 +6576,13 @@ input AgencyPlaceFilter {
   min_rank: Float
 }
 
+input PlaceFilter {
+  min_rank: Float
+  adm0_name: String
+  adm1_name: String
+  city_name: String
+}
+
 input CalendarDateFilter {
   date: Date
   exception_type: Int
@@ -6561,6 +6631,7 @@ type Query {
   directions(where: DirectionRequest!): Directions!
   bikes(limit: Int, where: GbfsBikeRequest): [GbfsFreeBikeStatus!]
   docks(limit: Int, where: GbfsDockRequest): [GbfsStationInformation!]
+  places(limit: Int,after: Int, level: PlaceAggregationLevel, where: PlaceFilter): [Place!]
 }
 
 type Mutation {
@@ -7036,6 +7107,23 @@ type AgencyPlace {
   adm1_name: String
   adm0_name: String
   rank: Float
+}
+
+enum PlaceAggregationLevel {
+  ADM0
+  ADM0_ADM1
+  ADM0_ADM1_CITY
+  ADM0_CITY
+  ADM1_CITY
+  CITY
+}
+
+type Place {
+  adm0_name: String
+  adm1_name: String
+  city_name: String
+  count: Int!
+  operators: [Operator!]
 }
 
 type RouteStop {
@@ -8034,6 +8122,48 @@ func (ec *executionContext) field_Query_operators_args(ctx context.Context, rawA
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
 		arg3, err = ec.unmarshalOOperatorFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐOperatorFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_places_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg1
+	var arg2 *model.PlaceAggregationLevel
+	if tmp, ok := rawArgs["level"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
+		arg2, err = ec.unmarshalOPlaceAggregationLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlaceAggregationLevel(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["level"] = arg2
+	var arg3 *model.PlaceFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg3, err = ec.unmarshalOPlaceFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlaceFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -28539,6 +28669,238 @@ func (ec *executionContext) fieldContext_Pathway_to_stop(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Place_adm0_name(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_adm0_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm0Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_adm0_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Place_adm1_name(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_adm1_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm1Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_adm1_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Place_city_name(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_city_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CityName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_city_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Place_count(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Place().Count(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Place_operators(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_operators(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Place().Operators(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Operator)
+	fc.Result = res
+	return ec.marshalOOperator2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐOperatorᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_operators(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Operator_id(ctx, field)
+			case "generated":
+				return ec.fieldContext_Operator_generated(ctx, field)
+			case "file":
+				return ec.fieldContext_Operator_file(ctx, field)
+			case "onestop_id":
+				return ec.fieldContext_Operator_onestop_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Operator_name(ctx, field)
+			case "short_name":
+				return ec.fieldContext_Operator_short_name(ctx, field)
+			case "website":
+				return ec.fieldContext_Operator_website(ctx, field)
+			case "tags":
+				return ec.fieldContext_Operator_tags(ctx, field)
+			case "search_rank":
+				return ec.fieldContext_Operator_search_rank(ctx, field)
+			case "agencies":
+				return ec.fieldContext_Operator_agencies(ctx, field)
+			case "feeds":
+				return ec.fieldContext_Operator_feeds(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Operator", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_feed_versions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_feed_versions(ctx, field)
 	if err != nil {
@@ -29483,6 +29845,70 @@ func (ec *executionContext) fieldContext_Query_docks(ctx context.Context, field 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_docks_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_places(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_places(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Places(rctx, fc.Args["limit"].(*int), fc.Args["after"].(*int), fc.Args["level"].(*model.PlaceAggregationLevel), fc.Args["where"].(*model.PlaceFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Place)
+	fc.Result = res
+	return ec.marshalOPlace2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "adm0_name":
+				return ec.fieldContext_Place_adm0_name(ctx, field)
+			case "adm1_name":
+				return ec.fieldContext_Place_adm1_name(ctx, field)
+			case "city_name":
+				return ec.fieldContext_Place_city_name(ctx, field)
+			case "count":
+				return ec.fieldContext_Place_count(ctx, field)
+			case "operators":
+				return ec.fieldContext_Place_operators(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_places_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -43345,6 +43771,58 @@ func (ec *executionContext) unmarshalInputPathwayFilter(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPlaceFilter(ctx context.Context, obj interface{}) (model.PlaceFilter, error) {
+	var it model.PlaceFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"min_rank", "adm0_name", "adm1_name", "city_name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "min_rank":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_rank"))
+			it.MinRank, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm0_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm0_name"))
+			it.Adm0Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "adm1_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adm1_name"))
+			it.Adm1Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "city_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city_name"))
+			it.CityName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPointRadius(ctx context.Context, obj interface{}) (model.PointRadius, error) {
 	var it model.PointRadius
 	asMap := map[string]interface{}{}
@@ -47818,6 +48296,76 @@ func (ec *executionContext) _Pathway(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var placeImplementors = []string{"Place"}
+
+func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, obj *model.Place) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, placeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Place")
+		case "adm0_name":
+
+			out.Values[i] = ec._Place_adm0_name(ctx, field, obj)
+
+		case "adm1_name":
+
+			out.Values[i] = ec._Place_adm1_name(ctx, field, obj)
+
+		case "city_name":
+
+			out.Values[i] = ec._Place_city_name(ctx, field, obj)
+
+		case "count":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Place_count(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "operators":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Place_operators(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -48051,6 +48599,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_docks(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "places":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_places(ctx, field)
 				return res
 			}
 
@@ -51906,6 +52474,16 @@ func (ec *executionContext) marshalNPathway2ᚖgithubᚗcomᚋinterlineᚑioᚋt
 	return ec._Pathway(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPlace2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Place(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNPoint2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPoint(ctx context.Context, v interface{}) (tt.Point, error) {
 	var res tt.Point
 	err := res.UnmarshalGQL(v)
@@ -54696,6 +55274,77 @@ func (ec *executionContext) unmarshalOOperatorFilter2ᚖgithubᚗcomᚋinterline
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputOperatorFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOPlace2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlaceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Place) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPlace2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlace(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOPlaceAggregationLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlaceAggregationLevel(ctx context.Context, v interface{}) (*model.PlaceAggregationLevel, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.PlaceAggregationLevel)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOPlaceAggregationLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlaceAggregationLevel(ctx context.Context, sel ast.SelectionSet, v *model.PlaceAggregationLevel) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOPlaceFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlaceFilter(ctx context.Context, v interface{}) (*model.PlaceFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPlaceFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

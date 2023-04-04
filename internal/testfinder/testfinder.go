@@ -33,9 +33,16 @@ func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) (config.Config,
 	}
 	cfg := config.Config{Clock: cl}
 
+	// var db sqlx.Ext
+	// dbx := find.MustOpenDB(g)
+	// db = dbx
+	// if log.Logger.GetLevel() == zerolog.TraceLevel {
+	// 	db = find.LogDB(dbx)
+	// }
 	if db == nil {
 		db = find.MustOpenDB(g)
 	}
+
 	dbf := find.NewDBFinder(db)
 	dbf.Clock = cl
 

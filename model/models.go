@@ -67,7 +67,8 @@ type Operator struct {
 	Generated     bool
 	FeedID        int
 	FeedOnestopID *string
-	SearchRank    *string
+	SearchRank    *string // internal
+	AgencyID      int     // internal
 	tl.Operator
 }
 
@@ -315,4 +316,13 @@ type StopExternalReference struct {
 	TargetFeedOnestopID *string `json:"target_feed_onestop_id"`
 	TargetStopID        *string `json:"target_stop_id"`
 	Inactive            *bool   `json:"inactive"`
+}
+
+// Places
+
+type Place struct {
+	Adm0Name  *string `json:"adm0_name" db:"adm0name"`
+	Adm1Name  *string `json:"adm1_name" db:"adm1name"`
+	CityName  *string `json:"city_name" db:"name"`
+	AgencyIDs tt.Ints `json:"-" db:"agency_ids"` // internal
 }

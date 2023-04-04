@@ -198,6 +198,13 @@ type PathwayFilter struct {
 	PathwayMode *int `json:"pathway_mode"`
 }
 
+type PlaceFilter struct {
+	MinRank  *float64 `json:"min_rank"`
+	Adm0Name *string  `json:"adm0_name"`
+	Adm1Name *string  `json:"adm1_name"`
+	CityName *string  `json:"city_name"`
+}
+
 type PointRadius struct {
 	Lat    float64 `json:"lat"`
 	Lon    float64 `json:"lon"`
@@ -614,6 +621,55 @@ func (e *LicenseValue) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LicenseValue) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PlaceAggregationLevel string
+
+const (
+	PlaceAggregationLevelAdm0         PlaceAggregationLevel = "ADM0"
+	PlaceAggregationLevelAdm0Adm1     PlaceAggregationLevel = "ADM0_ADM1"
+	PlaceAggregationLevelAdm0Adm1City PlaceAggregationLevel = "ADM0_ADM1_CITY"
+	PlaceAggregationLevelAdm0City     PlaceAggregationLevel = "ADM0_CITY"
+	PlaceAggregationLevelAdm1City     PlaceAggregationLevel = "ADM1_CITY"
+	PlaceAggregationLevelCity         PlaceAggregationLevel = "CITY"
+)
+
+var AllPlaceAggregationLevel = []PlaceAggregationLevel{
+	PlaceAggregationLevelAdm0,
+	PlaceAggregationLevelAdm0Adm1,
+	PlaceAggregationLevelAdm0Adm1City,
+	PlaceAggregationLevelAdm0City,
+	PlaceAggregationLevelAdm1City,
+	PlaceAggregationLevelCity,
+}
+
+func (e PlaceAggregationLevel) IsValid() bool {
+	switch e {
+	case PlaceAggregationLevelAdm0, PlaceAggregationLevelAdm0Adm1, PlaceAggregationLevelAdm0Adm1City, PlaceAggregationLevelAdm0City, PlaceAggregationLevelAdm1City, PlaceAggregationLevelCity:
+		return true
+	}
+	return false
+}
+
+func (e PlaceAggregationLevel) String() string {
+	return string(e)
+}
+
+func (e *PlaceAggregationLevel) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PlaceAggregationLevel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PlaceAggregationLevel", str)
+	}
+	return nil
+}
+
+func (e PlaceAggregationLevel) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -35,6 +35,7 @@ type Query {
   directions(where: DirectionRequest!): Directions!
   bikes(limit: Int, where: GbfsBikeRequest): [GbfsFreeBikeStatus!]
   docks(limit: Int, where: GbfsDockRequest): [GbfsStationInformation!]
+  places(limit: Int,after: Int, level: PlaceAggregationLevel, where: PlaceFilter): [Place!]
 }
 
 type Mutation {
@@ -510,6 +511,23 @@ type AgencyPlace {
   adm1_name: String
   adm0_name: String
   rank: Float
+}
+
+enum PlaceAggregationLevel {
+  ADM0
+  ADM0_ADM1
+  ADM0_ADM1_CITY
+  ADM0_CITY
+  ADM1_CITY
+  CITY
+}
+
+type Place {
+  adm0_name: String
+  adm1_name: String
+  city_name: String
+  count: Int!
+  operators: [Operator!]
 }
 
 type RouteStop {
