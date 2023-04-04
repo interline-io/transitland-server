@@ -27,11 +27,10 @@ func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int, onest
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
 		OrderBy("coif.resolved_onestop_id, coif.operator_id")
-
 	if len(agencyIds) > 0 {
 		qView = qView.
-			Join("feed_states fs on fs.feed_id = cf.id").
-			Join("gtfs_agencies a on a.feed_version_id = fs.feed_version_id").
+			Join("feed_states fs on fs.feed_id = current_feeds.id").
+			Join("gtfs_agencies a on a.feed_version_id = fs.feed_version_id and a.agency_id = coif.resolved_gtfs_agency_id").
 			Where(sq.Eq{"a.id": agencyIds})
 	}
 	if len(onestopIds) > 0 {

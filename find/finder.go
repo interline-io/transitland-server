@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -485,9 +484,6 @@ func (f *DBFinder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model
 		OperatorsByAgencyID(nil, nil, ids, nil),
 		&ents,
 	)
-	for _, ent := range ents {
-		fmt.Println("operator ok:", ent.ID)
-	}
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
