@@ -175,14 +175,14 @@ func TestFeedResolver(t *testing.T) {
 		},
 		// multiple queries
 		{
-			name:         "feed fetches multiple queries 1/2",
-			query:        `query { feeds(where:{onestop_id:"BA"}) { onestop_id ok:feed_fetches(limit:1, where:{success:true}) { success } fail:feed_fetches(limit:1, where:{success:false}) { success }}}`,
+			name:         "feed fetches multiple queries 1",
+			query:        `query { feeds(where:{onestop_id:"CT"}) { onestop_id ok:feed_fetches(limit:1, where:{success:true}) { success } fail:feed_fetches(limit:1, where:{success:false}) { success }}}`,
 			selector:     "feeds.0.ok.#.success",
 			selectExpect: []string{"true"},
 		},
 		{
-			name:         "feed fetches multiple queries 2/2",
-			query:        `query { feeds(where:{onestop_id:"BA"}) { onestop_id ok:feed_fetches(limit:1, where:{success:true}) { success } fail:feed_fetches(limit:1, where:{success:false}) { success }}}`,
+			name:         "feed fetches multiple queries 2",
+			query:        `query { feeds(where:{onestop_id:"CT"}) { onestop_id ok:feed_fetches(limit:1, where:{success:true}) { success } fail:feed_fetches(limit:1, where:{success:false}) { success }}}`,
 			selector:     "feeds.0.fail.#.success",
 			selectExpect: []string{},
 		},

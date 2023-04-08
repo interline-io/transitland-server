@@ -31,21 +31,17 @@ func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) (config.Config,
 	if cl == nil {
 		cl = &clock.Real{}
 	}
-	cfg := config.Config{Clock: cl}
+	cfg := config.Config{
+		Clock:   cl,
+		Storage: t.TempDir(),
+	}
 
-	// var db sqlx.Ext
-	// dbx := find.MustOpenDB(g)
-	// db = dbx
-	// if log.Logger.GetLevel() == zerolog.TraceLevel {
-	// 	db = find.LogDB(dbx)
-	// }
 	if db == nil {
 		db = find.MustOpenDB(g)
 	}
 
 	dbf := find.NewDBFinder(db)
 	dbf.Clock = cl
-
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
 

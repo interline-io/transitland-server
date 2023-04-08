@@ -3,7 +3,7 @@ package jobs
 import (
 	"context"
 
-	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/rs/zerolog"
 )
@@ -33,8 +33,8 @@ type JobOptions struct {
 	RTFinder   model.RTFinder
 	GbfsFinder model.GbfsFinder
 	JobQueue   JobQueue
-	Secrets    []tl.Secret
 	Logger     zerolog.Logger
+	Config     config.Config
 }
 
 // GetWorker returns a new worker for this job type
