@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"io"
 	"io/ioutil"
 	"net/url"
@@ -16,7 +17,7 @@ import (
 )
 
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
-func ValidateUpload(cfg config.Config, src io.Reader, feedURL *string, rturls []string, user auth.User) (*model.ValidationResult, error) {
+func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedURL *string, rturls []string, user auth.User) (*model.ValidationResult, error) {
 	// Check inputs
 	rturlsok := []string{}
 	for _, rturl := range rturls {

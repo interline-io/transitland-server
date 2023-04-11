@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFetchResolver(t *testing.T) {
+func TestFeedVersionFetchResolver(t *testing.T) {
 	cfg, dbf, _, _ := testfinder.Finders(t, nil, nil)
 	expectFile := testutil.RelPath("test/data/external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +47,7 @@ func TestFetchResolver(t *testing.T) {
 	})
 }
 
-func TestValidationResolver(t *testing.T) {
+func TestValidateGtfsResolver(t *testing.T) {
 	cfg, dbf, _, _ := testfinder.Finders(t, nil, nil)
 	expectFile := testutil.RelPath("test/data/external/caltrain.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

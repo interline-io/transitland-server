@@ -107,7 +107,8 @@ func TestStaticFetchWorker(t *testing.T) {
 			feedUrl := ts.URL + "/" + tc.serveFile
 
 			// Run job
-			if err := StaticFetch(context.Background(), cfg, dbf, tc.feedId, feedUrl); err != nil && !tc.expectError {
+			if result, err := StaticFetch(context.Background(), cfg, dbf, tc.feedId, nil, feedUrl, nil); err != nil && !tc.expectError {
+				_ = result
 				t.Fatal(err)
 			} else if err == nil && tc.expectError {
 				t.Fatal(errors.New("expected responseError"))

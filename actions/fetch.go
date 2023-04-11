@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
@@ -15,11 +18,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedUrl string, user auth.User) (*model.FeedVersionFetchResult, error) {
-	userName := ""
-	if user != nil {
-		userName = user.Name()
-	}
+func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user auth.User) (*model.FeedVersionFetchResult, error) {
+	// Check feed exists and we have sufficient permissions
 	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return nil, err
@@ -28,7 +28,8 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 		return nil, errors.New("feed not found")
 	}
 	feed := feeds[0].Feed
-	atx := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+
+	// Prepare
 	fetchOpts := fetch.Options{
 		FeedID:    feed.ID,
 		URLType:   "static_current",
@@ -36,12 +37,32 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 		Storage:   cfg.Storage,
 		Secrets:   cfg.Secrets,
 		FetchedAt: time.Now(),
-		CreatedBy: tt.NewString(userName),
 	}
+	if user != nil {
+		fetchOpts.CreatedBy = tt.NewString(user.Name())
+	}
+
+	// Allow a Reader
+	if feedSrc != nil {
+		tmpfile, err := ioutil.TempFile("", "validator-upload")
+		if err != nil {
+			return nil, err
+		}
+		io.Copy(tmpfile, feedSrc)
+		tmpfile.Close()
+		defer os.Remove(tmpfile.Name())
+		fetchOpts.FeedURL = tmpfile.Name()
+		fetchOpts.AllowLocalFetch = true
+	}
+
+	// Make request
+	atx := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	fv, fr, err := fetch.StaticFetch(atx, fetchOpts)
 	if err != nil {
 		return nil, err
 	}
+
+	// Return result
 	mr := model.FeedVersionFetchResult{
 		FoundSHA1: fr.Found,
 	}
@@ -51,10 +72,11 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 	} else {
 		return nil, fr.FetchError
 	}
+	return &mr, nil
 }
 
 func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model.RTFinder, target string, feedId string, feedUrl string, urlType string) error {
-	// Find feed
+	// Check feed exists and we have sufficient permissions
 	rtfeeds, err := dbf.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return err
@@ -62,8 +84,9 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 	if len(rtfeeds) == 0 {
 		return errors.New("feed not found")
 	}
-	// Make request
 	rtfeed := rtfeeds[0].Feed
+
+	// Make request
 	atx := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	fetchOpts := fetch.Options{
 		FeedID:    rtfeed.ID,
@@ -83,11 +106,13 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 	if rtmsg == nil {
 		return err
 	}
+
 	// Convert back to bytes...
 	rtdata, err := proto.Marshal(rtmsg)
 	if err != nil {
 		return errors.New("invalid rt data")
 	}
+
 	// Save to cache
 	key := fmt.Sprintf("rtdata:%s:%s", target, urlType)
 	return rtf.AddData(key, rtdata)
