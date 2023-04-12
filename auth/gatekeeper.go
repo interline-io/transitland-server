@@ -102,7 +102,7 @@ func (gk *Gatekeeper) updateUsers(ctx context.Context) {
 	keys := gk.cache.GetRecheckKeys(ctx)
 	for _, userKey := range keys {
 		if _, err := gk.updateUser(ctx, userKey); err != nil {
-			// Failed :(
+			// Failed :( Error logging handled in updateUser
 		}
 	}
 }
@@ -140,6 +140,9 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 	}
 	// Read response
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return gkCacheItem{}, err
+	}
 	if !gjson.Valid(string(body)) {
 		return gkCacheItem{}, errors.New("invalid json")
 	}
@@ -153,6 +156,10 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 	}
 	for _, r := range parsed.Get(gk.roleKey).Array() {
 		item.Roles = append(item.Roles, r.String())
+		// TODO: temporarily map "tl_admin" role to "admin" role.
+		if r.String() == "tl_admin" {
+			item.Roles = append(item.Roles, "admin")
+		}
 	}
 	for k, v := range parsed.Get(gk.eidKey).Map() {
 		item.ExternalIDs[k] = v.String()

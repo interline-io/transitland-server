@@ -130,12 +130,24 @@ func (cmd *Command) Parse(args []string) error {
 	if cmd.RedisURL == "" {
 		cmd.RedisURL = os.Getenv("TL_REDIS_URL")
 	}
+
+	// Load secrets
+	var secrets []tl.Secret
+	if v := cmd.SecretsFile; v != "" {
+		rr, err := dmfr.LoadAndParseRegistry(v)
+		if err != nil {
+			return errors.New("unable to load secrets file")
+		}
+		secrets = rr.Secrets
+	}
+	cmd.Config.Secrets = secrets
 	return nil
 }
 
 func (cmd *Command) Run() error {
 	// Default finders and job queue
 	cfg := cmd.Config
+
 	var dbFinder model.Finder
 	var rtFinder model.RTFinder
 	var gbfsFinder model.GbfsFinder
@@ -272,15 +284,7 @@ func (cmd *Command) Run() error {
 
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
-		// Load secrets
-		var secrets []tl.Secret
-		if v := cmd.SecretsFile; v != "" {
-			rr, err := dmfr.LoadAndParseRegistry(v)
-			if err != nil {
-				return errors.New("unable to load secrets file")
-			}
-			secrets = rr.Secrets
-		}
+
 		// Start workers/api
 		jobWorkers := 10
 		jobOptions := jobs.JobOptions{
@@ -289,7 +293,7 @@ func (cmd *Command) Run() error {
 			Finder:     dbFinder,
 			RTFinder:   rtFinder,
 			GbfsFinder: gbfsFinder,
-			Secrets:    secrets,
+			Config:     cfg,
 		}
 		// Add metrics
 		jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
