@@ -140,7 +140,7 @@ func TestStopResolver_StopTimes(t *testing.T) {
 			selectExpect: []string{"10:05:00", "10:20:00", "10:35:00", "10:50:00"},
 		},
 	}
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)
@@ -182,7 +182,7 @@ func TestStopResolver_StopTimes_ServiceDate(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			c, _, _, _ := newTestClient(t)
+			c, _ := newTestClient(t)
 			queryTestcase(t, c, tc)
 		})
 	}
@@ -259,7 +259,7 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			c, _, _, _ := newTestClient(t)
+			c, _ := newTestClient(t)
 			queryTestcase(t, c, tc)
 		})
 	}
@@ -367,7 +367,7 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			c, _, _, _ := newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
+			c, _ := newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
 			queryTestcase(t, c, tc.testcase)
 		})
 	}

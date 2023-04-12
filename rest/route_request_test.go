@@ -107,17 +107,17 @@ func TestRouteRequest(t *testing.T) {
 			},
 		},
 	}
-	cfg, _, _, _ := testRestConfig(t)
+	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }
 
 func TestRouteRequest_Pagination(t *testing.T) {
-	cfg, dbf, _, _ := testRestConfig(t)
-	allEnts, err := dbf.FindRoutes(context.Background(), nil, nil, nil, nil)
+	srv, te := testRestConfig(t)
+	allEnts, err := te.Finder.FindRoutes(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +164,7 @@ func TestRouteRequest_Pagination(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }
@@ -217,10 +217,10 @@ func TestRouteRequest_License(t *testing.T) {
 			expectLength: 51,
 		},
 	}
-	cfg, _, _, _ := testRestConfig(t)
+	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }

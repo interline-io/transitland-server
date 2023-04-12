@@ -256,6 +256,8 @@ github.com/interline-io/transitland-lib v0.12.1-0.20230331001122-29daeca39abe h1
 github.com/interline-io/transitland-lib v0.12.1-0.20230331001122-29daeca39abe/go.mod h1:EnN1BuWqBAQzyIBOH+Ait7S8i4uC5fLqGzmX8FmQ2a8=
 github.com/interline-io/transitland-lib v0.12.1-0.20230407023916-2798a838dbe2 h1:/6w9cBckfYup1ZeR4ZTmCrqA5411vCl7/yL4TkrR8hE=
 github.com/interline-io/transitland-lib v0.12.1-0.20230407023916-2798a838dbe2/go.mod h1:EnN1BuWqBAQzyIBOH+Ait7S8i4uC5fLqGzmX8FmQ2a8=
+github.com/interline-io/transitland-lib v0.12.1-0.20230412023843-c0802bc42d64 h1:MgJkLWAPXbNvnUVnJnakxnn79v2hQGahFyGxousvkt8=
+github.com/interline-io/transitland-lib v0.12.1-0.20230412023843-c0802bc42d64/go.mod h1:EnN1BuWqBAQzyIBOH+Ait7S8i4uC5fLqGzmX8FmQ2a8=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 h1:IPJ3dvxmJ4uczJe5YQdrYB16oTJlGSC/OyZDqUk9xX4=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=
 github.com/jellydator/ttlcache/v2 v2.11.1 h1:AZGME43Eh2Vv3giG6GeqeLeFXxwxn1/qHItqWZl6U64=

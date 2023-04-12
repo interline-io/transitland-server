@@ -1,6 +1,8 @@
 package testfinder
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,9 +23,16 @@ import (
 
 // Test helpers
 
-var db sqlx.Ext
+var db *sqlx.DB
 
-func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) (config.Config, model.Finder, model.RTFinder, model.GbfsFinder) {
+type TestEnv struct {
+	Config     config.Config
+	Finder     model.Finder
+	RTFinder   model.RTFinder
+	GbfsFinder model.GbfsFinder
+}
+
+func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) TestEnv {
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
 	if g == "" {
 		t.Fatal("TL_TEST_SERVER_DATABASE_URL not set, skipping")
@@ -31,33 +40,88 @@ func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) (config.Config,
 	if cl == nil {
 		cl = &clock.Real{}
 	}
-	cfg := config.Config{Clock: cl}
-
-	// var db sqlx.Ext
-	// dbx := find.MustOpenDB(g)
-	// db = dbx
-	// if log.Logger.GetLevel() == zerolog.TraceLevel {
-	// 	db = find.LogDB(dbx)
-	// }
+	cfg := config.Config{
+		Clock:   cl,
+		Storage: t.TempDir(),
+	}
 	if db == nil {
 		db = find.MustOpenDB(g)
 	}
-
 	dbf := find.NewDBFinder(db)
 	dbf.Clock = cl
-
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
-
 	gbf := gbfsfinder.NewFinder(nil)
-
 	for _, rtj := range rtJsons {
 		fn := testutil.RelPath("test", "data", "rt", rtj.Fname)
 		if err := FetchRTJson(rtj.Feed, rtj.Ftype, fn, rtf); err != nil {
 			t.Fatal(err)
 		}
 	}
-	return cfg, dbf, rtf, gbf
+	return TestEnv{
+		Config:     cfg,
+		Finder:     dbf,
+		RTFinder:   rtf,
+		GbfsFinder: gbf,
+	}
+}
+
+func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestEnv) error) {
+	// Check open DB
+	if db == nil {
+		g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
+		if g == "" {
+			t.Fatal("TL_TEST_SERVER_DATABASE_URL not set, skipping")
+		}
+		db = find.MustOpenDB(g)
+	}
+
+	// Config
+	if cl == nil {
+		cl = &clock.Real{}
+	}
+	cfg := config.Config{
+		Clock:   cl,
+		Storage: t.TempDir(),
+	}
+
+	// Start Txn
+	tx := db.MustBeginTx(context.Background(), nil)
+	defer tx.Rollback()
+
+	// Configufre finders
+	dbf := find.NewDBFinder(tx)
+	dbf.Clock = cl
+	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), tx)
+	rtf.Clock = cl
+	gbf := gbfsfinder.NewFinder(nil)
+	for _, rtj := range rtJsons {
+		fn := testutil.RelPath("test", "data", "rt", rtj.Fname)
+		if err := FetchRTJson(rtj.Feed, rtj.Ftype, fn, rtf); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	testEnv := TestEnv{
+		Config:     cfg,
+		Finder:     dbf,
+		RTFinder:   rtf,
+		GbfsFinder: gbf,
+	}
+
+	// Commit or rollback
+	if err := cb(testEnv); err != nil {
+		//tx.Rollback()
+	} else {
+		tx.Commit()
+	}
+}
+
+func FindersTxRollback(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestEnv)) {
+	FindersTx(t, cl, rtJsons, func(c TestEnv) error {
+		cb(c)
+		return errors.New("rollback")
+	})
 }
 
 type RTJsonFile struct {

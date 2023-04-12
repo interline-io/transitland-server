@@ -107,10 +107,10 @@ func TestOperatorRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	cfg, _, _, _ := testRestConfig(t)
+	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }
@@ -130,10 +130,10 @@ func TestOperatorRequest_Pagination(t *testing.T) {
 			expectLength: 3,
 		},
 	}
-	cfg, _, _, _ := testRestConfig(t)
+	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }
@@ -195,10 +195,10 @@ func TestOperatorRequest_License(t *testing.T) {
 			expectSelect: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
 		},
 	}
-	cfg, _, _, _ := testRestConfig(t)
+	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }
