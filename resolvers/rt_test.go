@@ -123,7 +123,7 @@ func testRt(t *testing.T, tc rtTestCase) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	c, _, _, _ := newTestClientWithClock(t, &clock.Mock{T: when}, tc.rtfiles)
+	c, _ := newTestClientWithClock(t, &clock.Mock{T: when}, tc.rtfiles)
 	var resp map[string]interface{}
 	opts := []client.Option{}
 	for k, v := range tc.vars {

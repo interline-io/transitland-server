@@ -85,7 +85,7 @@ func TestStaticFetchWorker(t *testing.T) {
 			expectSuccess:      false,
 		},
 	}
-	cfg, dbf, _, _ := testfinder.Finders(t, nil, nil)
+	// cfg, dbf, _, _ := testfinder.Finders(t, nil, nil)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setup http
@@ -93,6 +93,7 @@ func TestStaticFetchWorker(t *testing.T) {
 				if r.URL.Path != "/"+tc.serveFile {
 					http.Error(w, "404", 404)
 					return
+
 				}
 				buf, err := ioutil.ReadFile(testutil.RelPath(tc.serveFile))
 				if err != nil {
@@ -105,38 +106,40 @@ func TestStaticFetchWorker(t *testing.T) {
 
 			// Setup job
 			feedUrl := ts.URL + "/" + tc.serveFile
+			testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+				// Run job
+				if result, err := StaticFetch(context.Background(), te.Config, te.Finder, tc.feedId, nil, feedUrl, nil); err != nil && !tc.expectError {
+					_ = result
+					t.Fatal(err)
+				} else if err == nil && tc.expectError {
+					t.Fatal(errors.New("expected responseError"))
+				}
 
-			// Run job
-			if result, err := StaticFetch(context.Background(), cfg, dbf, tc.feedId, nil, feedUrl, nil); err != nil && !tc.expectError {
-				_ = result
-				t.Fatal(err)
-			} else if err == nil && tc.expectError {
-				t.Fatal(errors.New("expected responseError"))
-			}
+				// Check output
+				ff := dmfr.FeedFetch{}
+				if err := find.Get(
+					context.Background(),
+					te.Finder.DBX(),
+					sq.StatementBuilder.
+						Select("ff.*").
+						From("feed_fetches ff").
+						Join("current_feeds cf on cf.id = ff.feed_id").
+						Where(sq.Eq{"cf.onestop_id": tc.feedId}).
+						Where(sq.Eq{"ff.url": feedUrl}).
+						OrderBy("ff.id desc").
+						Limit(1),
+					&ff,
+				); err != nil {
+					t.Fatal(err)
+				}
+				assert.Equal(t, tc.expectResponseCode, ff.ResponseCode.Val, "expect response_code")
+				assert.Equal(t, tc.expectSuccess, ff.Success, "expect success")
+				assert.Equal(t, tc.expectResponseSize, ff.ResponseSize.Val, "expect response_size")
+				if tc.expectResponseSHA1 != "" {
+					assert.Equal(t, tc.expectResponseSHA1, ff.ResponseSHA1.Val, "expect response_sha1")
+				}
+			})
 
-			// Check output
-			ff := dmfr.FeedFetch{}
-			if err := find.Get(
-				context.Background(),
-				dbf.DBX(),
-				sq.StatementBuilder.
-					Select("ff.*").
-					From("feed_fetches ff").
-					Join("current_feeds cf on cf.id = ff.feed_id").
-					Where(sq.Eq{"cf.onestop_id": tc.feedId}).
-					Where(sq.Eq{"ff.url": feedUrl}).
-					OrderBy("ff.id desc").
-					Limit(1),
-				&ff,
-			); err != nil {
-				t.Fatal(err)
-			}
-			assert.Equal(t, tc.expectResponseCode, ff.ResponseCode.Val, "expect response_code")
-			assert.Equal(t, tc.expectSuccess, ff.Success, "expect success")
-			assert.Equal(t, tc.expectResponseSize, ff.ResponseSize.Val, "expect response_size")
-			if tc.expectResponseSHA1 != "" {
-				assert.Equal(t, tc.expectResponseSHA1, ff.ResponseSHA1.Val, "expect response_sha1")
-			}
 		})
 	}
 }

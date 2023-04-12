@@ -11,7 +11,6 @@ import (
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/testfinder"
-	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -43,28 +42,7 @@ func TestMain(m *testing.M) {
 
 // Test helpers
 
-type testEnv struct {
-	client *client.Client
-	dbf    model.Finder
-	rtf    model.RTFinder
-	gbf    model.GbfsFinder
-}
-
-func newTestEnv(t testing.TB) testEnv {
-	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
-	if err != nil {
-		t.Fatal(err)
-	}
-	c, dbf, rtf, gbf := newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
-	return testEnv{
-		client: c,
-		dbf:    dbf,
-		rtf:    rtf,
-		gbf:    gbf,
-	}
-}
-
-func newTestClient(t testing.TB) (*client.Client, model.Finder, model.RTFinder, model.GbfsFinder) {
+func newTestClient(t testing.TB) (*client.Client, testfinder.TestEnv) {
 	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
 	if err != nil {
 		t.Fatal(err)
@@ -72,10 +50,10 @@ func newTestClient(t testing.TB) (*client.Client, model.Finder, model.RTFinder, 
 	return newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
 }
 
-func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Finder, model.RTFinder, model.GbfsFinder) {
-	cfg, dbf, rtf, gbf := testfinder.Finders(t, cl, rtfiles)
-	srv, _ := NewServer(cfg, dbf, rtf, gbf)
-	return client.New(srv), dbf, rtf, gbf
+func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, testfinder.TestEnv) {
+	te := testfinder.Finders(t, cl, rtfiles)
+	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder)
+	return client.New(srv), te
 }
 
 func toJson(m map[string]interface{}) string {

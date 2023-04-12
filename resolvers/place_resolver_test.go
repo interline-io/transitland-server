@@ -103,7 +103,7 @@ func TestPlaceResolver(t *testing.T) {
 			selectExpect: []string{"o-9q9-bayarearapidtransit"},
 		},
 	}
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)

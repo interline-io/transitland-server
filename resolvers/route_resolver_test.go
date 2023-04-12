@@ -59,22 +59,22 @@ func TestRouteResolver(t *testing.T) {
 			selectExpect: []string{"false"},
 		},
 		{
-			name: "route_stop_buffer stop_points 10m",
-			query: `query($route_id: String!) { routes(where:{route_id:$route_id}) {route_stop_buffer(radius: 100.0) {stop_points	stop_buffer	stop_convexhull}}}`,
+			name:         "route_stop_buffer stop_points 10m",
+			query:        `query($route_id: String!) { routes(where:{route_id:$route_id}) {route_stop_buffer(radius: 100.0) {stop_points	stop_buffer	stop_convexhull}}}`,
 			vars:         vars,
 			selector:     "routes.0.route_stop_buffer.stop_points.type",
 			selectExpect: []string{"MultiPoint"},
 		},
 		{
-			name: "route_stop_buffer stop_buffer 10m",
-			query: `query($route_id: String!) { routes(where:{route_id:$route_id}) {route_stop_buffer(radius: 100.0) {stop_points	stop_buffer	stop_convexhull}}}`,
+			name:         "route_stop_buffer stop_buffer 10m",
+			query:        `query($route_id: String!) { routes(where:{route_id:$route_id}) {route_stop_buffer(radius: 100.0) {stop_points	stop_buffer	stop_convexhull}}}`,
 			vars:         vars,
 			selector:     "routes.0.route_stop_buffer.stop_buffer.type",
 			selectExpect: []string{"MultiPolygon"},
 		},
 		{
-			name: "route_stop_buffer stop_convexhull 10m",
-			query: `query($route_id: String!) { routes(where:{route_id:$route_id}) {route_stop_buffer(radius: 100.0) {stop_points	stop_buffer	stop_convexhull}}}`,
+			name:         "route_stop_buffer stop_convexhull 10m",
+			query:        `query($route_id: String!) { routes(where:{route_id:$route_id}) {route_stop_buffer(radius: 100.0) {stop_points	stop_buffer	stop_convexhull}}}`,
 			vars:         vars,
 			selector:     "routes.0.route_stop_buffer.stop_convexhull.type",
 			selectExpect: []string{"Polygon"},
@@ -196,7 +196,7 @@ func TestRouteResolver(t *testing.T) {
 		},
 		// TODO: census_geographies
 	}
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)
@@ -235,7 +235,7 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 			selectExpect: []string{"r-9q9-pittsburg~baypoint~sfia~millbrae"},
 		},
 	}
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)
@@ -244,8 +244,8 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 }
 
 func TestRouteResolver_Cursor(t *testing.T) {
-	c, dbf, _, _ := newTestClient(t)
-	allEnts, err := dbf.FindRoutes(context.Background(), nil, nil, nil, nil)
+	c, te := newTestClient(t)
+	allEnts, err := te.Finder.FindRoutes(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -441,7 +441,7 @@ func TestRouteResolver_License(t *testing.T) {
 			selectExpectCount:  51,
 		},
 	}
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)
