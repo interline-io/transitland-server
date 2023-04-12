@@ -56,17 +56,16 @@ func TestStaticFetchWorker(t *testing.T) {
 			expectError:        true,
 			expectSuccess:      false,
 		},
-		// Needs FeedVersionDelete to be re-implemented
-		// {
-		// 	name:               "bart new",
-		// 	feedId:             "BA",
-		// 	serveFile:          "test/data/external/bart-new.zip",
-		// 	expectResponseCode: 200,
-		// 	expectResponseSize: 12,
-		// 	expectResponseSHA1: "88af471a23dfdc103e67752dd56128ae77b8debe",
-		// 	expectError:        true,
-		// 	expectSuccess:      false,
-		// },
+		{
+			name:               "bart new",
+			feedId:             "BA",
+			serveFile:          "test/data/external/bart-new.zip",
+			expectResponseCode: 200,
+			expectResponseSize: 1151609,
+			expectResponseSHA1: "b40aa01814bf92dba06dbccdebcc3aefa6208248",
+			expectError:        false,
+			expectSuccess:      true,
+		},
 		{
 			name:               "hart existing",
 			feedId:             "HA",
