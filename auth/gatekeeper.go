@@ -102,7 +102,7 @@ func (gk *Gatekeeper) updateUsers(ctx context.Context) {
 	keys := gk.cache.GetRecheckKeys(ctx)
 	for _, userKey := range keys {
 		if _, err := gk.updateUser(ctx, userKey); err != nil {
-			// Failed :( Logged in updateUser
+			// Failed :( Error logging handled in updateUser
 		}
 	}
 }
