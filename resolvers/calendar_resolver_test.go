@@ -27,7 +27,7 @@ func TestCalendarResolver(t *testing.T) {
 			expect: `{"trips":[{"calendar":{"removed_dates":["2018-05-28","2018-07-04","2018-09-03","2018-11-22","2018-12-25","2019-01-01"]}}]}`,
 		},
 	}
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)

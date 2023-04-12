@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/testfinder"
-	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -29,21 +29,21 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func testRestConfig(t testing.TB) (restConfig, model.Finder, model.RTFinder, model.GbfsFinder) {
+func testRestConfig(t testing.TB) (http.Handler, testfinder.TestEnv) {
 	when, err := time.Parse("2006-01-02T15:04:05", "2018-06-01T00:00:00")
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfg, dbf, rtf, gbf := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
-	srv, err := resolvers.NewServer(cfg, dbf, rtf, gbf)
+	te := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
+	srv, err := resolvers.NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder)
 	if err != nil {
 		panic(err)
 	}
-	return restConfig{srv: srv, Config: cfg}, dbf, rtf, gbf
+	return srv, te
 }
 
-func testRestServer(t testing.TB, rcfg restConfig) (http.Handler, error) {
-	return NewServer(rcfg.Config, rcfg.srv)
+func testRestServer(t testing.TB, cfg config.Config, srv http.Handler) (http.Handler, error) {
+	return NewServer(cfg, srv)
 }
 
 func toJson(m map[string]interface{}) string {
@@ -61,8 +61,8 @@ type testRest struct {
 	f            func(*testing.T, string)
 }
 
-func testquery(t *testing.T, cfg restConfig, tc testRest) {
-	data, err := makeRequest(context.TODO(), cfg, tc.h, tc.format, nil)
+func testquery(t *testing.T, srv http.Handler, te testfinder.TestEnv, tc testRest) {
+	data, err := makeRequest(context.TODO(), restConfig{srv: srv, Config: te.Config}, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)
 		return

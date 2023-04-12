@@ -10,14 +10,14 @@ import (
 )
 
 func TestTripRequest(t *testing.T) {
-	cfg, _, _, _ := testRestConfig(t)
-	d, err := makeGraphQLRequest(context.Background(), cfg.srv, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
+	srv, te := testRestConfig(t)
+	d, err := makeGraphQLRequest(context.Background(), srv, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
 	}
 	routeId := int(gjson.Get(toJson(d), "routes.0.id").Int())
 	routeOnestopId := gjson.Get(toJson(d), "routes.0.onestop_id").String()
-	d2, err := makeGraphQLRequest(context.Background(), cfg.srv, `query{trips(where:{trip_id:"5132248WKDY"}){id}}`, nil)
+	d2, err := makeGraphQLRequest(context.Background(), srv, `query{trips(where:{trip_id:"5132248WKDY"}){id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
 	}
@@ -178,7 +178,7 @@ func TestTripRequest(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }
@@ -214,10 +214,10 @@ func TestTripRequest_Pagination(t *testing.T) {
 			expectLength: 10_000,
 		},
 	}
-	cfg, _, _, _ := testRestConfig(t)
+	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }
@@ -270,10 +270,10 @@ func TestTripRequest_License(t *testing.T) {
 			expectLength: 14903,
 		},
 	}
-	cfg, _, _, _ := testRestConfig(t)
+	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }

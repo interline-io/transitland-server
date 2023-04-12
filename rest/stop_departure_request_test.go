@@ -144,10 +144,10 @@ func TestStopDepartureRequest(t *testing.T) {
 		// 	0,
 		// },
 	}
-	cfg, _, _, _ := testRestConfig(t)
+	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, cfg, tc)
+			testquery(t, srv, te, tc)
 		})
 	}
 }

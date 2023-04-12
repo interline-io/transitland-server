@@ -107,7 +107,7 @@ func TestTripResolver(t *testing.T) {
 		// TODO: check where feed_version_sha1, feed_onestop_id but only check count
 		// TODO: frequencies
 	}
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)
@@ -122,7 +122,7 @@ func TestTripResolver_StopPatternID(t *testing.T) {
 		  stop_pattern_id
 		}
 	}`
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	var resp map[string]interface{}
 	c.MustPost(query, &resp)
 	jj := toJson(resp)
@@ -292,7 +292,7 @@ func TestTripResolver_License(t *testing.T) {
 			selectExpectCount:  14903,
 		},
 	}
-	c, _, _, _ := newTestClient(t)
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)

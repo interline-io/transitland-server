@@ -5,10 +5,10 @@ import (
 )
 
 func TestLevelResolver(t *testing.T) {
-	te := newTestEnv(t)
+	c, _ := newTestClient(t)
 	testcases := []testcase{
 		// TODO: level by stop
 		// TODO: stops by level
 	}
-	queryTestcases(t, te.client, testcases)
+	queryTestcases(t, c, testcases)
 }

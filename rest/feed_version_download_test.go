@@ -14,9 +14,9 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 	if g == "" {
 		t.Skip("TL_TEST_STORAGE not set - skipping")
 	}
-	cfg, _, _, _ := testRestConfig(t)
-	cfg.Storage = g
-	restSrv, err := testRestServer(t, cfg)
+	srv, te := testRestConfig(t)
+	te.Config.Storage = g
+	restSrv, err := testRestServer(t, te.Config, srv)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,9 +56,9 @@ func TestFeedDownloadLatestRequest(t *testing.T) {
 	if g == "" {
 		t.Skip("TL_TEST_STORAGE not set - skipping")
 	}
-	cfg, _, _, _ := testRestConfig(t)
-	cfg.Storage = g
-	restSrv, err := testRestServer(t, cfg)
+	srv, te := testRestConfig(t)
+	te.Config.Storage = g
+	restSrv, err := testRestServer(t, te.Config, srv)
 	if err != nil {
 		t.Fatal(err)
 	}
