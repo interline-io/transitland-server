@@ -644,19 +644,27 @@ func (f *DBFinder) FrequenciesByTripID(ctx context.Context, params []model.Frequ
 	return ents, nil
 }
 
-func (f *DBFinder) StopTimesByTripID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {
+func (f *DBFinder) StopTimesByTripID(ctx context.Context, params []model.TripStopTimeParam) ([][]*model.StopTime, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
+	// TODO: Split by param groups, as below in StopTimesByStopID
 	limit := checkLimit(params[0].Limit)
 	tpairs := []FVPair{}
 	for _, p := range params {
 		tpairs = append(tpairs, FVPair{EntityID: p.TripID, FeedVersionID: p.FeedVersionID})
 	}
+	stFilter := model.StopTimeFilter{}
+	if params[0].StartTime != nil {
+		stFilter.StartTime = params[0].StartTime
+	}
+	if params[0].EndTime != nil {
+		stFilter.EndTime = params[0].EndTime
+	}
 	qents := []*model.StopTime{}
 	err := Select(ctx,
 		f.db,
-		StopTimeSelect(tpairs, nil, params[0].Where),
+		StopTimeSelect(tpairs, nil, &stFilter),
 		&qents,
 	)
 	if err != nil {

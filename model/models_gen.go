@@ -332,6 +332,11 @@ type TripFilter struct {
 	FeedOnestopID   *string        `json:"feed_onestop_id"`
 }
 
+type TripStopTimeFilter struct {
+	Start *tt.WideTime `json:"start"`
+	End   *tt.WideTime `json:"end"`
+}
+
 // [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
 type VehiclePosition struct {
 	Vehicle             *RTVehicleDescriptor `json:"vehicle"`

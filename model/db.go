@@ -59,7 +59,7 @@ type EntityLoader interface {
 	FeedFetchesByFeedID(context.Context, []FeedFetchParam) ([][]*FeedFetch, []error)
 	FeedsByOperatorOnestopID(context.Context, []FeedParam) ([][]*Feed, []error)
 	FrequenciesByTripID(context.Context, []FrequencyParam) ([][]*Frequency, []error)
-	StopTimesByTripID(context.Context, []StopTimeParam) ([][]*StopTime, []error)
+	StopTimesByTripID(context.Context, []TripStopTimeParam) ([][]*StopTime, []error)
 	StopTimesByStopID(context.Context, []StopTimeParam) ([][]*StopTime, []error)
 	RouteStopsByStopID(context.Context, []RouteStopParam) ([][]*RouteStop, []error)
 	StopsByRouteID(context.Context, []StopParam) ([][]*Stop, []error)

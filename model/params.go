@@ -46,6 +46,14 @@ type StopTimeParam struct {
 	Where         *StopTimeFilter
 }
 
+type TripStopTimeParam struct {
+	TripID        int
+	FeedVersionID int
+	Limit         *int
+	StartTime     *int
+	EndTime       *int
+}
+
 type AgencyParam struct {
 	FeedVersionID int
 	Limit         *int

@@ -36,6 +36,15 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilte
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
 		OrderBy("sts.stop_sequence, sts.arrival_time")
+
+	if where != nil {
+		if where.StartTime != nil {
+			qView = qView.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.StartTime})
+		}
+		if where.EndTime != nil {
+			qView = qView.Where(sq.LtOrEq{"sts.arrival_time + gtfs_trips.journey_pattern_offset": where.EndTime})
+		}
+	}
 	if len(tpairs) > 0 {
 		eids, fvids := pairKeys(tpairs)
 		qView = qView.Where(sq.Eq{"gtfs_trips.id": eids, "sts.feed_version_id": fvids, "gtfs_trips.feed_version_id": fvids})

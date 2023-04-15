@@ -898,7 +898,7 @@ type ComplexityRoot struct {
 		ScheduleRelationship func(childComplexity int) int
 		Shape                func(childComplexity int) int
 		StopPatternID        func(childComplexity int) int
-		StopTimes            func(childComplexity int, limit *int) int
+		StopTimes            func(childComplexity int, limit *int, where *model.TripStopTimeFilter) int
 		Timestamp            func(childComplexity int) int
 		TripHeadsign         func(childComplexity int) int
 		TripID               func(childComplexity int) int
@@ -1112,7 +1112,7 @@ type TripResolver interface {
 	Route(ctx context.Context, obj *model.Trip) (*model.Route, error)
 	Shape(ctx context.Context, obj *model.Trip) (*model.Shape, error)
 	FeedVersion(ctx context.Context, obj *model.Trip) (*model.FeedVersion, error)
-	StopTimes(ctx context.Context, obj *model.Trip, limit *int) ([]*model.StopTime, error)
+	StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error)
 	Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error)
 	ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error)
 	Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error)
@@ -5622,7 +5622,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Trip.StopTimes(childComplexity, args["limit"].(*int)), true
+		return e.complexity.Trip.StopTimes(childComplexity, args["limit"].(*int), args["where"].(*model.TripStopTimeFilter)), true
 
 	case "Trip.timestamp":
 		if e.complexity.Trip.Timestamp == nil {
@@ -5952,6 +5952,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputStopObservationFilter,
 		ec.unmarshalInputStopTimeFilter,
 		ec.unmarshalInputTripFilter,
+		ec.unmarshalInputTripStopTimeFilter,
 		ec.unmarshalInputWaypointInput,
 	)
 	first := true
@@ -6537,6 +6538,11 @@ input StopTimeFilter {
   exclude_last: Boolean
 }
 
+input TripStopTimeFilter {
+  start: Seconds
+  end: Seconds
+}
+
 input StopObservationFilter {
   source: String!
   feed_version_id: Int!
@@ -6987,7 +6993,7 @@ type Trip {
   route: Route!
   shape: Shape
   feed_version: FeedVersion!
-  stop_times(limit: Int): [StopTime]!
+  stop_times(limit: Int, where: TripStopTimeFilter): [StopTime]!
   frequencies(limit: Int): [Frequency!]!
   # rt
   schedule_relationship: ScheduleRelationship
@@ -8808,6 +8814,15 @@ func (ec *executionContext) field_Trip_stop_times_args(ctx context.Context, rawA
 		}
 	}
 	args["limit"] = arg0
+	var arg1 *model.TripStopTimeFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOTripStopTimeFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripStopTimeFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -39041,7 +39056,7 @@ func (ec *executionContext) _Trip_stop_times(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Trip().StopTimes(rctx, obj, fc.Args["limit"].(*int))
+		return ec.resolvers.Trip().StopTimes(rctx, obj, fc.Args["limit"].(*int), fc.Args["where"].(*model.TripStopTimeFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44350,6 +44365,42 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_onestop_id"))
 			it.FeedOnestopID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTripStopTimeFilter(ctx context.Context, obj interface{}) (model.TripStopTimeFilter, error) {
+	var it model.TripStopTimeFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "start":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
+			it.Start, err = ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
+			it.End, err = ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -56044,6 +56095,14 @@ func (ec *executionContext) unmarshalOTripFilter2ᚖgithubᚗcomᚋinterlineᚑi
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputTripFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOTripStopTimeFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripStopTimeFilter(ctx context.Context, v interface{}) (*model.TripStopTimeFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTripStopTimeFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
