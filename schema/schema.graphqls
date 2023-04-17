@@ -391,7 +391,7 @@ type Trip {
   route: Route!
   shape: Shape
   feed_version: FeedVersion!
-  stop_times(limit: Int): [StopTime]!
+  stop_times(limit: Int, where: TripStopTimeFilter): [StopTime]!
   frequencies(limit: Int): [Frequency!]!
   # rt
   schedule_relationship: ScheduleRelationship

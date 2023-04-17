@@ -53,7 +53,7 @@ type Loaders struct {
 	RouteGeometriesByRouteID                *dataloader.Loader[model.RouteGeometryParam, []*model.RouteGeometry]
 	TripsByRouteID                          *dataloader.Loader[model.TripParam, []*model.Trip]
 	FrequenciesByTripID                     *dataloader.Loader[model.FrequencyParam, []*model.Frequency]
-	StopTimesByTripID                       *dataloader.Loader[model.StopTimeParam, []*model.StopTime]
+	StopTimesByTripID                       *dataloader.Loader[model.TripStopTimeParam, []*model.StopTime]
 	StopTimesByStopID                       *dataloader.Loader[model.StopTimeParam, []*model.StopTime]
 	RouteStopsByRouteID                     *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	RouteStopPatternsByRouteID              *dataloader.Loader[model.RouteStopPatternParam, []*model.RouteStopPattern]

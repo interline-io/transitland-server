@@ -166,6 +166,11 @@ input StopTimeFilter {
   exclude_last: Boolean
 }
 
+input TripStopTimeFilter {
+  start: Seconds
+  end: Seconds
+}
+
 input StopObservationFilter {
   source: String!
   feed_version_id: Int!
