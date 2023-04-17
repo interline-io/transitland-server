@@ -68,6 +68,20 @@ func TestTripResolver(t *testing.T) {
 			selectExpect: []string{"06:05:00", "06:08:00", "06:11:00", "06:15:00", "06:17:00", "06:23:00", "06:27:00"},
 		},
 		{
+			name:         "stop_times multiple 1",
+			query:        `query($trip_id: String!) {  trips(where:{trip_id:$trip_id}) {st1: stop_times(limit:5, where:{start:"06:00:00"}) {stop_sequence arrival_time departure_time}, st2: stop_times(limit: 3, where:{start:"06:00:00"}) {stop_sequence arrival_time departure_time}}}`,
+			vars:         vars,
+			selector:     "trips.0.st1.#.departure_time",
+			selectExpect: []string{"06:05:00", "06:08:00", "06:11:00", "06:15:00", "06:17:00"},
+		},
+		{
+			name:         "stop_times multiple 2",
+			query:        `query($trip_id: String!) {  trips(where:{trip_id:$trip_id}) {st1: stop_times(limit:5, where:{start:"06:00:00"}) {stop_sequence arrival_time departure_time}, st2: stop_times(limit: 3, where:{start:"06:00:00"}) {stop_sequence arrival_time departure_time}}}`,
+			vars:         vars,
+			selector:     "trips.0.st2.#.departure_time",
+			selectExpect: []string{"06:05:00", "06:08:00", "06:11:00"},
+		},
+		{
 			name:         "where trip_id",
 			query:        `query{  trips(where:{trip_id:"3850526WKDY"}) {trip_id}}`,
 			vars:         vars,
