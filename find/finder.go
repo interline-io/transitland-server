@@ -648,42 +648,37 @@ func (f *DBFinder) StopTimesByTripID(ctx context.Context, params []model.TripSto
 	if len(params) == 0 {
 		return nil, nil
 	}
-	// TODO: Split by param groups, as below in StopTimesByStopID
-	limit := checkLimit(params[0].Limit)
-	tpairs := []FVPair{}
+	var pitems []paramItem[FVPair, *model.TripStopTimeFilter]
 	for _, p := range params {
-		tpairs = append(tpairs, FVPair{EntityID: p.TripID, FeedVersionID: p.FeedVersionID})
+		pitem := paramItem[FVPair, *model.TripStopTimeFilter]{
+			Key:   FVPair{EntityID: p.TripID, FeedVersionID: p.FeedVersionID},
+			Where: p.Where,
+			Limit: p.Limit,
+		}
+		pitems = append(pitems, pitem)
 	}
-	stFilter := model.StopTimeFilter{}
-	if params[0].StartTime != nil {
-		stFilter.StartTime = params[0].StartTime
-	}
-	if params[0].EndTime != nil {
-		stFilter.EndTime = params[0].EndTime
-	}
-	qents := []*model.StopTime{}
-	err := Select(ctx,
-		f.db,
-		StopTimeSelect(tpairs, nil, &stFilter),
-		&qents,
-	)
+	pitemGroups, err := paramsByGroup(pitems)
 	if err != nil {
 		return nil, logExtendErr(len(params), err)
 	}
-	group := map[int][]*model.StopTime{}
-	for _, ent := range qents {
-		group[atoi(ent.TripID)] = append(group[atoi(ent.TripID)], ent)
-	}
-	for k, ents := range group {
-		if uint64(len(ents)) > limit {
-			group[k] = ents[0:limit]
+	ret := make([][]*model.StopTime, len(params))
+	for _, group := range pitemGroups {
+		qents := []*model.StopTime{}
+		if err := Select(ctx,
+			f.db,
+			StopTimeSelect(group.Keys, nil, group.Where),
+			&qents,
+		); err != nil {
+			return nil, logExtendErr(len(params), err)
+		}
+		grouped := groupBy(group.Keys, qents, checkLimit(group.Limit), func(ent *model.StopTime) FVPair {
+			return FVPair{EntityID: atoi(ent.TripID), FeedVersionID: ent.FeedVersionID}
+		})
+		for i := 0; i < len(group.Keys); i++ {
+			ret[group.Index[i]] = grouped[i]
 		}
 	}
-	var ents [][]*model.StopTime
-	for _, tp := range tpairs {
-		ents = append(ents, group[tp.EntityID])
-	}
-	return ents, nil
+	return ret, nil
 }
 
 func (f *DBFinder) StopTimesByStopID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {
@@ -735,7 +730,7 @@ func (f *DBFinder) StopTimesByStopID(ctx context.Context, params []model.StopTim
 			// Otherwise get all stop_times for stop
 			err := Select(ctx,
 				f.db,
-				StopTimeSelect(nil, dg.pairs, p),
+				StopTimeSelect(nil, dg.pairs, nil),
 				&qents,
 			)
 			if err != nil {
@@ -1016,7 +1011,7 @@ func (f *DBFinder) FeedVersionsByFeedID(ctx context.Context, params []model.Feed
 	if err != nil {
 		return nil, logExtendErr(len(params), err)
 	}
-	return groupBy(ids, qents, func(ent *model.FeedVersion) int { return ent.FeedID }), nil
+	return groupBy(ids, qents, checkLimit(params[0].Limit), func(ent *model.FeedVersion) int { return ent.FeedID }), nil
 }
 
 func (f *DBFinder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
@@ -1515,17 +1510,7 @@ func retEmpty[T any](size int) ([]T, []error) {
 	return ret, nil
 }
 
-func retLogErr[T any](size int, err error) ([]T, []error) {
-	log.Error().Err(err).Msg("query failed")
-	ret := make([]T, size)
-	errs := make([]error, size)
-	for i := range errs {
-		errs[i] = errors.New("database error")
-	}
-	return ret, errs
-}
-
-func groupBy[K comparable, T any](keys []K, ents []T, cb func(T) K) [][]T {
+func groupBy[K comparable, T any](keys []K, ents []T, limit uint64, cb func(T) K) [][]T {
 	bykey := map[K][]T{}
 	for _, ent := range ents {
 		key := cb(ent)
@@ -1533,7 +1518,12 @@ func groupBy[K comparable, T any](keys []K, ents []T, cb func(T) K) [][]T {
 	}
 	ret := make([][]T, len(keys))
 	for idx, key := range keys {
-		ret[idx] = bykey[key]
+		gi := bykey[key]
+		if uint64(len(gi)) <= limit {
+			ret[idx] = gi
+		} else {
+			ret[idx] = gi[0:limit]
+		}
 	}
 	return ret
 }
@@ -1548,4 +1538,45 @@ func arrangeBy[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
 		ret[idx] = bykey[key]
 	}
 	return ret
+}
+
+// Multiple param sets
+
+type paramItem[K comparable, M any] struct {
+	Limit *int
+	Key   K
+	Where M
+}
+
+type paramGroup[K comparable, M any] struct {
+	Index []int
+	Keys  []K
+	Limit *int
+	Where M
+}
+
+func paramsByGroup[K comparable, M any](items []paramItem[K, M]) ([]paramGroup[K, M], error) {
+	// JSON representation of paramItem.Where is used for grouping.
+	// This might not be the best way to do it, but it's convenient.
+	groups := map[string]paramGroup[K, M]{}
+	for i, item := range items {
+		// Include the limit in the string key representation
+		j, err := json.Marshal(paramItem[K, M]{Where: item.Where, Limit: item.Limit})
+		if err != nil {
+			return nil, err
+		}
+		jstr := string(j)
+		a, ok := groups[jstr]
+		if !ok {
+			a = paramGroup[K, M]{Where: item.Where, Limit: item.Limit}
+		}
+		a.Keys = append(a.Keys, item.Key)
+		a.Index = append(a.Index, i)
+		groups[jstr] = a
+	}
+	var ret []paramGroup[K, M]
+	for _, v := range groups {
+		ret = append(ret, v)
+	}
+	return ret, nil
 }

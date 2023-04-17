@@ -52,6 +52,7 @@ type TripStopTimeParam struct {
 	Limit         *int
 	StartTime     *int
 	EndTime       *int
+	Where         *TripStopTimeFilter
 }
 
 type AgencyParam struct {

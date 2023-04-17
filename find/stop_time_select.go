@@ -13,7 +13,7 @@ type FVPair struct {
 	FeedVersionID int
 }
 
-func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
+func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
@@ -38,11 +38,11 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.StopTimeFilte
 		OrderBy("sts.stop_sequence, sts.arrival_time")
 
 	if where != nil {
-		if where.StartTime != nil {
-			qView = qView.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.StartTime})
+		if where.Start != nil {
+			qView = qView.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.Start.Seconds})
 		}
-		if where.EndTime != nil {
-			qView = qView.Where(sq.LtOrEq{"sts.arrival_time + gtfs_trips.journey_pattern_offset": where.EndTime})
+		if where.End != nil {
+			qView = qView.Where(sq.LtOrEq{"sts.arrival_time + gtfs_trips.journey_pattern_offset": where.End.Seconds})
 		}
 	}
 	if len(tpairs) > 0 {
