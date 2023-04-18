@@ -1,6 +1,8 @@
 package find
 
 import (
+	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl/tt"
@@ -27,6 +29,22 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"cf.onestop_id": *where.FeedOnestopID})
 		}
+
+		// Coverage
+		fmt.Println("Covers?", where.Covers)
+		if covers := where.Covers; covers != nil {
+			q = q.Join("feed_version_service_windows fvsw on fvsw.feed_version_id = t.id")
+			if covers.StartDate != nil && covers.StartDate.Valid {
+				q = q.Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.StartDate.Val})
+			}
+			if covers.EndDate != nil && covers.EndDate.Valid {
+				q = q.Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
+			}
+			if covers.FetchedBefore != nil && covers.FetchedBefore.Valid {
+				q = q.Where(sq.LtOrEq{"t.fetched_at": covers.FetchedBefore.Val})
+			}
+		}
+
 		// Import import status
 		// Similar logic to FeedSelect
 		if where.ImportStatus != nil {
@@ -44,7 +62,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 				checkSuccess = false
 				checkInProgress = false
 			default:
-				log.Error().Str("value", v.String()).Msg("unknown imnport status enum")
+				log.Error().Str("value", v.String()).Msg("unknown import status enum")
 			}
 			q = q.Join(`feed_version_gtfs_imports fvgi on fvgi.feed_version_id = t.id`).
 				Where(sq.Eq{"fvgi.success": checkSuccess, "fvgi.in_progress": checkInProgress})

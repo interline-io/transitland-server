@@ -5950,6 +5950,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPlaceFilter,
 		ec.unmarshalInputPointRadius,
 		ec.unmarshalInputRouteFilter,
+		ec.unmarshalInputServiceCoversFilter,
 		ec.unmarshalInputStopFilter,
 		ec.unmarshalInputStopObservationFilter,
 		ec.unmarshalInputStopTimeFilter,
@@ -6403,6 +6404,7 @@ input FeedVersionFilter {
   sha1: String
   file: String
   feed_ids: [Int!]
+  covers: ServiceCoversFilter
 }
 
 enum ImportStatus {
@@ -6578,6 +6580,12 @@ input LicenseFilter {
 input FeedVersionServiceLevelFilter {
   start_date: Date
   end_date: Date
+}
+
+input ServiceCoversFilter {
+  start_date: Date
+  end_date: Date
+  fetched_before: Date
 }
 
 input AgencyPlaceFilter {
@@ -43406,7 +43414,7 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "file", "feed_ids"}
+	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "file", "feed_ids", "covers"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43450,6 +43458,14 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_ids"))
 			it.FeedIds, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "covers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("covers"))
+			it.Covers, err = ec.unmarshalOServiceCoversFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐServiceCoversFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44002,6 +44018,50 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agency_ids"))
 			it.AgencyIds, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Context, obj interface{}) (model.ServiceCoversFilter, error) {
+	var it model.ServiceCoversFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"start_date", "end_date", "fetched_before"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "start_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
+			it.StartDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
+			it.EndDate, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fetched_before":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetched_before"))
+			it.FetchedBefore, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -55711,6 +55771,14 @@ func (ec *executionContext) marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋt
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOServiceCoversFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐServiceCoversFilter(ctx context.Context, v interface{}) (*model.ServiceCoversFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputServiceCoversFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOShape2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐShape(ctx context.Context, sel ast.SelectionSet, v *model.Shape) graphql.Marshaler {
