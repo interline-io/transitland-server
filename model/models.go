@@ -57,8 +57,7 @@ type FeedFetch struct {
 }
 
 type FeedVersion struct {
-	SHA1Dir  tl.String   `json:"sha1_dir"`
-	Geometry *tl.Polygon `json:"geometry"`
+	SHA1Dir tl.String `json:"sha1_dir"`
 	tl.FeedVersion
 }
 
@@ -78,7 +77,6 @@ type Route struct {
 	OnestopID                    *string
 	HeadwaySecondsWeekdayMorning *int
 	SearchRank                   *string
-	Geometry                     tl.Geometry // is not read from database by default
 	tl.Route
 }
 

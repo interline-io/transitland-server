@@ -996,6 +996,7 @@ type FeedStateResolver interface {
 	FeedVersion(ctx context.Context, obj *model.FeedState) (*model.FeedVersion, error)
 }
 type FeedVersionResolver interface {
+	Geometry(ctx context.Context, obj *model.FeedVersion) (*tt.Polygon, error)
 	Feed(ctx context.Context, obj *model.FeedVersion) (*model.Feed, error)
 	FeedVersionGtfsImport(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionGtfsImport, error)
 	Files(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedVersionFileInfo, error)
@@ -1052,6 +1053,7 @@ type QueryResolver interface {
 	Places(ctx context.Context, limit *int, after *int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error)
 }
 type RouteResolver interface {
+	Geometry(ctx context.Context, obj *model.Route) (*tt.Geometry, error)
 	Agency(ctx context.Context, obj *model.Route) (*model.Agency, error)
 	FeedVersion(ctx context.Context, obj *model.Route) (*model.FeedVersion, error)
 
@@ -6624,6 +6626,9 @@ enum Role {
   USER
 }
 
+# Force resolver
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 # Root query and mutation
 
 type Query {
@@ -6888,7 +6893,7 @@ type Route {
   route_desc: String!
   continuous_pickup: Int
   continuous_drop_off: Int
-  geometry: Geometry
+  geometry: Geometry @goField(forceResolver: true)
   agency: Agency!
   feed_version: FeedVersion!
   feed_version_sha1: String!
@@ -15532,7 +15537,7 @@ func (ec *executionContext) _FeedVersion_geometry(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Geometry, nil
+		return ec.resolvers.FeedVersion().Geometry(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15550,8 +15555,8 @@ func (ec *executionContext) fieldContext_FeedVersion_geometry(ctx context.Contex
 	fc = &graphql.FieldContext{
 		Object:     "FeedVersion",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Polygon does not have child fields")
 		},
@@ -31172,7 +31177,7 @@ func (ec *executionContext) _Route_geometry(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Geometry, nil
+		return ec.resolvers.Route().Geometry(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31181,17 +31186,17 @@ func (ec *executionContext) _Route_geometry(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Geometry)
+	res := resTmp.(*tt.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
+	return ec.marshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Route",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Geometry does not have child fields")
 		},
@@ -45927,9 +45932,22 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._FeedVersion_file(ctx, field, obj)
 
 		case "geometry":
+			field := field
 
-			out.Values[i] = ec._FeedVersion_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._FeedVersion_geometry(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "feed":
 			field := field
 
@@ -48935,9 +48953,22 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Route_continuous_drop_off(ctx, field, obj)
 
 		case "geometry":
+			field := field
 
-			out.Values[i] = ec._Route_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Route_geometry(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "agency":
 			field := field
 

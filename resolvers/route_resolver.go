@@ -18,7 +18,7 @@ func (r *routeResolver) Cursor(ctx context.Context, obj *model.Route) (*model.Cu
 }
 
 func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tl.Geometry, error) {
-	// Fetching this in the main RouteSelect query is expensive
+	// Defer geometry loading
 	geoms, err := For(ctx).RouteGeometriesByRouteID.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID})()
 	if err != nil {
 		return nil, err

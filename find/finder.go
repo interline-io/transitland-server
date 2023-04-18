@@ -9,6 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -1434,6 +1435,25 @@ func (f *DBFinder) CalendarDatesByServiceID(ctx context.Context, params []model.
 	var ents [][]*model.CalendarDate
 	for _, id := range ids {
 		ents = append(ents, group[id])
+	}
+	return ents, nil
+}
+
+func (f *DBFinder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.Polygon, []error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	qents := []*FeedVersionGeometry{}
+	if err := Select(ctx, f.db, FeedVersionGeometrySelect(ids), &qents); err != nil {
+		return nil, logExtendErr(len(ids), err)
+	}
+	group := map[int]*tt.Polygon{}
+	for _, ent := range qents {
+		group[ent.FeedVersionID] = ent.Geometry
+	}
+	ents := make([]*tt.Polygon, len(ids))
+	for i, id := range ids {
+		ents[i] = group[id]
 	}
 	return ents, nil
 }
