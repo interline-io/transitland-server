@@ -3,15 +3,15 @@ package find
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
 func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
-		Select("t.*, tl_feed_version_geometries.geometry").
+		Select("t.*").
 		From("feed_versions t").
 		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
-		JoinClause("left join tl_feed_version_geometries on tl_feed_version_geometries.feed_version_id = t.id").
 		Limit(checkLimit(limit)).
 		OrderBy("t.fetched_at desc, t.id desc")
 	if where != nil {
@@ -72,4 +72,13 @@ func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, w
 		q = q.Where(sq.LtOrEq{"end_date": where.EndDate})
 	}
 	return q
+}
+
+type FeedVersionGeometry struct {
+	FeedVersionID int
+	Geometry      *tt.Polygon
+}
+
+func FeedVersionGeometrySelect(ids []int) sq.SelectBuilder {
+	return sq.StatementBuilder.Select("feed_version_id", "geometry").From("tl_feed_version_geometries").Where(sq.Eq{"feed_version_id": ids})
 }

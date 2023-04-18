@@ -22,6 +22,9 @@ enum Role {
   USER
 }
 
+# Force resolver
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 # Root query and mutation
 
 type Query {
@@ -286,7 +289,7 @@ type Route {
   route_desc: String!
   continuous_pickup: Int
   continuous_drop_off: Int
-  geometry: Geometry
+  geometry: Geometry @goField(forceResolver: true)
   agency: Agency!
   feed_version: FeedVersion!
   feed_version_sha1: String!

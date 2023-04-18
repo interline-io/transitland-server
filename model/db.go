@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 
 	"github.com/jmoiron/sqlx"
@@ -48,6 +49,8 @@ type EntityLoader interface {
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
 	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
 	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
+	FeedVersionGeometryByID(context.Context, []int) ([]*tt.Polygon, []error)
+
 	// Other loaders
 	FeedVersionGtfsImportsByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
 	FeedStatesByFeedID(context.Context, []int) ([]*FeedState, []error)
@@ -55,6 +58,7 @@ type EntityLoader interface {
 	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
 	OperatorsByOnestopID(context.Context, []string) ([]*Operator, []error)
 	OperatorsByAgencyID(context.Context, []int) ([]*Operator, []error)
+
 	// Param loaders
 	FeedFetchesByFeedID(context.Context, []FeedFetchParam) ([][]*FeedFetch, []error)
 	FeedsByOperatorOnestopID(context.Context, []FeedParam) ([][]*Feed, []error)

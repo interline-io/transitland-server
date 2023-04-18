@@ -7,6 +7,7 @@ import (
 	"time"
 
 	dataloader "github.com/graph-gophers/dataloader/v7"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -35,6 +36,7 @@ type Loaders struct {
 	OperatorsByAgencyID                     *dataloader.Loader[int, *model.Operator]
 	FeedVersionGtfsImportsByFeedVersionID   *dataloader.Loader[int, *model.FeedVersionGtfsImport]
 	CensusTableByID                         *dataloader.Loader[int, *model.CensusTable]
+	FeedVersionGeometryByID                 *dataloader.Loader[int, *tt.Polygon]
 	FeedVersionsByFeedID                    *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
 	FeedFetchesByFeedID                     *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
 	OperatorsByFeedID                       *dataloader.Loader[model.OperatorParam, []*model.Operator]
@@ -117,6 +119,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		PathwaysByFromStopID:                    withWait(waitTime, dbf.PathwaysByFromStopID),
 		PathwaysByToStopID:                      withWait(waitTime, dbf.PathwaysByToStopID),
 		CalendarDatesByServiceID:                withWait(waitTime, dbf.CalendarDatesByServiceID),
+		FeedVersionGeometryByID:                 withWait(waitTime, dbf.FeedVersionGeometryByID),
 		CensusTableByID:                         withWait(waitTime, dbf.CensusTableByID),
 		CensusGeographiesByEntityID:             withWait(waitTime, dbf.CensusGeographiesByEntityID),
 		CensusValuesByGeographyID:               withWait(waitTime, dbf.CensusValuesByGeographyID),
