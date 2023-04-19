@@ -72,8 +72,9 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedFil
 			default:
 				log.Error().Str("value", v.String()).Msg("unknown imnport status enum")
 			}
-			// This lateral join gets the most recent attempt at a completed feed_version_gtfs_import and checks the status
-			q = q.JoinClause(`JOIN LATERAL (select fvi.in_progress, fvi.success from feed_versions fv inner join feed_version_gtfs_imports fvi on fvi.feed_version_id = fv.id WHERE fv.feed_id = t.id ORDER BY fvi.id DESC LIMIT 1) fvicheck ON TRUE`).
+			// Check the import status of the most recently fetched feed version
+			q = q.
+				JoinClause("join (select distinct on(fv.feed_id) fv.feed_id, fvgi.in_progress, fvgi.success from feed_version_gtfs_imports fvgi join feed_versions fv on fv.id = fvgi.feed_version_id order by fv.feed_id,fv.fetched_at desc) fvicheck on fvicheck.feed_id = t.id").
 				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
 		}
 		// Source URL
