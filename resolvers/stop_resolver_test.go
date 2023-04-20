@@ -350,7 +350,19 @@ func stopResolverTestcases(t testing.TB, te testfinder.TestEnv) []testcase {
 				assert.EqualValues(t, 0, len(gjson.Get(jj, "stops.0.observations").Array()))
 			},
 		},
-
+		// serviced
+		{
+			name:         "stop serviced=true",
+			query:        `query{stops(where:{feed_onestop_id:"EX", feed_version_sha1:"43e2278aa272879c79460582152b04e7487f0493", serviced:true}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"FUR_CREEK_RES", "BEATTY_AIRPORT", "BULLFROG", "STAGECOACH", "NADAV", "NANAA", "DADAN", "EMSI", "AMV"},
+		},
+		{
+			name:         "stop serviced=false",
+			query:        `query{stops(where:{feed_onestop_id:"EX", feed_version_sha1:"43e2278aa272879c79460582152b04e7487f0493", serviced:false}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"NOTRIPS"},
+		},
 		// TODO: census_geographies
 		// TODO: route_stop_buffer
 	}
