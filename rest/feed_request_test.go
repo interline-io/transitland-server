@@ -12,7 +12,7 @@ func TestFeedRequest(t *testing.T) {
 			h:            &FeedRequest{},
 			format:       "",
 			selector:     "feeds.#.onestop_id",
-			expectSelect: []string{"CT", "test-gbfs", "BA", "HA", "BA~rt", "CT~rt", "test"},
+			expectSelect: []string{"CT", "test-gbfs", "BA", "HA", "BA~rt", "CT~rt", "test", "EX"},
 			expectLength: 0,
 		},
 		{
@@ -52,7 +52,7 @@ func TestFeedRequest(t *testing.T) {
 			h:            &FeedRequest{FetchError: "false"},
 			format:       "",
 			selector:     "feeds.#.onestop_id",
-			expectSelect: []string{"BA", "CT", "HA"},
+			expectSelect: []string{"BA", "CT", "HA", "EX"},
 			expectLength: 0,
 		},
 		{
@@ -135,7 +135,7 @@ func TestFeedRequest_License(t *testing.T) {
 		{
 			name: "license:share_alike_optional exclude_no",
 			h:    FeedRequest{LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "exclude_no"}}, selector: "feeds.#.onestop_id",
-			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
+			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test", "EX"},
 		},
 		{
 			name: "license:commercial_use_allowed yes",
@@ -150,7 +150,7 @@ func TestFeedRequest_License(t *testing.T) {
 		{
 			name: "license:commercial_use_allowed exclude_no",
 			h:    FeedRequest{LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "exclude_no"}}, selector: "feeds.#.onestop_id",
-			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
+			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test", "EX"},
 		},
 		{
 			name: "license:create_derived_product yes",
@@ -165,7 +165,7 @@ func TestFeedRequest_License(t *testing.T) {
 		{
 			name: "license:create_derived_product exclude_no",
 			h:    FeedRequest{LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "exclude_no"}}, selector: "feeds.#.onestop_id",
-			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test"},
+			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test", "EX"},
 		},
 	}
 	srv, te := testRestConfig(t)
