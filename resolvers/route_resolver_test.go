@@ -194,6 +194,27 @@ func TestRouteResolver(t *testing.T) {
 				assert.EqualValues(t, 1, gjson.Get(jj, "routes.0.route_attribute.running_way").Int())
 			},
 		},
+		// route serviced
+		{
+			name: "route serviced=true",
+			query: `{
+				routes(where: {feed_onestop_id: "EX", feed_version_sha1:"43e2278aa272879c79460582152b04e7487f0493", serviced:true}) {
+				  route_id
+				}
+			  }`,
+			selector:     "routes.#.route_id",
+			selectExpect: []string{"AB", "BFC", "STBA", "CITY", "AAMV"},
+		},
+		{
+			name: "route serviced=false",
+			query: `{
+				routes(where: {feed_onestop_id: "EX", feed_version_sha1:"43e2278aa272879c79460582152b04e7487f0493", serviced:false}) {
+				  route_id
+				}
+			  }`,
+			selector:     "routes.#.route_id",
+			selectExpect: []string{"NOTRIPS"},
+		},
 		// TODO: census_geographies
 	}
 	c, _ := newTestClient(t)

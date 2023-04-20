@@ -137,8 +137,8 @@ func TestOperatorResolver_License(t *testing.T) {
 			query:              q,
 			vars:               hw{"lic": hw{"share_alike_optional": "EXCLUDE_NO"}},
 			selector:           selector,
-			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
-			selectExpectCount:  2,
+			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit", "o-9qs-demotransitauthority"},
+			selectExpectCount:  3,
 		},
 		// license: create_derived_product
 		{
@@ -162,8 +162,8 @@ func TestOperatorResolver_License(t *testing.T) {
 			query:              q,
 			vars:               hw{"lic": hw{"create_derived_product": "EXCLUDE_NO"}},
 			selector:           selector,
-			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
-			selectExpectCount:  2,
+			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit", "o-9qs-demotransitauthority"},
+			selectExpectCount:  3,
 		},
 		// license: commercial_use_allowed
 		{
@@ -187,8 +187,8 @@ func TestOperatorResolver_License(t *testing.T) {
 			query:              q,
 			vars:               hw{"lic": hw{"commercial_use_allowed": "EXCLUDE_NO"}},
 			selector:           selector,
-			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
-			selectExpectCount:  2,
+			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit", "o-9qs-demotransitauthority"},
+			selectExpectCount:  3,
 		},
 		// license: redistribution_allowed
 		{
@@ -212,8 +212,8 @@ func TestOperatorResolver_License(t *testing.T) {
 			query:              q,
 			vars:               hw{"lic": hw{"redistribution_allowed": "EXCLUDE_NO"}},
 			selector:           selector,
-			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
-			selectExpectCount:  2,
+			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit", "o-9qs-demotransitauthority"},
+			selectExpectCount:  3,
 		},
 		// license: use_without_attribution
 		{
@@ -237,8 +237,8 @@ func TestOperatorResolver_License(t *testing.T) {
 			query:              q,
 			vars:               hw{"lic": hw{"use_without_attribution": "EXCLUDE_NO"}},
 			selector:           selector,
-			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit"},
-			selectExpectCount:  2,
+			selectExpectUnique: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit", "o-9qs-demotransitauthority"},
+			selectExpectCount:  3,
 		},
 	}
 	c, _ := newTestClient(t)

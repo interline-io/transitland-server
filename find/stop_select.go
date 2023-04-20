@@ -73,6 +73,14 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 		if where.StopID != nil {
 			qView = qView.Where(sq.Eq{"gtfs_stops.stop_id": *where.StopID})
 		}
+		if where.Serviced != nil {
+			qView = qView.JoinClause(`left join lateral (select tlrs.stop_id from tl_route_stops tlrs where tlrs.stop_id = gtfs_stops.id limit 1) scount on true`)
+			if *where.Serviced {
+				qView = qView.Where(sq.NotEq{"scount.stop_id": nil})
+			} else {
+				qView = qView.Where(sq.Eq{"scount.stop_id": nil})
+			}
+		}
 		// Served by agency ID
 		if len(where.AgencyIds) > 0 {
 			distinct = true

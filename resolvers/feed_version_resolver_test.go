@@ -11,7 +11,7 @@ func TestFeedVersionResolver(t *testing.T) {
 			name:         "basic",
 			query:        `query {  feed_versions {sha1} }`,
 			selector:     "feed_versions.#.sha1",
-			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "c969427f56d3a645195dd8365cde6d7feae7e99b", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "c969427f56d3a645195dd8365cde6d7feae7e99b", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "43e2278aa272879c79460582152b04e7487f0493"},
 		},
 		{
 			name:   "basic fields",

@@ -248,6 +248,7 @@ type RouteFilter struct {
 	FeedOnestopID           *string        `json:"feed_onestop_id"`
 	RouteID                 *string        `json:"route_id"`
 	RouteType               *int           `json:"route_type"`
+	Serviced                *bool          `json:"serviced"`
 	Within                  *tt.Polygon    `json:"within"`
 	Near                    *PointRadius   `json:"near"`
 	Search                  *string        `json:"search"`
@@ -276,6 +277,7 @@ type StopFilter struct {
 	StopID                  *string        `json:"stop_id"`
 	StopCode                *string        `json:"stop_code"`
 	LocationType            *int           `json:"location_type"`
+	Serviced                *bool          `json:"serviced"`
 	Within                  *tt.Polygon    `json:"within"`
 	Near                    *PointRadius   `json:"near"`
 	Search                  *string        `json:"search"`

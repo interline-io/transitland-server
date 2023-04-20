@@ -6501,6 +6501,7 @@ input RouteFilter {
   feed_onestop_id: String
   route_id: String
   route_type: Int
+  serviced: Boolean
   within: Polygon
   near: PointRadius
   search: String
@@ -6518,6 +6519,7 @@ input StopFilter {
   stop_id: String
   stop_code: String
   location_type: Int
+  serviced: Boolean
   within: Polygon
   near: PointRadius
   search: String
@@ -43894,7 +43896,7 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "route_id", "route_type", "within", "near", "search", "operator_onestop_id", "license", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "route_id", "route_type", "serviced", "within", "near", "search", "operator_onestop_id", "license", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43954,6 +43956,14 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("route_type"))
 			it.RouteType, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviced":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviced"))
+			it.Serviced, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44018,7 +44028,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "within", "near", "search", "license", "served_by_onestop_ids", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "within", "near", "search", "license", "served_by_onestop_ids", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44086,6 +44096,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location_type"))
 			it.LocationType, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviced":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviced"))
+			it.Serviced, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
