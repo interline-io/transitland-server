@@ -127,6 +127,7 @@ input RouteFilter {
   feed_onestop_id: String
   route_id: String
   route_type: Int
+  serviced: Boolean
   within: Polygon
   near: PointRadius
   search: String
@@ -144,6 +145,7 @@ input StopFilter {
   stop_id: String
   stop_code: String
   location_type: Int
+  serviced: Boolean
   within: Polygon
   near: PointRadius
   search: String

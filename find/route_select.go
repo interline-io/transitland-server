@@ -63,6 +63,14 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where 
 		if where.FeedOnestopID != nil {
 			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
+		if where.Serviced != nil {
+			qView = qView.JoinClause(`left join lateral (select tlrs.route_id from tl_route_stops tlrs where tlrs.route_id = gtfs_routes.id limit 1) scount on true`)
+			if *where.Serviced {
+				qView = qView.Where(sq.NotEq{"scount.route_id": nil})
+			} else {
+				qView = qView.Where(sq.Eq{"scount.route_id": nil})
+			}
+		}
 		if where.Within != nil && where.Within.Valid {
 			qView = qView.JoinClause(`JOIN (
 				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
