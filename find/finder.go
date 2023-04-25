@@ -72,7 +72,7 @@ func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *model.Curso
 func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
 	var ents []*model.Trip
 	active := true
-	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
+	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) || (where != nil && len(where.RouteIds) > 0) {
 		active = false
 	}
 	q := TripSelect(limit, after, ids, active, where)
