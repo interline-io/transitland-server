@@ -175,6 +175,25 @@ func TestRouteResolver(t *testing.T) {
 			selector:     "routes.0.patterns.#.count",
 			selectExpect: []string{"132", "124", "56", "50", "2"},
 		},
+		{
+			name: "route patterns inactive fv",
+			query: `{
+				routes(where: {feed_onestop_id: "EX", feed_version_sha1: "43e2278aa272879c79460582152b04e7487f0493", route_id: "AAMV"}) {
+				  route_id
+				  patterns {
+					count
+					direction_id
+					stop_pattern_id
+					trips(limit: 1) {
+					  trip_id
+					}
+				  }
+				}
+			  }`,
+
+			selector:     "routes.0.patterns.#.count",
+			selectExpect: []string{"2", "2"},
+		},
 		// route attributes
 		{
 			name: "route attributes",
