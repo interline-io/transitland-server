@@ -68,7 +68,7 @@ func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids [
 		cursor = &c
 	}
 	addMetric(ctx, "feeds")
-	return r.finder.FindFeeds(ctx, limit, cursor, ids, where)
+	return r.finder.FindFeeds(ctx, limit, cursor, &model.ActiveCheck{IDs: ids}, where)
 }
 
 func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {

@@ -2,48 +2,112 @@ package authn
 
 import (
 	"context"
-	"fmt"
-	"os"
+	"strings"
 	"testing"
 
 	openfga "github.com/openfga/go-sdk"
-	"github.com/openfga/go-sdk/credentials"
 )
 
 func TestFGA(t *testing.T) {
-	configuration, err := openfga.NewConfiguration(openfga.Configuration{
-		// ApiScheme: os.Getenv("FGA_API_SCHEME"), // Optional. Can be "http" or "https". Defaults to "https"
-		ApiHost: os.Getenv("FGA_API_HOST"), // required, define without the scheme (e.g. api.openfga.example instead of https://api.openfga.example)
-		StoreId: os.Getenv("FGA_STORE_ID"),
-		Credentials: &credentials.Credentials{
-			Method: credentials.CredentialsMethodApiToken,
-			Config: &credentials.Config{
-				ApiToken: os.Getenv("FGA_BEARER_TOKEN"), // will be passed as the "Authorization: Bearer ${ApiToken}" request header
-			},
-		},
+	cc, err := createTestClient(t, "test", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Add test tuples
+	tkeys, err := LoadTuples("../test/authn/test.csv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tk := range tkeys {
+		if err := cc.WriteTuple(context.Background(), tk); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Test assertions
+	checks, err := LoadTuples("../test/authn/assert.csv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tk := range checks {
+		ok, err := cc.Check(context.Background(), tk)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ok != tk.Assert {
+			t.Errorf("%s/%s/%s got %t, expected %t", tk.User, tk.Object, tk.Relation, ok, tk.Assert)
+		}
+	}
+
+	// List objects
+	checkusers := []string{"admin", "ian", "drew", "kapeel"}
+	rels := []string{"can_view", "can_edit"}
+	for _, user := range checkusers {
+		for _, rel := range rels {
+			if objs, err := cc.ListObjects(context.Background(), TupleKey{User: "user:" + user, Object: "feed", Relation: rel}); err != nil {
+				t.Fatal(err)
+			} else {
+				t.Logf("user %s: %s: %s", user, rel, strings.Join(objs, " "))
+			}
+		}
+	}
+}
+
+func createTestClient(t *testing.T, storeName string, deleteExisting bool) (*Client, error) {
+	// Configure API client
+	cfg, err := openfga.NewConfiguration(openfga.Configuration{
+		ApiScheme: "http",
+		ApiHost:   "localhost:8080",
 	})
-
-	if err != nil {
-		t.Fatal(err)
-		// .. Handle error
-	}
-
-	apiClient := openfga.NewAPIClient(configuration)
-
-	body := openfga.ListObjectsRequest{
-		User:     "user:ian",
-		Relation: "can_view",
-		Type:     "feed",
-	}
-
-	data, response, err := apiClient.OpenFgaApi.ListObjects(context.Background()).Body(body).Execute()
-	_ = data
-	_ = response
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println("data:", data.GetObjects())
-	fmt.Println("resp:", response)
+	apiClient := openfga.NewAPIClient(cfg)
 
-	// data = { "objects": ["document:otherdoc", "document:planning"] }
+	// Find store
+	storeId := ""
+	if stores, _, err := apiClient.OpenFgaApi.ListStores(context.Background()).Execute(); err != nil {
+		t.Fatal(err)
+	} else {
+		for _, store := range stores.GetStores() {
+			if store.GetName() == storeName {
+				storeId = store.GetId()
+			}
+		}
+	}
+
+	// Delete existing store
+	if storeId != "" && deleteExisting {
+		t.Log("deleting existing store:", storeId)
+		apiClient.SetStoreId(storeId)
+		if _, err := apiClient.OpenFgaApi.DeleteStore(context.Background()).Execute(); err != nil {
+			t.Fatal(err)
+		}
+		storeId = ""
+	}
+
+	// Create new store
+	if storeId == "" {
+		resp, _, err := apiClient.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
+			Name: storeName,
+		}).Execute()
+		if err != nil {
+			t.Fatal(err)
+		}
+		storeId = resp.GetId()
+		t.Log("created store:", storeId)
+		apiClient.SetStoreId(storeId)
+	}
+
+	cc := Client{Model: "", client: apiClient}
+
+	// Create model from DSL
+	modelId, err := cc.CreateModel(context.Background(), "../test/authn/test.model")
+	if err != nil {
+		return nil, err
+	}
+	cc.Model = modelId
+
+	return &cc, nil
 }

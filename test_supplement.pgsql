@@ -36,3 +36,9 @@ insert into ext_performance_stop_observations(id,feed_version_id,source,trip_sta
     36000,
     36010
 );
+
+
+--- authn debug
+alter table feed_states add column authn_id text;
+create index on feed_states(authn_id);
+update feed_states set authn_id = cf.onestop_id from current_feeds cf where cf.id = feed_states.feed_id;

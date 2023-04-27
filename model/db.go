@@ -10,6 +10,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type ActiveCheck struct {
+	Active       bool
+	IDs          []int
+	Feeds        []int
+	FeedVersions []int
+}
+
 // Finder provides all necessary database methods
 type Finder interface {
 	EntityFinder
@@ -23,7 +30,7 @@ type EntityFinder interface {
 	FindStops(context.Context, *int, *Cursor, []int, *StopFilter) ([]*Stop, error)
 	FindTrips(context.Context, *int, *Cursor, []int, *TripFilter) ([]*Trip, error)
 	FindFeedVersions(context.Context, *int, *Cursor, []int, *FeedVersionFilter) ([]*FeedVersion, error)
-	FindFeeds(context.Context, *int, *Cursor, []int, *FeedFilter) ([]*Feed, error)
+	FindFeeds(context.Context, *int, *Cursor, *ActiveCheck, *FeedFilter) ([]*Feed, error)
 	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
 	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
