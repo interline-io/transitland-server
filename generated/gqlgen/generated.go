@@ -898,7 +898,7 @@ type ComplexityRoot struct {
 		ScheduleRelationship func(childComplexity int) int
 		Shape                func(childComplexity int) int
 		StopPatternID        func(childComplexity int) int
-		StopTimes            func(childComplexity int, limit *int) int
+		StopTimes            func(childComplexity int, limit *int, where *model.TripStopTimeFilter) int
 		Timestamp            func(childComplexity int) int
 		TripHeadsign         func(childComplexity int) int
 		TripID               func(childComplexity int) int
@@ -996,6 +996,7 @@ type FeedStateResolver interface {
 	FeedVersion(ctx context.Context, obj *model.FeedState) (*model.FeedVersion, error)
 }
 type FeedVersionResolver interface {
+	Geometry(ctx context.Context, obj *model.FeedVersion) (*tt.Polygon, error)
 	Feed(ctx context.Context, obj *model.FeedVersion) (*model.Feed, error)
 	FeedVersionGtfsImport(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionGtfsImport, error)
 	Files(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedVersionFileInfo, error)
@@ -1052,6 +1053,7 @@ type QueryResolver interface {
 	Places(ctx context.Context, limit *int, after *int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error)
 }
 type RouteResolver interface {
+	Geometry(ctx context.Context, obj *model.Route) (*tt.Geometry, error)
 	Agency(ctx context.Context, obj *model.Route) (*model.Agency, error)
 	FeedVersion(ctx context.Context, obj *model.Route) (*model.FeedVersion, error)
 
@@ -1112,7 +1114,7 @@ type TripResolver interface {
 	Route(ctx context.Context, obj *model.Trip) (*model.Route, error)
 	Shape(ctx context.Context, obj *model.Trip) (*model.Shape, error)
 	FeedVersion(ctx context.Context, obj *model.Trip) (*model.FeedVersion, error)
-	StopTimes(ctx context.Context, obj *model.Trip, limit *int) ([]*model.StopTime, error)
+	StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error)
 	Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error)
 	ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error)
 	Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error)
@@ -5622,7 +5624,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Trip.StopTimes(childComplexity, args["limit"].(*int)), true
+		return e.complexity.Trip.StopTimes(childComplexity, args["limit"].(*int), args["where"].(*model.TripStopTimeFilter)), true
 
 	case "Trip.timestamp":
 		if e.complexity.Trip.Timestamp == nil {
@@ -5952,6 +5954,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputStopObservationFilter,
 		ec.unmarshalInputStopTimeFilter,
 		ec.unmarshalInputTripFilter,
+		ec.unmarshalInputTripStopTimeFilter,
 		ec.unmarshalInputWaypointInput,
 	)
 	first := true
@@ -6498,6 +6501,7 @@ input RouteFilter {
   feed_onestop_id: String
   route_id: String
   route_type: Int
+  serviced: Boolean
   within: Polygon
   near: PointRadius
   search: String
@@ -6515,6 +6519,7 @@ input StopFilter {
   stop_id: String
   stop_code: String
   location_type: Int
+  serviced: Boolean
   within: Polygon
   near: PointRadius
   search: String
@@ -6535,6 +6540,11 @@ input StopTimeFilter {
   allow_previous_route_onestop_ids: Boolean
   exclude_first: Boolean
   exclude_last: Boolean
+}
+
+input TripStopTimeFilter {
+  start: Seconds
+  end: Seconds
 }
 
 input StopObservationFilter {
@@ -6617,6 +6627,9 @@ enum Role {
   ADMIN
   USER
 }
+
+# Force resolver
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
 # Root query and mutation
 
@@ -6882,7 +6895,7 @@ type Route {
   route_desc: String!
   continuous_pickup: Int
   continuous_drop_off: Int
-  geometry: Geometry
+  geometry: Geometry @goField(forceResolver: true)
   agency: Agency!
   feed_version: FeedVersion!
   feed_version_sha1: String!
@@ -6987,7 +7000,7 @@ type Trip {
   route: Route!
   shape: Shape
   feed_version: FeedVersion!
-  stop_times(limit: Int): [StopTime]!
+  stop_times(limit: Int, where: TripStopTimeFilter): [StopTime]!
   frequencies(limit: Int): [Frequency!]!
   # rt
   schedule_relationship: ScheduleRelationship
@@ -8808,6 +8821,15 @@ func (ec *executionContext) field_Trip_stop_times_args(ctx context.Context, rawA
 		}
 	}
 	args["limit"] = arg0
+	var arg1 *model.TripStopTimeFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOTripStopTimeFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripStopTimeFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -15517,7 +15539,7 @@ func (ec *executionContext) _FeedVersion_geometry(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Geometry, nil
+		return ec.resolvers.FeedVersion().Geometry(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15535,8 +15557,8 @@ func (ec *executionContext) fieldContext_FeedVersion_geometry(ctx context.Contex
 	fc = &graphql.FieldContext{
 		Object:     "FeedVersion",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Polygon does not have child fields")
 		},
@@ -31157,7 +31179,7 @@ func (ec *executionContext) _Route_geometry(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Geometry, nil
+		return ec.resolvers.Route().Geometry(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31166,17 +31188,17 @@ func (ec *executionContext) _Route_geometry(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Geometry)
+	res := resTmp.(*tt.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
+	return ec.marshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Route",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Geometry does not have child fields")
 		},
@@ -39041,7 +39063,7 @@ func (ec *executionContext) _Trip_stop_times(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Trip().StopTimes(rctx, obj, fc.Args["limit"].(*int))
+		return ec.resolvers.Trip().StopTimes(rctx, obj, fc.Args["limit"].(*int), fc.Args["where"].(*model.TripStopTimeFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43874,7 +43896,7 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "route_id", "route_type", "within", "near", "search", "operator_onestop_id", "license", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "route_id", "route_type", "serviced", "within", "near", "search", "operator_onestop_id", "license", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43934,6 +43956,14 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("route_type"))
 			it.RouteType, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviced":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviced"))
+			it.Serviced, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43998,7 +44028,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "within", "near", "search", "license", "served_by_onestop_ids", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "within", "near", "search", "license", "served_by_onestop_ids", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44066,6 +44096,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location_type"))
 			it.LocationType, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviced":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviced"))
+			it.Serviced, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44350,6 +44388,42 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_onestop_id"))
 			it.FeedOnestopID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTripStopTimeFilter(ctx context.Context, obj interface{}) (model.TripStopTimeFilter, error) {
+	var it model.TripStopTimeFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "start":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
+			it.Start, err = ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
+			it.End, err = ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45876,9 +45950,22 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._FeedVersion_file(ctx, field, obj)
 
 		case "geometry":
+			field := field
 
-			out.Values[i] = ec._FeedVersion_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._FeedVersion_geometry(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "feed":
 			field := field
 
@@ -48884,9 +48971,22 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Route_continuous_drop_off(ctx, field, obj)
 
 		case "geometry":
+			field := field
 
-			out.Values[i] = ec._Route_geometry(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Route_geometry(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "agency":
 			field := field
 
@@ -56044,6 +56144,14 @@ func (ec *executionContext) unmarshalOTripFilter2ᚖgithubᚗcomᚋinterlineᚑi
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputTripFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOTripStopTimeFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripStopTimeFilter(ctx context.Context, v interface{}) (*model.TripStopTimeFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTripStopTimeFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

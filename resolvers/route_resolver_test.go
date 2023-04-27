@@ -175,6 +175,25 @@ func TestRouteResolver(t *testing.T) {
 			selector:     "routes.0.patterns.#.count",
 			selectExpect: []string{"132", "124", "56", "50", "2"},
 		},
+		{
+			name: "route patterns inactive fv",
+			query: `{
+				routes(where: {feed_onestop_id: "EX", feed_version_sha1: "43e2278aa272879c79460582152b04e7487f0493", route_id: "AAMV"}) {
+				  route_id
+				  patterns {
+					count
+					direction_id
+					stop_pattern_id
+					trips(limit: 1) {
+					  trip_id
+					}
+				  }
+				}
+			  }`,
+
+			selector:     "routes.0.patterns.#.count",
+			selectExpect: []string{"2", "2"},
+		},
 		// route attributes
 		{
 			name: "route attributes",
@@ -193,6 +212,27 @@ func TestRouteResolver(t *testing.T) {
 				assert.EqualValues(t, 201, gjson.Get(jj, "routes.0.route_attribute.subcategory").Int())
 				assert.EqualValues(t, 1, gjson.Get(jj, "routes.0.route_attribute.running_way").Int())
 			},
+		},
+		// route serviced
+		{
+			name: "route serviced=true",
+			query: `{
+				routes(where: {feed_onestop_id: "EX", feed_version_sha1:"43e2278aa272879c79460582152b04e7487f0493", serviced:true}) {
+				  route_id
+				}
+			  }`,
+			selector:     "routes.#.route_id",
+			selectExpect: []string{"AB", "BFC", "STBA", "CITY", "AAMV"},
+		},
+		{
+			name: "route serviced=false",
+			query: `{
+				routes(where: {feed_onestop_id: "EX", feed_version_sha1:"43e2278aa272879c79460582152b04e7487f0493", serviced:false}) {
+				  route_id
+				}
+			  }`,
+			selector:     "routes.#.route_id",
+			selectExpect: []string{"NOTRIPS"},
 		},
 		// TODO: census_geographies
 	}

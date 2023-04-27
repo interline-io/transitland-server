@@ -8,8 +8,6 @@ import (
 func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.RouteFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
-		"COALESCE(tlrg.combined_geometry, tlrg.geometry) as geometry",
-		"tlrg.generated AS geometry_generated",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
@@ -18,7 +16,6 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where 
 		From("gtfs_routes").
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		JoinClause(`LEFT JOIN tl_route_geometries tlrg ON tlrg.route_id = gtfs_routes.id`).
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_routes.feed_version_id,gtfs_routes.id")
 
@@ -65,6 +62,14 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where 
 		}
 		if where.FeedOnestopID != nil {
 			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
+		}
+		if where.Serviced != nil {
+			qView = qView.JoinClause(`left join lateral (select tlrs.route_id from tl_route_stops tlrs where tlrs.route_id = gtfs_routes.id limit 1) scount on true`)
+			if *where.Serviced {
+				qView = qView.Where(sq.NotEq{"scount.route_id": nil})
+			} else {
+				qView = qView.Where(sq.Eq{"scount.route_id": nil})
+			}
 		}
 		if where.Within != nil && where.Within.Valid {
 			qView = qView.JoinClause(`JOIN (

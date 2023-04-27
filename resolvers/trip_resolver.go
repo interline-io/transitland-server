@@ -35,8 +35,8 @@ func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Ca
 	return For(ctx).CalendarsByID.Load(ctx, atoi(obj.ServiceID))()
 }
 
-func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int) ([]*model.StopTime, error) {
-	return For(ctx).StopTimesByTripID.Load(ctx, model.StopTimeParam{FeedVersionID: obj.FeedVersionID, TripID: obj.ID, Limit: limit})()
+func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error) {
+	return For(ctx).StopTimesByTripID.Load(ctx, model.TripStopTimeParam{FeedVersionID: obj.FeedVersionID, TripID: obj.ID, Limit: limit, Where: where})()
 }
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {

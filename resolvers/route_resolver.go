@@ -18,7 +18,7 @@ func (r *routeResolver) Cursor(ctx context.Context, obj *model.Route) (*model.Cu
 }
 
 func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tl.Geometry, error) {
-	// Fetching this in the main RouteSelect query is expensive
+	// Defer geometry loading
 	geoms, err := For(ctx).RouteGeometriesByRouteID.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID})()
 	if err != nil {
 		return nil, err
@@ -120,8 +120,8 @@ func (r *routeStopResolver) Agency(ctx context.Context, obj *model.RouteStop) (*
 type routePatternResolver struct{ *Resolver }
 
 func (r *routePatternResolver) Trips(ctx context.Context, obj *model.RouteStopPattern, limit *int) ([]*model.Trip, error) {
+	// TODO: N+1 query
 	trips, err := r.finder.FindTrips(ctx, limit, nil, nil, &model.TripFilter{StopPatternID: &obj.StopPatternID, RouteIds: []int{obj.RouteID}})
-	// filter...
 	return trips, err
 }
 

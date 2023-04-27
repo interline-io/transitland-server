@@ -37,6 +37,8 @@ insert into ext_performance_stop_observations(id,feed_version_id,source,trip_sta
     36010
 );
 
+-- unactivate feed
+update feed_states set feed_version_id = null where feed_id = (select id from current_feeds where onestop_id = 'EX');
 
 --- authn debug
 alter table feed_states add column authn_id text;

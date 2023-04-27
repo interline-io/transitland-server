@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -33,6 +34,11 @@ func (r *feedVersionResolver) Trips(ctx context.Context, obj *model.FeedVersion,
 
 func (r *feedVersionResolver) Feed(ctx context.Context, obj *model.FeedVersion) (*model.Feed, error) {
 	return For(ctx).FeedsByID.Load(ctx, obj.FeedID)()
+}
+
+func (r *feedVersionResolver) Geometry(ctx context.Context, obj *model.FeedVersion) (*tt.Polygon, error) {
+	// Defer feed geometry loading
+	return For(ctx).FeedVersionGeometryByID.Load(ctx, obj.ID)()
 }
 
 func (r *feedVersionResolver) Files(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedVersionFileInfo, error) {
