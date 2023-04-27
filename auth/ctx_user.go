@@ -97,6 +97,9 @@ func (user ctxUser) hasRole(checkRole string) bool {
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
 func ForContext(ctx context.Context) User {
-	raw, _ := ctx.Value(userCtxKey).(User)
+	raw, ok := ctx.Value(userCtxKey).(User)
+	if !ok {
+		return nil
+	}
 	return raw
 }
