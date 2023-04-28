@@ -92,7 +92,7 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 		FeedID:    rtfeed.ID,
 		URLType:   urlType,
 		FeedURL:   feedUrl,
-		Storage:   cfg.Storage,
+		Storage:   cfg.RTStorage,
 		Secrets:   cfg.Secrets,
 		FetchedAt: time.Now(),
 	}

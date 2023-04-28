@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	Storage            string
+	RTStorage          string
 	ValidateLargeFiles bool
 	DisableImage       bool
 	RestPrefix         string
