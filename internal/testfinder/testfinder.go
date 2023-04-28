@@ -41,8 +41,9 @@ func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) TestEnv {
 		cl = &clock.Real{}
 	}
 	cfg := config.Config{
-		Clock:   cl,
-		Storage: t.TempDir(),
+		Clock:     cl,
+		Storage:   t.TempDir(),
+		RTStorage: t.TempDir(),
 	}
 	if db == nil {
 		db = find.MustOpenDB(g)
@@ -81,8 +82,9 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestE
 		cl = &clock.Real{}
 	}
 	cfg := config.Config{
-		Clock:   cl,
-		Storage: t.TempDir(),
+		Clock:     cl,
+		Storage:   t.TempDir(),
+		RTStorage: t.TempDir(),
 	}
 
 	// Start Txn
