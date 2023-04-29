@@ -22,6 +22,7 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/gbfsfinder"
@@ -45,6 +46,7 @@ type Command struct {
 	DisableGraphql    bool
 	DisableRest       bool
 	EnablePlayground  bool
+	EnableAdminApi    bool
 	EnableJobsApi     bool
 	EnableWorkers     bool
 	EnableProfiler    bool
@@ -115,8 +117,11 @@ func (cmd *Command) Parse(args []string) error {
 	// Jobs
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
 	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
-	fl.Parse(args)
 
+	// Admin
+	fl.BoolVar(&cmd.EnableAdminApi, "enable-admin-api", false, "Enable admin api")
+
+	fl.Parse(args)
 	if cmd.MetricsProvider != "" {
 		cmd.EnableMetrics = true
 	}
@@ -283,9 +288,20 @@ func (cmd *Command) Run() error {
 		root.Mount("/rest", r)
 	}
 
+	// Admin API
+	if cmd.EnableAdminApi {
+		adminServer, err := authz.NewServer()
+		if err != nil {
+			return err
+		}
+		r := chi.NewRouter()
+		r.Use(auth.UserRequired)
+		r.Mount("/", adminServer)
+		root.Mount("/asdf", r)
+	}
+
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
-
 		// Start workers/api
 		jobWorkers := 10
 		jobOptions := jobs.JobOptions{
