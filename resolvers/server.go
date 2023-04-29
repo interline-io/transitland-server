@@ -8,7 +8,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/interline-io/transitland-server/auth"
-	"github.com/interline-io/transitland-server/authn"
+	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
 	generated "github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/internal/fvsl"
@@ -22,7 +22,7 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 		rtfinder:     rtfinder,
 		gbfsFinder:   gbfsFinder,
 		fvslCache:    fvsl.NewFVSLCache(dbfinder),
-		authnChecker: authn.NewChecker(nil),
+		authnChecker: authz.NewChecker(nil, nil),
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := auth.ForContext(ctx)

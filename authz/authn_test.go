@@ -1,4 +1,4 @@
-package authn
+package authz
 
 import (
 	"context"
@@ -15,7 +15,7 @@ func TestFGA(t *testing.T) {
 	}
 
 	// Add test tuples
-	tkeys, err := LoadTuples("../test/authn/test.csv")
+	tkeys, err := LoadTuples("../test/authz/test.csv")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func TestFGA(t *testing.T) {
 	}
 
 	// Test assertions
-	checks, err := LoadTuples("../test/authn/assert.csv")
+	checks, err := LoadTuples("../test/authz/assert.csv")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func createTestClient(t *testing.T, storeName string, deleteExisting bool) (*Cli
 	cc := Client{Model: "", client: apiClient}
 
 	// Create model from DSL
-	modelId, err := cc.CreateModel(context.Background(), "../test/authn/test.model")
+	modelId, err := cc.CreateModel(context.Background(), "../test/authz/test.model")
 	if err != nil {
 		return nil, err
 	}

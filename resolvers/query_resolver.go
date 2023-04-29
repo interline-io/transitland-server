@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/interline-io/transitland-server/auth"
-	"github.com/interline-io/transitland-server/authn"
+	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -102,7 +102,7 @@ func addMetric(ctx context.Context, resolverName string) {
 	}
 }
 
-func checkActive(ctx context.Context, ids []int, checker *authn.Checker) (*model.ActiveCheck, error) {
+func checkActive(ctx context.Context, ids []int, checker *authz.Checker) (*model.ActiveCheck, error) {
 	active := &model.ActiveCheck{IDs: ids}
 	user := auth.ForContext(ctx)
 	if user == nil {
