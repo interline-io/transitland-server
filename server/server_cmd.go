@@ -88,6 +88,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.DefaultQueue, "queue", "tlv2-default", "Job queue name")
 
 	fl.Var(&cmd.AuthMiddlewares, "auth", "Add one or more auth middlewares")
+	fl.StringVar(&cmd.AuthConfig.DefaultUsername, "default-username", "", "Default user name (for --auth=admin)")
 	fl.StringVar(&cmd.AuthConfig.JwtAudience, "jwt-audience", "", "JWT Audience (use with -auth=jwt)")
 	fl.StringVar(&cmd.AuthConfig.JwtIssuer, "jwt-issuer", "", "JWT Issuer (use with -auth=jwt)")
 	fl.StringVar(&cmd.AuthConfig.JwtPublicKeyFile, "jwt-public-key-file", "", "Path to JWT public key file (use with -auth=jwt)")
@@ -290,14 +291,14 @@ func (cmd *Command) Run() error {
 
 	// Admin API
 	if cmd.EnableAdminApi {
-		adminServer, err := authz.NewServer()
+		adminServer, err := authz.NewServer(dbFinder)
 		if err != nil {
 			return err
 		}
 		r := chi.NewRouter()
 		r.Use(auth.UserRequired)
 		r.Mount("/", adminServer)
-		root.Mount("/asdf", r)
+		root.Mount("/admin", r)
 	}
 
 	// Workers

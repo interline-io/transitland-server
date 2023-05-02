@@ -22,7 +22,7 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 		rtfinder:     rtfinder,
 		gbfsFinder:   gbfsFinder,
 		fvslCache:    fvsl.NewFVSLCache(dbfinder),
-		authnChecker: authz.NewChecker(nil, nil),
+		authnChecker: authz.NewChecker(nil, nil, dbfinder, nil),
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := auth.ForContext(ctx)

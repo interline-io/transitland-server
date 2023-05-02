@@ -7,6 +7,12 @@ import (
 	openfga "github.com/openfga/go-sdk"
 )
 
+type User struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email,omitempty"`
+}
+
 func LoadTuples(fn string) ([]TupleKey, error) {
 	tkeys := []TupleKey{}
 	if f, err := os.Open(fn); err != nil {
