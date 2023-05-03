@@ -8,15 +8,15 @@ user:ian,org:all-member,can_view,true
 user:ian,org:test-org,can_delete_feed,false
 user:ian,org:test-org,can_edit_members,false
 user:ian,org:test-org,can_view,true
-user:ian,feed:restricted-feed,can_edit,true
-user:ian,feed:restricted-feed,can_view,true
+user:ian,feed:3,can_edit,true
+user:ian,feed:3,can_view,true
 user:ian,org:admins-only,can_view,false
 
 user:kapeel,org:all-member,can_view,true
 user:kapeel,org:admins-only,can_view,false
-user:kapeel,feed_version:fv-shared,can_view,true
+user:kapeel,feed_version:1,can_view,true
 
 user:drew,org:all-member,can_view,true
-user:drew,feed:restricted-feed,can_view,false
+user:drew,feed:3,can_view,false
 user:drew,org:admins-only,can_view,false
-user:kapeel,feed_version:fv-shared,can_view,false
+

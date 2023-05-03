@@ -1,4 +1,4 @@
-user,object,relation
+user,object,relation,notes
 
 tenant:tl,org:test-org,parent
 tenant:tl,org:restricted-org,parent
@@ -6,9 +6,9 @@ tenant:tl,org:all-member,parent
 tenant:tl,org:admins-only,parent
 tenant:tl#member,org:all-member,viewer
 
-org:test-org,feed:1,parent
-org:restricted-org,feed:2,parent
-org:restricted-org,feed:3,parent
+org:test-org,feed:1,parent,test-feed
+org:restricted-org,feed:2,parent,shared-feed
+org:restricted-org,feed:3,parent,restricted-feed
 
 feed:2,feed_version:1,parent
 

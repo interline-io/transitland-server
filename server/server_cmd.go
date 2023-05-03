@@ -53,9 +53,10 @@ type Command struct {
 	AuthMiddlewares   ArrayFlags
 	DefaultQueue      string
 	SecretsFile       string
-	metersConfig
-	metricsConfig
-	auth.AuthConfig
+	metersConfig      metersConfig
+	metricsConfig     metricsConfig
+	AuthConfig        auth.AuthConfig
+	AuthzConfig       authz.AuthzConfig
 	config.Config
 }
 
@@ -106,14 +107,22 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
 	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
 
+	// Admin api
+	fl.StringVar(&cmd.AuthzConfig.Auth0ClientID, "auth0-client-id", "", "Auth0 client ID")
+	fl.StringVar(&cmd.AuthzConfig.Auth0ClientSecret, "auth0-client-secret", "", "Auth0 client secret")
+	fl.StringVar(&cmd.AuthzConfig.Auth0Domain, "auth0-domain", "", "Auth0 domain")
+	fl.StringVar(&cmd.AuthzConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
+	fl.StringVar(&cmd.AuthzConfig.FGAStoreID, "fga-store-id", "", "FGA store")
+	fl.StringVar(&cmd.AuthzConfig.FGAModelID, "fga-model-id", "", "FGA model")
+
 	// Metrics
 	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
-	fl.StringVar(&cmd.MetricsProvider, "metrics-provider", "", "Specify metrics provider")
+	fl.StringVar(&cmd.metricsConfig.MetricsProvider, "metrics-provider", "", "Specify metrics provider")
 
 	// Metering
 	// fl.BoolVar(&cmd.EnableMetering, "enable-metering", false, "Enable metering")
-	fl.StringVar(&cmd.MeteringProvider, "metering-provider", "", "Use metering provider")
-	fl.StringVar(&cmd.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for AmberFlo metering")
+	fl.StringVar(&cmd.metersConfig.MeteringProvider, "metering-provider", "", "Use metering provider")
+	fl.StringVar(&cmd.metersConfig.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for AmberFlo metering")
 
 	// Jobs
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
@@ -123,11 +132,11 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.EnableAdminApi, "enable-admin-api", false, "Enable admin api")
 
 	fl.Parse(args)
-	if cmd.MetricsProvider != "" {
-		cmd.EnableMetrics = true
+	if cmd.metricsConfig.MetricsProvider != "" {
+		cmd.metricsConfig.EnableMetrics = true
 	}
-	if cmd.MeteringProvider != "" {
-		cmd.EnableMetering = true
+	if cmd.metersConfig.MeteringProvider != "" {
+		cmd.metersConfig.EnableMetering = true
 	}
 
 	// DB
@@ -163,8 +172,8 @@ func (cmd *Command) Run() error {
 	// Open metrics
 	var metricProvider metrics.MetricProvider
 	metricProvider = metrics.NewDefaultMetric()
-	if cmd.EnableMetrics {
-		if cmd.MetricsProvider == "prometheus" {
+	if cmd.metricsConfig.EnableMetrics {
+		if cmd.metricsConfig.MetricsProvider == "prometheus" {
 			metricProvider = metrics.NewPromMetrics()
 		}
 	}
@@ -172,11 +181,11 @@ func (cmd *Command) Run() error {
 	// Open metering
 	var meterProvider meters.MeterProvider
 	meterProvider = meters.NewDefaultMeter()
-	if cmd.EnableMetering {
-		if cmd.MeteringProvider == "amberflo" {
+	if cmd.metersConfig.EnableMetering {
+		if cmd.metersConfig.MeteringProvider == "amberflo" {
 			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
-			if cmd.MeteringAmberfloConfig != "" {
-				if err := a.LoadConfig(cmd.MeteringAmberfloConfig); err != nil {
+			if cmd.metersConfig.MeteringAmberfloConfig != "" {
+				if err := a.LoadConfig(cmd.metersConfig.MeteringAmberfloConfig); err != nil {
 					return err
 				}
 			}
@@ -256,7 +265,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// Metrics
-	if cmd.EnableMetrics {
+	if cmd.metricsConfig.EnableMetrics {
 		root.Handle("/metrics", metricProvider.MetricsHandler())
 	}
 
@@ -291,7 +300,11 @@ func (cmd *Command) Run() error {
 
 	// Admin API
 	if cmd.EnableAdminApi {
-		adminServer, err := authz.NewServer(dbFinder)
+		checker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig)
+		if err != nil {
+			return err
+		}
+		adminServer, err := authz.NewServer(checker)
 		if err != nil {
 			return err
 		}

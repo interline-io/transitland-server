@@ -15,7 +15,7 @@ type FGAClient struct {
 	client *openfga.APIClient
 }
 
-func NewFGAClient(modelId string, endpoint string) (*FGAClient, error) {
+func NewFGAClient(storeId string, modelId string, endpoint string) (*FGAClient, error) {
 	ep, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
@@ -23,6 +23,7 @@ func NewFGAClient(modelId string, endpoint string) (*FGAClient, error) {
 	cfg, err := openfga.NewConfiguration(openfga.Configuration{
 		ApiScheme: ep.Scheme,
 		ApiHost:   ep.Host,
+		StoreId:   storeId,
 	})
 	if err != nil {
 		return nil, err
@@ -55,6 +56,15 @@ func (c *FGAClient) WriteTuple(ctx context.Context, tk TupleKey) error {
 	return err
 }
 
+func (c *FGAClient) DeleteTuple(ctx context.Context, tk TupleKey) error {
+	body := openfga.WriteRequest{
+		Writes:               &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
+		AuthorizationModelId: openfga.PtrString(c.Model),
+	}
+	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()
+	return err
+}
+
 func (c *FGAClient) CreateModel(ctx context.Context, fn string) (string, error) {
 	dslJson, err := dslToJson(fn)
 	if err != nil {
@@ -73,18 +83,45 @@ func (c *FGAClient) CreateModel(ctx context.Context, fn string) (string, error) 
 	return modelId, nil
 }
 
-func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]string, error) {
+func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, error) {
 	body := openfga.ListObjectsRequest{
 		AuthorizationModelId: openfga.PtrString(c.Model),
-		User:                 tk.User,
+		User:                 cunsplit(tk.UserType, tk.UserName),
 		Relation:             tk.Relation,
-		Type:                 tk.Object,
+		Type:                 tk.ObjectType,
 	}
 	data, _, err := c.client.OpenFgaApi.ListObjects(context.Background()).Body(body).Execute()
 	if err != nil {
 		return nil, err
 	}
-	return data.GetObjects(), nil
+	var ret []TupleKey
+	for _, v := range data.GetObjects() {
+		okey := csplit(v)
+		ret = append(ret, TupleKey{
+			UserType:   tk.UserType,
+			UserName:   tk.UserName,
+			ObjectType: okey[0],
+			ObjectName: okey[1],
+			Relation:   tk.Relation,
+		})
+	}
+	return ret, nil
+}
+
+func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKey, error) {
+	fgatk := tk.FGATupleKey()
+	body := openfga.ReadRequest{
+		TupleKey: &fgatk,
+	}
+	data, _, err := c.client.OpenFgaApi.Read(ctx).Body(body).Execute()
+	if err != nil {
+		return nil, err
+	}
+	var ret []TupleKey
+	for _, t := range *data.Tuples {
+		ret = append(ret, fromFGATupleKey(t.GetKey()))
+	}
+	return ret, nil
 }
 
 func dslToJson(fn string) (string, error) {
@@ -101,52 +138,4 @@ func dslToJson(fn string) (string, error) {
 		return string(b), err
 	}
 	return string(b), nil
-}
-
-func createTestStoreAndModel(cc *FGAClient, storeName string, modelFn string, deleteExisting bool) (string, error) {
-	// Configure API client
-	apiClient := cc.client
-
-	// Find store
-	storeId := ""
-	if stores, _, err := apiClient.OpenFgaApi.ListStores(context.Background()).Execute(); err != nil {
-		return "", err
-	} else {
-		for _, store := range stores.GetStores() {
-			if store.GetName() == storeName {
-				storeId = store.GetId()
-			}
-		}
-	}
-
-	// Delete existing store
-	if storeId != "" && deleteExisting {
-		// t.Log("deleting existing store:", storeId)
-		apiClient.SetStoreId(storeId)
-		if _, err := apiClient.OpenFgaApi.DeleteStore(context.Background()).Execute(); err != nil {
-			return "", err
-		}
-		storeId = ""
-	}
-
-	// Create new store
-	if storeId == "" {
-		resp, _, err := apiClient.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
-			Name: storeName,
-		}).Execute()
-		if err != nil {
-			return "", err
-		}
-		storeId = resp.GetId()
-		// t.Log("created store:", storeId)
-		apiClient.SetStoreId(storeId)
-	}
-
-	// Create model from DSL
-	modelId, err := cc.CreateModel(context.Background(), modelFn)
-	if err != nil {
-		return "", err
-	}
-
-	return modelId, nil
 }
