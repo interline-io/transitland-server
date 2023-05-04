@@ -4,11 +4,12 @@ type user
 type tenant
   relations
     define admin: [user]
-    define member: [user]
+    define member: [user] or admin
     define can_create_org: admin
     define can_delete_org: admin
-    define can_edit_org: admin
+    define can_edit: admin
     define can_edit_members: admin
+    define can_view: member
 type org
   relations
     define parent: [tenant]

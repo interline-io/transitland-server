@@ -3,13 +3,37 @@ package authz
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/internal/ecache"
 	"github.com/interline-io/transitland-server/model"
+)
+
+const (
+	CanView              = "can_view"
+	CanEdit              = "can_edit"
+	CanEditMembers       = "can_edit_members"
+	CanCreateOrg         = "can_create_org"
+	CanDeleteOrg         = "can_delete_org"
+	CanCreateFeedVersion = "can_create_feed_version"
+	CanDeleteFeedVersion = "can_delete_feed_version"
+	CanCreateFeed        = "can_create_feed"
+	CanDeleteFeed        = "can_delete_feed"
+
+	TenantType      = "tenant"
+	GroupType       = "org"
+	FeedType        = "feed"
+	FeedVersionType = "feed_version"
+
+	AdminRelation   = "admin"
+	MemberRelation  = "member"
+	ManagerRelation = "manager"
+	ViewerRelation  = "viewer"
+	EditorRelation  = "editor"
+	TenantRelation  = "tenant"
+	ParentRelation  = "parent"
 )
 
 type AuthnProvider interface {
@@ -60,58 +84,261 @@ func (c *Checker) Check(ctx context.Context, tk TupleKey) (bool, error) {
 	return c.authz.Check(ctx, tk)
 }
 
-func (c *Checker) ListFeeds(ctx context.Context, user auth.User) ([]int, error) {
-	return c.listObjectIds(ctx, user, "feed", "can_view")
-}
+// USERS
 
-func (c *Checker) ListFeedVersions(ctx context.Context, user auth.User) ([]int, error) {
-	return c.listObjectIds(ctx, user, "feed_version", "can_view")
-}
-
-type FeedPermissionsResponse struct {
-	Parent  string
-	Viewers []string
-}
-
-func (c *Checker) FeedPermissions(ctx context.Context, user auth.User, feedId int) (FeedPermissionsResponse, error) {
-	ret := FeedPermissionsResponse{
-		Viewers: []string{},
-	}
-	tps, err := c.getObjectTuples(ctx, user, "can_view", TupleKey{}.WithObject("feed", itoa(feedId)))
+func (c *Checker) ListUsers(ctx context.Context, user auth.User, query string) ([]User, error) {
+	// TODO: filter users
+	users, err := c.authn.Users(ctx, query)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	for _, tk := range tps {
-		fmt.Println("tk:", tk)
-		if tk.Relation == "parent" {
-			ret.Parent = tk.ObjectName
-		}
-		if tk.Relation == "viewer" {
-			ret.Viewers = append(ret.Viewers, tk.UserName)
+	var ret []User
+	for _, user := range users {
+		if user != nil {
+			ret = append(ret, *user)
 		}
 	}
 	return ret, nil
 }
 
-func (c *Checker) FeedVersionPermissions(ctx context.Context, user auth.User, fvid int) ([]TupleKey, error) {
-	return c.getObjectTuples(ctx, user, "can_view", TupleKey{}.WithObject("feed_version", itoa(fvid)))
+func (c *Checker) User(ctx context.Context, user auth.User, userId string) (*User, error) {
+	// TODO: filter users
+	ret, err := c.authn.UserByID(ctx, userId)
+	return ret, err
+}
+
+func (c *Checker) hydrateUsers(ctx context.Context, user auth.User, users []User) ([]User, error) {
+	// TODO: filter users
+	ret := []User{}
+	for _, u := range users {
+		uu, err := c.authn.UserByID(ctx, u.ID)
+		if err == nil && uu != nil {
+			ret = append(ret, *uu)
+		}
+	}
+	return ret, nil
+}
+
+// TENANTS
+
+type TenantPermissionsResponse struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Users struct {
+		Admins  []User `json:"admins"`
+		Members []User `json:"members"`
+	} `json:"users"`
+	Actions struct {
+		CanEditMembers bool `json:"can_edit_members"`
+		CanView        bool `json:"can_view"`
+		CanEdit        bool `json:"can_edit"`
+		CanCreateOrg   bool `json:"can_create_org"`
+		CanDeleteOrg   bool `json:"can_delete_org"`
+	} `json:"actions"`
+}
+
+func (c *Checker) ListTenants(ctx context.Context, user auth.User) ([]string, error) {
+	return c.listObjectNames(ctx, user, TenantType, CanView)
+}
+
+func (c *Checker) TenantPermissions(ctx context.Context, user auth.User, tenantId int) (*TenantPermissionsResponse, error) {
+	entTk := TupleKey{}.WithObject(TenantType, itoa(tenantId))
+	ret := &TenantPermissionsResponse{ID: tenantId}
+	tps, err := c.getObjectTuples(ctx, user, CanView, entTk)
+	if err != nil {
+		return nil, err
+	}
+	for _, tk := range tps {
+		if tk.Relation == AdminRelation {
+			ret.Users.Admins = append(ret.Users.Admins, User{ID: tk.UserName})
+		}
+		if tk.Relation == MemberRelation {
+			ret.Users.Members = append(ret.Users.Members, User{ID: tk.UserName})
+		}
+	}
+	ret.Actions.CanView = true
+	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanEditMembers))
+	ret.Actions.CanEdit, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanEdit))
+	ret.Actions.CanCreateOrg, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanCreateOrg))
+	ret.Actions.CanDeleteOrg, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanDeleteOrg))
+	ret.Users.Admins, _ = c.hydrateUsers(ctx, user, ret.Users.Admins)
+	ret.Users.Members, _ = c.hydrateUsers(ctx, user, ret.Users.Members)
+	return ret, nil
+}
+
+func (c *Checker) AddTenantPermission(ctx context.Context, user auth.User, addUser string, groupId int, relation string) error {
+	return c.addObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(addUser).WithObject(TenantType, itoa(groupId)))
+}
+
+func (c *Checker) RemoveTenantPermission(ctx context.Context, user auth.User, removeUser string, groupId int, relation string) error {
+	return c.removeObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(removeUser).WithObject(TenantType, itoa(groupId)).WithRelation(relation))
+}
+
+// GROUPS
+
+func (c *Checker) ListGroups(ctx context.Context, user auth.User) ([]int, error) {
+	return c.listObjectIds(ctx, user, GroupType, CanView)
+}
+
+type GroupPermissionsResponse struct {
+	ID     int                        `json:"id"`
+	Name   string                     `json:"name"`
+	Tenant *TenantPermissionsResponse `json:"tenant,omitempty"`
+	Users  struct {
+		Viewers  []User `json:"viewers"`
+		Editors  []User `json:"editors"`
+		Managers []User `json:"managers"`
+	} `json:"users"`
+	Actions struct {
+		CanView        bool `json:"can_view"`
+		CanEditMembers bool `json:"can_edit_members"`
+		CanCreateFeed  bool `json:"can_create_feed"`
+		CanDeleteFeed  bool `json:"can_delete_feed"`
+		CanEdit        bool `json:"can_edit"`
+	} `json:"actions"`
+}
+
+func (c *Checker) GroupPermissions(ctx context.Context, user auth.User, groupId int) (*GroupPermissionsResponse, error) {
+	entTk := TupleKey{}.WithObject(GroupType, itoa(groupId))
+	tps, err := c.getObjectTuples(ctx, user, CanView, entTk)
+	if err != nil {
+		return nil, err
+	}
+	ret := &GroupPermissionsResponse{
+		ID: groupId,
+	}
+	for _, tk := range tps {
+		if tk.Relation == ParentRelation {
+			ret.Tenant, _ = c.TenantPermissions(ctx, user, atoi(tk.UserName))
+		}
+		if tk.Relation == ManagerRelation {
+			ret.Users.Managers = append(ret.Users.Managers, User{ID: tk.UserName})
+		}
+		if tk.Relation == EditorRelation {
+			ret.Users.Editors = append(ret.Users.Editors, User{ID: tk.UserName})
+		}
+		if tk.Relation == ViewerRelation {
+			ret.Users.Viewers = append(ret.Users.Viewers, User{ID: tk.UserName})
+		}
+	}
+	ret.Users.Managers, _ = c.hydrateUsers(ctx, user, ret.Users.Managers)
+	ret.Users.Editors, _ = c.hydrateUsers(ctx, user, ret.Users.Editors)
+	ret.Users.Viewers, _ = c.hydrateUsers(ctx, user, ret.Users.Viewers)
+	ret.Actions.CanView = true
+	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanEditMembers))
+	ret.Actions.CanEdit, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanEdit))
+	ret.Actions.CanCreateFeed, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanCreateFeed))
+	ret.Actions.CanDeleteFeed, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanDeleteFeed))
+	return ret, nil
+}
+
+func (c *Checker) AddGroupPermission(ctx context.Context, user auth.User, addUser string, groupId int, relation string) error {
+	return c.addObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(addUser).WithObject("org", itoa(groupId)))
+}
+
+func (c *Checker) RemoveGroupPermission(ctx context.Context, user auth.User, removeUser string, groupId int, relation string) error {
+	return c.removeObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(removeUser).WithObject("org", itoa(groupId)).WithRelation(relation))
+}
+
+// FEEDS
+
+func (c *Checker) ListFeeds(ctx context.Context, user auth.User) ([]int, error) {
+	return c.listObjectIds(ctx, user, FeedType, CanView)
+}
+
+type FeedPermissionsResponse struct {
+	ID    int                       `json:"id"`
+	Group *GroupPermissionsResponse `json:"group,omitempty"`
+	Users struct {
+		Viewers []User `json:"viewers"`
+	} `json:"users"`
+	Actions struct {
+		CanView              bool `json:"can_view"`
+		CanEdit              bool `json:"can_edit"`
+		CanCreateFeedVersion bool `json:"can_create_feed_version"`
+		CanDeleteFeedVersion bool `json:"can_delete_feed_version"`
+	} `json:"actions"`
+}
+
+func (c *Checker) FeedPermissions(ctx context.Context, user auth.User, feedId int) (*FeedPermissionsResponse, error) {
+	entTk := TupleKey{}.WithObject(FeedType, itoa(feedId))
+	tps, err := c.getObjectTuples(ctx, user, CanView, entTk)
+	if err != nil {
+		return nil, err
+	}
+	ret := &FeedPermissionsResponse{
+		ID: feedId,
+	}
+	for _, tk := range tps {
+		if tk.Relation == ParentRelation {
+			ret.Group, _ = c.GroupPermissions(ctx, user, atoi(tk.UserName))
+		}
+		if tk.Relation == ViewerRelation {
+			ret.Users.Viewers = append(ret.Users.Viewers, User{ID: tk.UserName})
+		}
+	}
+	ret.Users.Viewers, _ = c.hydrateUsers(ctx, user, ret.Users.Viewers)
+	ret.Actions.CanView = true
+	ret.Actions.CanEdit, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanEdit))
+	ret.Actions.CanCreateFeedVersion, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanCreateFeedVersion))
+	ret.Actions.CanDeleteFeedVersion, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanDeleteFeedVersion))
+	return ret, nil
 }
 
 func (c *Checker) AddFeedPermission(ctx context.Context, user auth.User, addUser string, feedId int, relation string) error {
-	return c.addObjectTuple(ctx, user, "can_edit_members", TupleKey{}.WithUser(addUser).WithObject("feed", itoa(feedId)))
-}
-
-func (c *Checker) AddFeedVersionPermission(ctx context.Context, user auth.User, addUser string, fvid int, relation string) error {
-	return c.addObjectTuple(ctx, user, "can_edit_members", TupleKey{}.WithUser(addUser).WithObject("feed_version", itoa(fvid)))
+	return c.addObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(addUser).WithObject(FeedType, itoa(feedId)))
 }
 
 func (c *Checker) RemoveFeedPermission(ctx context.Context, user auth.User, removeUser string, feedId int, relation string) error {
-	return c.removeObjectTuple(ctx, user, "can_edit_members", TupleKey{}.WithUser(removeUser).WithObject("feed_version", itoa(feedId)).WithRelation(relation))
+	return c.removeObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(removeUser).WithObject(FeedType, itoa(feedId)).WithRelation(relation))
+}
+
+// FEED VERSIONS
+
+func (c *Checker) ListFeedVersions(ctx context.Context, user auth.User) ([]int, error) {
+	return c.listObjectIds(ctx, user, FeedVersionType, CanView)
+}
+
+type FeedVersionPermissionsResponse struct {
+	ID    int `json:"id"`
+	Users struct {
+		Viewers []User `json:"viewers"`
+	} `json:"users"`
+	Actions struct {
+		CanEditMembers bool `json:"can_edit_members"`
+		CanEdit        bool `json:"can_edit"`
+	} `json:"actions"`
+}
+
+func (c *Checker) FeedVersionPermissions(ctx context.Context, user auth.User, fvid int) (*FeedVersionPermissionsResponse, error) {
+	entTk := TupleKey{}.WithObject(FeedVersionType, itoa(fvid))
+	tps, err := c.getObjectTuples(ctx, user, CanView, entTk)
+	if err != nil {
+		return nil, err
+	}
+	ret := &FeedVersionPermissionsResponse{
+		ID: fvid,
+	}
+	for _, tk := range tps {
+		if tk.Relation == ViewerRelation {
+			ret.Users.Viewers = append(ret.Users.Viewers, User{ID: tk.UserName})
+		}
+	}
+	ret.Users.Viewers, _ = c.hydrateUsers(ctx, user, ret.Users.Viewers)
+	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanEditMembers))
+	ret.Actions.CanEdit, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithRelation(CanEdit))
+	return ret, nil
+}
+
+func (c *Checker) AddFeedVersionPermission(ctx context.Context, user auth.User, addUser string, fvid int, relation string) error {
+	return c.addObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(addUser).WithObject(FeedVersionType, itoa(fvid)))
 }
 
 func (c *Checker) RemoveFeedVersionPermission(ctx context.Context, user auth.User, removeUser string, fvid int, relation string) error {
-	return c.removeObjectTuple(ctx, user, "can_edit_members", TupleKey{}.WithUser(removeUser).WithObject("feed_version", itoa(fvid)).WithRelation(relation))
+	return c.removeObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(removeUser).WithObject(FeedVersionType, itoa(fvid)).WithRelation(relation))
 }
+
+// internal
 
 func (c *Checker) listObjects(ctx context.Context, user auth.User, objectType string, relation string) ([]TupleKey, error) {
 	tk := TupleKey{ObjectType: objectType, Relation: relation}.WithUser(user.Name())
@@ -134,6 +361,21 @@ func (c *Checker) listObjectIds(ctx context.Context, user auth.User, objectType 
 			return nil, err
 		}
 		ret = append(ret, kid)
+	}
+	return ret, nil
+}
+
+func (c *Checker) listObjectNames(ctx context.Context, user auth.User, objectType string, relation string) ([]string, error) {
+	objTks, err := c.listObjects(ctx, user, objectType, relation)
+	if err != nil {
+		return nil, err
+	}
+	var ret []string
+	for _, tk := range objTks {
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, tk.ObjectName)
 	}
 	return ret, nil
 }

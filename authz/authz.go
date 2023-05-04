@@ -27,12 +27,12 @@ type User struct {
 }
 
 type TupleKey struct {
-	UserType   string
-	UserName   string
-	Relation   string
-	ObjectType string
-	ObjectName string
-	Assert     bool
+	UserType   string `json:"user_type,omitempty"`
+	UserName   string `json:"user_name,omitempty"`
+	Relation   string `json:"relation,omitempty"`
+	ObjectType string `json:"object_type,omitempty"`
+	ObjectName string `json:"object_name,omitempty"`
+	Assert     bool   `json:"assert,omitempty"`
 }
 
 func LoadTuples(fn string) ([]TupleKey, error) {

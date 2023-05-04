@@ -109,7 +109,7 @@ func checkActive(ctx context.Context, ids []int, checker *authz.Checker) (*model
 		return active, nil
 	}
 	var err error
-	active.Feeds, err = checker.ListFeeds(ctx, user)
+	// active.Feeds, err = checker.ListFeeds(ctx, user)
 	if err != nil {
 		return nil, err
 	}

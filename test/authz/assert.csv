@@ -1,22 +1,22 @@
 user,object,relation,assert
 
-user:admin,org:test-org,can_delete_feed,true
-user:admin,org:test-org,can_edit_members,true
-user:admin,org:admins-only,can_view,true
+user:auth0|63379ebb00e30a45a8c72190,org:1,can_delete_feed,true
+user:auth0|63379ebb00e30a45a8c72190,org:1,can_edit_members,true
+user:auth0|63379ebb00e30a45a8c72190,org:4,can_view,true
 
-user:ian,org:all-member,can_view,true
-user:ian,org:test-org,can_delete_feed,false
-user:ian,org:test-org,can_edit_members,false
-user:ian,org:test-org,can_view,true
-user:ian,feed:3,can_edit,true
-user:ian,feed:3,can_view,true
-user:ian,org:admins-only,can_view,false
+user:auth0|60cacd0fd02f6500695ca074,org:3,can_view,true
+user:auth0|60cacd0fd02f6500695ca074,org:1,can_delete_feed,false
+user:auth0|60cacd0fd02f6500695ca074,org:1,can_edit_members,false
+user:auth0|60cacd0fd02f6500695ca074,org:1,can_view,true
+user:auth0|60cacd0fd02f6500695ca074,feed:3,can_edit,true
+user:auth0|60cacd0fd02f6500695ca074,feed:3,can_view,true
+user:auth0|60cacd0fd02f6500695ca074,org:4,can_view,false
 
-user:kapeel,org:all-member,can_view,true
-user:kapeel,org:admins-only,can_view,false
-user:kapeel,feed_version:1,can_view,true
+user:auth0|622b9ae7a64d9900686ea3dd,org:3,can_view,true
+user:auth0|622b9ae7a64d9900686ea3dd,org:4,can_view,false
+user:auth0|622b9ae7a64d9900686ea3dd,feed_version:1,can_view,true
 
-user:drew,org:all-member,can_view,true
-user:drew,feed:3,can_view,false
-user:drew,org:admins-only,can_view,false
+user:auth0|60cac4237f82d100681b087e,org:3,can_view,true
+user:auth0|60cac4237f82d100681b087e,feed:3,can_view,false
+user:auth0|60cac4237f82d100681b087e,org:4,can_view,false
 

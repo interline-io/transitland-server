@@ -1,26 +1,23 @@
 user,object,relation,notes
 
-tenant:tl,org:test-org,parent
-tenant:tl,org:restricted-org,parent
-tenant:tl,org:all-member,parent
-tenant:tl,org:admins-only,parent
-tenant:tl#member,org:all-member,viewer
+tenant:1,org:1,parent,org:test-org
+tenant:1,org:2,parent,org:restricted-org
+tenant:1,org:3,parent,org:all-member
+tenant:1,org:4,parent,org:admins-only
+tenant:1#member,org:3,viewer
 
-org:test-org,feed:1,parent,test-feed
-org:restricted-org,feed:2,parent,shared-feed
-org:restricted-org,feed:3,parent,restricted-feed
+org:1,feed:1,parent,feed:test-feed
+org:2,feed:2,parent,feed:shared-feed
+org:2,feed:3,parent,feed:restricted-feed
 
 feed:2,feed_version:1,parent
 
-user:kapeel,feed_version:1,viewer
+user:auth0|622b9ae7a64d9900686ea3dd,tenant:1,admin,user:nisar
 
-user:admin,tenant:tl,admin
+user:auth0|60cacd0fd02f6500695ca074,org:2,editor,user:ian
+user:auth0|60cacd0fd02f6500695ca074,org:1,viewer,user:ian
+user:auth0|60cacd0fd02f6500695ca074,tenant:1,member,user:ian
 
-user:ian,org:restricted-org,editor
-user:ian,org:test-org,viewer
-user:ian,tenant:tl,member
-
-user:drew,org:test-org,viewer
-user:drew,tenant:tl,member
-
-user:kapeel,tenant:tl,member
+user:auth0|60cac4237f82d100681b087e,org:1,viewer,user:drew
+user:auth0|60cac4237f82d100681b087e,tenant:1,member,user:drew
+user:auth0|60cac4237f82d100681b087e,feed_version:1,viewer,user:drew

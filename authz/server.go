@@ -2,7 +2,6 @@ package authz
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -12,11 +11,15 @@ import (
 
 func NewServer(checker *Checker) (http.Handler, error) {
 	r := chi.NewRouter()
-	r.Get("/users", wrapHandler(usersHandler, checker))
-	r.Get("/users/{id}", wrapHandler(userHandler, checker))
-	r.Get("/feeds/", wrapHandler(listFeedsHandler, checker))
+	r.Get("/users", wrapHandler(userIndexHandler, checker))
+	r.Get("/users/{id}", wrapHandler(userPermissionsHandler, checker))
+	r.Get("/tenants", wrapHandler(tenantIndexHandler, checker))
+	r.Get("/tenants/{id}", wrapHandler(tenantPermissionsHandler, checker))
+	r.Get("/groups", wrapHandler(groupIndexHandler, checker))
+	r.Get("/groups/{id}", wrapHandler(groupPermissionsHandler, checker))
+	r.Get("/feeds/", wrapHandler(feedIndexHandler, checker))
 	r.Get("/feeds/{id}/permissions", wrapHandler(feedPermissionsHandler, checker))
-	r.Get("/feed_versions/", wrapHandler(listFeedVersionsHandler, checker))
+	r.Get("/feed_versions/", wrapHandler(feedVersionIndexHandler, checker))
 	r.Get("/feed_versions/{id}/permissions", wrapHandler(feedVersionPermissionsHandler, checker))
 	return r, nil
 }
@@ -32,38 +35,10 @@ func wrapHandler(next func(http.ResponseWriter, *http.Request, *Checker), checke
 	})
 }
 
-func usersHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	users, err := checker.authn.Users(r.Context(), r.URL.Query().Get("q"))
+func handleJson(w http.ResponseWriter, ret any, err error) {
 	if err != nil {
-		log.Error().Err(err).Msg("authn.Users")
+		log.Error().Err(err).Msg("admin api error")
 		http.Error(w, "error", http.StatusInternalServerError)
-		return
-	}
-	jj, _ := json.Marshal(users)
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(jj)
-}
-
-func userHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	user, err := checker.authn.UserByID(r.Context(), chi.URLParam(r, "id"))
-	if err != nil {
-		log.Error().Err(err).Msg("authn.UserByID")
-		http.Error(w, "error", http.StatusInternalServerError)
-		return
-	}
-	jj, _ := json.Marshal(user)
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(jj)
-}
-
-func listFeedsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.ListFeeds(
-		r.Context(),
-		auth.ForContext(r.Context()),
-	)
-	if err != nil {
-		log.Error().Err(err).Msg("checker.ListFeeds")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	jj, _ := json.Marshal(ret)
@@ -71,46 +46,52 @@ func listFeedsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) 
 	w.Write(jj)
 }
 
-func listFeedVersionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.ListFeeds(
-		r.Context(),
-		auth.ForContext(r.Context()),
-	)
-	if err != nil {
-		log.Error().Err(err).Msg("checker.ListFeeds")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	jj, _ := json.Marshal(ret)
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(jj)
+func userIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.ListUsers(r.Context(), auth.ForContext(r.Context()), r.URL.Query().Get("q"))
+	handleJson(w, ret, err)
+}
+
+func userPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.User(r.Context(), auth.ForContext(r.Context()), chi.URLParam(r, "id"))
+	handleJson(w, ret, err)
+}
+
+func tenantIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.ListTenants(r.Context(), auth.ForContext(r.Context()))
+	handleJson(w, ret, err)
+}
+
+func tenantPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.TenantPermissions(r.Context(), auth.ForContext(r.Context()), atoi(chi.URLParam(r, "id")))
+	handleJson(w, ret, err)
+}
+
+func groupIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.ListGroups(r.Context(), auth.ForContext(r.Context()))
+	handleJson(w, ret, err)
+}
+
+func groupPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.authn.UserByID(r.Context(), chi.URLParam(r, "id"))
+	handleJson(w, ret, err)
+}
+
+func feedIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.ListFeeds(r.Context(), auth.ForContext(r.Context()))
+	handleJson(w, ret, err)
 }
 
 func feedPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.FeedPermissions(
-		r.Context(),
-		auth.ForContext(r.Context()),
-		atoi(chi.URLParam(r, "id")),
-	)
-	if err != nil {
-		log.Error().Err(err).Msg("checker.FeedPermissions")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	fmt.Println("ret:", ret)
-	jj, _ := json.Marshal(ret)
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(jj)
+	ret, err := checker.FeedPermissions(r.Context(), auth.ForContext(r.Context()), atoi(chi.URLParam(r, "id")))
+	handleJson(w, ret, err)
+}
+
+func feedVersionIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.ListFeeds(r.Context(), auth.ForContext(r.Context()))
+	handleJson(w, ret, err)
 }
 
 func feedVersionPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
 	ret, err := checker.FeedVersionPermissions(r.Context(), auth.ForContext(r.Context()), atoi(chi.URLParam(r, "id")))
-	if err != nil {
-		log.Error().Err(err).Msg("checker.FeedVersionPermissions")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	jj, _ := json.Marshal(ret)
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(jj)
+	handleJson(w, ret, err)
 }
