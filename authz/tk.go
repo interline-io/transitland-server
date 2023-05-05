@@ -39,20 +39,25 @@ func LoadTuples(fn string) ([]TestTupleKey, error) {
 	} else {
 		tlcsv.ReadRows(f, func(row tlcsv.Row) {
 			tk := TestTupleKey{}
-			tk.UserType = csplit(row.GetString("user")).Type
-			tk.UserName = csplit(row.GetString("user")).Name
-			tk.ObjectType = csplit(row.GetString("object")).Type
-			tk.ObjectName = csplit(row.GetString("object")).Name
-			tk.Relation, _ = RelationString(row.GetString("relation"))
-			tk.Action, _ = ActionString(row.GetString("action"))
-			tk.Checks = strings.Split(row.GetString("check"), " ")
-			tk.Test = row.GetString("test")
-			tk.Expect = row.GetString("expect")
-			tk.Notes = row.GetString("notes")
+			tk.UserType = csplit(rowGetString(row, "user")).Type
+			tk.UserName = csplit(rowGetString(row, "user")).Name
+			tk.ObjectType = csplit(rowGetString(row, "object")).Type
+			tk.ObjectName = csplit(rowGetString(row, "object")).Name
+			tk.Relation, _ = RelationString(rowGetString(row, "relation"))
+			tk.Action, _ = ActionString(rowGetString(row, "action"))
+			tk.Checks = strings.Split(rowGetString(row, "check"), " ")
+			tk.Test = rowGetString(row, "test")
+			tk.Expect = rowGetString(row, "expect")
+			tk.Notes = rowGetString(row, "notes")
 			tkeys = append(tkeys, tk)
 		})
 	}
 	return tkeys, nil
+}
+
+func rowGetString(row tlcsv.Row, col string) string {
+	a, _ := row.Get(col)
+	return a
 }
 
 func (tk TupleKey) String() string {

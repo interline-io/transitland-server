@@ -26,121 +26,69 @@ user:drew,tenant:1,member
 user:nisar,tenant:1,member
 user:nisar,feed_version:1,viewer
 
-user:admin,org:1,,check,
-
 user:admin,feed_version:1,,can_view,check,true
-user:admin,feed,,can_view can_edit can_edit_members can_create_feed can_delete_feed,list,1-2-3-4
-user:admin,org,,can_view can_edit can_edit_members can_create_feed can_delete_feed,list,1-2-3-4
-user:admin,org:1,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
-user:admin,org:2,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
-user:admin,org:3,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
-user:admin,org:4,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
-user:admin,org:5,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
-user:admin,org:5,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,false
-user:admin,tenant:1,,can_create_org can_delete_org can_edit can_view can_edit_members,check,true
-user:admin,tenant:2,,can_create_org can_delete_org can_edit can_view can_edit_members,check,false
+user:admin,feed,,can_view can_edit,list,1 2 3 4
+user:admin,org,,can_view can_edit,list,1 2 3 4
+user:admin,org:1,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check
+user:admin,org:2,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check
+user:admin,org:3,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check
+user:admin,org:4,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check
+user:admin,org:5,,-can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:admin,tenant:1,,can_view can_edit can_edit_members can_create_org can_delete_org,check
+user:admin,tenant:2,,-can_view -can_edit -can_edit_members -can_create_org -can_delete_org,check
 
-user:ian,feed_version:1,,can_view,check,true
+user:ian,feed_version:1,,can_view,check
 user:ian,feed,,can_edit,list,2
-user:ian,feed,,can_view,list,1-2-3
-user:ian,feed:1,,can_edit,check,false
-user:ian,feed:1,,can_view,check,true
-user:ian,feed:2,,can_edit,check,true
-user:ian,feed:2,,can_view,check,true
-user:ian,feed:3,,can_edit,check,false
-user:ian,feed:3,,can_view,check,true
-user:ian,feed:4,,can_edit,check,false
-user:ian,feed:4,,can_view,check,false
-user:ian,feed:5,,can_edit,check,false
-user:ian,feed:5,,can_view,check,false
-user:ian,org:1,,can_create_feed,check,false
-user:ian,org:1,,can_delete_feed,check,false
-user:ian,org:1,,can_edit_members,check,false
-user:ian,org:1,,can_edit,check,false
-user:ian,org:1,,can_view,check,true
-user:ian,org:2,,can_create_feed,check,false
-user:ian,org:2,,can_delete_feed,check,false
-user:ian,org:2,,can_edit_members,check,false
-user:ian,org:2,,can_edit,check,true
-user:ian,org:2,,can_view,check,true
-user:ian,org:3,,can_create_feed,check,false
-user:ian,org:3,,can_delete_feed,check,false
-user:ian,org:3,,can_edit_members,check,false
-user:ian,org:3,,can_edit,check,false
-user:ian,org:3,,can_view,check,true
-user:ian,org:4,,can_create_feed,check,false
-user:ian,org:4,,can_delete_feed,check,false
-user:ian,org:4,,can_edit_members,check,false
-user:ian,org:4,,can_edit,check,false
-user:ian,org:4,,can_view,check,false
-user:ian,org:5,,can_create_feed,check,false
-user:ian,org:5,,can_delete_feed,check,false
-user:ian,org:5,,can_edit_members,check,false
-user:ian,org:5,,can_edit,check,false
-user:ian,org:5,,can_view,check,false
-user:ian,tenant:1,,can_edit,check,false
-user:ian,tenant:2,,can_edit,check,false
-user:ian,tenant:1,,can_create_org,check,false
-user:ian,tenant:1,,can_delete_org,check,false
-user:ian,tenant:1,,can_edit_members,check,false
-user:ian,tenant:1,,can_view,check,true
-user:ian,tenant:2,,can_create_org,check,false
-user:ian,tenant:2,,can_delete_org,check,false
-user:ian,tenant:2,,can_edit_members,check,false
-user:ian,tenant:2,,can_view,check,false
+user:ian,feed,,can_view,list,1 2 3
+user:ian,feed:1,,can_view -can_edit -can_create_feed_version -can_delete_feed_version,check
+user:ian,feed:2,,can_view can_edit can_create_feed_version can_delete_feed_version,check
+user:ian,feed:3,,can_view -can_edit -can_create_feed_version -can_delete_feed_version,check
+user:ian,feed:4,,-can_view -can_edit -can_create_feed_version -can_delete_feed_version,check
+user:ian,feed:5,,-can_view -can_edit -can_create_feed_version -can_delete_feed_version,check
+user:ian,org:1,,can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:ian,org:2,,can_view can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:ian,org:3,,can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:ian,org:4,,-can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:ian,org:5,,-can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:ian,tenant:1,,can_view -can_edit_members -can_create_org -can_delete_org,check
+user:ian,tenant:2,,-can_view -can_edit_members -can_create_org -can_delete_org,check
 
-user:drew,tenant:1,,can_edit,check,false
-user:drew,tenant:2,,can_edit,check,false
-user:drew,feed_version:1,,can_view,check,false,only feed:2 readers and nisar
+user:drew,feed_version:1,,-can_view,check,,only feed:2 readers and nisar
 user:drew,feed,,can_edit,list,1
-user:drew,feed,,can_view,list,1-3
-user:drew,feed:1,,can_edit,check,true
-user:drew,feed:1,,can_view,check,true
-user:drew,feed:2,,can_edit,check,false
-user:drew,feed:2,,can_view,check,false
-user:drew,feed:3,,can_edit,check,false
-user:drew,feed:3,,can_view,check,true
-user:drew,feed:4,,can_edit,check,false
-user:drew,feed:4,,can_view,check,false
-user:drew,feed:5,,can_edit,check,false
-user:drew,feed:5,,can_view,check,false
-user:drew,org:1,,can_view,check,true
-user:drew,org:2,,can_view,check,false
-user:drew,org:3,,can_view,check,true
-user:drew,org:4,,can_view,check,false
-user:drew,org:5,,can_view,check,false
-user:drew,tenant:1,,can_create_org,check,false
-user:drew,tenant:1,,can_delete_org,check,false
-user:drew,tenant:1,,can_edit_members,check,false
-user:drew,tenant:1,,can_view,check,true
-user:drew,tenant:2,,can_create_org,check,false
-user:drew,tenant:2,,can_delete_org,check,false
-user:drew,tenant:2,,can_edit_members,check,false
-user:drew,tenant:2,,can_view,check,false
+user:drew,feed,,can_view,list,1 3
+user:drew,feed:1,,can_view can_edit,check
+user:drew,feed:2,,-can_view -can_edit,check
+user:drew,feed:3,,can_view -can_edit,check
+user:drew,feed:4,,-can_view -can_edit,check
+user:drew,feed:5,,-can_view -can_edit,check
+user:drew,org:1,,can_view can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:drew,org:2,,-can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:drew,org:3,,can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:drew,org:4,,-can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:drew,org:5,,-can_view -can_edit -can_edit_members -can_create_feed -can_delete_feed,check
+user:drew,tenant:1,,can_view -can_edit_members -can_create_org -can_delete_org,check
+user:drew,tenant:2,,-can_view -can_edit_members -can_create_org -can_delete_org,chec,
 
-user:nisar,tenant:1,,can_edit,check,false
-user:nisar,tenant:2,,can_edit,check,false
-user:nisar,feed_version:1,,can_view,check,true
+user:nisar,tenant:1,,can_view -can_edit,check
+user:nisar,tenant:2,,-can_view -can_edit,check
+user:nisar,feed_version:1,,can_view,check
 user:nisar,feed,,can_view,list,3
-user:nisar,feed:1,,can_edit,check,false
-user:nisar,feed:1,,can_view,check,false
-user:nisar,feed:2,,can_edit,check,false
-user:nisar,feed:2,,can_view,check,false
-user:nisar,feed:3,,can_edit,check,false
-user:nisar,feed:3,,can_view,check,true
-user:nisar,feed:4,,can_edit,check,false
-user:nisar,feed:4,,can_view,check,false
-user:nisar,feed:5,,can_edit,check,false
-user:nisar,feed:5,,can_view,check,false
-user:nisar,org:3,,can_view,check,true
-user:nisar,org:4,,can_view,check,false
-user:nisar,tenant:1,,can_create_org,check,false
-user:nisar,tenant:1,,can_delete_org,check,false
-user:nisar,tenant:1,,can_edit_members,check,false
-user:nisar,tenant:1,,can_view,check,true
-user:nisar,tenant:1,,can_view,check,true
-user:nisar,tenant:2,,can_create_org,check,false
-user:nisar,tenant:2,,can_delete_org,check,false
-user:nisar,tenant:2,,can_edit_members,check,false
-user:nisar,tenant:2,,can_view,check,false
-user:nisar,tenant:2,,can_view,check,false
+user:nisar,feed:1,,-can_view -can_edit,check
+user:nisar,feed:2,,-can_view -can_edit,check
+user:nisar,feed:3,,can_view -can_edit,check
+user:nisar,feed:4,,-can_view -can_edit,check
+user:nisar,feed:5,,-can_view -can_edit,check
+user:nisar,org:3,,can_view -can_edit,check
+user:nisar,org:4,,-can_view -can_edit,check
+user:nisar,tenant:1,,can_view -can_edit -can_edit_members -can_create_org -can_delete_org,check
+user:nisar,tenant:2,,-can_view -can_edit -can_edit_members -can_create_org -can_delete_org,check
+
+user:ian,feed_version:1,viewer,,write,
+user:nisar,feed_version:1,viewer,,write,fail,already exists
+
+user:ian,feed_version:1,viewer,,delete,
+user:nisar,tenant:2,member,,delete,fail,does not exist
+
+,tenant:1,,,get,user:admin:admin user:ian:member user:drew:member user:nisar:member
+,feed_version:1,,,get,feed:2:parent user:nisar:viewer
+,feed:1,,,get,org:1:parent

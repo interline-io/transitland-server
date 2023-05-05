@@ -58,7 +58,7 @@ func (c *FGAClient) WriteTuple(ctx context.Context, tk TupleKey) error {
 
 func (c *FGAClient) DeleteTuple(ctx context.Context, tk TupleKey) error {
 	body := openfga.WriteRequest{
-		Writes:               &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
+		Deletes:              &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
 		AuthorizationModelId: openfga.PtrString(c.Model),
 	}
 	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()

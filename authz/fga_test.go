@@ -27,48 +27,143 @@ func TestFGAClient(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Run("check", func(t *testing.T) {
+	t.Run("GetObjectTuples", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "get" {
+				continue
+			}
+			tkKey := tk.TupleKey
+			t.Run(tkKey.String(), func(t *testing.T) {
+				tks, err := fgac.GetObjectTuples(context.Background(), tkKey)
+				if err != nil {
+					t.Error(err)
+				}
+				expect := strings.Split(tk.Expect, " ")
+				var got []string
+				for _, v := range tks {
+					got = append(got, fmt.Sprintf("%s:%s:%s", v.UserType, v.UserName, v.Relation))
+				}
+				assert.ElementsMatch(t, expect, got, "usertype:username:relation does not match")
+
+			})
+		}
+	})
+
+	t.Run("Check", func(t *testing.T) {
 		for _, tk := range checks {
 			if tk.Test != "check" {
 				continue
 			}
 			for _, checkAction := range tk.Checks {
-				tk2 := tk
-				tk2.TupleKey.Action, _ = ActionString(checkAction)
-				t.Run(tk.String(), func(t *testing.T) {
-					ok, err := fgac.Check(context.Background(), tk.TupleKey)
+				tkKey := tk.TupleKey
+				expect := true
+				if strings.HasPrefix(checkAction, "+") {
+					checkAction = strings.TrimPrefix(checkAction, "+")
+				} else if strings.HasPrefix(checkAction, "-") {
+					expect = false
+					checkAction = strings.TrimPrefix(checkAction, "-")
+				}
+				var err error
+				tkKey.Action, err = ActionString(checkAction)
+				if err != nil {
+					t.Fatal(err)
+				}
+				t.Run(tkKey.String(), func(t *testing.T) {
+					ok, err := fgac.Check(context.Background(), tkKey)
 					if err != nil {
 						t.Fatal(err)
 					}
-					if ok && tk.Expect != "true" {
-						t.Errorf("got %t, expected %s", ok, tk.Expect)
+					if ok && !expect {
+						t.Errorf("got %t, expected %t", ok, expect)
 					}
-					if !ok && tk.Expect != "false" {
-						t.Errorf("got %t, expected %s", ok, tk.Expect)
+					if !ok && expect {
+						t.Errorf("got %t, expected %t", ok, expect)
 					}
 				})
-
 			}
 
 		}
 	})
 
-	t.Run("list", func(t *testing.T) {
+	t.Run("ListObjects", func(t *testing.T) {
 		for _, tk := range checks {
 			if tk.Test != "list" {
 				continue
 			}
-			t.Run(tk.String(), func(t *testing.T) {
-				objs, err := fgac.ListObjects(context.Background(), tk.TupleKey)
+			for _, checkAction := range tk.Checks {
+				tkKey := tk.TupleKey
+				tkKey.Action, err = ActionString(checkAction)
 				if err != nil {
 					t.Fatal(err)
 				}
-				var gotIds []string
-				for _, v := range objs {
-					gotIds = append(gotIds, v.ObjectName)
+				t.Run(tkKey.String(), func(t *testing.T) {
+					objs, err := fgac.ListObjects(context.Background(), tkKey)
+					if err != nil {
+						t.Fatal(err)
+					}
+					var gotIds []string
+					for _, v := range objs {
+						gotIds = append(gotIds, v.ObjectName)
+					}
+					expIds := strings.Split(tk.Expect, " ")
+					assert.ElementsMatch(t, expIds, gotIds, "object ids")
+				})
+			}
+		}
+	})
+
+	t.Run("WriteTuple", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "write" {
+				continue
+			}
+			tkKey := tk.TupleKey
+			t.Run(tkKey.String(), func(t *testing.T) {
+				// Write tuple and check if error was expected
+				expectOk := true
+				if tk.Expect == "fail" {
+					expectOk = false
 				}
-				expIds := strings.Split(tk.Expect, "-")
-				assert.ElementsMatch(t, expIds, gotIds, "object ids")
+				err := fgac.WriteTuple(context.Background(), tkKey)
+				if err != nil && expectOk {
+					t.Errorf("got error %s, expected ok", err.Error())
+				}
+				if err == nil && !expectOk {
+					t.Errorf("no error, expected error")
+				}
+				// Check was written
+				tks, err := fgac.GetObjectTuples(context.Background(), tkKey)
+				if err != nil {
+					t.Error(err)
+				}
+				var gotTks []string
+				for _, v := range tks {
+					gotTks = append(gotTks, fmt.Sprintf("%s:%s:%s", v.UserType, v.UserName, v.Relation))
+				}
+				checkTk := fmt.Sprintf("%s:%s:%s", tkKey.UserType, tkKey.UserName, tkKey.Relation)
+				assert.Contains(t, gotTks, checkTk, "written tuple not found in updated object tuples")
+			})
+		}
+	})
+
+	t.Run("DeleteTuple", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "delete" {
+				continue
+			}
+			tkKey := tk.TupleKey
+			t.Run(tkKey.String(), func(t *testing.T) {
+				expectOk := true
+				if tk.Expect == "fail" {
+					expectOk = false
+				}
+				err := fgac.DeleteTuple(context.Background(), tkKey)
+				if err != nil && expectOk {
+					t.Errorf("got error %s, expected ok", err.Error())
+				}
+				if err == nil && !expectOk {
+					t.Errorf("no error, expected error")
+				}
 			})
 		}
 	})
@@ -92,6 +187,9 @@ func newTestFGAClient(t testing.TB, cfg AuthzConfig) (*FGAClient, error) {
 			return nil, err
 		}
 		for _, tk := range tkeys {
+			if tk.Test != "" {
+				continue
+			}
 			if !tk.Relation.IsARelation() {
 				continue
 			}
@@ -107,48 +205,22 @@ func createTestStoreAndModel(cc *FGAClient, storeName string, modelFn string, de
 	// Configure API client
 	apiClient := cc.client
 
-	// Find store
-	storeId := ""
-	if stores, _, err := apiClient.OpenFgaApi.ListStores(context.Background()).Execute(); err != nil {
-		return "", err
-	} else {
-		for _, store := range stores.GetStores() {
-			if store.GetName() == storeName {
-				storeId = store.GetId()
-			}
-		}
-	}
-
-	// Delete existing store
-	if storeId != "" && deleteExisting {
-		log.Tracef("deleting existing store: %s", storeId)
-		apiClient.SetStoreId(storeId)
-		if _, err := apiClient.OpenFgaApi.DeleteStore(context.Background()).Execute(); err != nil {
-			return "", err
-		}
-		storeId = ""
-	}
-
 	// Create new store
-	if storeId == "" {
-		resp, _, err := apiClient.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
-			Name: storeName,
-		}).Execute()
-		if err != nil {
-			return "", err
-		}
-		storeId = resp.GetId()
-		log.Tracef("created store: %s", storeId)
-		apiClient.SetStoreId(storeId)
+	resp, _, err := apiClient.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
+		Name: storeName,
+	}).Execute()
+	if err != nil {
+		return "", err
 	}
-
-	fmt.Println("store:", storeId)
+	storeId := resp.GetId()
+	log.Infof("created store: %s", storeId)
+	apiClient.SetStoreId(storeId)
 
 	// Create model from DSL
 	modelId, err := cc.CreateModel(context.Background(), modelFn)
 	if err != nil {
 		return "", err
 	}
-	log.Tracef("created model: %s", modelId)
+	log.Infof("created model: %s", modelId)
 	return modelId, nil
 }

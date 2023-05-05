@@ -17,6 +17,10 @@ jobs:
       TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
       TL_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
     services:
+      openfga:
+        image: openfga/openfga
+        ports:
+          - 8090:8080
       postgres:
         image: postgis/postgis:12-3.2-alpine
         ports:
