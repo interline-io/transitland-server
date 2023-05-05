@@ -33,7 +33,7 @@ require (
 	github.com/twpayne/go-geom v1.5.1
 	github.com/vektah/gqlparser/v2 v2.5.1
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
-	google.golang.org/protobuf v1.29.0
+	google.golang.org/protobuf v1.29.1
 	gopkg.in/dnaeon/go-vcr.v2 v2.3.0
 )
 
