@@ -3,10 +3,12 @@ package authz
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/interline-io/transitland-lib/log"
 	openfga "github.com/openfga/go-sdk"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFGAClient(t *testing.T) {
@@ -20,33 +22,56 @@ func TestFGAClient(t *testing.T) {
 	}
 
 	// Test assertions
-	checks, err := LoadTuples("../test/authz/assert.csv")
+	checks, err := LoadTuples("../test/authz/tls.csv")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, tk := range checks {
-		ok, err := fgac.Check(context.Background(), tk)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if ok != tk.Assert {
-			t.Errorf("%s/%s/%s/%s got %t, expected %t", tk.UserName, tk.ObjectType, tk.ObjectName, tk.Relation, ok, tk.Assert)
-		}
-	}
 
-	// List objects
-	checkusers := []string{"admin", "ian", "drew", "kapeel"}
-	rels := []string{"can_view", "can_edit"}
-	for _, user := range checkusers {
-		for _, rel := range rels {
-			tk := TupleKey{ObjectType: "feed", Relation: "can_view", UserType: "user", UserName: user}
-			if objs, err := fgac.ListObjects(context.Background(), tk); err != nil {
-				t.Fatal(err)
-			} else {
-				t.Logf("user %s: %s: %v", user, rel, objs)
+	t.Run("check", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "check" {
+				continue
 			}
+			for _, checkAction := range tk.Checks {
+				tk2 := tk
+				tk2.TupleKey.Action, _ = ActionString(checkAction)
+				t.Run(tk.String(), func(t *testing.T) {
+					ok, err := fgac.Check(context.Background(), tk.TupleKey)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if ok && tk.Expect != "true" {
+						t.Errorf("got %t, expected %s", ok, tk.Expect)
+					}
+					if !ok && tk.Expect != "false" {
+						t.Errorf("got %t, expected %s", ok, tk.Expect)
+					}
+				})
+
+			}
+
 		}
-	}
+	})
+
+	t.Run("list", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "list" {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				objs, err := fgac.ListObjects(context.Background(), tk.TupleKey)
+				if err != nil {
+					t.Fatal(err)
+				}
+				var gotIds []string
+				for _, v := range objs {
+					gotIds = append(gotIds, v.ObjectName)
+				}
+				expIds := strings.Split(tk.Expect, "-")
+				assert.ElementsMatch(t, expIds, gotIds, "object ids")
+			})
+		}
+	})
 }
 
 func newTestFGAClient(t testing.TB, cfg AuthzConfig) (*FGAClient, error) {
@@ -60,7 +85,6 @@ func newTestFGAClient(t testing.TB, cfg AuthzConfig) (*FGAClient, error) {
 			return nil, err
 		}
 		fgac.Model = modelId
-		t.Log("using FGA model:", modelId)
 	}
 	if cfg.FGATestTuplesPath != "" {
 		tkeys, err := LoadTuples(cfg.FGATestTuplesPath)
@@ -68,7 +92,10 @@ func newTestFGAClient(t testing.TB, cfg AuthzConfig) (*FGAClient, error) {
 			return nil, err
 		}
 		for _, tk := range tkeys {
-			if err := fgac.WriteTuple(context.Background(), tk); err != nil {
+			if !tk.Relation.IsARelation() {
+				continue
+			}
+			if err := fgac.WriteTuple(context.Background(), tk.TupleKey); err != nil {
 				return nil, err
 			}
 		}

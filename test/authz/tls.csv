@@ -1,23 +1,146 @@
-user,object,relation,notes
+user,object,relation,check,test,expect,notes
 
-tenant:1,org:1,parent,org:test-org
-tenant:1,org:2,parent,org:restricted-org
-tenant:1,org:3,parent,org:all-member
-tenant:1,org:4,parent,org:admins-only
+tenant:1,org:1,parent,,,,org:test-org
+tenant:1,org:2,parent,,,,org:restricted-org
+tenant:1,org:3,parent,,,,org:all-member
+tenant:1,org:4,parent,,,,org:admins-only
 tenant:1#member,org:3,viewer
+tenant:2,org:5,parent,,,,org:no-one
 
-org:1,feed:1,parent,feed:test-feed
-org:2,feed:2,parent,feed:shared-feed
-org:2,feed:3,parent,feed:restricted-feed
+org:1,feed:1,parent,,,,feed:1 should be viewable to members of org:1 (ian drew) and editable by org:1 editors (drew)
+org:2,feed:2,parent,,,,feed:2 should be viewable to members of org:2 () and editable by org:2 editors (ian)
+org:3,feed:3,parent,,,,feed:3 should be viewable to all members of tenant:1 (admin nisar ian drew) and editable by org:3 editors ()
+org:4,feed:4,parent,,,,feed:4 should only be viewable to admins of tenant:1 (admin)
 
 feed:2,feed_version:1,parent
 
-user:auth0|622b9ae7a64d9900686ea3dd,tenant:1,admin,user:nisar
+user:admin,tenant:1,admin
 
-user:auth0|60cacd0fd02f6500695ca074,org:2,editor,user:ian
-user:auth0|60cacd0fd02f6500695ca074,org:1,viewer,user:ian
-user:auth0|60cacd0fd02f6500695ca074,tenant:1,member,user:ian
+user:ian,org:1,viewer
+user:ian,org:2,editor
+user:ian,tenant:1,member
 
-user:auth0|60cac4237f82d100681b087e,org:1,viewer,user:drew
-user:auth0|60cac4237f82d100681b087e,tenant:1,member,user:drew
-user:auth0|60cac4237f82d100681b087e,feed_version:1,viewer,user:drew
+user:drew,org:1,editor
+user:drew,tenant:1,member
+
+user:nisar,tenant:1,member
+user:nisar,feed_version:1,viewer
+
+user:admin,org:1,,check,
+
+user:admin,feed_version:1,,can_view,check,true
+user:admin,feed,,can_view can_edit can_edit_members can_create_feed can_delete_feed,list,1-2-3-4
+user:admin,org,,can_view can_edit can_edit_members can_create_feed can_delete_feed,list,1-2-3-4
+user:admin,org:1,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
+user:admin,org:2,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
+user:admin,org:3,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
+user:admin,org:4,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
+user:admin,org:5,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,true
+user:admin,org:5,,can_view can_edit can_edit_members can_create_feed can_delete_feed,check,false
+user:admin,tenant:1,,can_create_org can_delete_org can_edit can_view can_edit_members,check,true
+user:admin,tenant:2,,can_create_org can_delete_org can_edit can_view can_edit_members,check,false
+
+user:ian,feed_version:1,,can_view,check,true
+user:ian,feed,,can_edit,list,2
+user:ian,feed,,can_view,list,1-2-3
+user:ian,feed:1,,can_edit,check,false
+user:ian,feed:1,,can_view,check,true
+user:ian,feed:2,,can_edit,check,true
+user:ian,feed:2,,can_view,check,true
+user:ian,feed:3,,can_edit,check,false
+user:ian,feed:3,,can_view,check,true
+user:ian,feed:4,,can_edit,check,false
+user:ian,feed:4,,can_view,check,false
+user:ian,feed:5,,can_edit,check,false
+user:ian,feed:5,,can_view,check,false
+user:ian,org:1,,can_create_feed,check,false
+user:ian,org:1,,can_delete_feed,check,false
+user:ian,org:1,,can_edit_members,check,false
+user:ian,org:1,,can_edit,check,false
+user:ian,org:1,,can_view,check,true
+user:ian,org:2,,can_create_feed,check,false
+user:ian,org:2,,can_delete_feed,check,false
+user:ian,org:2,,can_edit_members,check,false
+user:ian,org:2,,can_edit,check,true
+user:ian,org:2,,can_view,check,true
+user:ian,org:3,,can_create_feed,check,false
+user:ian,org:3,,can_delete_feed,check,false
+user:ian,org:3,,can_edit_members,check,false
+user:ian,org:3,,can_edit,check,false
+user:ian,org:3,,can_view,check,true
+user:ian,org:4,,can_create_feed,check,false
+user:ian,org:4,,can_delete_feed,check,false
+user:ian,org:4,,can_edit_members,check,false
+user:ian,org:4,,can_edit,check,false
+user:ian,org:4,,can_view,check,false
+user:ian,org:5,,can_create_feed,check,false
+user:ian,org:5,,can_delete_feed,check,false
+user:ian,org:5,,can_edit_members,check,false
+user:ian,org:5,,can_edit,check,false
+user:ian,org:5,,can_view,check,false
+user:ian,tenant:1,,can_edit,check,false
+user:ian,tenant:2,,can_edit,check,false
+user:ian,tenant:1,,can_create_org,check,false
+user:ian,tenant:1,,can_delete_org,check,false
+user:ian,tenant:1,,can_edit_members,check,false
+user:ian,tenant:1,,can_view,check,true
+user:ian,tenant:2,,can_create_org,check,false
+user:ian,tenant:2,,can_delete_org,check,false
+user:ian,tenant:2,,can_edit_members,check,false
+user:ian,tenant:2,,can_view,check,false
+
+user:drew,tenant:1,,can_edit,check,false
+user:drew,tenant:2,,can_edit,check,false
+user:drew,feed_version:1,,can_view,check,false,only feed:2 readers and nisar
+user:drew,feed,,can_edit,list,1
+user:drew,feed,,can_view,list,1-3
+user:drew,feed:1,,can_edit,check,true
+user:drew,feed:1,,can_view,check,true
+user:drew,feed:2,,can_edit,check,false
+user:drew,feed:2,,can_view,check,false
+user:drew,feed:3,,can_edit,check,false
+user:drew,feed:3,,can_view,check,true
+user:drew,feed:4,,can_edit,check,false
+user:drew,feed:4,,can_view,check,false
+user:drew,feed:5,,can_edit,check,false
+user:drew,feed:5,,can_view,check,false
+user:drew,org:1,,can_view,check,true
+user:drew,org:2,,can_view,check,false
+user:drew,org:3,,can_view,check,true
+user:drew,org:4,,can_view,check,false
+user:drew,org:5,,can_view,check,false
+user:drew,tenant:1,,can_create_org,check,false
+user:drew,tenant:1,,can_delete_org,check,false
+user:drew,tenant:1,,can_edit_members,check,false
+user:drew,tenant:1,,can_view,check,true
+user:drew,tenant:2,,can_create_org,check,false
+user:drew,tenant:2,,can_delete_org,check,false
+user:drew,tenant:2,,can_edit_members,check,false
+user:drew,tenant:2,,can_view,check,false
+
+user:nisar,tenant:1,,can_edit,check,false
+user:nisar,tenant:2,,can_edit,check,false
+user:nisar,feed_version:1,,can_view,check,true
+user:nisar,feed,,can_view,list,3
+user:nisar,feed:1,,can_edit,check,false
+user:nisar,feed:1,,can_view,check,false
+user:nisar,feed:2,,can_edit,check,false
+user:nisar,feed:2,,can_view,check,false
+user:nisar,feed:3,,can_edit,check,false
+user:nisar,feed:3,,can_view,check,true
+user:nisar,feed:4,,can_edit,check,false
+user:nisar,feed:4,,can_view,check,false
+user:nisar,feed:5,,can_edit,check,false
+user:nisar,feed:5,,can_view,check,false
+user:nisar,org:3,,can_view,check,true
+user:nisar,org:4,,can_view,check,false
+user:nisar,tenant:1,,can_create_org,check,false
+user:nisar,tenant:1,,can_delete_org,check,false
+user:nisar,tenant:1,,can_edit_members,check,false
+user:nisar,tenant:1,,can_view,check,true
+user:nisar,tenant:1,,can_view,check,true
+user:nisar,tenant:2,,can_create_org,check,false
+user:nisar,tenant:2,,can_delete_org,check,false
+user:nisar,tenant:2,,can_edit_members,check,false
+user:nisar,tenant:2,,can_view,check,false
+user:nisar,tenant:2,,can_view,check,false

@@ -87,8 +87,8 @@ func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, e
 	body := openfga.ListObjectsRequest{
 		AuthorizationModelId: openfga.PtrString(c.Model),
 		User:                 cunsplit(tk.UserType, tk.UserName),
-		Relation:             tk.Relation,
-		Type:                 tk.ObjectType,
+		Relation:             tk.Action.String(),
+		Type:                 tk.ObjectType.String(),
 	}
 	data, _, err := c.client.OpenFgaApi.ListObjects(context.Background()).Body(body).Execute()
 	if err != nil {
@@ -100,9 +100,9 @@ func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, e
 		ret = append(ret, TupleKey{
 			UserType:   tk.UserType,
 			UserName:   tk.UserName,
-			ObjectType: okey[0],
-			ObjectName: okey[1],
-			Relation:   tk.Relation,
+			ObjectType: okey.Type,
+			ObjectName: okey.Name,
+			Action:     tk.Action,
 		})
 	}
 	return ret, nil

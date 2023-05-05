@@ -13,10 +13,15 @@ func NewServer(checker *Checker) (http.Handler, error) {
 	r := chi.NewRouter()
 	r.Get("/users", wrapHandler(userIndexHandler, checker))
 	r.Get("/users/{id}", wrapHandler(userPermissionsHandler, checker))
+
 	r.Get("/tenants", wrapHandler(tenantIndexHandler, checker))
 	r.Get("/tenants/{id}", wrapHandler(tenantPermissionsHandler, checker))
+
 	r.Get("/groups", wrapHandler(groupIndexHandler, checker))
 	r.Get("/groups/{id}", wrapHandler(groupPermissionsHandler, checker))
+	r.Post("/groups/{id}/permissions/{relation}/{user}", wrapHandler(groupAddPermissionsHandler, checker))
+	r.Delete("/groups/{id}/permissions/{relation}/{user}", wrapHandler(groupRemovePermissionsHandler, checker))
+
 	r.Get("/feeds/", wrapHandler(feedIndexHandler, checker))
 	r.Get("/feeds/{id}/permissions", wrapHandler(feedPermissionsHandler, checker))
 	r.Get("/feed_versions/", wrapHandler(feedVersionIndexHandler, checker))
@@ -74,6 +79,38 @@ func groupIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker)
 func groupPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
 	ret, err := checker.authn.UserByID(r.Context(), chi.URLParam(r, "id"))
 	handleJson(w, ret, err)
+}
+
+func groupAddPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	checkRel, checkRelErr := RelationString(chi.URLParam(r, "relation"))
+	if checkRelErr != nil {
+		handleJson(w, nil, checkRelErr)
+		return
+	}
+	err := checker.AddGroupPermission(
+		r.Context(),
+		auth.ForContext(r.Context()),
+		chi.URLParam(r, "user"),
+		atoi(chi.URLParam(r, "id")),
+		checkRel,
+	)
+	handleJson(w, nil, err)
+}
+
+func groupRemovePermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	checkRel, checkRelErr := RelationString(chi.URLParam(r, "relation"))
+	if checkRelErr != nil {
+		handleJson(w, nil, checkRelErr)
+		return
+	}
+	err := checker.RemoveGroupPermission(
+		r.Context(),
+		auth.ForContext(r.Context()),
+		chi.URLParam(r, "user"),
+		atoi(chi.URLParam(r, "id")),
+		checkRel,
+	)
+	handleJson(w, nil, err)
 }
 
 func feedIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
