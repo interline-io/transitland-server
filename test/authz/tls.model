@@ -24,6 +24,7 @@ type org
 type feed
   relations
     define parent: [org]
+    define manager: manager from parent
     define editor: editor from parent
     define viewer: viewer from parent
     define can_create_feed_version: editor
@@ -33,8 +34,10 @@ type feed
 type feed_version
   relations
     define parent: [feed]
+    define manager: manager from parent
     define editor: [user] or editor from parent
     define viewer: [user] or viewer from parent
+    define can_edit_members: manager
     define can_edit: editor
     define can_view: viewer
     define can_view_entity: viewer

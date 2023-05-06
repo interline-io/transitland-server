@@ -26,10 +26,13 @@ type TupleKey struct {
 
 type TestTupleKey struct {
 	TupleKey
-	Checks []string
-	Test   string
-	Expect string
-	Notes  string
+	Line        int
+	Checks      []string
+	Test        string
+	Expect      string
+	Notes       string
+	ExpectError bool
+	TestAsUser  string
 }
 
 func LoadTuples(fn string) ([]TestTupleKey, error) {
@@ -39,6 +42,7 @@ func LoadTuples(fn string) ([]TestTupleKey, error) {
 	} else {
 		tlcsv.ReadRows(f, func(row tlcsv.Row) {
 			tk := TestTupleKey{}
+			tk.Line = row.Line
 			tk.UserType = csplit(rowGetString(row, "user")).Type
 			tk.UserName = csplit(rowGetString(row, "user")).Name
 			tk.ObjectType = csplit(rowGetString(row, "object")).Type
@@ -49,6 +53,10 @@ func LoadTuples(fn string) ([]TestTupleKey, error) {
 			tk.Test = rowGetString(row, "test")
 			tk.Expect = rowGetString(row, "expect")
 			tk.Notes = rowGetString(row, "notes")
+			tk.TestAsUser = rowGetString(row, "test_as_user")
+			if rowGetString(row, "expect_error") == "true" {
+				tk.ExpectError = true
+			}
 			tkeys = append(tkeys, tk)
 		})
 	}

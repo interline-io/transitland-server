@@ -100,11 +100,11 @@ func TestFGAClient(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					var gotIds []string
+					var gotIds []int
 					for _, v := range objs {
-						gotIds = append(gotIds, v.ObjectName)
+						gotIds = append(gotIds, atoi(v.ObjectName))
 					}
-					expIds := strings.Split(tk.Expect, " ")
+					expIds := mapStrInt(tk.Expect)
 					assert.ElementsMatch(t, expIds, gotIds, "object ids")
 				})
 			}
@@ -119,17 +119,8 @@ func TestFGAClient(t *testing.T) {
 			tkKey := tk.TupleKey
 			t.Run(tkKey.String(), func(t *testing.T) {
 				// Write tuple and check if error was expected
-				expectOk := true
-				if tk.Expect == "fail" {
-					expectOk = false
-				}
 				err := fgac.WriteTuple(context.Background(), tkKey)
-				if err != nil && expectOk {
-					t.Errorf("got error %s, expected ok", err.Error())
-				}
-				if err == nil && !expectOk {
-					t.Errorf("no error, expected error")
-				}
+				checkExpectError(t, err, tk.ExpectError)
 				// Check was written
 				tks, err := fgac.GetObjectTuples(context.Background(), tkKey)
 				if err != nil {
@@ -152,17 +143,8 @@ func TestFGAClient(t *testing.T) {
 			}
 			tkKey := tk.TupleKey
 			t.Run(tkKey.String(), func(t *testing.T) {
-				expectOk := true
-				if tk.Expect == "fail" {
-					expectOk = false
-				}
 				err := fgac.DeleteTuple(context.Background(), tkKey)
-				if err != nil && expectOk {
-					t.Errorf("got error %s, expected ok", err.Error())
-				}
-				if err == nil && !expectOk {
-					t.Errorf("no error, expected error")
-				}
+				checkExpectError(t, err, tk.ExpectError)
 			})
 		}
 	})

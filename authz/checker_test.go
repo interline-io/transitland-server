@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -46,7 +45,7 @@ func TestChecker(t *testing.T) {
 
 	t.Run("ListFeeds", func(t *testing.T) {
 		for _, tk := range checks {
-			if tk.Test != "list" {
+			if tk.Test != "list" || tk.ObjectType != FeedType {
 				continue
 			}
 			for _, checkAction := range tk.Checks {
@@ -63,256 +62,326 @@ func TestChecker(t *testing.T) {
 				})
 			}
 		}
-		// tcs := []listTest{
-		// 	{
-		// 		user:      "admin",
-		// 		expectIds: []int{1, 2, 3, 4},
-		// 	},
-		// 	{
-		// 		user:      "ian",
-		// 		expectIds: []int{1, 2, 3},
-		// 	},
-		// 	{
-		// 		user:      "nisar",
-		// 		expectIds: []int{3},
-		// 	},
-		// 	{
-		// 		user:      "drew",
-		// 		expectIds: []int{1, 3},
-		// 	},
-		// }
-		// for _, tc := range tcs {
-		// 	t.Run(tc.user, func(t *testing.T) {
-		// 		ret, err := checker.ListFeeds(context.Background(), newTestUser(tc.user))
-		// 		if err != nil {
-		// 			t.Fatal(err)
-		// 			return
-		// 		}
-		// 		assert.ElementsMatch(t, tc.expectIds, ret, "feed ids")
-		// 	})
-		// }
 	})
 
 	t.Run("ListFeedVersions", func(t *testing.T) {
-		tcs := []listTest{
-			{
-				user:      "ian",
-				expectIds: []int{1},
-			},
-			{
-				user:      "nisar",
-				expectIds: []int{1},
-			},
-			{
-				user:      "drew",
-				expectIds: []int{},
-			},
-		}
-		for _, tc := range tcs {
-			t.Run(tc.user, func(t *testing.T) {
-				ret, err := checker.ListFeedVersions(context.Background(), newTestUser(tc.user))
-				if err != nil {
-					t.Fatal(err)
-					return
+		for _, tk := range checks {
+			if tk.Test != "list" || tk.ObjectType != FeedVersionType {
+				continue
+			}
+			for _, checkAction := range tk.Checks {
+				tk.Action, _ = ActionString(checkAction)
+				if tk.Action.String() != "can_view" {
+					continue
 				}
-				assert.ElementsMatch(t, tc.expectIds, ret, "feed version ids")
-			})
+				t.Run(tk.String(), func(t *testing.T) {
+					ret, err := checker.ListFeedVersions(context.Background(), newTestUser(tk.UserName))
+					if err != nil {
+						t.Fatal(err)
+					}
+					assert.ElementsMatch(t, mapStrInt(tk.Expect), ret, "feed version ids")
+				})
+			}
 		}
 	})
 
 	t.Run("ListGroups", func(t *testing.T) {
-		tcs := []listTest{
-			{
-				user:      "ian",
-				expectIds: []int{1, 2, 3},
-			},
-			{
-				user:      "nisar",
-				expectIds: []int{3},
-			},
-			{
-				user:      "drew",
-				expectIds: []int{1, 3},
-			},
-		}
-		for _, tc := range tcs {
-			t.Run(tc.user, func(t *testing.T) {
-				ret, err := checker.ListGroups(context.Background(), newTestUser(tc.user))
-				if err != nil {
-					t.Fatal(err)
-					return
+		for _, tk := range checks {
+			if tk.Test != "list" || tk.ObjectType != GroupType {
+				continue
+			}
+			for _, checkAction := range tk.Checks {
+				tk.Action, _ = ActionString(checkAction)
+				if tk.Action.String() != "can_view" {
+					continue
 				}
-				assert.ElementsMatch(t, tc.expectIds, ret, "group ids")
-			})
+				t.Run(tk.String(), func(t *testing.T) {
+					ret, err := checker.ListGroups(context.Background(), newTestUser(tk.UserName))
+					if err != nil {
+						t.Fatal(err)
+					}
+					assert.ElementsMatch(t, mapStrInt(tk.Expect), ret, "feed ids")
+				})
+			}
 		}
 	})
 
 	t.Run("ListTenants", func(t *testing.T) {
-		tcs := []listTest{
-			{
-				user:      "ian",
-				expectIds: []int{1},
-			},
-			{
-				user:      "nisar",
-				expectIds: []int{1},
-			},
-			{
-				user:      "drew",
-				expectIds: []int{1},
-			},
-		}
-		for _, tc := range tcs {
-			t.Run(tc.user, func(t *testing.T) {
-				ret, err := checker.ListTenants(context.Background(), newTestUser(tc.user))
-				if err != nil {
-					t.Fatal(err)
-					return
+		for _, tk := range checks {
+			if tk.Test != "list" || tk.ObjectType != TenantType {
+				continue
+			}
+			for _, checkAction := range tk.Checks {
+				tk.Action, _ = ActionString(checkAction)
+				if tk.Action.String() != "can_view" {
+					continue
 				}
-				assert.ElementsMatch(t, tc.expectIds, ret, "tenant ids")
-			})
-		}
-	})
-
-	type permTest struct {
-		user          string
-		id            int
-		expectActions map[string]bool
-		expectError   bool
-		rawJson       string
-	}
-
-	t.Run("TenantPermissions", func(t *testing.T) {
-		tcs := []permTest{
-			{
-				user: "drew",
-				id:   1,
-				expectActions: map[string]bool{
-					"can_create_org":   false,
-					"can_delete_org":   false,
-					"can_edit":         false,
-					"can_edit_members": false,
-					"can_view":         true,
-				},
-			},
-			{
-				user:    "ian",
-				id:      1,
-				rawJson: `{"id":1,"name":"","users":{"admins":[],"members":[{"id":"ian","name":"Ian","email":"ian@example.com"},{"id":"drew","name":"Drew","email":"drew@example.com"},{"id":"nisar","name":"Nisar","email":"nisar@example.com"}]},"actions":{"can_edit_members":false,"can_view":true,"can_edit":false,"can_create_org":false,"can_delete_org":false}}`,
-			},
-		}
-		for _, tc := range tcs {
-			t.Run(fmt.Sprintf("%s:%d", tc.user, tc.id), func(t *testing.T) {
-				ret, err := checker.TenantPermissions(context.Background(), newTestUser(tc.user), tc.id)
-				if err != nil && !tc.expectError {
-					t.Errorf("got error '%s', did not expect error", err.Error())
-				}
-				if err == nil && tc.expectError {
-					t.Errorf("got no error, expected error")
-				}
-				if err != nil {
-					return
-				}
-				if len(tc.expectActions) > 0 {
-					compareAsJson(t, tc.expectActions, ret.Actions)
-				}
-				if tc.rawJson != "" {
-					jj2, _ := json.Marshal(ret)
-					if !assert.JSONEq(t, tc.rawJson, string(jj2)) {
-						t.Logf("actual raw json: %s", string(jj2))
+				t.Run(tk.String(), func(t *testing.T) {
+					ret, err := checker.ListTenants(context.Background(), newTestUser(tk.UserName))
+					if err != nil {
+						t.Fatal(err)
 					}
-				}
-			})
+					assert.ElementsMatch(t, mapStrInt(tk.Expect), ret, "feed ids")
+				})
+			}
 		}
 	})
 
 	t.Run("FeedPermissions", func(t *testing.T) {
-		tcs := []permTest{
-			{
-				user:        "nisar",
-				id:          1,
-				expectError: true,
-			},
-			{
-				user: "drew",
-				id:   1,
-				expectActions: map[string]bool{
-					"can_create_feed_version": true,
-					"can_delete_feed_version": true,
-					"can_edit":                true,
-					"can_view":                true,
-				},
-			},
-			{
-				user:    "ian",
-				id:      1,
-				rawJson: `{"id":1,"group":{"id":1,"name":"","tenant":{"id":1,"name":"","users":{"admins":[],"members":[{"id":"ian","name":"Ian","email":"ian@example.com"},{"id":"drew","name":"Drew","email":"drew@example.com"},{"id":"nisar","name":"Nisar","email":"nisar@example.com"}]},"actions":{"can_edit_members":false,"can_view":true,"can_edit":false,"can_create_org":false,"can_delete_org":false}},"users":{"viewers":[{"id":"ian","name":"Ian","email":"ian@example.com"}],"editors":[{"id":"drew","name":"Drew","email":"drew@example.com"}],"managers":[]},"actions":{"can_view":true,"can_edit_members":false,"can_create_feed":false,"can_delete_feed":false,"can_edit":false}},"users":{"viewers":[]},"actions":{"can_view":true,"can_edit":false,"can_create_feed_version":false,"can_delete_feed_version":false}}`,
-			},
-			{
-				user: "ian",
-				id:   1,
-				expectActions: map[string]bool{
-					"can_view":                true,
-					"can_edit":                false,
-					"can_create_feed_version": false,
-					"can_delete_feed_version": false,
-				},
-			},
-			{
-				user: "ian",
-				id:   2,
-				expectActions: map[string]bool{
-					"can_view":                true,
-					"can_edit":                true,
-					"can_create_feed_version": true,
-					"can_delete_feed_version": true,
-				},
-			},
-			{
-				user: "ian",
-				id:   3,
-				expectActions: map[string]bool{
-					"can_create_feed_version": false,
-					"can_delete_feed_version": false,
-					"can_edit":                false,
-					"can_view":                true,
-				},
-			},
-			{
-				user:        "ian",
-				id:          4,
-				expectError: true,
-			},
-			{
-				user:        "ian",
-				id:          5,
-				expectError: true,
-			},
-		}
-		for _, tc := range tcs {
-			t.Run(fmt.Sprintf("%s:%d", tc.user, tc.id), func(t *testing.T) {
-				ret, err := checker.FeedPermissions(context.Background(), newTestUser(tc.user), tc.id)
-				if err != nil && !tc.expectError {
-					t.Errorf("got error '%s', did not expect error", err.Error())
-				}
-				if err == nil && tc.expectError {
-					t.Errorf("got no error, expected error")
-				}
+		for _, tk := range checks {
+			if tk.Test != "check" || tk.ObjectType != FeedType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				ret, err := checker.FeedPermissions(
+					context.Background(),
+					newTestUser(tk.UserName),
+					atoi(tk.ObjectName),
+				)
+				checkExpectError(t, err, tk.ExpectError)
 				if err != nil {
 					return
 				}
-				if len(tc.expectActions) > 0 {
-					compareAsJson(t, tc.expectActions, ret.Actions)
+				checkActionSubset(t, ret.Actions, tk.Checks)
+			})
+		}
+	})
+
+	t.Run("FeedVersionPermissions", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "check" || tk.ObjectType != FeedVersionType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				ret, err := checker.FeedVersionPermissions(
+					context.Background(),
+					newTestUser(tk.UserName),
+					atoi(tk.ObjectName),
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
 				}
-				if tc.rawJson != "" {
-					jj2, _ := json.Marshal(ret)
-					if !assert.JSONEq(t, tc.rawJson, string(jj2)) {
-						t.Logf("actual raw json: %s", string(jj2))
-					}
+				checkActionSubset(t, ret.Actions, tk.Checks)
+			})
+		}
+	})
+
+	t.Run("GroupPermissions", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "check" || tk.ObjectType != GroupType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				ret, err := checker.GroupPermissions(
+					context.Background(),
+					newTestUser(tk.UserName),
+					atoi(tk.ObjectName),
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+				checkActionSubset(t, ret.Actions, tk.Checks)
+			})
+		}
+	})
+
+	t.Run("TenantPermissions", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "check" || tk.ObjectType != TenantType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				ret, err := checker.TenantPermissions(
+					context.Background(),
+					newTestUser(tk.UserName),
+					atoi(tk.ObjectName),
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+				checkActionSubset(t, ret.Actions, tk.Checks)
+			})
+		}
+	})
+
+	t.Run("AddFeedPermission", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "write" || tk.ObjectType != FeedType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				err := checker.AddFeedVersionPermission(
+					context.Background(),
+					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					tk.UserName,
+					atoi(tk.ObjectName),
+					tk.Relation,
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
 				}
 			})
 		}
 	})
+
+	t.Run("RemoveFeedPermission", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "delete" || tk.ObjectType != FeedType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				err := checker.RemoveFeedVersionPermission(
+					context.Background(),
+					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					tk.UserName,
+					atoi(tk.ObjectName),
+					tk.Relation,
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+			})
+		}
+	})
+
+	t.Run("AddFeedVersionPermission", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "write" || tk.ObjectType != FeedVersionType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				err := checker.AddFeedVersionPermission(
+					context.Background(),
+					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					tk.UserName,
+					atoi(tk.ObjectName),
+					tk.Relation,
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+			})
+		}
+	})
+
+	t.Run("RemoveFeedVersionPermission", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "delete" || tk.ObjectType != FeedVersionType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				err := checker.RemoveFeedVersionPermission(
+					context.Background(),
+					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					tk.UserName,
+					atoi(tk.ObjectName),
+					tk.Relation,
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+			})
+		}
+	})
+
+	t.Run("AddTenantPermission", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "write" || tk.ObjectType != TenantType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				err := checker.AddTenantPermission(
+					context.Background(),
+					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					tk.UserName,
+					atoi(tk.ObjectName),
+					tk.Relation,
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+			})
+		}
+	})
+
+	t.Run("RemoveTenantPermission", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "delete" || tk.ObjectType != TenantType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				err := checker.RemoveTenantPermission(
+					context.Background(),
+					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					tk.UserName,
+					atoi(tk.ObjectName),
+					tk.Relation,
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+			})
+		}
+	})
+
+	t.Run("AddGroupPermission", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "write" || tk.ObjectType != GroupType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				err := checker.AddGroupPermission(
+					context.Background(),
+					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					tk.UserName,
+					atoi(tk.ObjectName),
+					tk.Relation,
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+			})
+		}
+	})
+
+	t.Run("RemoveGroupPermission", func(t *testing.T) {
+		for _, tk := range checks {
+			if tk.Test != "delete" || tk.ObjectType != GroupType {
+				continue
+			}
+			t.Run(tk.String(), func(t *testing.T) {
+				err := checker.RemoveGroupPermission(
+					context.Background(),
+					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					tk.UserName,
+					atoi(tk.ObjectName),
+					tk.Relation,
+				)
+				checkExpectError(t, err, tk.ExpectError)
+				if err != nil {
+					return
+				}
+			})
+		}
+	})
+
+}
+
+func stringOr(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
 }
 
 func compareAsJson(t testing.TB, j1 any, j2 any) {
@@ -322,10 +391,69 @@ func compareAsJson(t testing.TB, j1 any, j2 any) {
 	assert.JSONEq(t, string(jj1), string(jj2))
 }
 
+func checkExpectError(t testing.TB, err error, expect bool) {
+	if err != nil && !expect {
+		t.Errorf("got error '%s', did not expect error", err.Error())
+	}
+	if err == nil && expect {
+		t.Errorf("got no error, expected error")
+	}
+}
+
+func checkActionSubset(t testing.TB, actions any, checks []string) {
+	checkA, err := actionsToMap(actions)
+	if err != nil {
+		t.Error(err)
+	}
+	checkActions := checkActionsToMap(checks)
+	checkMapSubset(t, checkA, checkActions)
+}
+
+func checkMapSubset(t testing.TB, value map[string]bool, contains map[string]bool) {
+	for k, v := range contains {
+		a, ok := value[k]
+		if !ok {
+			t.Errorf("expected %#v to contain key %s", value, k)
+		} else if a != v {
+			t.Errorf("expected %#v to contain %s=%t, did not", value, k, v)
+		}
+	}
+}
+
+func actionsToMap(actions any) (map[string]bool, error) {
+	jj, err := json.Marshal(actions)
+	if err != nil {
+		return nil, err
+	}
+	ret := map[string]bool{}
+	if err := json.Unmarshal(jj, &ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
 func mapStrInt(v string) []int {
 	var ret []int
 	for _, a := range strings.Split(v, " ") {
+		if a == "" {
+			continue
+		}
 		ret = append(ret, atoi(a))
+	}
+	return ret
+}
+
+func checkActionsToMap(v []string) map[string]bool {
+	ret := map[string]bool{}
+	for _, checkAction := range v {
+		expect := true
+		if strings.HasPrefix(checkAction, "+") {
+			checkAction = strings.TrimPrefix(checkAction, "+")
+		} else if strings.HasPrefix(checkAction, "-") {
+			expect = false
+			checkAction = strings.TrimPrefix(checkAction, "-")
+		}
+		ret[checkAction] = expect
 	}
 	return ret
 }

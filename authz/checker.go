@@ -151,12 +151,14 @@ func (c *Checker) TenantPermissions(ctx context.Context, user auth.User, tenantI
 	return ret, nil
 }
 
-func (c *Checker) AddTenantPermission(ctx context.Context, user auth.User, addUser string, groupId int, relation Relation) error {
-	return c.addObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(addUser).WithObject(TenantType, itoa(groupId)))
+func (c *Checker) AddTenantPermission(ctx context.Context, checkUser auth.User, addUser string, groupId int, relation Relation) error {
+	tk := TupleKey{}.WithUser(addUser).WithObject(TenantType, itoa(groupId)).WithRelation(relation)
+	return c.addObjectTuple(ctx, checkUser, CanEditMembers, tk)
 }
 
-func (c *Checker) RemoveTenantPermission(ctx context.Context, user auth.User, removeUser string, groupId int, relation Relation) error {
-	return c.removeObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(removeUser).WithObject(TenantType, itoa(groupId)).WithRelation(relation))
+func (c *Checker) RemoveTenantPermission(ctx context.Context, checkUser auth.User, removeUser string, groupId int, relation Relation) error {
+	tk := TupleKey{}.WithUser(removeUser).WithObject(TenantType, itoa(groupId)).WithRelation(relation)
+	return c.removeObjectTuple(ctx, checkUser, CanEditMembers, tk)
 }
 
 // GROUPS
@@ -217,12 +219,14 @@ func (c *Checker) GroupPermissions(ctx context.Context, user auth.User, groupId 
 	return ret, nil
 }
 
-func (c *Checker) AddGroupPermission(ctx context.Context, user auth.User, addUser string, groupId int, relation Relation) error {
-	return c.addObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(addUser).WithObject(GroupType, itoa(groupId)))
+func (c *Checker) AddGroupPermission(ctx context.Context, checkUser auth.User, addUser string, groupId int, relation Relation) error {
+	tk := TupleKey{}.WithUser(addUser).WithObject(GroupType, itoa(groupId)).WithRelation(relation)
+	return c.addObjectTuple(ctx, checkUser, CanEditMembers, tk)
 }
 
-func (c *Checker) RemoveGroupPermission(ctx context.Context, user auth.User, removeUser string, groupId int, relation Relation) error {
-	return c.removeObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(removeUser).WithObject(GroupType, itoa(groupId)).WithRelation(relation))
+func (c *Checker) RemoveGroupPermission(ctx context.Context, checkUser auth.User, removeUser string, groupId int, relation Relation) error {
+	tk := TupleKey{}.WithUser(removeUser).WithObject(GroupType, itoa(groupId)).WithRelation(relation)
+	return c.removeObjectTuple(ctx, checkUser, CanEditMembers, tk)
 }
 
 // FEEDS
@@ -271,11 +275,13 @@ func (c *Checker) FeedPermissions(ctx context.Context, user auth.User, feedId in
 }
 
 func (c *Checker) AddFeedPermission(ctx context.Context, user auth.User, addUser string, feedId int, relation Relation) error {
-	return c.addObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(addUser).WithObject(FeedType, itoa(feedId)))
+	tk := TupleKey{}.WithUser(addUser).WithObject(FeedType, itoa(feedId))
+	return c.addObjectTuple(ctx, user, CanEditMembers, tk)
 }
 
 func (c *Checker) RemoveFeedPermission(ctx context.Context, user auth.User, removeUser string, feedId int, relation Relation) error {
-	return c.removeObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(removeUser).WithObject(FeedType, itoa(feedId)).WithRelation(relation))
+	tk := TupleKey{}.WithUser(removeUser).WithObject(FeedType, itoa(feedId)).WithRelation(relation)
+	return c.removeObjectTuple(ctx, user, CanEditMembers, tk)
 }
 
 // FEED VERSIONS
@@ -290,6 +296,7 @@ type FeedVersionPermissionsResponse struct {
 		Viewers []User `json:"viewers"`
 	} `json:"users"`
 	Actions struct {
+		CanView        bool `json:"can_view"`
 		CanEditMembers bool `json:"can_edit_members"`
 		CanEdit        bool `json:"can_edit"`
 	} `json:"actions"`
@@ -310,17 +317,20 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, user auth.User, fv
 		}
 	}
 	ret.Users.Viewers, _ = c.hydrateUsers(ctx, user, ret.Users.Viewers)
+	ret.Actions.CanView = true
 	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithAction(CanEditMembers))
 	ret.Actions.CanEdit, _ = c.checkObject(ctx, entTk.WithUser(user.Name()).WithAction(CanEdit))
 	return ret, nil
 }
 
-func (c *Checker) AddFeedVersionPermission(ctx context.Context, user auth.User, addUser string, fvid int, relation string) error {
-	return c.addObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(addUser).WithObject(FeedVersionType, itoa(fvid)))
+func (c *Checker) AddFeedVersionPermission(ctx context.Context, user auth.User, addUser string, fvid int, relation Relation) error {
+	tk := TupleKey{}.WithUser(addUser).WithObject(FeedVersionType, itoa(fvid)).WithRelation(relation)
+	return c.addObjectTuple(ctx, user, CanEditMembers, tk)
 }
 
 func (c *Checker) RemoveFeedVersionPermission(ctx context.Context, user auth.User, removeUser string, fvid int, relation Relation) error {
-	return c.removeObjectTuple(ctx, user, CanEditMembers, TupleKey{}.WithUser(removeUser).WithObject(FeedVersionType, itoa(fvid)).WithRelation(relation))
+	tk := TupleKey{}.WithUser(removeUser).WithObject(FeedVersionType, itoa(fvid)).WithRelation(relation)
+	return c.removeObjectTuple(ctx, user, CanEditMembers, tk)
 }
 
 // internal
@@ -378,8 +388,9 @@ func (c *Checker) getObjectTuples(ctx context.Context, user auth.User, checkActi
 	return c.authz.GetObjectTuples(ctx, tk)
 }
 
-func (c *Checker) addObjectTuple(ctx context.Context, user auth.User, checkAction Action, tk TupleKey) error {
-	if ok, err := c.checkObject(ctx, tk.WithUser(user.Name()).WithAction(checkAction)); err != nil {
+func (c *Checker) addObjectTuple(ctx context.Context, checkUser auth.User, checkAction Action, tk TupleKey) error {
+	checkTk := TupleKey{}.WithUser(checkUser.Name()).WithObject(tk.ObjectType, tk.ObjectName).WithAction(checkAction)
+	if ok, err := c.checkObject(ctx, checkTk); err != nil {
 		return err
 	} else if !ok {
 		return errors.New("unauthorized")
@@ -387,8 +398,9 @@ func (c *Checker) addObjectTuple(ctx context.Context, user auth.User, checkActio
 	return c.authz.WriteTuple(ctx, tk)
 }
 
-func (c *Checker) removeObjectTuple(ctx context.Context, user auth.User, checkAction Action, tk TupleKey) error {
-	if ok, err := c.checkObject(ctx, tk.WithUser(user.Name()).WithAction(checkAction)); err != nil {
+func (c *Checker) removeObjectTuple(ctx context.Context, checkUser auth.User, checkAction Action, tk TupleKey) error {
+	checkTk := TupleKey{}.WithUser(checkUser.Name()).WithObject(tk.ObjectType, tk.ObjectName).WithAction(checkAction)
+	if ok, err := c.checkObject(ctx, checkTk); err != nil {
 		return err
 	} else if !ok {
 		return errors.New("unauthorized")
