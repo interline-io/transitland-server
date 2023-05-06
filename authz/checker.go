@@ -122,8 +122,8 @@ type TenantPermissionsResponse struct {
 	} `json:"actions"`
 }
 
-func (c *Checker) ListTenants(ctx context.Context, user auth.User) ([]string, error) {
-	return c.listObjectNames(ctx, user, TenantType, CanView)
+func (c *Checker) ListTenants(ctx context.Context, user auth.User) ([]int, error) {
+	return c.listObjectIds(ctx, user, TenantType, CanView)
 }
 
 func (c *Checker) TenantPermissions(ctx context.Context, user auth.User, tenantId int) (*TenantPermissionsResponse, error) {

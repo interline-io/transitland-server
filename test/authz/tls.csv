@@ -1,4 +1,4 @@
-user,object,relation,check,test,expect,notes
+user,object,relation,check_actions,test,expect,notes
 
 tenant:1,org:1,parent,,,,org:test-org
 tenant:1,org:2,parent,,,,org:restricted-org

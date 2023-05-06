@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/interline-io/transitland-lib/log"
 	openfga "github.com/openfga/go-sdk"
 	"github.com/stretchr/testify/assert"
 )
@@ -175,7 +174,7 @@ func newTestFGAClient(t testing.TB, cfg AuthzConfig) (*FGAClient, error) {
 		return nil, err
 	}
 	if cfg.FGATestModelPath != "" {
-		modelId, err := createTestStoreAndModel(fgac, "test", cfg.FGATestModelPath, true)
+		modelId, err := createTestStoreAndModel(t, fgac, "test", cfg.FGATestModelPath, true)
 		if err != nil {
 			return nil, err
 		}
@@ -186,6 +185,7 @@ func newTestFGAClient(t testing.TB, cfg AuthzConfig) (*FGAClient, error) {
 		if err != nil {
 			return nil, err
 		}
+		count := 0
 		for _, tk := range tkeys {
 			if tk.Test != "" {
 				continue
@@ -196,12 +196,14 @@ func newTestFGAClient(t testing.TB, cfg AuthzConfig) (*FGAClient, error) {
 			if err := fgac.WriteTuple(context.Background(), tk.TupleKey); err != nil {
 				return nil, err
 			}
+			count += 1
 		}
+		t.Log("loaded tuples:", count)
 	}
 	return fgac, nil
 }
 
-func createTestStoreAndModel(cc *FGAClient, storeName string, modelFn string, deleteExisting bool) (string, error) {
+func createTestStoreAndModel(t testing.TB, cc *FGAClient, storeName string, modelFn string, deleteExisting bool) (string, error) {
 	// Configure API client
 	apiClient := cc.client
 
@@ -213,7 +215,7 @@ func createTestStoreAndModel(cc *FGAClient, storeName string, modelFn string, de
 		return "", err
 	}
 	storeId := resp.GetId()
-	log.Infof("created store: %s", storeId)
+	t.Logf("created store: %s", storeId)
 	apiClient.SetStoreId(storeId)
 
 	// Create model from DSL
@@ -221,6 +223,6 @@ func createTestStoreAndModel(cc *FGAClient, storeName string, modelFn string, de
 	if err != nil {
 		return "", err
 	}
-	log.Infof("created model: %s", modelId)
+	t.Logf("created model: %s", modelId)
 	return modelId, nil
 }

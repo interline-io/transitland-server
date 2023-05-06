@@ -45,7 +45,7 @@ func LoadTuples(fn string) ([]TestTupleKey, error) {
 			tk.ObjectName = csplit(rowGetString(row, "object")).Name
 			tk.Relation, _ = RelationString(rowGetString(row, "relation"))
 			tk.Action, _ = ActionString(rowGetString(row, "action"))
-			tk.Checks = strings.Split(rowGetString(row, "check"), " ")
+			tk.Checks = strings.Split(rowGetString(row, "check_actions"), " ")
 			tk.Test = rowGetString(row, "test")
 			tk.Expect = rowGetString(row, "expect")
 			tk.Notes = rowGetString(row, "notes")
