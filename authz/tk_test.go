@@ -22,11 +22,7 @@ type TestTupleKey struct {
 }
 
 func (tk TestTupleKey) String() string {
-	r := "relation:" + tk.Relation.String()
-	if tk.Action.IsAAction() {
-		r = "action:" + tk.Action.String()
-	}
-	return fmt.Sprintf("%s (line:%d) %s:%s|%s:%s|%s", tk.TestName, tk.Line, tk.UserType.String(), tk.UserName, tk.ObjectType.String(), tk.ObjectName, r)
+	return fmt.Sprintf("line:%d|%s", tk.Line, tk.TupleKey.String())
 }
 
 func LoadTuples(fn string) ([]TestTupleKey, error) {

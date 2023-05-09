@@ -2,7 +2,9 @@ package authz
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-lib/log"
@@ -82,34 +84,22 @@ func groupPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Ch
 }
 
 func groupAddPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkRel, checkRelErr := RelationString(chi.URLParam(r, "relation"))
-	if checkRelErr != nil {
-		handleJson(w, nil, checkRelErr)
+	checkRel, err := checkRelParams(r)
+	if err != nil {
+		handleJson(w, nil, err)
 		return
 	}
-	err := checker.AddGroupPermission(
-		r.Context(),
-		auth.ForContext(r.Context()),
-		chi.URLParam(r, "user"),
-		atoi(chi.URLParam(r, "id")),
-		checkRel,
-	)
+	err = checker.AddGroupPermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
 	handleJson(w, nil, err)
 }
 
 func groupRemovePermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkRel, checkRelErr := RelationString(chi.URLParam(r, "relation"))
-	if checkRelErr != nil {
-		handleJson(w, nil, checkRelErr)
+	checkRel, err := checkRelParams(r)
+	if err != nil {
+		handleJson(w, nil, err)
 		return
 	}
-	err := checker.RemoveGroupPermission(
-		r.Context(),
-		auth.ForContext(r.Context()),
-		chi.URLParam(r, "user"),
-		atoi(chi.URLParam(r, "id")),
-		checkRel,
-	)
+	err = checker.RemoveGroupPermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
 	handleJson(w, nil, err)
 }
 
@@ -131,4 +121,27 @@ func feedVersionIndexHandler(w http.ResponseWriter, r *http.Request, checker *Ch
 func feedVersionPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
 	ret, err := checker.FeedVersionPermissions(r.Context(), auth.ForContext(r.Context()), atoi(chi.URLParam(r, "id")))
 	handleJson(w, ret, err)
+}
+
+type checkRel struct {
+	User     auth.User
+	RelUser  string
+	Relation Relation
+	ID       int
+}
+
+func checkRelParams(r *http.Request) (checkRel, error) {
+	tk := checkRel{}
+	var err error
+	if tk.User = auth.ForContext(r.Context()); tk.User == nil {
+		return tk, errors.New("unauthorized")
+	}
+	if tk.Relation, err = RelationString(chi.URLParam(r, "relation")); err != nil {
+		return tk, err
+	}
+	if tk.ID, err = strconv.Atoi(chi.URLParam(r, "id")); err != nil {
+		return tk, errors.New("invalid id")
+	}
+	tk.RelUser = chi.URLParam(r, "user")
+	return tk, nil
 }

@@ -45,21 +45,21 @@ func TestFGAClient(t *testing.T) {
 			if tk.Test != "check" {
 				continue
 			}
-			for _, checkAction := range tk.Checks {
-				expect := true
-				if strings.HasPrefix(checkAction, "+") {
-					checkAction = strings.TrimPrefix(checkAction, "+")
-				} else if strings.HasPrefix(checkAction, "-") {
-					expect = false
-					checkAction = strings.TrimPrefix(checkAction, "-")
-				}
-				var err error
-				tk := tk
-				tk.TupleKey.Action, err = ActionString(checkAction)
-				if err != nil {
-					t.Fatal(err)
-				}
-				t.Run(tk.String(), func(t *testing.T) {
+			t.Run(tk.String(), func(t *testing.T) {
+				for _, checkAction := range tk.Checks {
+					expect := true
+					if strings.HasPrefix(checkAction, "+") {
+						checkAction = strings.TrimPrefix(checkAction, "+")
+					} else if strings.HasPrefix(checkAction, "-") {
+						expect = false
+						checkAction = strings.TrimPrefix(checkAction, "-")
+					}
+					var err error
+					tk := tk
+					tk.TupleKey.Action, err = ActionString(checkAction)
+					if err != nil {
+						t.Fatal(err)
+					}
 					ok, err := fgac.Check(context.Background(), tk.TupleKey)
 					if err != nil {
 						t.Fatal(err)
@@ -70,8 +70,8 @@ func TestFGAClient(t *testing.T) {
 					if !ok && expect {
 						t.Errorf("got %t, expected %t", ok, expect)
 					}
-				})
-			}
+				}
+			})
 		}
 	})
 
@@ -81,13 +81,13 @@ func TestFGAClient(t *testing.T) {
 			if tk.Test != "list" {
 				continue
 			}
-			for _, checkAction := range tk.Checks {
-				tk := tk
-				tk.TupleKey.Action, err = ActionString(checkAction)
-				if err != nil {
-					t.Fatal(err)
-				}
-				t.Run(tk.String(), func(t *testing.T) {
+			t.Run(tk.String(), func(t *testing.T) {
+				for _, checkAction := range tk.Checks {
+					tk := tk
+					tk.TupleKey.Action, err = ActionString(checkAction)
+					if err != nil {
+						t.Fatal(err)
+					}
 					objs, err := fgac.ListObjects(context.Background(), tk.TupleKey)
 					if err != nil {
 						t.Fatal(err)
@@ -98,8 +98,8 @@ func TestFGAClient(t *testing.T) {
 					}
 					expIds := mapStrInt(tk.Expect)
 					assert.ElementsMatch(t, expIds, gotIds, "object ids")
-				})
-			}
+				}
+			})
 		}
 	})
 

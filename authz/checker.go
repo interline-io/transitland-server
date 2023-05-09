@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/internal/ecache"
 	"github.com/interline-io/transitland-server/model"
@@ -374,6 +375,7 @@ func (c *Checker) getObjectTuples(ctx context.Context, user auth.User, checkActi
 }
 
 func (c *Checker) addObjectTuple(ctx context.Context, checkUser auth.User, checkAction Action, tk TupleKey) error {
+	log.Trace().Str("tk", tk.String()).Msg("addObjectTuple")
 	checkTk := TupleKey{}.WithUser(checkUser.Name()).WithObject(tk.ObjectType, tk.ObjectName).WithAction(checkAction)
 	if ok, err := c.checkObject(ctx, checkTk); err != nil {
 		return err
@@ -384,6 +386,7 @@ func (c *Checker) addObjectTuple(ctx context.Context, checkUser auth.User, check
 }
 
 func (c *Checker) removeObjectTuple(ctx context.Context, checkUser auth.User, checkAction Action, tk TupleKey) error {
+	log.Trace().Str("tk", tk.String()).Msg("removeObjectTuple")
 	checkTk := TupleKey{}.WithUser(checkUser.Name()).WithObject(tk.ObjectType, tk.ObjectName).WithAction(checkAction)
 	if ok, err := c.checkObject(ctx, checkTk); err != nil {
 		return err

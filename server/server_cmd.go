@@ -251,7 +251,7 @@ func (cmd *Command) Run() error {
 	// Setup CORS
 	root.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
 		AllowCredentials: true,
 	}))
