@@ -36,6 +36,9 @@ func NewFGAClient(storeId string, modelId string, endpoint string) (*FGAClient, 
 }
 
 func (c *FGAClient) Check(ctx context.Context, tk TupleKey) (bool, error) {
+	if err := tk.Validate(); err != nil {
+		return false, err
+	}
 	body := openfga.CheckRequest{
 		AuthorizationModelId: openfga.PtrString(c.Model),
 		TupleKey:             tk.FGATupleKey(),
@@ -48,6 +51,9 @@ func (c *FGAClient) Check(ctx context.Context, tk TupleKey) (bool, error) {
 }
 
 func (c *FGAClient) WriteTuple(ctx context.Context, tk TupleKey) error {
+	if err := tk.Validate(); err != nil {
+		return err
+	}
 	body := openfga.WriteRequest{
 		Writes:               &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
 		AuthorizationModelId: openfga.PtrString(c.Model),
@@ -57,6 +63,9 @@ func (c *FGAClient) WriteTuple(ctx context.Context, tk TupleKey) error {
 }
 
 func (c *FGAClient) DeleteTuple(ctx context.Context, tk TupleKey) error {
+	if err := tk.Validate(); err != nil {
+		return err
+	}
 	body := openfga.WriteRequest{
 		Deletes:              &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
 		AuthorizationModelId: openfga.PtrString(c.Model),
@@ -109,6 +118,9 @@ func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, e
 }
 
 func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKey, error) {
+	if err := tk.Validate(); err != nil {
+		return nil, err
+	}
 	fgatk := tk.FGATupleKey()
 	body := openfga.ReadRequest{
 		TupleKey: &fgatk,

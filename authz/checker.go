@@ -360,21 +360,6 @@ func (c *Checker) listObjectIds(ctx context.Context, user auth.User, objectType 
 	return ret, nil
 }
 
-func (c *Checker) listObjectNames(ctx context.Context, user auth.User, objectType ObjectType, action Action) ([]string, error) {
-	objTks, err := c.listObjects(ctx, user, objectType, action)
-	if err != nil {
-		return nil, err
-	}
-	var ret []string
-	for _, tk := range objTks {
-		if err != nil {
-			return nil, err
-		}
-		ret = append(ret, tk.ObjectName)
-	}
-	return ret, nil
-}
-
 func (c *Checker) checkObject(ctx context.Context, tk TupleKey) (bool, error) {
 	return c.authz.Check(ctx, tk)
 }

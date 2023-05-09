@@ -1,11 +1,10 @@
 package authz
 
 import (
+	"errors"
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/interline-io/transitland-lib/tlcsv"
 	openfga "github.com/openfga/go-sdk"
 )
 
@@ -24,50 +23,6 @@ type TupleKey struct {
 	Relation   Relation   `json:"relation"`
 }
 
-type TestTupleKey struct {
-	TupleKey
-	Line        int
-	Checks      []string
-	Test        string
-	Expect      string
-	Notes       string
-	ExpectError bool
-	TestAsUser  string
-}
-
-func LoadTuples(fn string) ([]TestTupleKey, error) {
-	tkeys := []TestTupleKey{}
-	if f, err := os.Open(fn); err != nil {
-		return nil, err
-	} else {
-		tlcsv.ReadRows(f, func(row tlcsv.Row) {
-			tk := TestTupleKey{}
-			tk.Line = row.Line
-			tk.UserType = csplit(rowGetString(row, "user")).Type
-			tk.UserName = csplit(rowGetString(row, "user")).Name
-			tk.ObjectType = csplit(rowGetString(row, "object")).Type
-			tk.ObjectName = csplit(rowGetString(row, "object")).Name
-			tk.Relation, _ = RelationString(rowGetString(row, "relation"))
-			tk.Action, _ = ActionString(rowGetString(row, "action"))
-			tk.Checks = strings.Split(rowGetString(row, "check_actions"), " ")
-			tk.Test = rowGetString(row, "test")
-			tk.Expect = rowGetString(row, "expect")
-			tk.Notes = rowGetString(row, "notes")
-			tk.TestAsUser = rowGetString(row, "test_as_user")
-			if rowGetString(row, "expect_error") == "true" {
-				tk.ExpectError = true
-			}
-			tkeys = append(tkeys, tk)
-		})
-	}
-	return tkeys, nil
-}
-
-func rowGetString(row tlcsv.Row, col string) string {
-	a, _ := row.Get(col)
-	return a
-}
-
 func (tk TupleKey) String() string {
 	r := "relation:" + tk.Relation.String()
 	if tk.Action.IsAAction() {
@@ -77,16 +32,28 @@ func (tk TupleKey) String() string {
 }
 
 func (tk TupleKey) IsValid() bool {
+	return tk.Validate() == nil
+}
+
+func (tk TupleKey) Validate() error {
 	if tk.UserName != "" && !tk.UserType.IsAObjectType() {
-		return false
+		return errors.New("invalid user type")
 	}
 	if tk.ObjectName != "" && !tk.ObjectType.IsAObjectType() {
-		return false
+		return errors.New("invalid object type")
 	}
 	if tk.UserName == "" && tk.ObjectName == "" {
-		return false
+		return errors.New("user name or object name is required")
 	}
-	return tk.Relation.IsARelation() || tk.Action.IsAAction()
+	if tk.UserName != "" && tk.ObjectName != "" {
+		if tk.Action == 0 && !tk.Relation.IsARelation() {
+			return errors.New("invalid relation")
+		}
+		if tk.Relation == 0 && !tk.Action.IsAAction() {
+			return errors.New("invalid action")
+		}
+	}
+	return nil
 }
 
 func (tk TupleKey) WithUser(user string) TupleKey {

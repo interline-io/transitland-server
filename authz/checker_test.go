@@ -7,43 +7,18 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/testfinder"
-	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestChecker(t testing.TB, cfg AuthzConfig, finder model.Finder) (*Checker, error) {
-	auth0c := NewMockAuthnClient()
-	fgac, err := newTestFGAClient(t, cfg)
-	if err != nil {
-		return nil, err
-	}
-	checker := NewChecker(auth0c, fgac, finder, nil)
-	return checker, err
-}
-
 func TestChecker(t *testing.T) {
-	te := testfinder.Finders(t, nil, nil)
-	cfg := newTestConfig()
-	cfg.FGAEndpoint = "http://localhost:8090"
-	cfg.FGATestModelPath = "../test/authz/tls.model"
-	cfg.FGATestTuplesPath = "../test/authz/tls.csv"
-	checker, err := newTestChecker(t, cfg, te.Finder)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	// Test assertions
 	checks, err := LoadTuples("../test/authz/tls.csv")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	type listTest struct {
-		user      string
-		expectIds []int
-	}
-
 	t.Run("ListFeeds", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "list" || tk.ObjectType != FeedType {
 				continue
@@ -65,6 +40,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("ListFeedVersions", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "list" || tk.ObjectType != FeedVersionType {
 				continue
@@ -86,6 +62,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("ListGroups", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "list" || tk.ObjectType != GroupType {
 				continue
@@ -100,13 +77,14 @@ func TestChecker(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					assert.ElementsMatch(t, mapStrInt(tk.Expect), ret, "feed ids")
+					assert.ElementsMatch(t, mapStrInt(tk.Expect), ret, "group ids")
 				})
 			}
 		}
 	})
 
 	t.Run("ListTenants", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "list" || tk.ObjectType != TenantType {
 				continue
@@ -121,13 +99,14 @@ func TestChecker(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					assert.ElementsMatch(t, mapStrInt(tk.Expect), ret, "feed ids")
+					assert.ElementsMatch(t, mapStrInt(tk.Expect), ret, "tenant ids")
 				})
 			}
 		}
 	})
 
 	t.Run("FeedPermissions", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "check" || tk.ObjectType != FeedType {
 				continue
@@ -138,7 +117,7 @@ func TestChecker(t *testing.T) {
 					newTestUser(tk.UserName),
 					atoi(tk.ObjectName),
 				)
-				checkExpectError(t, err, tk.ExpectError)
+				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
 					return
 				}
@@ -148,6 +127,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedVersionPermissions", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "check" || tk.ObjectType != FeedVersionType {
 				continue
@@ -158,7 +138,7 @@ func TestChecker(t *testing.T) {
 					newTestUser(tk.UserName),
 					atoi(tk.ObjectName),
 				)
-				checkExpectError(t, err, tk.ExpectError)
+				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
 					return
 				}
@@ -168,6 +148,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupPermissions", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "check" || tk.ObjectType != GroupType {
 				continue
@@ -178,7 +159,7 @@ func TestChecker(t *testing.T) {
 					newTestUser(tk.UserName),
 					atoi(tk.ObjectName),
 				)
-				checkExpectError(t, err, tk.ExpectError)
+				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
 					return
 				}
@@ -188,6 +169,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantPermissions", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "check" || tk.ObjectType != TenantType {
 				continue
@@ -198,7 +180,7 @@ func TestChecker(t *testing.T) {
 					newTestUser(tk.UserName),
 					atoi(tk.ObjectName),
 				)
-				checkExpectError(t, err, tk.ExpectError)
+				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
 					return
 				}
@@ -208,19 +190,20 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("AddFeedPermission", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "write" || tk.ObjectType != FeedType {
 				continue
 			}
 			t.Run(tk.String(), func(t *testing.T) {
-				err := checker.AddFeedVersionPermission(
+				err := checker.AddFeedPermission(
 					context.Background(),
-					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
 					atoi(tk.ObjectName),
 					tk.Relation,
 				)
-				checkExpectError(t, err, tk.ExpectError)
+				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
 					return
 				}
@@ -229,20 +212,20 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("RemoveFeedPermission", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "delete" || tk.ObjectType != FeedType {
 				continue
 			}
 			t.Run(tk.String(), func(t *testing.T) {
-				err := checker.RemoveFeedVersionPermission(
+				err := checker.RemoveFeedPermission(
 					context.Background(),
-					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
 					atoi(tk.ObjectName),
 					tk.Relation,
 				)
-				checkExpectError(t, err, tk.ExpectError)
-				if err != nil {
+				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
 					return
 				}
 			})
@@ -250,6 +233,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("AddFeedVersionPermission", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "write" || tk.ObjectType != FeedVersionType {
 				continue
@@ -257,13 +241,12 @@ func TestChecker(t *testing.T) {
 			t.Run(tk.String(), func(t *testing.T) {
 				err := checker.AddFeedVersionPermission(
 					context.Background(),
-					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
 					atoi(tk.ObjectName),
 					tk.Relation,
 				)
-				checkExpectError(t, err, tk.ExpectError)
-				if err != nil {
+				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
 					return
 				}
 			})
@@ -271,6 +254,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("RemoveFeedVersionPermission", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "delete" || tk.ObjectType != FeedVersionType {
 				continue
@@ -278,13 +262,12 @@ func TestChecker(t *testing.T) {
 			t.Run(tk.String(), func(t *testing.T) {
 				err := checker.RemoveFeedVersionPermission(
 					context.Background(),
-					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
 					atoi(tk.ObjectName),
 					tk.Relation,
 				)
-				checkExpectError(t, err, tk.ExpectError)
-				if err != nil {
+				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
 					return
 				}
 			})
@@ -292,6 +275,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("AddTenantPermission", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "write" || tk.ObjectType != TenantType {
 				continue
@@ -299,13 +283,12 @@ func TestChecker(t *testing.T) {
 			t.Run(tk.String(), func(t *testing.T) {
 				err := checker.AddTenantPermission(
 					context.Background(),
-					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
 					atoi(tk.ObjectName),
 					tk.Relation,
 				)
-				checkExpectError(t, err, tk.ExpectError)
-				if err != nil {
+				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
 					return
 				}
 			})
@@ -313,6 +296,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("RemoveTenantPermission", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "delete" || tk.ObjectType != TenantType {
 				continue
@@ -320,13 +304,12 @@ func TestChecker(t *testing.T) {
 			t.Run(tk.String(), func(t *testing.T) {
 				err := checker.RemoveTenantPermission(
 					context.Background(),
-					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
 					atoi(tk.ObjectName),
 					tk.Relation,
 				)
-				checkExpectError(t, err, tk.ExpectError)
-				if err != nil {
+				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
 					return
 				}
 			})
@@ -334,6 +317,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("AddGroupPermission", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "write" || tk.ObjectType != GroupType {
 				continue
@@ -341,13 +325,12 @@ func TestChecker(t *testing.T) {
 			t.Run(tk.String(), func(t *testing.T) {
 				err := checker.AddGroupPermission(
 					context.Background(),
-					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
 					atoi(tk.ObjectName),
 					tk.Relation,
 				)
-				checkExpectError(t, err, tk.ExpectError)
-				if err != nil {
+				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
 					return
 				}
 			})
@@ -355,6 +338,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("RemoveGroupPermission", func(t *testing.T) {
+		checker := newTestChecker(t)
 		for _, tk := range checks {
 			if tk.Test != "delete" || tk.ObjectType != GroupType {
 				continue
@@ -362,13 +346,12 @@ func TestChecker(t *testing.T) {
 			t.Run(tk.String(), func(t *testing.T) {
 				err := checker.RemoveGroupPermission(
 					context.Background(),
-					newTestUser(stringOr(tk.TestAsUser, tk.UserName)),
+					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
 					atoi(tk.ObjectName),
 					tk.Relation,
 				)
-				checkExpectError(t, err, tk.ExpectError)
-				if err != nil {
+				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
 					return
 				}
 			})
@@ -382,22 +365,6 @@ func stringOr(a, b string) string {
 		return a
 	}
 	return b
-}
-
-func compareAsJson(t testing.TB, j1 any, j2 any) {
-	// Compare as json to make test simpler
-	jj1, _ := json.Marshal(j1)
-	jj2, _ := json.Marshal(j2)
-	assert.JSONEq(t, string(jj1), string(jj2))
-}
-
-func checkExpectError(t testing.TB, err error, expect bool) {
-	if err != nil && !expect {
-		t.Errorf("got error '%s', did not expect error", err.Error())
-	}
-	if err == nil && expect {
-		t.Errorf("got no error, expected error")
-	}
 }
 
 func checkActionSubset(t testing.TB, actions any, checks []string) {
@@ -456,4 +423,12 @@ func checkActionsToMap(v []string) map[string]bool {
 		ret[checkAction] = expect
 	}
 	return ret
+}
+
+func newTestChecker(t testing.TB) *Checker {
+	te := testfinder.Finders(t, nil, nil)
+	auth0c := NewMockAuthnClient()
+	fgac := newTestFGAClient(t)
+	checker := NewChecker(auth0c, fgac, te.Finder, nil)
+	return checker
 }
