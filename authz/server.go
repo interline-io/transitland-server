@@ -20,7 +20,10 @@ func NewServer(checker *Checker) (http.Handler, error) {
 
 	r.Get("/tenants", wrapHandler(tenantIndexHandler, checker))
 	r.Get("/tenants/{tenant_id}", wrapHandler(tenantPermissionsHandler, checker))
+	r.Post("/tenants/{tenant_id}", wrapHandler(tenantSaveHandler, checker))
 	r.Post("/tenants/{tenant_id}/groups", wrapHandler(tenantCreateGroupHandler, checker))
+	r.Post("/tenants/{tenant_id}/permissions/{relation}/{user}", wrapHandler(tenantAddPermissionsHandler, checker))
+	r.Delete("/tenants/{tenant_id}/permissions/{relation}/{user}", wrapHandler(tenantRemovePermissionsHandler, checker))
 
 	r.Get("/groups", wrapHandler(groupIndexHandler, checker))
 	r.Post("/groups/{group_id}", wrapHandler(groupSave, checker))
@@ -101,13 +104,33 @@ func tenantCreateGroupHandler(w http.ResponseWriter, r *http.Request, checker *C
 	handleJson(w, nil, err)
 }
 
-func groupSave(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkReq := GroupResponse{}
+func tenantSaveHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	checkReq := TenantResponse{}
 	if err := parseJson(r.Body, &checkReq); err != nil {
 		handleJson(w, nil, err)
 		return
 	}
-	_, err := checker.GroupSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "group_id"), checkReq.Name)
+	_, err := checker.TenantSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "tenant_id"), checkReq.Name)
+	handleJson(w, nil, err)
+}
+
+func tenantAddPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	checkRel, err := checkRelParams(r, "tenant_id")
+	if err != nil {
+		handleJson(w, nil, err)
+		return
+	}
+	err = checker.TenantAddPermission(r.Context(), checkRel.User, checkRel.ID, checkRel.RelUser, checkRel.Relation)
+	handleJson(w, nil, err)
+}
+
+func tenantRemovePermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	checkRel, err := checkRelParams(r, "tenant_id")
+	if err != nil {
+		handleJson(w, nil, err)
+		return
+	}
+	err = checker.TenantRemovePermission(r.Context(), checkRel.User, checkRel.ID, checkRel.RelUser, checkRel.Relation)
 	handleJson(w, nil, err)
 }
 
@@ -145,14 +168,24 @@ func groupRemovePermissionsHandler(w http.ResponseWriter, r *http.Request, check
 	handleJson(w, nil, err)
 }
 
-func feedIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.ListFeeds(r.Context(), auth.ForContext(r.Context()))
-	handleJson(w, ret, err)
+func groupSave(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	checkReq := GroupResponse{}
+	if err := parseJson(r.Body, &checkReq); err != nil {
+		handleJson(w, nil, err)
+		return
+	}
+	_, err := checker.GroupSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "group_id"), checkReq.Name)
+	handleJson(w, nil, err)
 }
 
 ////////////
 // Feeds
 ////////////
+
+func feedIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
+	ret, err := checker.ListFeeds(r.Context(), auth.ForContext(r.Context()))
+	handleJson(w, ret, err)
+}
 
 func feedSetGroupHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
 	checkParams := struct {
