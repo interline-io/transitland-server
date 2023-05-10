@@ -56,6 +56,15 @@ func (tk TupleKey) Validate() error {
 	return nil
 }
 
+func (tk TupleKey) ActionOrRelation() string {
+	if tk.Action.IsAAction() {
+		return tk.Action.String()
+	} else if tk.Relation.IsARelation() {
+		return tk.Relation.String()
+	}
+	return ""
+}
+
 func (tk TupleKey) WithUser(user string) TupleKey {
 	return TupleKey{
 		UserType:   UserType,

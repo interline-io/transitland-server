@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os/exec"
 
+	"github.com/interline-io/transitland-lib/log"
 	openfga "github.com/openfga/go-sdk"
 )
 
@@ -50,53 +51,11 @@ func (c *FGAClient) Check(ctx context.Context, tk TupleKey) (bool, error) {
 	return data.GetAllowed(), nil
 }
 
-func (c *FGAClient) WriteTuple(ctx context.Context, tk TupleKey) error {
-	if err := tk.Validate(); err != nil {
-		return err
-	}
-	body := openfga.WriteRequest{
-		Writes:               &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
-		AuthorizationModelId: openfga.PtrString(c.Model),
-	}
-	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()
-	return err
-}
-
-func (c *FGAClient) DeleteTuple(ctx context.Context, tk TupleKey) error {
-	if err := tk.Validate(); err != nil {
-		return err
-	}
-	body := openfga.WriteRequest{
-		Deletes:              &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
-		AuthorizationModelId: openfga.PtrString(c.Model),
-	}
-	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()
-	return err
-}
-
-func (c *FGAClient) CreateModel(ctx context.Context, fn string) (string, error) {
-	dslJson, err := dslToJson(fn)
-	if err != nil {
-		return "", err
-	}
-	var body openfga.WriteAuthorizationModelRequest
-	if err := json.Unmarshal([]byte(dslJson), &body); err != nil {
-		return "", err
-	}
-	modelId := ""
-	if resp, _, err := c.client.OpenFgaApi.WriteAuthorizationModel(context.Background()).Body(body).Execute(); err != nil {
-		return "", err
-	} else {
-		modelId = resp.GetAuthorizationModelId()
-	}
-	return modelId, nil
-}
-
 func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, error) {
 	body := openfga.ListObjectsRequest{
 		AuthorizationModelId: openfga.PtrString(c.Model),
 		User:                 cunsplit(tk.UserType, tk.UserName),
-		Relation:             tk.Action.String(),
+		Relation:             tk.ActionOrRelation(),
 		Type:                 tk.ObjectType.String(),
 	}
 	data, _, err := c.client.OpenFgaApi.ListObjects(context.Background()).Body(body).Execute()
@@ -134,6 +93,86 @@ func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKe
 		ret = append(ret, fromFGATupleKey(t.GetKey()))
 	}
 	return ret, nil
+}
+
+func (c *FGAClient) ReplaceTuple(ctx context.Context, tk TupleKey) error {
+	if err := tk.Validate(); err != nil {
+		log.Error().Err(err).Str("tk", tk.String()).Msg("ReplaceTuple")
+		return err
+	}
+	log.Trace().Str("tk", tk.String()).Msg("ReplaceTuple")
+
+	// Write new tuple before deleting others
+	var errs []error
+	if err := c.WriteTuple(ctx, tk); err != nil {
+		errs = append(errs, err)
+	}
+
+	// Delete other tuples
+	delKeys, err := c.GetObjectTuples(ctx, TupleKey{}.WithObject(tk.ObjectType, tk.ObjectName))
+	if err != nil {
+		errs = append(errs, err)
+	}
+	for _, k := range delKeys {
+		if k.UserType == tk.UserType && k.UserName == tk.UserName && k.Relation != tk.Relation {
+			if err := c.DeleteTuple(ctx, k); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+	for _, err := range errs {
+		log.Trace().Err(err).Str("tk", tk.String()).Msg("ReplaceTuple")
+	}
+	if len(errs) > 0 {
+		return errs[0]
+	}
+	return nil
+}
+
+func (c *FGAClient) WriteTuple(ctx context.Context, tk TupleKey) error {
+	if err := tk.Validate(); err != nil {
+		log.Error().Str("tk", tk.String()).Msg("WriteTuple")
+		return err
+	}
+	log.Trace().Str("tk", tk.String()).Msg("WriteTuple")
+	body := openfga.WriteRequest{
+		Writes:               &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
+		AuthorizationModelId: openfga.PtrString(c.Model),
+	}
+	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()
+	return err
+}
+
+func (c *FGAClient) DeleteTuple(ctx context.Context, tk TupleKey) error {
+	if err := tk.Validate(); err != nil {
+		log.Error().Err(err).Str("tk", tk.String()).Msg("DeleteTuple")
+		return err
+	}
+	log.Trace().Str("tk", tk.String()).Msg("DeleteTuple")
+	body := openfga.WriteRequest{
+		Deletes:              &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
+		AuthorizationModelId: openfga.PtrString(c.Model),
+	}
+	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()
+	return err
+}
+
+func (c *FGAClient) CreateModel(ctx context.Context, fn string) (string, error) {
+	dslJson, err := dslToJson(fn)
+	if err != nil {
+		return "", err
+	}
+	var body openfga.WriteAuthorizationModelRequest
+	if err := json.Unmarshal([]byte(dslJson), &body); err != nil {
+		return "", err
+	}
+	modelId := ""
+	if resp, _, err := c.client.OpenFgaApi.WriteAuthorizationModel(context.Background()).Body(body).Execute(); err != nil {
+		return "", err
+	} else {
+		modelId = resp.GetAuthorizationModelId()
+	}
+	return modelId, nil
 }
 
 func dslToJson(fn string) (string, error) {

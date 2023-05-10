@@ -27,6 +27,7 @@ type feed
     define manager: manager from parent
     define editor: editor from parent
     define viewer: viewer from parent
+    define can_set_group: manager
     define can_create_feed_version: editor
     define can_delete_feed_version: editor
     define can_edit: editor

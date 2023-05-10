@@ -300,7 +300,7 @@ func (cmd *Command) Run() error {
 
 	// Admin API
 	if cmd.EnableAdminApi {
-		checker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig)
+		checker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig, dbFinder, redisClient)
 		if err != nil {
 			return err
 		}
