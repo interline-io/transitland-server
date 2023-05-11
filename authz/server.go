@@ -230,7 +230,8 @@ type checkRel struct {
 }
 
 func checkId(r *http.Request, key string) int {
-	return atoi(chi.URLParam(r, key))
+	v, _ := strconv.Atoi(chi.URLParam(r, key))
+	return v
 }
 
 func checkRelParams(r *http.Request, idKey string) (checkRel, error) {

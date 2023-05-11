@@ -94,7 +94,7 @@ func TestFGAClient(t *testing.T) {
 					}
 					var gotIds []int
 					for _, v := range objs {
-						gotIds = append(gotIds, atoi(v.ObjectName))
+						gotIds = append(gotIds, v.ObjectID())
 					}
 					expIds := mapStrInt(tk.Expect)
 					assert.ElementsMatch(t, expIds, gotIds, "object ids")

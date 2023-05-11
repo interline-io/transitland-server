@@ -3,6 +3,7 @@ package authz
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -115,7 +116,7 @@ func TestChecker(t *testing.T) {
 				ret, err := checker.FeedPermissions(
 					context.Background(),
 					newTestUser(tk.UserName),
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 				)
 				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
@@ -136,7 +137,7 @@ func TestChecker(t *testing.T) {
 				ret, err := checker.FeedVersionPermissions(
 					context.Background(),
 					newTestUser(tk.UserName),
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 				)
 				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
@@ -157,7 +158,7 @@ func TestChecker(t *testing.T) {
 				ret, err := checker.GroupPermissions(
 					context.Background(),
 					newTestUser(tk.UserName),
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 				)
 				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
@@ -178,7 +179,7 @@ func TestChecker(t *testing.T) {
 				ret, err := checker.TenantPermissions(
 					context.Background(),
 					newTestUser(tk.UserName),
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 				)
 				checkExpectError(t, err, tk.ExpectErrorAsUser)
 				if err != nil {
@@ -200,7 +201,7 @@ func TestChecker(t *testing.T) {
 					context.Background(),
 					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 					tk.Relation,
 				)
 				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
@@ -221,7 +222,7 @@ func TestChecker(t *testing.T) {
 					context.Background(),
 					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 					tk.Relation,
 				)
 				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
@@ -241,7 +242,7 @@ func TestChecker(t *testing.T) {
 				err := checker.TenantAddPermission(
 					context.Background(),
 					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 					tk.UserName,
 					tk.Relation,
 				)
@@ -262,7 +263,7 @@ func TestChecker(t *testing.T) {
 				err := checker.TenantRemovePermission(
 					context.Background(),
 					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 					tk.UserName,
 					tk.Relation,
 				)
@@ -284,7 +285,7 @@ func TestChecker(t *testing.T) {
 					context.Background(),
 					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 					tk.Relation,
 				)
 				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
@@ -305,7 +306,7 @@ func TestChecker(t *testing.T) {
 					context.Background(),
 					newTestUser(stringOr(tk.CheckAsUser, tk.UserName)),
 					tk.UserName,
-					atoi(tk.ObjectName),
+					tk.ObjectID(),
 					tk.Relation,
 				)
 				if !checkExpectError(t, err, tk.ExpectErrorAsUser) {
@@ -362,7 +363,8 @@ func mapStrInt(v string) []int {
 		if a == "" {
 			continue
 		}
-		ret = append(ret, atoi(a))
+		ai, _ := strconv.Atoi(a)
+		ret = append(ret, ai)
 	}
 	return ret
 }

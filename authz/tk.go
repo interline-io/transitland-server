@@ -3,6 +3,7 @@ package authz
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	openfga "github.com/openfga/go-sdk"
@@ -29,6 +30,15 @@ func (tk TupleKey) String() string {
 		r = "action:" + tk.Action.String()
 	}
 	return fmt.Sprintf("%s:%s|%s:%s|%s", tk.UserType.String(), tk.UserName, tk.ObjectType.String(), tk.ObjectName, r)
+}
+
+func (tk TupleKey) UserID() int {
+	v, _ := strconv.Atoi(tk.UserName)
+	return v
+}
+
+func (tk TupleKey) ObjectID() int {
+	return tk.ObjectID()
 }
 
 func (tk TupleKey) IsValid() bool {
@@ -65,7 +75,7 @@ func (tk TupleKey) ActionOrRelation() string {
 	return ""
 }
 
-func (tk TupleKey) WithUser(user string) TupleKey {
+func (tk TupleKey) WithUserName(user string) TupleKey {
 	return TupleKey{
 		UserType:   UserType,
 		UserName:   user,
@@ -74,6 +84,21 @@ func (tk TupleKey) WithUser(user string) TupleKey {
 		Relation:   tk.Relation,
 		Action:     tk.Action,
 	}
+}
+
+func (tk TupleKey) WithUser(userType ObjectType, userName string) TupleKey {
+	return TupleKey{
+		UserType:   userType,
+		UserName:   userName,
+		ObjectType: tk.ObjectType,
+		ObjectName: tk.ObjectName,
+		Relation:   tk.Relation,
+		Action:     tk.Action,
+	}
+}
+
+func (tk TupleKey) WithUserID(userType ObjectType, userId int) TupleKey {
+	return tk.WithUser(userType, strconv.Itoa(userId))
 }
 
 func (tk TupleKey) WithObject(objectType ObjectType, objectName string) TupleKey {
@@ -85,7 +110,10 @@ func (tk TupleKey) WithObject(objectType ObjectType, objectName string) TupleKey
 		Relation:   tk.Relation,
 		Action:     tk.Action,
 	}
+}
 
+func (tk TupleKey) WithObjectID(objectType ObjectType, objectId int) TupleKey {
+	return tk.WithObject(objectType, strconv.Itoa(objectId))
 }
 
 func (tk TupleKey) WithRelation(relation Relation) TupleKey {
@@ -163,4 +191,12 @@ func cunsplit(a ObjectType, b string) string {
 		return a.String()
 	}
 	return fmt.Sprintf("%s:%s", a.String(), b)
+}
+
+func tkObjectIds(tks []TupleKey) []int {
+	var ret []int
+	for _, tk := range tks {
+		ret = append(ret, tk.ObjectID())
+	}
+	return ret
 }
