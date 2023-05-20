@@ -9,4 +9,5 @@ type AuthzConfig struct {
 	FGAEndpoint       string
 	FGATestModelPath  string
 	FGATestTuplesPath string
+	GlobalAdmin       string
 }

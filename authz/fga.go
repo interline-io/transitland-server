@@ -54,9 +54,9 @@ func (c *FGAClient) Check(ctx context.Context, tk TupleKey) (bool, error) {
 func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, error) {
 	body := openfga.ListObjectsRequest{
 		AuthorizationModelId: openfga.PtrString(c.Model),
-		User:                 cunsplit(tk.UserType, tk.UserName),
+		User:                 cunsplit(tk.Subject.Type, tk.Subject.Name),
 		Relation:             tk.ActionOrRelation(),
-		Type:                 tk.ObjectType.String(),
+		Type:                 tk.Object.Type.String(),
 	}
 	data, _, err := c.client.OpenFgaApi.ListObjects(context.Background()).Body(body).Execute()
 	if err != nil {
@@ -66,11 +66,9 @@ func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, e
 	for _, v := range data.GetObjects() {
 		okey := csplit(v)
 		ret = append(ret, TupleKey{
-			UserType:   tk.UserType,
-			UserName:   tk.UserName,
-			ObjectType: okey.Type,
-			ObjectName: okey.Name,
-			Action:     tk.Action,
+			Subject: NewEntityKey(tk.Subject.Type, tk.Subject.Name),
+			Object:  NewEntityKey(okey.Type, okey.Name),
+			Action:  tk.Action,
 		})
 	}
 	return ret, nil
@@ -84,6 +82,7 @@ func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKe
 	body := openfga.ReadRequest{
 		TupleKey: &fgatk,
 	}
+
 	data, _, err := c.client.OpenFgaApi.Read(ctx).Body(body).Execute()
 	if err != nil {
 		return nil, err
@@ -109,12 +108,12 @@ func (c *FGAClient) ReplaceTuple(ctx context.Context, tk TupleKey) error {
 	}
 
 	// Delete other tuples
-	delKeys, err := c.GetObjectTuples(ctx, TupleKey{}.WithObject(tk.ObjectType, tk.ObjectName))
+	delKeys, err := c.GetObjectTuples(ctx, NewTupleKey().WithObject(tk.Object.Type, tk.Object.Name))
 	if err != nil {
 		errs = append(errs, err)
 	}
 	for _, k := range delKeys {
-		if k.UserType == tk.UserType && k.UserName == tk.UserName && k.Relation != tk.Relation {
+		if k.Subject.Type == tk.Subject.Type && k.Subject.Name == tk.Subject.Name && k.Relation != tk.Relation {
 			if err := c.DeleteTuple(ctx, k); err != nil {
 				errs = append(errs, err)
 			}

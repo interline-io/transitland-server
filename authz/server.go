@@ -99,7 +99,7 @@ func tenantCreateGroupHandler(w http.ResponseWriter, r *http.Request, checker *C
 		handleJson(w, nil, err)
 		return
 	}
-	newId, err := checker.TenantCreateGroup(r.Context(), auth.ForContext(r.Context()), checkId(r, "tenant_id"), checkReq.Name)
+	newId, err := checker.TenantCreateGroup(r.Context(), auth.ForContext(r.Context()), checkId(r, "tenant_id"), checkReq.Name.Val)
 	_ = newId
 	handleJson(w, nil, err)
 }
@@ -110,7 +110,7 @@ func tenantSaveHandler(w http.ResponseWriter, r *http.Request, checker *Checker)
 		handleJson(w, nil, err)
 		return
 	}
-	_, err := checker.TenantSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "tenant_id"), checkReq.Name)
+	_, err := checker.TenantSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "tenant_id"), checkReq.Name.Val)
 	handleJson(w, nil, err)
 }
 
@@ -174,7 +174,7 @@ func groupSave(w http.ResponseWriter, r *http.Request, checker *Checker) {
 		handleJson(w, nil, err)
 		return
 	}
-	_, err := checker.GroupSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "group_id"), checkReq.Name)
+	_, err := checker.GroupSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "group_id"), checkReq.Name.Val)
 	handleJson(w, nil, err)
 }
 

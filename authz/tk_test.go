@@ -33,10 +33,10 @@ func LoadTuples(fn string) ([]TestTupleKey, error) {
 		tlcsv.ReadRows(f, func(row tlcsv.Row) {
 			tk := TestTupleKey{}
 			tk.Line = row.Line
-			tk.UserType = csplit(rowGetString(row, "user")).Type
-			tk.UserName = csplit(rowGetString(row, "user")).Name
-			tk.ObjectType = csplit(rowGetString(row, "object")).Type
-			tk.ObjectName = csplit(rowGetString(row, "object")).Name
+			tk.Subject.Type = csplit(rowGetString(row, "user")).Type
+			tk.Subject.Name = csplit(rowGetString(row, "user")).Name
+			tk.Object.Type = csplit(rowGetString(row, "object")).Type
+			tk.Object.Name = csplit(rowGetString(row, "object")).Name
 			tk.Relation, _ = RelationString(rowGetString(row, "relation"))
 			tk.Action, _ = ActionString(rowGetString(row, "action"))
 			tk.Checks = strings.Split(rowGetString(row, "check_actions"), " ")

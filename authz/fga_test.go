@@ -31,7 +31,7 @@ func TestFGAClient(t *testing.T) {
 				expect := strings.Split(tk.Expect, " ")
 				var got []string
 				for _, v := range tks {
-					got = append(got, fmt.Sprintf("%s:%s:%s", v.UserType, v.UserName, v.Relation))
+					got = append(got, fmt.Sprintf("%s:%s:%s", v.Subject.Type, v.Subject.Name, v.Relation))
 				}
 				assert.ElementsMatch(t, expect, got, "usertype:username:relation does not match")
 
@@ -94,7 +94,7 @@ func TestFGAClient(t *testing.T) {
 					}
 					var gotIds []int
 					for _, v := range objs {
-						gotIds = append(gotIds, v.ObjectID())
+						gotIds = append(gotIds, v.Object.ID())
 					}
 					expIds := mapStrInt(tk.Expect)
 					assert.ElementsMatch(t, expIds, gotIds, "object ids")
@@ -122,9 +122,9 @@ func TestFGAClient(t *testing.T) {
 				}
 				var gotTks []string
 				for _, v := range tks {
-					gotTks = append(gotTks, fmt.Sprintf("%s:%s:%s", v.UserType, v.UserName, v.Relation))
+					gotTks = append(gotTks, fmt.Sprintf("%s:%s:%s", v.Subject.Type, v.Subject.Name, v.Relation))
 				}
-				checkTk := fmt.Sprintf("%s:%s:%s", tk.UserType, tk.UserName, tk.Relation)
+				checkTk := fmt.Sprintf("%s:%s:%s", tk.Subject.Type, tk.Subject.Name, tk.Relation)
 				assert.Contains(t, gotTks, checkTk, "written tuple not found in updated object tuples")
 			})
 		}

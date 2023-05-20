@@ -1,7 +1,6 @@
 package authz
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,30 +14,43 @@ type User struct {
 	Email string `json:"email"`
 }
 
-type TupleKey struct {
-	UserType   ObjectType `json:"user_type"`
-	UserName   string     `json:"user_name"`
-	ObjectType ObjectType `json:"object_type"`
-	ObjectName string     `json:"object_name"`
-	Action     Action     `json:"action"`
-	Relation   Relation   `json:"relation"`
+type EntityKey struct {
+	Type ObjectType `json:"type"`
+	Name string     `json:"name"`
 }
+
+func NewEntityKey(t ObjectType, name string) EntityKey {
+	return EntityKey{Type: t, Name: name}
+}
+
+func NewEntityID(t ObjectType, id int) EntityKey {
+	return EntityKey{Type: t, Name: strconv.Itoa(id)}
+}
+
+func (ek EntityKey) ID() int {
+	v, _ := strconv.Atoi(ek.Name)
+	return v
+}
+
+func (ek EntityKey) String() string {
+	return fmt.Sprintf("%s:%s", ek.Type.String(), ek.Name)
+}
+
+type TupleKey struct {
+	Subject  EntityKey
+	Object   EntityKey
+	Action   Action   `json:"action"`
+	Relation Relation `json:"relation"`
+}
+
+func NewTupleKey() TupleKey { return TupleKey{} }
 
 func (tk TupleKey) String() string {
 	r := "relation:" + tk.Relation.String()
 	if tk.Action.IsAAction() {
 		r = "action:" + tk.Action.String()
 	}
-	return fmt.Sprintf("%s:%s|%s:%s|%s", tk.UserType.String(), tk.UserName, tk.ObjectType.String(), tk.ObjectName, r)
-}
-
-func (tk TupleKey) UserID() int {
-	v, _ := strconv.Atoi(tk.UserName)
-	return v
-}
-
-func (tk TupleKey) ObjectID() int {
-	return tk.ObjectID()
+	return fmt.Sprintf("%s|%s|%s", tk.Subject.String(), tk.Object.String(), r)
 }
 
 func (tk TupleKey) IsValid() bool {
@@ -46,23 +58,23 @@ func (tk TupleKey) IsValid() bool {
 }
 
 func (tk TupleKey) Validate() error {
-	if tk.UserName != "" && !tk.UserType.IsAObjectType() {
-		return errors.New("invalid user type")
-	}
-	if tk.ObjectName != "" && !tk.ObjectType.IsAObjectType() {
-		return errors.New("invalid object type")
-	}
-	if tk.UserName == "" && tk.ObjectName == "" {
-		return errors.New("user name or object name is required")
-	}
-	if tk.UserName != "" && tk.ObjectName != "" {
-		if tk.Action == 0 && !tk.Relation.IsARelation() {
-			return errors.New("invalid relation")
-		}
-		if tk.Relation == 0 && !tk.Action.IsAAction() {
-			return errors.New("invalid action")
-		}
-	}
+	// if tk.SubjectName != "" && !tk.SubjectType.IsAObjectType() {
+	// 	return errors.New("invalid user type")
+	// }
+	// if tk.ObjectName != "" && !tk.ObjectType.IsAObjectType() {
+	// 	return errors.New("invalid object type")
+	// }
+	// if tk.SubjectName == "" && tk.ObjectName == "" {
+	// 	return errors.New("user name or object name is required")
+	// }
+	// if tk.SubjectName != "" && tk.ObjectName != "" {
+	// 	if tk.Action == 0 && !tk.Relation.IsARelation() {
+	// 		return errors.New("invalid relation")
+	// 	}
+	// 	if tk.Relation == 0 && !tk.Action.IsAAction() {
+	// 		return errors.New("invalid action")
+	// 	}
+	// }
 	return nil
 }
 
@@ -75,40 +87,34 @@ func (tk TupleKey) ActionOrRelation() string {
 	return ""
 }
 
-func (tk TupleKey) WithUserName(user string) TupleKey {
+func (tk TupleKey) WithUser(user string) TupleKey {
 	return TupleKey{
-		UserType:   UserType,
-		UserName:   user,
-		ObjectType: tk.ObjectType,
-		ObjectName: tk.ObjectName,
-		Relation:   tk.Relation,
-		Action:     tk.Action,
+		Subject:  NewEntityKey(UserType, user),
+		Object:   tk.Object,
+		Relation: tk.Relation,
+		Action:   tk.Action,
 	}
 }
 
-func (tk TupleKey) WithUser(userType ObjectType, userName string) TupleKey {
+func (tk TupleKey) WithSubject(userType ObjectType, userName string) TupleKey {
 	return TupleKey{
-		UserType:   userType,
-		UserName:   userName,
-		ObjectType: tk.ObjectType,
-		ObjectName: tk.ObjectName,
-		Relation:   tk.Relation,
-		Action:     tk.Action,
+		Subject:  NewEntityKey(userType, userName),
+		Object:   tk.Object,
+		Relation: tk.Relation,
+		Action:   tk.Action,
 	}
 }
 
-func (tk TupleKey) WithUserID(userType ObjectType, userId int) TupleKey {
-	return tk.WithUser(userType, strconv.Itoa(userId))
+func (tk TupleKey) WithSubjectID(userType ObjectType, userId int) TupleKey {
+	return tk.WithSubject(userType, strconv.Itoa(userId))
 }
 
 func (tk TupleKey) WithObject(objectType ObjectType, objectName string) TupleKey {
 	return TupleKey{
-		UserType:   tk.UserType,
-		UserName:   tk.UserName,
-		ObjectType: objectType,
-		ObjectName: objectName,
-		Relation:   tk.Relation,
-		Action:     tk.Action,
+		Subject:  tk.Subject,
+		Object:   NewEntityKey(objectType, objectName),
+		Relation: tk.Relation,
+		Action:   tk.Action,
 	}
 }
 
@@ -118,23 +124,19 @@ func (tk TupleKey) WithObjectID(objectType ObjectType, objectId int) TupleKey {
 
 func (tk TupleKey) WithRelation(relation Relation) TupleKey {
 	return TupleKey{
-		UserType:   tk.UserType,
-		UserName:   tk.UserName,
-		ObjectType: tk.ObjectType,
-		ObjectName: tk.ObjectName,
-		Relation:   relation,
-		Action:     tk.Action,
+		Subject:  tk.Subject,
+		Object:   tk.Object,
+		Relation: relation,
+		Action:   tk.Action,
 	}
 }
 
 func (tk TupleKey) WithAction(action Action) TupleKey {
 	return TupleKey{
-		UserType:   tk.UserType,
-		UserName:   tk.UserName,
-		ObjectType: tk.ObjectType,
-		ObjectName: tk.ObjectName,
-		Relation:   tk.Relation,
-		Action:     action,
+		Subject:  tk.Subject,
+		Object:   tk.Object,
+		Relation: tk.Relation,
+		Action:   action,
 	}
 }
 
@@ -144,22 +146,20 @@ func fromFGATupleKey(fgatk openfga.TupleKey) TupleKey {
 	rel, _ := RelationString(*fgatk.Relation)
 	act, _ := ActionString(*fgatk.Relation)
 	return TupleKey{
-		UserType:   ukeys.Type,
-		UserName:   ukeys.Name,
-		ObjectType: okeys.Type,
-		ObjectName: okeys.Name,
-		Relation:   rel,
-		Action:     act,
+		Subject:  NewEntityKey(ukeys.Type, ukeys.Name),
+		Object:   NewEntityKey(okeys.Type, okeys.Name),
+		Relation: rel,
+		Action:   act,
 	}
 }
 
 func (tk TupleKey) FGATupleKey() openfga.TupleKey {
 	fgatk := openfga.TupleKey{}
-	if tk.UserName != "" {
-		fgatk.User = openfga.PtrString(cunsplit(tk.UserType, tk.UserName))
+	if tk.Subject.Name != "" {
+		fgatk.User = openfga.PtrString(cunsplit(tk.Subject.Type, tk.Subject.Name))
 	}
-	if tk.ObjectName != "" {
-		fgatk.Object = openfga.PtrString(cunsplit(tk.ObjectType, tk.ObjectName))
+	if tk.Object.Name != "" {
+		fgatk.Object = openfga.PtrString(cunsplit(tk.Object.Type, tk.Object.Name))
 	}
 	if tk.Action.IsAAction() {
 		fgatk.Relation = openfga.PtrString(tk.Action.String())
@@ -191,12 +191,4 @@ func cunsplit(a ObjectType, b string) string {
 		return a.String()
 	}
 	return fmt.Sprintf("%s:%s", a.String(), b)
-}
-
-func tkObjectIds(tks []TupleKey) []int {
-	var ret []int
-	for _, tk := range tks {
-		ret = append(ret, tk.ObjectID())
-	}
-	return ret
 }

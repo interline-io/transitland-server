@@ -114,6 +114,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.AuthzConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
 	fl.StringVar(&cmd.AuthzConfig.FGAStoreID, "fga-store-id", "", "FGA store")
 	fl.StringVar(&cmd.AuthzConfig.FGAModelID, "fga-model-id", "", "FGA model")
+	fl.StringVar(&cmd.AuthzConfig.GlobalAdmin, "global-admin", "", "Global admin user")
 
 	// Metrics
 	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
