@@ -238,7 +238,7 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, checkUser auth.User, te
 	if err != nil {
 		return 0, err
 	}
-	addTk := NewTupleKey().WithSubjectID(TenantType, tenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
+	addTk := NewTupleKey().WithSubject(entKey.Type, entKey.Name).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
 	if err := c.authz.WriteTuple(ctx, addTk); err != nil {
 		return 0, err
 	}
@@ -394,7 +394,7 @@ type FeedPermissionsResponse struct {
 	} `json:"actions"`
 }
 
-func (c *Checker) ListFeeds(ctx context.Context, checkUser auth.User) ([]FeedResponse, error) {
+func (c *Checker) FeedList(ctx context.Context, checkUser auth.User) ([]FeedResponse, error) {
 	feedIds, err := c.listUserObjects(ctx, checkUser, FeedType, CanView)
 	if err != nil {
 		return nil, err
@@ -449,7 +449,7 @@ type FeedVersionPermissionsResponse struct {
 	} `json:"actions"`
 }
 
-func (c *Checker) ListFeedVersions(ctx context.Context, user auth.User) ([]FeedVersionResponse, error) {
+func (c *Checker) FeedVersionList(ctx context.Context, user auth.User) ([]FeedVersionResponse, error) {
 	var ret []FeedVersionResponse
 	feedIds, err := c.listUserObjects(ctx, user, FeedVersionType, CanView)
 	if err != nil {

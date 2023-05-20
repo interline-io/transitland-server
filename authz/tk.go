@@ -1,18 +1,13 @@
 package authz
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	openfga "github.com/openfga/go-sdk"
 )
-
-type User struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
 
 type EntityKey struct {
 	Type ObjectType `json:"type"`
@@ -21,6 +16,18 @@ type EntityKey struct {
 
 func NewEntityKey(t ObjectType, name string) EntityKey {
 	return EntityKey{Type: t, Name: name}
+}
+
+func NewEntityKeySplit(v string) EntityKey {
+	ret := EntityKey{}
+	a := strings.Split(v, ":")
+	if len(a) > 1 {
+		ret.Type, _ = ObjectTypeString(a[0])
+		ret.Name = a[1]
+	} else if len(a) > 0 {
+		ret.Type, _ = ObjectTypeString(a[0])
+	}
+	return ret
 }
 
 func NewEntityID(t ObjectType, id int) EntityKey {
@@ -33,7 +40,11 @@ func (ek EntityKey) ID() int {
 }
 
 func (ek EntityKey) String() string {
+	if ek.Name == "" {
+		return ek.Type.String()
+	}
 	return fmt.Sprintf("%s:%s", ek.Type.String(), ek.Name)
+
 }
 
 type TupleKey struct {
@@ -46,11 +57,13 @@ type TupleKey struct {
 func NewTupleKey() TupleKey { return TupleKey{} }
 
 func (tk TupleKey) String() string {
-	r := "relation:" + tk.Relation.String()
-	if tk.Action.IsAAction() {
-		r = "action:" + tk.Action.String()
+	r := ""
+	if tk.Relation.IsARelation() {
+		r = "|relation:" + tk.Relation.String()
+	} else if tk.Action.IsAAction() {
+		r = "|action:" + tk.Action.String()
 	}
-	return fmt.Sprintf("%s|%s|%s", tk.Subject.String(), tk.Object.String(), r)
+	return fmt.Sprintf("%s|%s%s", tk.Subject.String(), tk.Object.String(), r)
 }
 
 func (tk TupleKey) IsValid() bool {
@@ -58,23 +71,23 @@ func (tk TupleKey) IsValid() bool {
 }
 
 func (tk TupleKey) Validate() error {
-	// if tk.SubjectName != "" && !tk.SubjectType.IsAObjectType() {
-	// 	return errors.New("invalid user type")
-	// }
-	// if tk.ObjectName != "" && !tk.ObjectType.IsAObjectType() {
-	// 	return errors.New("invalid object type")
-	// }
-	// if tk.SubjectName == "" && tk.ObjectName == "" {
-	// 	return errors.New("user name or object name is required")
-	// }
-	// if tk.SubjectName != "" && tk.ObjectName != "" {
-	// 	if tk.Action == 0 && !tk.Relation.IsARelation() {
-	// 		return errors.New("invalid relation")
-	// 	}
-	// 	if tk.Relation == 0 && !tk.Action.IsAAction() {
-	// 		return errors.New("invalid action")
-	// 	}
-	// }
+	if tk.Subject.Name != "" && !tk.Subject.Type.IsAObjectType() {
+		return errors.New("invalid user type")
+	}
+	if tk.Object.Name != "" && !tk.Object.Type.IsAObjectType() {
+		return errors.New("invalid object type")
+	}
+	if tk.Subject.Name == "" && tk.Object.Name == "" {
+		return errors.New("user name or object name is required")
+	}
+	if tk.Subject.Name != "" && tk.Object.Name != "" {
+		if tk.Action == 0 && !tk.Relation.IsARelation() {
+			return errors.New("invalid relation")
+		}
+		if tk.Relation == 0 && !tk.Action.IsAAction() {
+			return errors.New("invalid action")
+		}
+	}
 	return nil
 }
 
@@ -141,13 +154,11 @@ func (tk TupleKey) WithAction(action Action) TupleKey {
 }
 
 func fromFGATupleKey(fgatk openfga.TupleKey) TupleKey {
-	okeys := csplit(*fgatk.Object)
-	ukeys := csplit(*fgatk.User)
 	rel, _ := RelationString(*fgatk.Relation)
 	act, _ := ActionString(*fgatk.Relation)
 	return TupleKey{
-		Subject:  NewEntityKey(ukeys.Type, ukeys.Name),
-		Object:   NewEntityKey(okeys.Type, okeys.Name),
+		Subject:  NewEntityKeySplit(*fgatk.User),
+		Object:   NewEntityKeySplit(*fgatk.Object),
 		Relation: rel,
 		Action:   act,
 	}
@@ -156,10 +167,10 @@ func fromFGATupleKey(fgatk openfga.TupleKey) TupleKey {
 func (tk TupleKey) FGATupleKey() openfga.TupleKey {
 	fgatk := openfga.TupleKey{}
 	if tk.Subject.Name != "" {
-		fgatk.User = openfga.PtrString(cunsplit(tk.Subject.Type, tk.Subject.Name))
+		fgatk.User = openfga.PtrString(tk.Subject.String())
 	}
 	if tk.Object.Name != "" {
-		fgatk.Object = openfga.PtrString(cunsplit(tk.Object.Type, tk.Object.Name))
+		fgatk.Object = openfga.PtrString(tk.Object.String())
 	}
 	if tk.Action.IsAAction() {
 		fgatk.Relation = openfga.PtrString(tk.Action.String())
@@ -167,28 +178,4 @@ func (tk TupleKey) FGATupleKey() openfga.TupleKey {
 		fgatk.Relation = openfga.PtrString(tk.Relation.String())
 	}
 	return fgatk
-}
-
-type cs struct {
-	Type ObjectType
-	Name string
-}
-
-func csplit(v string) cs {
-	a := strings.Split(v, ":")
-	ret := cs{}
-	if len(a) > 1 {
-		ret.Type, _ = ObjectTypeString(a[0])
-		ret.Name = a[1]
-	} else if len(a) > 0 {
-		ret.Type, _ = ObjectTypeString(a[0])
-	}
-	return ret
-}
-
-func cunsplit(a ObjectType, b string) string {
-	if b == "" {
-		return a.String()
-	}
-	return fmt.Sprintf("%s:%s", a.String(), b)
 }

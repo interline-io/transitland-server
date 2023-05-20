@@ -54,7 +54,7 @@ func (c *FGAClient) Check(ctx context.Context, tk TupleKey) (bool, error) {
 func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, error) {
 	body := openfga.ListObjectsRequest{
 		AuthorizationModelId: openfga.PtrString(c.Model),
-		User:                 cunsplit(tk.Subject.Type, tk.Subject.Name),
+		User:                 tk.Subject.String(),
 		Relation:             tk.ActionOrRelation(),
 		Type:                 tk.Object.Type.String(),
 	}
@@ -64,10 +64,9 @@ func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, e
 	}
 	var ret []TupleKey
 	for _, v := range data.GetObjects() {
-		okey := csplit(v)
 		ret = append(ret, TupleKey{
 			Subject: NewEntityKey(tk.Subject.Type, tk.Subject.Name),
-			Object:  NewEntityKey(okey.Type, okey.Name),
+			Object:  NewEntityKeySplit(v),
 			Action:  tk.Action,
 		})
 	}

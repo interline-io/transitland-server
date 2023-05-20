@@ -14,41 +14,155 @@ import (
 )
 
 func NewServer(checker *Checker) (http.Handler, error) {
-	r := chi.NewRouter()
-	r.Get("/users", wrapHandler(userIndexHandler, checker))
-	r.Get("/users/{user_id}", wrapHandler(userPermissionsHandler, checker))
+	router := chi.NewRouter()
 
-	r.Get("/tenants", wrapHandler(tenantIndexHandler, checker))
-	r.Get("/tenants/{tenant_id}", wrapHandler(tenantPermissionsHandler, checker))
-	r.Post("/tenants/{tenant_id}", wrapHandler(tenantSaveHandler, checker))
-	r.Post("/tenants/{tenant_id}/groups", wrapHandler(tenantCreateGroupHandler, checker))
-	r.Post("/tenants/{tenant_id}/permissions/{relation}/{user}", wrapHandler(tenantAddPermissionsHandler, checker))
-	r.Delete("/tenants/{tenant_id}/permissions/{relation}/{user}", wrapHandler(tenantRemovePermissionsHandler, checker))
+	/////////////////
+	// USERS
+	/////////////////
 
-	r.Get("/groups", wrapHandler(groupIndexHandler, checker))
-	r.Post("/groups/{group_id}", wrapHandler(groupSave, checker))
-	r.Get("/groups/{group_id}", wrapHandler(groupPermissionsHandler, checker))
-	r.Post("/groups/{group_id}/permissions/{relation}/{user}", wrapHandler(groupAddPermissionsHandler, checker))
-	r.Delete("/groups/{group_id}/permissions/{relation}/{user}", wrapHandler(groupRemovePermissionsHandler, checker))
+	router.Get("/users", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.UserList(r.Context(), checkUser(r), r.URL.Query().Get("q"))
+		handleJson(w, ret, err)
+	})
+	router.Get("/users/{user_id}", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.User(r.Context(), checkUser(r), chi.URLParam(r, "user_id"))
+		handleJson(w, ret, err)
+	})
 
-	r.Get("/feeds/", wrapHandler(feedIndexHandler, checker))
-	r.Get("/feeds/{feed_id}", wrapHandler(feedPermissionsHandler, checker))
-	r.Post("/feeds/{feed_id}/group", wrapHandler(feedSetGroupHandler, checker))
+	/////////////////
+	// TENANTS
+	/////////////////
 
-	r.Get("/feed_versions/", wrapHandler(feedVersionIndexHandler, checker))
-	r.Get("/feed_versions/{feed_version_id}", wrapHandler(feedVersionPermissionsHandler, checker))
-	return r, nil
-}
-
-func wrapHandler(next func(http.ResponseWriter, *http.Request, *Checker), checker *Checker) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := auth.ForContext(r.Context())
-		if user == nil {
-			http.Error(w, "not logged in", http.StatusUnauthorized)
+	router.Get("/tenants", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.TenantList(r.Context(), checkUser(r))
+		handleJson(w, ret, err)
+	})
+	router.Get("/tenants/{tenant_id}", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.TenantPermissions(r.Context(), checkUser(r), checkId(r, "tenant_id"))
+		handleJson(w, ret, err)
+	})
+	router.Post("/tenants/{tenant_id}", func(w http.ResponseWriter, r *http.Request) {
+		check := struct {
+			Name string `json:"name"`
+		}{}
+		if err := parseJson(r.Body, &check); err != nil {
+			handleJson(w, nil, err)
 			return
 		}
-		next(w, r, checker)
+		_, err := checker.TenantSave(r.Context(), checkUser(r), checkId(r, "tenant_id"), check.Name)
+		handleJson(w, nil, err)
 	})
+	router.Post("/tenants/{tenant_id}/groups", func(w http.ResponseWriter, r *http.Request) {
+		check := struct {
+			Name string `json:"name"`
+		}{}
+		if err := parseJson(r.Body, &check); err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		newId, err := checker.TenantCreateGroup(r.Context(), checkUser(r), checkId(r, "tenant_id"), check.Name)
+		_ = newId
+		handleJson(w, nil, err)
+	})
+	router.Post("/tenants/{tenant_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
+		checkRel, err := checkRelParams(r, "tenant_id")
+		if err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		err = checker.TenantAddPermission(r.Context(), checkRel.User, checkRel.ID, checkRel.RelUser, checkRel.Relation)
+		handleJson(w, nil, err)
+	})
+	router.Delete("/tenants/{tenant_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
+		checkRel, err := checkRelParams(r, "tenant_id")
+		if err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		err = checker.TenantRemovePermission(r.Context(), checkRel.User, checkRel.ID, checkRel.RelUser, checkRel.Relation)
+		handleJson(w, nil, err)
+	})
+
+	/////////////////
+	// GROUPS
+	/////////////////
+
+	router.Get("/groups", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.GroupList(r.Context(), checkUser(r))
+		handleJson(w, ret, err)
+	})
+	router.Post("/groups/{group_id}", func(w http.ResponseWriter, r *http.Request) {
+		check := struct {
+			Name string `json:"name"`
+		}{}
+		if err := parseJson(r.Body, &check); err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		_, err := checker.GroupSave(r.Context(), checkUser(r), checkId(r, "group_id"), check.Name)
+		handleJson(w, nil, err)
+	})
+	router.Get("/groups/{group_id}", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.GroupPermissions(r.Context(), checkUser(r), checkId(r, "group_id"))
+		handleJson(w, ret, err)
+	})
+	router.Post("/groups/{group_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
+		checkRel, err := checkRelParams(r, "group_id")
+		if err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		err = checker.GroupAddPermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
+		handleJson(w, nil, err)
+	})
+	router.Delete("/groups/{group_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
+		checkRel, err := checkRelParams(r, "group_id")
+		if err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		err = checker.GroupRemovePermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
+		handleJson(w, nil, err)
+	})
+
+	/////////////////
+	// FEEDS
+	/////////////////
+
+	router.Get("/feeds", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.FeedList(r.Context(), checkUser(r))
+		handleJson(w, ret, err)
+	})
+	router.Get("/feeds/{feed_id}", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.FeedPermissions(r.Context(), checkUser(r), checkId(r, "feed_id"))
+		handleJson(w, ret, err)
+	})
+	router.Post("/feeds/{feed_id}/group", func(w http.ResponseWriter, r *http.Request) {
+		checkParams := struct {
+			GroupID int `json:"group_id"`
+		}{}
+		if err := parseJson(r.Body, &checkParams); err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		err := checker.FeedSetGroup(r.Context(), checkUser(r), checkId(r, "feed_version_id"), checkParams.GroupID)
+		handleJson(w, nil, err)
+	})
+
+	/////////////////
+	// FEED VERSIONS
+	/////////////////
+
+	router.Get("/feed_versions", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.FeedVersionList(r.Context(), checkUser(r))
+		handleJson(w, ret, err)
+	})
+	router.Get("/feed_versions/{feed_version_id}", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.FeedVersionPermissions(r.Context(), checkUser(r), checkId(r, "feed_version_id"))
+		handleJson(w, ret, err)
+	})
+
+	return router, nil
 }
 
 func handleJson(w http.ResponseWriter, ret any, err error) {
@@ -65,173 +179,28 @@ func handleJson(w http.ResponseWriter, ret any, err error) {
 	w.Write(jj)
 }
 
-////////////
-// Users
-////////////
-
-func userIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.UserList(r.Context(), auth.ForContext(r.Context()), r.URL.Query().Get("q"))
-	handleJson(w, ret, err)
+func checkUser(r *http.Request) auth.User {
+	return auth.ForContext(r.Context())
 }
 
-func userPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.User(r.Context(), auth.ForContext(r.Context()), chi.URLParam(r, "user_id"))
-	handleJson(w, ret, err)
+func checkId(r *http.Request, key string) int {
+	v, _ := strconv.Atoi(chi.URLParam(r, key))
+	return v
 }
 
-////////////
-// Tenants
-////////////
-
-func tenantIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.TenantList(r.Context(), auth.ForContext(r.Context()))
-	handleJson(w, ret, err)
-}
-
-func tenantPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.TenantPermissions(r.Context(), auth.ForContext(r.Context()), checkId(r, "tenant_id"))
-	handleJson(w, ret, err)
-}
-
-func tenantCreateGroupHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkReq := GroupResponse{}
-	if err := parseJson(r.Body, &checkReq); err != nil {
-		handleJson(w, nil, err)
-		return
-	}
-	newId, err := checker.TenantCreateGroup(r.Context(), auth.ForContext(r.Context()), checkId(r, "tenant_id"), checkReq.Name.Val)
-	_ = newId
-	handleJson(w, nil, err)
-}
-
-func tenantSaveHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkReq := TenantResponse{}
-	if err := parseJson(r.Body, &checkReq); err != nil {
-		handleJson(w, nil, err)
-		return
-	}
-	_, err := checker.TenantSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "tenant_id"), checkReq.Name.Val)
-	handleJson(w, nil, err)
-}
-
-func tenantAddPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkRel, err := checkRelParams(r, "tenant_id")
+func parseJson(r io.Reader, v any) error {
+	data, err := ioutil.ReadAll(io.LimitReader(r, 1_000_000))
 	if err != nil {
-		handleJson(w, nil, err)
-		return
+		return err
 	}
-	err = checker.TenantAddPermission(r.Context(), checkRel.User, checkRel.ID, checkRel.RelUser, checkRel.Relation)
-	handleJson(w, nil, err)
+	return json.Unmarshal(data, v)
 }
-
-func tenantRemovePermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkRel, err := checkRelParams(r, "tenant_id")
-	if err != nil {
-		handleJson(w, nil, err)
-		return
-	}
-	err = checker.TenantRemovePermission(r.Context(), checkRel.User, checkRel.ID, checkRel.RelUser, checkRel.Relation)
-	handleJson(w, nil, err)
-}
-
-////////////
-// Groups
-////////////
-
-func groupIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.GroupList(r.Context(), auth.ForContext(r.Context()))
-	handleJson(w, ret, err)
-}
-
-func groupPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.GroupPermissions(r.Context(), auth.ForContext(r.Context()), checkId(r, "group_id"))
-	handleJson(w, ret, err)
-}
-
-func groupAddPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkRel, err := checkRelParams(r, "group_id")
-	if err != nil {
-		handleJson(w, nil, err)
-		return
-	}
-	err = checker.GroupAddPermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
-	handleJson(w, nil, err)
-}
-
-func groupRemovePermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkRel, err := checkRelParams(r, "group_id")
-	if err != nil {
-		handleJson(w, nil, err)
-		return
-	}
-	err = checker.GroupRemovePermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
-	handleJson(w, nil, err)
-}
-
-func groupSave(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkReq := GroupResponse{}
-	if err := parseJson(r.Body, &checkReq); err != nil {
-		handleJson(w, nil, err)
-		return
-	}
-	_, err := checker.GroupSave(r.Context(), auth.ForContext(r.Context()), checkId(r, "group_id"), checkReq.Name.Val)
-	handleJson(w, nil, err)
-}
-
-////////////
-// Feeds
-////////////
-
-func feedIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.ListFeeds(r.Context(), auth.ForContext(r.Context()))
-	handleJson(w, ret, err)
-}
-
-func feedSetGroupHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	checkParams := struct {
-		GroupID int `json:"group_id"`
-	}{}
-	if err := parseJson(r.Body, &checkParams); err != nil {
-		handleJson(w, nil, err)
-		return
-	}
-	err := checker.FeedSetGroup(r.Context(), auth.ForContext(r.Context()), checkId(r, "feed_version_id"), checkParams.GroupID)
-	handleJson(w, nil, err)
-}
-
-func feedPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.FeedPermissions(r.Context(), auth.ForContext(r.Context()), checkId(r, "feed_id"))
-	handleJson(w, ret, err)
-}
-
-////////////
-// Feed Versions
-////////////
-
-func feedVersionIndexHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.ListFeeds(r.Context(), auth.ForContext(r.Context()))
-	handleJson(w, ret, err)
-}
-
-func feedVersionPermissionsHandler(w http.ResponseWriter, r *http.Request, checker *Checker) {
-	ret, err := checker.FeedVersionPermissions(r.Context(), auth.ForContext(r.Context()), checkId(r, "feed_version_id"))
-	handleJson(w, ret, err)
-}
-
-////////////
-// Utility
-////////////
 
 type checkRel struct {
 	User     auth.User
 	RelUser  string
 	Relation Relation
 	ID       int
-}
-
-func checkId(r *http.Request, key string) int {
-	v, _ := strconv.Atoi(chi.URLParam(r, key))
-	return v
 }
 
 func checkRelParams(r *http.Request, idKey string) (checkRel, error) {
@@ -248,12 +217,4 @@ func checkRelParams(r *http.Request, idKey string) (checkRel, error) {
 	}
 	tk.RelUser = chi.URLParam(r, "user")
 	return tk, nil
-}
-
-func parseJson(r io.Reader, v any) error {
-	data, err := ioutil.ReadAll(io.LimitReader(r, 1_000_000))
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data, v)
 }
