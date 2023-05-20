@@ -93,36 +93,24 @@ func TestChecker(t *testing.T) {
 	// GROUPS
 	t.Run("GroupList", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tk := range checks {
-			if tk.Test != "list" || tk.Object.Type != GroupType {
-				continue
-			}
-			for _, checkAction := range tk.Checks {
-				tk.Action, _ = ActionString(checkAction)
-				if tk.Action.String() != "can_view" {
-					continue
+		for _, tk := range filterTestTuple(checks, "list", GroupType, CanView) {
+			t.Run(tk.String(), func(t *testing.T) {
+				ret, err := checker.GroupList(context.Background(), newTestUser(tk.Subject.Name))
+				if err != nil {
+					t.Fatal(err)
 				}
-				t.Run(tk.String(), func(t *testing.T) {
-					ret, err := checker.GroupList(context.Background(), newTestUser(tk.Subject.Name))
-					if err != nil {
-						t.Fatal(err)
-					}
-					var retIds []int
-					for _, v := range ret {
-						retIds = append(retIds, v.ID)
-					}
-					assert.ElementsMatch(t, mapStrInt(tk.Expect), retIds, "group ids")
-				})
-			}
+				var retIds []int
+				for _, v := range ret {
+					retIds = append(retIds, v.ID)
+				}
+				assert.ElementsMatch(t, mapStrInt(tk.Expect), retIds, "group ids")
+			})
 		}
 	})
 
 	t.Run("GroupPermissions", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tk := range checks {
-			if tk.Test != "check" || tk.Object.Type != GroupType {
-				continue
-			}
+		for _, tk := range filterTestTuple(checks, "check", GroupType, CanView) {
 			t.Run(tk.String(), func(t *testing.T) {
 				ret, err := checker.GroupPermissions(
 					context.Background(),
@@ -140,10 +128,7 @@ func TestChecker(t *testing.T) {
 
 	t.Run("GroupAddPermission", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tk := range checks {
-			if tk.Test != "write" || tk.Object.Type != GroupType {
-				continue
-			}
+		for _, tk := range filterTestTuple(checks, "write", GroupType, 0) {
 			t.Run(tk.String(), func(t *testing.T) {
 				err := checker.GroupAddPermission(
 					context.Background(),
@@ -161,10 +146,7 @@ func TestChecker(t *testing.T) {
 
 	t.Run("GroupRemovePermission", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tk := range checks {
-			if tk.Test != "delete" || tk.Object.Type != GroupType {
-				continue
-			}
+		for _, tk := range filterTestTuple(checks, "delete", TenantType, 0) {
 			t.Run(tk.String(), func(t *testing.T) {
 				err := checker.GroupRemovePermission(
 					context.Background(),

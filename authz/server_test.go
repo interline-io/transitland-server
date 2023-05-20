@@ -156,11 +156,7 @@ func TestServer(t *testing.T) {
 
 func testServerWithUser(c *Checker, tk TestTupleKey) http.Handler {
 	srv, _ := NewServer(c)
-	checkUser := tk.Subject.Name
-	if tk.CheckAsUser != "" {
-		checkUser = tk.CheckAsUser
-	}
-	srv = auth.UserDefaultMiddleware(checkUser)(srv)
+	srv = auth.UserDefaultMiddleware(stringOr(tk.CheckAsUser, tk.Subject.Name))(srv)
 	return srv
 }
 
