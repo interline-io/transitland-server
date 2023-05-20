@@ -13,6 +13,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, where 
 		"feed_versions.sha1 AS feed_version_sha1",
 		"tl_route_onestop_ids.onestop_id",
 	).
+		Distinct().
 		From("gtfs_routes").
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
