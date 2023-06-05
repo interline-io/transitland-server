@@ -270,8 +270,24 @@ func (cmd *Command) Run() error {
 		root.Handle("/metrics", metricProvider.MetricsHandler())
 	}
 
+	// Admin API
+	checker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig, db, redisClient)
+	if cmd.EnableAdminApi {
+		if err != nil {
+			return err
+		}
+		adminServer, err := authz.NewServer(checker)
+		if err != nil {
+			return err
+		}
+		r := chi.NewRouter()
+		r.Use(auth.UserRequired)
+		r.Mount("/", adminServer)
+		root.Mount("/admin", r)
+	}
+
 	// GraphQL API
-	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder, gbfsFinder)
+	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
 	if err != nil {
 		return err
 	}
@@ -297,22 +313,6 @@ func (cmd *Command) Run() error {
 		r.Use(auth.UserRequired)
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)
-	}
-
-	// Admin API
-	if cmd.EnableAdminApi {
-		checker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig, dbFinder, redisClient)
-		if err != nil {
-			return err
-		}
-		adminServer, err := authz.NewServer(checker)
-		if err != nil {
-			return err
-		}
-		r := chi.NewRouter()
-		r.Use(auth.UserRequired)
-		r.Mount("/", adminServer)
-		root.Mount("/admin", r)
 	}
 
 	// Workers

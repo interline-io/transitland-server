@@ -372,6 +372,6 @@ func newTestChecker(t testing.TB) *Checker {
 	te := testfinder.Finders(t, nil, nil)
 	auth0c := NewMockAuthnClient()
 	fgac := newTestFGAClient(t)
-	checker := NewChecker(auth0c, fgac, te.Finder, nil)
+	checker := NewChecker(auth0c, fgac, te.Finder.DBX(), nil)
 	return checker
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/find"
-	"github.com/interline-io/transitland-server/model"
 )
 
 type AuthnProvider interface {
@@ -33,11 +32,11 @@ type AuthzProvider interface {
 type Checker struct {
 	authn        AuthnProvider
 	authz        AuthzProvider
-	finder       model.Finder
+	db           sqlx.Ext
 	globalAdmins []string
 }
 
-func NewCheckerFromConfig(cfg AuthzConfig, finder model.Finder, redisClient *redis.Client) (*Checker, error) {
+func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Client) (*Checker, error) {
 	var authn AuthnProvider
 	var authz AuthzProvider
 	if cfg.Auth0Domain != "" {
@@ -56,18 +55,18 @@ func NewCheckerFromConfig(cfg AuthzConfig, finder model.Finder, redisClient *red
 			return nil, err
 		}
 	}
-	checker := NewChecker(authn, authz, finder, redisClient)
+	checker := NewChecker(authn, authz, db, redisClient)
 	if cfg.GlobalAdmin != "" {
 		checker.globalAdmins = append(checker.globalAdmins, cfg.GlobalAdmin)
 	}
 	return checker, nil
 }
 
-func NewChecker(n AuthnProvider, p AuthzProvider, finder model.Finder, redisClient *redis.Client) *Checker {
+func NewChecker(n AuthnProvider, p AuthzProvider, db sqlx.Ext, redisClient *redis.Client) *Checker {
 	return &Checker{
-		authn:  n,
-		authz:  p,
-		finder: finder,
+		authn: n,
+		authz: p,
+		db:    db,
 	}
 }
 
@@ -142,14 +141,14 @@ func (c *Checker) TenantList(ctx context.Context, checkUser auth.User) ([]Tenant
 	if err != nil {
 		return nil, err
 	}
-	return hydrates[TenantResponse](ctx, c.finder.DBX(), ids)
+	return hydrates[TenantResponse](ctx, c.db, ids)
 }
 
 func (c *Checker) Tenant(ctx context.Context, checkUser auth.User, tenantId int) (*TenantResponse, error) {
 	if err := c.checkObjectOrError(ctx, checkUser, CanView, NewEntityID(TenantType, tenantId)); err != nil {
 		return nil, err
 	}
-	r, err := hydrate[TenantResponse](ctx, c.finder.DBX(), tenantId)
+	r, err := hydrate[TenantResponse](ctx, c.db, tenantId)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +165,7 @@ func (c *Checker) TenantPermissions(ctx context.Context, checkUser auth.User, te
 
 	// Get tenant metadata
 	ret := &TenantPermissionsResponse{}
-	ret.TenantResponse, _ = hydrate[TenantResponse](ctx, c.finder.DBX(), tenantId)
+	ret.TenantResponse, _ = hydrate[TenantResponse](ctx, c.db, tenantId)
 	for _, tk := range tps {
 		if tk.Relation == AdminRelation {
 			ret.Users.Admins = append(ret.Users.Admins, User{ID: tk.Subject.Name})
@@ -177,7 +176,7 @@ func (c *Checker) TenantPermissions(ctx context.Context, checkUser auth.User, te
 	}
 
 	groupIds, _ := c.listSubjectRelations(ctx, entKey, GroupType, ParentRelation)
-	ret.Groups, _ = hydrates[GroupResponse](ctx, c.finder.DBX(), groupIds)
+	ret.Groups, _ = hydrates[GroupResponse](ctx, c.db, groupIds)
 
 	ret.Actions.CanView = true
 	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, checkUser, CanEditMembers, entKey)
@@ -193,7 +192,7 @@ func (c *Checker) TenantSave(ctx context.Context, checkUser auth.User, tenantId 
 	log.Trace().Str("tenantName", newName).Int("id", tenantId).Msg("TenantSave")
 	id := 0
 	err := sq.StatementBuilder.
-		RunWith(c.finder.DBX()).
+		RunWith(c.db).
 		PlaceholderFormat(sq.Dollar).
 		Insert("tl_tenants").
 		Columns("id", "tenant_name").
@@ -228,7 +227,7 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, checkUser auth.User, te
 	log.Trace().Str("groupName", groupName).Int("id", tenantId).Msg("TenantCreateGroup")
 	groupId := 0
 	err := sq.StatementBuilder.
-		RunWith(c.finder.DBX()).
+		RunWith(c.db).
 		PlaceholderFormat(sq.Dollar).
 		Insert("tl_groups").
 		Columns("id", "group_name").
@@ -281,7 +280,7 @@ func (c *Checker) Group(ctx context.Context, checkUser auth.User, groupId int) (
 	if err := c.checkObjectOrError(ctx, checkUser, CanView, entKey); err != nil {
 		return nil, err
 	}
-	r, err := hydrate[GroupResponse](ctx, c.finder.DBX(), groupId)
+	r, err := hydrate[GroupResponse](ctx, c.db, groupId)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +292,7 @@ func (c *Checker) GroupList(ctx context.Context, checkUser auth.User) ([]GroupRe
 	if err != nil {
 		return nil, err
 	}
-	return hydrates[GroupResponse](ctx, c.finder.DBX(), ids)
+	return hydrates[GroupResponse](ctx, c.db, ids)
 }
 
 func (c *Checker) GroupPermissions(ctx context.Context, checkUser auth.User, groupId int) (*GroupPermissionsResponse, error) {
@@ -306,7 +305,7 @@ func (c *Checker) GroupPermissions(ctx context.Context, checkUser auth.User, gro
 
 	// Get group metadata
 	ret := &GroupPermissionsResponse{}
-	ret.GroupResponse, _ = hydrate[GroupResponse](ctx, c.finder.DBX(), groupId)
+	ret.GroupResponse, _ = hydrate[GroupResponse](ctx, c.db, groupId)
 
 	// Get group relations
 	for _, tk := range tps {
@@ -326,7 +325,7 @@ func (c *Checker) GroupPermissions(ctx context.Context, checkUser auth.User, gro
 
 	// Get feeds
 	feedIds, _ := c.listSubjectRelations(ctx, entKey, FeedType, ParentRelation)
-	ret.Feeds, _ = hydrates[FeedResponse](ctx, c.finder.DBX(), feedIds)
+	ret.Feeds, _ = hydrates[FeedResponse](ctx, c.db, feedIds)
 
 	// Prepare response
 	ret.Users.Managers, _ = c.hydrateUsers(ctx, checkUser, ret.Users.Managers)
@@ -344,7 +343,7 @@ func (c *Checker) GroupSave(ctx context.Context, checkUser auth.User, groupId in
 	log.Trace().Str("groupName", newName).Int("id", groupId).Msg("GroupSave")
 	id := 0
 	err := sq.StatementBuilder.
-		RunWith(c.finder.DBX()).
+		RunWith(c.db).
 		PlaceholderFormat(sq.Dollar).
 		Insert("tl_groups").
 		Columns("id", "group_name").
@@ -399,7 +398,7 @@ func (c *Checker) FeedList(ctx context.Context, checkUser auth.User) ([]FeedResp
 	if err != nil {
 		return nil, err
 	}
-	return hydrates[FeedResponse](ctx, c.finder.DBX(), feedIds)
+	return hydrates[FeedResponse](ctx, c.db, feedIds)
 }
 
 func (c *Checker) FeedPermissions(ctx context.Context, checkUser auth.User, feedId int) (*FeedPermissionsResponse, error) {
@@ -409,7 +408,7 @@ func (c *Checker) FeedPermissions(ctx context.Context, checkUser auth.User, feed
 		return nil, err
 	}
 	ret := &FeedPermissionsResponse{}
-	ret.FeedResponse, _ = hydrate[FeedResponse](ctx, c.finder.DBX(), feedId)
+	ret.FeedResponse, _ = hydrate[FeedResponse](ctx, c.db, feedId)
 	for _, tk := range tps {
 		if tk.Relation == ParentRelation {
 			ret.Group, _ = c.Group(ctx, checkUser, tk.Subject.ID())
@@ -493,6 +492,12 @@ func (c *Checker) FeedVersionRemovePermission(ctx context.Context, user auth.Use
 	tk := NewTupleKey().WithUser(removeUser).WithObjectID(FeedVersionType, fvid).WithRelation(relation)
 	log.Trace().Str("tk", tk.String()).Int("id", fvid).Msg("FeedVersionRemovePermission")
 	return c.removeObjectTuple(ctx, user, CanEditMembers, tk)
+}
+
+func (c *Checker) FeedVersionSetFeed(ctx context.Context, user auth.User, fvid int, feedId int) error {
+	tk := NewTupleKey().WithSubjectID(FeedType, feedId).WithObjectID(FeedVersionType, fvid).WithRelation(ParentRelation)
+	log.Trace().Str("tk", tk.String()).Int("id", fvid).Msg("FeedVersionSetFeed")
+	return c.replaceObjectTuple(ctx, user, CanCreateFeedVersion, tk)
 }
 
 // ///////////////////

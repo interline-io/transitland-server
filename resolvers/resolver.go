@@ -23,7 +23,7 @@ type Resolver struct {
 	finder       model.Finder
 	gbfsFinder   model.GbfsFinder
 	fvslCache    *fvsl.FVSLCache
-	authnChecker *authz.Checker
+	authzChecker *authz.Checker
 }
 
 // Query .

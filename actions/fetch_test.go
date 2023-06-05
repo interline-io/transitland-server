@@ -107,7 +107,7 @@ func TestStaticFetchWorker(t *testing.T) {
 			feedUrl := ts.URL + "/" + tc.serveFile
 			testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
 				// Run job
-				if result, err := StaticFetch(context.Background(), te.Config, te.Finder, tc.feedId, nil, feedUrl, nil); err != nil && !tc.expectError {
+				if result, err := StaticFetch(context.Background(), te.Config, te.Finder, tc.feedId, nil, feedUrl, nil, nil); err != nil && !tc.expectError {
 					_ = result
 					t.Fatal(err)
 				} else if err == nil && tc.expectError {

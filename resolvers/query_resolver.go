@@ -64,7 +64,7 @@ func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int
 }
 
 func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
-	active, err := checkActive(ctx, ids, r.authnChecker)
+	active, err := checkActive(ctx, ids, r.authzChecker)
 	if err != nil {
 		return nil, err
 	}

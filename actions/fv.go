@@ -1,0 +1,103 @@
+package actions
+
+import (
+	"context"
+	"errors"
+
+	"github.com/interline-io/transitland-lib/dmfr/importer"
+	"github.com/interline-io/transitland-lib/dmfr/unimporter"
+	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authz"
+	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/model"
+)
+
+func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionImportResult, error) {
+	fvPerms, err := checker.FeedVersionPermissions(ctx, user, fvid)
+	if err != nil {
+		return nil, err
+	}
+	if !fvPerms.Actions.CanEdit {
+		return nil, errors.New("permission denied")
+	}
+
+	opts := importer.Options{
+		FeedVersionID: fvid,
+		Storage:       cfg.Storage,
+	}
+	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+	fr, fe := importer.MainImportFeedVersion(db, opts)
+	if fe != nil {
+		return nil, fe
+	}
+	mr := model.FeedVersionImportResult{
+		Success: fr.FeedVersionImport.Success,
+	}
+	return &mr, nil
+}
+
+func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionUnimportResult, error) {
+	fvPerms, err := checker.FeedVersionPermissions(ctx, user, fvid)
+	if err != nil {
+		return nil, err
+	}
+	if !fvPerms.Actions.CanEdit {
+		return nil, errors.New("permission denied")
+	}
+
+	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+	if err := db.Tx(func(atx tldb.Adapter) error {
+		return unimporter.UnimportFeedVersion(atx, fvid, nil)
+	}); err != nil {
+		return nil, err
+	}
+	mr := model.FeedVersionUnimportResult{
+		Success: true,
+	}
+	return &mr, nil
+}
+
+func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int, values model.FeedVersionSetInput) error {
+	fvPerms, err := checker.FeedVersionPermissions(ctx, user, fvid)
+	if err != nil {
+		return err
+	}
+	if !fvPerms.Actions.CanEdit {
+		return errors.New("permission denied")
+	}
+
+	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+	err = db.Tx(func(atx tldb.Adapter) error {
+		fv := tl.FeedVersion{}
+		fv.ID = fvid
+		if values.Name != nil {
+			fv.Name = tt.NewString(*values.Name)
+		} else {
+			fv.Name.Valid = false
+		}
+		if values.Description != nil {
+			fv.Description = tt.NewString(*values.Description)
+		} else {
+			fv.Description.Valid = false
+		}
+		return atx.Update(&fv, "name", "description")
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func FeedVersionDelete(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionDeleteResult, error) {
+	fvPerms, err := checker.FeedVersionPermissions(ctx, user, fvid)
+	if err != nil {
+		return nil, err
+	}
+	if !fvPerms.Actions.CanEdit {
+		return nil, errors.New("permission denied")
+	}
+	return nil, errors.New("temporarily unavailable")
+}

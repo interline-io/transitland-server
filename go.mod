@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.26
 	github.com/Masterminds/squirrel v1.5.3
 	github.com/amberflo/metering-go/v2 v2.0.1
+	github.com/auth0/go-auth0 v0.17.0
 	github.com/aws/aws-sdk-go v1.44.218
 	github.com/aws/aws-sdk-go-v2 v1.17.5
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
@@ -25,6 +26,7 @@ require (
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
+	github.com/openfga/go-sdk v0.2.1
 	github.com/prometheus/client_golang v1.14.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
@@ -45,7 +47,6 @@ require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.9.0 // indirect
 	github.com/PuerkitoBio/rehttp v1.1.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
-	github.com/auth0/go-auth0 v0.17.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.15 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.23 // indirect
@@ -68,7 +69,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
-	github.com/dmarkham/enumer v1.5.8 // indirect
 	github.com/flopp/go-coordsparser v0.0.0-20201115094714-8baaeb7062d5 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
@@ -91,8 +91,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mmcloughlin/geohash v0.10.0 // indirect
-	github.com/openfga/go-sdk v0.2.1 // indirect
-	github.com/pascaldekloe/name v1.0.0 // indirect
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
@@ -105,7 +103,6 @@ require (
 	github.com/tkrajina/gpxgo v1.2.1 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/image v0.6.0 // indirect
-	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
