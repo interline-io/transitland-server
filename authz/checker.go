@@ -433,13 +433,18 @@ func (c *Checker) FeedSetGroup(ctx context.Context, checkUser auth.User, feedId 
 
 type FeedVersionResponse struct {
 	responseId
-	Name string `json:"name" db:"-"`
+	Name tt.String `json:"name" db:"name"`
+}
+
+func (t FeedVersionResponse) TableName() string {
+	return "feed_versions"
 }
 
 type FeedVersionPermissionsResponse struct {
 	FeedVersionResponse
 	Users struct {
 		Viewers []User `json:"viewers"`
+		Editors []User `json:"editors"`
 	} `json:"users"`
 	Actions struct {
 		CanView        bool `json:"can_view"`
@@ -469,12 +474,16 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, checkUser auth.Use
 		return nil, err
 	}
 	ret := &FeedVersionPermissionsResponse{}
-	ret.ID = fvid
+	ret.FeedVersionResponse, _ = hydrate[FeedVersionResponse](ctx, c.db, fvid)
 	for _, tk := range tps {
+		if tk.Relation == EditorRelation {
+			ret.Users.Editors = append(ret.Users.Editors, User{ID: tk.Subject.Name})
+		}
 		if tk.Relation == ViewerRelation {
 			ret.Users.Viewers = append(ret.Users.Viewers, User{ID: tk.Subject.Name})
 		}
 	}
+	ret.Users.Editors, _ = c.hydrateUsers(ctx, checkUser, ret.Users.Editors)
 	ret.Users.Viewers, _ = c.hydrateUsers(ctx, checkUser, ret.Users.Viewers)
 	ret.Actions.CanView = true
 	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, checkUser, CanEditMembers, entKey)

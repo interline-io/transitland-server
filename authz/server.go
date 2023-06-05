@@ -161,6 +161,24 @@ func NewServer(checker *Checker) (http.Handler, error) {
 		ret, err := checker.FeedVersionPermissions(r.Context(), checkUser(r), checkId(r, "feed_version_id"))
 		handleJson(w, ret, err)
 	})
+	router.Post("/feed_versions/{feed_version_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
+		checkRel, err := checkRelParams(r, "feed_version_id")
+		if err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		err = checker.FeedVersionAddPermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
+		handleJson(w, nil, err)
+	})
+	router.Delete("/feed_versions/{feed_version_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
+		checkRel, err := checkRelParams(r, "feed_version_id")
+		if err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		err = checker.FeedVersionRemovePermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
+		handleJson(w, nil, err)
+	})
 
 	return router, nil
 }
