@@ -85,6 +85,30 @@ func TestFeedVersionResolver(t *testing.T) {
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
 		},
+		{
+			name:         "where fetched_before",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", fetched_before:"2123-04-05T06:07:08.9Z"}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+		},
+		{
+			name:         "where fetched_before 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", fetched_before:"2009-08-07T06:05:04.3Z"}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
+		{
+			name:         "where fetched_after",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", fetched_after:"2009-08-07T06:05:04.3Z"}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+		},
+		{
+			name:         "where fetched_after 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", fetched_after:"2123-04-05T06:07:08.9Z"}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
 		// there isnt a fv with this import status in test db
 		{
 			name:         "where import_status error",

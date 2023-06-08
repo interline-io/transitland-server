@@ -39,6 +39,35 @@ func TestFeedVersionRequest(t *testing.T) {
 			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
 			expectLength: 0,
 		},
+
+		{
+			name:         "fetched_after",
+			h:            FeedVersionRequest{FetchedAfter: "2009-08-07T06:05:04.3Z", FeedOnestopID: "BA"},
+			format:       "",
+			selector:     "feed_versions.#.sha1",
+			expectSelect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+		},
+		{
+			name:         "fetched_after 2",
+			h:            FeedVersionRequest{FetchedAfter: "2123-04-05T06:07:08.9Z", FeedOnestopID: "BA"},
+			format:       "",
+			selector:     "feed_versions.#.sha1",
+			expectSelect: []string{},
+		},
+		{
+			name:         "fetched_before",
+			h:            FeedVersionRequest{FetchedBefore: "2123-04-05T06:07:08.9Z", FeedOnestopID: "BA"},
+			format:       "",
+			selector:     "feed_versions.#.sha1",
+			expectSelect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+		},
+		{
+			name:         "fetched_before 2",
+			h:            FeedVersionRequest{FetchedBefore: "2009-08-07T06:05:04.3Z", FeedOnestopID: "BA"},
+			format:       "",
+			selector:     "feed_versions.#.sha1",
+			expectSelect: []string{},
+		},
 	}
 	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
