@@ -3,7 +3,6 @@ package resolvers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -26,7 +25,6 @@ func (r *mutationResolver) ValidateGtfs(ctx context.Context, file *graphql.Uploa
 }
 
 func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.Upload, url *string, feedId string) (*model.FeedVersionFetchResult, error) {
-	fmt.Println("FEED VERSION FETCH")
 	var feedSrc io.Reader
 	if file != nil {
 		feedSrc = file.File
@@ -39,7 +37,6 @@ func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.U
 }
 
 func (r *mutationResolver) FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
-	fmt.Println("FEED VERSION IMPORT")
 	return actions.FeedVersionImport(ctx, r.cfg, r.finder, r.authzChecker, auth.ForContext(ctx), fvid)
 }
 
@@ -48,7 +45,6 @@ func (r *mutationResolver) FeedVersionUnimport(ctx context.Context, fvid int) (*
 }
 
 func (r *mutationResolver) FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSetInput) (*model.FeedVersion, error) {
-	fmt.Println("FEED VERSION UPDATE")
 	err := actions.FeedVersionUpdate(ctx, r.cfg, r.finder, r.authzChecker, auth.ForContext(ctx), fvid, values)
 	return nil, err
 }

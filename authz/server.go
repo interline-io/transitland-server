@@ -3,7 +3,6 @@ package authz
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -135,7 +134,6 @@ func NewServer(checker *Checker) (http.Handler, error) {
 		handleJson(w, ret, err)
 	})
 	router.Get("/feeds/{feed_id}", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("FEEDS/")
 		ret, err := checker.FeedPermissions(r.Context(), checkUser(r), checkId(r, "feed_id"))
 		handleJson(w, ret, err)
 	})

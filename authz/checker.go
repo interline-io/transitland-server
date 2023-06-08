@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
@@ -438,7 +437,6 @@ func (c *Checker) FeedList(ctx context.Context, checkUser auth.User) ([]FeedResp
 }
 
 func (c *Checker) FeedPermissions(ctx context.Context, checkUser auth.User, feedId int) (*FeedPermissionsResponse, error) {
-	fmt.Println("123")
 	entKey := NewEntityID(FeedType, feedId)
 	tps, err := c.getObjectTuples(ctx, checkUser, CanView, entKey)
 	if err != nil {
@@ -614,10 +612,9 @@ func (c *Checker) checkObjectOrError(ctx context.Context, checkUser auth.User, c
 
 func (c *Checker) checkObject(ctx context.Context, checkUser auth.User, checkAction Action, obj EntityKey, ctxtk ...TupleKey) (bool, error) {
 	userName := checkUser.Name()
-	fmt.Println("global admin:", c.globalAdmins, "user:", userName)
 	for _, v := range c.globalAdmins {
 		if v == userName {
-			fmt.Println("user is global admin")
+			log.Debug().Str("check_user", userName).Str("obj", obj.String()).Str("check_action", checkAction.String()).Msg("global admin action")
 			return true, nil
 		}
 	}

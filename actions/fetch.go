@@ -2,7 +2,6 @@ package actions
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -22,7 +21,6 @@ import (
 )
 
 func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user auth.User, checker *authz.Checker) (*model.FeedVersionFetchResult, error) {
-	fmt.Println("STATIC FETCH????")
 	// Check feed exists
 	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
@@ -35,12 +33,8 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 	// Check feed permissions
 	feed := feeds[0].Feed
 	if check, err := checker.FeedPermissions(ctx, user, feed.ID); err != nil {
-		z, _ := json.Marshal(check.Actions)
-		fmt.Println("actions:", string(z))
 		return nil, err
 	} else if !check.Actions.CanEdit {
-		z, _ := json.Marshal(check.Actions)
-		fmt.Println("actions:", string(z))
 		return nil, errors.New("permission denied")
 	}
 

@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"os/exec"
 
@@ -188,7 +187,6 @@ func dslToJson(fn string) (string, error) {
 	cmd := exec.Command("npx", args...)
 	b, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(string(b))
 		return string(b), err
 	}
 	return string(b), nil
