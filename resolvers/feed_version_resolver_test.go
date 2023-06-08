@@ -85,6 +85,114 @@ func TestFeedVersionResolver(t *testing.T) {
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
 		},
+		// feed version coverage
+		// start date - feed start date before start_date
+		{
+			name:         "covers start_date using feed info",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{start_date:"2016-12-31"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		{
+			name:         "covers start_date using feed info 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{start_date:"2016-02-08"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		{
+			name:         "covers start_date using feed info 3",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{start_date:"2016-02-07"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
+		{
+			name:         "covers start_date using earliest and latest calendar dates",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT", covers:{start_date:"2016-02-07"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
+		{
+			name:         "covers start_date using earliest and latest calendar dates 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT", covers:{start_date:"2018-02-07"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
+		},
+		// end date -- feed end date after end_date
+		{
+			name:         "covers end_date using feed info",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{end_date:"2016-12-31"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		{
+			name:         "covers end_date using feed info 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{end_date:"2017-01-01"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		{
+			name:         "covers end_date using feed info 3",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{end_date:"2017-01-02"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
+		{
+			name:         "covers end_date using earliest and latest calendar dates",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT", covers:{end_date:"2019-10-01"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
+		},
+		{
+			name:         "covers end_date using earliest and latest calendar dates 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT", covers:{end_date:"2022-05-01"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
+		// start date + end date -- feed includes in window
+		{
+			name:         "covers start_date and end_date",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{start_date:"2016-08-01", end_date:"2016-08-30"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		{
+			name:         "covers start_date and end_date 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{start_date:"2018-06-01", end_date:"2018-06-30"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+		},
+		{
+			name:         "covers start_date and end_date using earliest and latest calendar date",
+			query:        `query{feed_versions(where:{feed_onestop_id:"CT", covers:{start_date:"2018-06-01", end_date:"2018-06-30"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
+		},
+		// covers fetched_before
+		{
+			name:         "covers fetched_before",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{fetched_before:"2123-04-05T06:07:08.9Z"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+		},
+		{
+			name:         "covers fetched_before 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{fetched_before:"2009-08-07T06:05:04.3Z"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
+		// covers fetched_after
+		{
+			name:         "covers fetched_after",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{fetched_after:"2009-08-07T06:05:04.3Z"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+		},
+		{
+			name:         "covers fetched_after 2",
+			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{fetched_after:"2123-04-05T06:07:08.9Z"}}) {sha1} }`,
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
 		// there isnt a fv with this import status in test db
 		{
 			name:         "where import_status error",

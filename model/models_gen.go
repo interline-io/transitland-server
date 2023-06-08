@@ -121,11 +121,12 @@ type FeedVersionDeleteResult struct {
 }
 
 type FeedVersionFilter struct {
-	ImportStatus  *ImportStatus `json:"import_status"`
-	FeedOnestopID *string       `json:"feed_onestop_id"`
-	Sha1          *string       `json:"sha1"`
-	File          *string       `json:"file"`
-	FeedIds       []int         `json:"feed_ids"`
+	ImportStatus  *ImportStatus        `json:"import_status"`
+	FeedOnestopID *string              `json:"feed_onestop_id"`
+	Sha1          *string              `json:"sha1"`
+	File          *string              `json:"file"`
+	FeedIds       []int                `json:"feed_ids"`
+	Covers        *ServiceCoversFilter `json:"covers"`
 }
 
 type FeedVersionServiceLevelFilter struct {
@@ -255,6 +256,13 @@ type RouteFilter struct {
 	OperatorOnestopID       *string        `json:"operator_onestop_id"`
 	License                 *LicenseFilter `json:"license"`
 	AgencyIds               []int          `json:"agency_ids"`
+}
+
+type ServiceCoversFilter struct {
+	StartDate     *tt.Date   `json:"start_date"`
+	EndDate       *tt.Date   `json:"end_date"`
+	FetchedAfter  *time.Time `json:"fetched_after"`
+	FetchedBefore *time.Time `json:"fetched_before"`
 }
 
 type Step struct {

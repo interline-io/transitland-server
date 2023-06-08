@@ -29,6 +29,7 @@ input FeedVersionFilter {
   sha1: String
   file: String
   feed_ids: [Int!]
+  covers: ServiceCoversFilter
 }
 
 enum ImportStatus {
@@ -206,6 +207,13 @@ input LicenseFilter {
 input FeedVersionServiceLevelFilter {
   start_date: Date
   end_date: Date
+}
+
+input ServiceCoversFilter {
+  start_date: Date
+  end_date: Date
+  fetched_after: Time
+  fetched_before: Time
 }
 
 input AgencyPlaceFilter {

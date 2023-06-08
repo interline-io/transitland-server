@@ -27,6 +27,33 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"cf.onestop_id": *where.FeedOnestopID})
 		}
+
+		// Coverage
+		if covers := where.Covers; covers != nil {
+			joinFvsw := false
+			if covers.StartDate != nil && covers.StartDate.Valid {
+				joinFvsw = true
+				q = q.
+					Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.StartDate.Val}).
+					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.StartDate.Val})
+			}
+			if covers.EndDate != nil && covers.EndDate.Valid {
+				joinFvsw = true
+				q = q.
+					Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.EndDate.Val}).
+					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
+			}
+			if joinFvsw {
+				q = q.Join("feed_version_service_windows fvsw on fvsw.feed_version_id = t.id")
+			}
+			if covers.FetchedBefore != nil {
+				q = q.Where(sq.Lt{"t.fetched_at": covers.FetchedBefore})
+			}
+			if covers.FetchedAfter != nil {
+				q = q.Where(sq.Gt{"t.fetched_at": covers.FetchedAfter})
+			}
+		}
+
 		// Import import status
 		// Similar logic to FeedSelect
 		if where.ImportStatus != nil {
@@ -44,7 +71,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 				checkSuccess = false
 				checkInProgress = false
 			default:
-				log.Error().Str("value", v.String()).Msg("unknown imnport status enum")
+				log.Error().Str("value", v.String()).Msg("unknown import status enum")
 			}
 			q = q.Join(`feed_version_gtfs_imports fvgi on fvgi.feed_version_id = t.id`).
 				Where(sq.Eq{"fvgi.success": checkSuccess, "fvgi.in_progress": checkInProgress})
