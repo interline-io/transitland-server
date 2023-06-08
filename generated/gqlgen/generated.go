@@ -6585,7 +6585,8 @@ input FeedVersionServiceLevelFilter {
 input ServiceCoversFilter {
   start_date: Date
   end_date: Date
-  fetched_before: Date
+  fetched_after: Time
+  fetched_before: Time
 }
 
 input AgencyPlaceFilter {
@@ -44034,7 +44035,7 @@ func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"start_date", "end_date", "fetched_before"}
+	fieldsInOrder := [...]string{"start_date", "end_date", "fetched_after", "fetched_before"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44057,11 +44058,19 @@ func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "fetched_after":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetched_after"))
+			it.FetchedAfter, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "fetched_before":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetched_before"))
-			it.FetchedBefore, err = ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			it.FetchedBefore, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}

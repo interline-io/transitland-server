@@ -1,8 +1,6 @@
 package find
 
 import (
-	"fmt"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl/tt"
@@ -31,17 +29,28 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		}
 
 		// Coverage
-		fmt.Println("Covers?", where.Covers)
 		if covers := where.Covers; covers != nil {
-			q = q.Join("feed_version_service_windows fvsw on fvsw.feed_version_id = t.id")
+			joinFvsw := false
 			if covers.StartDate != nil && covers.StartDate.Valid {
-				q = q.Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.StartDate.Val})
+				joinFvsw = true
+				q = q.
+					Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.StartDate.Val}).
+					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.StartDate.Val})
 			}
 			if covers.EndDate != nil && covers.EndDate.Valid {
-				q = q.Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
+				joinFvsw = true
+				q = q.
+					Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.EndDate.Val}).
+					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
 			}
-			if covers.FetchedBefore != nil && covers.FetchedBefore.Valid {
-				q = q.Where(sq.LtOrEq{"t.fetched_at": covers.FetchedBefore.Val})
+			if joinFvsw {
+				q = q.Join("feed_version_service_windows fvsw on fvsw.feed_version_id = t.id")
+			}
+			if covers.FetchedBefore != nil {
+				q = q.Where(sq.Lt{"t.fetched_at": covers.FetchedBefore})
+			}
+			if covers.FetchedAfter != nil {
+				q = q.Where(sq.Gt{"t.fetched_at": covers.FetchedAfter})
 			}
 		}
 

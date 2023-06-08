@@ -10,14 +10,18 @@ var feedVersionQuery string
 
 // FeedVersionRequest holds options for a Route request
 type FeedVersionRequest struct {
-	FeedVersionKey string `json:"feed_version_key"`
-	FeedKey        string `json:"feed_key"`
-	ID             int    `json:"id,string"`
-	Limit          int    `json:"limit,string"`
-	After          int    `json:"after,string"`
-	FeedID         int    `json:"feed_id,string"`
-	FeedOnestopID  string `json:"feed_onestop_id"`
-	Sha1           string `json:"sha1"`
+	FeedVersionKey  string `json:"feed_version_key"`
+	FeedKey         string `json:"feed_key"`
+	ID              int    `json:"id,string"`
+	Limit           int    `json:"limit,string"`
+	After           int    `json:"after,string"`
+	FeedID          int    `json:"feed_id,string"`
+	FeedOnestopID   string `json:"feed_onestop_id"`
+	Sha1            string `json:"sha1"`
+	FetchedBefore   string `json:"fetched_before"`
+	FetchedAfter    string `json:"fetched_after"`
+	CoversStartDate string `json:"covers_start_date"`
+	CoversEndDate   string `json:"covers_end_date"`
 }
 
 // Query returns a GraphQL query string and variables.
@@ -47,6 +51,22 @@ func (r FeedVersionRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Sha1 != "" {
 		where["sha1"] = r.Sha1
+	}
+	whereCovers := hw{}
+	if r.CoversStartDate != "" {
+		whereCovers["start_date"] = r.CoversStartDate
+	}
+	if r.CoversEndDate != "" {
+		whereCovers["end_date"] = r.CoversEndDate
+	}
+	if r.FetchedAfter != "" {
+		whereCovers["fetched_after"] = r.FetchedAfter
+	}
+	if r.FetchedBefore != "" {
+		whereCovers["fetched_before"] = r.FetchedBefore
+	}
+	if len(whereCovers) > 0 {
+		where["covers"] = whereCovers
 	}
 	return feedVersionQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }
