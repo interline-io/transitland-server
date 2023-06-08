@@ -6649,11 +6649,11 @@ type Query {
 
 type Mutation {
     validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationResult @hasRole(role: USER)
-    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion @hasRole(role: ADMIN)
-    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult @hasRole(role: ADMIN)
-    feed_version_import(id: Int!): FeedVersionImportResult! @hasRole(role: ADMIN)
-    feed_version_unimport(id: Int!): FeedVersionUnimportResult! @hasRole(role: ADMIN)
-    feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: ADMIN)
+    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion @hasRole(role: USER)
+    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult @hasRole(role: USER)
+    feed_version_import(id: Int!): FeedVersionImportResult! @hasRole(role: USER)
+    feed_version_unimport(id: Int!): FeedVersionUnimportResult! @hasRole(role: USER)
+    feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: USER)
 }
 
 """
@@ -27004,7 +27004,7 @@ func (ec *executionContext) _Mutation_feed_version_update(ctx context.Context, f
 			return ec.resolvers.Mutation().FeedVersionUpdate(rctx, fc.Args["id"].(int), fc.Args["set"].(model.FeedVersionSetInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "ADMIN")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -27124,7 +27124,7 @@ func (ec *executionContext) _Mutation_feed_version_fetch(ctx context.Context, fi
 			return ec.resolvers.Mutation().FeedVersionFetch(rctx, fc.Args["file"].(*graphql.Upload), fc.Args["url"].(*string), fc.Args["feed_onestop_id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "ADMIN")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -27210,7 +27210,7 @@ func (ec *executionContext) _Mutation_feed_version_import(ctx context.Context, f
 			return ec.resolvers.Mutation().FeedVersionImport(rctx, fc.Args["id"].(int))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "ADMIN")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -27293,7 +27293,7 @@ func (ec *executionContext) _Mutation_feed_version_unimport(ctx context.Context,
 			return ec.resolvers.Mutation().FeedVersionUnimport(rctx, fc.Args["id"].(int))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "ADMIN")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -27376,7 +27376,7 @@ func (ec *executionContext) _Mutation_feed_version_delete(ctx context.Context, f
 			return ec.resolvers.Mutation().FeedVersionDelete(rctx, fc.Args["id"].(int))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "ADMIN")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}

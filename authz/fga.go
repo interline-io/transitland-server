@@ -36,13 +36,18 @@ func NewFGAClient(storeId string, modelId string, endpoint string) (*FGAClient, 
 	}, nil
 }
 
-func (c *FGAClient) Check(ctx context.Context, tk TupleKey) (bool, error) {
+func (c *FGAClient) Check(ctx context.Context, tk TupleKey, ctxTuples ...TupleKey) (bool, error) {
 	if err := tk.Validate(); err != nil {
 		return false, err
+	}
+	var fgaCtxTuples openfga.ContextualTupleKeys
+	for _, ctxTuple := range ctxTuples {
+		fgaCtxTuples.TupleKeys = append(fgaCtxTuples.TupleKeys, ctxTuple.FGATupleKey())
 	}
 	body := openfga.CheckRequest{
 		AuthorizationModelId: openfga.PtrString(c.Model),
 		TupleKey:             tk.FGATupleKey(),
+		ContextualTuples:     &fgaCtxTuples,
 	}
 	data, _, err := c.client.OpenFgaApi.Check(context.Background()).Body(body).Execute()
 	if err != nil {

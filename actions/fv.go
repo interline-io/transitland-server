@@ -16,14 +16,11 @@ import (
 )
 
 func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionImportResult, error) {
-	fvPerms, err := checker.FeedVersionPermissions(ctx, user, fvid)
-	if err != nil {
+	if check, err := checker.FeedVersionPermissions(ctx, user, fvid); err != nil {
 		return nil, err
-	}
-	if !fvPerms.Actions.CanEdit {
+	} else if !check.Actions.CanEdit {
 		return nil, errors.New("permission denied")
 	}
-
 	opts := importer.Options{
 		FeedVersionID: fvid,
 		Storage:       cfg.Storage,
@@ -40,14 +37,11 @@ func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder,
 }
 
 func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionUnimportResult, error) {
-	fvPerms, err := checker.FeedVersionPermissions(ctx, user, fvid)
-	if err != nil {
+	if check, err := checker.FeedVersionPermissions(ctx, user, fvid); err != nil {
 		return nil, err
-	}
-	if !fvPerms.Actions.CanEdit {
+	} else if !check.Actions.CanEdit {
 		return nil, errors.New("permission denied")
 	}
-
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
 		return unimporter.UnimportFeedVersion(atx, fvid, nil)
@@ -61,29 +55,29 @@ func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finde
 }
 
 func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int, values model.FeedVersionSetInput) error {
-	fvPerms, err := checker.FeedVersionPermissions(ctx, user, fvid)
-	if err != nil {
+	if check, err := checker.FeedVersionPermissions(ctx, user, fvid); err != nil {
 		return err
-	}
-	if !fvPerms.Actions.CanEdit {
+	} else if !check.Actions.CanEdit {
 		return errors.New("permission denied")
 	}
-
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
-	err = db.Tx(func(atx tldb.Adapter) error {
+	err := db.Tx(func(atx tldb.Adapter) error {
 		fv := tl.FeedVersion{}
 		fv.ID = fvid
+		var cols []string
 		if values.Name != nil {
 			fv.Name = tt.NewString(*values.Name)
+			cols = append(cols, "name")
 		} else {
 			fv.Name.Valid = false
 		}
 		if values.Description != nil {
 			fv.Description = tt.NewString(*values.Description)
+			cols = append(cols, "description")
 		} else {
 			fv.Description.Valid = false
 		}
-		return atx.Update(&fv, "name", "description")
+		return atx.Update(&fv, cols...)
 	})
 	if err != nil {
 		return err
@@ -92,11 +86,9 @@ func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder,
 }
 
 func FeedVersionDelete(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionDeleteResult, error) {
-	fvPerms, err := checker.FeedVersionPermissions(ctx, user, fvid)
-	if err != nil {
+	if check, err := checker.FeedVersionPermissions(ctx, user, fvid); err != nil {
 		return nil, err
-	}
-	if !fvPerms.Actions.CanEdit {
+	} else if !check.Actions.CanEdit {
 		return nil, errors.New("permission denied")
 	}
 	return nil, errors.New("temporarily unavailable")

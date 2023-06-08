@@ -2,6 +2,7 @@ package actions
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -21,6 +22,7 @@ import (
 )
 
 func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user auth.User, checker *authz.Checker) (*model.FeedVersionFetchResult, error) {
+	fmt.Println("STATIC FETCH????")
 	// Check feed exists
 	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
@@ -32,11 +34,13 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 
 	// Check feed permissions
 	feed := feeds[0].Feed
-	fvPerms, err := checker.FeedPermissions(ctx, user, feed.ID)
-	if err != nil {
+	if check, err := checker.FeedPermissions(ctx, user, feed.ID); err != nil {
+		z, _ := json.Marshal(check.Actions)
+		fmt.Println("actions:", string(z))
 		return nil, err
-	}
-	if !fvPerms.Actions.CanEdit {
+	} else if !check.Actions.CanEdit {
+		z, _ := json.Marshal(check.Actions)
+		fmt.Println("actions:", string(z))
 		return nil, errors.New("permission denied")
 	}
 
@@ -82,12 +86,6 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 			a := fr.FetchError.Error()
 			mr.FetchError = &a
 		}
-
-		// If this is new, set parent tuple
-		if !fr.Found && checker != nil {
-			checker.FeedVersionSetFeed(ctx, user, fv.ID, fv.FeedID)
-		}
-
 		return nil
 	}); err != nil {
 		return nil, err
@@ -104,7 +102,14 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 	if len(rtfeeds) == 0 {
 		return errors.New("feed not found")
 	}
+
+	// Check feed permissions
 	rtfeed := rtfeeds[0].Feed
+	// if check, err := checker.FeedVersionPermissions(ctx, user, feed.ID); err != nil {
+	// 	return nil, err
+	// } else if !check.Actions.CanEdit {
+	// 	return nil, errors.New("permission denied")
+	// }
 
 	// Prepare
 	fetchOpts := fetch.Options{
