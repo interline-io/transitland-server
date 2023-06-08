@@ -17,6 +17,8 @@ type FeedVersionRequest struct {
 	After          int    `json:"after,string"`
 	FeedID         int    `json:"feed_id,string"`
 	FeedOnestopID  string `json:"feed_onestop_id"`
+	FetchedBefore  string `json:"fetched_before"`
+	FetchedAfter   string `json:"fetched_after"`
 	Sha1           string `json:"sha1"`
 }
 
@@ -47,6 +49,12 @@ func (r FeedVersionRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Sha1 != "" {
 		where["sha1"] = r.Sha1
+	}
+	if r.FetchedAfter != "" {
+		where["fetched_after"] = r.FetchedAfter
+	}
+	if r.FetchedBefore != "" {
+		where["fetched_before"] = r.FetchedBefore
 	}
 	return feedVersionQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
 }

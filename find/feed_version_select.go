@@ -27,6 +27,12 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"cf.onestop_id": *where.FeedOnestopID})
 		}
+		if where.FetchedAfter != nil {
+			q = q.Where(sq.Gt{"t.fetched_at": where.FetchedAfter})
+		}
+		if where.FetchedBefore != nil {
+			q = q.Where(sq.Lt{"t.fetched_at": where.FetchedBefore})
+		}
 		// Import import status
 		// Similar logic to FeedSelect
 		if where.ImportStatus != nil {

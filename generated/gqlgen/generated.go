@@ -6398,6 +6398,8 @@ input OperatorFilter {
 }
 
 input FeedVersionFilter {
+  fetched_after: Time
+  fetched_before: Time
   import_status: ImportStatus
   feed_onestop_id: String
   sha1: String
@@ -43408,13 +43410,29 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "file", "feed_ids"}
+	fieldsInOrder := [...]string{"fetched_after", "fetched_before", "import_status", "feed_onestop_id", "sha1", "file", "feed_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "fetched_after":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetched_after"))
+			it.FetchedAfter, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fetched_before":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetched_before"))
+			it.FetchedBefore, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "import_status":
 			var err error
 

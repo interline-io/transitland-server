@@ -24,6 +24,8 @@ input OperatorFilter {
 }
 
 input FeedVersionFilter {
+  fetched_after: Time
+  fetched_before: Time
   import_status: ImportStatus
   feed_onestop_id: String
   sha1: String

@@ -121,6 +121,8 @@ type FeedVersionDeleteResult struct {
 }
 
 type FeedVersionFilter struct {
+	FetchedAfter  *time.Time    `json:"fetched_after"`
+	FetchedBefore *time.Time    `json:"fetched_before"`
 	ImportStatus  *ImportStatus `json:"import_status"`
 	FeedOnestopID *string       `json:"feed_onestop_id"`
 	Sha1          *string       `json:"sha1"`
