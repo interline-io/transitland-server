@@ -41,10 +41,10 @@ type Checker struct {
 }
 
 func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Client) (*Checker, error) {
-	var authz AuthzProvider
-	authz = NewMockAuthzClient()
 	var authn AuthnProvider
 	authn = NewMockAuthnClient()
+	var authz AuthzProvider
+	authz = NewMockAuthzClient()
 
 	// Load Auth0 if configured
 	if cfg.Auth0Domain != "" {
@@ -72,21 +72,21 @@ func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Clien
 			if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
 				return nil, err
 			}
-			if cfg.FGALoadTupleFile != "" {
-				tkeys, err := LoadTuples(cfg.FGALoadTupleFile)
-				if err != nil {
-					return nil, err
+		}
+		if cfg.FGALoadTupleFile != "" {
+			tkeys, err := LoadTuples(cfg.FGALoadTupleFile)
+			if err != nil {
+				return nil, err
+			}
+			for _, tk := range tkeys {
+				if tk.Test != "" {
+					continue
 				}
-				for _, tk := range tkeys {
-					if tk.Test != "" {
-						continue
-					}
-					if !tk.Relation.IsARelation() {
-						continue
-					}
-					if err := fgac.WriteTuple(context.Background(), tk.TupleKey); err != nil {
-						return nil, err
-					}
+				if !tk.Relation.IsARelation() {
+					continue
+				}
+				if err := fgac.WriteTuple(context.Background(), tk.TupleKey); err != nil {
+					return nil, err
 				}
 			}
 		}
