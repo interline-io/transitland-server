@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.26
 	github.com/Masterminds/squirrel v1.5.3
 	github.com/amberflo/metering-go/v2 v2.0.1
+	github.com/auth0/go-auth0 v0.17.2
 	github.com/aws/aws-sdk-go v1.44.218
 	github.com/aws/aws-sdk-go-v2 v1.17.5
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
@@ -21,13 +22,14 @@ require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/transitland-lib v0.12.1-0.20230425205311-eacd3f704b0c
+	github.com/interline-io/transitland-lib v0.12.1-0.20230610031045-1f974f262dd7
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
+	github.com/openfga/go-sdk v0.2.2
 	github.com/prometheus/client_golang v1.14.0
 	github.com/rs/zerolog v1.29.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/tinylru v1.1.0
 	github.com/twpayne/go-geom v1.5.1
@@ -43,6 +45,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.9.0 // indirect
+	github.com/PuerkitoBio/rehttp v1.1.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.15 // indirect
@@ -100,11 +103,13 @@ require (
 	github.com/tkrajina/gpxgo v1.2.1 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/image v0.6.0 // indirect
-	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
