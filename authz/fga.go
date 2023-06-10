@@ -3,19 +3,21 @@ package authz
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"net/url"
 	"os/exec"
+	"strings"
 
 	"github.com/interline-io/transitland-lib/log"
 	openfga "github.com/openfga/go-sdk"
 )
 
 type FGAClient struct {
-	Model  string
-	client *openfga.APIClient
+	ModelID string
+	client  *openfga.APIClient
 }
 
-func NewFGAClient(storeId string, modelId string, endpoint string) (*FGAClient, error) {
+func NewFGAClient(endpoint string, storeId string, modelId string) (*FGAClient, error) {
 	ep, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
@@ -30,8 +32,8 @@ func NewFGAClient(storeId string, modelId string, endpoint string) (*FGAClient, 
 	}
 	apiClient := openfga.NewAPIClient(cfg)
 	return &FGAClient{
-		Model:  modelId,
-		client: apiClient,
+		ModelID: modelId,
+		client:  apiClient,
 	}, nil
 }
 
@@ -44,7 +46,7 @@ func (c *FGAClient) Check(ctx context.Context, tk TupleKey, ctxTuples ...TupleKe
 		fgaCtxTuples.TupleKeys = append(fgaCtxTuples.TupleKeys, ctxTuple.FGATupleKey())
 	}
 	body := openfga.CheckRequest{
-		AuthorizationModelId: openfga.PtrString(c.Model),
+		AuthorizationModelId: openfga.PtrString(c.ModelID),
 		TupleKey:             tk.FGATupleKey(),
 		ContextualTuples:     &fgaCtxTuples,
 	}
@@ -57,7 +59,7 @@ func (c *FGAClient) Check(ctx context.Context, tk TupleKey, ctxTuples ...TupleKe
 
 func (c *FGAClient) ListObjects(ctx context.Context, tk TupleKey) ([]TupleKey, error) {
 	body := openfga.ListObjectsRequest{
-		AuthorizationModelId: openfga.PtrString(c.Model),
+		AuthorizationModelId: openfga.PtrString(c.ModelID),
 		User:                 tk.Subject.String(),
 		Relation:             tk.ActionOrRelation(),
 		Type:                 tk.Object.Type.String(),
@@ -139,7 +141,7 @@ func (c *FGAClient) WriteTuple(ctx context.Context, tk TupleKey) error {
 	log.Trace().Str("tk", tk.String()).Msg("WriteTuple")
 	body := openfga.WriteRequest{
 		Writes:               &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
-		AuthorizationModelId: openfga.PtrString(c.Model),
+		AuthorizationModelId: openfga.PtrString(c.ModelID),
 	}
 	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()
 	return err
@@ -153,19 +155,44 @@ func (c *FGAClient) DeleteTuple(ctx context.Context, tk TupleKey) error {
 	log.Trace().Str("tk", tk.String()).Msg("DeleteTuple")
 	body := openfga.WriteRequest{
 		Deletes:              &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
-		AuthorizationModelId: openfga.PtrString(c.Model),
+		AuthorizationModelId: openfga.PtrString(c.ModelID),
 	}
 	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()
 	return err
 }
 
+func (c *FGAClient) CreateStore(ctx context.Context, storeName string) (string, error) {
+	// Create new store
+	resp, _, err := c.client.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
+		Name: storeName,
+	}).Execute()
+	if err != nil {
+		return "", err
+	}
+	storeId := resp.GetId()
+	log.Info().Msgf("created store: %s", storeId)
+	c.client.SetStoreId(storeId)
+	return storeId, nil
+}
+
 func (c *FGAClient) CreateModel(ctx context.Context, fn string) (string, error) {
-	dslJson, err := dslToJson(fn)
+	// Create new model
+	var dslJson []byte
+	var err error
+	if strings.HasSuffix(fn, ".json") {
+		if dslJson, err = ioutil.ReadFile(fn); err != nil {
+			return "", err
+		}
+	} else {
+		if dslJson, err = dslToJson(fn); err != nil {
+			return "", err
+		}
+	}
 	if err != nil {
 		return "", err
 	}
 	var body openfga.WriteAuthorizationModelRequest
-	if err := json.Unmarshal([]byte(dslJson), &body); err != nil {
+	if err := json.Unmarshal(dslJson, &body); err != nil {
 		return "", err
 	}
 	modelId := ""
@@ -174,10 +201,11 @@ func (c *FGAClient) CreateModel(ctx context.Context, fn string) (string, error) 
 	} else {
 		modelId = resp.GetAuthorizationModelId()
 	}
+	log.Info().Msgf("created model: %s", modelId)
 	return modelId, nil
 }
 
-func dslToJson(fn string) (string, error) {
+func dslToJson(fn string) ([]byte, error) {
 	args := []string{
 		"@openfga/syntax-transformer",
 		"transform",
@@ -187,7 +215,7 @@ func dslToJson(fn string) (string, error) {
 	cmd := exec.Command("npx", args...)
 	b, err := cmd.CombinedOutput()
 	if err != nil {
-		return string(b), err
+		return b, err
 	}
-	return string(b), nil
+	return b, nil
 }

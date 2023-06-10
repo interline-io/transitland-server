@@ -108,13 +108,15 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
 
 	// Admin api
+	fl.StringVar(&cmd.AuthzConfig.GlobalAdmin, "global-admin", "", "Global admin user")
 	fl.StringVar(&cmd.AuthzConfig.Auth0ClientID, "auth0-client-id", "", "Auth0 client ID")
 	fl.StringVar(&cmd.AuthzConfig.Auth0ClientSecret, "auth0-client-secret", "", "Auth0 client secret")
 	fl.StringVar(&cmd.AuthzConfig.Auth0Domain, "auth0-domain", "", "Auth0 domain")
 	fl.StringVar(&cmd.AuthzConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
 	fl.StringVar(&cmd.AuthzConfig.FGAStoreID, "fga-store-id", "", "FGA store")
 	fl.StringVar(&cmd.AuthzConfig.FGAModelID, "fga-model-id", "", "FGA model")
-	fl.StringVar(&cmd.AuthzConfig.GlobalAdmin, "global-admin", "", "Global admin user")
+	fl.StringVar(&cmd.AuthzConfig.FGALoadModelFile, "fga-load-model-file", "", "")
+	fl.StringVar(&cmd.AuthzConfig.FGALoadTupleFile, "fga-load-tuple-file", "", "")
 
 	// Metrics
 	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")

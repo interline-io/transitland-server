@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	openfga "github.com/openfga/go-sdk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -148,26 +147,25 @@ func TestFGAClient(t *testing.T) {
 
 func newTestFGAClient(t testing.TB) *FGAClient {
 	cfg := newTestConfig()
-	fgac, err := NewFGAClient(cfg.FGAStoreID, cfg.FGAModelID, cfg.FGAEndpoint)
+	fgac, err := NewFGAClient(cfg.FGAEndpoint, cfg.FGAStoreID, cfg.FGAModelID)
 	if err != nil {
 		t.Fatal(err)
 		return nil
 	}
-	if cfg.FGATestModelPath != "" {
-		modelId, err := createTestStoreAndModel(t, fgac, "test", cfg.FGATestModelPath, true)
-		if err != nil {
+	if cfg.FGALoadModelFile != "" {
+		if _, err := fgac.CreateStore(context.Background(), "test"); err != nil {
 			t.Fatal(err)
-			return nil
 		}
-		fgac.Model = modelId
+		if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
+			t.Fatal(err)
+		}
 	}
-	if cfg.FGATestTuplesPath != "" {
-		tkeys, err := LoadTuples(cfg.FGATestTuplesPath)
+	if cfg.FGALoadTupleFile != "" {
+		tkeys, err := LoadTuples(cfg.FGALoadTupleFile)
 		if err != nil {
 			t.Fatal(err)
 			return nil
 		}
-		count := 0
 		for _, tk := range tkeys {
 			if tk.Test != "" {
 				continue
@@ -179,34 +177,9 @@ func newTestFGAClient(t testing.TB) *FGAClient {
 				t.Fatal(err)
 				return nil
 			}
-			count += 1
 		}
 	}
 	return fgac
-}
-
-func createTestStoreAndModel(t testing.TB, cc *FGAClient, storeName string, modelFn string, deleteExisting bool) (string, error) {
-	// Configure API client
-	apiClient := cc.client
-
-	// Create new store
-	resp, _, err := apiClient.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
-		Name: storeName,
-	}).Execute()
-	if err != nil {
-		return "", err
-	}
-	storeId := resp.GetId()
-	t.Logf("created store: %s", storeId)
-	apiClient.SetStoreId(storeId)
-
-	// Create model from DSL
-	modelId, err := cc.CreateModel(context.Background(), modelFn)
-	if err != nil {
-		return "", err
-	}
-	t.Logf("created model: %s", modelId)
-	return modelId, nil
 }
 
 func checkExpectError(t testing.TB, err error, expect bool) bool {

@@ -10,12 +10,12 @@ type MockAuthnClient struct {
 
 func NewMockAuthnClient() *MockAuthnClient {
 	return &MockAuthnClient{
-		users: map[string]User{
-			"ian":   {Name: "Ian", ID: "ian", Email: "ian@example.com"},
-			"drew":  {Name: "Drew", ID: "drew", Email: "drew@example.com"},
-			"nisar": {Name: "Nisar", ID: "nisar", Email: "nisar@example.com"},
-		},
+		users: map[string]User{},
 	}
+}
+
+func (c *MockAuthnClient) AddUser(key string, u User) {
+	c.users[key] = u
 }
 
 func (c *MockAuthnClient) UserByID(ctx context.Context, id string) (*User, error) {

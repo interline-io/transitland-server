@@ -7,8 +7,8 @@ type AuthzConfig struct {
 	FGAStoreID        string
 	FGAModelID        string
 	FGAEndpoint       string
-	FGATestModelPath  string
-	FGATestTuplesPath string
+	FGALoadModelFile  string
+	FGALoadTupleFile  string
 	GlobalAdmin       string
 }
 

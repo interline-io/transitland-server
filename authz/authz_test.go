@@ -12,8 +12,8 @@ func newTestConfig() AuthzConfig {
 		Auth0ClientID:     os.Getenv("TL_AUTH0_CLIENT_ID"),
 		Auth0ClientSecret: os.Getenv("TL_AUTH0_CLIENT_SECRET"),
 		FGAEndpoint:       "http://localhost:8090", // os.Getenv("TL_FGA_ENDPOINT"),
-		FGATestModelPath:  "../test/authz/tls.model",
-		FGATestTuplesPath: "../test/authz/tls.csv",
+		FGALoadModelFile:  "../test/authz/tls.json",
+		FGALoadTupleFile:  "../test/authz/tls.csv",
 	}
 	return cfg
 }

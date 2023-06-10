@@ -41,24 +41,57 @@ type Checker struct {
 }
 
 func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Client) (*Checker, error) {
-	var authn AuthnProvider
 	var authz AuthzProvider
+	authz = NewMockAuthzClient()
+	var authn AuthnProvider
+	authn = NewMockAuthnClient()
+
+	// Load Auth0 if configured
 	if cfg.Auth0Domain != "" {
 		var err error
 		authn, err = NewAuth0Client(cfg.Auth0Domain, cfg.Auth0ClientID, cfg.Auth0ClientSecret)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		authn = NewMockAuthnClient()
 	}
+
+	// Load FGA if configured
 	if cfg.FGAEndpoint != "" {
-		var err error
-		authz, err = NewFGAClient(cfg.FGAStoreID, cfg.FGAModelID, cfg.FGAEndpoint)
+		fgac, err := NewFGAClient(cfg.FGAEndpoint, cfg.FGAStoreID, cfg.FGAModelID)
 		if err != nil {
 			return nil, err
 		}
+		authz = fgac
+		// Create test FGA environment
+		if cfg.FGALoadModelFile != "" {
+			if cfg.FGAStoreID == "" {
+				if _, err := fgac.CreateStore(context.Background(), "test"); err != nil {
+					return nil, err
+				}
+			}
+			if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
+				return nil, err
+			}
+			if cfg.FGALoadTupleFile != "" {
+				tkeys, err := LoadTuples(cfg.FGALoadTupleFile)
+				if err != nil {
+					return nil, err
+				}
+				for _, tk := range tkeys {
+					if tk.Test != "" {
+						continue
+					}
+					if !tk.Relation.IsARelation() {
+						continue
+					}
+					if err := fgac.WriteTuple(context.Background(), tk.TupleKey); err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
 	}
+
 	checker := NewChecker(authn, authz, db, redisClient)
 	if cfg.GlobalAdmin != "" {
 		checker.globalAdmins = append(checker.globalAdmins, cfg.GlobalAdmin)

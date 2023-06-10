@@ -371,6 +371,9 @@ func checkActionsToMap(v []string) map[string]bool {
 func newTestChecker(t testing.TB) *Checker {
 	te := testfinder.Finders(t, nil, nil)
 	auth0c := NewMockAuthnClient()
+	auth0c.AddUser("ian", User{Name: "Ian", ID: "ian", Email: "ian@example.com"})
+	auth0c.AddUser("drew", User{Name: "Drew", ID: "drew", Email: "drew@example.com"})
+	auth0c.AddUser("nisar", User{Name: "Nisar", ID: "nisar", Email: "nisar@example.com"})
 	fgac := newTestFGAClient(t)
 	checker := NewChecker(auth0c, fgac, te.Finder.DBX(), nil)
 	return checker
