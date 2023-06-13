@@ -13,7 +13,6 @@ func newTestConfig() AuthzConfig {
 		Auth0ClientSecret: os.Getenv("TL_TEST_AUTH0_CLIENT_SECRET"),
 		FGAEndpoint:       os.Getenv("TL_TEST_FGA_ENDPOINT"),
 		FGALoadModelFile:  "../test/authz/tls.json",
-		FGALoadTupleFile:  "../test/authz/tls.csv",
 	}
 	return cfg
 }

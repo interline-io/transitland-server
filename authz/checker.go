@@ -482,7 +482,7 @@ func (c *Checker) FeedPermissions(ctx context.Context, checkUser auth.User, feed
 			ret.Group, _ = c.Group(ctx, checkUser, tk.Subject.ID())
 		}
 	}
-	ret.Actions.CanView = true
+	ret.Actions.CanView, _ = c.checkObject(ctx, checkUser, CanView, entKey)
 	ret.Actions.CanEdit, _ = c.checkObject(ctx, checkUser, CanEdit, entKey)
 	ret.Actions.CanCreateFeedVersion, _ = c.checkObject(ctx, checkUser, CanCreateFeedVersion, entKey)
 	ret.Actions.CanDeleteFeedVersion, _ = c.checkObject(ctx, checkUser, CanDeleteFeedVersion, entKey)

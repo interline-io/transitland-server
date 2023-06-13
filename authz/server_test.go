@@ -18,11 +18,7 @@ func TestServer(t *testing.T) {
 		return
 	}
 
-	// Test assertions
-	checks, err := LoadTuples("../test/authz/tls.csv")
-	if err != nil {
-		t.Fatal(err)
-	}
+	checks := fgaTestData
 
 	// TENANTS
 	t.Run("TenantList", func(t *testing.T) {
@@ -134,7 +130,7 @@ func TestServer(t *testing.T) {
 
 }
 
-func testServerWithUser(c *Checker, tk TestTupleKey) http.Handler {
+func testServerWithUser(c *Checker, tk fgaTestTuple) http.Handler {
 	srv, _ := NewServer(c)
 	srv = auth.UserDefaultMiddleware(stringOr(tk.CheckAsUser, tk.Subject.Name))(srv)
 	return srv
@@ -145,7 +141,7 @@ func printHttpResponse(t testing.TB, r io.Reader) {
 	t.Log(string(b))
 }
 
-func checkHttpExpectError(t testing.TB, tk TestTupleKey, rr *httptest.ResponseRecorder) {
+func checkHttpExpectError(t testing.TB, tk fgaTestTuple, rr *httptest.ResponseRecorder) {
 	status := rr.Code
 	if tk.ExpectErrorAsUser && status == http.StatusOK {
 		t.Errorf("got error code %d, expected non-200", status)
@@ -158,8 +154,8 @@ func checkHttpExpectError(t testing.TB, tk TestTupleKey, rr *httptest.ResponseRe
 	}
 }
 
-func filterTestTuple(tks []TestTupleKey, testType string, objectType ObjectType, hasAction Action) []TestTupleKey {
-	var ret []TestTupleKey
+func filterTestTuple(tks []fgaTestTuple, testType string, objectType ObjectType, hasAction Action) []fgaTestTuple {
+	var ret []fgaTestTuple
 	for _, tk := range tks {
 		if tk.Test != testType {
 			continue

@@ -1,6 +1,7 @@
 package authz
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -12,8 +13,8 @@ import (
 )
 
 type EntityKey struct {
-	Type ObjectType `json:"type"`
-	Name string     `json:"name"`
+	Type ObjectType `json:"Type"`
+	Name string     `json:"Name"`
 }
 
 func NewEntityKey(t ObjectType, name string) EntityKey {
@@ -227,6 +228,11 @@ func LoadTuples(fn string) ([]TestTupleKey, error) {
 			tkeys = append(tkeys, tk)
 		})
 	}
+	jj, err := json.Marshal(tkeys)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(jj))
 	return tkeys, nil
 }
 
