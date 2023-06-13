@@ -2,13 +2,78 @@ package authz
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
+
+func newTestFGAClient(t testing.TB, dbx sqlx.Ext, testTuples []fgaTestTuple) *FGAClient {
+	cfg := newTestConfig()
+	cfg.GlobalAdmin = "global_admin"
+	fgac, err := NewFGAClient(cfg.FGAEndpoint, cfg.FGAStoreID, cfg.FGAModelID)
+	if err != nil {
+		t.Fatal(err)
+		return nil
+	}
+	if cfg.FGALoadModelFile != "" {
+		if _, err := fgac.CreateStore(context.Background(), "test"); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, tk := range testTuples {
+		tk, err := dbTupleLookup(dbx, tk.TupleKey())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := fgac.WriteTuple(context.Background(), tk); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return fgac
+}
+
+func dbTupleLookup(dbx sqlx.Ext, tk TupleKey) (TupleKey, error) {
+	var err error
+	tk.Subject, err = dbEntityKeyLookup(dbx, tk.Subject)
+	if err != nil {
+		return tk, err
+	}
+	tk.Object, err = dbEntityKeyLookup(dbx, tk.Object)
+	if err != nil {
+		return tk, err
+	}
+	return tk, nil
+}
+
+func dbEntityKeyLookup(dbx sqlx.Ext, ek EntityKey) (EntityKey, error) {
+	oname := ek.Name
+	var err error
+	switch ek.Type {
+	case TenantType:
+		err = sqlx.Get(dbx, &ek.Name, "select id from tl_tenants where tenant_name = $1", ek.Name)
+	case GroupType:
+		err = sqlx.Get(dbx, &ek.Name, "select id from tl_groups where group_name = $1", ek.Name)
+	case FeedType:
+		err = sqlx.Get(dbx, &ek.Name, "select id from current_feeds where onestop_id = $1", ek.Name)
+	case FeedVersionType:
+		err = sqlx.Get(dbx, &ek.Name, "select id from feed_versions where sha1 = $1", ek.Name)
+	case UserType:
+	}
+	if err == sql.ErrNoRows {
+		err = nil
+	}
+	fmt.Println("lookup:", ek.Type, "name:", oname, "found:", ek.Name)
+	return ek, err
+}
 
 type fgaTestTuple struct {
 	Subject           EntityKey
@@ -35,14 +100,128 @@ func (tk *fgaTestTuple) String() string {
 	return tk.TupleKey().String() + "|checkuser:" + tk.CheckAsUser
 }
 
+var fgaTestData = []fgaTestTuple{
+	{
+		Subject:  NewEntityKey(TenantType, "1"),
+		Object:   NewEntityKey(GroupType, "1"),
+		Relation: ParentRelation,
+		Notes:    "org:test-org",
+	},
+	{
+		Subject:  NewEntityKey(TenantType, "1"),
+		Object:   NewEntityKey(GroupType, "2"),
+		Relation: ParentRelation,
+		Notes:    "org:restricted-org",
+	},
+	{
+		Subject:  NewEntityKey(TenantType, "1"),
+		Object:   NewEntityKey(GroupType, "3"),
+		Relation: ParentRelation,
+		Notes:    "org:all-member",
+	},
+	{
+		Subject:  NewEntityKey(TenantType, "1"),
+		Object:   NewEntityKey(GroupType, "4"),
+		Relation: ParentRelation,
+		Notes:    "org:admins-only",
+	},
+	{
+		Subject:  NewEntityKey(TenantType, "1#member"),
+		Object:   NewEntityKey(GroupType, "3"),
+		Relation: ViewerRelation,
+	},
+	{
+		Subject:  NewEntityKey(TenantType, "2"),
+		Object:   NewEntityKey(GroupType, "5"),
+		Relation: ParentRelation,
+		Notes:    "org:no-one",
+	},
+	{
+		Subject:  NewEntityKey(GroupType, "1"),
+		Object:   NewEntityKey(FeedType, "1"),
+		Relation: ParentRelation,
+		Notes:    "feed:1 should be viewable to members of org:1 (ian drew) and editable by org:1 editors (drew)",
+	},
+	{
+		Subject:  NewEntityKey(GroupType, "2"),
+		Object:   NewEntityKey(FeedType, "2"),
+		Relation: ParentRelation,
+		Notes:    "feed:2 should be viewable to members of org:2 () and editable by org:2 editors (ian)",
+	},
+	{
+		Subject:  NewEntityKey(GroupType, "3"),
+		Object:   NewEntityKey(FeedType, "3"),
+		Relation: ParentRelation,
+		Notes:    "feed:3 should be viewable to all members of tenant:1 (admin nisar ian drew) and editable by org:3 editors ()",
+	},
+	{
+		Subject:  NewEntityKey(GroupType, "4"),
+		Object:   NewEntityKey(FeedType, "4"),
+		Relation: ParentRelation,
+		Notes:    "feed:4 should only be viewable to admins of tenant:1 (admin)",
+	},
+	{
+		Subject:  NewEntityKey(FeedType, "2"),
+		Object:   NewEntityKey(FeedVersionType, "1"),
+		Relation: ParentRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "admin"),
+		Object:   NewEntityKey(TenantType, "1"),
+		Relation: AdminRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "ian"),
+		Object:   NewEntityKey(GroupType, "1"),
+		Relation: ViewerRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "ian"),
+		Object:   NewEntityKey(GroupType, "2"),
+		Relation: EditorRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "ian"),
+		Object:   NewEntityKey(TenantType, "1"),
+		Relation: MemberRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "drew"),
+		Object:   NewEntityKey(GroupType, "1"),
+		Relation: EditorRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "drew"),
+		Object:   NewEntityKey(TenantType, "1"),
+		Relation: MemberRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "nisar"),
+		Object:   NewEntityKey(TenantType, "1"),
+		Relation: MemberRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "nisar"),
+		Object:   NewEntityKey(FeedVersionType, "1"),
+		Relation: ViewerRelation,
+	},
+	{
+		Subject:  NewEntityKey(UserType, "test2"),
+		Object:   NewEntityKey(TenantType, "2"),
+		Relation: MemberRelation,
+	},
+}
+
 func TestFGAClient(t *testing.T) {
+	te := testfinder.Finders(t, nil, nil)
+
 	if os.Getenv("TL_TEST_FGA_ENDPOINT") == "" {
 		t.Skip("no TL_TEST_FGA_ENDPOINT set, skipping")
 		return
 	}
 
 	t.Run("GetObjectTuples", func(t *testing.T) {
-		fgac := newTestFGAClient(t, fgaTestData)
+		fgac := newTestFGAClient(t, te.Finder.DBX(), fgaTestData)
 		checks := []fgaTestTuple{
 			{
 				Object: NewEntityKey(TenantType, "1"),
@@ -75,7 +254,7 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("Check", func(t *testing.T) {
-		fgac := newTestFGAClient(t, fgaTestData)
+		fgac := newTestFGAClient(t, te.Finder.DBX(), fgaTestData)
 		checks := []fgaTestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "admin"),
@@ -339,7 +518,7 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("ListObjects", func(t *testing.T) {
-		fgac := newTestFGAClient(t, fgaTestData)
+		fgac := newTestFGAClient(t, te.Finder.DBX(), fgaTestData)
 		checks := []fgaTestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "admin"),
@@ -476,7 +655,7 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("WriteTuple", func(t *testing.T) {
-		fgac := newTestFGAClient(t, fgaTestData)
+		fgac := newTestFGAClient(t, te.Finder.DBX(), fgaTestData)
 		checks := []fgaTestTuple{
 			{
 				Subject:  NewEntityKey(UserType, "test100"),
@@ -561,7 +740,7 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("DeleteTuple", func(t *testing.T) {
-		fgac := newTestFGAClient(t, fgaTestData)
+		fgac := newTestFGAClient(t, te.Finder.DBX(), fgaTestData)
 		checks := []fgaTestTuple{
 			{
 				Subject:  NewEntityKey(UserType, "ian"),
@@ -630,29 +809,6 @@ func TestFGAClient(t *testing.T) {
 			})
 		}
 	})
-}
-
-func newTestFGAClient(t testing.TB, testTuples []fgaTestTuple) *FGAClient {
-	cfg := newTestConfig()
-	fgac, err := NewFGAClient(cfg.FGAEndpoint, cfg.FGAStoreID, cfg.FGAModelID)
-	if err != nil {
-		t.Fatal(err)
-		return nil
-	}
-	if cfg.FGALoadModelFile != "" {
-		if _, err := fgac.CreateStore(context.Background(), "test"); err != nil {
-			t.Fatal(err)
-		}
-		if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
-			t.Fatal(err)
-		}
-	}
-	for _, tk := range testTuples {
-		if err := fgac.WriteTuple(context.Background(), tk.TupleKey()); err != nil {
-			t.Fatal(err)
-		}
-	}
-	return fgac
 }
 
 func checkExpectError(t testing.TB, err error, expect bool) bool {

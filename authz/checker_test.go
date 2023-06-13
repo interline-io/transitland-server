@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -868,18 +867,6 @@ func actionsToMap(actions any) (map[string]bool, error) {
 	return ret, nil
 }
 
-func mapStrInt(v string) []int {
-	var ret []int
-	for _, a := range strings.Split(v, " ") {
-		if a == "" {
-			continue
-		}
-		ai, _ := strconv.Atoi(a)
-		ret = append(ret, ai)
-	}
-	return ret
-}
-
 func checkActionsToMap(v []string) map[string]bool {
 	ret := map[string]bool{}
 	for _, checkAction := range v {
@@ -901,7 +888,7 @@ func newTestChecker(t testing.TB) *Checker {
 	auth0c.AddUser("ian", User{Name: "Ian", ID: "ian", Email: "ian@example.com"})
 	auth0c.AddUser("drew", User{Name: "Drew", ID: "drew", Email: "drew@example.com"})
 	auth0c.AddUser("nisar", User{Name: "Nisar", ID: "nisar", Email: "nisar@example.com"})
-	fgac := newTestFGAClient(t, fgaTestData)
+	fgac := newTestFGAClient(t, te.Finder.DBX(), fgaTestData)
 	checker := NewChecker(auth0c, fgac, te.Finder.DBX(), nil)
 	return checker
 }
