@@ -507,6 +507,7 @@ func (c *Checker) FeedSetGroup(ctx context.Context, checkUser auth.User, feedId 
 type FeedVersionResponse struct {
 	responseId
 	Name   tt.String `json:"name" db:"name"`
+	SHA1   tt.String `json:"sha1" db:"sha1"`
 	FeedID int       `json:"feed_id" db:"feed_id"`
 }
 
@@ -528,17 +529,11 @@ type FeedVersionPermissionsResponse struct {
 }
 
 func (c *Checker) FeedVersionList(ctx context.Context, user auth.User) ([]FeedVersionResponse, error) {
-	var ret []FeedVersionResponse
-	feedIds, err := c.listUserObjects(ctx, user, FeedVersionType, CanView)
+	fvids, err := c.listUserObjects(ctx, user, FeedVersionType, CanView)
 	if err != nil {
 		return nil, err
 	}
-	for _, feedId := range feedIds {
-		r := FeedVersionResponse{}
-		r.ID = feedId
-		ret = append(ret, r)
-	}
-	return ret, nil
+	return hydrates[FeedVersionResponse](ctx, c.db, fvids)
 }
 
 func (c *Checker) FeedVersionPermissions(ctx context.Context, checkUser auth.User, fvid int) (*FeedVersionPermissionsResponse, error) {

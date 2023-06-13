@@ -1,21 +1,8 @@
 package authz
 
 import (
-	"os"
-
 	"github.com/interline-io/transitland-server/auth"
 )
-
-func newTestConfig() AuthzConfig {
-	cfg := AuthzConfig{
-		Auth0Domain:       os.Getenv("TL_TEST_AUTH0_DOMAIN"),
-		Auth0ClientID:     os.Getenv("TL_TEST_AUTH0_CLIENT_ID"),
-		Auth0ClientSecret: os.Getenv("TL_TEST_AUTH0_CLIENT_SECRET"),
-		FGAEndpoint:       os.Getenv("TL_TEST_FGA_ENDPOINT"),
-		FGALoadModelFile:  "../test/authz/tls.json",
-	}
-	return cfg
-}
 
 type testUser struct {
 	name string

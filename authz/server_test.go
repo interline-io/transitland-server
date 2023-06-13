@@ -18,7 +18,7 @@ func TestServer(t *testing.T) {
 		return
 	}
 
-	checks := fgaTestData
+	checks := checkerTestData
 
 	// TENANTS
 	t.Run("TenantList", func(t *testing.T) {
