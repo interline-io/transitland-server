@@ -401,32 +401,6 @@ func checkHttpExpectError(t testing.TB, tk testTuple, rr *httptest.ResponseRecor
 
 }
 
-func filterTestTuple(tks []testTuple, testType string, objectType ObjectType, hasAction Action) []testTuple {
-	var ret []testTuple
-	// for _, tk := range tks {
-	// 	if tk.Test != testType {
-	// 		continue
-	// 	}
-	// 	if tk.Object.Type != objectType {
-	// 		continue
-	// 	}
-	// 	match := false
-	// 	if hasAction == 0 {
-	// 		match = true
-	// 	}
-	// 	for _, checkAction := range tk.Checks {
-	// 		if checkAction == hasAction.String() {
-	// 			match = true
-	// 		}
-	// 	}
-	// 	if !match {
-	// 		continue
-	// 	}
-	// 	ret = append(ret, tk)
-	// }
-	return ret
-}
-
 func responseGetNames(t testing.TB, data []byte, path string, key string) []string {
 	a := gjson.ParseBytes(data).Get(path)
 	var ret []string
