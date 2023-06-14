@@ -184,7 +184,11 @@ func NewServer(checker *Checker) (http.Handler, error) {
 }
 
 func handleJson(w http.ResponseWriter, ret any, err error) {
-	if err != nil {
+	if err == ErrUnauthorized {
+		log.Error().Err(err).Msg("unauthorized")
+		http.Error(w, "error", http.StatusUnauthorized)
+		return
+	} else if err != nil {
 		log.Error().Err(err).Msg("admin api error")
 		http.Error(w, "error", http.StatusInternalServerError)
 		return

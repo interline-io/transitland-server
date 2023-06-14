@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -14,127 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var checkerTestData = []testTuple{
-	{
-		Subject:  NewEntityKey(TenantType, "tl-tenant"),
-		Object:   NewEntityKey(GroupType, "CT-group"),
-		Relation: ParentRelation,
-		Notes:    "org:CT-group is belongs to tenant:tl-tenant",
-	},
-	{
-		Subject:  NewEntityKey(TenantType, "tl-tenant"),
-		Object:   NewEntityKey(GroupType, "BA-group"),
-		Relation: ParentRelation,
-		Notes:    "org:BA-group belongs to tenant:tl-tenant",
-	},
-	{
-		Subject:  NewEntityKey(TenantType, "tl-tenant"),
-		Object:   NewEntityKey(GroupType, "HA-group"),
-		Relation: ParentRelation,
-		Notes:    "org:HA-group belongs to tenant:tl-tenant",
-	},
-	{
-		Subject:  NewEntityKey(TenantType, "tl-tenant"),
-		Object:   NewEntityKey(GroupType, "EX-group"),
-		Relation: ParentRelation,
-		Notes:    "org:EX-group will be for admins only",
-	},
-	{
-		Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
-		Object:   NewEntityKey(GroupType, "HA-group"),
-		Relation: ViewerRelation,
-	},
-	{
-		Subject:  NewEntityKey(TenantType, "restricted-tenant"),
-		Object:   NewEntityKey(GroupType, "test-group"),
-		Relation: ParentRelation,
-	},
-	{
-		Subject:  NewEntityKey(GroupType, "CT-group"),
-		Object:   NewEntityKey(FeedType, "CT"),
-		Relation: ParentRelation,
-		Notes:    "feed:1 should be viewable to members of org:1 (ian drew) and editable by org:1 editors (drew)",
-	},
-	{
-		Subject:  NewEntityKey(GroupType, "BA-group"),
-		Object:   NewEntityKey(FeedType, "BA"),
-		Relation: ParentRelation,
-		Notes:    "feed:2 should be viewable to members of org:2 () and editable by org:2 editors (ian)",
-	},
-	{
-		Subject:  NewEntityKey(GroupType, "HA-group"),
-		Object:   NewEntityKey(FeedType, "HA"),
-		Relation: ParentRelation,
-		Notes:    "feed:3 should be viewable to all members of tenant:1 (admin nisar ian drew) and editable by org:3 editors ()",
-	},
-	{
-		Subject:  NewEntityKey(GroupType, "EX-group"),
-		Object:   NewEntityKey(FeedType, "EX"),
-		Relation: ParentRelation,
-		Notes:    "feed:4 should only be viewable to admins of tenant:1 (admin)",
-	},
-	{
-		Subject:  NewEntityKey(UserType, "admin"),
-		Object:   NewEntityKey(TenantType, "tl-tenant"),
-		Relation: AdminRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "ian"),
-		Object:   NewEntityKey(GroupType, "CT-group"),
-		Relation: ViewerRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "ian"),
-		Object:   NewEntityKey(GroupType, "BA-group"),
-		Relation: EditorRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "ian"),
-		Object:   NewEntityKey(TenantType, "tl-tenant"),
-		Relation: MemberRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "drew"),
-		Object:   NewEntityKey(GroupType, "CT-group"),
-		Relation: EditorRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "drew"),
-		Object:   NewEntityKey(TenantType, "tl-tenant"),
-		Relation: MemberRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "nisar"),
-		Object:   NewEntityKey(TenantType, "tl-tenant"),
-		Relation: MemberRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "nisar"),
-		Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation: ViewerRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "test2"),
-		Object:   NewEntityKey(TenantType, "restricted-tenant"),
-		Relation: MemberRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "test-group-viewer"),
-		Object:   NewEntityKey(GroupType, "test-group"),
-		Relation: ViewerRelation,
-	},
-	{
-		Subject:  NewEntityKey(UserType, "test-group-editor"),
-		Object:   NewEntityKey(GroupType, "test-group"),
-		Relation: EditorRelation,
-	},
-	{
-		Subject:  NewEntityKey(GroupType, "test-group#viewer"),
-		Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation: EditorRelation,
-	},
-}
-
 var checkerGetTests = []testTuple{
 	{
 		Subject: EntityKey{
@@ -143,7 +21,7 @@ var checkerGetTests = []testTuple{
 		},
 		Object: NewEntityKey(TenantType, "tl-tenant"),
 
-		Expect: "user:admin:admin user:ian:member user:drew:member user:nisar:member",
+		Expect: "user:tl-tenant-admin:admin user:ian:member user:drew:member user:tl-tenant-member:member",
 	},
 	{
 		Subject: EntityKey{
@@ -151,7 +29,7 @@ var checkerGetTests = []testTuple{
 			Name: "",
 		},
 		Object: NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Expect: "feed:2:parent user:nisar:viewer",
+		Expect: "feed:BA:parent user:tl-tenant-member:viewer",
 	},
 	{
 		Subject: EntityKey{
@@ -159,25 +37,146 @@ var checkerGetTests = []testTuple{
 			Name: "",
 		},
 		Object: NewEntityKey(FeedType, "CT"),
-		Expect: "org:1:parent",
+		Expect: "org:tl-tenant:parent",
 	},
 }
 
 func TestChecker(t *testing.T) {
-	te := testfinder.Finders(t, nil, nil)
-	dbx := te.Finder.DBX()
-
 	if os.Getenv("TL_TEST_FGA_ENDPOINT") == "" {
 		t.Skip("no TL_TEST_FGA_ENDPOINT set, skipping")
 		return
 	}
 
+	te := testfinder.Finders(t, nil, nil)
+	dbx := te.Finder.DBX()
+
+	checkerTestData := []testTuple{
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant"),
+			Object:   NewEntityKey(GroupType, "CT-group"),
+			Relation: ParentRelation,
+			Notes:    "org:CT-group is belongs to tenant:tl-tenant",
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant"),
+			Object:   NewEntityKey(GroupType, "BA-group"),
+			Relation: ParentRelation,
+			Notes:    "org:BA-group belongs to tenant:tl-tenant",
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant"),
+			Object:   NewEntityKey(GroupType, "HA-group"),
+			Relation: ParentRelation,
+			Notes:    "org:HA-group belongs to tenant:tl-tenant",
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant"),
+			Object:   NewEntityKey(GroupType, "EX-group"),
+			Relation: ParentRelation,
+			Notes:    "org:EX-group will be for admins only",
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
+			Object:   NewEntityKey(GroupType, "HA-group"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "restricted-tenant"),
+			Object:   NewEntityKey(GroupType, "test-group"),
+			Relation: ParentRelation,
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "CT-group"),
+			Object:   NewEntityKey(FeedType, "CT"),
+			Relation: ParentRelation,
+			Notes:    "feed:CT should be viewable to members of org:CT-group (ian drew) and editable by org:CT-group editors (drew)",
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "BA-group"),
+			Object:   NewEntityKey(FeedType, "BA"),
+			Relation: ParentRelation,
+			Notes:    "feed:BA should be viewable to members of org:BA-group () and editable by org:BA-group editors (ian)",
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "HA-group"),
+			Object:   NewEntityKey(FeedType, "HA"),
+			Relation: ParentRelation,
+			Notes:    "feed:HA-group should be viewable to all members of tenant:tl-tenant (tl-tenant-admin tl-tenant-member ian drew) and editable by org:HA-group editors ()",
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "EX-group"),
+			Object:   NewEntityKey(FeedType, "EX"),
+			Relation: ParentRelation,
+			Notes:    "feed:EX should only be viewable to admins of tenant:tl-tenant (tl-tenant-admin)",
+		},
+		{
+			Subject:  NewEntityKey(UserType, "tl-tenant-admin"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: AdminRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "ian"),
+			Object:   NewEntityKey(GroupType, "CT-group"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "ian"),
+			Object:   NewEntityKey(GroupType, "BA-group"),
+			Relation: EditorRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "ian"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "drew"),
+			Object:   NewEntityKey(GroupType, "CT-group"),
+			Relation: EditorRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "drew"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
+			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "test2"),
+			Object:   NewEntityKey(TenantType, "restricted-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "test-group-viewer"),
+			Object:   NewEntityKey(GroupType, "test-group"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "test-group-editor"),
+			Object:   NewEntityKey(GroupType, "test-group"),
+			Relation: EditorRelation,
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "test-group#viewer"),
+			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+			Relation: EditorRelation,
+		},
+	}
+
 	// TENANTS
 	t.Run("TenantList", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
@@ -195,10 +194,16 @@ func TestChecker(t *testing.T) {
 				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "nisar"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
+			},
+			{
+				Subject:    NewEntityKey(UserType, "unknown"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType),
 			},
 		}
 
@@ -210,7 +215,7 @@ func TestChecker(t *testing.T) {
 					t.Fatal(err)
 				}
 				var gotNames []string
-				for _, v := range ret {
+				for _, v := range ret.Tenants {
 					gotNames = append(gotNames, v.Name.Val)
 				}
 				var expectNames []string
@@ -223,15 +228,15 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantPermissions", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateOrg, CanDeleteOrg},
 			},
 			{
-				Subject:            NewEntityKey(UserType, "admin"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectUnauthorized: true,
 			},
@@ -256,24 +261,30 @@ func TestChecker(t *testing.T) {
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
-				Subject:            NewEntityKey(UserType, "nisar"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
 			{
-				Subject:            NewEntityKey(UserType, "nisar"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
+				Object:             NewEntityKey(TenantType, "not-found"),
+				ExpectUnauthorized: true,
+				Notes:              "not found",
 			},
 		}
 		for _, tc := range checks {
@@ -284,7 +295,7 @@ func TestChecker(t *testing.T) {
 					newTestUser(ltk.Subject.Name),
 					ltk.Object.ID(),
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
 					return
 				}
@@ -294,13 +305,36 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantAddPermission", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "test100"),
 				Object:      NewEntityKey(TenantType, "tl-tenant"),
 				Relation:    MemberRelation,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(TenantType, "tl-tenant"),
+				Relation:    MemberRelation,
+				CheckAsUser: "tl-tenant-admin",
+				ExpectError: true,
+				Notes:       "already exists",
+			},
+			{
+				Subject:            NewEntityKey(UserType, "test100"),
+				Object:             NewEntityKey(TenantType, "tl-tenant"),
+				Relation:           MemberRelation,
+				CheckAsUser:        "ian",
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "test100"),
+				Object:             NewEntityKey(TenantType, "not-found"),
+				Relation:           MemberRelation,
+				CheckAsUser:        "tl-tenant-admin",
+				ExpectUnauthorized: true,
+				Notes:              "not found",
 			},
 		}
 		for _, tc := range checks {
@@ -313,25 +347,25 @@ func TestChecker(t *testing.T) {
 					ltk.Subject.Name,
 					ltk.Relation,
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
 
 	t.Run("TenantRemovePermission", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(TenantType, "tl-tenant"),
 				Relation:    MemberRelation,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:            NewEntityKey(UserType, "test2"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				Relation:           MemberRelation,
-				CheckAsUser:        "admin",
+				CheckAsUser:        "tl-tenant-admin",
 				ExpectUnauthorized: true,
 			},
 		}
@@ -348,17 +382,17 @@ func TestChecker(t *testing.T) {
 					ltk.Subject.Name,
 					ltk.Relation,
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
 
 	// GROUPS
 	t.Run("GroupList", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
@@ -376,7 +410,7 @@ func TestChecker(t *testing.T) {
 				ExpectKeys: newEntityKeys(GroupType, "CT-group", "HA-group"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "nisar"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(GroupType, "HA-group"),
@@ -393,7 +427,7 @@ func TestChecker(t *testing.T) {
 					t.Fatal(err)
 				}
 				var gotNames []string
-				for _, v := range ret {
+				for _, v := range ret.Groups {
 					gotNames = append(gotNames, v.Name.Val)
 				}
 				var expectNames []string
@@ -406,30 +440,30 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupPermissions", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "CT-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "BA-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "EX-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:            NewEntityKey(UserType, "admin"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:             NewEntityKey(GroupType, "test-group"),
 				ExpectUnauthorized: true,
 			},
@@ -484,12 +518,12 @@ func TestChecker(t *testing.T) {
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
-				Subject:            NewEntityKey(UserType, "nisar"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(GroupType, "EX-group"),
 				ExpectUnauthorized: true,
 			},
@@ -505,7 +539,7 @@ func TestChecker(t *testing.T) {
 					newTestUser(ltk.Subject.Name),
 					ltk.Object.ID(),
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
 					return
 				}
@@ -515,21 +549,21 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupAddPermission", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "test100"),
 				Object:      NewEntityKey(GroupType, "HA-group"),
 				Relation:    ViewerRelation,
 				Notes:       "does not exist",
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(GroupType, "HA-group"),
 				Notes:       "invalid relation",
 				ExpectError: true,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:            NewEntityKey(UserType, "test102"),
@@ -542,7 +576,7 @@ func TestChecker(t *testing.T) {
 				Subject:     NewEntityKey(UserType, "test100"),
 				Object:      NewEntityKey(GroupType, "CT-group"),
 				Relation:    ViewerRelation,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:            NewEntityKey(UserType, "test100"),
@@ -562,19 +596,19 @@ func TestChecker(t *testing.T) {
 					ltk.Object.ID(),
 					ltk.Relation,
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
 
 	t.Run("GroupRemovePermission", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(GroupType, "CT-group"),
 				Relation:    ViewerRelation,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
@@ -582,7 +616,7 @@ func TestChecker(t *testing.T) {
 				Relation:    ViewerRelation,
 				Notes:       "already deleted",
 				ExpectError: true,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:            NewEntityKey(UserType, "test102"),
@@ -597,7 +631,7 @@ func TestChecker(t *testing.T) {
 				Relation:    ViewerRelation,
 				Notes:       "does not exist",
 				ExpectError: true,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:            NewEntityKey(UserType, "test101"),
@@ -620,17 +654,17 @@ func TestChecker(t *testing.T) {
 					ltk.Object.ID(),
 					ltk.Relation,
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
 
 	// FEEDS
 	t.Run("FeedList", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
@@ -649,7 +683,7 @@ func TestChecker(t *testing.T) {
 			},
 
 			{
-				Subject:    NewEntityKey(UserType, "nisar"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "HA"),
@@ -666,7 +700,7 @@ func TestChecker(t *testing.T) {
 					t.Fatal(err)
 				}
 				var gotNames []string
-				for _, v := range ret {
+				for _, v := range ret.Feeds {
 					gotNames = append(gotNames, v.OnestopID.Val)
 				}
 				var expectNames []string
@@ -679,7 +713,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedPermissions", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:       NewEntityKey(UserType, "ian"),
@@ -709,7 +743,7 @@ func TestChecker(t *testing.T) {
 			{
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(FeedType, "CT"),
-				ExpectActions: []Action{CanView, CanEdit},
+				ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion},
 			},
 			{
 				Subject:            NewEntityKey(UserType, "drew"),
@@ -733,27 +767,27 @@ func TestChecker(t *testing.T) {
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:            NewEntityKey(UserType, "nisar"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(FeedType, "CT"),
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:            NewEntityKey(UserType, "nisar"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(FeedType, "BA"),
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedType, "HA"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
-				Subject:            NewEntityKey(UserType, "nisar"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(FeedType, "EX"),
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:            NewEntityKey(UserType, "nisar"),
+				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(FeedType, "test"),
 				ExpectUnauthorized: true,
 			},
@@ -769,7 +803,7 @@ func TestChecker(t *testing.T) {
 					newTestUser(ltk.Subject.Name),
 					ltk.Object.ID(),
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
 					return
 				}
@@ -780,11 +814,11 @@ func TestChecker(t *testing.T) {
 
 	// FEED VERSIONS
 	t.Run("FeedVersionList", func(t *testing.T) {
-		checker := newTestChecker(t)
-		// Only user:nisar has permissions explicitly defined
+		checker := newTestChecker(t, checkerTestData)
+		// Only user:tl-tenant-member has permissions explicitly defined
 		checks := []testTuple{
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedVersionType, ""),
 				ExpectKeys: newEntityKeys(FeedVersionType),
 			},
@@ -799,7 +833,7 @@ func TestChecker(t *testing.T) {
 				ExpectKeys: newEntityKeys(FeedVersionType),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "nisar"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(FeedVersionType, ""),
 				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			},
@@ -810,14 +844,12 @@ func TestChecker(t *testing.T) {
 			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
-				fmt.Println("ltk:", ltk)
 				ret, err := checker.FeedVersionList(context.Background(), newTestUser(ltk.Subject.Name))
 				if err != nil {
 					t.Fatal(err)
 				}
-				fmt.Println("got names:", ret)
 				var gotNames []string
-				for _, v := range ret {
+				for _, v := range ret.FeedVersions {
 					gotNames = append(gotNames, v.SHA1.Val)
 				}
 				var expectNames []string
@@ -830,34 +862,34 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedVersionPermissions", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				ExpectActions: []Action{CanView},
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers},
 			},
 			{
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				ExpectActions: []Action{CanView},
+				ExpectActions: []Action{CanView, CanEdit},
 			},
 			{
 				Subject:            NewEntityKey(UserType, "drew"),
 				Object:             NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions:      []Action{-CanView},
-				Notes:              "only feed:2 readers and nisar",
+				Notes:              "only feed:BA readers and tl-tenant-member",
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{CanView},
 			},
 			{
 				Subject:       NewEntityKey(UserType, "test-group-viewer"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				ExpectActions: []Action{CanView, CanEdit, CanEditMembers},
+				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers},
 			},
 		}
 		for _, tc := range checks {
@@ -871,7 +903,7 @@ func TestChecker(t *testing.T) {
 					newTestUser(ltk.Subject.Name),
 					ltk.Object.ID(),
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
 					return
 				}
@@ -881,33 +913,33 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedVersionAddPermission", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
+				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
 				Notes:       "already exists",
 				ExpectError: true,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:     NewEntityKey(UserType, "test1"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:     NewEntityKey(UserType, "test2"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:            NewEntityKey(UserType, "test3"),
@@ -930,27 +962,27 @@ func TestChecker(t *testing.T) {
 					ltk.Object.ID(),
 					ltk.Relation,
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
 
 	t.Run("FeedVersionRemovePermission", func(t *testing.T) {
-		checker := newTestChecker(t)
+		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
+				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
+				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
 				Notes:       "already deleted",
 				ExpectError: true,
-				CheckAsUser: "admin",
+				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:            NewEntityKey(UserType, "ian"),
@@ -973,7 +1005,7 @@ func TestChecker(t *testing.T) {
 					ltk.Object.ID(),
 					ltk.Relation,
 				)
-				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
@@ -1036,20 +1068,20 @@ func checkActionsToMap(v []Action) map[string]bool {
 	return ret
 }
 
-func newTestChecker(t testing.TB) *Checker {
+func newTestChecker(t testing.TB, testData []testTuple) *Checker {
 	te := testfinder.Finders(t, nil, nil)
 	dbx := te.Finder.DBX()
 
 	auth0c := NewMockAuthnClient()
 	auth0c.AddUser("ian", User{Name: "Ian", ID: "ian", Email: "ian@example.com"})
 	auth0c.AddUser("drew", User{Name: "Drew", ID: "drew", Email: "drew@example.com"})
-	auth0c.AddUser("nisar", User{Name: "Nisar", ID: "nisar", Email: "nisar@example.com"})
+	auth0c.AddUser("tl-tenant-member", User{Name: "Nisar", ID: "tl-tenant-member", Email: "tl-tenant-member@example.com"})
 
 	fgac, err := newTestCheckerFGA(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, tc := range checkerTestData {
+	for _, tc := range testData {
 		if err := fgac.WriteTuple(context.Background(), dbTupleLookup(t, dbx, tc.TupleKey())); err != nil {
 			t.Fatal(err)
 		}
@@ -1103,7 +1135,7 @@ func dbNameToEntityKey(t testing.TB, dbx sqlx.Ext, ek EntityKey) EntityKey {
 	case UserType:
 	}
 	if err == sql.ErrNoRows {
-		t.Log("lookup:", ek.Type, "name:", ek.Name, "not found")
+		t.Log("lookup warning:", ek.Type, "name:", ek.Name, "not found")
 		err = nil
 	}
 	if err != nil {
@@ -1122,19 +1154,23 @@ func newEntityKeys(t ObjectType, keys ...string) []EntityKey {
 	return ret
 }
 
-func checkUnauthorizedError(t testing.TB, err error, expectError bool, expectUnauthorized bool) bool {
+func checkErrUnauthorized(t testing.TB, err error, expectError bool, expectUnauthorized bool) bool {
 	if expectUnauthorized {
-		if err == UnauthorizedError {
+		if err == ErrUnauthorized {
 			return true
 		}
 		t.Errorf("got error '%s', expected unauthorized", err.Error())
 		return false
 	}
 	if expectError {
-		if err != nil {
+		if err != ErrUnauthorized {
 			return true
 		}
-		t.Errorf("got no error, expected error")
+		if err == ErrUnauthorized {
+			t.Errorf("got unauthorized error, expected other error type")
+		} else {
+			t.Errorf("got no error, expected error")
+		}
 		return false
 	}
 	if err != nil {

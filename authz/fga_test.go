@@ -53,7 +53,11 @@ func (tk *testTuple) TupleKey() TupleKey {
 }
 
 func (tk *testTuple) String() string {
-	return tk.TupleKey().String() + "|checkuser:" + tk.CheckAsUser
+	a := tk.TupleKey().String()
+	if tk.CheckAsUser != "" {
+		a = a + "|checkuser:" + tk.CheckAsUser
+	}
+	return a
 }
 
 func TestFGAClient(t *testing.T) {
@@ -97,25 +101,25 @@ func TestFGAClient(t *testing.T) {
 			Subject:  NewEntityKey(GroupType, "CT-group"),
 			Object:   NewEntityKey(FeedType, "CT"),
 			Relation: ParentRelation,
-			Notes:    "feed:1 should be viewable to members of org:1 (ian drew) and editable by org:1 editors (drew)",
+			Notes:    "feed:CT should be viewable to members of org:CT-group (ian drew) and editable by org:CT-group editors (drew)",
 		},
 		{
 			Subject:  NewEntityKey(GroupType, "BA-group"),
 			Object:   NewEntityKey(FeedType, "BA"),
 			Relation: ParentRelation,
-			Notes:    "feed:2 should be viewable to members of org:2 () and editable by org:2 editors (ian)",
+			Notes:    "feed:BA should be viewable to members of org:BA-group () and editable by org:BA-group editors (ian)",
 		},
 		{
 			Subject:  NewEntityKey(GroupType, "HA-group"),
 			Object:   NewEntityKey(FeedType, "HA"),
 			Relation: ParentRelation,
-			Notes:    "feed:3 should be viewable to all members of tenant:1 (admin nisar ian drew) and editable by org:3 editors ()",
+			Notes:    "feed:HA should be viewable to all members of tenant:tl-tenant (tl-tenant-admin tl-tenant-member ian drew) and editable by org:HA-group editors ()",
 		},
 		{
 			Subject:  NewEntityKey(GroupType, "EX-group"),
 			Object:   NewEntityKey(FeedType, "EX"),
 			Relation: ParentRelation,
-			Notes:    "feed:4 should only be viewable to admins of tenant:1 (admin)",
+			Notes:    "feed:EX should only be viewable to admins of tenant:tl-tenant (admin)",
 		},
 		{
 			Subject:  NewEntityKey(FeedType, "BA"),
@@ -123,7 +127,7 @@ func TestFGAClient(t *testing.T) {
 			Relation: ParentRelation,
 		},
 		{
-			Subject:  NewEntityKey(UserType, "admin"),
+			Subject:  NewEntityKey(UserType, "tl-tenant-admin"),
 			Object:   NewEntityKey(TenantType, "tl-tenant"),
 			Relation: AdminRelation,
 		},
@@ -163,12 +167,12 @@ func TestFGAClient(t *testing.T) {
 			Relation: EditorRelation,
 		},
 		{
-			Subject:  NewEntityKey(UserType, "nisar"),
+			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
 			Object:   NewEntityKey(TenantType, "tl-tenant"),
 			Relation: MemberRelation,
 		},
 		{
-			Subject:  NewEntityKey(UserType, "nisar"),
+			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
 			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			Relation: ViewerRelation,
 		},
@@ -194,11 +198,11 @@ func TestFGAClient(t *testing.T) {
 		checks := []testTuple{
 			{
 				Object: NewEntityKey(TenantType, "tl-tenant"),
-				Expect: "user:admin:admin user:ian:member user:drew:member user:nisar:member",
+				Expect: "user:tl-tenant-admin:admin user:ian:member user:drew:member user:tl-tenant-member:member",
 			},
 			{
 				Object: NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Expect: "feed:BA:parent user:nisar:viewer org:test-group#viewer:editor",
+				Expect: "feed:BA:parent user:tl-tenant-member:viewer org:test-group#viewer:editor",
 			},
 			{
 				Object: NewEntityKey(FeedType, "CT"),
@@ -226,42 +230,42 @@ func TestFGAClient(t *testing.T) {
 		fgac := newTestFGAClient(t, testData)
 		checks := []testTuple{
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{CanView},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "CT-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "BA-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "EX-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "test-group"),
 				ExpectActions: []Action{-CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateOrg, CanDeleteOrg},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "admin"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectActions: []Action{-CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
@@ -334,7 +338,7 @@ func TestFGAClient(t *testing.T) {
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{-CanView},
-				Notes:         "only feed:2 readers and nisar",
+				Notes:         "only feed:BA readers and nisar",
 				ExpectError:   true,
 			},
 			{
@@ -398,62 +402,62 @@ func TestFGAClient(t *testing.T) {
 				ExpectActions: []Action{-CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectActions: []Action{-CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{CanView},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedType, "CT"),
 				ExpectActions: []Action{-CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedType, "BA"),
 				ExpectActions: []Action{-CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedType, "HA"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedType, "EX"),
 				ExpectActions: []Action{-CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedType, "test"),
 				ExpectActions: []Action{-CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(GroupType, "EX-group"),
 				ExpectActions: []Action{-CanView, -CanEdit},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
 			{
-				Subject:       NewEntityKey(UserType, "nisar"),
+				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectActions: []Action{-CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
@@ -498,39 +502,39 @@ func TestFGAClient(t *testing.T) {
 		fgac := newTestFGAClient(t, testData)
 		checks := []testTuple{
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanEdit,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
 			},
 
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanEdit,
 				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
 			},
 
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "admin"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedVersionType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
@@ -596,19 +600,19 @@ func TestFGAClient(t *testing.T) {
 				ExpectKeys: newEntityKeys(FeedVersionType),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "nisar"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(GroupType, "HA-group"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "nisar"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "HA"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "nisar"),
+				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
@@ -676,7 +680,7 @@ func TestFGAClient(t *testing.T) {
 				Relation: ViewerRelation,
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
+				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
 				Notes:       "already exists",
@@ -744,12 +748,12 @@ func TestFGAClient(t *testing.T) {
 				ExpectError: true,
 			},
 			{
-				Subject:  NewEntityKey(UserType, "nisar"),
+				Subject:  NewEntityKey(UserType, "tl-tenant-member"),
 				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation: 4,
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
+				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    4,
 				Notes:       "already deleted",

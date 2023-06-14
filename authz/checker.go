@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
@@ -30,7 +29,7 @@ type AuthzProvider interface {
 	DeleteTuple(context.Context, TupleKey) error
 }
 
-var UnauthorizedError = errors.New("unauthorized")
+var ErrUnauthorized = errors.New("unauthorized")
 
 type Checker struct {
 	authn        AuthnProvider
@@ -156,6 +155,10 @@ func (t TenantResponse) TableName() string {
 	return "tl_tenants"
 }
 
+type TenantResponseList struct {
+	Tenants []TenantResponse `json:"tenants"`
+}
+
 type TenantPermissionsResponse struct {
 	TenantResponse
 	Groups []GroupResponse `json:"groups"`
@@ -172,12 +175,13 @@ type TenantPermissionsResponse struct {
 	} `json:"actions"`
 }
 
-func (c *Checker) TenantList(ctx context.Context, checkUser auth.User) ([]TenantResponse, error) {
+func (c *Checker) TenantList(ctx context.Context, checkUser auth.User) (*TenantResponseList, error) {
 	ids, err := c.listUserObjects(ctx, checkUser, TenantType, CanView)
 	if err != nil {
 		return nil, err
 	}
-	return hydrates[TenantResponse](ctx, c.db, ids)
+	t, err := hydrates[TenantResponse](ctx, c.db, ids)
+	return &TenantResponseList{Tenants: t}, err
 }
 
 func (c *Checker) Tenant(ctx context.Context, checkUser auth.User, tenantId int) (*TenantResponse, error) {
@@ -226,7 +230,7 @@ func (c *Checker) TenantSave(ctx context.Context, checkUser auth.User, tenantId 
 	if tenantCheck, err := c.TenantPermissions(ctx, checkUser, tenantId); err != nil {
 		return 0, err
 	} else if !tenantCheck.Actions.CanEdit {
-		return 0, UnauthorizedError
+		return 0, ErrUnauthorized
 	}
 	log.Trace().Str("tenantName", newName).Int("id", tenantId).Msg("TenantSave")
 	id := 0
@@ -246,7 +250,7 @@ func (c *Checker) TenantAddPermission(ctx context.Context, checkUser auth.User, 
 	if check, err := c.TenantPermissions(ctx, checkUser, tenantId); err != nil {
 		return err
 	} else if !check.Actions.CanEditMembers {
-		return UnauthorizedError
+		return ErrUnauthorized
 	}
 	tk := NewTupleKey().WithUser(addUser).WithObjectID(TenantType, tenantId).WithRelation(relation)
 	log.Trace().Str("tk", tk.String()).Int("id", tenantId).Msg("TenantAddPermission")
@@ -257,7 +261,7 @@ func (c *Checker) TenantRemovePermission(ctx context.Context, checkUser auth.Use
 	if check, err := c.TenantPermissions(ctx, checkUser, tenantId); err != nil {
 		return err
 	} else if !check.Actions.CanEditMembers {
-		return UnauthorizedError
+		return ErrUnauthorized
 	}
 	tk := NewTupleKey().WithUser(removeUser).WithObjectID(TenantType, tenantId).WithRelation(relation)
 	log.Trace().Str("tk", tk.String()).Int("id", tenantId).Msg("TenantRemovePermission")
@@ -272,7 +276,7 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, checkUser auth.User, te
 	if check, err := c.TenantPermissions(ctx, checkUser, tenantId); err != nil {
 		return 0, err
 	} else if !check.Actions.CanCreateOrg {
-		return 0, UnauthorizedError
+		return 0, ErrUnauthorized
 	}
 	entKey := NewEntityID(TenantType, tenantId)
 	log.Trace().Str("groupName", groupName).Int("id", tenantId).Msg("TenantCreateGroup")
@@ -309,6 +313,10 @@ func (t GroupResponse) TableName() string {
 	return "tl_groups"
 }
 
+type GroupResponseList struct {
+	Groups []GroupResponse `json:"groups"`
+}
+
 type GroupPermissionsResponse struct {
 	GroupResponse
 	Tenant *TenantResponse `json:"tenant,omitempty"`
@@ -339,12 +347,13 @@ func (c *Checker) Group(ctx context.Context, checkUser auth.User, groupId int) (
 	return &r, nil
 }
 
-func (c *Checker) GroupList(ctx context.Context, checkUser auth.User) ([]GroupResponse, error) {
+func (c *Checker) GroupList(ctx context.Context, checkUser auth.User) (*GroupResponseList, error) {
 	ids, err := c.listUserObjects(ctx, checkUser, GroupType, CanView)
 	if err != nil {
 		return nil, err
 	}
-	return hydrates[GroupResponse](ctx, c.db, ids)
+	t, err := hydrates[GroupResponse](ctx, c.db, ids)
+	return &GroupResponseList{Groups: t}, err
 }
 
 func (c *Checker) GroupPermissions(ctx context.Context, checkUser auth.User, groupId int) (*GroupPermissionsResponse, error) {
@@ -395,7 +404,7 @@ func (c *Checker) GroupSave(ctx context.Context, checkUser auth.User, groupId in
 	if check, err := c.GroupPermissions(ctx, checkUser, groupId); err != nil {
 		return 0, err
 	} else if !check.Actions.CanEdit {
-		return 0, UnauthorizedError
+		return 0, ErrUnauthorized
 	}
 	log.Trace().Str("groupName", newName).Int("id", groupId).Msg("GroupSave")
 	id := 0
@@ -415,7 +424,7 @@ func (c *Checker) GroupAddPermission(ctx context.Context, checkUser auth.User, a
 	if check, err := c.GroupPermissions(ctx, checkUser, groupId); err != nil {
 		return err
 	} else if !check.Actions.CanEditMembers {
-		return UnauthorizedError
+		return ErrUnauthorized
 	}
 	tk := NewTupleKey().WithUser(addUser).WithObjectID(GroupType, groupId).WithRelation(relation)
 	log.Trace().Str("tk", tk.String()).Int("id", groupId).Msg("GroupAddPermission")
@@ -426,7 +435,7 @@ func (c *Checker) GroupRemovePermission(ctx context.Context, checkUser auth.User
 	if check, err := c.GroupPermissions(ctx, checkUser, groupId); err != nil {
 		return err
 	} else if !check.Actions.CanEditMembers {
-		return UnauthorizedError
+		return ErrUnauthorized
 	}
 	tk := NewTupleKey().WithUser(removeUser).WithObjectID(GroupType, groupId).WithRelation(relation)
 	log.Trace().Str("tk", tk.String()).Int("id", groupId).Msg("GroupRemovePermission")
@@ -447,6 +456,10 @@ func (t FeedResponse) TableName() string {
 	return "current_feeds"
 }
 
+type FeedResponseList struct {
+	Feeds []FeedResponse `json:"feeds"`
+}
+
 type FeedPermissionsResponse struct {
 	FeedResponse
 	Group *GroupResponse `json:"group"`
@@ -460,12 +473,13 @@ type FeedPermissionsResponse struct {
 	} `json:"actions"`
 }
 
-func (c *Checker) FeedList(ctx context.Context, checkUser auth.User) ([]FeedResponse, error) {
+func (c *Checker) FeedList(ctx context.Context, checkUser auth.User) (*FeedResponseList, error) {
 	feedIds, err := c.listUserObjects(ctx, checkUser, FeedType, CanView)
 	if err != nil {
 		return nil, err
 	}
-	return hydrates[FeedResponse](ctx, c.db, feedIds)
+	t, err := hydrates[FeedResponse](ctx, c.db, feedIds)
+	return &FeedResponseList{Feeds: t}, err
 }
 
 func (c *Checker) FeedPermissions(ctx context.Context, checkUser auth.User, feedId int) (*FeedPermissionsResponse, error) {
@@ -492,7 +506,7 @@ func (c *Checker) FeedSetGroup(ctx context.Context, checkUser auth.User, feedId 
 	if check, err := c.FeedPermissions(ctx, checkUser, feedId); err != nil {
 		return err
 	} else if !check.Actions.CanEdit {
-		return UnauthorizedError
+		return ErrUnauthorized
 	}
 	tk := NewTupleKey().WithSubjectID(FeedType, feedId).WithObjectID(GroupType, newGroup).WithRelation(ParentRelation)
 	log.Trace().Str("tk", tk.String()).Int("id", feedId).Msg("FeedSetGroup")
@@ -514,6 +528,10 @@ func (t FeedVersionResponse) TableName() string {
 	return "feed_versions"
 }
 
+type FeedVersionResponseList struct {
+	FeedVersions []FeedVersionResponse `json:"feed_versions"`
+}
+
 type FeedVersionPermissionsResponse struct {
 	FeedVersionResponse
 	Users struct {
@@ -527,12 +545,13 @@ type FeedVersionPermissionsResponse struct {
 	} `json:"actions"`
 }
 
-func (c *Checker) FeedVersionList(ctx context.Context, user auth.User) ([]FeedVersionResponse, error) {
+func (c *Checker) FeedVersionList(ctx context.Context, user auth.User) (*FeedVersionResponseList, error) {
 	fvids, err := c.listUserObjects(ctx, user, FeedVersionType, CanView)
 	if err != nil {
 		return nil, err
 	}
-	return hydrates[FeedVersionResponse](ctx, c.db, fvids)
+	t, err := hydrates[FeedVersionResponse](ctx, c.db, fvids)
+	return &FeedVersionResponseList{FeedVersions: t}, err
 }
 
 func (c *Checker) FeedVersionPermissions(ctx context.Context, checkUser auth.User, fvid int) (*FeedVersionPermissionsResponse, error) {
@@ -568,7 +587,7 @@ func (c *Checker) FeedVersionAddPermission(ctx context.Context, checkUser auth.U
 	if check, err := c.FeedVersionPermissions(ctx, checkUser, fvid); err != nil {
 		return err
 	} else if !check.Actions.CanEditMembers {
-		return UnauthorizedError
+		return ErrUnauthorized
 	}
 	tk := NewTupleKey().WithUser(addUser).WithObjectID(FeedVersionType, fvid).WithRelation(relation)
 	log.Trace().Str("tk", tk.String()).Int("id", fvid).Msg("FeedVersionAddPermission")
@@ -579,7 +598,7 @@ func (c *Checker) FeedVersionRemovePermission(ctx context.Context, checkUser aut
 	if check, err := c.FeedVersionPermissions(ctx, checkUser, fvid); err != nil {
 		return err
 	} else if !check.Actions.CanEditMembers {
-		return UnauthorizedError
+		return ErrUnauthorized
 	}
 	tk := NewTupleKey().WithUser(removeUser).WithObjectID(FeedVersionType, fvid).WithRelation(relation)
 	log.Trace().Str("tk", tk.String()).Int("id", fvid).Msg("FeedVersionRemovePermission")
@@ -593,7 +612,6 @@ func (c *Checker) FeedVersionRemovePermission(ctx context.Context, checkUser aut
 func (c *Checker) listUserObjects(ctx context.Context, user auth.User, objectType ObjectType, action Action) ([]int, error) {
 	tk := NewTupleKey().WithUser(user.Name()).WithObject(objectType, "").WithAction(action)
 	objTks, err := c.authz.ListObjects(ctx, tk)
-	fmt.Println("objTks:", objTks)
 	if err != nil {
 		return nil, err
 	}
@@ -633,7 +651,7 @@ func (c *Checker) checkObjectOrError(ctx context.Context, checkUser auth.User, c
 		return err
 	}
 	if !ok {
-		return UnauthorizedError
+		return ErrUnauthorized
 	}
 	return nil
 }
@@ -683,6 +701,9 @@ func hydrate[T any, PT interface {
 	if err != nil {
 		return ret, nil
 	}
+	if len(r) == 0 {
+		return ret, errors.New("not found")
+	}
 	if len(r) > 0 {
 		ret = r[0]
 	}
@@ -706,11 +727,14 @@ func hydrates[T any, PT interface {
 	}
 	ret := make([]PT, len(ids))
 	for i, id := range ids {
-		if b := byId[id]; b != nil {
-			ret[i] = b
+		if b, ok := byId[id]; !ok {
+			return nil, errors.New("not found")
+		} else if b == nil {
+			return nil, errors.New("not found (got nil)")
+			// ret[i] = new(T)
+			// ret[i].SetID(id)
 		} else {
-			ret[i] = new(T)
-			ret[i].SetID(id)
+			ret[i] = b
 		}
 	}
 	ret2 := make([]T, 0, len(ids))
