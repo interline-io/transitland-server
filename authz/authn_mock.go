@@ -2,6 +2,8 @@ package authz
 
 import (
 	"context"
+	"errors"
+	"strings"
 )
 
 type MockAuthnClient struct {
@@ -23,14 +25,18 @@ func (c *MockAuthnClient) UserByID(ctx context.Context, id string) (*User, error
 		user := user
 		return &user, nil
 	}
-	return nil, nil
+	return nil, errors.New("unauthorized")
 }
 
 func (c *MockAuthnClient) Users(ctx context.Context, userQuery string) ([]*User, error) {
 	var ret []*User
+	uq := strings.ToLower(userQuery)
 	for _, user := range c.users {
 		user := user
-		ret = append(ret, &user)
+		un := strings.ToLower(user.Name)
+		if userQuery == "" || strings.Contains(un, uq) {
+			ret = append(ret, &user)
+		}
 	}
 	return ret, nil
 }

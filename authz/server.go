@@ -99,7 +99,7 @@ func NewServer(checker *Checker) (http.Handler, error) {
 			handleJson(w, nil, err)
 			return
 		}
-		_, err := checker.GroupSave(r.Context(), checkUser(r), checkId(r, "group_id"), check.Name)
+		err := checker.GroupSave(r.Context(), checkUser(r), checkId(r, "group_id"), check.Name)
 		handleJson(w, nil, err)
 	})
 	router.Get("/groups/{group_id}", func(w http.ResponseWriter, r *http.Request) {

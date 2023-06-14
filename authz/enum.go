@@ -13,6 +13,7 @@ const (
 	CanDeleteFeedVersion                   // can_delete_feed_version
 	CanCreateFeed                          // can_create_feed
 	CanDeleteFeed                          // can_delete_feed
+	CanSetGroup                            // can_set_group
 )
 
 type ObjectType int

@@ -274,7 +274,7 @@ func TestServer(t *testing.T) {
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(FeedType, "BA"),
-				ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion},
+				ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion, CanSetGroup},
 			},
 			{
 				Subject:       NewEntityKey(UserType, "ian"),

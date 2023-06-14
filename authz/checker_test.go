@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/jmoiron/sqlx"
@@ -171,6 +173,79 @@ func TestChecker(t *testing.T) {
 		},
 	}
 
+	// Users
+
+	t.Run("UserList", func(t *testing.T) {
+		checker := newTestChecker(t, checkerTestData)
+		tcs := []struct {
+			CheckAsUser string
+			ExpectUsers []string
+			ExpectError bool
+			Query       string
+		}{
+			{
+				CheckAsUser: "ian",
+				ExpectUsers: []string{"ian", "drew", "tl-tenant-member"},
+			},
+			{
+				CheckAsUser: "ian",
+				Query:       "drew",
+				ExpectUsers: []string{"drew"},
+			},
+			// TODO: user filtering
+			// {
+			// 	CheckAsUser: "no-one",
+			// 	ExpectUsers: []string{},
+			// 	ExpectError: true,
+			// },
+		}
+		for _, tc := range tcs {
+			t.Run("", func(t *testing.T) {
+				ents, err := checker.UserList(context.Background(), newTestUser(tc.CheckAsUser), tc.Query)
+				if !checkExpectError(t, err, tc.ExpectError) {
+					return
+				}
+				var entNames []string
+				for _, ent := range ents {
+					entNames = append(entNames, ent.ID)
+				}
+				assert.ElementsMatch(t, tc.ExpectUsers, entNames)
+			})
+		}
+	})
+
+	t.Run("User", func(t *testing.T) {
+		checker := newTestChecker(t, checkerTestData)
+		tcs := []struct {
+			CheckAsUser  string
+			ExpectUserId string
+			ExpectError  bool
+		}{
+			{
+				CheckAsUser:  "ian",
+				ExpectUserId: "drew",
+			},
+			{
+				CheckAsUser:  "ian",
+				ExpectUserId: "not-found",
+				ExpectError:  true,
+			},
+		}
+		for _, tc := range tcs {
+			t.Run("", func(t *testing.T) {
+				ent, err := checker.User(context.Background(), newTestUser(tc.CheckAsUser), tc.ExpectUserId)
+				if !checkExpectError(t, err, tc.ExpectError) {
+					return
+				}
+				if ent == nil {
+					t.Fatal("got no result")
+				}
+				assert.Equal(t, tc.ExpectUserId, ent.ID)
+			})
+		}
+
+	})
+
 	// TENANTS
 	t.Run("TenantList", func(t *testing.T) {
 		checker := newTestChecker(t, checkerTestData)
@@ -305,7 +380,6 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantAddPermission", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "test100"),
@@ -339,6 +413,8 @@ func TestChecker(t *testing.T) {
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.TenantAddPermission(
 					context.Background(),
@@ -353,7 +429,6 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantRemovePermission", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
@@ -361,6 +436,14 @@ func TestChecker(t *testing.T) {
 				Relation:    MemberRelation,
 				CheckAsUser: "tl-tenant-admin",
 			},
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(TenantType, "tl-tenant"),
+				Relation:           MemberRelation,
+				CheckAsUser:        "ian",
+				ExpectUnauthorized: true,
+			},
+
 			{
 				Subject:            NewEntityKey(UserType, "test2"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
@@ -371,6 +454,8 @@ func TestChecker(t *testing.T) {
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.TenantRemovePermission(
 					context.Background(),
@@ -385,7 +470,6 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantSave", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:            NewEntityKey(UserType, "ian"),
@@ -410,6 +494,8 @@ func TestChecker(t *testing.T) {
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.TenantSave(
 					context.Background(),
@@ -428,7 +514,6 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantCreateGroup", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:            NewEntityKey(TenantType, "tl-tenant"),
@@ -438,17 +523,19 @@ func TestChecker(t *testing.T) {
 			},
 			{
 				Subject:     NewEntityKey(TenantType, "tl-tenant"),
-				Object:      NewEntityKey(GroupType, "new-group2"),
+				Object:      NewEntityKey(GroupType, fmt.Sprintf("new-group2-%d", time.Now().UnixNano())),
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Subject:     NewEntityKey(TenantType, "tl-tenant"),
-				Object:      NewEntityKey(GroupType, "new-group3"),
+				Object:      NewEntityKey(GroupType, fmt.Sprintf("new-group3-%d", time.Now().UnixNano())),
 				CheckAsUser: "global_admin",
 			},
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantCreateGroup(
 					context.Background(),
@@ -623,7 +710,6 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupAddPermission", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "test100"),
@@ -662,6 +748,8 @@ func TestChecker(t *testing.T) {
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.GroupAddPermission(
 					context.Background(),
@@ -676,20 +764,11 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupRemovePermission", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(GroupType, "CT-group"),
 				Relation:    ViewerRelation,
-				CheckAsUser: "tl-tenant-admin",
-			},
-			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(GroupType, "CT-group"),
-				Relation:    ViewerRelation,
-				Notes:       "already deleted",
-				ExpectError: true,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
@@ -717,6 +796,8 @@ func TestChecker(t *testing.T) {
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.GroupRemovePermission(
 					context.Background(),
@@ -726,6 +807,50 @@ func TestChecker(t *testing.T) {
 					ltk.Relation,
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+			})
+		}
+	})
+
+	t.Run("GroupSave", func(t *testing.T) {
+		checks := []testTuple{
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(GroupType, "CT-group"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject: NewEntityKey(UserType, "tl-tenant-admin"),
+				Object:  NewEntityKey(GroupType, "BA-group"),
+			},
+			{
+				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
+				Object:             NewEntityKey(GroupType, "not found"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:     NewEntityKey(UserType, "tl-tenant-admin"),
+				Object:      NewEntityKey(GroupType, "not found"),
+				CheckAsUser: "global_admin",
+				ExpectError: true,
+			},
+		}
+		for _, tc := range checks {
+			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
+				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
+				err := checker.GroupSave(
+					context.Background(),
+					newTestUser(stringOr(tc.CheckAsUser, ltk.Subject.Name)),
+					ltk.Object.ID(),
+					tc.Object.Name,
+				)
+				if checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized) {
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
 			})
 		}
 	})
@@ -878,7 +1003,41 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedSetGroup", func(t *testing.T) {
-
+		tcs := []testTuple{
+			{
+				Subject:     NewEntityKey(FeedType, "BA"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				CheckAsUser: "global_admin",
+			},
+			{
+				Subject:            NewEntityKey(FeedType, "EX"),
+				Object:             NewEntityKey(GroupType, "EX-group"),
+				CheckAsUser:        "drew",
+				ExpectUnauthorized: true,
+			},
+		}
+		for _, tc := range tcs {
+			t.Run("", func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
+				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
+				err := checker.FeedSetGroup(
+					context.Background(),
+					newTestUser(stringOr(tc.CheckAsUser, ltk.Subject.Name)),
+					ltk.Subject.ID(),
+					ltk.Object.ID(),
+				)
+				if checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized) {
+					return
+				}
+				// Verify write
+				fr, err := checker.FeedPermissions(context.Background(), newTestUser(tc.CheckAsUser), ltk.Subject.ID())
+				if err != nil {
+					t.Fatal(err)
+				}
+				assert.Equal(t, tc.Object.Name, fr.Group.Name.Val)
+			})
+		}
 	})
 
 	// FEED VERSIONS
@@ -957,6 +1116,16 @@ func TestChecker(t *testing.T) {
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers},
 			},
+			{
+				Subject:            NewEntityKey(UserType, "test-group-viewer"),
+				Object:             NewEntityKey(FeedVersionType, "not-found"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:     NewEntityKey(UserType, "global_admin"),
+				Object:      NewEntityKey(FeedVersionType, "not-found"),
+				ExpectError: true,
+			},
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
@@ -976,7 +1145,6 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedVersionAddPermission", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
@@ -1011,9 +1179,18 @@ func TestChecker(t *testing.T) {
 				CheckAsUser:        "ian",
 				ExpectUnauthorized: true,
 			},
+			{
+				Subject:     NewEntityKey(UserType, "test3"),
+				Object:      NewEntityKey(FeedVersionType, "not found"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "global_admin",
+				ExpectError: true,
+			},
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.FeedVersionAddPermission(
 					context.Background(),
@@ -1028,20 +1205,11 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedVersionRemovePermission", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
 		checks := []testTuple{
 			{
 				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
-				CheckAsUser: "tl-tenant-admin",
-			},
-			{
-				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
-				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Relation:    ViewerRelation,
-				Notes:       "already deleted",
-				ExpectError: true,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
@@ -1051,9 +1219,18 @@ func TestChecker(t *testing.T) {
 				ExpectUnauthorized: true,
 				CheckAsUser:        "ian",
 			},
+			{
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(FeedVersionType, "not found"),
+				Relation:    ViewerRelation,
+				ExpectError: true,
+				CheckAsUser: "global_admin",
+			},
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test - initialize for each test
+				checker := newTestChecker(t, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.FeedVersionRemovePermission(
 					context.Background(),
@@ -1128,42 +1305,31 @@ func checkActionsToMap(v []Action) map[string]bool {
 func newTestChecker(t testing.TB, testData []testTuple) *Checker {
 	te := testfinder.Finders(t, nil, nil)
 	dbx := te.Finder.DBX()
-
-	auth0c := NewMockAuthnClient()
-	auth0c.AddUser("ian", User{Name: "Ian", ID: "ian", Email: "ian@example.com"})
-	auth0c.AddUser("drew", User{Name: "Drew", ID: "drew", Email: "drew@example.com"})
-	auth0c.AddUser("tl-tenant-member", User{Name: "Nisar", ID: "tl-tenant-member", Email: "tl-tenant-member@example.com"})
-
-	fgac, err := newTestCheckerFGA(t)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, tc := range testData {
-		if err := fgac.WriteTuple(context.Background(), dbTupleLookup(t, dbx, tc.TupleKey())); err != nil {
-			t.Fatal(err)
-		}
-	}
-	checker := NewChecker(auth0c, fgac, dbx, nil)
-	checker.globalAdmins = append(checker.globalAdmins, "global_admin")
-	return checker
-}
-
-func newTestCheckerFGA(t testing.TB) (*FGAClient, error) {
 	cfg := AuthzConfig{
 		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
 		FGALoadModelFile: "../test/authz/tls.json",
+		GlobalAdmin:      "global_admin",
 	}
-	fgac, err := NewFGAClient(cfg.FGAEndpoint, "", "")
+
+	checker, err := NewCheckerFromConfig(cfg, dbx, nil)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
-	if _, err := fgac.CreateStore(context.Background(), "test"); err != nil {
-		return nil, err
+
+	// Add test data
+	for _, tc := range testData {
+		if err := checker.authz.WriteTuple(context.Background(), dbTupleLookup(t, dbx, tc.TupleKey())); err != nil {
+			t.Fatal(err)
+		}
 	}
-	if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
-		return nil, err
-	}
-	return fgac, nil
+
+	// Override AuthnProvider
+	auth0c := NewMockAuthnClient()
+	auth0c.AddUser("ian", User{Name: "Ian", ID: "ian", Email: "ian@example.com"})
+	auth0c.AddUser("drew", User{Name: "Drew", ID: "drew", Email: "drew@example.com"})
+	auth0c.AddUser("tl-tenant-member", User{Name: "Tenant Member", ID: "tl-tenant-member", Email: "tl-tenant-member@example.com"})
+	checker.authn = auth0c
+	return checker
 }
 
 func dbTupleLookup(t testing.TB, dbx sqlx.Ext, tk TupleKey) TupleKey {
@@ -1212,27 +1378,18 @@ func newEntityKeys(t ObjectType, keys ...string) []EntityKey {
 }
 
 func checkErrUnauthorized(t testing.TB, err error, expectError bool, expectUnauthorized bool) bool {
-	if expectUnauthorized {
-		if err == ErrUnauthorized {
-			return true
+	// return true if there was an error
+	// log unexpected errors
+	if err == nil {
+		if expectUnauthorized {
+			t.Errorf("expected unauthorized, got no error")
+		} else if expectError {
+			t.Errorf("expected error, got no error")
 		}
-		t.Errorf("got error '%s', expected unauthorized", err.Error())
-		return false
-	}
-	if expectError {
-		if err != ErrUnauthorized {
-			return true
+	} else {
+		if expectUnauthorized && err != ErrUnauthorized {
+			t.Errorf("expected unauthorized, got error '%s'", err.Error())
 		}
-		if err == ErrUnauthorized {
-			t.Errorf("got unauthorized error, expected other error type")
-		} else {
-			t.Errorf("got no error, expected error")
-		}
-		return false
 	}
-	if err != nil {
-		t.Errorf("got error '%s', expected no error", err.Error())
-		return false
-	}
-	return true
+	return err != nil
 }

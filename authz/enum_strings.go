@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-const _ActionName = "can_viewcan_editcan_edit_memberscan_create_orgcan_delete_orgcan_create_feed_versioncan_delete_feed_versioncan_create_feedcan_delete_feed"
+const _ActionName = "can_viewcan_editcan_edit_memberscan_create_orgcan_delete_orgcan_create_feed_versioncan_delete_feed_versioncan_create_feedcan_delete_feedcan_set_group"
 
-var _ActionIndex = [...]uint8{0, 8, 16, 32, 46, 60, 83, 106, 121, 136}
+var _ActionIndex = [...]uint8{0, 8, 16, 32, 46, 60, 83, 106, 121, 136, 149}
 
-const _ActionLowerName = "can_viewcan_editcan_edit_memberscan_create_orgcan_delete_orgcan_create_feed_versioncan_delete_feed_versioncan_create_feedcan_delete_feed"
+const _ActionLowerName = "can_viewcan_editcan_edit_memberscan_create_orgcan_delete_orgcan_create_feed_versioncan_delete_feed_versioncan_create_feedcan_delete_feedcan_set_group"
 
 func (i Action) String() string {
 	i -= 1
@@ -34,9 +34,10 @@ func _ActionNoOp() {
 	_ = x[CanDeleteFeedVersion-(7)]
 	_ = x[CanCreateFeed-(8)]
 	_ = x[CanDeleteFeed-(9)]
+	_ = x[CanSetGroup-(10)]
 }
 
-var _ActionValues = []Action{CanView, CanEdit, CanEditMembers, CanCreateOrg, CanDeleteOrg, CanCreateFeedVersion, CanDeleteFeedVersion, CanCreateFeed, CanDeleteFeed}
+var _ActionValues = []Action{CanView, CanEdit, CanEditMembers, CanCreateOrg, CanDeleteOrg, CanCreateFeedVersion, CanDeleteFeedVersion, CanCreateFeed, CanDeleteFeed, CanSetGroup}
 
 var _ActionNameToValueMap = map[string]Action{
 	_ActionName[0:8]:          CanView,
@@ -57,6 +58,8 @@ var _ActionNameToValueMap = map[string]Action{
 	_ActionLowerName[106:121]: CanCreateFeed,
 	_ActionName[121:136]:      CanDeleteFeed,
 	_ActionLowerName[121:136]: CanDeleteFeed,
+	_ActionName[136:149]:      CanSetGroup,
+	_ActionLowerName[136:149]: CanSetGroup,
 }
 
 var _ActionNames = []string{
@@ -69,6 +72,7 @@ var _ActionNames = []string{
 	_ActionName[83:106],
 	_ActionName[106:121],
 	_ActionName[121:136],
+	_ActionName[136:149],
 }
 
 // ActionString retrieves an enum value from the enum constants string name.
