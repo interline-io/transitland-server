@@ -365,6 +365,12 @@
                                 "this": {}
                             },
                             {
+                                "computedUserset": {
+                                    "object": "",
+                                    "relation": "manager"
+                                }
+                            },
+                            {
                                 "tupleToUserset": {
                                     "tupleset": {
                                         "object": "",
@@ -384,6 +390,12 @@
                         "child": [
                             {
                                 "this": {}
+                            },
+                            {
+                                "computedUserset": {
+                                    "object": "",
+                                    "relation": "editor"
+                                }
                             },
                             {
                                 "tupleToUserset": {
@@ -459,6 +471,10 @@
                         "directly_related_user_types": [
                             {
                                 "type": "user"
+                            },
+                            {
+                                "type": "org",
+                                "relation": "viewer"
                             }
                         ]
                     },
@@ -466,6 +482,10 @@
                         "directly_related_user_types": [
                             {
                                 "type": "user"
+                            },
+                            {
+                                "type": "org",
+                                "relation": "viewer"
                             }
                         ]
                     },

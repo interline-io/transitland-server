@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -13,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var checkerTestData = []fgaTestTuple{
+var checkerTestData = []testTuple{
 	{
 		Subject:  NewEntityKey(TenantType, "tl-tenant"),
 		Object:   NewEntityKey(GroupType, "CT-group"),
@@ -47,7 +48,6 @@ var checkerTestData = []fgaTestTuple{
 		Subject:  NewEntityKey(TenantType, "restricted-tenant"),
 		Object:   NewEntityKey(GroupType, "test-group"),
 		Relation: ParentRelation,
-		Notes:    "org:no-one",
 	},
 	{
 		Subject:  NewEntityKey(GroupType, "CT-group"),
@@ -73,12 +73,6 @@ var checkerTestData = []fgaTestTuple{
 		Relation: ParentRelation,
 		Notes:    "feed:4 should only be viewable to admins of tenant:1 (admin)",
 	},
-	// loaded from postgres
-	// {
-	// 	Subject:  NewEntityKey(FeedType, "BA"),
-	// 	Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-	// 	Relation: ParentRelation,
-	// },
 	{
 		Subject:  NewEntityKey(UserType, "admin"),
 		Object:   NewEntityKey(TenantType, "tl-tenant"),
@@ -124,490 +118,24 @@ var checkerTestData = []fgaTestTuple{
 		Object:   NewEntityKey(TenantType, "restricted-tenant"),
 		Relation: MemberRelation,
 	},
-}
-
-var checkerCheck = []fgaTestTuple{
 	{
-		Subject:       NewEntityKey(UserType, "admin"),
-		Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		ExpectActions: []Action{CanView},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "admin"),
-		Object:        NewEntityKey(GroupType, "CT-group"),
-		ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "admin"),
-		Object:        NewEntityKey(GroupType, "BA-group"),
-		ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "admin"),
-		Object:        NewEntityKey(GroupType, "HA-group"),
-		ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "admin"),
-		Object:        NewEntityKey(GroupType, "EX-group"),
-		ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "admin"),
-		Object:      NewEntityKey(GroupType, "test-group"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "admin"),
-		Object:        NewEntityKey(TenantType, "tl-tenant"),
-		ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateOrg, CanDeleteOrg},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "admin"),
-		Object:      NewEntityKey(TenantType, "restricted-tenant"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "ian"),
-		Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		ExpectActions: []Action{CanView},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "ian"),
-		Object:        NewEntityKey(FeedType, "CT"),
-		ExpectActions: []Action{CanView, -CanEdit, -CanCreateFeedVersion, -CanDeleteFeedVersion},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "ian"),
-		Object:        NewEntityKey(FeedType, "BA"),
-		ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "ian"),
-		Object:        NewEntityKey(FeedType, "HA"),
-		ExpectActions: []Action{CanView, -CanEdit, -CanCreateFeedVersion, -CanDeleteFeedVersion},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(FeedType, "EX"),
-		ExpectError: true,
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(FeedType, "5"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "ian"),
-		Object:        NewEntityKey(GroupType, "CT-group"),
-		ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "ian"),
-		Object:        NewEntityKey(GroupType, "BA-group"),
-		ExpectActions: []Action{CanView, CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
-	},
-	{
-		Subject:       NewEntityKey(UserType, "ian"),
-		Object:        NewEntityKey(GroupType, "HA-group"),
-		ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(GroupType, "EX-group"),
-		ExpectError: true,
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(GroupType, "test-group"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "ian"),
-		Object:        NewEntityKey(TenantType, "tl-tenant"),
-		ExpectActions: []Action{CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(TenantType, "restricted-tenant"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "drew"),
-		Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		ExpectActions: []Action{-CanView},
-		Notes:         "only feed:2 readers and nisar",
-		ExpectError:   true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "drew"),
-		Object:        NewEntityKey(FeedType, "CT"),
-		ExpectActions: []Action{CanView, CanEdit},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(FeedType, "BA"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "drew"),
-		Object:        NewEntityKey(FeedType, "HA"),
-		ExpectActions: []Action{CanView, -CanEdit},
-		Test:          "check",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(FeedType, "EX"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "drew"),
-		Object:        NewEntityKey(FeedType, "5"),
-		ExpectActions: []Action{-CanView, -CanEdit},
-		ExpectError:   true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "drew"),
-		Object:        NewEntityKey(GroupType, "CT-group"),
-		ExpectActions: []Action{CanView, CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(GroupType, "BA-group"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "drew"),
-		Object:        NewEntityKey(GroupType, "HA-group"),
-		ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(GroupType, "EX-group"),
-		ExpectError: true,
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(GroupType, "test-group"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "drew"),
-		Object:        NewEntityKey(TenantType, "tl-tenant"),
-		ExpectActions: []Action{CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(TenantType, "restricted-tenant"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "nisar"),
-		Object:        NewEntityKey(TenantType, "tl-tenant"),
-		ExpectActions: []Action{CanView, -CanEdit},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(TenantType, "restricted-tenant"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "nisar"),
-		Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		ExpectActions: []Action{CanView},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(FeedType, "CT"),
-		ExpectError: true,
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(FeedType, "BA"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "nisar"),
-		Object:        NewEntityKey(FeedType, "HA"),
-		ExpectActions: []Action{CanView, -CanEdit},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(FeedType, "EX"),
-		ExpectError: true,
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(FeedType, "5"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "nisar"),
-		Object:        NewEntityKey(GroupType, "HA-group"),
-		ExpectActions: []Action{CanView, -CanEdit},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(GroupType, "EX-group"),
-		ExpectError: true,
-	},
-	{
-		Subject:       NewEntityKey(UserType, "nisar"),
-		Object:        NewEntityKey(TenantType, "tl-tenant"),
-		ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(TenantType, "restricted-tenant"),
-		ExpectError: true,
-	},
-}
-
-var checkerListTests = []fgaTestTuple{
-	{
-		Subject:     NewEntityKey(UserType, "admin"),
-		Object:      NewEntityKey(FeedType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "admin"),
-		Object:      NewEntityKey(GroupType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "admin"),
-		Object:      NewEntityKey(TenantType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "admin"),
-		Object:      NewEntityKey(FeedVersionType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(FeedType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(FeedType, "CT", "BA", "HA"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(GroupType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(TenantType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(FeedVersionType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(FeedType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(FeedType, "CT", "HA"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(TenantType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(GroupType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(GroupType, "CT-group", "HA-group"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "drew"),
-		Object:      NewEntityKey(FeedVersionType, ""),
-		ExpectNames: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(GroupType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(GroupType, "HA-group"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(FeedType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(FeedType, "HA"),
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(TenantType, ""),
-		ListAction:  CanView,
-		ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
-	},
-}
-
-var checkerWriteTests = []fgaTestTuple{
-	{
-		Subject:     NewEntityKey(UserType, "test100"),
-		Object:      NewEntityKey(GroupType, "HA-group"),
-		Relation:    ViewerRelation,
-		Notes:       "does not exist",
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(GroupType, "HA-group"),
-		Notes:       "invalid relation",
-		ExpectError: true,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test102"),
-		Object:      NewEntityKey(GroupType, "100"),
-		Relation:    ViewerRelation,
-		Notes:       "unauthorized",
-		CheckAsUser: "ian",
-		ExpectError: true,
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation:    ViewerRelation,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:  NewEntityKey(UserType, "nisar"),
-		Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+		Subject:  NewEntityKey(UserType, "test-group-viewer"),
+		Object:   NewEntityKey(GroupType, "test-group"),
 		Relation: ViewerRelation,
-
-		Expect:      "fail",
-		Notes:       "already exists",
-		ExpectError: true,
-		CheckAsUser: "admin",
 	},
 	{
-		Subject:     NewEntityKey(UserType, "test1"),
-		Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation:    ViewerRelation,
-		CheckAsUser: "admin",
+		Subject:  NewEntityKey(UserType, "test-group-editor"),
+		Object:   NewEntityKey(GroupType, "test-group"),
+		Relation: EditorRelation,
 	},
 	{
-		Subject:     NewEntityKey(UserType, "test2"),
-		Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation:    ViewerRelation,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test3"),
-		Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation:    ViewerRelation,
-		Notes:       "unauthorized",
-		CheckAsUser: "ian",
-		ExpectError: true,
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test100"),
-		Object:      NewEntityKey(TenantType, "tl-tenant"),
-		Relation:    MemberRelation,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test100"),
-		Object:      NewEntityKey(GroupType, "CT-group"),
-		Relation:    ViewerRelation,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test100"),
-		Object:      NewEntityKey(GroupType, "CT-group"),
-		Relation:    ViewerRelation,
-		Notes:       "unauthorized",
-		ExpectError: true,
-		CheckAsUser: "ian",
+		Subject:  NewEntityKey(GroupType, "test-group#viewer"),
+		Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+		Relation: EditorRelation,
 	},
 }
 
-var checkerDeleteTests = []fgaTestTuple{
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(GroupType, "CT-group"),
-		Relation:    ViewerRelation,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(GroupType, "CT-group"),
-		Relation:    ViewerRelation,
-		Notes:       "already deleted",
-		ExpectError: true,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test102"),
-		Object:      NewEntityKey(GroupType, "100"),
-		Relation:    ViewerRelation,
-		Notes:       "unauthorized",
-		ExpectError: true,
-		CheckAsUser: "ian",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation:    ViewerRelation,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "nisar"),
-		Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation:    ViewerRelation,
-		Notes:       "already deleted",
-		ExpectError: true,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "ian"),
-		Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-		Relation:    ViewerRelation,
-		Notes:       "unauthorized",
-		ExpectError: true,
-		CheckAsUser: "ian",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test2"),
-		Object:      NewEntityKey(TenantType, "restricted-tenant"),
-		Relation:    MemberRelation,
-		Notes:       "unauthorized",
-		CheckAsUser: "admin",
-		ExpectError: true,
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test101"),
-		Object:      NewEntityKey(GroupType, "BA-group"),
-		Relation:    ViewerRelation,
-		Notes:       "does not exist",
-		ExpectError: true,
-		CheckAsUser: "admin",
-	},
-	{
-		Subject:     NewEntityKey(UserType, "test101"),
-		Object:      NewEntityKey(GroupType, "BA-group"),
-		Relation:    ViewerRelation,
-		Notes:       "unauthorized",
-		ExpectError: true,
-		CheckAsUser: "ian",
-	},
-}
-
-var checkerGetTests = []fgaTestTuple{
+var checkerGetTests = []testTuple{
 	{
 		Subject: EntityKey{
 			Type: 0,
@@ -647,30 +175,30 @@ func TestChecker(t *testing.T) {
 	// TENANTS
 	t.Run("TenantList", func(t *testing.T) {
 		checker := newTestChecker(t)
-		checks := []fgaTestTuple{
+		checks := []testTuple{
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(TenantType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(TenantType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(TenantType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
-				Object:      NewEntityKey(TenantType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
+				Subject:    NewEntityKey(UserType, "nisar"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 		}
 
@@ -686,7 +214,7 @@ func TestChecker(t *testing.T) {
 					gotNames = append(gotNames, v.Name.Val)
 				}
 				var expectNames []string
-				for _, v := range tc.ExpectNames {
+				for _, v := range tc.ExpectKeys {
 					expectNames = append(expectNames, v.Name)
 				}
 				assert.ElementsMatch(t, expectNames, gotNames, "tenant names")
@@ -696,10 +224,59 @@ func TestChecker(t *testing.T) {
 
 	t.Run("TenantPermissions", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerCheck {
-			if tc.Object.Type != TenantType {
-				continue
-			}
+		checks := []testTuple{
+			{
+				Subject:       NewEntityKey(UserType, "admin"),
+				Object:        NewEntityKey(TenantType, "tl-tenant"),
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateOrg, CanDeleteOrg},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "admin"),
+				Object:             NewEntityKey(TenantType, "restricted-tenant"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(TenantType, "tl-tenant"),
+				ExpectActions: []Action{CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(TenantType, "restricted-tenant"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "drew"),
+				Object:        NewEntityKey(TenantType, "tl-tenant"),
+				ExpectActions: []Action{CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "drew"),
+				Object:             NewEntityKey(TenantType, "restricted-tenant"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "nisar"),
+				Object:        NewEntityKey(TenantType, "tl-tenant"),
+				ExpectActions: []Action{CanView, -CanEdit},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "nisar"),
+				Object:             NewEntityKey(TenantType, "restricted-tenant"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "nisar"),
+				Object:        NewEntityKey(TenantType, "tl-tenant"),
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "nisar"),
+				Object:             NewEntityKey(TenantType, "restricted-tenant"),
+				ExpectUnauthorized: true,
+			},
+		}
+		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.TenantPermissions(
@@ -707,21 +284,26 @@ func TestChecker(t *testing.T) {
 					newTestUser(ltk.Subject.Name),
 					ltk.Object.ID(),
 				)
-				checkExpectError(t, err, tc.ExpectError)
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
 					return
 				}
-				checkActionSubset(t, ret.Actions, tc.Checks)
+				checkActionSubset(t, ret.Actions, tc.ExpectActions)
 			})
 		}
 	})
 
 	t.Run("TenantAddPermission", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerWriteTests {
-			if tc.Object.Type != TenantType {
-				continue
-			}
+		checks := []testTuple{
+			{
+				Subject:     NewEntityKey(UserType, "test100"),
+				Object:      NewEntityKey(TenantType, "tl-tenant"),
+				Relation:    MemberRelation,
+				CheckAsUser: "admin",
+			},
+		}
+		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.TenantAddPermission(
@@ -731,16 +313,29 @@ func TestChecker(t *testing.T) {
 					ltk.Subject.Name,
 					ltk.Relation,
 				)
-				if !checkExpectError(t, err, tc.ExpectError) {
-					return
-				}
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
 
 	t.Run("TenantRemovePermission", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerDeleteTests {
+		checks := []testTuple{
+			{
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(TenantType, "tl-tenant"),
+				Relation:    MemberRelation,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:            NewEntityKey(UserType, "test2"),
+				Object:             NewEntityKey(TenantType, "restricted-tenant"),
+				Relation:           MemberRelation,
+				CheckAsUser:        "admin",
+				ExpectUnauthorized: true,
+			},
+		}
+		for _, tc := range checks {
 			if tc.Object.Type != TenantType {
 				continue
 			}
@@ -753,9 +348,7 @@ func TestChecker(t *testing.T) {
 					ltk.Subject.Name,
 					ltk.Relation,
 				)
-				if !checkExpectError(t, err, tc.ExpectError) {
-					return
-				}
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
@@ -763,30 +356,30 @@ func TestChecker(t *testing.T) {
 	// GROUPS
 	t.Run("GroupList", func(t *testing.T) {
 		checker := newTestChecker(t)
-		checks := []fgaTestTuple{
+		checks := []testTuple{
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(GroupType, "CT-group", "HA-group"),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(GroupType, "CT-group", "HA-group"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(GroupType, "HA-group"),
+				Subject:    NewEntityKey(UserType, "nisar"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(GroupType, "HA-group"),
 			},
 		}
 		for _, tc := range checks {
@@ -804,7 +397,7 @@ func TestChecker(t *testing.T) {
 					gotNames = append(gotNames, v.Name.Val)
 				}
 				var expectNames []string
-				for _, v := range tc.ExpectNames {
+				for _, v := range tc.ExpectKeys {
 					expectNames = append(expectNames, v.Name)
 				}
 				assert.ElementsMatch(t, expectNames, gotNames, "group names")
@@ -814,7 +407,94 @@ func TestChecker(t *testing.T) {
 
 	t.Run("GroupPermissions", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerCheck {
+		checks := []testTuple{
+			{
+				Subject:       NewEntityKey(UserType, "admin"),
+				Object:        NewEntityKey(GroupType, "CT-group"),
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "admin"),
+				Object:        NewEntityKey(GroupType, "BA-group"),
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "admin"),
+				Object:        NewEntityKey(GroupType, "HA-group"),
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "admin"),
+				Object:        NewEntityKey(GroupType, "EX-group"),
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "admin"),
+				Object:             NewEntityKey(GroupType, "test-group"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(GroupType, "CT-group"),
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(GroupType, "BA-group"),
+				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(GroupType, "HA-group"),
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(GroupType, "EX-group"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(GroupType, "test-group"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "drew"),
+				Object:        NewEntityKey(GroupType, "CT-group"),
+				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "drew"),
+				Object:             NewEntityKey(GroupType, "BA-group"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "drew"),
+				Object:        NewEntityKey(GroupType, "HA-group"),
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "drew"),
+				Object:             NewEntityKey(GroupType, "EX-group"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "drew"),
+				Object:             NewEntityKey(GroupType, "test-group"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "nisar"),
+				Object:        NewEntityKey(GroupType, "HA-group"),
+				ExpectActions: []Action{CanView, -CanEdit},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "nisar"),
+				Object:             NewEntityKey(GroupType, "EX-group"),
+				ExpectUnauthorized: true,
+			},
+		}
+		for _, tc := range checks {
 			if tc.Object.Type != GroupType {
 				continue
 			}
@@ -825,21 +505,54 @@ func TestChecker(t *testing.T) {
 					newTestUser(ltk.Subject.Name),
 					ltk.Object.ID(),
 				)
-				checkExpectError(t, err, tc.ExpectError)
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
 					return
 				}
-				checkActionSubset(t, ret.Actions, tc.Checks)
+				checkActionSubset(t, ret.Actions, tc.ExpectActions)
 			})
 		}
 	})
 
 	t.Run("GroupAddPermission", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerWriteTests {
-			if tc.Object.Type != GroupType {
-				continue
-			}
+		checks := []testTuple{
+			{
+				Subject:     NewEntityKey(UserType, "test100"),
+				Object:      NewEntityKey(GroupType, "HA-group"),
+				Relation:    ViewerRelation,
+				Notes:       "does not exist",
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(GroupType, "HA-group"),
+				Notes:       "invalid relation",
+				ExpectError: true,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:            NewEntityKey(UserType, "test102"),
+				Object:             NewEntityKey(GroupType, "100"),
+				Relation:           ViewerRelation,
+				CheckAsUser:        "ian",
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:     NewEntityKey(UserType, "test100"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:            NewEntityKey(UserType, "test100"),
+				Object:             NewEntityKey(GroupType, "CT-group"),
+				Relation:           ViewerRelation,
+				ExpectUnauthorized: true,
+				CheckAsUser:        "ian",
+			},
+		}
+		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.GroupAddPermission(
@@ -849,16 +562,52 @@ func TestChecker(t *testing.T) {
 					ltk.Object.ID(),
 					ltk.Relation,
 				)
-				if !checkExpectError(t, err, tc.ExpectError) {
-					return
-				}
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
 
 	t.Run("GroupRemovePermission", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerDeleteTests {
+		checks := []testTuple{
+			{
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ViewerRelation,
+				Notes:       "already deleted",
+				ExpectError: true,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:            NewEntityKey(UserType, "test102"),
+				Object:             NewEntityKey(GroupType, "100"),
+				Relation:           ViewerRelation,
+				ExpectUnauthorized: true,
+				CheckAsUser:        "ian",
+			},
+			{
+				Subject:     NewEntityKey(UserType, "test101"),
+				Object:      NewEntityKey(GroupType, "BA-group"),
+				Relation:    ViewerRelation,
+				Notes:       "does not exist",
+				ExpectError: true,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:            NewEntityKey(UserType, "test101"),
+				Object:             NewEntityKey(GroupType, "BA-group"),
+				Relation:           ViewerRelation,
+				ExpectUnauthorized: true,
+				CheckAsUser:        "ian",
+			},
+		}
+		for _, tc := range checks {
 			if tc.Object.Type != GroupType {
 				continue
 			}
@@ -871,9 +620,7 @@ func TestChecker(t *testing.T) {
 					ltk.Object.ID(),
 					ltk.Relation,
 				)
-				if !checkExpectError(t, err, tc.ExpectError) {
-					return
-				}
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
@@ -881,31 +628,31 @@ func TestChecker(t *testing.T) {
 	// FEEDS
 	t.Run("FeedList", func(t *testing.T) {
 		checker := newTestChecker(t)
-		checks := []fgaTestTuple{
+		checks := []testTuple{
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(FeedType, "CT", "BA", "HA"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(FeedType, "CT", "HA"),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedType, "CT", "HA"),
 			},
 
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(FeedType, "HA"),
+				Subject:    NewEntityKey(UserType, "nisar"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedType, "HA"),
 			},
 		}
 		for _, tc := range checks {
@@ -923,18 +670,95 @@ func TestChecker(t *testing.T) {
 					gotNames = append(gotNames, v.OnestopID.Val)
 				}
 				var expectNames []string
-				for _, v := range tc.ExpectNames {
+				for _, v := range tc.ExpectKeys {
 					expectNames = append(expectNames, v.Name)
 				}
 				assert.ElementsMatch(t, expectNames, gotNames, "feed names")
-
 			})
 		}
 	})
 
 	t.Run("FeedPermissions", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerCheck {
+		checks := []testTuple{
+			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(FeedType, "CT"),
+				ExpectActions: []Action{CanView, -CanEdit, -CanCreateFeedVersion, -CanDeleteFeedVersion},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(FeedType, "BA"),
+				ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(FeedType, "HA"),
+				ExpectActions: []Action{CanView, -CanEdit, -CanCreateFeedVersion, -CanDeleteFeedVersion},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(FeedType, "EX"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(FeedType, "test"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "drew"),
+				Object:        NewEntityKey(FeedType, "CT"),
+				ExpectActions: []Action{CanView, CanEdit},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "drew"),
+				Object:             NewEntityKey(FeedType, "BA"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "drew"),
+				Object:        NewEntityKey(FeedType, "HA"),
+				ExpectActions: []Action{CanView, -CanEdit},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "drew"),
+				Object:             NewEntityKey(FeedType, "EX"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "drew"),
+				Object:             NewEntityKey(FeedType, "test"),
+				ExpectActions:      []Action{-CanView, -CanEdit},
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "nisar"),
+				Object:             NewEntityKey(FeedType, "CT"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "nisar"),
+				Object:             NewEntityKey(FeedType, "BA"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "nisar"),
+				Object:        NewEntityKey(FeedType, "HA"),
+				ExpectActions: []Action{CanView, -CanEdit},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "nisar"),
+				Object:             NewEntityKey(FeedType, "EX"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:            NewEntityKey(UserType, "nisar"),
+				Object:             NewEntityKey(FeedType, "test"),
+				ExpectUnauthorized: true,
+			},
+		}
+		for _, tc := range checks {
 			if tc.Object.Type != FeedType {
 				continue
 			}
@@ -945,11 +769,11 @@ func TestChecker(t *testing.T) {
 					newTestUser(ltk.Subject.Name),
 					ltk.Object.ID(),
 				)
-				checkExpectError(t, err, tc.ExpectError)
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
 					return
 				}
-				checkActionSubset(t, ret.Actions, tc.Checks)
+				checkActionSubset(t, ret.Actions, tc.ExpectActions)
 			})
 		}
 	})
@@ -957,23 +781,27 @@ func TestChecker(t *testing.T) {
 	// FEED VERSIONS
 	t.Run("FeedVersionList", func(t *testing.T) {
 		checker := newTestChecker(t)
-		checks := []fgaTestTuple{
+		// Only user:nisar has permissions explicitly defined
+		checks := []testTuple{
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(FeedVersionType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(FeedVersionType, ""),
+				ExpectKeys: newEntityKeys(FeedVersionType),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(FeedVersionType, ""),
-				ListAction:  CanView,
-				ExpectNames: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(FeedVersionType, ""),
+				ExpectKeys: newEntityKeys(FeedVersionType),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(FeedVersionType, ""),
-				ExpectNames: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(FeedVersionType, ""),
+				ExpectKeys: newEntityKeys(FeedVersionType),
+			},
+			{
+				Subject:    NewEntityKey(UserType, "nisar"),
+				Object:     NewEntityKey(FeedVersionType, ""),
+				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			},
 		}
 		for _, tc := range checks {
@@ -982,16 +810,18 @@ func TestChecker(t *testing.T) {
 			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
+				fmt.Println("ltk:", ltk)
 				ret, err := checker.FeedVersionList(context.Background(), newTestUser(ltk.Subject.Name))
 				if err != nil {
 					t.Fatal(err)
 				}
+				fmt.Println("got names:", ret)
 				var gotNames []string
 				for _, v := range ret {
 					gotNames = append(gotNames, v.SHA1.Val)
 				}
 				var expectNames []string
-				for _, v := range tc.ExpectNames {
+				for _, v := range tc.ExpectKeys {
 					expectNames = append(expectNames, v.Name)
 				}
 				assert.ElementsMatch(t, expectNames, gotNames, "feed version names")
@@ -1001,7 +831,36 @@ func TestChecker(t *testing.T) {
 
 	t.Run("FeedVersionPermissions", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerCheck {
+		checks := []testTuple{
+			{
+				Subject:       NewEntityKey(UserType, "admin"),
+				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectActions: []Action{CanView},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectActions: []Action{CanView},
+			},
+			{
+				Subject:            NewEntityKey(UserType, "drew"),
+				Object:             NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectActions:      []Action{-CanView},
+				Notes:              "only feed:2 readers and nisar",
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:       NewEntityKey(UserType, "nisar"),
+				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectActions: []Action{CanView},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "test-group-viewer"),
+				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers},
+			},
+		}
+		for _, tc := range checks {
 			if tc.Object.Type != FeedVersionType {
 				continue
 			}
@@ -1012,18 +871,53 @@ func TestChecker(t *testing.T) {
 					newTestUser(ltk.Subject.Name),
 					ltk.Object.ID(),
 				)
-				checkExpectError(t, err, tc.ExpectError)
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
 					return
 				}
-				checkActionSubset(t, ret.Actions, tc.Checks)
+				checkActionSubset(t, ret.Actions, tc.ExpectActions)
 			})
 		}
 	})
 
 	t.Run("FeedVersionAddPermission", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerWriteTests {
+		checks := []testTuple{
+			{
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:     NewEntityKey(UserType, "nisar"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				Notes:       "already exists",
+				ExpectError: true,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:     NewEntityKey(UserType, "test1"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:     NewEntityKey(UserType, "test2"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:            NewEntityKey(UserType, "test3"),
+				Object:             NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:           ViewerRelation,
+				CheckAsUser:        "ian",
+				ExpectUnauthorized: true,
+			},
+		}
+		for _, tc := range checks {
 			if tc.Object.Type != FeedVersionType {
 				continue
 			}
@@ -1036,16 +930,37 @@ func TestChecker(t *testing.T) {
 					ltk.Object.ID(),
 					ltk.Relation,
 				)
-				if !checkExpectError(t, err, tc.ExpectError) {
-					return
-				}
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
 
 	t.Run("FeedVersionRemovePermission", func(t *testing.T) {
 		checker := newTestChecker(t)
-		for _, tc := range checkerDeleteTests {
+		checks := []testTuple{
+			{
+				Subject:     NewEntityKey(UserType, "nisar"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:     NewEntityKey(UserType, "nisar"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				Notes:       "already deleted",
+				ExpectError: true,
+				CheckAsUser: "admin",
+			},
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:           ViewerRelation,
+				ExpectUnauthorized: true,
+				CheckAsUser:        "ian",
+			},
+		}
+		for _, tc := range checks {
 			if tc.Object.Type != FeedVersionType {
 				continue
 			}
@@ -1058,9 +973,7 @@ func TestChecker(t *testing.T) {
 					ltk.Object.ID(),
 					ltk.Relation,
 				)
-				if !checkExpectError(t, err, tc.ExpectError) {
-					return
-				}
+				checkUnauthorizedError(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 			})
 		}
 	})
@@ -1074,7 +987,7 @@ func stringOr(a, b string) string {
 	return b
 }
 
-func checkActionSubset(t testing.TB, actions any, checks []string) {
+func checkActionSubset(t testing.TB, actions any, checks []Action) {
 	checkA, err := actionsToMap(actions)
 	if err != nil {
 		t.Error(err)
@@ -1083,13 +996,17 @@ func checkActionSubset(t testing.TB, actions any, checks []string) {
 	checkMapSubset(t, checkA, checkActions)
 }
 
-func checkMapSubset(t testing.TB, value map[string]bool, contains map[string]bool) {
-	for k, v := range contains {
-		a, ok := value[k]
-		if !ok {
-			t.Errorf("expected %#v to contain key %s", value, k)
-		} else if a != v {
-			t.Errorf("expected %#v to contain %s=%t, did not", value, k, v)
+func checkMapSubset(t testing.TB, got map[string]bool, expect map[string]bool) {
+	var keys = map[string]bool{}
+	for k := range got {
+		keys[k] = true
+	}
+	for k := range expect {
+		keys[k] = true
+	}
+	for k := range keys {
+		if got[k] != expect[k] {
+			t.Errorf("key %s mismatch, got %t expect %t", k, got[k], expect[k])
 		}
 	}
 }
@@ -1106,17 +1023,15 @@ func actionsToMap(actions any) (map[string]bool, error) {
 	return ret, nil
 }
 
-func checkActionsToMap(v []string) map[string]bool {
+func checkActionsToMap(v []Action) map[string]bool {
 	ret := map[string]bool{}
 	for _, checkAction := range v {
 		expect := true
-		if strings.HasPrefix(checkAction, "+") {
-			checkAction = strings.TrimPrefix(checkAction, "+")
-		} else if strings.HasPrefix(checkAction, "-") {
+		if checkAction < 0 {
 			expect = false
-			checkAction = strings.TrimPrefix(checkAction, "-")
+			checkAction *= -1
 		}
-		ret[checkAction] = expect
+		ret[checkAction.String()] = expect
 	}
 	return ret
 }
@@ -1205,4 +1120,26 @@ func newEntityKeys(t ObjectType, keys ...string) []EntityKey {
 		ret = append(ret, NewEntityKey(t, k))
 	}
 	return ret
+}
+
+func checkUnauthorizedError(t testing.TB, err error, expectError bool, expectUnauthorized bool) bool {
+	if expectUnauthorized {
+		if err == UnauthorizedError {
+			return true
+		}
+		t.Errorf("got error '%s', expected unauthorized", err.Error())
+		return false
+	}
+	if expectError {
+		if err != nil {
+			return true
+		}
+		t.Errorf("got no error, expected error")
+		return false
+	}
+	if err != nil {
+		t.Errorf("got error '%s', expected no error", err.Error())
+		return false
+	}
+	return true
 }

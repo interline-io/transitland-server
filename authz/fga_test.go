@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestFGAClient(t testing.TB, testTuples []fgaTestTuple) *FGAClient {
+func newTestFGAClient(t testing.TB, testTuples []testTuple) *FGAClient {
 	cfg := AuthzConfig{
 		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
 		FGALoadModelFile: "../test/authz/tls.json",
@@ -34,34 +34,30 @@ func newTestFGAClient(t testing.TB, testTuples []fgaTestTuple) *FGAClient {
 	return fgac
 }
 
-type fgaTestTuple struct {
-	Subject           EntityKey
-	Object            EntityKey
-	Action            Action
-	Relation          Relation
-	Checks            []string
-	Test              string
-	Expect            string
-	Notes             string
-	ExpectError       bool
-	CheckAsUser       string
-	ExpectErrorAsUser bool
-	ExpectActions     []Action
-	ExpectIds         []int
-	ExpectNames       []EntityKey
-	ListAction        Action
+type testTuple struct {
+	Subject            EntityKey
+	Object             EntityKey
+	Action             Action
+	Relation           Relation
+	Expect             string
+	Notes              string
+	ExpectError        bool
+	ExpectUnauthorized bool
+	CheckAsUser        string
+	ExpectActions      []Action
+	ExpectKeys         []EntityKey
 }
 
-func (tk *fgaTestTuple) TupleKey() TupleKey {
+func (tk *testTuple) TupleKey() TupleKey {
 	return TupleKey{Subject: tk.Subject, Object: tk.Object, Relation: tk.Relation, Action: tk.Action}
 }
 
-func (tk *fgaTestTuple) String() string {
+func (tk *testTuple) String() string {
 	return tk.TupleKey().String() + "|checkuser:" + tk.CheckAsUser
 }
 
 func TestFGAClient(t *testing.T) {
-	testData := []fgaTestTuple{
+	testData := []testTuple{
 		{
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),
 			Object:   NewEntityKey(GroupType, "CT-group"),
@@ -157,6 +153,16 @@ func TestFGAClient(t *testing.T) {
 			Relation: MemberRelation,
 		},
 		{
+			Subject:  NewEntityKey(UserType, "test-group-viewer"),
+			Object:   NewEntityKey(GroupType, "test-group"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "test-group-editor"),
+			Object:   NewEntityKey(GroupType, "test-group"),
+			Relation: EditorRelation,
+		},
+		{
 			Subject:  NewEntityKey(UserType, "nisar"),
 			Object:   NewEntityKey(TenantType, "tl-tenant"),
 			Relation: MemberRelation,
@@ -171,6 +177,11 @@ func TestFGAClient(t *testing.T) {
 			Object:   NewEntityKey(TenantType, "restricted-tenant"),
 			Relation: MemberRelation,
 		},
+		{
+			Subject:  NewEntityKey(GroupType, "test-group#viewer"),
+			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+			Relation: EditorRelation,
+		},
 	}
 
 	if os.Getenv("TL_TEST_FGA_ENDPOINT") == "" {
@@ -180,14 +191,14 @@ func TestFGAClient(t *testing.T) {
 
 	t.Run("GetObjectTuples", func(t *testing.T) {
 		fgac := newTestFGAClient(t, testData)
-		checks := []fgaTestTuple{
+		checks := []testTuple{
 			{
 				Object: NewEntityKey(TenantType, "tl-tenant"),
 				Expect: "user:admin:admin user:ian:member user:drew:member user:nisar:member",
 			},
 			{
 				Object: NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Expect: "feed:BA:parent user:nisar:viewer",
+				Expect: "feed:BA:parent user:nisar:viewer org:test-group#viewer:editor",
 			},
 			{
 				Object: NewEntityKey(FeedType, "CT"),
@@ -213,7 +224,7 @@ func TestFGAClient(t *testing.T) {
 
 	t.Run("Check", func(t *testing.T) {
 		fgac := newTestFGAClient(t, testData)
-		checks := []fgaTestTuple{
+		checks := []testTuple{
 			{
 				Subject:       NewEntityKey(UserType, "admin"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
@@ -298,7 +309,6 @@ func TestFGAClient(t *testing.T) {
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
-				Test:          "check",
 			},
 			{
 				Subject:       NewEntityKey(UserType, "ian"),
@@ -341,7 +351,6 @@ func TestFGAClient(t *testing.T) {
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(FeedType, "HA"),
 				ExpectActions: []Action{CanView, -CanEdit},
-				Test:          "check",
 			},
 			{
 				Subject:       NewEntityKey(UserType, "drew"),
@@ -448,6 +457,16 @@ func TestFGAClient(t *testing.T) {
 				Object:        NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectActions: []Action{-CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
+			{
+				Subject:       NewEntityKey(UserType, "test-group-viewer"),
+				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "test-group-editor"),
+				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers},
+			},
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
@@ -477,147 +496,128 @@ func TestFGAClient(t *testing.T) {
 
 	t.Run("ListObjects", func(t *testing.T) {
 		fgac := newTestFGAClient(t, testData)
-		checks := []fgaTestTuple{
+		checks := []testTuple{
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1, 2, 3, 4},
-				ExpectNames: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanEdit,
-				ExpectIds:   []int{1, 2, 3, 4},
-				ExpectNames: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanEdit,
+				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
 			},
 
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1, 2, 3, 4},
-				ExpectNames: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanEdit,
-				ExpectIds:   []int{1, 2, 3, 4},
-				ExpectNames: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanEdit,
+				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
 			},
 
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(TenantType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1},
-				ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "admin"),
-				Object:      NewEntityKey(FeedVersionType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1},
-				ExpectNames: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Subject:    NewEntityKey(UserType, "admin"),
+				Object:     NewEntityKey(FeedVersionType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanEdit,
-				ExpectIds:   []int{2},
-				ExpectNames: newEntityKeys(FeedType, "BA"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanEdit,
+				ExpectKeys: newEntityKeys(FeedType, "BA"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1, 2, 3},
-				ExpectNames: newEntityKeys(FeedType, "CT", "BA", "HA"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1, 2, 3},
-				ExpectNames: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(TenantType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1},
-				ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(FeedVersionType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1},
-				ExpectNames: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Subject:    NewEntityKey(UserType, "ian"),
+				Object:     NewEntityKey(FeedVersionType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanEdit,
-				ExpectIds:   []int{1},
-				ExpectNames: newEntityKeys(FeedType, "CT"),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanEdit,
+				ExpectKeys: newEntityKeys(FeedType, "CT"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1, 3},
-				ExpectNames: newEntityKeys(FeedType, "CT", "HA"),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedType, "CT", "HA"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(TenantType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1},
-				ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1, 3},
-				ExpectNames: newEntityKeys(GroupType, "CT-group", "HA-group"),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(GroupType, "CT-group", "HA-group"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "drew"),
-				Object:      NewEntityKey(FeedVersionType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{},
-				ExpectNames: newEntityKeys(FeedVersionType),
+				Subject:    NewEntityKey(UserType, "drew"),
+				Object:     NewEntityKey(FeedVersionType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedVersionType),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
-				Object:      NewEntityKey(GroupType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{3},
-				ExpectNames: newEntityKeys(GroupType, "HA-group"),
+				Subject:    NewEntityKey(UserType, "nisar"),
+				Object:     NewEntityKey(GroupType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(GroupType, "HA-group"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
-				Object:      NewEntityKey(FeedType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{3},
-				ExpectNames: newEntityKeys(FeedType, "HA"),
+				Subject:    NewEntityKey(UserType, "nisar"),
+				Object:     NewEntityKey(FeedType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(FeedType, "HA"),
 			},
 			{
-				Subject:     NewEntityKey(UserType, "nisar"),
-				Object:      NewEntityKey(TenantType, ""),
-				ListAction:  CanView,
-				ExpectIds:   []int{1},
-				ExpectNames: newEntityKeys(TenantType, "tl-tenant"),
+				Subject:    NewEntityKey(UserType, "nisar"),
+				Object:     NewEntityKey(TenantType, ""),
+				Action:     CanView,
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
 			},
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := tc.TupleKey()
-				ltk.Action = tc.ListAction
+				ltk.Action = tc.Action
 				objs, err := fgac.ListObjects(context.Background(), ltk)
 				if err != nil {
 					t.Fatal(err)
@@ -627,7 +627,7 @@ func TestFGAClient(t *testing.T) {
 					gotNames = append(gotNames, v.Object.Name)
 				}
 				var expectNames []string
-				for _, ek := range tc.ExpectNames {
+				for _, ek := range tc.ExpectKeys {
 					expectNames = append(expectNames, ek.Name)
 				}
 				assert.ElementsMatch(t, expectNames, gotNames, "object ids")
@@ -637,7 +637,7 @@ func TestFGAClient(t *testing.T) {
 
 	t.Run("WriteTuple", func(t *testing.T) {
 		fgac := newTestFGAClient(t, testData)
-		checks := []fgaTestTuple{
+		checks := []testTuple{
 			{
 				Subject:  NewEntityKey(UserType, "test100"),
 				Object:   NewEntityKey(TenantType, "tl-tenant"),
@@ -723,7 +723,7 @@ func TestFGAClient(t *testing.T) {
 
 	t.Run("DeleteTuple", func(t *testing.T) {
 		fgac := newTestFGAClient(t, testData)
-		checks := []fgaTestTuple{
+		checks := []testTuple{
 			{
 				Subject:  NewEntityKey(UserType, "ian"),
 				Object:   NewEntityKey(GroupType, "CT-group"),
