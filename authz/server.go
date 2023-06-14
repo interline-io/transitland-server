@@ -145,7 +145,7 @@ func NewServer(checker *Checker) (http.Handler, error) {
 			handleJson(w, nil, err)
 			return
 		}
-		err := checker.FeedSetGroup(r.Context(), checkUser(r), checkId(r, "feed_version_id"), checkParams.GroupID)
+		err := checker.FeedSetGroup(r.Context(), checkUser(r), checkId(r, "feed_id"), checkParams.GroupID)
 		handleJson(w, nil, err)
 	})
 
