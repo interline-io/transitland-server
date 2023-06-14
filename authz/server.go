@@ -49,7 +49,7 @@ func NewServer(checker *Checker) (http.Handler, error) {
 			handleJson(w, nil, err)
 			return
 		}
-		_, err := checker.TenantSave(r.Context(), checkUser(r), checkId(r, "tenant_id"), check.Name)
+		err := checker.TenantSave(r.Context(), checkUser(r), checkId(r, "tenant_id"), check.Name)
 		handleJson(w, nil, err)
 	})
 	router.Post("/tenants/{tenant_id}/groups", func(w http.ResponseWriter, r *http.Request) {

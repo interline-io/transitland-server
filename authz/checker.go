@@ -71,23 +71,6 @@ func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Clien
 				return nil, err
 			}
 		}
-		if cfg.FGALoadTupleFile != "" {
-			tkeys, err := LoadTuples(cfg.FGALoadTupleFile)
-			if err != nil {
-				return nil, err
-			}
-			for _, tk := range tkeys {
-				if tk.Test != "" {
-					continue
-				}
-				if !tk.Relation.IsARelation() {
-					continue
-				}
-				if err := fgac.WriteTuple(context.Background(), tk.TupleKey); err != nil {
-					return nil, err
-				}
-			}
-		}
 	}
 
 	checker := NewChecker(authn, authz, db, redisClient)
@@ -204,7 +187,10 @@ func (c *Checker) TenantPermissions(ctx context.Context, checkUser auth.User, te
 	}
 	// Get tenant metadata
 	ret := &TenantPermissionsResponse{}
-	ret.TenantResponse, _ = hydrate[TenantResponse](ctx, c.db, tenantId)
+	ret.TenantResponse, err = hydrate[TenantResponse](ctx, c.db, tenantId)
+	if err != nil {
+		return nil, err
+	}
 	for _, tk := range tps {
 		if tk.Relation == AdminRelation {
 			ret.Users.Admins = append(ret.Users.Admins, User{ID: tk.Subject.Name})
@@ -226,24 +212,22 @@ func (c *Checker) TenantPermissions(ctx context.Context, checkUser auth.User, te
 	return ret, nil
 }
 
-func (c *Checker) TenantSave(ctx context.Context, checkUser auth.User, tenantId int, newName string) (int, error) {
+func (c *Checker) TenantSave(ctx context.Context, checkUser auth.User, tenantId int, newName string) error {
 	if tenantCheck, err := c.TenantPermissions(ctx, checkUser, tenantId); err != nil {
-		return 0, err
+		return err
 	} else if !tenantCheck.Actions.CanEdit {
-		return 0, ErrUnauthorized
+		return ErrUnauthorized
 	}
 	log.Trace().Str("tenantName", newName).Int("id", tenantId).Msg("TenantSave")
-	id := 0
-	err := sq.StatementBuilder.
+	_, err := sq.StatementBuilder.
 		RunWith(c.db).
 		PlaceholderFormat(sq.Dollar).
-		Insert("tl_tenants").
-		Columns("id", "tenant_name").
-		Values(tenantId, newName).
-		Suffix("on conflict (id) do update set tenant_name = ?", newName).
-		Suffix(`RETURNING "id"`).
-		QueryRow().Scan(&id)
-	return id, err
+		Update("tl_tenants").
+		SetMap(map[string]any{
+			"tenant_name": newName,
+		}).
+		Where("id = ?", tenantId).Exec()
+	return err
 }
 
 func (c *Checker) TenantAddPermission(ctx context.Context, checkUser auth.User, tenantId int, addUser string, relation Relation) error {
@@ -699,7 +683,7 @@ func hydrate[T any, PT interface {
 	var ret T
 	r, err := hydrates[T, PT](ctx, db, []int{id})
 	if err != nil {
-		return ret, nil
+		return ret, err
 	}
 	if len(r) == 0 {
 		return ret, errors.New("not found")

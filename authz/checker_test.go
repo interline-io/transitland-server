@@ -370,9 +370,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != TenantType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.TenantRemovePermission(
@@ -383,6 +380,89 @@ func TestChecker(t *testing.T) {
 					ltk.Relation,
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
+			})
+		}
+	})
+
+	t.Run("TenantSave", func(t *testing.T) {
+		checker := newTestChecker(t, checkerTestData)
+		checks := []testTuple{
+			{
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(TenantType, "tl-tenant"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject: NewEntityKey(UserType, "tl-tenant-admin"),
+				Object:  NewEntityKey(TenantType, "tl-tenant"),
+			},
+			{
+				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
+				Object:             NewEntityKey(TenantType, "not found"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Subject:     NewEntityKey(UserType, "tl-tenant-admin"),
+				Object:      NewEntityKey(TenantType, "new tenant"),
+				CheckAsUser: "global_admin",
+				ExpectError: true,
+			},
+		}
+		for _, tc := range checks {
+			t.Run(tc.String(), func(t *testing.T) {
+				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
+				err := checker.TenantSave(
+					context.Background(),
+					newTestUser(stringOr(tc.CheckAsUser, ltk.Subject.Name)),
+					ltk.Object.ID(),
+					tc.Object.Name,
+				)
+				if checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized) {
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
+	})
+
+	t.Run("TenantCreateGroup", func(t *testing.T) {
+		checker := newTestChecker(t, checkerTestData)
+		checks := []testTuple{
+			{
+				Subject:            NewEntityKey(TenantType, "tl-tenant"),
+				Object:             NewEntityKey(GroupType, "new-group"),
+				ExpectUnauthorized: true,
+				CheckAsUser:        "ian",
+			},
+			{
+				Subject:     NewEntityKey(TenantType, "tl-tenant"),
+				Object:      NewEntityKey(GroupType, "new-group2"),
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Subject:     NewEntityKey(TenantType, "tl-tenant"),
+				Object:      NewEntityKey(GroupType, "new-group3"),
+				CheckAsUser: "global_admin",
+			},
+		}
+		for _, tc := range checks {
+			t.Run(tc.String(), func(t *testing.T) {
+				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
+				_, err := checker.TenantCreateGroup(
+					context.Background(),
+					newTestUser(tc.CheckAsUser),
+					ltk.Subject.ID(),
+					tc.Object.Name,
+				)
+				if checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized) {
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				// TODO: DELETE GROUP
 			})
 		}
 	})
@@ -417,9 +497,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != GroupType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.GroupList(context.Background(), newTestUser(ltk.Subject.Name))
@@ -529,9 +606,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != GroupType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.GroupPermissions(
@@ -642,9 +716,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != GroupType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.GroupRemovePermission(
@@ -690,9 +761,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != FeedType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.FeedList(context.Background(), newTestUser(ltk.Subject.Name))
@@ -793,9 +861,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != FeedType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.FeedPermissions(
@@ -810,6 +875,10 @@ func TestChecker(t *testing.T) {
 				checkActionSubset(t, ret.Actions, tc.ExpectActions)
 			})
 		}
+	})
+
+	t.Run("FeedSetGroup", func(t *testing.T) {
+
 	})
 
 	// FEED VERSIONS
@@ -839,9 +908,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != FeedVersionType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.FeedVersionList(context.Background(), newTestUser(ltk.Subject.Name))
@@ -893,9 +959,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != FeedVersionType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.FeedVersionPermissions(
@@ -950,9 +1013,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != FeedVersionType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.FeedVersionAddPermission(
@@ -993,9 +1053,6 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range checks {
-			if tc.Object.Type != FeedVersionType {
-				continue
-			}
 			t.Run(tc.String(), func(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				err := checker.FeedVersionRemovePermission(
@@ -1087,6 +1144,7 @@ func newTestChecker(t testing.TB, testData []testTuple) *Checker {
 		}
 	}
 	checker := NewChecker(auth0c, fgac, dbx, nil)
+	checker.globalAdmins = append(checker.globalAdmins, "global_admin")
 	return checker
 }
 
@@ -1094,7 +1152,6 @@ func newTestCheckerFGA(t testing.TB) (*FGAClient, error) {
 	cfg := AuthzConfig{
 		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
 		FGALoadModelFile: "../test/authz/tls.json",
-		GlobalAdmin:      "global_admin",
 	}
 	fgac, err := NewFGAClient(cfg.FGAEndpoint, "", "")
 	if err != nil {
