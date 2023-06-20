@@ -1364,9 +1364,9 @@ func dbNameToEntityKey(t testing.TB, dbx sqlx.Ext, ek EntityKey) EntityKey {
 	var err error
 	switch ek.Type {
 	case TenantType:
-		err = sqlx.Get(dbx, &nname, "select id from tl_tenants where name = $1", oname)
+		err = sqlx.Get(dbx, &nname, "select id from tl_tenants where tenant_name = $1", oname)
 	case GroupType:
-		err = sqlx.Get(dbx, &nname, "select id from tl_groups where name = $1", oname)
+		err = sqlx.Get(dbx, &nname, "select id from tl_groups where group_name = $1", oname)
 	case FeedType:
 		err = sqlx.Get(dbx, &nname, "select id from current_feeds where onestop_id = $1", oname)
 	case FeedVersionType:

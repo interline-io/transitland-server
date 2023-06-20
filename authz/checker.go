@@ -110,7 +110,7 @@ func (c *Checker) getUsers(ctx context.Context, users []*User) ([]*User, error) 
 // ///////////////////
 
 func (c *Checker) getTenants(ctx context.Context, ids []int64) ([]*Tenant, error) {
-	return gets[*Tenant](ctx, c.db, ids, "tl_tenants", "id", "coalesce(name,'') as name")
+	return gets[*Tenant](ctx, c.db, ids, "tl_tenants", "id", "coalesce(tenant_name,'') as name")
 }
 
 func (c *Checker) TenantList(ctx context.Context, req *TenantListRequest) (*TenantListResponse, error) {
@@ -184,7 +184,7 @@ func (c *Checker) TenantSave(ctx context.Context, req *TenantSaveRequest) (*Tena
 		PlaceholderFormat(sq.Dollar).
 		Update("tl_tenants").
 		SetMap(map[string]any{
-			"name": newName,
+			"tenant_name": newName,
 		}).
 		Where("id = ?", tenantId).Exec()
 	return &TenantSaveResponse{}, err
@@ -232,7 +232,7 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, req *TenantCreateGroupR
 		RunWith(c.db).
 		PlaceholderFormat(sq.Dollar).
 		Insert("tl_groups").
-		Columns("name").
+		Columns("group_name").
 		Values(groupName).
 		Suffix(`RETURNING "id"`).
 		QueryRow().
@@ -252,7 +252,7 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, req *TenantCreateGroupR
 // ///////////////////
 
 func (c *Checker) getGroups(ctx context.Context, ids []int64) ([]*Group, error) {
-	return gets[*Group](ctx, c.db, ids, "tl_groups", "id", "coalesce(name,'') as name")
+	return gets[*Group](ctx, c.db, ids, "tl_groups", "id", "coalesce(group_name,'') as name")
 }
 
 func (c *Checker) GroupList(ctx context.Context, req *GroupListRequest) (*GroupListResponse, error) {
@@ -337,7 +337,7 @@ func (c *Checker) GroupSave(ctx context.Context, req *GroupSaveRequest) (*GroupS
 		PlaceholderFormat(sq.Dollar).
 		Update("tl_groups").
 		SetMap(map[string]any{
-			"name": newName,
+			"group_name": newName,
 		}).
 		Where("id = ?", groupId).Exec()
 	return &GroupSaveResponse{}, err
