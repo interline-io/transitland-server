@@ -100,3 +100,8 @@ func ForContext(ctx context.Context) User {
 	raw, _ := ctx.Value(userCtxKey).(User)
 	return raw
 }
+
+func WithUser(ctx context.Context, user User) context.Context {
+	r := context.WithValue(ctx, userCtxKey, user)
+	return r
+}

@@ -129,7 +129,14 @@ message TenantListResponse {
 message TenantPermissionsResponse {
     Tenant tenant = 1;
     repeated Group groups = 2;
-    repeated Action actions = 3;
+    message Actions {
+        bool can_edit_members = 1;
+        bool can_view = 2;
+        bool can_edit = 3;
+        bool can_create_org = 4;
+        bool can_delete_org = 5;
+    }
+    Actions actions = 3;
     message Users {
         repeated User admins = 1;
         repeated User members = 2;
@@ -193,13 +200,20 @@ message GroupPermissionsResponse {
     Group group = 1;
     Tenant tenant = 2;
     repeated Feed feeds = 3;
-    repeated Action actions = 4;
+    message Actions {
+        bool can_view = 1;
+        bool can_edit_members = 2;
+        bool can_create_feed = 3;
+        bool can_delete_feed = 4;
+        bool can_edit = 5;
+    } 
+    Actions actions = 4;
     message Users {
         repeated User managers = 1;
         repeated User editors = 2;
         repeated User viewers = 3;
     }
-    Users users = 5;    
+    Users users = 5;
 }
 
 
@@ -226,7 +240,14 @@ message FeedListRequest {
 message FeedPermissionsResponse {
     Feed feed = 1;
     Group group = 2;
-    repeated Action actions = 3;
+    message Actions {
+        bool can_view = 1;
+        bool can_edit = 2;
+        bool can_set_group = 3;
+        bool can_create_feed_version = 4;
+        bool can_delete_feed_version = 5;
+    }
+    Actions actions = 3;
 }
 
 message FeedResponse {
@@ -273,7 +294,12 @@ message FeedVersionPermissionsResponse {
     FeedVersion feed_version = 1;
     Feed feed = 2;
     Group group = 3;
-    repeated Action actions = 4;
+    message Actions {
+        bool can_view = 1;
+        bool can_edit_members = 2;
+        bool can_edit = 3;
+    }
+    Actions actions = 4;
     message Users {
         repeated User editors = 1;
         repeated User viewers = 2;

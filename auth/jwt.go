@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"crypto/rsa"
 	"errors"
 	"io/ioutil"
@@ -32,7 +31,7 @@ func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (fun
 					http.Error(w, "Unauthorized", http.StatusUnauthorized)
 					return
 				}
-				r = r.WithContext(context.WithValue(r.Context(), userCtxKey, jwtUser))
+				r = r.WithContext(WithUser(r.Context(), jwtUser))
 			}
 			next.ServeHTTP(w, r)
 		})

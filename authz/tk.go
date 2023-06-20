@@ -34,25 +34,40 @@ var CanCreateOrg = Action_can_create_org
 var CanEditMembers = Action_can_edit_members
 var CanDeleteOrg = Action_can_delete_org
 
-func CheckAction(actions []Action, check Action) bool {
-	for _, a := range actions {
-		if a == check {
-			return true
-		}
-	}
-	return false
-}
-
 func RelationString(v string) (Relation, error) {
-	return Relation(0), nil
+	if a, ok := Relation_value[v]; ok {
+		return Relation(a), nil
+	}
+	return Relation(0), errors.New("invalid relation")
 }
 
 func ActionString(v string) (Action, error) {
-	return Action(0), nil
+	if a, ok := Action_value[v]; ok {
+		return Action(a), nil
+	}
+	return Action(0), errors.New("invalid action")
 }
 
 func ObjectTypeString(v string) (ObjectType, error) {
-	return ObjectType(0), nil
+	if a, ok := ObjectType_value[v]; ok {
+		return ObjectType(a), nil
+	}
+	return ObjectType(0), errors.New("invalid object type")
+}
+
+func IsRelation(v Relation) bool {
+	_, ok := Relation_name[int32(v)]
+	return ok && v > 0
+}
+
+func IsAction(v Action) bool {
+	_, ok := Action_name[int32(v)]
+	return ok && v > 0
+}
+
+func IsObjectType(v ObjectType) bool {
+	_, ok := ObjectType_name[int32(v)]
+	return ok && v > 0
 }
 
 type EntityKey struct {
@@ -90,18 +105,6 @@ func (ek EntityKey) String() string {
 		return ek.Type.String()
 	}
 	return fmt.Sprintf("%s:%s", ek.Type.String(), ek.Name)
-}
-
-func IsRelation(Relation) bool {
-	return true
-}
-
-func IsAction(Action) bool {
-	return true
-}
-
-func IsObjectType(ObjectType) bool {
-	return true
 }
 
 type TupleKey struct {
