@@ -10,10 +10,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/auth"
 )
 
+type checkerRpc struct {
+	*Checker
+	UnsafeCheckerServer
+}
+
 func NewServer(checker *Checker) (http.Handler, error) {
+	var grpcServer CheckerServer = &checkerRpc{Checker: checker}
+	_ = grpcServer
+
 	router := chi.NewRouter()
 
 	/////////////////
@@ -21,11 +28,11 @@ func NewServer(checker *Checker) (http.Handler, error) {
 	/////////////////
 
 	router.Get("/users", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.UserList(r.Context(), checkUser(r), r.URL.Query().Get("q"))
+		ret, err := checker.UserList(r.Context(), &UserListRequest{Q: r.URL.Query().Get("q")})
 		handleJson(w, ret, err)
 	})
 	router.Get("/users/{user_id}", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.User(r.Context(), checkUser(r), chi.URLParam(r, "user_id"))
+		ret, err := checker.User(r.Context(), &UserRequest{Id: chi.URLParam(r, "user_id")})
 		handleJson(w, ret, err)
 	})
 
@@ -34,52 +41,47 @@ func NewServer(checker *Checker) (http.Handler, error) {
 	/////////////////
 
 	router.Get("/tenants", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.TenantList(r.Context(), checkUser(r))
+		ret, err := checker.TenantList(r.Context(), &TenantListRequest{})
 		handleJson(w, ret, err)
 	})
 	router.Get("/tenants/{tenant_id}", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.TenantPermissions(r.Context(), checkUser(r), checkId(r, "tenant_id"))
+		ret, err := checker.TenantPermissions(r.Context(), &TenantRequest{Id: checkId(r, "tenant_id")})
 		handleJson(w, ret, err)
 	})
 	router.Post("/tenants/{tenant_id}", func(w http.ResponseWriter, r *http.Request) {
-		check := struct {
-			Name string `json:"name"`
-		}{}
+		check := Tenant{}
 		if err := parseJson(r.Body, &check); err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err := checker.TenantSave(r.Context(), checkUser(r), checkId(r, "tenant_id"), check.Name)
+		_, err := checker.TenantSave(r.Context(), &TenantSaveRequest{Tenant: &check})
 		handleJson(w, nil, err)
 	})
 	router.Post("/tenants/{tenant_id}/groups", func(w http.ResponseWriter, r *http.Request) {
-		check := struct {
-			Name string `json:"name"`
-		}{}
+		check := Group{}
 		if err := parseJson(r.Body, &check); err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		newId, err := checker.TenantCreateGroup(r.Context(), checkUser(r), checkId(r, "tenant_id"), check.Name)
-		_ = newId
+		_, err := checker.TenantCreateGroup(r.Context(), &TenantCreateGroupRequest{Id: checkId(r, "tenant_id"), Group: &check})
 		handleJson(w, nil, err)
 	})
 	router.Post("/tenants/{tenant_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		checkRel, err := checkRelParams(r, "tenant_id")
+		entId, userRel, err := checkUserRel(r, "tenant_id")
 		if err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err = checker.TenantAddPermission(r.Context(), checkRel.User, checkRel.ID, checkRel.RelUser, checkRel.Relation)
+		_, err = checker.TenantAddPermission(r.Context(), &TenantModifyPermissionRequest{Id: entId, UserRelation: userRel})
 		handleJson(w, nil, err)
 	})
 	router.Delete("/tenants/{tenant_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		checkRel, err := checkRelParams(r, "tenant_id")
+		entId, userRel, err := checkUserRel(r, "tenant_id")
 		if err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err = checker.TenantRemovePermission(r.Context(), checkRel.User, checkRel.ID, checkRel.RelUser, checkRel.Relation)
+		_, err = checker.TenantRemovePermission(r.Context(), &TenantModifyPermissionRequest{Id: entId, UserRelation: userRel})
 		handleJson(w, nil, err)
 	})
 
@@ -88,40 +90,38 @@ func NewServer(checker *Checker) (http.Handler, error) {
 	/////////////////
 
 	router.Get("/groups", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.GroupList(r.Context(), checkUser(r))
+		ret, err := checker.GroupList(r.Context(), &GroupListRequest{})
 		handleJson(w, ret, err)
 	})
 	router.Post("/groups/{group_id}", func(w http.ResponseWriter, r *http.Request) {
-		check := struct {
-			Name string `json:"name"`
-		}{}
+		check := Group{}
 		if err := parseJson(r.Body, &check); err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err := checker.GroupSave(r.Context(), checkUser(r), checkId(r, "group_id"), check.Name)
+		_, err := checker.GroupSave(r.Context(), &GroupSaveRequest{Group: &check})
 		handleJson(w, nil, err)
 	})
 	router.Get("/groups/{group_id}", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.GroupPermissions(r.Context(), checkUser(r), checkId(r, "group_id"))
+		ret, err := checker.GroupPermissions(r.Context(), &GroupRequest{Id: checkId(r, "group_id")})
 		handleJson(w, ret, err)
 	})
 	router.Post("/groups/{group_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		checkRel, err := checkRelParams(r, "group_id")
+		entId, userRel, err := checkUserRel(r, "group_id")
 		if err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err = checker.GroupAddPermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
+		_, err = checker.GroupAddPermission(r.Context(), &GroupModifyPermissionRequest{Id: entId, UserRelation: userRel})
 		handleJson(w, nil, err)
 	})
 	router.Delete("/groups/{group_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		checkRel, err := checkRelParams(r, "group_id")
+		entId, userRel, err := checkUserRel(r, "group_id")
 		if err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err = checker.GroupRemovePermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
+		_, err = checker.GroupRemovePermission(r.Context(), &GroupModifyPermissionRequest{Id: entId, UserRelation: userRel})
 		handleJson(w, nil, err)
 	})
 
@@ -130,22 +130,22 @@ func NewServer(checker *Checker) (http.Handler, error) {
 	/////////////////
 
 	router.Get("/feeds", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.FeedList(r.Context(), checkUser(r))
+		ret, err := checker.FeedList(r.Context(), &FeedListRequest{})
 		handleJson(w, ret, err)
 	})
 	router.Get("/feeds/{feed_id}", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.FeedPermissions(r.Context(), checkUser(r), checkId(r, "feed_id"))
+		ret, err := checker.FeedPermissions(r.Context(), &FeedRequest{Id: checkId(r, "feed_id")})
 		handleJson(w, ret, err)
 	})
 	router.Post("/feeds/{feed_id}/group", func(w http.ResponseWriter, r *http.Request) {
 		checkParams := struct {
-			GroupID int `json:"group_id"`
+			GroupID int64 `json:"group_id"`
 		}{}
 		if err := parseJson(r.Body, &checkParams); err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err := checker.FeedSetGroup(r.Context(), checkUser(r), checkId(r, "feed_id"), checkParams.GroupID)
+		_, err := checker.FeedSetGroup(r.Context(), &FeedSetGroupRequest{Id: checkId(r, "feed_id"), GroupId: checkParams.GroupID})
 		handleJson(w, nil, err)
 	})
 
@@ -154,29 +154,29 @@ func NewServer(checker *Checker) (http.Handler, error) {
 	/////////////////
 
 	router.Get("/feed_versions", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.FeedVersionList(r.Context(), checkUser(r))
+		ret, err := checker.FeedVersionList(r.Context(), &FeedVersionListRequest{})
 		handleJson(w, ret, err)
 	})
 	router.Get("/feed_versions/{feed_version_id}", func(w http.ResponseWriter, r *http.Request) {
-		ret, err := checker.FeedVersionPermissions(r.Context(), checkUser(r), checkId(r, "feed_version_id"))
+		ret, err := checker.FeedVersionPermissions(r.Context(), &FeedVersionRequest{Id: checkId(r, "feed_version_id")})
 		handleJson(w, ret, err)
 	})
 	router.Post("/feed_versions/{feed_version_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		checkRel, err := checkRelParams(r, "feed_version_id")
+		entId, userRel, err := checkUserRel(r, "feed_version_id")
 		if err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err = checker.FeedVersionAddPermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
+		_, err = checker.FeedVersionAddPermission(r.Context(), &FeedVersionModifyPermissionRequest{Id: entId, UserRelation: userRel})
 		handleJson(w, nil, err)
 	})
 	router.Delete("/feed_versions/{feed_version_id}/permissions/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		checkRel, err := checkRelParams(r, "feed_version_id")
+		entId, userRel, err := checkUserRel(r, "feed_version_id")
 		if err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		err = checker.FeedVersionRemovePermission(r.Context(), checkRel.User, checkRel.RelUser, checkRel.ID, checkRel.Relation)
+		_, err = checker.FeedVersionRemovePermission(r.Context(), &FeedVersionModifyPermissionRequest{Id: entId, UserRelation: userRel})
 		handleJson(w, nil, err)
 	})
 
@@ -201,13 +201,9 @@ func handleJson(w http.ResponseWriter, ret any, err error) {
 	w.Write(jj)
 }
 
-func checkUser(r *http.Request) auth.User {
-	return auth.ForContext(r.Context())
-}
-
-func checkId(r *http.Request, key string) int {
+func checkId(r *http.Request, key string) int64 {
 	v, _ := strconv.Atoi(chi.URLParam(r, key))
-	return v
+	return int64(v)
 }
 
 func parseJson(r io.Reader, v any) error {
@@ -218,25 +214,18 @@ func parseJson(r io.Reader, v any) error {
 	return json.Unmarshal(data, v)
 }
 
-type checkRel struct {
-	User     auth.User
-	RelUser  string
-	Relation Relation
-	ID       int
-}
-
-func checkRelParams(r *http.Request, idKey string) (checkRel, error) {
-	tk := checkRel{}
+func checkUserRel(r *http.Request, idKey string) (int64, *UserRelation, error) {
+	id := int64(0)
+	tk := &UserRelation{}
 	var err error
-	if tk.User = auth.ForContext(r.Context()); tk.User == nil {
-		return tk, errors.New("unauthorized")
-	}
 	if tk.Relation, err = RelationString(chi.URLParam(r, "relation")); err != nil {
-		return tk, err
+		return 0, tk, err
 	}
-	if tk.ID, err = strconv.Atoi(chi.URLParam(r, idKey)); err != nil {
-		return tk, errors.New("invalid id")
+	if vid, err := strconv.Atoi(chi.URLParam(r, idKey)); err != nil {
+		return 0, tk, errors.New("invalid id")
+	} else {
+		id = int64(vid)
 	}
-	tk.RelUser = chi.URLParam(r, "user")
-	return tk, nil
+	tk.UserId = chi.URLParam(r, "user")
+	return id, tk, nil
 }

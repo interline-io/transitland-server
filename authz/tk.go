@@ -9,6 +9,52 @@ import (
 	openfga "github.com/openfga/go-sdk"
 )
 
+// For convenience
+var FeedType = ObjectType_feed
+var UserType = ObjectType_user
+var TenantType = ObjectType_tenant
+var GroupType = ObjectType_org
+var FeedVersionType = ObjectType_feed_version
+
+var ViewerRelation = Relation_viewer
+var MemberRelation = Relation_member
+var AdminRelation = Relation_admin
+var ManagerRelation = Relation_manager
+var ParentRelation = Relation_parent
+var EditorRelation = Relation_editor
+
+var CanEdit = Action_can_edit
+var CanView = Action_can_view
+var CanCreateFeedVersion = Action_can_create_feed_version
+var CanDeleteFeedVersion = Action_can_delete_feed_version
+var CanCreateFeed = Action_can_create_feed
+var CanDeleteFeed = Action_can_delete_feed
+var CanSetGroup = Action_can_set_group
+var CanCreateOrg = Action_can_create_org
+var CanEditMembers = Action_can_edit_members
+var CanDeleteOrg = Action_can_delete_org
+
+func CheckAction(actions []Action, check Action) bool {
+	for _, a := range actions {
+		if a == check {
+			return true
+		}
+	}
+	return false
+}
+
+func RelationString(v string) (Relation, error) {
+	return Relation(0), nil
+}
+
+func ActionString(v string) (Action, error) {
+	return Action(0), nil
+}
+
+func ObjectTypeString(v string) (ObjectType, error) {
+	return ObjectType(0), nil
+}
+
 type EntityKey struct {
 	Type ObjectType `json:"Type"`
 	Name string     `json:"Name"`
@@ -30,13 +76,13 @@ func NewEntityKeySplit(v string) EntityKey {
 	return ret
 }
 
-func NewEntityID(t ObjectType, id int) EntityKey {
-	return EntityKey{Type: t, Name: strconv.Itoa(id)}
+func NewEntityID(t ObjectType, id int64) EntityKey {
+	return EntityKey{Type: t, Name: strconv.Itoa(int(id))}
 }
 
-func (ek EntityKey) ID() int {
+func (ek EntityKey) ID() int64 {
 	v, _ := strconv.Atoi(ek.Name)
-	return v
+	return int64(v)
 }
 
 func (ek EntityKey) String() string {
@@ -44,7 +90,18 @@ func (ek EntityKey) String() string {
 		return ek.Type.String()
 	}
 	return fmt.Sprintf("%s:%s", ek.Type.String(), ek.Name)
+}
 
+func IsRelation(Relation) bool {
+	return true
+}
+
+func IsAction(Action) bool {
+	return true
+}
+
+func IsObjectType(ObjectType) bool {
+	return true
 }
 
 type TupleKey struct {
@@ -58,9 +115,9 @@ func NewTupleKey() TupleKey { return TupleKey{} }
 
 func (tk TupleKey) String() string {
 	r := ""
-	if tk.Relation.IsARelation() {
+	if IsRelation(tk.Relation) {
 		r = "|relation:" + tk.Relation.String()
-	} else if tk.Action.IsAAction() {
+	} else if IsAction(tk.Action) {
 		r = "|action:" + tk.Action.String()
 	}
 	return fmt.Sprintf("%s|%s%s", tk.Subject.String(), tk.Object.String(), r)
@@ -71,20 +128,20 @@ func (tk TupleKey) IsValid() bool {
 }
 
 func (tk TupleKey) Validate() error {
-	if tk.Subject.Name != "" && !tk.Subject.Type.IsAObjectType() {
+	if tk.Subject.Name != "" && !IsObjectType(tk.Subject.Type) {
 		return errors.New("invalid user type")
 	}
-	if tk.Object.Name != "" && !tk.Object.Type.IsAObjectType() {
+	if tk.Object.Name != "" && !IsObjectType(tk.Object.Type) {
 		return errors.New("invalid object type")
 	}
 	if tk.Subject.Name == "" && tk.Object.Name == "" {
 		return errors.New("user name or object name is required")
 	}
 	if tk.Subject.Name != "" && tk.Object.Name != "" {
-		if tk.Action == 0 && !tk.Relation.IsARelation() {
+		if tk.Action == 0 && !IsRelation(tk.Relation) {
 			return errors.New("invalid relation")
 		}
-		if tk.Relation == 0 && !tk.Action.IsAAction() {
+		if tk.Relation == 0 && !IsAction(tk.Action) {
 			return errors.New("invalid action")
 		}
 	}
@@ -92,9 +149,9 @@ func (tk TupleKey) Validate() error {
 }
 
 func (tk TupleKey) ActionOrRelation() string {
-	if tk.Action.IsAAction() {
+	if IsAction(tk.Action) {
 		return tk.Action.String()
-	} else if tk.Relation.IsARelation() {
+	} else if IsRelation(tk.Relation) {
 		return tk.Relation.String()
 	}
 	return ""
@@ -118,8 +175,8 @@ func (tk TupleKey) WithSubject(userType ObjectType, userName string) TupleKey {
 	}
 }
 
-func (tk TupleKey) WithSubjectID(userType ObjectType, userId int) TupleKey {
-	return tk.WithSubject(userType, strconv.Itoa(userId))
+func (tk TupleKey) WithSubjectID(userType ObjectType, userId int64) TupleKey {
+	return tk.WithSubject(userType, strconv.Itoa(int(userId)))
 }
 
 func (tk TupleKey) WithObject(objectType ObjectType, objectName string) TupleKey {
@@ -131,8 +188,8 @@ func (tk TupleKey) WithObject(objectType ObjectType, objectName string) TupleKey
 	}
 }
 
-func (tk TupleKey) WithObjectID(objectType ObjectType, objectId int) TupleKey {
-	return tk.WithObject(objectType, strconv.Itoa(objectId))
+func (tk TupleKey) WithObjectID(objectType ObjectType, objectId int64) TupleKey {
+	return tk.WithObject(objectType, strconv.Itoa(int(objectId)))
 }
 
 func (tk TupleKey) WithRelation(relation Relation) TupleKey {
@@ -172,9 +229,9 @@ func (tk TupleKey) FGATupleKey() openfga.TupleKey {
 	if tk.Object.Name != "" {
 		fgatk.Object = openfga.PtrString(tk.Object.String())
 	}
-	if tk.Action.IsAAction() {
+	if IsAction(tk.Action) {
 		fgatk.Relation = openfga.PtrString(tk.Action.String())
-	} else if tk.Relation.IsARelation() {
+	} else if IsRelation(tk.Relation) {
 		fgatk.Relation = openfga.PtrString(tk.Relation.String())
 	}
 	return fgatk

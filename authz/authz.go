@@ -1,5 +1,26 @@
 package authz
 
+import (
+	"context"
+	"errors"
+)
+
+type AuthnProvider interface {
+	Users(context.Context, string) ([]*User, error)
+	UserByID(context.Context, string) (*User, error)
+}
+
+type AuthzProvider interface {
+	Check(context.Context, TupleKey, ...TupleKey) (bool, error)
+	ListObjects(context.Context, TupleKey) ([]TupleKey, error)
+	GetObjectTuples(context.Context, TupleKey) ([]TupleKey, error)
+	WriteTuple(context.Context, TupleKey) error
+	ReplaceTuple(context.Context, TupleKey) error
+	DeleteTuple(context.Context, TupleKey) error
+}
+
+var ErrUnauthorized = errors.New("unauthorized")
+
 type AuthzConfig struct {
 	Auth0Domain       string
 	Auth0ClientID     string
@@ -10,10 +31,4 @@ type AuthzConfig struct {
 	FGALoadModelFile  string
 	FGALoadTupleFile  string
 	GlobalAdmin       string
-}
-
-type User struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
 }

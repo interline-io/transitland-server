@@ -27,7 +27,7 @@ func (c *Auth0Client) UserByID(ctx context.Context, id string) (*User, error) {
 		return nil, err
 	}
 	u := &User{
-		ID:    user.GetID(),
+		Id:    user.GetID(),
 		Name:  user.GetName(),
 		Email: user.GetEmail(),
 	}
@@ -42,7 +42,7 @@ func (c *Auth0Client) Users(ctx context.Context, userQuery string) ([]*User, err
 	var ret []*User
 	for _, user := range ul.Users {
 		ret = append(ret, &User{
-			ID:    user.GetID(),
+			Id:    user.GetID(),
 			Name:  user.GetName(),
 			Email: user.GetEmail(),
 		})
