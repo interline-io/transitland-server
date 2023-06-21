@@ -46,6 +46,7 @@ func NewServer(checker *Checker) (http.Handler, error) {
 			handleJson(w, nil, err)
 			return
 		}
+		check.Id = checkId(r, "tenant_id")
 		_, err := checker.TenantSave(r.Context(), &TenantSaveRequest{Tenant: &check})
 		handleJson(w, nil, err)
 	})
@@ -91,6 +92,7 @@ func NewServer(checker *Checker) (http.Handler, error) {
 			handleJson(w, nil, err)
 			return
 		}
+		check.Id = checkId(r, "group_id")
 		_, err := checker.GroupSave(r.Context(), &GroupSaveRequest{Group: &check})
 		handleJson(w, nil, err)
 	})
