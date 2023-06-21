@@ -75,12 +75,8 @@ func NewChecker(n AuthnProvider, p AuthzProvider, db sqlx.Ext, redisClient *redi
 // ///////////////////
 
 func (c *Checker) UserList(ctx context.Context, req *UserListRequest) (*UserListResponse, error) {
-	query := ""
-	if req != nil {
-		query = req.Q
-	}
 	// TODO: filter users
-	users, err := c.authn.Users(ctx, query)
+	users, err := c.authn.Users(ctx, req.GetQ())
 	if err != nil {
 		return nil, err
 	}
@@ -89,12 +85,14 @@ func (c *Checker) UserList(ctx context.Context, req *UserListRequest) (*UserList
 
 func (c *Checker) User(ctx context.Context, req *UserRequest) (*UserResponse, error) {
 	// TODO: filter users
-	ret, err := c.authn.UserByID(ctx, req.Id)
+	ret, err := c.authn.UserByID(ctx, req.GetId())
+	if ret == nil || err != nil {
+		return nil, ErrUnauthorized
+	}
 	return &UserResponse{User: ret}, err
 }
 
-func (c *Checker) getUsers(ctx context.Context, users []*User) ([]*User, error) {
-	// Must already be filtered for permissions
+func (c *Checker) hydrateUsers(ctx context.Context, users []*User) ([]*User, error) {
 	var ret []*User
 	for _, u := range users {
 		uu, err := c.authn.UserByID(ctx, u.Id)
@@ -110,7 +108,7 @@ func (c *Checker) getUsers(ctx context.Context, users []*User) ([]*User, error) 
 // ///////////////////
 
 func (c *Checker) getTenants(ctx context.Context, ids []int64) ([]*Tenant, error) {
-	return gets[*Tenant](ctx, c.db, ids, "tl_tenants", "id", "coalesce(tenant_name,'') as name")
+	return getEntities[*Tenant](ctx, c.db, ids, "tl_tenants", "id", "coalesce(tenant_name,'') as name")
 }
 
 func (c *Checker) TenantList(ctx context.Context, req *TenantListRequest) (*TenantListResponse, error) {
@@ -123,8 +121,8 @@ func (c *Checker) TenantList(ctx context.Context, req *TenantListRequest) (*Tena
 }
 
 func (c *Checker) Tenant(ctx context.Context, req *TenantRequest) (*TenantResponse, error) {
-	tenantId := req.Id
-	if err := c.checkObjectOrError(ctx, CanView, NewEntityID(TenantType, tenantId)); err != nil {
+	tenantId := req.GetId()
+	if err := c.checkActionOrError(ctx, CanView, NewEntityID(TenantType, tenantId)); err != nil {
 		return nil, err
 	}
 	t, err := c.getTenants(ctx, []int64{tenantId})
@@ -143,17 +141,17 @@ func (c *Checker) TenantPermissions(ctx context.Context, req *TenantRequest) (*T
 	}
 
 	// Actions
-	entKey := NewEntityID(TenantType, req.Id)
+	entKey := NewEntityID(TenantType, req.GetId())
 	groupIds, _ := c.listSubjectRelations(ctx, entKey, GroupType, ParentRelation)
 	ret.Groups, _ = c.getGroups(ctx, groupIds)
-	ret.Actions.CanView, _ = c.checkObject(ctx, CanView, entKey)
-	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, CanEditMembers, entKey)
-	ret.Actions.CanEdit, _ = c.checkObject(ctx, CanEdit, entKey)
-	ret.Actions.CanCreateOrg, _ = c.checkObject(ctx, CanCreateOrg, entKey)
-	ret.Actions.CanDeleteOrg, _ = c.checkObject(ctx, CanDeleteOrg, entKey)
+	ret.Actions.CanView, _ = c.checkAction(ctx, CanView, entKey)
+	ret.Actions.CanEditMembers, _ = c.checkAction(ctx, CanEditMembers, entKey)
+	ret.Actions.CanEdit, _ = c.checkAction(ctx, CanEdit, entKey)
+	ret.Actions.CanCreateOrg, _ = c.checkAction(ctx, CanCreateOrg, entKey)
+	ret.Actions.CanDeleteOrg, _ = c.checkAction(ctx, CanDeleteOrg, entKey)
 
 	// Get tenant metadata
-	tps, err := c.getObjectTuples(ctx, CanView, entKey)
+	tps, err := c.getObjectTuples(ctx, entKey)
 	if err != nil {
 		return nil, err
 	}
@@ -165,19 +163,20 @@ func (c *Checker) TenantPermissions(ctx context.Context, req *TenantRequest) (*T
 			ret.Users.Members = append(ret.Users.Members, newUser(tk.Subject.Name))
 		}
 	}
-	ret.Users.Admins, _ = c.getUsers(ctx, ret.Users.Admins)
-	ret.Users.Members, _ = c.getUsers(ctx, ret.Users.Members)
+	ret.Users.Admins, _ = c.hydrateUsers(ctx, ret.Users.Admins)
+	ret.Users.Members, _ = c.hydrateUsers(ctx, ret.Users.Members)
 	return ret, nil
 }
 
 func (c *Checker) TenantSave(ctx context.Context, req *TenantSaveRequest) (*TenantSaveResponse, error) {
-	tenantId := req.Tenant.Id
+	t := req.GetTenant()
+	tenantId := t.GetId()
 	if check, err := c.TenantPermissions(ctx, &TenantRequest{Id: tenantId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEdit {
 		return nil, ErrUnauthorized
 	}
-	newName := req.Tenant.Name
+	newName := t.GetName()
 	log.Trace().Str("tenantName", newName).Int64("id", tenantId).Msg("TenantSave")
 	_, err := sq.StatementBuilder.
 		RunWith(c.db).
@@ -191,25 +190,25 @@ func (c *Checker) TenantSave(ctx context.Context, req *TenantSaveRequest) (*Tena
 }
 
 func (c *Checker) TenantAddPermission(ctx context.Context, req *TenantModifyPermissionRequest) (*TenantSaveResponse, error) {
-	tenantId := req.Id
+	tenantId := req.GetId()
 	if check, err := c.TenantPermissions(ctx, &TenantRequest{Id: tenantId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := NewTupleKey().WithUser(req.UserRelation.UserId).WithObjectID(TenantType, tenantId).WithRelation(req.UserRelation.Relation)
+	tk := userRelTk(req.GetUserRelation(), NewEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantAddPermission")
 	return &TenantSaveResponse{}, c.authz.ReplaceTuple(ctx, tk)
 }
 
 func (c *Checker) TenantRemovePermission(ctx context.Context, req *TenantModifyPermissionRequest) (*TenantSaveResponse, error) {
-	tenantId := req.Id
+	tenantId := req.GetId()
 	if check, err := c.TenantPermissions(ctx, &TenantRequest{Id: tenantId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := NewTupleKey().WithUser(req.UserRelation.UserId).WithObjectID(TenantType, tenantId).WithRelation(req.UserRelation.Relation)
+	tk := userRelTk(req.GetUserRelation(), NewEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantRemovePermission")
 	return &TenantSaveResponse{}, c.authz.DeleteTuple(ctx, tk)
 }
@@ -219,8 +218,8 @@ func (c *Checker) TenantCreate(ctx context.Context, req *TenantCreateRequest) (*
 }
 
 func (c *Checker) TenantCreateGroup(ctx context.Context, req *TenantCreateGroupRequest) (*GroupSaveResponse, error) {
-	tenantId := req.Id
-	groupName := req.Group.Name
+	tenantId := req.GetId()
+	groupName := req.GetGroup().GetName()
 	if check, err := c.TenantPermissions(ctx, &TenantRequest{Id: tenantId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanCreateOrg {
@@ -252,7 +251,7 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, req *TenantCreateGroupR
 // ///////////////////
 
 func (c *Checker) getGroups(ctx context.Context, ids []int64) ([]*Group, error) {
-	return gets[*Group](ctx, c.db, ids, "tl_groups", "id", "coalesce(group_name,'') as name")
+	return getEntities[*Group](ctx, c.db, ids, "tl_groups", "id", "coalesce(group_name,'') as name")
 }
 
 func (c *Checker) GroupList(ctx context.Context, req *GroupListRequest) (*GroupListResponse, error) {
@@ -265,8 +264,8 @@ func (c *Checker) GroupList(ctx context.Context, req *GroupListRequest) (*GroupL
 }
 
 func (c *Checker) Group(ctx context.Context, req *GroupRequest) (*GroupResponse, error) {
-	groupId := req.Id
-	if err := c.checkObjectOrError(ctx, CanView, NewEntityID(GroupType, groupId)); err != nil {
+	groupId := req.GetId()
+	if err := c.checkActionOrError(ctx, CanView, NewEntityID(GroupType, groupId)); err != nil {
 		return nil, err
 	}
 	t, err := c.getGroups(ctx, []int64{groupId})
@@ -274,7 +273,7 @@ func (c *Checker) Group(ctx context.Context, req *GroupRequest) (*GroupResponse,
 }
 
 func (c *Checker) GroupPermissions(ctx context.Context, req *GroupRequest) (*GroupPermissionsResponse, error) {
-	groupId := req.Id
+	groupId := req.GetId()
 	ent, err := c.Group(ctx, req)
 	if err != nil {
 		return nil, err
@@ -287,18 +286,18 @@ func (c *Checker) GroupPermissions(ctx context.Context, req *GroupRequest) (*Gro
 
 	// Actions
 	entKey := NewEntityID(GroupType, groupId)
-	ret.Actions.CanView, _ = c.checkObject(ctx, CanView, entKey)
-	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, CanEditMembers, entKey)
-	ret.Actions.CanEdit, _ = c.checkObject(ctx, CanEdit, entKey)
-	ret.Actions.CanCreateFeed, _ = c.checkObject(ctx, CanCreateFeed, entKey)
-	ret.Actions.CanDeleteFeed, _ = c.checkObject(ctx, CanDeleteFeed, entKey)
+	ret.Actions.CanView, _ = c.checkAction(ctx, CanView, entKey)
+	ret.Actions.CanEditMembers, _ = c.checkAction(ctx, CanEditMembers, entKey)
+	ret.Actions.CanEdit, _ = c.checkAction(ctx, CanEdit, entKey)
+	ret.Actions.CanCreateFeed, _ = c.checkAction(ctx, CanCreateFeed, entKey)
+	ret.Actions.CanDeleteFeed, _ = c.checkAction(ctx, CanDeleteFeed, entKey)
 
 	// Get feeds
 	feedIds, _ := c.listSubjectRelations(ctx, entKey, FeedType, ParentRelation)
 	ret.Feeds, _ = c.getFeeds(ctx, feedIds)
 
 	// Get group metadata
-	tps, err := c.getObjectTuples(ctx, CanView, entKey)
+	tps, err := c.getObjectTuples(ctx, entKey)
 	if err != nil {
 		return nil, err
 	}
@@ -317,16 +316,17 @@ func (c *Checker) GroupPermissions(ctx context.Context, req *GroupRequest) (*Gro
 			ret.Users.Viewers = append(ret.Users.Viewers, newUser(tk.Subject.Name))
 		}
 	}
-	ret.Users.Managers, _ = c.getUsers(ctx, ret.Users.Managers)
-	ret.Users.Editors, _ = c.getUsers(ctx, ret.Users.Editors)
-	ret.Users.Viewers, _ = c.getUsers(ctx, ret.Users.Viewers)
+	ret.Users.Managers, _ = c.hydrateUsers(ctx, ret.Users.Managers)
+	ret.Users.Editors, _ = c.hydrateUsers(ctx, ret.Users.Editors)
+	ret.Users.Viewers, _ = c.hydrateUsers(ctx, ret.Users.Viewers)
 	return ret, nil
 }
 
 func (c *Checker) GroupSave(ctx context.Context, req *GroupSaveRequest) (*GroupSaveResponse, error) {
-	groupId := req.Group.Id
-	newName := req.Group.Name
-	if check, err := c.GroupPermissions(ctx, &GroupRequest{Id: req.Group.Id}); err != nil {
+	group := req.GetGroup()
+	groupId := group.GetId()
+	newName := group.GetName()
+	if check, err := c.GroupPermissions(ctx, &GroupRequest{Id: groupId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEdit {
 		return nil, ErrUnauthorized
@@ -344,25 +344,25 @@ func (c *Checker) GroupSave(ctx context.Context, req *GroupSaveRequest) (*GroupS
 }
 
 func (c *Checker) GroupAddPermission(ctx context.Context, req *GroupModifyPermissionRequest) (*GroupSaveResponse, error) {
-	groupId := req.Id
+	groupId := req.GetId()
 	if check, err := c.GroupPermissions(ctx, &GroupRequest{Id: groupId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := NewTupleKey().WithUser(req.UserRelation.UserId).WithObjectID(GroupType, groupId).WithRelation(req.UserRelation.Relation)
+	tk := userRelTk(req.GetUserRelation(), NewEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupAddPermission")
 	return &GroupSaveResponse{}, c.authz.ReplaceTuple(ctx, tk)
 }
 
 func (c *Checker) GroupRemovePermission(ctx context.Context, req *GroupModifyPermissionRequest) (*GroupSaveResponse, error) {
-	groupId := req.Id
+	groupId := req.GetId()
 	if check, err := c.GroupPermissions(ctx, &GroupRequest{Id: groupId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := NewTupleKey().WithUser(req.UserRelation.UserId).WithObjectID(GroupType, groupId).WithRelation(req.UserRelation.Relation)
+	tk := userRelTk(req.GetUserRelation(), NewEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupRemovePermission")
 	return &GroupSaveResponse{}, c.authz.DeleteTuple(ctx, tk)
 }
@@ -372,7 +372,7 @@ func (c *Checker) GroupRemovePermission(ctx context.Context, req *GroupModifyPer
 // ///////////////////
 
 func (c *Checker) getFeeds(ctx context.Context, ids []int64) ([]*Feed, error) {
-	return gets[*Feed](ctx, c.db, ids, "current_feeds", "id", "onestop_id", "coalesce(name,'') as name")
+	return getEntities[*Feed](ctx, c.db, ids, "current_feeds", "id", "onestop_id", "coalesce(name,'') as name")
 }
 
 func (c *Checker) FeedList(ctx context.Context, req *FeedListRequest) (*FeedListResponse, error) {
@@ -385,8 +385,8 @@ func (c *Checker) FeedList(ctx context.Context, req *FeedListRequest) (*FeedList
 }
 
 func (c *Checker) Feed(ctx context.Context, req *FeedRequest) (*FeedResponse, error) {
-	feedId := req.Id
-	if err := c.checkObjectOrError(ctx, CanView, NewEntityID(FeedType, feedId)); err != nil {
+	feedId := req.GetId()
+	if err := c.checkActionOrError(ctx, CanView, NewEntityID(FeedType, feedId)); err != nil {
 		return nil, err
 	}
 	t, err := c.getFeeds(ctx, []int64{feedId})
@@ -404,16 +404,15 @@ func (c *Checker) FeedPermissions(ctx context.Context, req *FeedRequest) (*FeedP
 	}
 
 	// Actions
-	feedId := req.Id
-	entKey := NewEntityID(FeedType, feedId)
-	ret.Actions.CanView, _ = c.checkObject(ctx, CanView, entKey)
-	ret.Actions.CanEdit, _ = c.checkObject(ctx, CanEdit, entKey)
-	ret.Actions.CanSetGroup, _ = c.checkObject(ctx, CanSetGroup, entKey)
-	ret.Actions.CanCreateFeedVersion, _ = c.checkObject(ctx, CanCreateFeedVersion, entKey)
-	ret.Actions.CanDeleteFeedVersion, _ = c.checkObject(ctx, CanDeleteFeedVersion, entKey)
+	entKey := NewEntityID(FeedType, req.GetId())
+	ret.Actions.CanView, _ = c.checkAction(ctx, CanView, entKey)
+	ret.Actions.CanEdit, _ = c.checkAction(ctx, CanEdit, entKey)
+	ret.Actions.CanSetGroup, _ = c.checkAction(ctx, CanSetGroup, entKey)
+	ret.Actions.CanCreateFeedVersion, _ = c.checkAction(ctx, CanCreateFeedVersion, entKey)
+	ret.Actions.CanDeleteFeedVersion, _ = c.checkAction(ctx, CanDeleteFeedVersion, entKey)
 
 	// Get feed metadata
-	tps, err := c.getObjectTuples(ctx, CanView, entKey)
+	tps, err := c.getObjectTuples(ctx, entKey)
 	if err != nil {
 		return nil, err
 	}
@@ -427,8 +426,8 @@ func (c *Checker) FeedPermissions(ctx context.Context, req *FeedRequest) (*FeedP
 }
 
 func (c *Checker) FeedSetGroup(ctx context.Context, req *FeedSetGroupRequest) (*FeedSaveResponse, error) {
-	feedId := req.Id
-	newGroup := req.GroupId
+	feedId := req.GetId()
+	newGroup := req.GetGroupId()
 	if check, err := c.FeedPermissions(ctx, &FeedRequest{Id: feedId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanSetGroup {
@@ -444,7 +443,7 @@ func (c *Checker) FeedSetGroup(ctx context.Context, req *FeedSetGroupRequest) (*
 /////////////////////
 
 func (c *Checker) getFeedVersions(ctx context.Context, ids []int64) ([]*FeedVersion, error) {
-	return gets[*FeedVersion](ctx, c.db, ids, "feed_versions", "id", "feed_id", "sha1", "coalesce(name,'') as name")
+	return getEntities[*FeedVersion](ctx, c.db, ids, "feed_versions", "id", "feed_id", "sha1", "coalesce(name,'') as name")
 }
 
 func (c *Checker) FeedVersionList(ctx context.Context, req *FeedVersionListRequest) (*FeedVersionListResponse, error) {
@@ -457,7 +456,7 @@ func (c *Checker) FeedVersionList(ctx context.Context, req *FeedVersionListReque
 }
 
 func (c *Checker) FeedVersion(ctx context.Context, req *FeedVersionRequest) (*FeedVersionResponse, error) {
-	fvid := req.Id
+	fvid := req.GetId()
 	feedId := int64(0)
 	// We need to get feed id before any other checks
 	// If there is a "not found" error here, save it for after the global admin check
@@ -468,7 +467,7 @@ func (c *Checker) FeedVersion(ctx context.Context, req *FeedVersionRequest) (*Fe
 		feedId = fv.FeedId
 	}
 	ctxTk := NewTupleKey().WithObjectID(FeedVersionType, fvid).WithSubjectID(FeedType, feedId).WithRelation(ParentRelation)
-	if err := c.checkObjectOrError(ctx, CanView, NewEntityID(FeedVersionType, fvid), ctxTk); err != nil {
+	if err := c.checkActionOrError(ctx, CanView, NewEntityID(FeedVersionType, fvid), ctxTk); err != nil {
 		return nil, err
 	}
 	// Now return deferred fvErr
@@ -490,15 +489,14 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, req *FeedVersionRe
 	}
 
 	// Actions
-	fvid := req.Id
 	ctxTk := NewTupleKey().WithObjectID(FeedVersionType, ent.FeedVersion.Id).WithSubjectID(FeedType, ent.FeedVersion.Id).WithRelation(ParentRelation)
-	entKey := NewEntityID(FeedVersionType, fvid)
-	ret.Actions.CanView, _ = c.checkObject(ctx, CanView, entKey, ctxTk)
-	ret.Actions.CanEditMembers, _ = c.checkObject(ctx, CanEditMembers, entKey, ctxTk)
-	ret.Actions.CanEdit, _ = c.checkObject(ctx, CanEdit, entKey, ctxTk)
+	entKey := NewEntityID(FeedVersionType, req.GetId())
+	ret.Actions.CanView, _ = c.checkAction(ctx, CanView, entKey, ctxTk)
+	ret.Actions.CanEditMembers, _ = c.checkAction(ctx, CanEditMembers, entKey, ctxTk)
+	ret.Actions.CanEdit, _ = c.checkAction(ctx, CanEdit, entKey, ctxTk)
 
 	// Get fv metadata
-	tps, err := c.getObjectTuples(ctx, CanView, entKey, ctxTk)
+	tps, err := c.getObjectTuples(ctx, entKey, ctxTk)
 	if err != nil {
 		return nil, err
 	}
@@ -510,31 +508,31 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, req *FeedVersionRe
 			ret.Users.Viewers = append(ret.Users.Viewers, newUser(tk.Subject.Name))
 		}
 	}
-	ret.Users.Editors, _ = c.getUsers(ctx, ret.Users.Editors)
-	ret.Users.Viewers, _ = c.getUsers(ctx, ret.Users.Viewers)
+	ret.Users.Editors, _ = c.hydrateUsers(ctx, ret.Users.Editors)
+	ret.Users.Viewers, _ = c.hydrateUsers(ctx, ret.Users.Viewers)
 	return ret, nil
 }
 
 func (c *Checker) FeedVersionAddPermission(ctx context.Context, req *FeedVersionModifyPermissionRequest) (*FeedVersionSaveResponse, error) {
-	fvid := req.Id
+	fvid := req.GetId()
 	if check, err := c.FeedVersionPermissions(ctx, &FeedVersionRequest{Id: fvid}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := NewTupleKey().WithUser(req.UserRelation.UserId).WithObjectID(FeedVersionType, fvid).WithRelation(req.UserRelation.Relation)
+	tk := userRelTk(req.GetUserRelation(), NewEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionAddPermission")
 	return &FeedVersionSaveResponse{}, c.authz.ReplaceTuple(ctx, tk)
 }
 
 func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *FeedVersionModifyPermissionRequest) (*FeedVersionSaveResponse, error) {
-	fvid := req.Id
+	fvid := req.GetId()
 	if check, err := c.FeedVersionPermissions(ctx, &FeedVersionRequest{Id: fvid}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := NewTupleKey().WithUser(req.UserRelation.UserId).WithObjectID(FeedVersionType, fvid).WithRelation(req.UserRelation.Relation)
+	tk := userRelTk(req.GetUserRelation(), NewEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionRemovePermission")
 	return &FeedVersionSaveResponse{}, c.authz.DeleteTuple(ctx, tk)
 }
@@ -550,9 +548,6 @@ func (c *Checker) listCtxObjects(ctx context.Context, objectType ObjectType, act
 	}
 	tk := NewTupleKey().WithUser(checkUser.Name()).WithObject(objectType, "").WithAction(action)
 	objTks, err := c.authz.ListObjects(ctx, tk)
-	if err != nil {
-		return nil, err
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -576,15 +571,12 @@ func (c *Checker) listSubjectRelations(ctx context.Context, sub EntityKey, objec
 	return ret, nil
 }
 
-func (c *Checker) getObjectTuples(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) ([]TupleKey, error) {
-	if err := c.checkObjectOrError(ctx, checkAction, obj, ctxtk...); err != nil {
-		return nil, err
-	}
+func (c *Checker) getObjectTuples(ctx context.Context, obj EntityKey, ctxtk ...TupleKey) ([]TupleKey, error) {
 	return c.authz.GetObjectTuples(ctx, NewTupleKey().WithObject(obj.Type, obj.Name))
 }
 
-func (c *Checker) checkObjectOrError(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) error {
-	ok, err := c.checkObject(ctx, checkAction, obj, ctxtk...)
+func (c *Checker) checkActionOrError(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) error {
+	ok, err := c.checkAction(ctx, checkAction, obj, ctxtk...)
 	if err != nil {
 		return err
 	}
@@ -594,7 +586,7 @@ func (c *Checker) checkObjectOrError(ctx context.Context, checkAction Action, ob
 	return nil
 }
 
-func (c *Checker) checkObject(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) (bool, error) {
+func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) (bool, error) {
 	checkUser := auth.ForContext(ctx)
 	if checkUser == nil {
 		return false, ErrUnauthorized
@@ -608,8 +600,17 @@ func (c *Checker) checkObject(ctx context.Context, checkAction Action, obj Entit
 	}
 	checkTk := NewTupleKey().WithUser(userName).WithObject(obj.Type, obj.Name).WithAction(checkAction)
 	ret, err := c.authz.Check(ctx, checkTk, ctxtk...)
-	log.Trace().Str("tk", checkTk.String()).Bool("result", ret).Err(err).Msg("checkObject")
+	log.Trace().Str("tk", checkTk.String()).Bool("result", ret).Err(err).Msg("checkAction")
 	return ret, err
+}
+
+// Helpers
+
+func userRelTk(userRel *UserRelation, entKey EntityKey) TupleKey {
+	return NewTupleKey().
+		WithUser(userRel.GetUserId()).
+		WithObjectID(entKey.Type, entKey.ID()).
+		WithRelation(userRel.GetRelation())
 }
 
 type hasId interface {
@@ -632,7 +633,7 @@ func checkIds[T hasId](ents []T, ids []int64) error {
 	return nil
 }
 
-func gets[T hasId](ctx context.Context, db sqlx.Ext, ids []int64, table string, cols ...string) ([]T, error) {
+func getEntities[T hasId](ctx context.Context, db sqlx.Ext, ids []int64, table string, cols ...string) ([]T, error) {
 	var t []T
 	q := sq.StatementBuilder.Select(cols...).From(table).Where(sq.Eq{"id": ids})
 	if err := find.Select(ctx, db, q, &t); err != nil {
