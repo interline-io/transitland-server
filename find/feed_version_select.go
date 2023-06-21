@@ -7,7 +7,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedVersionSelect(limit *int, after *model.Cursor, active *model.ActiveCheck, where *model.FeedVersionFilter) sq.SelectBuilder {
+func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("feed_versions t").
@@ -77,16 +77,8 @@ func FeedVersionSelect(limit *int, after *model.Cursor, active *model.ActiveChec
 				Where(sq.Eq{"fvgi.success": checkSuccess, "fvgi.in_progress": checkInProgress})
 		}
 	}
-	if active != nil {
-		if len(active.IDs) > 0 {
-			q = q.Where(sq.Eq{"t.id": active.IDs})
-		}
-		if len(active.AllowedFeeds) > 0 {
-			q = q.Where(sq.Eq{"t.feed_id": active.AllowedFeeds})
-		}
-		if len(active.AllowedFeedVersions) > 0 {
-			q = q.Where(sq.Eq{"t.id": active.AllowedFeedVersions})
-		}
+	if len(ids) > 0 {
+		q = q.Where(sq.Eq{"t.id": ids})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at,id from feed_versions where id = ?)", after.ID))
