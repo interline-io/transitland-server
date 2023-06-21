@@ -11,14 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type ActiveCheck struct {
-	Active              bool
-	IDs                 []int
-	CheckAllowed        bool
-	AllowedFeeds        []int
-	AllowedFeedVersions []int
-}
-
 // Finder provides all necessary database methods
 type Finder interface {
 	EntityFinder

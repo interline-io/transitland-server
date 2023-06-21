@@ -29,13 +29,15 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 	if len(feeds) == 0 {
 		return nil, errors.New("feed not found")
 	}
+	feed := feeds[0].Feed
 
 	// Check feed permissions
-	feed := feeds[0].Feed
-	if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
-		return nil, err
-	} else if !check.Actions.CanEdit {
-		return nil, errors.New("permission denied")
+	if checker != nil {
+		if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
+			return nil, err
+		} else if !check.Actions.CanEdit {
+			return nil, authz.ErrUnauthorized
+		}
 	}
 
 	// Prepare
@@ -96,14 +98,16 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 	if len(rtfeeds) == 0 {
 		return errors.New("feed not found")
 	}
+	rtfeed := rtfeeds[0]
 
 	// Check feed permissions
-	rtfeed := rtfeeds[0].Feed
-	// if check, err := checker.FeedVersionPermissions(ctx, user, feed.ID); err != nil {
-	// 	return nil, err
-	// } else if !check.Actions.CanEdit {
-	// 	return nil, errors.New("permission denied")
-	// }
+	if checker != nil {
+		if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(rtfeed.ID)}); err != nil {
+			return err
+		} else if !check.Actions.CanEdit {
+			return authz.ErrUnauthorized
+		}
+	}
 
 	// Prepare
 	fetchOpts := fetch.Options{

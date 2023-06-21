@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
@@ -74,6 +73,13 @@ func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Clien
 }
 
 func NewChecker(n AuthnProvider, p AuthzProvider, db sqlx.Ext, redisClient *redis.Client) *Checker {
+	if n == nil {
+		panic("no authn")
+	}
+	if p == nil {
+		panic("no authz")
+	}
+
 	return &Checker{
 		authn: n,
 		authz: p,
@@ -497,7 +503,6 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, req *FeedVersionRe
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("ent:", ent)
 	ret := &FeedVersionPermissionsResponse{
 		FeedVersion: ent.FeedVersion,
 		Users:       &FeedVersionPermissionsResponse_Users{},
@@ -619,6 +624,9 @@ func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj Entit
 }
 
 func (c *Checker) checkGlobalAdmin(checkUser auth.User) bool {
+	if c == nil {
+		return false
+	}
 	if checkUser == nil {
 		return false
 	}

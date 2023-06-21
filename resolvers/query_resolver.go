@@ -99,14 +99,16 @@ func addMetric(ctx context.Context, resolverName string) {
 	}
 }
 
-func checkActive(ctx context.Context, ids []int, checker *authz.Checker) (*model.ActiveCheck, error) {
-	active := &model.ActiveCheck{IDs: ids}
+func checkActive(ctx context.Context, ids []int, checker *authz.Checker) (*model.UserCheck, error) {
+	active := &model.UserCheck{}
 	user := auth.ForContext(ctx)
-	if user == nil {
-		return active, nil
-	}
-	if checker != nil {
-		active.CheckAllowed = true
+	if user != nil && checker != nil {
+		active.Required = true
+		if a, err := checker.CheckGlobalAdmin(ctx); err != nil {
+			return nil, err
+		} else if a {
+			active.Required = false
+		}
 		okFeeds, err := checker.FeedList(ctx, &authz.FeedListRequest{})
 		if err != nil {
 			return nil, err

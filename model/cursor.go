@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+type UserCheck struct {
+	Required            bool
+	AllowedFeeds        []int
+	AllowedFeedVersions []int
+}
+
 type Cursor struct {
 	FeedVersionID int
 	ID            int

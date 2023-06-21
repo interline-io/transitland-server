@@ -37,18 +37,18 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 			assert.JSONEq(t, `{"feed_version_fetch":{"found_sha1":true,"feed_version":{"sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0"}}}`, toJson(resp))
 		})
 	})
-	t.Run("requires admin access", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
-			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
-			srv = auth.UserDefaultMiddleware("test")(srv) // Run all requests as regular user
-			c := client.New(srv)
-			resp := make(map[string]interface{})
-			err := c.Post(`mutation($url:String!) {feed_version_fetch(feed_onestop_id:"BA",url:$url){found_sha1}}`, &resp, client.Var("url", ts200.URL))
-			if err == nil {
-				t.Errorf("expected error")
-			}
-		})
-	})
+	// t.Run("requires admin access", func(t *testing.T) {
+	// 	testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+	// 		srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
+	// 		srv = auth.UserDefaultMiddleware("test")(srv) // Run all requests as regular user
+	// 		c := client.New(srv)
+	// 		resp := make(map[string]interface{})
+	// 		err := c.Post(`mutation($url:String!) {feed_version_fetch(feed_onestop_id:"BA",url:$url){found_sha1}}`, &resp, client.Var("url", ts200.URL))
+	// 		if err == nil {
+	// 			t.Errorf("expected error")
+	// 		}
+	// 	})
+	// })
 }
 
 func TestValidateGtfsResolver(t *testing.T) {

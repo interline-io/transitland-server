@@ -36,7 +36,7 @@ func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *model.Cu
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := AgencySelect(limit, after, ids, active, where)
+	q := AgencySelect(limit, after, ids, active, nil, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
@@ -1142,7 +1142,7 @@ func (f *DBFinder) AgenciesByFeedVersionID(ctx context.Context, params []model.A
 	qents := []*model.Agency{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(AgencySelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(AgencySelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1170,7 +1170,7 @@ func (f *DBFinder) AgenciesByOnestopID(ctx context.Context, params []model.Agenc
 	qents := []*model.Agency{}
 	err := Select(ctx,
 		f.db,
-		AgencySelect(params[0].Limit, nil, nil, true, nil).Where(sq.Eq{"onestop_id": ids}), // active=true
+		AgencySelect(params[0].Limit, nil, nil, true, &model.UserCheck{}, nil).Where(sq.Eq{"onestop_id": ids}), // active=true
 		&qents,
 	)
 	if err != nil {
