@@ -43,11 +43,11 @@ type Query {
 
 type Mutation {
     validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationResult @hasRole(role: USER)
-    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion @hasRole(role: ADMIN)
-    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult @hasRole(role: ADMIN)
-    feed_version_import(sha1: String!): FeedVersionImportResult! @hasRole(role: ADMIN)
-    feed_version_unimport(id: Int!): FeedVersionUnimportResult! @hasRole(role: ADMIN)
-    feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: ADMIN)
+    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion @hasRole(role: USER)
+    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult @hasRole(role: USER)
+    feed_version_import(id: Int!): FeedVersionImportResult! @hasRole(role: USER)
+    feed_version_unimport(id: Int!): FeedVersionUnimportResult! @hasRole(role: USER)
+    feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: USER)
 }
 
 """
@@ -751,4 +751,3 @@ type FeedVersionUnimportResult {
 type FeedVersionDeleteResult {
   success: Boolean!
 }
-

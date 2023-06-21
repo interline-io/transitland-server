@@ -52,7 +52,7 @@ func newTestClient(t testing.TB) (*client.Client, testfinder.TestEnv) {
 
 func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, testfinder.TestEnv) {
 	te := testfinder.Finders(t, cl, rtfiles)
-	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder)
+	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, nil)
 	return client.New(srv), te
 }
 

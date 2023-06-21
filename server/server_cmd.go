@@ -289,7 +289,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// GraphQL API
-	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder, gbfsFinder)
+	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
 	if err != nil {
 		return err
 	}

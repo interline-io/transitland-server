@@ -6,15 +6,20 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) sq.SelectBuilder {
+func FeedSelect(limit *int, after *model.Cursor, active *model.ActiveCheck, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("current_feeds t").
 		OrderBy("t.id asc").
 		Limit(checkRange(limit, 0, 10_000)).
 		Where(sq.Eq{"deleted_at": nil})
-	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"t.id": ids})
+	if active != nil {
+		if len(active.IDs) > 0 {
+			q = q.Where(sq.Eq{"t.id": active.IDs})
+		}
+		if len(active.Feeds) > 0 {
+			q = q.Where(sq.Eq{"t.id": active.Feeds})
+		}
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"t.id": after.ID})

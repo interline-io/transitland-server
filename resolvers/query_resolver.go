@@ -3,6 +3,8 @@ package resolvers
 import (
 	"context"
 
+	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -62,13 +64,17 @@ func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int
 }
 
 func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
+	active, err := checkActive(ctx, ids, r.authzChecker)
+	if err != nil {
+		return nil, err
+	}
 	var cursor *model.Cursor
 	if after != nil {
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
 	addMetric(ctx, "feeds")
-	return r.finder.FindFeeds(ctx, limit, cursor, ids, where)
+	return r.finder.FindFeeds(ctx, limit, cursor, active, where)
 }
 
 func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
@@ -94,4 +100,18 @@ func addMetric(ctx context.Context, resolverName string) {
 	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
 		apiMeter.AddDimension("graphql", "resolver", resolverName)
 	}
+}
+
+func checkActive(ctx context.Context, ids []int, checker *authz.Checker) (*model.ActiveCheck, error) {
+	active := &model.ActiveCheck{IDs: ids}
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return active, nil
+	}
+	var err error
+	// active.Feeds, err = checker.ListFeeds(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return active, nil
 }

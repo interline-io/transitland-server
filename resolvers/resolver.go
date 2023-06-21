@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/internal/fvsl"
@@ -17,11 +18,12 @@ func atoi(v string) int {
 
 // Resolver .
 type Resolver struct {
-	cfg        config.Config
-	rtfinder   model.RTFinder
-	finder     model.Finder
-	gbfsFinder model.GbfsFinder
-	fvslCache  fvsl.FVSLCache
+	cfg          config.Config
+	rtfinder     model.RTFinder
+	finder       model.Finder
+	gbfsFinder   model.GbfsFinder
+	fvslCache    *fvsl.FVSLCache
+	authzChecker *authz.Checker
 }
 
 // Query .

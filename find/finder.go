@@ -90,9 +90,9 @@ func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *mode
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
+func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, active *model.ActiveCheck, where *model.FeedFilter) ([]*model.Feed, error) {
 	var ents []*model.Feed
-	if err := Select(ctx, f.db, FeedSelect(limit, after, ids, where), &ents); err != nil {
+	if err := Select(ctx, f.db, FeedSelect(limit, after, active, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
@@ -300,7 +300,7 @@ func (f *DBFinder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.Fe
 }
 
 func (f *DBFinder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
-	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil)
+	ents, err := f.FindFeeds(ctx, nil, nil, &model.ActiveCheck{IDs: ids}, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
