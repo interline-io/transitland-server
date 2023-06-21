@@ -75,10 +75,6 @@ message UserRelation {
 
 //////
 
-message Error {
-    string error = 1;
-}
-
 message User {
     string id = 1;
     string name = 2;
@@ -164,8 +160,6 @@ message TenantModifyPermissionRequest {
 message TenantSaveResponse {
 }
 
-
-
 //////
 
 message Group {
@@ -216,11 +210,9 @@ message GroupPermissionsResponse {
     Users users = 5;
 }
 
-
 message GroupSaveResponse {
     Group group = 1;
 }
-
 
 //////
 
