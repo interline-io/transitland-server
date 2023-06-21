@@ -12,10 +12,11 @@ import (
 )
 
 type ActiveCheck struct {
-	Active       bool
-	IDs          []int
-	Feeds        []int
-	FeedVersions []int
+	Active              bool
+	IDs                 []int
+	CheckAllowed        bool
+	AllowedFeeds        []int
+	AllowedFeedVersions []int
 }
 
 // Finder provides all necessary database methods
@@ -30,7 +31,7 @@ type EntityFinder interface {
 	FindRoutes(context.Context, *int, *Cursor, []int, *RouteFilter) ([]*Route, error)
 	FindStops(context.Context, *int, *Cursor, []int, *StopFilter) ([]*Stop, error)
 	FindTrips(context.Context, *int, *Cursor, []int, *TripFilter) ([]*Trip, error)
-	FindFeedVersions(context.Context, *int, *Cursor, []int, *FeedVersionFilter) ([]*FeedVersion, error)
+	FindFeedVersions(context.Context, *int, *Cursor, *ActiveCheck, *FeedVersionFilter) ([]*FeedVersion, error)
 	FindFeeds(context.Context, *int, *Cursor, *ActiveCheck, *FeedFilter) ([]*Feed, error)
 	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
 	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)

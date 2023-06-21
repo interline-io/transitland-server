@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/authz"
@@ -108,10 +109,23 @@ func checkActive(ctx context.Context, ids []int, checker *authz.Checker) (*model
 	if user == nil {
 		return active, nil
 	}
-	var err error
-	// active.Feeds, err = checker.ListFeeds(ctx, user)
-	if err != nil {
-		return nil, err
+	if checker != nil {
+		active.CheckAllowed = true
+		okFeeds, err := checker.FeedList(ctx, &authz.FeedListRequest{})
+		if err != nil {
+			return nil, err
+		}
+		for _, feed := range okFeeds.Feeds {
+			active.AllowedFeeds = append(active.AllowedFeeds, int(feed.Id))
+		}
+		okFvids, err := checker.FeedVersionList(ctx, &authz.FeedVersionListRequest{})
+		if err != nil {
+			return nil, err
+		}
+		for _, fv := range okFvids.FeedVersions {
+			active.AllowedFeedVersions = append(active.AllowedFeedVersions, int(fv.Id))
+		}
+		fmt.Println("active allowed feeds:", active.AllowedFeeds, "fvs:", active.AllowedFeedVersions)
 	}
 	return active, nil
 }

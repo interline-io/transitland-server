@@ -82,9 +82,9 @@ func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Curso
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
+func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, active *model.ActiveCheck, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
-	if err := Select(ctx, f.db, FeedVersionSelect(limit, after, ids, where), &ents); err != nil {
+	if err := Select(ctx, f.db, FeedVersionSelect(limit, after, active, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
