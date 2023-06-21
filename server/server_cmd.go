@@ -22,6 +22,7 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/find"
 	"github.com/interline-io/transitland-server/internal/gbfsfinder"
@@ -45,15 +46,17 @@ type Command struct {
 	DisableGraphql    bool
 	DisableRest       bool
 	EnablePlayground  bool
+	EnableAdminApi    bool
 	EnableJobsApi     bool
 	EnableWorkers     bool
 	EnableProfiler    bool
 	AuthMiddlewares   ArrayFlags
 	DefaultQueue      string
 	SecretsFile       string
-	metersConfig
-	metricsConfig
-	auth.AuthConfig
+	metersConfig      metersConfig
+	metricsConfig     metricsConfig
+	AuthConfig        auth.AuthConfig
+	AuthzConfig       authz.AuthzConfig
 	config.Config
 }
 
@@ -86,6 +89,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.DefaultQueue, "queue", "tlv2-default", "Job queue name")
 
 	fl.Var(&cmd.AuthMiddlewares, "auth", "Add one or more auth middlewares")
+	fl.StringVar(&cmd.AuthConfig.DefaultUsername, "default-username", "", "Default user name (for --auth=admin)")
 	fl.StringVar(&cmd.AuthConfig.JwtAudience, "jwt-audience", "", "JWT Audience (use with -auth=jwt)")
 	fl.StringVar(&cmd.AuthConfig.JwtIssuer, "jwt-issuer", "", "JWT Issuer (use with -auth=jwt)")
 	fl.StringVar(&cmd.AuthConfig.JwtPublicKeyFile, "jwt-public-key-file", "", "Path to JWT public key file (use with -auth=jwt)")
@@ -103,25 +107,39 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
 	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
 
+	// Admin api
+	fl.StringVar(&cmd.AuthzConfig.GlobalAdmin, "global-admin", "", "Global admin user")
+	fl.StringVar(&cmd.AuthzConfig.Auth0ClientID, "auth0-client-id", "", "Auth0 client ID")
+	fl.StringVar(&cmd.AuthzConfig.Auth0ClientSecret, "auth0-client-secret", "", "Auth0 client secret")
+	fl.StringVar(&cmd.AuthzConfig.Auth0Domain, "auth0-domain", "", "Auth0 domain")
+	fl.StringVar(&cmd.AuthzConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
+	fl.StringVar(&cmd.AuthzConfig.FGAStoreID, "fga-store-id", "", "FGA store")
+	fl.StringVar(&cmd.AuthzConfig.FGAModelID, "fga-model-id", "", "FGA model")
+	fl.StringVar(&cmd.AuthzConfig.FGALoadModelFile, "fga-load-model-file", "", "")
+	fl.StringVar(&cmd.AuthzConfig.FGALoadTupleFile, "fga-load-tuple-file", "", "")
+
 	// Metrics
 	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
-	fl.StringVar(&cmd.MetricsProvider, "metrics-provider", "", "Specify metrics provider")
+	fl.StringVar(&cmd.metricsConfig.MetricsProvider, "metrics-provider", "", "Specify metrics provider")
 
 	// Metering
 	// fl.BoolVar(&cmd.EnableMetering, "enable-metering", false, "Enable metering")
-	fl.StringVar(&cmd.MeteringProvider, "metering-provider", "", "Use metering provider")
-	fl.StringVar(&cmd.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for AmberFlo metering")
+	fl.StringVar(&cmd.metersConfig.MeteringProvider, "metering-provider", "", "Use metering provider")
+	fl.StringVar(&cmd.metersConfig.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for AmberFlo metering")
 
 	// Jobs
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
 	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
-	fl.Parse(args)
 
-	if cmd.MetricsProvider != "" {
-		cmd.EnableMetrics = true
+	// Admin
+	fl.BoolVar(&cmd.EnableAdminApi, "enable-admin-api", false, "Enable admin api")
+
+	fl.Parse(args)
+	if cmd.metricsConfig.MetricsProvider != "" {
+		cmd.metricsConfig.EnableMetrics = true
 	}
-	if cmd.MeteringProvider != "" {
-		cmd.EnableMetering = true
+	if cmd.metersConfig.MeteringProvider != "" {
+		cmd.metersConfig.EnableMetering = true
 	}
 
 	// DB
@@ -157,8 +175,8 @@ func (cmd *Command) Run() error {
 	// Open metrics
 	var metricProvider metrics.MetricProvider
 	metricProvider = metrics.NewDefaultMetric()
-	if cmd.EnableMetrics {
-		if cmd.MetricsProvider == "prometheus" {
+	if cmd.metricsConfig.EnableMetrics {
+		if cmd.metricsConfig.MetricsProvider == "prometheus" {
 			metricProvider = metrics.NewPromMetrics()
 		}
 	}
@@ -166,11 +184,11 @@ func (cmd *Command) Run() error {
 	// Open metering
 	var meterProvider meters.MeterProvider
 	meterProvider = meters.NewDefaultMeter()
-	if cmd.EnableMetering {
-		if cmd.MeteringProvider == "amberflo" {
+	if cmd.metersConfig.EnableMetering {
+		if cmd.metersConfig.MeteringProvider == "amberflo" {
 			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
-			if cmd.MeteringAmberfloConfig != "" {
-				if err := a.LoadConfig(cmd.MeteringAmberfloConfig); err != nil {
+			if cmd.metersConfig.MeteringAmberfloConfig != "" {
+				if err := a.LoadConfig(cmd.metersConfig.MeteringAmberfloConfig); err != nil {
 					return err
 				}
 			}
@@ -236,7 +254,7 @@ func (cmd *Command) Run() error {
 	// Setup CORS
 	root.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
 		AllowCredentials: true,
 	}))
@@ -250,8 +268,24 @@ func (cmd *Command) Run() error {
 	}
 
 	// Metrics
-	if cmd.EnableMetrics {
+	if cmd.metricsConfig.EnableMetrics {
 		root.Handle("/metrics", metricProvider.MetricsHandler())
+	}
+
+	// Admin API
+	checker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig, db, redisClient)
+	if cmd.EnableAdminApi {
+		if err != nil {
+			return err
+		}
+		adminServer, err := authz.NewServer(checker)
+		if err != nil {
+			return err
+		}
+		r := chi.NewRouter()
+		r.Use(auth.UserRequired)
+		r.Mount("/", adminServer)
+		root.Mount("/admin", r)
 	}
 
 	// GraphQL API
@@ -285,7 +319,6 @@ func (cmd *Command) Run() error {
 
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
-
 		// Start workers/api
 		jobWorkers := 10
 		jobOptions := jobs.JobOptions{

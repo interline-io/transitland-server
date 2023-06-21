@@ -35,7 +35,7 @@ func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 						return
 					}
 				} else {
-					r = r.WithContext(context.WithValue(r.Context(), userCtxKey, checkUser))
+					r = r.WithContext(WithUser(r.Context(), checkUser))
 				}
 			}
 			next.ServeHTTP(w, r)

@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"net/http"
 )
 
@@ -11,7 +10,7 @@ func UserHeaderMiddleware(header string) (func(http.Handler) http.Handler, error
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if v := r.Header.Get(header); v != "" {
 				user := newCtxUser(v)
-				r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
+				r = r.WithContext(WithUser(r.Context(), user))
 			}
 			next.ServeHTTP(w, r)
 		})

@@ -39,3 +39,13 @@ insert into ext_performance_stop_observations(id,feed_version_id,source,trip_sta
 
 -- unactivate feed
  update feed_states set feed_version_id = null where feed_id = (select id from current_feeds where onestop_id = 'EX');
+
+
+insert into tl_tenants(tenant_name) values ('tl-tenant');
+insert into tl_tenants(tenant_name) values ('restricted-tenant');
+
+insert into tl_groups(group_name) values ('CT-group');
+insert into tl_groups(group_name) values ('BA-group');
+insert into tl_groups(group_name) values ('HA-group');
+insert into tl_groups(group_name) values ('EX-group');
+insert into tl_groups(group_name) values ('test-group');

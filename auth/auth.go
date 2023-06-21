@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/go-redis/redis/v8"
@@ -78,7 +77,7 @@ func NewUserDefaultMiddleware(cb func() User) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := cb()
-			r = r.WithContext(context.WithValue(r.Context(), userCtxKey, user))
+			r = r.WithContext(WithUser(r.Context(), user))
 			next.ServeHTTP(w, r)
 		})
 	}
