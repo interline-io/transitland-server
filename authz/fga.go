@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/url"
-	"os/exec"
-	"strings"
 
 	"github.com/interline-io/transitland-lib/log"
 	openfga "github.com/openfga/go-sdk"
@@ -179,16 +177,7 @@ func (c *FGAClient) CreateModel(ctx context.Context, fn string) (string, error) 
 	// Create new model
 	var dslJson []byte
 	var err error
-	if strings.HasSuffix(fn, ".json") {
-		if dslJson, err = ioutil.ReadFile(fn); err != nil {
-			return "", err
-		}
-	} else {
-		if dslJson, err = dslToJson(fn); err != nil {
-			return "", err
-		}
-	}
-	if err != nil {
+	if dslJson, err = ioutil.ReadFile(fn); err != nil {
 		return "", err
 	}
 	var body openfga.WriteAuthorizationModelRequest
@@ -203,19 +192,4 @@ func (c *FGAClient) CreateModel(ctx context.Context, fn string) (string, error) 
 	}
 	log.Info().Msgf("created model: %s", modelId)
 	return modelId, nil
-}
-
-func dslToJson(fn string) ([]byte, error) {
-	args := []string{
-		"@openfga/syntax-transformer",
-		"transform",
-		"--from", "dsl",
-		"--inputFile", fn,
-	}
-	cmd := exec.Command("npx", args...)
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return b, err
-	}
-	return b, nil
 }

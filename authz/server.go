@@ -12,15 +12,7 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 )
 
-type checkerRpc struct {
-	*Checker
-	UnsafeCheckerServer
-}
-
 func NewServer(checker *Checker) (http.Handler, error) {
-	var grpcServer CheckerServer = &checkerRpc{Checker: checker}
-	_ = grpcServer
-
 	router := chi.NewRouter()
 
 	/////////////////
@@ -138,14 +130,13 @@ func NewServer(checker *Checker) (http.Handler, error) {
 		handleJson(w, ret, err)
 	})
 	router.Post("/feeds/{feed_id}/group", func(w http.ResponseWriter, r *http.Request) {
-		checkParams := struct {
-			GroupID int64 `json:"group_id"`
-		}{}
-		if err := parseJson(r.Body, &checkParams); err != nil {
+		check := FeedSetGroupRequest{}
+		if err := parseJson(r.Body, &check); err != nil {
 			handleJson(w, nil, err)
 			return
 		}
-		_, err := checker.FeedSetGroup(r.Context(), &FeedSetGroupRequest{Id: checkId(r, "feed_id"), GroupId: checkParams.GroupID})
+		check.Id = checkId(r, "feed_id")
+		_, err := checker.FeedSetGroup(r.Context(), &check)
 		handleJson(w, nil, err)
 	})
 

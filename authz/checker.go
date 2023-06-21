@@ -13,6 +13,16 @@ import (
 	"github.com/interline-io/transitland-server/find"
 )
 
+func init() {
+	// Ensure Checker implements CheckerServer
+	var checker *Checker
+	type checkerRpc struct {
+		*Checker
+		UnsafeCheckerServer
+	}
+	var _ CheckerServer = &checkerRpc{Checker: checker}
+}
+
 type Checker struct {
 	authn        AuthnProvider
 	authz        AuthzProvider

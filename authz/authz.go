@@ -5,6 +5,8 @@ import (
 	"errors"
 )
 
+var ErrUnauthorized = errors.New("unauthorized")
+
 type AuthnProvider interface {
 	Users(context.Context, string) ([]*User, error)
 	UserByID(context.Context, string) (*User, error)
@@ -18,8 +20,6 @@ type AuthzProvider interface {
 	ReplaceTuple(context.Context, TupleKey) error
 	DeleteTuple(context.Context, TupleKey) error
 }
-
-var ErrUnauthorized = errors.New("unauthorized")
 
 type AuthzConfig struct {
 	Auth0Domain       string
