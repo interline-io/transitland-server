@@ -7,8 +7,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/interline-io/transitland-server/authn"
-	"github.com/interline-io/transitland-server/authz"
+	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
 	generated "github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/internal/fvsl"

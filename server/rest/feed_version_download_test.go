@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-server/authn"
+	"github.com/interline-io/transitland-server/auth/authn"
 )
 
 func TestFeedVersionDownloadRequest(t *testing.T) {

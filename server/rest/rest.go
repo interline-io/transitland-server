@@ -15,7 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/authn"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/meters"
 )

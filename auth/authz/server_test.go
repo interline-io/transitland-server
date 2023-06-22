@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-server/authn"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"

@@ -3,7 +3,7 @@ package gql
 import (
 	"context"
 
-	"github.com/interline-io/transitland-server/authz"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
 )

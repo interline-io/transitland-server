@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/interline-io/transitland-server/authn"
+	"github.com/interline-io/transitland-server/auth/authn"
 )
 
 var meterCtxKey = struct{ name string }{"apiMeter"}

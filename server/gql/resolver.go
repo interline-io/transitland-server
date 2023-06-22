@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/interline-io/transitland-server/authz"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/internal/fvsl"
