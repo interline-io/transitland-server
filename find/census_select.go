@@ -42,9 +42,13 @@ func CensusValueSelect(param *model.CensusValueParam, eids []int) sq.SelectBuild
 		eids = append(eids, param.GeographyID)
 	}
 	tnames := strings.Split(param.TableNames, ",")
-	q := quickSelectOrder("tl_census_values", param.Limit, nil, nil, "").
+	q := sq.StatementBuilder.
+		Select("t.*").
+		From("tl_census_values t").
+		Limit(checkLimit(param.Limit)).
 		InnerJoin("tl_census_tables ON tl_census_tables.id = t.table_id").
 		Where(sq.Eq{"t.geography_id": eids}).
-		Where(sq.Eq{"tl_census_tables.table_name": tnames})
+		Where(sq.Eq{"tl_census_tables.table_name": tnames}).
+		OrderBy("t.id")
 	return q
 }

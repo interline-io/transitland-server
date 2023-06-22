@@ -73,13 +73,6 @@ func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Clien
 }
 
 func NewChecker(n AuthnProvider, p AuthzProvider, db sqlx.Ext, redisClient *redis.Client) *Checker {
-	if n == nil {
-		panic("no authn")
-	}
-	if p == nil {
-		panic("no authz")
-	}
-
 	return &Checker{
 		authn: n,
 		authz: p,

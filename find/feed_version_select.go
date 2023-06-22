@@ -91,7 +91,12 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, userCheck *mo
 }
 
 func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
-	q := quickSelectOrder("feed_version_service_levels", limit, after, nil, "")
+	q := sq.StatementBuilder.
+		Select("t.*").
+		From("feed_version_service_levels t").
+		Limit(checkLimit(limit)).
+		OrderBy("t.id")
+
 	if where == nil {
 		where = &model.FeedVersionServiceLevelFilter{}
 	}
@@ -101,6 +106,12 @@ func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, w
 	}
 	if where.EndDate != nil {
 		q = q.Where(sq.LtOrEq{"end_date": where.EndDate})
+	}
+	if len(ids) > 0 {
+		q = q.Where(sq.Eq{"t.id": ids})
+	}
+	if after != nil && after.Valid && after.ID > 0 {
+		q = q.Where(sq.Gt{"t.id": after.ID})
 	}
 	return q
 }
