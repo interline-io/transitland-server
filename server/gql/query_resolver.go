@@ -3,7 +3,7 @@ package gql
 import (
 	"context"
 
-	"github.com/interline-io/transitland-server/auth/authz"
+	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -98,24 +98,33 @@ func checkCursor(after *int) *model.Cursor {
 	return cursor
 }
 
-func checkActive(ctx context.Context, ids []int, checker *authz.Checker) (*model.PermFilter, error) {
+type canCheckGlobalAdmin interface {
+	CheckGlobalAdmin(context.Context) (bool, error)
+}
+
+func checkActive(ctx context.Context, ids []int, checker model.Checker) (*model.PermFilter, error) {
 	if checker == nil {
 		return nil, nil
 	}
 	active := &model.PermFilter{}
-	if a, err := checker.CheckGlobalAdmin(ctx); err != nil {
-		return nil, err
-	} else if a {
-		return nil, nil
+
+	// TODO: Make this part of actual checker interface
+	if c, ok := checker.(canCheckGlobalAdmin); ok {
+		if a, err := c.CheckGlobalAdmin(ctx); err != nil {
+			return nil, err
+		} else if a {
+			return nil, nil
+		}
 	}
-	okFeeds, err := checker.FeedList(ctx, &authz.FeedListRequest{})
+
+	okFeeds, err := checker.FeedList(ctx, &azpb.FeedListRequest{})
 	if err != nil {
 		return nil, err
 	}
 	for _, feed := range okFeeds.Feeds {
 		active.AllowedFeeds = append(active.AllowedFeeds, int(feed.Id))
 	}
-	okFvids, err := checker.FeedVersionList(ctx, &authz.FeedVersionListRequest{})
+	okFvids, err := checker.FeedVersionList(ctx, &azpb.FeedVersionListRequest{})
 	if err != nil {
 		return nil, err
 	}

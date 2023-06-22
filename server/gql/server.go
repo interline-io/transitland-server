@@ -8,14 +8,13 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/interline-io/transitland-server/auth/authn"
-	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/fvsl"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
 	"github.com/interline-io/transitland-server/model"
 )
 
-func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder, gbfsFinder model.GbfsFinder, checker *authz.Checker) (http.Handler, error) {
+func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder, gbfsFinder model.GbfsFinder, checker model.Checker) (http.Handler, error) {
 	c := gqlout.Config{Resolvers: &Resolver{
 		cfg:          cfg,
 		finder:       dbfinder,

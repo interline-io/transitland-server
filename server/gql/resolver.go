@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/fvsl"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
@@ -42,8 +41,8 @@ type Resolver struct {
 	rtfinder     model.RTFinder
 	finder       model.Finder
 	gbfsFinder   model.GbfsFinder
+	authzChecker model.Checker
 	fvslCache    *fvsl.FVSLCache
-	authzChecker *authz.Checker
 }
 
 // Query .

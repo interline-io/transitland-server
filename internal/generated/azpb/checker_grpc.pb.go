@@ -4,7 +4,7 @@
 // - protoc             v4.23.3
 // source: checker.proto
 
-package authz
+package azpb
 
 import (
 	context "context"

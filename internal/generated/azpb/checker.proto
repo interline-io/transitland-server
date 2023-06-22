@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package checker;
+package azpb;
 
 service Checker {
     rpc UserList (UserListRequest) returns (UserListResponse) {}
@@ -32,6 +32,7 @@ service Checker {
     rpc FeedVersionPermissions(FeedVersionRequest) returns (FeedVersionPermissionsResponse) {}
     rpc FeedVersionAddPermission(FeedVersionModifyPermissionRequest) returns (FeedVersionSaveResponse) {}
     rpc FeedVersionRemovePermission(FeedVersionModifyPermissionRequest) returns (FeedVersionSaveResponse) {}
+
 };
 
 enum Action {

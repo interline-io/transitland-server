@@ -3,13 +3,15 @@ package authz
 import (
 	"context"
 	"errors"
+
+	"github.com/interline-io/transitland-server/internal/generated/azpb"
 )
 
 var ErrUnauthorized = errors.New("unauthorized")
 
 type AuthnProvider interface {
-	Users(context.Context, string) ([]*User, error)
-	UserByID(context.Context, string) (*User, error)
+	Users(context.Context, string) ([]*azpb.User, error)
+	UserByID(context.Context, string) (*azpb.User, error)
 }
 
 type AuthzProvider interface {

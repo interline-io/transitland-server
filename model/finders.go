@@ -7,6 +7,7 @@ import (
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/internal/gbfs"
+	"github.com/interline-io/transitland-server/internal/generated/azpb"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -113,4 +114,8 @@ type GbfsFinder interface {
 	AddData(context.Context, string, gbfs.GbfsFeed) error
 	FindBikes(context.Context, *int, *GbfsBikeRequest) ([]*GbfsFreeBikeStatus, error)
 	FindDocks(context.Context, *int, *GbfsDockRequest) ([]*GbfsStationInformation, error)
+}
+
+type Checker interface {
+	azpb.CheckerServer
 }

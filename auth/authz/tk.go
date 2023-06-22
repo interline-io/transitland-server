@@ -6,67 +6,72 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	openfga "github.com/openfga/go-sdk"
 )
 
 // For convenience
-var FeedType = ObjectType_feed
-var UserType = ObjectType_user
-var TenantType = ObjectType_tenant
-var GroupType = ObjectType_org
-var FeedVersionType = ObjectType_feed_version
+var FeedType = azpb.ObjectType_feed
+var UserType = azpb.ObjectType_user
+var TenantType = azpb.ObjectType_tenant
+var GroupType = azpb.ObjectType_org
+var FeedVersionType = azpb.ObjectType_feed_version
 
-var ViewerRelation = Relation_viewer
-var MemberRelation = Relation_member
-var AdminRelation = Relation_admin
-var ManagerRelation = Relation_manager
-var ParentRelation = Relation_parent
-var EditorRelation = Relation_editor
+var ViewerRelation = azpb.Relation_viewer
+var MemberRelation = azpb.Relation_member
+var AdminRelation = azpb.Relation_admin
+var ManagerRelation = azpb.Relation_manager
+var ParentRelation = azpb.Relation_parent
+var EditorRelation = azpb.Relation_editor
 
-var CanEdit = Action_can_edit
-var CanView = Action_can_view
-var CanCreateFeedVersion = Action_can_create_feed_version
-var CanDeleteFeedVersion = Action_can_delete_feed_version
-var CanCreateFeed = Action_can_create_feed
-var CanDeleteFeed = Action_can_delete_feed
-var CanSetGroup = Action_can_set_group
-var CanCreateOrg = Action_can_create_org
-var CanEditMembers = Action_can_edit_members
-var CanDeleteOrg = Action_can_delete_org
+var CanEdit = azpb.Action_can_edit
+var CanView = azpb.Action_can_view
+var CanCreateFeedVersion = azpb.Action_can_create_feed_version
+var CanDeleteFeedVersion = azpb.Action_can_delete_feed_version
+var CanCreateFeed = azpb.Action_can_create_feed
+var CanDeleteFeed = azpb.Action_can_delete_feed
+var CanSetGroup = azpb.Action_can_set_group
+var CanCreateOrg = azpb.Action_can_create_org
+var CanEditMembers = azpb.Action_can_edit_members
+var CanDeleteOrg = azpb.Action_can_delete_org
+
+type Action = azpb.Action
+type ObjectType = azpb.ObjectType
+type Relation = azpb.Relation
 
 func RelationString(v string) (Relation, error) {
-	if a, ok := Relation_value[v]; ok {
+	if a, ok := azpb.Relation_value[v]; ok {
 		return Relation(a), nil
 	}
 	return Relation(0), errors.New("invalid relation")
 }
 
 func ActionString(v string) (Action, error) {
-	if a, ok := Action_value[v]; ok {
+	if a, ok := azpb.Action_value[v]; ok {
 		return Action(a), nil
 	}
 	return Action(0), errors.New("invalid action")
 }
 
 func ObjectTypeString(v string) (ObjectType, error) {
-	if a, ok := ObjectType_value[v]; ok {
+	if a, ok := azpb.ObjectType_value[v]; ok {
 		return ObjectType(a), nil
 	}
 	return ObjectType(0), errors.New("invalid object type")
 }
 
 func IsRelation(v Relation) bool {
-	_, ok := Relation_name[int32(v)]
+	_, ok := azpb.Relation_name[int32(v)]
 	return ok && v > 0
 }
 
 func IsAction(v Action) bool {
-	_, ok := Action_name[int32(v)]
+	_, ok := azpb.Action_name[int32(v)]
 	return ok && v > 0
 }
 
 func IsObjectType(v ObjectType) bool {
-	_, ok := ObjectType_name[int32(v)]
+	_, ok := azpb.ObjectType_name[int32(v)]
 	return ok && v > 0
 }
 
