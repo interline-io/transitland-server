@@ -9,7 +9,7 @@ import (
 
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-server/directions"
+	"github.com/interline-io/transitland-server/internal/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
