@@ -9,6 +9,7 @@ func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("gtfs_pathways t").
+		Join("feed_versions on feed_versions.id = t.feed_version_id").
 		Limit(checkLimit(limit)).
 		OrderBy("t.id")
 
