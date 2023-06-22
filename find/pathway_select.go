@@ -12,5 +12,8 @@ func PathwaySelect(limit *int, after *model.Cursor, ids []int, userCheck *model.
 			q = q.Where(sq.Eq{"pathway_mode": where.PathwayMode})
 		}
 	}
+	if userCheck != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": userCheck.AllowedFeeds}, sq.Eq{"feed_versions.id": userCheck.AllowedFeedVersions}})
+	}
 	return q
 }

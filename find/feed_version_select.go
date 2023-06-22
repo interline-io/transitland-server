@@ -14,6 +14,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, userCheck *mo
 		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
 		Limit(checkLimit(limit)).
 		OrderBy("t.fetched_at desc, t.id desc")
+
 	if where != nil {
 		if where.Sha1 != nil {
 			q = q.Where(sq.Eq{"t.sha1": *where.Sha1})
@@ -79,6 +80,9 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, userCheck *mo
 	}
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
+	}
+	if userCheck != nil {
+		q = q.Where(sq.Or{sq.Eq{"t.feed_id": userCheck.AllowedFeeds}, sq.Eq{"t.id": userCheck.AllowedFeedVersions}})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at,id from feed_versions where id = ?)", after.ID))

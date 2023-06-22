@@ -7,7 +7,7 @@ import (
 
 func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, userCheck *model.UserCheck, where *model.OperatorFilter) sq.SelectBuilder {
 	distinct := true
-	qView := sq.StatementBuilder.
+	q := sq.StatementBuilder.
 		Select(
 			"coif.id as id",
 			"coif.feed_id as feed_id",
@@ -33,77 +33,82 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, u
 			distinct = false
 		}
 		if where.FeedOnestopID != nil {
-			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": where.FeedOnestopID})
+			q = q.Where(sq.Eq{"current_feeds.onestop_id": where.FeedOnestopID})
 		}
 		if where.AgencyID != nil {
-			qView = qView.Where(sq.Eq{"coif.resolved_gtfs_agency_id": where.AgencyID})
+			q = q.Where(sq.Eq{"coif.resolved_gtfs_agency_id": where.AgencyID})
 		}
 		if where.OnestopID != nil {
-			qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": where.OnestopID})
+			q = q.Where(sq.Eq{"coif.resolved_onestop_id": where.OnestopID})
 		}
 		// Tags
 		if where.Tags != nil {
 			for _, k := range where.Tags.Keys() {
 				if v, ok := where.Tags.Get(k); ok {
 					if v == "" {
-						qView = qView.Where("co.operator_tags ?? ?", k)
+						q = q.Where("co.operator_tags ?? ?", k)
 					} else {
-						qView = qView.Where("co.operator_tags->>? = ?", k, v)
+						q = q.Where("co.operator_tags->>? = ?", k, v)
 					}
 				}
 			}
 		}
 		// Places
 		if where.Adm0Iso != nil || where.Adm1Iso != nil || where.Adm0Name != nil || where.Adm1Name != nil || where.CityName != nil {
-			qView = qView.
+			q = q.
 				Join("feed_states ON feed_states.feed_id = coif.feed_id").
 				Join("gtfs_agencies ON gtfs_agencies.feed_version_id = feed_states.feed_version_id AND gtfs_agencies.agency_id = coif.resolved_gtfs_agency_id").
 				Join("tl_agency_places tlap ON tlap.agency_id = gtfs_agencies.id").
 				Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tlap.adm1name and ne_admin.admin = tlap.adm0name")
 			if where.Adm0Iso != nil {
-				qView = qView.Where(sq.ILike{"ne_admin.iso_a2": *where.Adm0Iso})
+				q = q.Where(sq.ILike{"ne_admin.iso_a2": *where.Adm0Iso})
 			}
 			if where.Adm1Iso != nil {
-				qView = qView.Where(sq.ILike{"ne_admin.iso_3166_2": *where.Adm1Iso})
+				q = q.Where(sq.ILike{"ne_admin.iso_3166_2": *where.Adm1Iso})
 			}
 			if where.Adm0Name != nil {
-				qView = qView.Where(sq.ILike{"tlap.adm0name": *where.Adm0Name})
+				q = q.Where(sq.ILike{"tlap.adm0name": *where.Adm0Name})
 			}
 			if where.Adm1Name != nil {
-				qView = qView.Where(sq.ILike{"tlap.adm1name": *where.Adm1Name})
+				q = q.Where(sq.ILike{"tlap.adm1name": *where.Adm1Name})
 			}
 			if where.CityName != nil {
-				qView = qView.Where(sq.ILike{"tlap.name": *where.CityName})
+				q = q.Where(sq.ILike{"tlap.name": *where.CityName})
 			}
 		}
 		// Handle license filtering
-		qView = licenseFilter(where.License, qView)
+		q = licenseFilter(where.License, q)
 	}
 	if distinct {
-		qView = qView.Distinct().Options("on (coif.resolved_onestop_id)")
+		q = q.Distinct().Options("on (coif.resolved_onestop_id)")
 	}
 	if len(ids) > 0 {
-		qView = qView.Where(sq.Eq{"coif.id": ids})
+		q = q.Where(sq.Eq{"coif.id": ids})
+	}
+	if userCheck != nil {
+		q = q.Where(sq.Or{sq.Eq{"coif.feed_id": userCheck.AllowedFeeds}})
 	}
 	if len(feedIds) > 0 {
-		qView = qView.Where(sq.Eq{"coif.feed_id": feedIds})
+		q = q.Where(sq.Eq{"coif.feed_id": feedIds})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
-		qView = qView.Where(sq.Gt{"coif.id": after.ID})
+		q = q.Where(sq.Gt{"coif.id": after.ID})
 	}
-	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t").Limit(checkLimit(limit))
+
+	// Outer query
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 0 {
 			rank, wc := tsQuery(*where.Search)
-			q = q.Column(rank).Where(wc)
+			qView = qView.Column(rank).Where(wc)
 		}
 	}
-	q = q.OrderBy("id")
-	return q
+	qView = qView.OrderBy("id")
+	return qView
 }
 
 func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int, onestopIds []string) sq.SelectBuilder {
-	qView := sq.StatementBuilder.
+	q := sq.StatementBuilder.
 		Select(
 			"coif.id as id",
 			"coif.feed_id as feed_id",
@@ -124,14 +129,15 @@ func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int, onest
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
 		OrderBy("coif.resolved_onestop_id, coif.operator_id")
+
 	if len(agencyIds) > 0 {
-		qView = qView.
+		q = q.
 			Join("feed_states fs on fs.feed_id = current_feeds.id").
 			Join("gtfs_agencies a on a.feed_version_id = fs.feed_version_id and a.agency_id = coif.resolved_gtfs_agency_id").
 			Where(sq.Eq{"a.id": agencyIds})
 	}
 	if len(onestopIds) > 0 {
-		qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": onestopIds})
+		q = q.Where(sq.Eq{"coif.resolved_onestop_id": onestopIds})
 	}
-	return qView
+	return q
 }

@@ -42,5 +42,8 @@ func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceA
 			q = q.Where(sq.Eq{"name": where.CityName})
 		}
 	}
+	if userCheck != nil {
+		q = q.Where(sq.Or{sq.Eq{"fs.feed_id": userCheck.AllowedFeeds}, sq.Eq{"fs.feed_version_id": userCheck.AllowedFeedVersions}})
+	}
 	return q
 }

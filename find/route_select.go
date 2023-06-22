@@ -6,7 +6,7 @@ import (
 )
 
 func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, userCheck *model.UserCheck, where *model.RouteFilter) sq.SelectBuilder {
-	qView := sq.StatementBuilder.Select(
+	q := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
@@ -25,7 +25,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, userCh
 			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
 		}
 		if len(where.OnestopIds) > 0 {
-			qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
+			q = q.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
 		}
 		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
 			sub := sq.StatementBuilder.
@@ -39,40 +39,40 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, userCh
 			subClause := sub.
 				Prefix("LEFT JOIN (").
 				Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
-			qView = qView.JoinClause(subClause)
+			q = q.JoinClause(subClause)
 		} else {
-			qView = qView.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id`)
+			q = q.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id`)
 		}
 	} else {
-		qView = qView.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id`)
+		q = q.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id`)
 	}
 
 	if where != nil {
 		if len(where.AgencyIds) > 0 {
-			qView = qView.Where(sq.Eq{"gtfs_routes.agency_id": where.AgencyIds})
+			q = q.Where(sq.Eq{"gtfs_routes.agency_id": where.AgencyIds})
 		}
 		if where.RouteID != nil {
-			qView = qView.Where(sq.Eq{"gtfs_routes.route_id": *where.RouteID})
+			q = q.Where(sq.Eq{"gtfs_routes.route_id": *where.RouteID})
 		}
 		if where.RouteType != nil {
-			qView = qView.Where(sq.Eq{"gtfs_routes.route_type": where.RouteType})
+			q = q.Where(sq.Eq{"gtfs_routes.route_type": where.RouteType})
 		}
 		if where.FeedVersionSha1 != nil {
-			qView = qView.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
+			q = q.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
 		}
 		if where.FeedOnestopID != nil {
-			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
+			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
 		if where.Serviced != nil {
-			qView = qView.JoinClause(`left join lateral (select tlrs.route_id from tl_route_stops tlrs where tlrs.route_id = gtfs_routes.id limit 1) scount on true`)
+			q = q.JoinClause(`left join lateral (select tlrs.route_id from tl_route_stops tlrs where tlrs.route_id = gtfs_routes.id limit 1) scount on true`)
 			if *where.Serviced {
-				qView = qView.Where(sq.NotEq{"scount.route_id": nil})
+				q = q.Where(sq.NotEq{"scount.route_id": nil})
 			} else {
-				qView = qView.Where(sq.Eq{"scount.route_id": nil})
+				q = q.Where(sq.Eq{"scount.route_id": nil})
 			}
 		}
 		if where.Within != nil && where.Within.Valid {
-			qView = qView.JoinClause(`JOIN (
+			q = q.JoinClause(`JOIN (
 				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
 				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
 				WHERE ST_Intersects(gtfs_stops.geometry, ?)
@@ -80,44 +80,48 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, userCh
 		}
 		if where.Near != nil {
 			radius := checkFloat(&where.Near.Radius, 0, 10_000)
-			qView = qView.JoinClause(`JOIN (
+			q = q.JoinClause(`JOIN (
 				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
 				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
 				WHERE ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)
 			) tlrs on tlrs.route_id = gtfs_routes.id`, where.Near.Lon, where.Near.Lat, radius)
 		}
 		if where.OperatorOnestopID != nil {
-			qView = qView.
+			q = q.
 				Join("gtfs_agencies ON gtfs_agencies.id = gtfs_routes.agency_id").
 				JoinClause("LEFT JOIN current_operators_in_feed coif ON coif.feed_id = feed_versions.feed_id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 				Where(sq.Eq{"coif.resolved_onestop_id": *where.OperatorOnestopID})
 		}
 		// Handle license filtering
-		qView = licenseFilter(where.License, qView)
+		q = licenseFilter(where.License, q)
 	}
 	if active {
-		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
+		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
 	}
 	if len(ids) > 0 {
-		qView = qView.Where(sq.Eq{"gtfs_routes.id": ids})
+		q = q.Where(sq.Eq{"gtfs_routes.id": ids})
+	}
+	if userCheck != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": userCheck.AllowedFeeds}, sq.Eq{"feed_versions.id": userCheck.AllowedFeedVersions}})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		if after.FeedVersionID == 0 {
-			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (select feed_version_id,id from gtfs_routes where id = ?)", after.ID))
+			q = q.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (select feed_version_id,id from gtfs_routes where id = ?)", after.ID))
 		} else {
-			qView = qView.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (?,?)", after.FeedVersionID, after.ID))
+			q = q.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
 	}
+
 	// Outer query
-	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
-	q = q.Limit(checkLimit(limit))
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t")
+	qView = qView.Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 0 {
 			rank, wc := tsQuery(*where.Search)
-			q = q.Column(rank).Where(wc)
+			qView = qView.Column(rank).Where(wc)
 		}
 	}
-	return q
+	return qView
 }
 
 func RouteStopBufferSelect(param model.RouteStopBufferParam) sq.SelectBuilder {

@@ -14,7 +14,7 @@ type FVPair struct {
 }
 
 func StopTimeSelect(tpairs []FVPair, spairs []FVPair, userCheck *model.UserCheck, where *model.TripStopTimeFilter) sq.SelectBuilder {
-	qView := sq.StatementBuilder.Select(
+	q := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
 		"gtfs_trips.id AS trip_id",
@@ -33,27 +33,31 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, userCheck *model.UserCheck
 		"sts.continuous_drop_off",
 	).
 		From("gtfs_trips").
+		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
 		OrderBy("sts.stop_sequence, sts.arrival_time")
 
 	if where != nil {
 		if where.Start != nil {
-			qView = qView.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.Start.Seconds})
+			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.Start.Seconds})
 		}
 		if where.End != nil {
-			qView = qView.Where(sq.LtOrEq{"sts.arrival_time + gtfs_trips.journey_pattern_offset": where.End.Seconds})
+			q = q.Where(sq.LtOrEq{"sts.arrival_time + gtfs_trips.journey_pattern_offset": where.End.Seconds})
 		}
 	}
 	if len(tpairs) > 0 {
 		eids, fvids := pairKeys(tpairs)
-		qView = qView.Where(sq.Eq{"gtfs_trips.id": eids, "sts.feed_version_id": fvids, "gtfs_trips.feed_version_id": fvids})
+		q = q.Where(sq.Eq{"gtfs_trips.id": eids, "sts.feed_version_id": fvids, "gtfs_trips.feed_version_id": fvids})
 	}
 	if len(spairs) > 0 {
 		eids, fvids := pairKeys(spairs)
-		qView = qView.Where(sq.Eq{"sts.stop_id": eids, "sts.feed_version_id": fvids})
+		q = q.Where(sq.Eq{"sts.stop_id": eids, "sts.feed_version_id": fvids})
 	}
-	return qView
+	if userCheck != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": userCheck.AllowedFeeds}, sq.Eq{"feed_versions.id": userCheck.AllowedFeedVersions}})
+	}
+	return q
 }
 
 func StopDeparturesSelect(spairs []FVPair, userCheck *model.UserCheck, where *model.StopTimeFilter) sq.SelectBuilder {
@@ -83,6 +87,7 @@ func StopDeparturesSelect(spairs []FVPair, userCheck *model.UserCheck, where *mo
 		"sts.continuous_drop_off",
 	).
 		From("gtfs_trips").
+		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
 		JoinClause(`join lateral (select min(stop_sequence), max(stop_sequence) max from gtfs_stop_times sts2 where sts2.trip_id = t2.id AND sts2.feed_version_id = t2.feed_version_id) trip_stop_sequence on true`).
@@ -153,7 +158,6 @@ func StopDeparturesSelect(spairs []FVPair, userCheck *model.UserCheck, where *mo
 					Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
 				q = q.
 					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
-					Join("feed_versions on feed_versions.id = sts.feed_version_id").
 					JoinClause(subClause)
 			} else {
 				q = q.
@@ -174,6 +178,9 @@ func StopDeparturesSelect(spairs []FVPair, userCheck *model.UserCheck, where *mo
 		if where.EndTime != nil {
 			q = q.Where(sq.LtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.EndTime})
 		}
+	}
+	if userCheck != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": userCheck.AllowedFeeds}, sq.Eq{"feed_versions.id": userCheck.AllowedFeedVersions}})
 	}
 	return q
 }

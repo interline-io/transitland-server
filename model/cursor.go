@@ -11,7 +11,6 @@ import (
 )
 
 type UserCheck struct {
-	Required            bool
 	AllowedFeeds        []int
 	AllowedFeedVersions []int
 }
