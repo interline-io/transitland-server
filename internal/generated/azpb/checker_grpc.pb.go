@@ -59,7 +59,7 @@ func NewCheckerClient(cc grpc.ClientConnInterface) CheckerClient {
 
 func (c *checkerClient) UserList(ctx context.Context, in *UserListRequest, opts ...grpc.CallOption) (*UserListResponse, error) {
 	out := new(UserListResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/UserList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/UserList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (c *checkerClient) UserList(ctx context.Context, in *UserListRequest, opts 
 
 func (c *checkerClient) User(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/User", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/User", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (c *checkerClient) User(ctx context.Context, in *UserRequest, opts ...grpc.
 
 func (c *checkerClient) TenantList(ctx context.Context, in *TenantListRequest, opts ...grpc.CallOption) (*TenantListResponse, error) {
 	out := new(TenantListResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/TenantList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/TenantList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (c *checkerClient) TenantList(ctx context.Context, in *TenantListRequest, o
 
 func (c *checkerClient) Tenant(ctx context.Context, in *TenantRequest, opts ...grpc.CallOption) (*TenantResponse, error) {
 	out := new(TenantResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/Tenant", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/Tenant", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (c *checkerClient) Tenant(ctx context.Context, in *TenantRequest, opts ...g
 
 func (c *checkerClient) TenantPermissions(ctx context.Context, in *TenantRequest, opts ...grpc.CallOption) (*TenantPermissionsResponse, error) {
 	out := new(TenantPermissionsResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/TenantPermissions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/TenantPermissions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *checkerClient) TenantPermissions(ctx context.Context, in *TenantRequest
 
 func (c *checkerClient) TenantSave(ctx context.Context, in *TenantSaveRequest, opts ...grpc.CallOption) (*TenantSaveResponse, error) {
 	out := new(TenantSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/TenantSave", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/TenantSave", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *checkerClient) TenantSave(ctx context.Context, in *TenantSaveRequest, o
 
 func (c *checkerClient) TenantAddPermission(ctx context.Context, in *TenantModifyPermissionRequest, opts ...grpc.CallOption) (*TenantSaveResponse, error) {
 	out := new(TenantSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/TenantAddPermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/TenantAddPermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (c *checkerClient) TenantAddPermission(ctx context.Context, in *TenantModif
 
 func (c *checkerClient) TenantRemovePermission(ctx context.Context, in *TenantModifyPermissionRequest, opts ...grpc.CallOption) (*TenantSaveResponse, error) {
 	out := new(TenantSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/TenantRemovePermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/TenantRemovePermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (c *checkerClient) TenantRemovePermission(ctx context.Context, in *TenantMo
 
 func (c *checkerClient) TenantCreate(ctx context.Context, in *TenantCreateRequest, opts ...grpc.CallOption) (*TenantSaveResponse, error) {
 	out := new(TenantSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/TenantCreate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/TenantCreate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (c *checkerClient) TenantCreate(ctx context.Context, in *TenantCreateReques
 
 func (c *checkerClient) TenantCreateGroup(ctx context.Context, in *TenantCreateGroupRequest, opts ...grpc.CallOption) (*GroupSaveResponse, error) {
 	out := new(GroupSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/TenantCreateGroup", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/TenantCreateGroup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (c *checkerClient) TenantCreateGroup(ctx context.Context, in *TenantCreateG
 
 func (c *checkerClient) GroupList(ctx context.Context, in *GroupListRequest, opts ...grpc.CallOption) (*GroupListResponse, error) {
 	out := new(GroupListResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/GroupList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/GroupList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (c *checkerClient) GroupList(ctx context.Context, in *GroupListRequest, opt
 
 func (c *checkerClient) Group(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error) {
 	out := new(GroupResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/Group", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/Group", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (c *checkerClient) Group(ctx context.Context, in *GroupRequest, opts ...grp
 
 func (c *checkerClient) GroupPermissions(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupPermissionsResponse, error) {
 	out := new(GroupPermissionsResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/GroupPermissions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/GroupPermissions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (c *checkerClient) GroupPermissions(ctx context.Context, in *GroupRequest, 
 
 func (c *checkerClient) GroupSave(ctx context.Context, in *GroupSaveRequest, opts ...grpc.CallOption) (*GroupSaveResponse, error) {
 	out := new(GroupSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/GroupSave", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/GroupSave", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func (c *checkerClient) GroupSave(ctx context.Context, in *GroupSaveRequest, opt
 
 func (c *checkerClient) GroupAddPermission(ctx context.Context, in *GroupModifyPermissionRequest, opts ...grpc.CallOption) (*GroupSaveResponse, error) {
 	out := new(GroupSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/GroupAddPermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/GroupAddPermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *checkerClient) GroupAddPermission(ctx context.Context, in *GroupModifyP
 
 func (c *checkerClient) GroupRemovePermission(ctx context.Context, in *GroupModifyPermissionRequest, opts ...grpc.CallOption) (*GroupSaveResponse, error) {
 	out := new(GroupSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/GroupRemovePermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/GroupRemovePermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (c *checkerClient) GroupRemovePermission(ctx context.Context, in *GroupModi
 
 func (c *checkerClient) FeedList(ctx context.Context, in *FeedListRequest, opts ...grpc.CallOption) (*FeedListResponse, error) {
 	out := new(FeedListResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/FeedList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func (c *checkerClient) FeedList(ctx context.Context, in *FeedListRequest, opts 
 
 func (c *checkerClient) Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error) {
 	out := new(FeedResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/Feed", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/Feed", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func (c *checkerClient) Feed(ctx context.Context, in *FeedRequest, opts ...grpc.
 
 func (c *checkerClient) FeedPermissions(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedPermissionsResponse, error) {
 	out := new(FeedPermissionsResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/FeedPermissions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedPermissions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (c *checkerClient) FeedPermissions(ctx context.Context, in *FeedRequest, op
 
 func (c *checkerClient) FeedSetGroup(ctx context.Context, in *FeedSetGroupRequest, opts ...grpc.CallOption) (*FeedSaveResponse, error) {
 	out := new(FeedSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/FeedSetGroup", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedSetGroup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func (c *checkerClient) FeedSetGroup(ctx context.Context, in *FeedSetGroupReques
 
 func (c *checkerClient) FeedVersionList(ctx context.Context, in *FeedVersionListRequest, opts ...grpc.CallOption) (*FeedVersionListResponse, error) {
 	out := new(FeedVersionListResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/FeedVersionList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedVersionList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +248,7 @@ func (c *checkerClient) FeedVersionList(ctx context.Context, in *FeedVersionList
 
 func (c *checkerClient) FeedVersion(ctx context.Context, in *FeedVersionRequest, opts ...grpc.CallOption) (*FeedVersionResponse, error) {
 	out := new(FeedVersionResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/FeedVersion", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func (c *checkerClient) FeedVersion(ctx context.Context, in *FeedVersionRequest,
 
 func (c *checkerClient) FeedVersionPermissions(ctx context.Context, in *FeedVersionRequest, opts ...grpc.CallOption) (*FeedVersionPermissionsResponse, error) {
 	out := new(FeedVersionPermissionsResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/FeedVersionPermissions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedVersionPermissions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func (c *checkerClient) FeedVersionPermissions(ctx context.Context, in *FeedVers
 
 func (c *checkerClient) FeedVersionAddPermission(ctx context.Context, in *FeedVersionModifyPermissionRequest, opts ...grpc.CallOption) (*FeedVersionSaveResponse, error) {
 	out := new(FeedVersionSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/FeedVersionAddPermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedVersionAddPermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +275,7 @@ func (c *checkerClient) FeedVersionAddPermission(ctx context.Context, in *FeedVe
 
 func (c *checkerClient) FeedVersionRemovePermission(ctx context.Context, in *FeedVersionModifyPermissionRequest, opts ...grpc.CallOption) (*FeedVersionSaveResponse, error) {
 	out := new(FeedVersionSaveResponse)
-	err := c.cc.Invoke(ctx, "/checker.Checker/FeedVersionRemovePermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedVersionRemovePermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +416,7 @@ func _Checker_UserList_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/UserList",
+		FullMethod: "/azpb.Checker/UserList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).UserList(ctx, req.(*UserListRequest))
@@ -434,7 +434,7 @@ func _Checker_User_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/User",
+		FullMethod: "/azpb.Checker/User",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).User(ctx, req.(*UserRequest))
@@ -452,7 +452,7 @@ func _Checker_TenantList_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/TenantList",
+		FullMethod: "/azpb.Checker/TenantList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).TenantList(ctx, req.(*TenantListRequest))
@@ -470,7 +470,7 @@ func _Checker_Tenant_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/Tenant",
+		FullMethod: "/azpb.Checker/Tenant",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).Tenant(ctx, req.(*TenantRequest))
@@ -488,7 +488,7 @@ func _Checker_TenantPermissions_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/TenantPermissions",
+		FullMethod: "/azpb.Checker/TenantPermissions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).TenantPermissions(ctx, req.(*TenantRequest))
@@ -506,7 +506,7 @@ func _Checker_TenantSave_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/TenantSave",
+		FullMethod: "/azpb.Checker/TenantSave",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).TenantSave(ctx, req.(*TenantSaveRequest))
@@ -524,7 +524,7 @@ func _Checker_TenantAddPermission_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/TenantAddPermission",
+		FullMethod: "/azpb.Checker/TenantAddPermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).TenantAddPermission(ctx, req.(*TenantModifyPermissionRequest))
@@ -542,7 +542,7 @@ func _Checker_TenantRemovePermission_Handler(srv interface{}, ctx context.Contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/TenantRemovePermission",
+		FullMethod: "/azpb.Checker/TenantRemovePermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).TenantRemovePermission(ctx, req.(*TenantModifyPermissionRequest))
@@ -560,7 +560,7 @@ func _Checker_TenantCreate_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/TenantCreate",
+		FullMethod: "/azpb.Checker/TenantCreate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).TenantCreate(ctx, req.(*TenantCreateRequest))
@@ -578,7 +578,7 @@ func _Checker_TenantCreateGroup_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/TenantCreateGroup",
+		FullMethod: "/azpb.Checker/TenantCreateGroup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).TenantCreateGroup(ctx, req.(*TenantCreateGroupRequest))
@@ -596,7 +596,7 @@ func _Checker_GroupList_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/GroupList",
+		FullMethod: "/azpb.Checker/GroupList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).GroupList(ctx, req.(*GroupListRequest))
@@ -614,7 +614,7 @@ func _Checker_Group_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/Group",
+		FullMethod: "/azpb.Checker/Group",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).Group(ctx, req.(*GroupRequest))
@@ -632,7 +632,7 @@ func _Checker_GroupPermissions_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/GroupPermissions",
+		FullMethod: "/azpb.Checker/GroupPermissions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).GroupPermissions(ctx, req.(*GroupRequest))
@@ -650,7 +650,7 @@ func _Checker_GroupSave_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/GroupSave",
+		FullMethod: "/azpb.Checker/GroupSave",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).GroupSave(ctx, req.(*GroupSaveRequest))
@@ -668,7 +668,7 @@ func _Checker_GroupAddPermission_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/GroupAddPermission",
+		FullMethod: "/azpb.Checker/GroupAddPermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).GroupAddPermission(ctx, req.(*GroupModifyPermissionRequest))
@@ -686,7 +686,7 @@ func _Checker_GroupRemovePermission_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/GroupRemovePermission",
+		FullMethod: "/azpb.Checker/GroupRemovePermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).GroupRemovePermission(ctx, req.(*GroupModifyPermissionRequest))
@@ -704,7 +704,7 @@ func _Checker_FeedList_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/FeedList",
+		FullMethod: "/azpb.Checker/FeedList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).FeedList(ctx, req.(*FeedListRequest))
@@ -722,7 +722,7 @@ func _Checker_Feed_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/Feed",
+		FullMethod: "/azpb.Checker/Feed",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).Feed(ctx, req.(*FeedRequest))
@@ -740,7 +740,7 @@ func _Checker_FeedPermissions_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/FeedPermissions",
+		FullMethod: "/azpb.Checker/FeedPermissions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).FeedPermissions(ctx, req.(*FeedRequest))
@@ -758,7 +758,7 @@ func _Checker_FeedSetGroup_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/FeedSetGroup",
+		FullMethod: "/azpb.Checker/FeedSetGroup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).FeedSetGroup(ctx, req.(*FeedSetGroupRequest))
@@ -776,7 +776,7 @@ func _Checker_FeedVersionList_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/FeedVersionList",
+		FullMethod: "/azpb.Checker/FeedVersionList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).FeedVersionList(ctx, req.(*FeedVersionListRequest))
@@ -794,7 +794,7 @@ func _Checker_FeedVersion_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/FeedVersion",
+		FullMethod: "/azpb.Checker/FeedVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).FeedVersion(ctx, req.(*FeedVersionRequest))
@@ -812,7 +812,7 @@ func _Checker_FeedVersionPermissions_Handler(srv interface{}, ctx context.Contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/FeedVersionPermissions",
+		FullMethod: "/azpb.Checker/FeedVersionPermissions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).FeedVersionPermissions(ctx, req.(*FeedVersionRequest))
@@ -830,7 +830,7 @@ func _Checker_FeedVersionAddPermission_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/FeedVersionAddPermission",
+		FullMethod: "/azpb.Checker/FeedVersionAddPermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).FeedVersionAddPermission(ctx, req.(*FeedVersionModifyPermissionRequest))
@@ -848,7 +848,7 @@ func _Checker_FeedVersionRemovePermission_Handler(srv interface{}, ctx context.C
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/checker.Checker/FeedVersionRemovePermission",
+		FullMethod: "/azpb.Checker/FeedVersionRemovePermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).FeedVersionRemovePermission(ctx, req.(*FeedVersionModifyPermissionRequest))
@@ -860,7 +860,7 @@ func _Checker_FeedVersionRemovePermission_Handler(srv interface{}, ctx context.C
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Checker_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "checker.Checker",
+	ServiceName: "azpb.Checker",
 	HandlerType: (*CheckerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
