@@ -5,13 +5,13 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.StopFilter) sq.SelectBuilder {
-	qView := sq.StatementBuilder.Select(
+func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.StopFilter) sq.SelectBuilder {
+	q := sq.StatementBuilder.Select(
 		"gtfs_stops.*",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
-		"tl_stop_onestop_ids.onestop_id",
+		"coalesce(tl_stop_onestop_ids.onestop_id, '') as onestop_id",
 	).
 		From("gtfs_stops").
 		Join("feed_versions ON feed_versions.id = gtfs_stops.feed_version_id").
@@ -27,7 +27,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
 		}
 		if len(where.OnestopIds) > 0 {
-			qView = qView.Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds})
+			q = q.Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds})
 		}
 		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
 			sub := sq.StatementBuilder.
@@ -41,50 +41,50 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 			subClause := sub.
 				Prefix("LEFT JOIN (").
 				Suffix(") tl_stop_onestop_ids on tl_stop_onestop_ids.stop_id = gtfs_stops.stop_id and tl_stop_onestop_ids.feed_id = feed_versions.feed_id")
-			qView = qView.JoinClause(subClause)
+			q = q.JoinClause(subClause)
 		} else {
-			qView = qView.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`)
+			q = q.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`)
 		}
 	} else {
-		qView = qView.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`)
+		q = q.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`)
 	}
 
 	// Handle other clauses
 	if where != nil {
 		if where.Within != nil && where.Within.Valid {
-			qView = qView.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
+			q = q.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
 		}
 		if where.Near != nil {
 			radius := checkFloat(&where.Near.Radius, 0, 10_000)
-			qView = qView.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
 		if where.StopCode != nil {
-			qView = qView.Where(sq.Eq{"gtfs_stops.stop_code": where.StopCode})
+			q = q.Where(sq.Eq{"gtfs_stops.stop_code": where.StopCode})
 		}
 		if where.LocationType != nil {
-			qView = qView.Where(sq.Eq{"gtfs_stops.location_type": where.LocationType})
+			q = q.Where(sq.Eq{"gtfs_stops.location_type": where.LocationType})
 		}
 		if where.FeedOnestopID != nil {
-			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
+			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
 		if where.FeedVersionSha1 != nil {
-			qView = qView.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
+			q = q.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
 		}
 		if where.StopID != nil {
-			qView = qView.Where(sq.Eq{"gtfs_stops.stop_id": *where.StopID})
+			q = q.Where(sq.Eq{"gtfs_stops.stop_id": *where.StopID})
 		}
 		if where.Serviced != nil {
-			qView = qView.JoinClause(`left join lateral (select tlrs.stop_id from tl_route_stops tlrs where tlrs.stop_id = gtfs_stops.id limit 1) scount on true`)
+			q = q.JoinClause(`left join lateral (select tlrs.stop_id from tl_route_stops tlrs where tlrs.stop_id = gtfs_stops.id limit 1) scount on true`)
 			if *where.Serviced {
-				qView = qView.Where(sq.NotEq{"scount.stop_id": nil})
+				q = q.Where(sq.NotEq{"scount.stop_id": nil})
 			} else {
-				qView = qView.Where(sq.Eq{"scount.stop_id": nil})
+				q = q.Where(sq.Eq{"scount.stop_id": nil})
 			}
 		}
 		// Served by agency ID
 		if len(where.AgencyIds) > 0 {
 			distinct = true
-			qView = qView.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(sq.Eq{"tl_route_stops.agency_id": where.AgencyIds})
+			q = q.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(sq.Eq{"tl_route_stops.agency_id": where.AgencyIds})
 		}
 		// Accepts both route and operator Onestop IDs
 		if len(where.ServedByOnestopIds) > 0 {
@@ -99,50 +99,54 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *
 					routes = append(routes, osid)
 				}
 			}
-			qView = qView.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id")
+			q = q.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id")
 			if len(routes) > 0 {
-				qView = qView.Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id")
+				q = q.Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id")
 			}
 			if len(agencies) > 0 {
-				qView = qView.
+				q = q.
 					Join("gtfs_agencies on gtfs_agencies.id = tl_route_stops.agency_id").
 					Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id")
 			}
 			if len(routes) > 0 && len(agencies) > 0 {
-				qView = qView.Where(sq.Or{sq.Eq{"tl_route_onestop_ids.onestop_id": routes}, sq.Eq{"coif.resolved_onestop_id": agencies}})
+				q = q.Where(sq.Or{sq.Eq{"tl_route_onestop_ids.onestop_id": routes}, sq.Eq{"coif.resolved_onestop_id": agencies}})
 			} else if len(routes) > 0 {
-				qView = qView.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
+				q = q.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
 			} else if len(agencies) > 0 {
-				qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
+				q = q.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
 			}
 		}
 		// Handle license filtering
-		qView = licenseFilter(where.License, qView)
+		q = licenseFilter(where.License, q)
 	}
 	if distinct {
-		qView = qView.Distinct().Options("on (gtfs_stops.feed_version_id,gtfs_stops.id)")
+		q = q.Distinct().Options("on (gtfs_stops.feed_version_id,gtfs_stops.id)")
 	}
 	if active {
-		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
+		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
 	}
 	if len(ids) > 0 {
-		qView = qView.Where(sq.Eq{"gtfs_stops.id": ids})
+		q = q.Where(sq.Eq{"gtfs_stops.id": ids})
+	}
+	if permFilter != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		if after.FeedVersionID == 0 {
-			qView = qView.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (select feed_version_id,id from gtfs_stops where id = ?)", after.ID))
+			q = q.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (select feed_version_id,id from gtfs_stops where id = ?)", after.ID))
 		} else {
-			qView = qView.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (?,?)", after.FeedVersionID, after.ID))
+			q = q.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
 	}
+
 	// Outer query
-	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t")
-	q = q.Limit(checkLimit(limit))
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t")
+	qView = qView.Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)
-			q = q.Column(rank).Where(wc)
+			qView = qView.Column(rank).Where(wc)
 		}
 	}
-	return q
+	return qView
 }

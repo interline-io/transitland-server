@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 
 func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	fvm := map[string]int{}
-	fvs, err := TestDBFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil)
+	fvs, err := TestDBFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

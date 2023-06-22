@@ -35,7 +35,7 @@ func testRestConfig(t testing.TB) (http.Handler, testfinder.TestEnv) {
 		t.Fatal(err)
 	}
 	te := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
-	srv, err := resolvers.NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder)
+	srv, err := resolvers.NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, nil)
 	if err != nil {
 		panic(err)
 	}

@@ -40,12 +40,17 @@ func (m *DefaultMeter) sendMeter(u MeterUser, meterName string, value float64, d
 		a = map[string]float64{}
 		m.values[meterName] = a
 	}
-	a[u.Name()] += value
+	userName := ""
+	if u != nil {
+		userName = u.Name()
+	}
+
+	a[userName] += value
 	log.Trace().
-		Str("user", u.Name()).
+		Str("user", userName).
 		Str("meter", meterName).
 		Float64("meter_value", value).
-		Float64("total_value", a[u.Name()]).
+		Float64("total_value", a[userName]).
 		Msg("meter")
 	return nil
 }

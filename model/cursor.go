@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+type PermFilter struct {
+	AllowedFeeds        []int
+	AllowedFeedVersions []int
+}
+
 type Cursor struct {
 	FeedVersionID int
 	ID            int

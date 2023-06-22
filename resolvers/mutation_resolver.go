@@ -25,11 +25,6 @@ func (r *mutationResolver) ValidateGtfs(ctx context.Context, file *graphql.Uploa
 }
 
 func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.Upload, url *string, feedId string) (*model.FeedVersionFetchResult, error) {
-	// This is checked by a GraphQL directive, but we'll check again for now.
-	user := auth.ForContext(ctx)
-	if user == nil || !user.HasRole("admin") {
-		return nil, errors.New("permission denied")
-	}
 	var feedSrc io.Reader
 	if file != nil {
 		feedSrc = file.File
@@ -38,19 +33,20 @@ func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.U
 	if url != nil {
 		feedUrl = *url
 	}
-	return actions.StaticFetch(ctx, r.cfg, r.finder, feedId, feedSrc, feedUrl, user)
+	return actions.StaticFetch(ctx, r.cfg, r.finder, feedId, feedSrc, feedUrl, auth.ForContext(ctx), r.authzChecker)
 }
 
-func (r *mutationResolver) FeedVersionImport(ctx context.Context, sha1 string) (*model.FeedVersionImportResult, error) {
-	return nil, errors.New("temporarily unavailable")
+func (r *mutationResolver) FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
+	return actions.FeedVersionImport(ctx, r.cfg, r.finder, r.authzChecker, auth.ForContext(ctx), fvid)
 }
 
-func (r *mutationResolver) FeedVersionUpdate(ctx context.Context, id int, values model.FeedVersionSetInput) (*model.FeedVersion, error) {
-	return nil, errors.New("temporarily unavailable")
+func (r *mutationResolver) FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
+	return actions.FeedVersionUnimport(ctx, r.cfg, r.finder, r.authzChecker, auth.ForContext(ctx), fvid)
 }
 
-func (r *mutationResolver) FeedVersionUnimport(ctx context.Context, id int) (*model.FeedVersionUnimportResult, error) {
-	return nil, errors.New("temporarily unavailable")
+func (r *mutationResolver) FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSetInput) (*model.FeedVersion, error) {
+	err := actions.FeedVersionUpdate(ctx, r.cfg, r.finder, r.authzChecker, auth.ForContext(ctx), fvid, values)
+	return nil, err
 }
 
 func (r *mutationResolver) FeedVersionDelete(ctx context.Context, id int) (*model.FeedVersionDeleteResult, error) {

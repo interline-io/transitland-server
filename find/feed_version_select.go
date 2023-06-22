@@ -7,13 +7,14 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) sq.SelectBuilder {
+func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("feed_versions t").
 		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
 		Limit(checkLimit(limit)).
 		OrderBy("t.fetched_at desc, t.id desc")
+
 	if where != nil {
 		if where.Sha1 != nil {
 			q = q.Where(sq.Eq{"t.sha1": *where.Sha1})
@@ -80,6 +81,9 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
+	if permFilter != nil {
+		q = q.Where(sq.Or{sq.Eq{"t.feed_id": permFilter.AllowedFeeds}, sq.Eq{"t.id": permFilter.AllowedFeedVersions}})
+	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at,id from feed_versions where id = ?)", after.ID))
 	}
@@ -87,7 +91,12 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, where *model.
 }
 
 func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
-	q := quickSelectOrder("feed_version_service_levels", limit, after, nil, "")
+	q := sq.StatementBuilder.
+		Select("t.*").
+		From("feed_version_service_levels t").
+		Limit(checkLimit(limit)).
+		OrderBy("t.id")
+
 	if where == nil {
 		where = &model.FeedVersionServiceLevelFilter{}
 	}
@@ -97,6 +106,12 @@ func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, w
 	}
 	if where.EndDate != nil {
 		q = q.Where(sq.LtOrEq{"end_date": where.EndDate})
+	}
+	if len(ids) > 0 {
+		q = q.Where(sq.Eq{"t.id": ids})
+	}
+	if after != nil && after.Valid && after.ID > 0 {
+		q = q.Where(sq.Gt{"t.id": after.ID})
 	}
 	return q
 }

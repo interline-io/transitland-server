@@ -2,7 +2,6 @@ package actions
 
 import (
 	"context"
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -53,7 +52,7 @@ func TestStaticFetchWorker(t *testing.T) {
 			expectResponseCode: 200,
 			expectResponseSize: 12,
 			expectResponseSHA1: "88af471a23dfdc103e67752dd56128ae77b8debe",
-			expectError:        true,
+			expectError:        false,
 			expectSuccess:      false,
 		},
 		{
@@ -79,9 +78,15 @@ func TestStaticFetchWorker(t *testing.T) {
 			name:               "404",
 			feedId:             "BA",
 			serveFile:          "test/data/example.zip",
-			expectError:        true,
+			expectError:        false,
 			expectResponseCode: 404,
 			expectSuccess:      false,
+		},
+		{
+			name:        "invalid feed",
+			feedId:      "unknown",
+			serveFile:   "test/data/example.zip",
+			expectError: true,
 		},
 	}
 	// cfg, dbf, _, _ := testfinder.Finders(t, nil, nil)
@@ -107,13 +112,14 @@ func TestStaticFetchWorker(t *testing.T) {
 			feedUrl := ts.URL + "/" + tc.serveFile
 			testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
 				// Run job
-				if result, err := StaticFetch(context.Background(), te.Config, te.Finder, tc.feedId, nil, feedUrl, nil); err != nil && !tc.expectError {
+				if result, err := StaticFetch(context.Background(), te.Config, te.Finder, tc.feedId, nil, feedUrl, nil, nil); err != nil && !tc.expectError {
 					_ = result
-					t.Fatal(err)
+					t.Fatal("unexpected error", err)
 				} else if err == nil && tc.expectError {
-					t.Fatal(errors.New("expected responseError"))
+					t.Fatal("expected responseError")
+				} else if err != nil && tc.expectError {
+					return
 				}
-
 				// Check output
 				ff := dmfr.FeedFetch{}
 				if err := find.Get(

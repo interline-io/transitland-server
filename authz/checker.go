@@ -102,6 +102,10 @@ func (c *Checker) User(ctx context.Context, req *UserRequest) (*UserResponse, er
 	return &UserResponse{User: ret}, err
 }
 
+func (c *Checker) CheckGlobalAdmin(ctx context.Context) (bool, error) {
+	return c.checkGlobalAdmin(auth.ForContext(ctx)), nil
+}
+
 func (c *Checker) hydrateUsers(ctx context.Context, users []*User) ([]*User, error) {
 	var ret []*User
 	for _, u := range users {
@@ -499,7 +503,7 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, req *FeedVersionRe
 	}
 
 	// Actions
-	ctxTk := NewTupleKey().WithObjectID(FeedVersionType, ent.FeedVersion.Id).WithSubjectID(FeedType, ent.FeedVersion.Id).WithRelation(ParentRelation)
+	ctxTk := NewTupleKey().WithObjectID(FeedVersionType, ent.FeedVersion.Id).WithSubjectID(FeedType, ent.FeedVersion.FeedId).WithRelation(ParentRelation)
 	entKey := NewEntityID(FeedVersionType, req.GetId())
 	ret.Actions.CanView, _ = c.checkAction(ctx, CanView, entKey, ctxTk)
 	ret.Actions.CanEditMembers, _ = c.checkAction(ctx, CanEditMembers, entKey, ctxTk)
@@ -602,16 +606,30 @@ func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj Entit
 		return false, ErrUnauthorized
 	}
 	userName := checkUser.Name()
-	for _, v := range c.globalAdmins {
-		if v == userName {
-			log.Debug().Str("check_user", userName).Str("obj", obj.String()).Str("check_action", checkAction.String()).Msg("global admin action")
-			return true, nil
-		}
+	if c.checkGlobalAdmin(checkUser) {
+		log.Debug().Str("check_user", userName).Str("obj", obj.String()).Str("check_action", checkAction.String()).Msg("global admin action")
+		return true, nil
 	}
 	checkTk := NewTupleKey().WithUser(userName).WithObject(obj.Type, obj.Name).WithAction(checkAction)
 	ret, err := c.authz.Check(ctx, checkTk, ctxtk...)
 	log.Trace().Str("tk", checkTk.String()).Bool("result", ret).Err(err).Msg("checkAction")
 	return ret, err
+}
+
+func (c *Checker) checkGlobalAdmin(checkUser auth.User) bool {
+	if c == nil {
+		return false
+	}
+	if checkUser == nil {
+		return false
+	}
+	userName := checkUser.Name()
+	for _, v := range c.globalAdmins {
+		if v == userName {
+			return true
+		}
+	}
+	return false
 }
 
 // Helpers

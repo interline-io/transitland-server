@@ -91,7 +91,7 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestE
 	tx := db.MustBeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	// Configufre finders
+	// Configure finders
 	dbf := find.NewDBFinder(tx)
 	dbf.Clock = cl
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), tx)

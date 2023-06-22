@@ -121,7 +121,7 @@ type routePatternResolver struct{ *Resolver }
 
 func (r *routePatternResolver) Trips(ctx context.Context, obj *model.RouteStopPattern, limit *int) ([]*model.Trip, error) {
 	// TODO: N+1 query
-	trips, err := r.finder.FindTrips(ctx, limit, nil, nil, &model.TripFilter{StopPatternID: &obj.StopPatternID, RouteIds: []int{obj.RouteID}})
+	trips, err := r.finder.FindTrips(ctx, limit, nil, nil, nil, &model.TripFilter{StopPatternID: &obj.StopPatternID, RouteIds: []int{obj.RouteID}})
 	return trips, err
 }
 

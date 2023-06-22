@@ -23,6 +23,13 @@ type FVSLCache struct {
 	fvWindows map[int]FVSLWindow
 }
 
+func NewFVSLCache(f model.Finder) *FVSLCache {
+	return &FVSLCache{
+		Finder:    f,
+		fvWindows: map[int]FVSLWindow{},
+	}
+}
+
 func (f *FVSLCache) Get(fvid int) (FVSLWindow, bool) {
 	f.lock.Lock()
 	a, ok := f.fvWindows[fvid]
@@ -41,9 +48,6 @@ func (f *FVSLCache) Get(fvid int) (FVSLWindow, bool) {
 func (f *FVSLCache) Set(fvid int, w FVSLWindow) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
-	if f.fvWindows == nil {
-		f.fvWindows = map[int]FVSLWindow{}
-	}
 	f.fvWindows[fvid] = w
 }
 

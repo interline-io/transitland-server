@@ -19,6 +19,6 @@ func TestMain(m *testing.M) {
 
 func TestFVSLCache(t *testing.T) {
 	te := testfinder.Finders(t, nil, nil)
-	c := FVSLCache{Finder: te.Finder}
+	c := NewFVSLCache(te.Finder)
 	c.Get(1)
 }

@@ -5,9 +5,9 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.AgencyFilter) sq.SelectBuilder {
+func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.AgencyFilter) sq.SelectBuilder {
 	distinct := false
-	qView := sq.StatementBuilder.
+	q := sq.StatementBuilder.
 		Select(
 			"gtfs_agencies.*",
 			"tl_agency_geometries.geometry",
@@ -26,76 +26,80 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, where
 
 	if where != nil {
 		if where.FeedVersionSha1 != nil {
-			qView = qView.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
+			q = q.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
 		}
 		if where.FeedOnestopID != nil {
-			qView = qView.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
+			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
 		if where.AgencyID != nil {
-			qView = qView.Where(sq.Eq{"gtfs_agencies.agency_id": *where.AgencyID})
+			q = q.Where(sq.Eq{"gtfs_agencies.agency_id": *where.AgencyID})
 		}
 		if where.AgencyName != nil {
-			qView = qView.Where(sq.Eq{"gtfs_agencies.agency_name": *where.AgencyName})
+			q = q.Where(sq.Eq{"gtfs_agencies.agency_name": *where.AgencyName})
 		}
 		if where.OnestopID != nil {
-			qView = qView.Where(sq.Eq{"coif.resolved_onestop_id": *where.OnestopID})
+			q = q.Where(sq.Eq{"coif.resolved_onestop_id": *where.OnestopID})
 		}
 		// Spatial
 		if where.Within != nil && where.Within.Valid {
-			qView = qView.Where("ST_Intersects(tl_agency_geometries.geometry, ?)", where.Within)
+			q = q.Where("ST_Intersects(tl_agency_geometries.geometry, ?)", where.Within)
 		}
 		if where.Near != nil {
 			radius := checkFloat(&where.Near.Radius, 0, 10_000)
-			qView = qView.Where("ST_DWithin(tl_agency_geometries.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+			q = q.Where("ST_DWithin(tl_agency_geometries.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
 		// Places
 		if where.Adm0Iso != nil || where.Adm1Iso != nil || where.Adm0Name != nil || where.Adm1Name != nil || where.CityName != nil {
 			distinct = true
-			qView = qView.
+			q = q.
 				Join("tl_agency_places tlap ON tlap.agency_id = gtfs_agencies.id").
 				Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tlap.adm1name and ne_admin.admin = tlap.adm0name")
 			if where.Adm0Iso != nil {
-				qView = qView.Where(sq.ILike{"ne_admin.iso_a2": *where.Adm0Iso})
+				q = q.Where(sq.ILike{"ne_admin.iso_a2": *where.Adm0Iso})
 			}
 			if where.Adm1Iso != nil {
-				qView = qView.Where(sq.ILike{"ne_admin.iso_3166_2": *where.Adm1Iso})
+				q = q.Where(sq.ILike{"ne_admin.iso_3166_2": *where.Adm1Iso})
 			}
 			if where.Adm0Name != nil {
-				qView = qView.Where(sq.ILike{"tlap.adm0name": *where.Adm0Name})
+				q = q.Where(sq.ILike{"tlap.adm0name": *where.Adm0Name})
 			}
 			if where.Adm1Name != nil {
-				qView = qView.Where(sq.ILike{"tlap.adm1name": *where.Adm1Name})
+				q = q.Where(sq.ILike{"tlap.adm1name": *where.Adm1Name})
 			}
 			if where.CityName != nil {
-				qView = qView.Where(sq.ILike{"tlap.name": *where.CityName})
+				q = q.Where(sq.ILike{"tlap.name": *where.CityName})
 			}
 		}
 		// Handle license filtering
-		qView = licenseFilter(where.License, qView)
+		q = licenseFilter(where.License, q)
 	}
 	if distinct {
-		qView = qView.Distinct().Options("on (gtfs_agencies.feed_version_id,gtfs_agencies.id)")
-	}
-	if active {
-		qView = qView.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
+		q = q.Distinct().Options("on (gtfs_agencies.feed_version_id,gtfs_agencies.id)")
 	}
 	if len(ids) > 0 {
-		qView = qView.Where(sq.Eq{"gtfs_agencies.id": ids})
+		q = q.Where(sq.Eq{"gtfs_agencies.id": ids})
+	}
+	if active {
+		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
+	}
+	if permFilter != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		if after.FeedVersionID == 0 {
-			qView = qView.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (select feed_version_id,id from gtfs_agencies where id = ?)", after.ID))
+			q = q.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (select feed_version_id,id from gtfs_agencies where id = ?)", after.ID))
 		} else {
-			qView = qView.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (?,?)", after.FeedVersionID, after.ID))
+			q = q.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
 	}
-	q := sq.StatementBuilder.Select("t.*").FromSelect(qView, "t").Limit(checkLimit(limit))
 
+	// Outer query
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)
-			q = q.Column(rank).Where(wc)
+			qView = qView.Column(rank).Where(wc)
 		}
 	}
-	return q
+	return qView
 }

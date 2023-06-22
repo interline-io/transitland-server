@@ -32,7 +32,6 @@ func (r *agencyResolver) Operator(ctx context.Context, obj *model.Agency) (*mode
 		return nil, nil
 	}
 	return For(ctx).OperatorsByCOIF.Load(ctx, *obj.CoifID)()
-
 }
 
 func (r *agencyResolver) Alerts(ctx context.Context, obj *model.Agency, active *bool, limit *int) ([]*model.Alert, error) {
