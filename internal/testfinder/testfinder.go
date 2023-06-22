@@ -10,10 +10,10 @@ import (
 
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/finders/dbfinder"
+	"github.com/interline-io/transitland-server/finders/gbfsfinder"
+	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/gbfsfinder"
-	"github.com/interline-io/transitland-server/internal/rtfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -46,9 +46,9 @@ func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) TestEnv {
 		RTStorage: t.TempDir(),
 	}
 	if db == nil {
-		db = find.MustOpenDB(g)
+		db = dbfinder.MustOpenDB(g)
 	}
-	dbf := find.NewDBFinder(db)
+	dbf := dbfinder.NewDBFinder(db)
 	dbf.Clock = cl
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
@@ -74,7 +74,7 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestE
 		if g == "" {
 			t.Fatal("TL_TEST_SERVER_DATABASE_URL not set, skipping")
 		}
-		db = find.MustOpenDB(g)
+		db = dbfinder.MustOpenDB(g)
 	}
 
 	// Config
@@ -92,7 +92,7 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestE
 	defer tx.Rollback()
 
 	// Configure finders
-	dbf := find.NewDBFinder(tx)
+	dbf := dbfinder.NewDBFinder(tx)
 	dbf.Clock = cl
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), tx)
 	rtf.Clock = cl

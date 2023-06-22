@@ -8,7 +8,7 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +31,7 @@ type testcase struct {
 }
 
 func TestMain(m *testing.M) {
-	find.MAXLIMIT = 100_000
+	dbfinder.MAXLIMIT = 100_000
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
 	if g == "" {
 		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")

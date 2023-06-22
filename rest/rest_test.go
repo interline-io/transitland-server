@@ -10,7 +10,7 @@ import (
 
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/resolvers"
@@ -19,8 +19,8 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	find.MAXLIMIT = 100_000
-	MAXLIMIT = find.MAXLIMIT
+	dbfinder.MAXLIMIT = 100_000
+	MAXLIMIT = dbfinder.MAXLIMIT
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
 	if g == "" {
 		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")

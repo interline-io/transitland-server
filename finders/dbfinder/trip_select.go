@@ -1,4 +1,4 @@
-package find
+package dbfinder
 
 import (
 	sq "github.com/Masterminds/squirrel"

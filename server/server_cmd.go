@@ -24,13 +24,13 @@ import (
 	"github.com/interline-io/transitland-server/auth"
 	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/find"
-	"github.com/interline-io/transitland-server/internal/gbfsfinder"
+	"github.com/interline-io/transitland-server/finders/dbfinder"
+	"github.com/interline-io/transitland-server/finders/gbfsfinder"
+	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/metrics"
 	"github.com/interline-io/transitland-server/internal/playground"
-	"github.com/interline-io/transitland-server/internal/rtfinder"
 	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/resolvers"
@@ -199,10 +199,10 @@ func (cmd *Command) Run() error {
 
 	// Open database
 	var db sqlx.Ext
-	dbx := find.MustOpenDB(cfg.DBURL)
+	dbx := dbfinder.MustOpenDB(cfg.DBURL)
 	db = dbx
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
-		db = find.LogDB(dbx)
+		db = dbfinder.LogDB(dbx)
 	}
 
 	// Open redis
@@ -217,7 +217,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// Create Finder
-	dbFinder = find.NewDBFinder(db)
+	dbFinder = dbfinder.NewDBFinder(db)
 
 	// Create RTFinder
 	if cmd.RedisURL != "" {

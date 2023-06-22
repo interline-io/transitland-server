@@ -10,7 +10,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/interline-io/transitland-lib/dmfr"
-	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
@@ -122,7 +122,7 @@ func TestStaticFetchWorker(t *testing.T) {
 				}
 				// Check output
 				ff := dmfr.FeedFetch{}
-				if err := find.Get(
+				if err := dbfinder.Get(
 					context.Background(),
 					te.Finder.DBX(),
 					sq.StatementBuilder.

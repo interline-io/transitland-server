@@ -10,7 +10,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth"
-	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/finders/dbfinder"
 )
 
 func init() {
@@ -664,7 +664,7 @@ func checkIds[T hasId](ents []T, ids []int64) error {
 func getEntities[T hasId](ctx context.Context, db sqlx.Ext, ids []int64, table string, cols ...string) ([]T, error) {
 	var t []T
 	q := sq.StatementBuilder.Select(cols...).From(table).Where(sq.Eq{"id": ids})
-	if err := find.Select(ctx, db, q, &t); err != nil {
+	if err := dbfinder.Select(ctx, db, q, &t); err != nil {
 		log.Trace().Err(err)
 		return nil, err
 	}
