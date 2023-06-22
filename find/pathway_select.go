@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func PathwaySelect(limit *int, after *model.Cursor, ids []int, where *model.PathwayFilter) sq.SelectBuilder {
+func PathwaySelect(limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.PathwayFilter) sq.SelectBuilder {
 	q := quickSelectOrder("gtfs_pathways", limit, after, ids, "")
 	if where != nil {
 		if where.PathwayMode != nil {

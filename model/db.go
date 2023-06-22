@@ -19,14 +19,14 @@ type Finder interface {
 
 // Finder handles basic queries
 type EntityFinder interface {
-	FindAgencies(context.Context, *int, *Cursor, []int, *AgencyFilter) ([]*Agency, error)
-	FindRoutes(context.Context, *int, *Cursor, []int, *RouteFilter) ([]*Route, error)
-	FindStops(context.Context, *int, *Cursor, []int, *StopFilter) ([]*Stop, error)
-	FindTrips(context.Context, *int, *Cursor, []int, *TripFilter) ([]*Trip, error)
-	FindFeedVersions(context.Context, *int, *Cursor, []int, *FeedVersionFilter) ([]*FeedVersion, error)
-	FindFeeds(context.Context, *int, *Cursor, []int, *FeedFilter) ([]*Feed, error)
-	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
-	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)
+	FindAgencies(context.Context, *int, *Cursor, []int, *UserCheck, *AgencyFilter) ([]*Agency, error)
+	FindRoutes(context.Context, *int, *Cursor, []int, *UserCheck, *RouteFilter) ([]*Route, error)
+	FindStops(context.Context, *int, *Cursor, []int, *UserCheck, *StopFilter) ([]*Stop, error)
+	FindTrips(context.Context, *int, *Cursor, []int, *UserCheck, *TripFilter) ([]*Trip, error)
+	FindFeedVersions(context.Context, *int, *Cursor, []int, *UserCheck, *FeedVersionFilter) ([]*FeedVersion, error)
+	FindFeeds(context.Context, *int, *Cursor, []int, *UserCheck, *FeedFilter) ([]*Feed, error)
+	FindOperators(context.Context, *int, *Cursor, []int, *UserCheck, *OperatorFilter) ([]*Operator, error)
+	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *UserCheck, *PlaceFilter) ([]*Place, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (time.Time, time.Time, time.Time, error)
 	DBX() sqlx.Ext // escape hatch, for now

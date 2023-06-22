@@ -6,7 +6,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) sq.SelectBuilder {
+func FeedSelect(limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("current_feeds t").

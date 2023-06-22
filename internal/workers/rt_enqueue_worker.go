@@ -14,7 +14,7 @@ type RTEnqueueWorker struct {
 func (w *RTEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	// Get all feeds, filter with RT urls
 	opts := job.Opts
-	rtfeeds, err := opts.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: w.FeedID})
+	rtfeeds, err := opts.Finder.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: w.FeedID})
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) sq.SelectBuilder {
+func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, userCheck *model.UserCheck, where *model.PlaceFilter) sq.SelectBuilder {
 	var groupKeys []string
 	groupKeys = []string{"adm0name"}
 	if level != nil {

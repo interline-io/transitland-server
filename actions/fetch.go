@@ -22,7 +22,7 @@ import (
 
 func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user auth.User, checker *authz.Checker) (*model.FeedVersionFetchResult, error) {
 	// Check feed exists
-	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 
 func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model.RTFinder, target string, feedId string, feedUrl string, urlType string, checker *authz.Checker) error {
 	// Check feed exists
-	rtfeeds, err := dbf.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	rtfeeds, err := dbf.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return err
 	}

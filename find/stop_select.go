@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.StopFilter) sq.SelectBuilder {
+func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, userCheck *model.UserCheck, where *model.StopFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_stops.*",
 		"current_feeds.id AS feed_id",

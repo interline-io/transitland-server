@@ -117,7 +117,7 @@ func TestRouteRequest(t *testing.T) {
 
 func TestRouteRequest_Pagination(t *testing.T) {
 	srv, te := testRestConfig(t)
-	allEnts, err := te.Finder.FindRoutes(context.Background(), nil, nil, nil, nil)
+	allEnts, err := te.Finder.FindRoutes(context.Background(), nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

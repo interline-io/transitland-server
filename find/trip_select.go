@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, where *model.TripFilter) sq.SelectBuilder {
+func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, userCheck *model.UserCheck, where *model.TripFilter) sq.SelectBuilder {
 	qView := sq.StatementBuilder.Select(
 		"gtfs_trips.*",
 		"current_feeds.id AS feed_id",

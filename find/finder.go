@@ -30,85 +30,85 @@ func (f *DBFinder) DBX() sqlx.Ext {
 	return f.db
 }
 
-func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
+func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.AgencyFilter) ([]*model.Agency, error) {
 	var ents []*model.Agency
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := AgencySelect(limit, after, ids, active, nil, where)
+	q := AgencySelect(limit, after, ids, active, userCheck, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
+func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.RouteFilter) ([]*model.Route, error) {
 	var ents []*model.Route
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := RouteSelect(limit, after, ids, active, where)
+	q := RouteSelect(limit, after, ids, active, userCheck, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
+func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.StopFilter) ([]*model.Stop, error) {
 	var ents []*model.Stop
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := StopSelect(limit, after, ids, active, where)
+	q := StopSelect(limit, after, ids, active, userCheck, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
+func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.TripFilter) ([]*model.Trip, error) {
 	var ents []*model.Trip
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) || (where != nil && len(where.RouteIds) > 0) {
 		active = false
 	}
-	q := TripSelect(limit, after, ids, active, where)
+	q := TripSelect(limit, after, ids, active, userCheck, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
+func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
-	if err := Select(ctx, f.db, FeedVersionSelect(limit, after, ids, where), &ents); err != nil {
+	if err := Select(ctx, f.db, FeedVersionSelect(limit, after, ids, userCheck, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
+func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.FeedFilter) ([]*model.Feed, error) {
 	var ents []*model.Feed
-	if err := Select(ctx, f.db, FeedSelect(limit, after, ids, where), &ents); err != nil {
+	if err := Select(ctx, f.db, FeedSelect(limit, after, ids, userCheck, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
+func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
-	if err := Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, where), &ents); err != nil {
+	if err := Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, userCheck, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {
+func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, userCheck *model.UserCheck, where *model.PlaceFilter) ([]*model.Place, error) {
 	var ents []*model.Place
-	q := PlaceSelect(limit, after, ids, level, where)
+	q := PlaceSelect(limit, after, ids, level, userCheck, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func (f *DBFinder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (
 // Loaders
 
 func (f *DBFinder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip, errs []error) {
-	ents, err := f.FindTrips(ctx, nil, nil, ids, nil)
+	ents, err := f.FindTrips(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
@@ -292,7 +292,7 @@ func (f *DBFinder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, [
 }
 
 func (f *DBFinder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
-	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil)
+	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
@@ -300,7 +300,7 @@ func (f *DBFinder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.Fe
 }
 
 func (f *DBFinder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
-	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil)
+	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
@@ -389,7 +389,7 @@ func (f *DBFinder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*
 
 func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
 	var ents []*model.Agency
-	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil)
+	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
@@ -398,7 +398,7 @@ func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency
 }
 
 func (f *DBFinder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
-	ents, err := f.FindStops(ctx, nil, nil, ids, nil)
+	ents, err := f.FindStops(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
@@ -406,7 +406,7 @@ func (f *DBFinder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []e
 }
 
 func (f *DBFinder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
-	ents, err := f.FindRoutes(ctx, nil, nil, ids, nil)
+	ents, err := f.FindRoutes(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
 	}
@@ -456,7 +456,7 @@ func (f *DBFinder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Ope
 	var ents []*model.Operator
 	err := Select(ctx,
 		f.db,
-		OperatorSelect(nil, nil, ids, nil, nil),
+		OperatorSelect(nil, nil, ids, nil, nil, nil),
 		&ents,
 	)
 	if err != nil {
@@ -504,7 +504,7 @@ func (f *DBFinder) OperatorsByFeedID(ctx context.Context, params []model.Operato
 	qents := []*model.Operator{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(OperatorSelect(params[0].Limit, nil, nil, ids, params[0].Where), "current_feeds", "id", "feed_id", ids),
+		lateralWrap(OperatorSelect(params[0].Limit, nil, nil, ids, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -586,7 +586,7 @@ func (f *DBFinder) FeedsByOperatorOnestopID(ctx context.Context, params []model.
 		model.Feed
 	}
 	var qents []*ffeed
-	q := FeedSelect(nil, nil, nil, params[0].Where).
+	q := FeedSelect(nil, nil, nil, nil, params[0].Where).
 		Distinct().Options("on (coif.resolved_onestop_id, t.id)").
 		Column("coif.resolved_onestop_id as operator_onestop_id").
 		Join("current_operators_in_feed coif on coif.feed_id = t.id").
@@ -667,7 +667,7 @@ func (f *DBFinder) StopTimesByTripID(ctx context.Context, params []model.TripSto
 		qents := []*model.StopTime{}
 		if err := Select(ctx,
 			f.db,
-			StopTimeSelect(group.Keys, nil, group.Where),
+			StopTimeSelect(group.Keys, nil, nil, group.Where),
 			&qents,
 		); err != nil {
 			return nil, logExtendErr(len(params), err)
@@ -721,7 +721,7 @@ func (f *DBFinder) StopTimesByStopID(ctx context.Context, params []model.StopTim
 			// Get stops on a specified day
 			err := Select(ctx,
 				f.db,
-				StopDeparturesSelect(dg.pairs, p),
+				StopDeparturesSelect(dg.pairs, nil, p),
 				&qents,
 			)
 			if err != nil {
@@ -731,7 +731,7 @@ func (f *DBFinder) StopTimesByStopID(ctx context.Context, params []model.StopTim
 			// Otherwise get all stop_times for stop
 			err := Select(ctx,
 				f.db,
-				StopTimeSelect(nil, dg.pairs, nil),
+				StopTimeSelect(nil, dg.pairs, nil, nil),
 				&qents,
 			)
 			if err != nil {
@@ -795,7 +795,7 @@ func (f *DBFinder) StopsByRouteID(ctx context.Context, params []model.StopParam)
 		routeIds = append(routeIds, p.RouteID)
 	}
 	qents := []*qEnt{}
-	qso := StopSelect(params[0].Limit, nil, nil, false, params[0].Where)
+	qso := StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where)
 	qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Where(sq.Eq{"route_id": routeIds}).Column("route_id")
 	err := Select(ctx,
 		f.db,
@@ -946,7 +946,7 @@ func (f *DBFinder) StopsByParentStopID(ctx context.Context, params []model.StopP
 	qents := []*model.Stop{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_stops", "id", "parent_station", ids),
+		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "gtfs_stops", "id", "parent_station", ids),
 		&qents,
 	)
 	if err != nil {
@@ -973,7 +973,7 @@ func (f *DBFinder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model
 		*model.Stop
 	}
 	qents := []*qlookup{}
-	q := StopSelect(nil, nil, nil, true, nil)
+	q := StopSelect(nil, nil, nil, true, nil, nil)
 	q = q.Column("tlse.id as source_id")
 	q = q.Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id")
 	q = q.Where(sq.Eq{"tlse.id": ids})
@@ -1006,7 +1006,7 @@ func (f *DBFinder) FeedVersionsByFeedID(ctx context.Context, params []model.Feed
 	qents := []*model.FeedVersion{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(FeedVersionSelect(params[0].Limit, nil, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
+		lateralWrap(FeedVersionSelect(params[0].Limit, nil, nil, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1086,7 +1086,7 @@ func (f *DBFinder) TripsByRouteID(ctx context.Context, params []model.TripParam)
 	qents := []*model.Trip{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(TripSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_routes", "id", "route_id", ids),
+		lateralWrap(TripSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "gtfs_routes", "id", "route_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1114,7 +1114,7 @@ func (f *DBFinder) RoutesByAgencyID(ctx context.Context, params []model.RoutePar
 	qents := []*model.Route{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_agencies", "id", "agency_id", ids),
+		lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "gtfs_agencies", "id", "agency_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1198,7 +1198,7 @@ func (f *DBFinder) StopsByFeedVersionID(ctx context.Context, params []model.Stop
 	qents := []*model.Stop{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1226,7 +1226,7 @@ func (f *DBFinder) StopsByLevelID(ctx context.Context, params []model.StopParam)
 	qents := []*model.Stop{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, params[0].Where), "gtfs_levels", "id", "level_id", ids),
+		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "gtfs_levels", "id", "level_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1254,7 +1254,7 @@ func (f *DBFinder) TripsByFeedVersionID(ctx context.Context, params []model.Trip
 	qents := []*model.Trip{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(TripSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(TripSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1310,7 +1310,7 @@ func (f *DBFinder) RoutesByFeedVersionID(ctx context.Context, params []model.Rou
 	qents := []*model.Route{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1366,7 +1366,7 @@ func (f *DBFinder) PathwaysByFromStopID(ctx context.Context, params []model.Path
 	qents := []*model.Pathway{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(PathwaySelect(params[0].Limit, nil, nil, params[0].Where), "gtfs_stops", "id", "from_stop_id", ids),
+		lateralWrap(PathwaySelect(params[0].Limit, nil, nil, nil, params[0].Where), "gtfs_stops", "id", "from_stop_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1394,7 +1394,7 @@ func (f *DBFinder) PathwaysByToStopID(ctx context.Context, params []model.Pathwa
 	qents := []*model.Pathway{}
 	err := Select(ctx,
 		f.db,
-		lateralWrap(PathwaySelect(params[0].Limit, nil, nil, params[0].Where), "gtfs_stops", "id", "to_stop_id", ids),
+		lateralWrap(PathwaySelect(params[0].Limit, nil, nil, nil, params[0].Where), "gtfs_stops", "id", "to_stop_id", ids),
 		&qents,
 	)
 	if err != nil {

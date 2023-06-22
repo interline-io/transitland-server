@@ -21,7 +21,7 @@ func (r *queryResolver) Agencies(ctx context.Context, limit *int, after *int, id
 		cursor = &c
 	}
 	addMetric(ctx, "agencies")
-	return r.finder.FindAgencies(ctx, limit, cursor, ids, where)
+	return r.finder.FindAgencies(ctx, limit, cursor, ids, nil, where)
 }
 
 func (r *queryResolver) Routes(ctx context.Context, limit *int, after *int, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
@@ -31,7 +31,7 @@ func (r *queryResolver) Routes(ctx context.Context, limit *int, after *int, ids 
 		cursor = &c
 	}
 	addMetric(ctx, "routes")
-	return r.finder.FindRoutes(ctx, limit, cursor, ids, where)
+	return r.finder.FindRoutes(ctx, limit, cursor, ids, nil, where)
 }
 
 func (r *queryResolver) Stops(ctx context.Context, limit *int, after *int, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
@@ -41,7 +41,7 @@ func (r *queryResolver) Stops(ctx context.Context, limit *int, after *int, ids [
 		cursor = &c
 	}
 	addMetric(ctx, "stops")
-	return r.finder.FindStops(ctx, limit, cursor, ids, where)
+	return r.finder.FindStops(ctx, limit, cursor, ids, nil, where)
 }
 
 func (r *queryResolver) Trips(ctx context.Context, limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
@@ -51,7 +51,7 @@ func (r *queryResolver) Trips(ctx context.Context, limit *int, after *int, ids [
 		cursor = &c
 	}
 	addMetric(ctx, "trips")
-	return r.finder.FindTrips(ctx, limit, cursor, ids, where)
+	return r.finder.FindTrips(ctx, limit, cursor, ids, nil, where)
 }
 
 func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
@@ -61,7 +61,7 @@ func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int
 		cursor = &c
 	}
 	addMetric(ctx, "feedVersions")
-	return r.finder.FindFeedVersions(ctx, limit, cursor, ids, where)
+	return r.finder.FindFeedVersions(ctx, limit, cursor, ids, nil, where)
 }
 
 func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
@@ -71,7 +71,7 @@ func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids [
 		cursor = &c
 	}
 	addMetric(ctx, "feeds")
-	return r.finder.FindFeeds(ctx, limit, cursor, ids, where)
+	return r.finder.FindFeeds(ctx, limit, cursor, ids, nil, where)
 }
 
 func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
@@ -81,7 +81,7 @@ func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, i
 		cursor = &c
 	}
 	addMetric(ctx, "operators")
-	return r.finder.FindOperators(ctx, limit, cursor, ids, where)
+	return r.finder.FindOperators(ctx, limit, cursor, ids, nil, where)
 }
 
 func (r *queryResolver) Places(ctx context.Context, limit *int, after *int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {
@@ -90,7 +90,7 @@ func (r *queryResolver) Places(ctx context.Context, limit *int, after *int, leve
 		c := model.NewCursor(0, *after)
 		cursor = &c
 	}
-	return r.finder.FindPlaces(ctx, limit, cursor, nil, level, where)
+	return r.finder.FindPlaces(ctx, limit, cursor, nil, level, nil, where)
 }
 
 func addMetric(ctx context.Context, resolverName string) {
