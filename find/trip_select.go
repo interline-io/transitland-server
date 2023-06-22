@@ -67,11 +67,11 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	if len(ids) > 0 {
 		qView = qView.Where(sq.Eq{"t.id": ids})
 	}
-	if after != nil && after.Valid {
+	if after != nil && after.Valid && after.ID > 0 {
 		if after.FeedVersionID == 0 {
-			qView = qView.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (select feed_version_id,id from gtfs_trips where id = ?)", after.ID))
+			qView = qView.Where(sq.Expr("(t.feed_version_id, t.id) > (select feed_version_id,id from gtfs_trips where id = ?)", after.ID))
 		} else {
-			qView = qView.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (?,?)", after.FeedVersionID, after.ID))
+			qView = qView.Where(sq.Expr("(t.feed_version_id, t.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
 	}
 	qView = qView.Limit(checkLimit(limit))
