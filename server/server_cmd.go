@@ -217,7 +217,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// Create Finder
-	dbFinder = dbfinder.NewDBFinder(db)
+	dbFinder = dbfinder.NewFinder(db)
 
 	// Create RTFinder
 	if cmd.RedisURL != "" {

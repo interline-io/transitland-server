@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var TestDBFinder model.Finder
+var TestFinder model.Finder
 
 func TestMain(m *testing.M) {
 	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
@@ -19,14 +19,14 @@ func TestMain(m *testing.M) {
 		return
 	}
 	db := MustOpenDB(g)
-	dbf := NewDBFinder(db)
-	TestDBFinder = dbf
+	dbf := NewFinder(db)
+	TestFinder = dbf
 	os.Exit(m.Run())
 }
 
 func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	fvm := map[string]int{}
-	fvs, err := TestDBFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil, nil)
+	fvs, err := TestFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			start, end, best, err := TestDBFinder.FindFeedVersionServiceWindow(context.TODO(), tc.fvid)
+			start, end, best, err := TestFinder.FindFeedVersionServiceWindow(context.TODO(), tc.fvid)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -17,20 +17,20 @@ import (
 
 ////////
 
-type DBFinder struct {
+type Finder struct {
 	Clock clock.Clock
 	db    sqlx.Ext
 }
 
-func NewDBFinder(db sqlx.Ext) *DBFinder {
-	return &DBFinder{db: db}
+func NewFinder(db sqlx.Ext) *Finder {
+	return &Finder{db: db}
 }
 
-func (f *DBFinder) DBX() sqlx.Ext {
+func (f *Finder) DBX() sqlx.Ext {
 	return f.db
 }
 
-func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.AgencyFilter) ([]*model.Agency, error) {
+func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.AgencyFilter) ([]*model.Agency, error) {
 	var ents []*model.Agency
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
@@ -43,7 +43,7 @@ func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *model.Cu
 	return ents, nil
 }
 
-func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.RouteFilter) ([]*model.Route, error) {
+func (f *Finder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.RouteFilter) ([]*model.Route, error) {
 	var ents []*model.Route
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
@@ -56,7 +56,7 @@ func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *model.Curs
 	return ents, nil
 }
 
-func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.StopFilter) ([]*model.Stop, error) {
+func (f *Finder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.StopFilter) ([]*model.Stop, error) {
 	var ents []*model.Stop
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
@@ -69,7 +69,7 @@ func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *model.Curso
 	return ents, nil
 }
 
-func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.TripFilter) ([]*model.Trip, error) {
+func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.TripFilter) ([]*model.Trip, error) {
 	var ents []*model.Trip
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) || (where != nil && len(where.RouteIds) > 0) {
@@ -82,7 +82,7 @@ func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Curso
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
+func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
 	if err := Select(ctx, f.db, FeedVersionSelect(limit, after, ids, permFilter, where), &ents); err != nil {
 		return nil, logErr(err)
@@ -90,7 +90,7 @@ func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *mode
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) ([]*model.Feed, error) {
+func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) ([]*model.Feed, error) {
 	var ents []*model.Feed
 	if err := Select(ctx, f.db, FeedSelect(limit, after, ids, permFilter, where), &ents); err != nil {
 		return nil, logErr(err)
@@ -98,7 +98,7 @@ func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Curso
 	return ents, nil
 }
 
-func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) ([]*model.Operator, error) {
+func (f *Finder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
 	if err := Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, permFilter, where), &ents); err != nil {
 		return nil, logErr(err)
@@ -106,7 +106,7 @@ func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.C
 	return ents, nil
 }
 
-func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) ([]*model.Place, error) {
+func (f *Finder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) ([]*model.Place, error) {
 	var ents []*model.Place
 	q := PlaceSelect(limit, after, ids, level, permFilter, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
@@ -115,7 +115,7 @@ func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Curs
 	return ents, nil
 }
 
-func (f *DBFinder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBufferParam) ([]*model.RouteStopBuffer, error) {
+func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBufferParam) ([]*model.RouteStopBuffer, error) {
 	if param == nil {
 		return nil, nil
 	}
@@ -129,7 +129,7 @@ func (f *DBFinder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBu
 
 // Custom queries
 
-func (f *DBFinder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (time.Time, time.Time, time.Time, error) {
+func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (time.Time, time.Time, time.Time, error) {
 	type fvslQuery struct {
 		FetchedAt    tl.Time
 		StartDate    tl.Time
@@ -243,7 +243,7 @@ func (f *DBFinder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (
 
 // Loaders
 
-func (f *DBFinder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip, errs []error) {
+func (f *Finder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip, errs []error) {
 	ents, err := f.FindTrips(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
@@ -252,7 +252,7 @@ func (f *DBFinder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip
 }
 
 // Simple ID loaders
-func (f *DBFinder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []error) {
+func (f *Finder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []error) {
 	var ents []*model.Level
 	err := Select(ctx,
 		f.db,
@@ -265,7 +265,7 @@ func (f *DBFinder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, [
 	return arrangeBy(ids, ents, func(ent *model.Level) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
+func (f *Finder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
 	var ents []*model.Calendar
 	err := Select(ctx,
 		f.db,
@@ -278,7 +278,7 @@ func (f *DBFinder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calen
 	return arrangeBy(ids, ents, func(ent *model.Calendar) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []error) {
+func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []error) {
 	var ents []*model.Shape
 	err := Select(ctx,
 		f.db,
@@ -291,7 +291,7 @@ func (f *DBFinder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, [
 	return arrangeBy(ids, ents, func(ent *model.Shape) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
+func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
 	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
@@ -299,7 +299,7 @@ func (f *DBFinder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.Fe
 	return arrangeBy(ids, ents, func(ent *model.FeedVersion) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
+func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
 	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
@@ -307,7 +307,7 @@ func (f *DBFinder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []e
 	return arrangeBy(ids, ents, func(ent *model.Feed) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) StopExternalReferencesByStopID(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
+func (f *Finder) StopExternalReferencesByStopID(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
 	var ents []*model.StopExternalReference
 	q := sq.StatementBuilder.Select("*").From("tl_stop_external_references").Where(sq.Eq{"id": ids})
 	if err := Select(ctx, f.db, q, &ents); err != nil {
@@ -324,7 +324,7 @@ func (f *DBFinder) StopExternalReferencesByStopID(ctx context.Context, ids []int
 	return ents2, nil
 }
 
-func (f *DBFinder) StopObservationsByStopID(ctx context.Context, params []model.StopObservationParam) ([][]*model.StopObservation, []error) {
+func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.StopObservationParam) ([][]*model.StopObservation, []error) {
 	type wrappedStopObservation struct {
 		StopID int
 		model.StopObservation
@@ -370,7 +370,7 @@ func (f *DBFinder) StopObservationsByStopID(ctx context.Context, params []model.
 	return ret, nil
 }
 
-func (f *DBFinder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*model.RouteAttribute, []error) {
+func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*model.RouteAttribute, []error) {
 	var ents []*model.RouteAttribute
 	q := sq.StatementBuilder.Select("*").From("ext_plus_route_attributes").Where(sq.Eq{"route_id": ids})
 	if err := Select(ctx, f.db, q, &ents); err != nil {
@@ -387,7 +387,7 @@ func (f *DBFinder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*
 	return ents2, nil
 }
 
-func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
+func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
 	var ents []*model.Agency
 	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
@@ -397,7 +397,7 @@ func (f *DBFinder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency
 
 }
 
-func (f *DBFinder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
+func (f *Finder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
 	ents, err := f.FindStops(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
@@ -405,7 +405,7 @@ func (f *DBFinder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []e
 	return arrangeBy(ids, ents, func(ent *model.Stop) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
+func (f *Finder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
 	ents, err := f.FindRoutes(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
 		return nil, logExtendErr(len(ids), err)
@@ -413,7 +413,7 @@ func (f *DBFinder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, [
 	return arrangeBy(ids, ents, func(ent *model.Route) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) CensusTableByID(ctx context.Context, ids []int) ([]*model.CensusTable, []error) {
+func (f *Finder) CensusTableByID(ctx context.Context, ids []int) ([]*model.CensusTable, []error) {
 	var ents []*model.CensusTable
 	err := Select(ctx,
 		f.db,
@@ -426,7 +426,7 @@ func (f *DBFinder) CensusTableByID(ctx context.Context, ids []int) ([]*model.Cen
 	return arrangeBy(ids, ents, func(ent *model.CensusTable) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
+func (f *Finder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
 	var ents []*model.FeedVersionGtfsImport
 	err := Select(ctx,
 		f.db,
@@ -439,7 +439,7 @@ func (f *DBFinder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, id
 	return arrangeBy(ids, ents, func(ent *model.FeedVersionGtfsImport) int { return ent.FeedVersionID }), nil
 }
 
-func (f *DBFinder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
+func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
 	var ents []*model.FeedState
 	err := Select(ctx,
 		f.db,
@@ -452,7 +452,7 @@ func (f *DBFinder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.
 	return arrangeBy(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
 }
 
-func (f *DBFinder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Operator, []error) {
+func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Operator, []error) {
 	var ents []*model.Operator
 	err := Select(ctx,
 		f.db,
@@ -465,7 +465,7 @@ func (f *DBFinder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Ope
 	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.ID }), nil
 }
 
-func (f *DBFinder) OperatorsByOnestopID(ctx context.Context, ids []string) ([]*model.Operator, []error) {
+func (f *Finder) OperatorsByOnestopID(ctx context.Context, ids []string) ([]*model.Operator, []error) {
 	var ents []*model.Operator
 	err := Select(ctx,
 		f.db,
@@ -478,7 +478,7 @@ func (f *DBFinder) OperatorsByOnestopID(ctx context.Context, ids []string) ([]*m
 	return arrangeBy(ids, ents, func(ent *model.Operator) string { return ent.OnestopID.Val }), nil
 }
 
-func (f *DBFinder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.Operator, []error) {
+func (f *Finder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.Operator, []error) {
 	var ents []*model.Operator
 	err := Select(ctx,
 		f.db,
@@ -493,7 +493,7 @@ func (f *DBFinder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model
 
 // Param loaders
 
-func (f *DBFinder) OperatorsByFeedID(ctx context.Context, params []model.OperatorParam) ([][]*model.Operator, []error) {
+func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorParam) ([][]*model.Operator, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -523,7 +523,7 @@ func (f *DBFinder) OperatorsByFeedID(ctx context.Context, params []model.Operato
 	return ents, nil
 }
 
-func (f *DBFinder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
+func (f *Finder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -573,7 +573,7 @@ func (f *DBFinder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedF
 	return ents, nil
 }
 
-func (f *DBFinder) FeedsByOperatorOnestopID(ctx context.Context, params []model.FeedParam) ([][]*model.Feed, []error) {
+func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.FeedParam) ([][]*model.Feed, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -617,7 +617,7 @@ func (f *DBFinder) FeedsByOperatorOnestopID(ctx context.Context, params []model.
 	return ents, nil
 }
 
-func (f *DBFinder) FrequenciesByTripID(ctx context.Context, params []model.FrequencyParam) ([][]*model.Frequency, []error) {
+func (f *Finder) FrequenciesByTripID(ctx context.Context, params []model.FrequencyParam) ([][]*model.Frequency, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -645,7 +645,7 @@ func (f *DBFinder) FrequenciesByTripID(ctx context.Context, params []model.Frequ
 	return ents, nil
 }
 
-func (f *DBFinder) StopTimesByTripID(ctx context.Context, params []model.TripStopTimeParam) ([][]*model.StopTime, []error) {
+func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopTimeParam) ([][]*model.StopTime, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -682,7 +682,7 @@ func (f *DBFinder) StopTimesByTripID(ctx context.Context, params []model.TripSto
 	return ret, nil
 }
 
-func (f *DBFinder) StopTimesByStopID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {
+func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -754,7 +754,7 @@ func (f *DBFinder) StopTimesByStopID(ctx context.Context, params []model.StopTim
 	return ents, nil
 }
 
-func (f *DBFinder) RouteStopsByStopID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
+func (f *Finder) RouteStopsByStopID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -782,7 +782,7 @@ func (f *DBFinder) RouteStopsByStopID(ctx context.Context, params []model.RouteS
 	return ents, nil
 }
 
-func (f *DBFinder) StopsByRouteID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
+func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
 	type qEnt struct {
 		RouteID int
 		model.Stop
@@ -816,7 +816,7 @@ func (f *DBFinder) StopsByRouteID(ctx context.Context, params []model.StopParam)
 	return ents, nil
 }
 
-func (f *DBFinder) RouteStopsByRouteID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
+func (f *Finder) RouteStopsByRouteID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -844,7 +844,7 @@ func (f *DBFinder) RouteStopsByRouteID(ctx context.Context, params []model.Route
 	return ents, nil
 }
 
-func (f *DBFinder) RouteHeadwaysByRouteID(ctx context.Context, params []model.RouteHeadwayParam) ([][]*model.RouteHeadway, []error) {
+func (f *Finder) RouteHeadwaysByRouteID(ctx context.Context, params []model.RouteHeadwayParam) ([][]*model.RouteHeadway, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -872,7 +872,7 @@ func (f *DBFinder) RouteHeadwaysByRouteID(ctx context.Context, params []model.Ro
 	return ents, nil
 }
 
-func (f *DBFinder) RouteStopPatternsByRouteID(ctx context.Context, params []model.RouteStopPatternParam) ([][]*model.RouteStopPattern, []error) {
+func (f *Finder) RouteStopPatternsByRouteID(ctx context.Context, params []model.RouteStopPatternParam) ([][]*model.RouteStopPattern, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -907,7 +907,7 @@ func (f *DBFinder) RouteStopPatternsByRouteID(ctx context.Context, params []mode
 	return ents, nil
 }
 
-func (f *DBFinder) FeedVersionFileInfosByFeedVersionID(ctx context.Context, params []model.FeedVersionFileInfoParam) ([][]*model.FeedVersionFileInfo, []error) {
+func (f *Finder) FeedVersionFileInfosByFeedVersionID(ctx context.Context, params []model.FeedVersionFileInfoParam) ([][]*model.FeedVersionFileInfo, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -935,7 +935,7 @@ func (f *DBFinder) FeedVersionFileInfosByFeedVersionID(ctx context.Context, para
 	return ents, nil
 }
 
-func (f *DBFinder) StopsByParentStopID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
+func (f *Finder) StopsByParentStopID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -963,7 +963,7 @@ func (f *DBFinder) StopsByParentStopID(ctx context.Context, params []model.StopP
 	return ents, nil
 }
 
-func (f *DBFinder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
+func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -995,7 +995,7 @@ func (f *DBFinder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model
 	return ents, nil
 }
 
-func (f *DBFinder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
+func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1015,7 +1015,7 @@ func (f *DBFinder) FeedVersionsByFeedID(ctx context.Context, params []model.Feed
 	return groupBy(ids, qents, checkLimit(params[0].Limit), func(ent *model.FeedVersion) int { return ent.FeedID }), nil
 }
 
-func (f *DBFinder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
+func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1047,7 +1047,7 @@ func (f *DBFinder) AgencyPlacesByAgencyID(ctx context.Context, params []model.Ag
 	return ents, nil
 }
 
-func (f *DBFinder) RouteGeometriesByRouteID(ctx context.Context, params []model.RouteGeometryParam) ([][]*model.RouteGeometry, []error) {
+func (f *Finder) RouteGeometriesByRouteID(ctx context.Context, params []model.RouteGeometryParam) ([][]*model.RouteGeometry, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1075,7 +1075,7 @@ func (f *DBFinder) RouteGeometriesByRouteID(ctx context.Context, params []model.
 	return ents, nil
 }
 
-func (f *DBFinder) TripsByRouteID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
+func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1103,7 +1103,7 @@ func (f *DBFinder) TripsByRouteID(ctx context.Context, params []model.TripParam)
 	return ents, nil
 }
 
-func (f *DBFinder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
+func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1131,7 +1131,7 @@ func (f *DBFinder) RoutesByAgencyID(ctx context.Context, params []model.RoutePar
 	return ents, nil
 }
 
-func (f *DBFinder) AgenciesByFeedVersionID(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
+func (f *Finder) AgenciesByFeedVersionID(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1159,7 +1159,7 @@ func (f *DBFinder) AgenciesByFeedVersionID(ctx context.Context, params []model.A
 	return ents, nil
 }
 
-func (f *DBFinder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
+func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1187,7 +1187,7 @@ func (f *DBFinder) AgenciesByOnestopID(ctx context.Context, params []model.Agenc
 	return ents, nil
 }
 
-func (f *DBFinder) StopsByFeedVersionID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
+func (f *Finder) StopsByFeedVersionID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1215,7 +1215,7 @@ func (f *DBFinder) StopsByFeedVersionID(ctx context.Context, params []model.Stop
 	return ents, nil
 }
 
-func (f *DBFinder) StopsByLevelID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
+func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1243,7 +1243,7 @@ func (f *DBFinder) StopsByLevelID(ctx context.Context, params []model.StopParam)
 	return ents, nil
 }
 
-func (f *DBFinder) TripsByFeedVersionID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
+func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1271,7 +1271,7 @@ func (f *DBFinder) TripsByFeedVersionID(ctx context.Context, params []model.Trip
 	return ents, nil
 }
 
-func (f *DBFinder) FeedInfosByFeedVersionID(ctx context.Context, params []model.FeedInfoParam) ([][]*model.FeedInfo, []error) {
+func (f *Finder) FeedInfosByFeedVersionID(ctx context.Context, params []model.FeedInfoParam) ([][]*model.FeedInfo, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1299,7 +1299,7 @@ func (f *DBFinder) FeedInfosByFeedVersionID(ctx context.Context, params []model.
 	return ents, nil
 }
 
-func (f *DBFinder) RoutesByFeedVersionID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
+func (f *Finder) RoutesByFeedVersionID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1327,7 +1327,7 @@ func (f *DBFinder) RoutesByFeedVersionID(ctx context.Context, params []model.Rou
 	return ents, nil
 }
 
-func (f *DBFinder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, params []model.FeedVersionServiceLevelParam) ([][]*model.FeedVersionServiceLevel, []error) {
+func (f *Finder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, params []model.FeedVersionServiceLevelParam) ([][]*model.FeedVersionServiceLevel, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1355,7 +1355,7 @@ func (f *DBFinder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, 
 	return ents, nil
 }
 
-func (f *DBFinder) PathwaysByFromStopID(ctx context.Context, params []model.PathwayParam) ([][]*model.Pathway, []error) {
+func (f *Finder) PathwaysByFromStopID(ctx context.Context, params []model.PathwayParam) ([][]*model.Pathway, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1383,7 +1383,7 @@ func (f *DBFinder) PathwaysByFromStopID(ctx context.Context, params []model.Path
 	return ents, nil
 }
 
-func (f *DBFinder) PathwaysByToStopID(ctx context.Context, params []model.PathwayParam) ([][]*model.Pathway, []error) {
+func (f *Finder) PathwaysByToStopID(ctx context.Context, params []model.PathwayParam) ([][]*model.Pathway, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1411,7 +1411,7 @@ func (f *DBFinder) PathwaysByToStopID(ctx context.Context, params []model.Pathwa
 	return ents, nil
 }
 
-func (f *DBFinder) CalendarDatesByServiceID(ctx context.Context, params []model.CalendarDateParam) ([][]*model.CalendarDate, []error) {
+func (f *Finder) CalendarDatesByServiceID(ctx context.Context, params []model.CalendarDateParam) ([][]*model.CalendarDate, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1439,7 +1439,7 @@ func (f *DBFinder) CalendarDatesByServiceID(ctx context.Context, params []model.
 	return ents, nil
 }
 
-func (f *DBFinder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.Polygon, []error) {
+func (f *Finder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.Polygon, []error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -1458,7 +1458,7 @@ func (f *DBFinder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*t
 	return ents, nil
 }
 
-func (f *DBFinder) CensusGeographiesByEntityID(ctx context.Context, params []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
+func (f *Finder) CensusGeographiesByEntityID(ctx context.Context, params []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}
@@ -1481,7 +1481,7 @@ func (f *DBFinder) CensusGeographiesByEntityID(ctx context.Context, params []mod
 	return ents, nil
 }
 
-func (f *DBFinder) CensusValuesByGeographyID(ctx context.Context, params []model.CensusValueParam) ([][]*model.CensusValue, []error) {
+func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.CensusValueParam) ([][]*model.CensusValue, []error) {
 	if len(params) == 0 {
 		return nil, nil
 	}

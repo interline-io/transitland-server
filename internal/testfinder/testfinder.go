@@ -48,7 +48,7 @@ func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) TestEnv {
 	if db == nil {
 		db = dbfinder.MustOpenDB(g)
 	}
-	dbf := dbfinder.NewDBFinder(db)
+	dbf := dbfinder.NewFinder(db)
 	dbf.Clock = cl
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
@@ -92,7 +92,7 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestE
 	defer tx.Rollback()
 
 	// Configure finders
-	dbf := dbfinder.NewDBFinder(tx)
+	dbf := dbfinder.NewFinder(tx)
 	dbf.Clock = cl
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), tx)
 	rtf.Clock = cl

@@ -157,7 +157,7 @@ func withWaitAndCapacity[
 	return dataloader.NewBatchedLoader(unwrapResult(cb), dataloader.WithWait[ParamT, T](d), dataloader.WithBatchCapacity[ParamT, T](size))
 }
 
-// unwrap function adapts existing DBFinder methods to dataloader Result type
+// unwrap function adapts existing Finder methods to dataloader Result type
 func unwrapResult[
 	T any,
 	ParamT comparable,
