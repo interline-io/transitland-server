@@ -11,9 +11,9 @@ import (
 )
 
 func Test_valhallaRouter(t *testing.T) {
-	fdir := "../test/fixtures/valhalla"
+	fdir := testutil.RelPath("test/fixtures/valhalla")
 	tcs := []testCase{
-		{"ped", basicTests["ped"], true, 3130, 4.387, "../test/fixtures/response/val_ped.json"},
+		{"ped", basicTests["ped"], true, 3130, 4.387, testutil.RelPath("test/fixtures/response/val_ped.json")},
 		{"bike", basicTests["bike"], true, 1132, 4.912, ""},
 		{"auto", basicTests["auto"], true, 1037, 5.133, ""},
 		{"transit", basicTests["transit"], false, 0, 0, ""}, // unsupported mode

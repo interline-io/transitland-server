@@ -12,6 +12,7 @@ import (
 
 	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
@@ -1323,7 +1324,7 @@ func newTestChecker(t testing.TB, testData []testTuple) *Checker {
 	dbx := te.Finder.DBX()
 	cfg := AuthzConfig{
 		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
-		FGALoadModelFile: "../test/authz/tls.json",
+		FGALoadModelFile: testutil.RelPath("test/authz/tls.json"),
 		GlobalAdmin:      "global_admin",
 	}
 

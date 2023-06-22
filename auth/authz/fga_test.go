@@ -7,13 +7,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func newTestFGAClient(t testing.TB, testTuples []testTuple) *FGAClient {
 	cfg := AuthzConfig{
 		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
-		FGALoadModelFile: "../test/authz/tls.json",
+		FGALoadModelFile: testutil.RelPath("test/authz/tls.json"),
 	}
 	fgac, err := NewFGAClient(cfg.FGAEndpoint, "", "")
 	if err != nil {
