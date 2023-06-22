@@ -31,10 +31,10 @@ import (
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/metrics"
 	"github.com/interline-io/transitland-server/internal/playground"
-	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/rest"
+	"github.com/interline-io/transitland-server/workers"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 )
