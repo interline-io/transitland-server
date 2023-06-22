@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -1434,18 +1434,18 @@ func (u testUser) IsValid() bool { return true }
 
 func (u testUser) Roles() []string { return nil }
 
-func (u testUser) WithExternalIDs(map[string]string) auth.User {
+func (u testUser) WithExternalIDs(map[string]string) authn.User {
 	return u
 }
 
-func (u testUser) WithRoles(...string) auth.User {
+func (u testUser) WithRoles(...string) authn.User {
 	return u
 }
 
 func testUserCtx(first ...string) context.Context {
 	for _, u := range first {
 		if u != "" {
-			return auth.WithUser(context.Background(), newTestUser(u))
+			return authn.WithUser(context.Background(), newTestUser(u))
 		}
 	}
 	return context.Background()

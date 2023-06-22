@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 )
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
@@ -20,7 +20,7 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	restSrv = auth.AdminDefaultMiddleware("test")(restSrv)
+	restSrv = authn.AdminDefaultMiddleware("test")(restSrv)
 
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feed_versions/d2813c293bcfd7a97dde599527ae6c62c98e66c6/download", nil)

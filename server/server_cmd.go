@@ -21,7 +21,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
@@ -55,7 +55,7 @@ type Command struct {
 	SecretsFile       string
 	metersConfig      metersConfig
 	metricsConfig     metricsConfig
-	AuthConfig        auth.AuthConfig
+	AuthConfig        authn.AuthConfig
 	AuthzConfig       authz.AuthzConfig
 	config.Config
 }
@@ -241,7 +241,7 @@ func (cmd *Command) Run() error {
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
-		if userMiddleware, err := auth.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
+		if userMiddleware, err := authn.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
 			return err
 		} else {
 			root.Use(userMiddleware)
@@ -283,7 +283,7 @@ func (cmd *Command) Run() error {
 			return err
 		}
 		r := chi.NewRouter()
-		r.Use(auth.UserRequired)
+		r.Use(authn.UserRequired)
 		r.Mount("/", adminServer)
 		root.Mount("/admin", r)
 	}
@@ -298,7 +298,7 @@ func (cmd *Command) Run() error {
 		r := chi.NewRouter()
 		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("graphql")))
 		r.Use(meters.WithMeter(meterProvider, "graphql", 1.0, nil))
-		r.Use(auth.UserRequired)
+		r.Use(authn.UserRequired)
 		r.Mount("/", graphqlServer)
 		root.Mount("/query", r)
 	}
@@ -312,7 +312,7 @@ func (cmd *Command) Run() error {
 		r := chi.NewRouter()
 		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("rest")))
 		r.Use(meters.WithMeter(meterProvider, "rest", 1.0, nil))
-		r.Use(auth.UserRequired)
+		r.Use(authn.UserRequired)
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)
 	}
@@ -344,7 +344,7 @@ func (cmd *Command) Run() error {
 			}
 			// Mount with admin permissions required
 			r := chi.NewRouter()
-			r.Use(auth.AdminRequired)
+			r.Use(authn.AdminRequired)
 			r.Mount("/", jobServer)
 			root.Mount("/jobs", r)
 		}

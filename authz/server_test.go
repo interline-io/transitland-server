@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -381,7 +381,7 @@ func TestServer(t *testing.T) {
 
 func testServerWithUser(c *Checker, tk testTuple) http.Handler {
 	srv, _ := NewServer(c)
-	srv = auth.UserDefaultMiddleware(stringOr(tk.CheckAsUser, tk.Subject.Name))(srv)
+	srv = authn.UserDefaultMiddleware(stringOr(tk.CheckAsUser, tk.Subject.Name))(srv)
 	return srv
 }
 

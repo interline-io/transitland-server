@@ -13,7 +13,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 )
 
 // log request and duration
@@ -23,7 +23,7 @@ func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 			ctx := r.Context()
 			t1 := time.Now()
 			userName := ""
-			if user := auth.ForContext(ctx); user != nil {
+			if user := authn.ForContext(ctx); user != nil {
 				userName = user.Name()
 			}
 			// Get request body for logging if request is json and length under 20kb

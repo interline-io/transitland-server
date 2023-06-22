@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 )
 
@@ -103,7 +103,7 @@ func (c *Checker) User(ctx context.Context, req *UserRequest) (*UserResponse, er
 }
 
 func (c *Checker) CheckGlobalAdmin(ctx context.Context) (bool, error) {
-	return c.checkGlobalAdmin(auth.ForContext(ctx)), nil
+	return c.checkGlobalAdmin(authn.ForContext(ctx)), nil
 }
 
 func (c *Checker) hydrateUsers(ctx context.Context, users []*User) ([]*User, error) {
@@ -556,7 +556,7 @@ func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *FeedVers
 // ///////////////////
 
 func (c *Checker) listCtxObjects(ctx context.Context, objectType ObjectType, action Action) ([]int64, error) {
-	checkUser := auth.ForContext(ctx)
+	checkUser := authn.ForContext(ctx)
 	if checkUser == nil {
 		return nil, ErrUnauthorized
 	}
@@ -601,7 +601,7 @@ func (c *Checker) checkActionOrError(ctx context.Context, checkAction Action, ob
 }
 
 func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) (bool, error) {
-	checkUser := auth.ForContext(ctx)
+	checkUser := authn.ForContext(ctx)
 	if checkUser == nil {
 		return false, ErrUnauthorized
 	}
@@ -616,7 +616,7 @@ func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj Entit
 	return ret, err
 }
 
-func (c *Checker) checkGlobalAdmin(checkUser auth.User) bool {
+func (c *Checker) checkGlobalAdmin(checkUser authn.User) bool {
 	if c == nil {
 		return false
 	}

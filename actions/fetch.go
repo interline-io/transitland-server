@@ -13,14 +13,14 @@ import (
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 	"google.golang.org/protobuf/proto"
 )
 
-func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user auth.User, checker *authz.Checker) (*model.FeedVersionFetchResult, error) {
+func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user authn.User, checker *authz.Checker) (*model.FeedVersionFetchResult, error) {
 	// Check feed exists
 	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {

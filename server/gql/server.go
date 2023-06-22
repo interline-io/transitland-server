@@ -7,7 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
 	generated "github.com/interline-io/transitland-server/generated/gqlgen"
@@ -25,7 +25,7 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 		authzChecker: checker,
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
-		user := auth.ForContext(ctx)
+		user := authn.ForContext(ctx)
 		if user == nil || !user.HasRole(string(role)) {
 			return nil, fmt.Errorf("access denied")
 		}

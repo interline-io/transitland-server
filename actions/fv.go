@@ -9,13 +9,13 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/authn"
 	"github.com/interline-io/transitland-server/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionImportResult, error) {
+func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user authn.User, fvid int) (*model.FeedVersionImportResult, error) {
 	if checker != nil {
 		if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 			return nil, err
@@ -38,7 +38,7 @@ func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder,
 	return &mr, nil
 }
 
-func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionUnimportResult, error) {
+func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user authn.User, fvid int) (*model.FeedVersionUnimportResult, error) {
 	if checker != nil {
 		if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 			return nil, err
@@ -58,7 +58,7 @@ func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finde
 	return &mr, nil
 }
 
-func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int, values model.FeedVersionSetInput) error {
+func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user authn.User, fvid int, values model.FeedVersionSetInput) error {
 	if checker != nil {
 		if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 			return err
@@ -91,7 +91,7 @@ func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder,
 	return nil
 }
 
-func FeedVersionDelete(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionDeleteResult, error) {
+func FeedVersionDelete(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user authn.User, fvid int) (*model.FeedVersionDeleteResult, error) {
 	if checker != nil {
 		if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 			return nil, err
