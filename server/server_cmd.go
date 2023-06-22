@@ -33,8 +33,8 @@ import (
 	"github.com/interline-io/transitland-server/internal/playground"
 	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/interline-io/transitland-server/resolvers"
-	"github.com/interline-io/transitland-server/rest"
+	"github.com/interline-io/transitland-server/server/gql"
+	"github.com/interline-io/transitland-server/server/rest"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 )
@@ -289,7 +289,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// GraphQL API
-	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
+	graphqlServer, err := gql.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
 	if err != nil {
 		return err
 	}

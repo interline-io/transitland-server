@@ -16,7 +16,7 @@ model:
 resolver:
   layout: follow-schema
   package: resolvers
-  filename_template: "{name}.resolvers.go"
+  filename_template: "{name}.gql.go"
 
 # Optional: turn on to use []Thing instead of []*Thing
 # omit_slice_element_pointers: false
