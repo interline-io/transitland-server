@@ -6,7 +6,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedSelect(limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.FeedFilter) sq.SelectBuilder {
+func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("current_feeds t").
@@ -92,8 +92,8 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, userCheck *model.Use
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if userCheck != nil {
-		q = q.Where(sq.Eq{"t.id": userCheck.AllowedFeeds})
+	if permFilter != nil {
+		q = q.Where(sq.Eq{"t.id": permFilter.AllowedFeeds})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"t.id": after.ID})

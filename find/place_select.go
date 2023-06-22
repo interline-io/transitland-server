@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, userCheck *model.UserCheck, where *model.PlaceFilter) sq.SelectBuilder {
+func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) sq.SelectBuilder {
 	var groupKeys []string
 	groupKeys = []string{"adm0name"}
 	if level != nil {
@@ -42,8 +42,8 @@ func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceA
 			q = q.Where(sq.Eq{"name": where.CityName})
 		}
 	}
-	if userCheck != nil {
-		q = q.Where(sq.Or{sq.Eq{"fs.feed_id": userCheck.AllowedFeeds}, sq.Eq{"fs.feed_version_id": userCheck.AllowedFeedVersions}})
+	if permFilter != nil {
+		q = q.Where(sq.Or{sq.Eq{"fs.feed_id": permFilter.AllowedFeeds}, sq.Eq{"fs.feed_version_id": permFilter.AllowedFeedVersions}})
 	}
 	return q
 }

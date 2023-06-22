@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func PathwaySelect(limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.PathwayFilter) sq.SelectBuilder {
+func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.PathwayFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("gtfs_pathways t").
@@ -23,8 +23,8 @@ func PathwaySelect(limit *int, after *model.Cursor, ids []int, userCheck *model.
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"t.id": after.ID})
 	}
-	if userCheck != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": userCheck.AllowedFeeds}, sq.Eq{"feed_versions.id": userCheck.AllowedFeedVersions}})
+	if permFilter != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
 	}
 	return q
 }

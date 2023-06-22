@@ -30,85 +30,85 @@ func (f *DBFinder) DBX() sqlx.Ext {
 	return f.db
 }
 
-func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.AgencyFilter) ([]*model.Agency, error) {
+func (f *DBFinder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.AgencyFilter) ([]*model.Agency, error) {
 	var ents []*model.Agency
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := AgencySelect(limit, after, ids, active, userCheck, where)
+	q := AgencySelect(limit, after, ids, active, permFilter, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.RouteFilter) ([]*model.Route, error) {
+func (f *DBFinder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.RouteFilter) ([]*model.Route, error) {
 	var ents []*model.Route
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := RouteSelect(limit, after, ids, active, userCheck, where)
+	q := RouteSelect(limit, after, ids, active, permFilter, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.StopFilter) ([]*model.Stop, error) {
+func (f *DBFinder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.StopFilter) ([]*model.Stop, error) {
 	var ents []*model.Stop
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := StopSelect(limit, after, ids, active, userCheck, where)
+	q := StopSelect(limit, after, ids, active, permFilter, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.TripFilter) ([]*model.Trip, error) {
+func (f *DBFinder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.TripFilter) ([]*model.Trip, error) {
 	var ents []*model.Trip
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) || (where != nil && len(where.RouteIds) > 0) {
 		active = false
 	}
-	q := TripSelect(limit, after, ids, active, userCheck, where)
+	q := TripSelect(limit, after, ids, active, permFilter, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
+func (f *DBFinder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
-	if err := Select(ctx, f.db, FeedVersionSelect(limit, after, ids, userCheck, where), &ents); err != nil {
+	if err := Select(ctx, f.db, FeedVersionSelect(limit, after, ids, permFilter, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.FeedFilter) ([]*model.Feed, error) {
+func (f *DBFinder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) ([]*model.Feed, error) {
 	var ents []*model.Feed
-	if err := Select(ctx, f.db, FeedSelect(limit, after, ids, userCheck, where), &ents); err != nil {
+	if err := Select(ctx, f.db, FeedSelect(limit, after, ids, permFilter, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, userCheck *model.UserCheck, where *model.OperatorFilter) ([]*model.Operator, error) {
+func (f *DBFinder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
-	if err := Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, userCheck, where), &ents); err != nil {
+	if err := Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, permFilter, where), &ents); err != nil {
 		return nil, logErr(err)
 	}
 	return ents, nil
 }
 
-func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, userCheck *model.UserCheck, where *model.PlaceFilter) ([]*model.Place, error) {
+func (f *DBFinder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) ([]*model.Place, error) {
 	var ents []*model.Place
-	q := PlaceSelect(limit, after, ids, level, userCheck, where)
+	q := PlaceSelect(limit, after, ids, level, permFilter, where)
 	if err := Select(ctx, f.db, q, &ents); err != nil {
 		return nil, err
 	}
@@ -1170,7 +1170,7 @@ func (f *DBFinder) AgenciesByOnestopID(ctx context.Context, params []model.Agenc
 	qents := []*model.Agency{}
 	err := Select(ctx,
 		f.db,
-		AgencySelect(params[0].Limit, nil, nil, true, &model.UserCheck{}, nil).Where(sq.Eq{"onestop_id": ids}), // active=true
+		AgencySelect(params[0].Limit, nil, nil, true, &model.PermFilter{}, nil).Where(sq.Eq{"onestop_id": ids}), // active=true
 		&qents,
 	)
 	if err != nil {

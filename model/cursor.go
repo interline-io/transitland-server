@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type UserCheck struct {
+type PermFilter struct {
 	AllowedFeeds        []int
 	AllowedFeedVersions []int
 }

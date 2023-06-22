@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, userCheck *model.UserCheck, where *model.TripFilter) sq.SelectBuilder {
+func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.TripFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.*",
 		"current_feeds.id AS feed_id",
@@ -58,8 +58,8 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, userChe
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
-	if userCheck != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": userCheck.AllowedFeeds}, sq.Eq{"feed_versions.id": userCheck.AllowedFeedVersions}})
+	if permFilter != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
 	}
 
 	// Outer query

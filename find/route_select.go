@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, userCheck *model.UserCheck, where *model.RouteFilter) sq.SelectBuilder {
+func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.RouteFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_routes.*",
 		"current_feeds.id AS feed_id",
@@ -101,8 +101,8 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, userCh
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"gtfs_routes.id": ids})
 	}
-	if userCheck != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": userCheck.AllowedFeeds}, sq.Eq{"feed_versions.id": userCheck.AllowedFeedVersions}})
+	if permFilter != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		if after.FeedVersionID == 0 {

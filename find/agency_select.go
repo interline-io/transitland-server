@@ -5,7 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, userCheck *model.UserCheck, where *model.AgencyFilter) sq.SelectBuilder {
+func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.AgencyFilter) sq.SelectBuilder {
 	distinct := false
 	q := sq.StatementBuilder.
 		Select(
@@ -82,8 +82,8 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, userC
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
 	}
-	if userCheck != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": userCheck.AllowedFeeds}, sq.Eq{"feed_versions.id": userCheck.AllowedFeedVersions}})
+	if permFilter != nil {
+		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		if after.FeedVersionID == 0 {
