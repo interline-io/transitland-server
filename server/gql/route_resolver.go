@@ -30,11 +30,11 @@ func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tl.Geo
 }
 
 func (r *routeResolver) Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error) {
-	return For(ctx).RouteGeometriesByRouteID.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID, Limit: limit})()
+	return For(ctx).RouteGeometriesByRouteID.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *routeResolver) Trips(ctx context.Context, obj *model.Route, limit *int, where *model.TripFilter) ([]*model.Trip, error) {
-	return For(ctx).TripsByRouteID.Load(ctx, model.TripParam{RouteID: obj.ID, Limit: limit, Where: where})()
+	return For(ctx).TripsByRouteID.Load(ctx, model.TripParam{RouteID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *routeResolver) Agency(ctx context.Context, obj *model.Route) (*model.Agency, error) {
@@ -46,15 +46,15 @@ func (r *routeResolver) FeedVersion(ctx context.Context, obj *model.Route) (*mod
 }
 
 func (r *routeResolver) Stops(ctx context.Context, obj *model.Route, limit *int, where *model.StopFilter) ([]*model.Stop, error) {
-	return For(ctx).StopsByRouteID.Load(ctx, model.StopParam{RouteID: obj.ID, Limit: limit, Where: where})()
+	return For(ctx).StopsByRouteID.Load(ctx, model.StopParam{RouteID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *routeResolver) RouteStops(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteStop, error) {
-	return For(ctx).RouteStopsByRouteID.Load(ctx, model.RouteStopParam{RouteID: obj.ID, Limit: limit})()
+	return For(ctx).RouteStopsByRouteID.Load(ctx, model.RouteStopParam{RouteID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *routeResolver) Headways(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteHeadway, error) {
-	return For(ctx).RouteHeadwaysByRouteID.Load(ctx, model.RouteHeadwayParam{RouteID: obj.ID, Limit: limit})()
+	return For(ctx).RouteHeadwaysByRouteID.Load(ctx, model.RouteHeadwayParam{RouteID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error) {
@@ -71,7 +71,7 @@ func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, r
 }
 
 func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route, active *bool, limit *int) ([]*model.Alert, error) {
-	return r.rtfinder.FindAlertsForRoute(obj, limit, active), nil
+	return r.rtfinder.FindAlertsForRoute(obj, checkLimit(limit), active), nil
 }
 
 func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error) {
@@ -121,7 +121,7 @@ type routePatternResolver struct{ *Resolver }
 
 func (r *routePatternResolver) Trips(ctx context.Context, obj *model.RouteStopPattern, limit *int) ([]*model.Trip, error) {
 	// TODO: N+1 query
-	trips, err := r.finder.FindTrips(ctx, limit, nil, nil, nil, &model.TripFilter{StopPatternID: &obj.StopPatternID, RouteIds: []int{obj.RouteID}})
+	trips, err := r.finder.FindTrips(ctx, checkLimit(limit), nil, nil, nil, &model.TripFilter{StopPatternID: &obj.StopPatternID, RouteIds: []int{obj.RouteID}})
 	return trips, err
 }
 

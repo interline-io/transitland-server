@@ -17,19 +17,19 @@ func (r *feedVersionResolver) Cursor(ctx context.Context, obj *model.FeedVersion
 }
 
 func (r *feedVersionResolver) Agencies(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.AgencyFilter) ([]*model.Agency, error) {
-	return For(ctx).AgenciesByFeedVersionID.Load(ctx, model.AgencyParam{FeedVersionID: obj.ID, Limit: limit})()
+	return For(ctx).AgenciesByFeedVersionID.Load(ctx, model.AgencyParam{FeedVersionID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *feedVersionResolver) Routes(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.RouteFilter) ([]*model.Route, error) {
-	return For(ctx).RoutesByFeedVersionID.Load(ctx, model.RouteParam{FeedVersionID: obj.ID, Limit: limit, Where: where})()
+	return For(ctx).RoutesByFeedVersionID.Load(ctx, model.RouteParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *feedVersionResolver) Stops(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.StopFilter) ([]*model.Stop, error) {
-	return For(ctx).StopsByFeedVersionID.Load(ctx, model.StopParam{FeedVersionID: obj.ID, Limit: limit, Where: where})()
+	return For(ctx).StopsByFeedVersionID.Load(ctx, model.StopParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *feedVersionResolver) Trips(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.TripFilter) ([]*model.Trip, error) {
-	return For(ctx).TripsByFeedVersionID.Load(ctx, model.TripParam{FeedVersionID: obj.ID, Limit: limit, Where: where})()
+	return For(ctx).TripsByFeedVersionID.Load(ctx, model.TripParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *feedVersionResolver) Feed(ctx context.Context, obj *model.FeedVersion) (*model.Feed, error) {
@@ -42,7 +42,7 @@ func (r *feedVersionResolver) Geometry(ctx context.Context, obj *model.FeedVersi
 }
 
 func (r *feedVersionResolver) Files(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedVersionFileInfo, error) {
-	return For(ctx).FeedVersionFileInfosByFeedVersionID.Load(ctx, model.FeedVersionFileInfoParam{FeedVersionID: obj.ID, Limit: limit})()
+	return For(ctx).FeedVersionFileInfosByFeedVersionID.Load(ctx, model.FeedVersionFileInfoParam{FeedVersionID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *feedVersionResolver) FeedVersionGtfsImport(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionGtfsImport, error) {
@@ -50,11 +50,11 @@ func (r *feedVersionResolver) FeedVersionGtfsImport(ctx context.Context, obj *mo
 }
 
 func (r *feedVersionResolver) ServiceLevels(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.FeedVersionServiceLevelFilter) ([]*model.FeedVersionServiceLevel, error) {
-	return For(ctx).FeedVersionServiceLevelsByFeedVersionID.Load(ctx, model.FeedVersionServiceLevelParam{FeedVersionID: obj.ID, Limit: limit, Where: where})()
+	return For(ctx).FeedVersionServiceLevelsByFeedVersionID.Load(ctx, model.FeedVersionServiceLevelParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *feedVersionResolver) FeedInfos(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedInfo, error) {
-	return For(ctx).FeedInfosByFeedVersionID.Load(ctx, model.FeedInfoParam{FeedVersionID: obj.ID, Limit: limit})()
+	return For(ctx).FeedInfosByFeedVersionID.Load(ctx, model.FeedInfoParam{FeedVersionID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 // FEED VERSION GTFS IMPORT

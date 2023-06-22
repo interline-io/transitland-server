@@ -36,11 +36,11 @@ func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Ca
 }
 
 func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error) {
-	return For(ctx).StopTimesByTripID.Load(ctx, model.TripStopTimeParam{FeedVersionID: obj.FeedVersionID, TripID: obj.ID, Limit: limit, Where: where})()
+	return For(ctx).StopTimesByTripID.Load(ctx, model.TripStopTimeParam{FeedVersionID: obj.FeedVersionID, TripID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {
-	return For(ctx).FrequenciesByTripID.Load(ctx, model.FrequencyParam{TripID: obj.ID, Limit: limit})()
+	return For(ctx).FrequenciesByTripID.Load(ctx, model.FrequencyParam{TripID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
@@ -72,6 +72,6 @@ func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Ti
 }
 
 func (r *tripResolver) Alerts(ctx context.Context, obj *model.Trip, active *bool, limit *int) ([]*model.Alert, error) {
-	rtAlerts := r.rtfinder.FindAlertsForTrip(obj, limit, active)
+	rtAlerts := r.rtfinder.FindAlertsForTrip(obj, checkLimit(limit), active)
 	return rtAlerts, nil
 }

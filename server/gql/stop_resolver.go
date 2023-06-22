@@ -43,19 +43,19 @@ func (r *stopResolver) Parent(ctx context.Context, obj *model.Stop) (*model.Stop
 }
 
 func (r *stopResolver) Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error) {
-	return For(ctx).StopsByParentStopID.Load(ctx, model.StopParam{ParentStopID: obj.ID, Limit: limit})()
+	return For(ctx).StopsByParentStopID.Load(ctx, model.StopParam{ParentStopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error) {
-	return For(ctx).RouteStopsByStopID.Load(ctx, model.RouteStopParam{StopID: obj.ID, Limit: limit})()
+	return For(ctx).RouteStopsByStopID.Load(ctx, model.RouteStopParam{StopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {
-	return For(ctx).PathwaysByFromStopID.Load(ctx, model.PathwayParam{FromStopID: obj.ID, Limit: limit})()
+	return For(ctx).PathwaysByFromStopID.Load(ctx, model.PathwayParam{FromStopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {
-	return For(ctx).PathwaysByToStopID.Load(ctx, model.PathwayParam{ToStopID: obj.ID, Limit: limit})()
+	return For(ctx).PathwaysByToStopID.Load(ctx, model.PathwayParam{ToStopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (*model.StopExternalReference, error) {
@@ -63,7 +63,7 @@ func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (
 }
 
 func (r *stopResolver) Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error) {
-	return For(ctx).StopObservationsByStopID.Load(ctx, model.StopObservationParam{StopID: obj.ID, Where: where, Limit: limit})()
+	return For(ctx).StopObservationsByStopID.Load(ctx, model.StopObservationParam{StopID: obj.ID, Where: where, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
@@ -137,7 +137,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	sts, err := (For(ctx).StopTimesByStopID.Load(ctx, model.StopTimeParam{
 		StopID:        obj.ID,
 		FeedVersionID: obj.FeedVersionID,
-		Limit:         limit,
+		Limit:         checkLimit(limit),
 		Where:         where,
 	})())
 	if err != nil {
@@ -190,7 +190,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 }
 
 func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop, active *bool, limit *int) ([]*model.Alert, error) {
-	rtAlerts := r.rtfinder.FindAlertsForStop(obj, limit, active)
+	rtAlerts := r.rtfinder.FindAlertsForStop(obj, checkLimit(limit), active)
 	return rtAlerts, nil
 }
 
@@ -217,7 +217,7 @@ func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *mo
 
 func (r *stopResolver) NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error) {
 	c := obj.Coordinates()
-	nearbyStops, err := r.finder.FindStops(ctx, limit, nil, nil, nil, &model.StopFilter{Near: &model.PointRadius{Lon: c[0], Lat: c[1], Radius: checkFloat(radius, 0, 10_000)}})
+	nearbyStops, err := r.finder.FindStops(ctx, checkLimit(limit), nil, nil, nil, &model.StopFilter{Near: &model.PointRadius{Lon: c[0], Lat: c[1], Radius: checkFloat(radius, 0, 10_000)}})
 	return nearbyStops, err
 }
 

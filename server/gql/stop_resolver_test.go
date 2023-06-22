@@ -184,7 +184,7 @@ func stopResolverTestcases(t testing.TB, te testfinder.TestEnv) []testcase {
 		},
 		{
 			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit,o-9q9-caltrain",
-			query:        `query{stops(where:{served_by_onestop_ids:["o-9q9-bayarearapidtransit","o-9q9-caltrain"]}) { stop_id } }`,
+			query:        `query{stops(limit:1000,where:{served_by_onestop_ids:["o-9q9-bayarearapidtransit","o-9q9-caltrain"]}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: allStops, // all stops
 		},

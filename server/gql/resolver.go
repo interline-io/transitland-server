@@ -11,6 +11,26 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
+// DEFAULTLIMIT is the default API limit
+const DEFAULTLIMIT = 100
+
+// MAXLIMIT is the API limit maximum
+var MAXLIMIT = 1_000
+
+// checkLimit checks the limit is positive and below the maximum limit.
+func checkLimit(limit *int) *int {
+	a := 0
+	if limit != nil {
+		a = *limit
+	}
+	if a <= 0 {
+		a = DEFAULTLIMIT
+	} else if a >= MAXLIMIT {
+		a = MAXLIMIT
+	}
+	return &a
+}
+
 func atoi(v string) int {
 	a, _ := strconv.Atoi(v)
 	return a

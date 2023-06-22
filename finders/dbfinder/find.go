@@ -18,7 +18,7 @@ import (
 )
 
 // Maximum query result limit
-var MAXLIMIT = 1_000
+var MAXLIMIT = 100_000
 
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
