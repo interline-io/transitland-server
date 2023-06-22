@@ -10,13 +10,13 @@ import (
 	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
-	generated "github.com/interline-io/transitland-server/generated/gqlgen"
 	"github.com/interline-io/transitland-server/internal/fvsl"
+	"github.com/interline-io/transitland-server/internal/generated/gqlout"
 	"github.com/interline-io/transitland-server/model"
 )
 
 func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder, gbfsFinder model.GbfsFinder, checker *authz.Checker) (http.Handler, error) {
-	c := generated.Config{Resolvers: &Resolver{
+	c := gqlout.Config{Resolvers: &Resolver{
 		cfg:          cfg,
 		finder:       dbfinder,
 		rtfinder:     rtfinder,
@@ -32,7 +32,7 @@ func NewServer(cfg config.Config, dbfinder model.Finder, rtfinder model.RTFinder
 		return next(ctx)
 	}
 	// Setup server
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
+	srv := handler.NewDefaultServer(gqlout.NewExecutableSchema(c))
 	graphqlServer := loaderMiddleware(cfg, dbfinder, srv)
 	return graphqlServer, nil
 }

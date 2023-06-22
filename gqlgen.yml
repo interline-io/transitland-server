@@ -4,8 +4,8 @@ schema:
 
 # Where should the generated server code go?
 exec:
-  filename: generated/gqlgen/generated.go
-  package: gqlgen
+  filename: internal/generated/gqlout/generated.go
+  package: gqlout
 
 # Where should any generated models go?
 model:
