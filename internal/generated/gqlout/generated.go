@@ -6017,7 +6017,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../../schema/directions.graphqls", Input: `# Directions API
+	{Name: "../../../schema/directions.graphqls", Input: `# Directions API
 
 input DirectionRequest {
   to: WaypointInput!
@@ -6114,7 +6114,7 @@ enum StepMode {
   LINE
 }
 `, BuiltIn: false},
-	{Name: "../../schema/gbfs.graphqls", Input: `# GBFS
+	{Name: "../../../schema/gbfs.graphqls", Input: `# GBFS
 
 type GbfsFeed {
 	system_information:  GbfsSystemInformation
@@ -6373,7 +6373,7 @@ input GbfsDockRequest {
 	near: PointRadius
 }
 `, BuiltIn: false},
-	{Name: "../../schema/input.graphqls", Input: `
+	{Name: "../../../schema/input.graphqls", Input: `
 # Update inputs
 
 input FeedVersionSetInput {
@@ -6613,7 +6613,7 @@ input PointRadius {
   radius: Float!
 }
 `, BuiltIn: false},
-	{Name: "../../schema/schema.graphqls", Input: `# Scalar types
+	{Name: "../../../schema/schema.graphqls", Input: `# Scalar types
 scalar Tags
 scalar Geometry
 scalar Time
