@@ -117,7 +117,6 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.AuthzConfig.FGAStoreID, "fga-store-id", "", "FGA store")
 	fl.StringVar(&cmd.AuthzConfig.FGAModelID, "fga-model-id", "", "FGA model")
 	fl.StringVar(&cmd.AuthzConfig.FGALoadModelFile, "fga-load-model-file", "", "")
-	fl.StringVar(&cmd.AuthzConfig.FGALoadTupleFile, "fga-load-tuple-file", "", "")
 
 	// Metrics
 	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
