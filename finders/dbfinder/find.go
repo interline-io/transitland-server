@@ -1,102 +1,18 @@
 package dbfinder
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
-	"github.com/jmoiron/sqlx/reflectx"
 )
 
 // Maximum query result limit
 var MAXLIMIT = 100_000
-
-var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
-func toSnakeCase(str string) string {
-	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
-	return strings.ToLower(snake)
-}
-
-func MustOpenDB(url string) *sqlx.DB {
-	db, err := sqlx.Open("postgres", url)
-	if err != nil {
-		log.Fatal().Err(err).Msg("could not open database")
-	}
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-	db.SetConnMaxLifetime(time.Hour)
-	if err := db.Ping(); err != nil {
-		log.Fatal().Err(err).Msgf("could not connect to database")
-	}
-	db.Mapper = reflectx.NewMapperFunc("db", toSnakeCase)
-	return db.Unsafe()
-}
-
-func LogDB(db *sqlx.DB) sqlx.Ext {
-	return &tldb.QueryLogger{Ext: db}
-}
-
-// Select runs a query and reads results into dest.
-func Select(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) error {
-	useStatement := false
-	q = q.PlaceholderFormat(sq.Dollar)
-	qstr, qargs, err := q.ToSql()
-	if err == nil {
-		if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
-			stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
-			if prepareErr != nil {
-				err = prepareErr
-			} else {
-				err = stmt.SelectContext(ctx, dest, qargs...)
-			}
-		} else if a, ok := db.(sqlx.QueryerContext); ok {
-			err = sqlx.SelectContext(ctx, a, dest, qstr, qargs...)
-		} else {
-			err = sqlx.Select(db, dest, qstr, qargs...)
-		}
-	}
-	if err != nil {
-		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
-	}
-	return err
-}
-
-// Select runs a query and reads results into dest.
-func Get(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) error {
-	useStatement := false
-	q = q.PlaceholderFormat(sq.Dollar)
-	qstr, qargs, err := q.ToSql()
-	if err == nil {
-		if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
-			stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
-			if prepareErr != nil {
-				err = prepareErr
-			} else {
-				err = stmt.GetContext(ctx, dest, qargs...)
-			}
-		} else if a, ok := db.(sqlx.QueryerContext); ok {
-			err = sqlx.GetContext(ctx, a, dest, qstr, qargs...)
-		} else {
-			err = sqlx.Get(db, dest, qstr, qargs...)
-		}
-	}
-	if err != nil {
-		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
-	}
-	return err
-}
 
 // helpers
 

@@ -180,9 +180,9 @@ func TestStopResolver_StopTimes_ServiceDate(t *testing.T) {
 			selectExpect: []string{}, // exect no results
 		},
 	}
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			c, _ := newTestClient(t)
 			queryTestcase(t, c, tc)
 		})
 	}
@@ -257,9 +257,9 @@ func TestStopResolver_StopTimes_WindowDates(t *testing.T) {
 			selectExpect: []string{},
 		},
 	}
+	c, _ := newTestClient(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			c, _ := newTestClient(t)
 			queryTestcase(t, c, tc)
 		})
 	}

@@ -5,20 +5,29 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
-	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
 
-var checkerGetTests = []testTuple{
+func TestMain(m *testing.M) {
+	if a, ok := dbutil.CheckTestDB(); !ok {
+		log.Print(a)
+		return
+	}
+	os.Exit(m.Run())
+}
+
+var checkerGetTests = []TestTuple{
 	{
 		Subject: EntityKey{
 			Type: 0,
@@ -47,15 +56,17 @@ var checkerGetTests = []testTuple{
 }
 
 func TestChecker(t *testing.T) {
-	if os.Getenv("TL_TEST_FGA_ENDPOINT") == "" {
-		t.Skip("no TL_TEST_FGA_ENDPOINT set, skipping")
+	fgaUrl, a, ok := dbutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	if !ok {
+		t.Skip(a)
 		return
 	}
-
-	te := testfinder.Finders(t, nil, nil)
-	dbx := te.Finder.DBX()
-
-	checkerTestData := []testTuple{
+	if a, ok := dbutil.CheckTestDB(); !ok {
+		t.Skip(a)
+		return
+	}
+	dbx := dbutil.MustOpenTestDB()
+	checkerTestData := []TestTuple{
 		{
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),
 			Object:   NewEntityKey(GroupType, "CT-group"),
@@ -179,7 +190,7 @@ func TestChecker(t *testing.T) {
 	// Users
 
 	t.Run("UserList", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		tcs := []struct {
 			CheckAsUser string
 			ExpectUsers []string
@@ -218,7 +229,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("User", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		tcs := []struct {
 			CheckAsUser  string
 			ExpectUserId string
@@ -254,8 +265,8 @@ func TestChecker(t *testing.T) {
 
 	// TENANTS
 	t.Run("TenantList", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(TenantType, ""),
@@ -311,8 +322,8 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantPermissions", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
@@ -387,7 +398,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantAddPermission", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:     NewEntityKey(UserType, "test100"),
 				Object:      NewEntityKey(TenantType, "tl-tenant"),
@@ -421,7 +432,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -436,7 +447,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantRemovePermission", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(TenantType, "tl-tenant"),
@@ -462,7 +473,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -477,7 +488,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantSave", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(TenantType, "tl-tenant"),
@@ -502,7 +513,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantSave(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -524,7 +535,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("TenantCreateGroup", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:            NewEntityKey(TenantType, "tl-tenant"),
 				Object:             NewEntityKey(GroupType, "new-group"),
@@ -545,7 +556,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantCreateGroup(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -567,8 +578,8 @@ func TestChecker(t *testing.T) {
 
 	// GROUPS
 	t.Run("GroupList", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(GroupType, ""),
@@ -617,8 +628,8 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupPermissions", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "CT-group"),
@@ -722,7 +733,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupAddPermission", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:     NewEntityKey(UserType, "test100"),
 				Object:      NewEntityKey(GroupType, "HA-group"),
@@ -761,7 +772,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.GroupAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -776,7 +787,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupRemovePermission", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(GroupType, "CT-group"),
@@ -809,7 +820,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.GroupRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -824,7 +835,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("GroupSave", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(GroupType, "CT-group"),
@@ -849,7 +860,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.GroupSave(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -872,8 +883,8 @@ func TestChecker(t *testing.T) {
 
 	// FEEDS
 	t.Run("FeedList", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedType, ""),
@@ -923,8 +934,8 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedPermissions", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(FeedType, "CT"),
@@ -1019,7 +1030,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedSetGroup", func(t *testing.T) {
-		tcs := []testTuple{
+		tcs := []TestTuple{
 			{
 				Subject:     NewEntityKey(FeedType, "BA"),
 				Object:      NewEntityKey(GroupType, "CT-group"),
@@ -1035,7 +1046,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range tcs {
 			t.Run("", func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.FeedSetGroup(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -1059,9 +1070,9 @@ func TestChecker(t *testing.T) {
 
 	// FEED VERSIONS
 	t.Run("FeedVersionList", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		// Only user:tl-tenant-member has permissions explicitly defined
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedVersionType, ""),
@@ -1106,8 +1117,8 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedVersionPermissions", func(t *testing.T) {
-		checker := newTestChecker(t, checkerTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
@@ -1163,7 +1174,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedVersionAddPermission", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
@@ -1208,7 +1219,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.FeedVersionAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -1223,7 +1234,7 @@ func TestChecker(t *testing.T) {
 	})
 
 	t.Run("FeedVersionRemovePermission", func(t *testing.T) {
-		checks := []testTuple{
+		checks := []TestTuple{
 			{
 				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
@@ -1248,7 +1259,7 @@ func TestChecker(t *testing.T) {
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
-				checker := newTestChecker(t, checkerTestData)
+				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.FeedVersionRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
@@ -1320,11 +1331,10 @@ func checkActionsToMap(v []Action) map[string]bool {
 	return ret
 }
 
-func newTestChecker(t testing.TB, testData []testTuple) *Checker {
-	te := testfinder.Finders(t, nil, nil)
-	dbx := te.Finder.DBX()
+func newTestChecker(t testing.TB, url string, testData []TestTuple) *Checker {
+	dbx := dbutil.MustOpenTestDB()
 	cfg := AuthzConfig{
-		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
+		FGAEndpoint:      url,
 		FGALoadModelFile: testutil.RelPath("test/authz/tls.json"),
 		GlobalAdmin:      "global_admin",
 	}

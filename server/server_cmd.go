@@ -27,6 +27,7 @@ import (
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/metrics"
@@ -199,10 +200,13 @@ func (cmd *Command) Run() error {
 
 	// Open database
 	var db sqlx.Ext
-	dbx := dbfinder.MustOpenDB(cfg.DBURL)
+	dbx, err := dbutil.OpenDB(cfg.DBURL)
+	if err != nil {
+		return err
+	}
 	db = dbx
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
-		db = dbfinder.LogDB(dbx)
+		db = dbutil.LogDB(dbx)
 	}
 
 	// Open redis

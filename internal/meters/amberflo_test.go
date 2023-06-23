@@ -4,6 +4,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/interline-io/transitland-server/internal/dbutil"
 )
 
 type amberfloTestUser struct {
@@ -32,9 +34,9 @@ func TestAmberFloMeter(t *testing.T) {
 		"TL_TEST_AMBERFLO_USER3",
 	}
 	for _, k := range checkKeys {
-		v := os.Getenv(k)
-		if v == "" {
-			t.Skipf("key '%s' not set, skipping", k)
+		_, a, ok := dbutil.CheckEnv(k)
+		if !ok {
+			t.Skip(a)
 			return
 		}
 	}

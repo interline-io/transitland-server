@@ -1,13 +1,15 @@
 package authz
 
 import (
-	"os"
 	"testing"
+
+	"github.com/interline-io/transitland-server/internal/dbutil"
 )
 
 func TestAuth0Client(t *testing.T) {
-	if os.Getenv("TL_TEST_AUTH0_DOMAIN") == "" {
-		t.Skip("no TL_TEST_AUTH0_DOMAIN set, skipping")
+	_, a, ok := dbutil.CheckEnv("TL_TEST_AUTH0_DOMAIN")
+	if !ok {
+		t.Skip(a)
 		return
 	}
 }

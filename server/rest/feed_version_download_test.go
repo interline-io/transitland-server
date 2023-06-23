@@ -3,16 +3,17 @@ package rest
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 )
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
-	g := os.Getenv("TL_TEST_STORAGE")
-	if g == "" {
-		t.Skip("TL_TEST_STORAGE not set - skipping")
+	g, a, ok := dbutil.CheckEnv("TL_TEST_STORAGE")
+	if !ok {
+		t.Skip(a)
+		return
 	}
 	srv, te := testRestConfig(t)
 	te.Config.Storage = g
@@ -52,9 +53,10 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 }
 
 func TestFeedDownloadLatestRequest(t *testing.T) {
-	g := os.Getenv("TL_TEST_STORAGE")
-	if g == "" {
-		t.Skip("TL_TEST_STORAGE not set - skipping")
+	g, a, ok := dbutil.CheckEnv("TL_TEST_STORAGE")
+	if !ok {
+		t.Skip(a)
+		return
 	}
 	srv, te := testRestConfig(t)
 	te.Config.Storage = g

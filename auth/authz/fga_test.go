@@ -3,17 +3,20 @@ package authz
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/dbutil"
+	"github.com/interline-io/transitland-server/internal/testauthz"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestFGAClient(t testing.TB, testTuples []testTuple) *FGAClient {
+type TestTuple = testauthz.TestTuple
+
+func newTestFGAClient(t testing.TB, url string, testTuples []TestTuple) *FGAClient {
 	cfg := AuthzConfig{
-		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
+		FGAEndpoint:      url,
 		FGALoadModelFile: testutil.RelPath("test/authz/tls.json"),
 	}
 	fgac, err := NewFGAClient(cfg.FGAEndpoint, "", "")
@@ -35,34 +38,14 @@ func newTestFGAClient(t testing.TB, testTuples []testTuple) *FGAClient {
 	return fgac
 }
 
-type testTuple struct {
-	Subject            EntityKey
-	Object             EntityKey
-	Action             Action
-	Relation           Relation
-	Expect             string
-	Notes              string
-	ExpectError        bool
-	ExpectUnauthorized bool
-	CheckAsUser        string
-	ExpectActions      []Action
-	ExpectKeys         []EntityKey
-}
-
-func (tk *testTuple) TupleKey() TupleKey {
-	return TupleKey{Subject: tk.Subject, Object: tk.Object, Relation: tk.Relation, Action: tk.Action}
-}
-
-func (tk *testTuple) String() string {
-	a := tk.TupleKey().String()
-	if tk.CheckAsUser != "" {
-		a = a + "|checkuser:" + tk.CheckAsUser
-	}
-	return a
-}
-
 func TestFGAClient(t *testing.T) {
-	testData := []testTuple{
+	fgaUrl, a, ok := dbutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	if !ok {
+		t.Skip(a)
+		return
+	}
+
+	testData := []TestTuple{
 		{
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),
 			Object:   NewEntityKey(GroupType, "CT-group"),
@@ -189,14 +172,9 @@ func TestFGAClient(t *testing.T) {
 		},
 	}
 
-	if os.Getenv("TL_TEST_FGA_ENDPOINT") == "" {
-		t.Skip("no TL_TEST_FGA_ENDPOINT set, skipping")
-		return
-	}
-
 	t.Run("GetObjectTuples", func(t *testing.T) {
-		fgac := newTestFGAClient(t, testData)
-		checks := []testTuple{
+		fgac := newTestFGAClient(t, fgaUrl, testData)
+		checks := []TestTuple{
 			{
 				Object: NewEntityKey(TenantType, "tl-tenant"),
 				Expect: "user:tl-tenant-admin:admin user:ian:member user:drew:member user:tl-tenant-member:member",
@@ -228,8 +206,8 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("Check", func(t *testing.T) {
-		fgac := newTestFGAClient(t, testData)
-		checks := []testTuple{
+		fgac := newTestFGAClient(t, fgaUrl, testData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
@@ -500,8 +478,8 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("ListObjects", func(t *testing.T) {
-		fgac := newTestFGAClient(t, testData)
-		checks := []testTuple{
+		fgac := newTestFGAClient(t, fgaUrl, testData)
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedType, ""),
@@ -641,8 +619,8 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("WriteTuple", func(t *testing.T) {
-		fgac := newTestFGAClient(t, testData)
-		checks := []testTuple{
+		fgac := newTestFGAClient(t, fgaUrl, testData)
+		checks := []TestTuple{
 			{
 				Subject:  NewEntityKey(UserType, "test100"),
 				Object:   NewEntityKey(TenantType, "tl-tenant"),
@@ -727,8 +705,8 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("DeleteTuple", func(t *testing.T) {
-		fgac := newTestFGAClient(t, testData)
-		checks := []testTuple{
+		fgac := newTestFGAClient(t, fgaUrl, testData)
+		checks := []TestTuple{
 			{
 				Subject:  NewEntityKey(UserType, "ian"),
 				Object:   NewEntityKey(GroupType, "CT-group"),

@@ -23,7 +23,6 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		// te := testfinder.Finders(t, nil, nil)
 		testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
 			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
 			srv = authn.AdminDefaultMiddleware("test")(srv) // Run all requests as admin

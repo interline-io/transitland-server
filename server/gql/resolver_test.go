@@ -2,13 +2,14 @@ package gql
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -32,9 +33,8 @@ type testcase struct {
 func TestMain(m *testing.M) {
 	// Increase default limit for testing purposes
 	MAXLIMIT = 100_000
-	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
-	if g == "" {
-		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
+	if a, ok := dbutil.CheckTestDB(); !ok {
+		log.Print(a)
 		return
 	}
 	os.Exit(m.Run())

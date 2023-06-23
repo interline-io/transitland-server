@@ -4,26 +4,23 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
-	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
 func TestServer(t *testing.T) {
-	if os.Getenv("TL_TEST_FGA_ENDPOINT") == "" {
-		t.Skip("no TL_TEST_FGA_ENDPOINT set, skipping")
+	fgaUrl, a, ok := dbutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	if !ok {
+		t.Skip(a)
 		return
 	}
-
-	te := testfinder.Finders(t, nil, nil)
-	dbx := te.Finder.DBX()
-
-	serverTestData := []testTuple{
+	dbx := dbutil.MustOpenTestDB()
+	serverTestData := []TestTuple{
 		{
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),
 			Object:   NewEntityKey(GroupType, "BA-group"),
@@ -88,8 +85,8 @@ func TestServer(t *testing.T) {
 
 	// TENANTS
 	t.Run("TenantList", func(t *testing.T) {
-		checker := newTestChecker(t, serverTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
@@ -124,8 +121,8 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("TenantPermissions", func(t *testing.T) {
-		checker := newTestChecker(t, serverTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
@@ -163,8 +160,8 @@ func TestServer(t *testing.T) {
 
 	// GROUPS
 	t.Run("GroupList", func(t *testing.T) {
-		checker := newTestChecker(t, serverTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				ExpectKeys: newEntityKeys(GroupType, "BA-group", "CT-group"),
@@ -195,8 +192,8 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("GroupPermissions", func(t *testing.T) {
-		checker := newTestChecker(t, serverTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "BA-group"),
@@ -234,8 +231,8 @@ func TestServer(t *testing.T) {
 
 	// FEEDS
 	t.Run("FeedList", func(t *testing.T) {
-		checker := newTestChecker(t, serverTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				ExpectKeys: newEntityKeys(TenantType, "BA", "CT"),
@@ -270,8 +267,8 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("FeedPermissions", func(t *testing.T) {
-		checker := newTestChecker(t, serverTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(FeedType, "BA"),
@@ -309,8 +306,8 @@ func TestServer(t *testing.T) {
 
 	// FEED VERSIONS
 	t.Run("FeedVersionList", func(t *testing.T) {
-		checker := newTestChecker(t, serverTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []TestTuple{
 			{
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				ExpectKeys: newEntityKeys(FeedVersionType),
@@ -341,8 +338,8 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("FeedVersionPermissions", func(t *testing.T) {
-		checker := newTestChecker(t, serverTestData)
-		checks := []testTuple{
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []TestTuple{
 			{
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
@@ -380,13 +377,13 @@ func TestServer(t *testing.T) {
 
 }
 
-func testServerWithUser(c *Checker, tk testTuple) http.Handler {
+func testServerWithUser(c *Checker, tk TestTuple) http.Handler {
 	srv, _ := NewServer(c)
 	srv = authn.UserDefaultMiddleware(stringOr(tk.CheckAsUser, tk.Subject.Name))(srv)
 	return srv
 }
 
-func checkHttpExpectError(t testing.TB, tk testTuple, rr *httptest.ResponseRecorder) {
+func checkHttpExpectError(t testing.TB, tk TestTuple, rr *httptest.ResponseRecorder) {
 	status := rr.Code
 	if tk.ExpectUnauthorized {
 		if status != http.StatusUnauthorized {

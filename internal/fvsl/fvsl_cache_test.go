@@ -5,13 +5,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 )
 
 func TestMain(m *testing.M) {
-	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
-	if g == "" {
-		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
+	if a, ok := dbutil.CheckTestDB(); !ok {
+		log.Print(a)
 		return
 	}
 	os.Exit(m.Run())

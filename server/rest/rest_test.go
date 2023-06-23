@@ -3,14 +3,15 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/stretchr/testify/assert"
@@ -21,9 +22,8 @@ func TestMain(m *testing.M) {
 	// Increase limit for test
 	MAXLIMIT = 100_000
 	gql.MAXLIMIT = MAXLIMIT
-	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
-	if g == "" {
-		log.Print("TL_TEST_SERVER_DATABASE_URL not set, skipping")
+	if a, ok := dbutil.CheckTestDB(); !ok {
+		log.Print(a)
 		return
 	}
 	os.Exit(m.Run())

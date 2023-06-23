@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http/httptest"
-	"os"
 	"testing"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/internal/xy"
@@ -16,12 +15,11 @@ import (
 )
 
 func TestGbfsFinder(t *testing.T) {
-	redisUrl := os.Getenv("TL_TEST_REDIS_URL")
-	if redisUrl == "" {
-		t.Skip("no TL_TEST_REDIS_URL")
+	if a, ok := dbutil.CheckTestRedisClient(); !ok {
+		t.Skip(a)
 		return
 	}
-	client := redis.NewClient(&redis.Options{Addr: redisUrl})
+	client := dbutil.MustOpenTestRedisClient()
 	gbf := NewFinder(client)
 	setupGbfs(gbf)
 
