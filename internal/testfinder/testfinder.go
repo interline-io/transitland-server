@@ -9,11 +9,13 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/find"
+	"github.com/interline-io/transitland-server/finders/dbfinder"
+	"github.com/interline-io/transitland-server/finders/gbfsfinder"
+	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/gbfsfinder"
-	"github.com/interline-io/transitland-server/internal/rtfinder"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -25,91 +27,84 @@ import (
 
 var db *sqlx.DB
 
-type TestEnv struct {
-	Config     config.Config
-	Finder     model.Finder
-	RTFinder   model.RTFinder
-	GbfsFinder model.GbfsFinder
+type TestFinderOptions struct {
+	Clock          clock.Clock
+	RTJsons        []RTJsonFile
+	FGAModelFile   string
+	FGAModelTuples []authz.TupleKey
 }
 
-func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) TestEnv {
-	g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
-	if g == "" {
-		t.Fatal("TL_TEST_SERVER_DATABASE_URL not set, skipping")
-	}
-	if cl == nil {
-		cl = &clock.Real{}
+func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders {
+	if opts.Clock == nil {
+		opts.Clock = &clock.Real{}
 	}
 	cfg := config.Config{
-		Clock:     cl,
+		Clock:     opts.Clock,
 		Storage:   t.TempDir(),
 		RTStorage: t.TempDir(),
 	}
-	if db == nil {
-		db = find.MustOpenDB(g)
-	}
-	dbf := find.NewDBFinder(db)
-	dbf.Clock = cl
+
+	// Setup DB
+	dbf := dbfinder.NewFinder(db)
+	dbf.Clock = opts.Clock
+
+	// Setup RT
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
-	rtf.Clock = cl
+	rtf.Clock = opts.Clock
+
+	// Setup GBFS
 	gbf := gbfsfinder.NewFinder(nil)
-	for _, rtj := range rtJsons {
+	for _, rtj := range opts.RTJsons {
 		fn := testutil.RelPath("test", "data", "rt", rtj.Fname)
 		if err := FetchRTJson(rtj.Feed, rtj.Ftype, fn, rtf); err != nil {
 			t.Fatal(err)
 		}
 	}
-	return TestEnv{
+
+	// Setup Checker
+	checkerCfg := authz.AuthzConfig{
+		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
+		FGALoadModelFile: opts.FGAModelFile,
+		FGALoadTestData:  opts.FGAModelTuples,
+	}
+	checker, err := authz.NewCheckerFromConfig(checkerCfg, db, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return model.Finders{
 		Config:     cfg,
 		Finder:     dbf,
 		RTFinder:   rtf,
 		GbfsFinder: gbf,
+		Checker:    checker,
 	}
 }
 
-func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestEnv) error) {
+func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) model.Finders {
+	if db == nil {
+		db = dbutil.MustOpenTestDB()
+	}
+	return newFinders(t, db, TestFinderOptions{Clock: cl, RTJsons: rtJsons})
+}
+
+func FindersWithOptions(t testing.TB, opts TestFinderOptions) model.Finders {
+	if db == nil {
+		db = dbutil.MustOpenTestDB()
+	}
+	return newFinders(t, db, opts)
+}
+
+func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Finders) error) {
 	// Check open DB
 	if db == nil {
-		g := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
-		if g == "" {
-			t.Fatal("TL_TEST_SERVER_DATABASE_URL not set, skipping")
-		}
-		db = find.MustOpenDB(g)
+		db = dbutil.MustOpenTestDB()
 	}
-
-	// Config
-	if cl == nil {
-		cl = &clock.Real{}
-	}
-	cfg := config.Config{
-		Clock:     cl,
-		Storage:   t.TempDir(),
-		RTStorage: t.TempDir(),
-	}
-
 	// Start Txn
 	tx := db.MustBeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	// Configure finders
-	dbf := find.NewDBFinder(tx)
-	dbf.Clock = cl
-	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), tx)
-	rtf.Clock = cl
-	gbf := gbfsfinder.NewFinder(nil)
-	for _, rtj := range rtJsons {
-		fn := testutil.RelPath("test", "data", "rt", rtj.Fname)
-		if err := FetchRTJson(rtj.Feed, rtj.Ftype, fn, rtf); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	testEnv := TestEnv{
-		Config:     cfg,
-		Finder:     dbf,
-		RTFinder:   rtf,
-		GbfsFinder: gbf,
-	}
+	// Get finders
+	testEnv := newFinders(t, tx, TestFinderOptions{Clock: cl, RTJsons: rtJsons})
 
 	// Commit or rollback
 	if err := cb(testEnv); err != nil {
@@ -119,8 +114,8 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestE
 	}
 }
 
-func FindersTxRollback(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestEnv)) {
-	FindersTx(t, cl, rtJsons, func(c TestEnv) error {
+func FindersTxRollback(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Finders)) {
+	FindersTx(t, cl, rtJsons, func(c model.Finders) error {
 		cb(c)
 		return errors.New("rollback")
 	})

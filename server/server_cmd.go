@@ -21,20 +21,21 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-server/auth"
-	"github.com/interline-io/transitland-server/authz"
+	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/find"
-	"github.com/interline-io/transitland-server/internal/gbfsfinder"
+	"github.com/interline-io/transitland-server/finders/dbfinder"
+	"github.com/interline-io/transitland-server/finders/gbfsfinder"
+	"github.com/interline-io/transitland-server/finders/rtfinder"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/metrics"
 	"github.com/interline-io/transitland-server/internal/playground"
-	"github.com/interline-io/transitland-server/internal/rtfinder"
-	"github.com/interline-io/transitland-server/internal/workers"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/interline-io/transitland-server/resolvers"
-	"github.com/interline-io/transitland-server/rest"
+	"github.com/interline-io/transitland-server/server/gql"
+	"github.com/interline-io/transitland-server/server/rest"
+	"github.com/interline-io/transitland-server/workers"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 )
@@ -55,7 +56,7 @@ type Command struct {
 	SecretsFile       string
 	metersConfig      metersConfig
 	metricsConfig     metricsConfig
-	AuthConfig        auth.AuthConfig
+	AuthConfig        authn.AuthConfig
 	AuthzConfig       authz.AuthzConfig
 	config.Config
 }
@@ -116,7 +117,6 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.AuthzConfig.FGAStoreID, "fga-store-id", "", "FGA store")
 	fl.StringVar(&cmd.AuthzConfig.FGAModelID, "fga-model-id", "", "FGA model")
 	fl.StringVar(&cmd.AuthzConfig.FGALoadModelFile, "fga-load-model-file", "", "")
-	fl.StringVar(&cmd.AuthzConfig.FGALoadTupleFile, "fga-load-tuple-file", "", "")
 
 	// Metrics
 	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
@@ -199,10 +199,13 @@ func (cmd *Command) Run() error {
 
 	// Open database
 	var db sqlx.Ext
-	dbx := find.MustOpenDB(cfg.DBURL)
+	dbx, err := dbutil.OpenDB(cfg.DBURL)
+	if err != nil {
+		return err
+	}
 	db = dbx
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
-		db = find.LogDB(dbx)
+		db = dbutil.LogDB(dbx)
 	}
 
 	// Open redis
@@ -217,7 +220,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// Create Finder
-	dbFinder = find.NewDBFinder(db)
+	dbFinder = dbfinder.NewFinder(db)
 
 	// Create RTFinder
 	if cmd.RedisURL != "" {
@@ -241,7 +244,7 @@ func (cmd *Command) Run() error {
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
-		if userMiddleware, err := auth.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
+		if userMiddleware, err := authn.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
 			return err
 		} else {
 			root.Use(userMiddleware)
@@ -283,13 +286,13 @@ func (cmd *Command) Run() error {
 			return err
 		}
 		r := chi.NewRouter()
-		r.Use(auth.UserRequired)
+		r.Use(authn.UserRequired)
 		r.Mount("/", adminServer)
 		root.Mount("/admin", r)
 	}
 
 	// GraphQL API
-	graphqlServer, err := resolvers.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
+	graphqlServer, err := gql.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
 	if err != nil {
 		return err
 	}
@@ -298,7 +301,7 @@ func (cmd *Command) Run() error {
 		r := chi.NewRouter()
 		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("graphql")))
 		r.Use(meters.WithMeter(meterProvider, "graphql", 1.0, nil))
-		r.Use(auth.UserRequired)
+		r.Use(authn.UserRequired)
 		r.Mount("/", graphqlServer)
 		root.Mount("/query", r)
 	}
@@ -312,7 +315,7 @@ func (cmd *Command) Run() error {
 		r := chi.NewRouter()
 		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("rest")))
 		r.Use(meters.WithMeter(meterProvider, "rest", 1.0, nil))
-		r.Use(auth.UserRequired)
+		r.Use(authn.UserRequired)
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)
 	}
@@ -344,7 +347,7 @@ func (cmd *Command) Run() error {
 			}
 			// Mount with admin permissions required
 			r := chi.NewRouter()
-			r.Use(auth.AdminRequired)
+			r.Use(authn.AdminRequired)
 			r.Mount("/", jobServer)
 			root.Mount("/jobs", r)
 		}

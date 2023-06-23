@@ -11,13 +11,13 @@ import (
 	"github.com/interline-io/transitland-lib/tl/causes"
 	"github.com/interline-io/transitland-lib/tlcsv"
 	"github.com/interline-io/transitland-lib/validator"
-	"github.com/interline-io/transitland-server/auth"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 )
 
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
-func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedURL *string, rturls []string, user auth.User) (*model.ValidationResult, error) {
+func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedURL *string, rturls []string, user authn.User) (*model.ValidationResult, error) {
 	// Check inputs
 	rturlsok := []string{}
 	for _, rturl := range rturls {

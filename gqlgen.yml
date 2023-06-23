@@ -4,8 +4,8 @@ schema:
 
 # Where should the generated server code go?
 exec:
-  filename: generated/gqlgen/generated.go
-  package: gqlgen
+  filename: internal/generated/gqlout/generated.go
+  package: gqlout
 
 # Where should any generated models go?
 model:
@@ -16,7 +16,7 @@ model:
 resolver:
   layout: follow-schema
   package: resolvers
-  filename_template: "{name}.resolvers.go"
+  filename_template: "{name}.gql.go"
 
 # Optional: turn on to use []Thing instead of []*Thing
 # omit_slice_element_pointers: false

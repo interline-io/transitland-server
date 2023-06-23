@@ -9,18 +9,18 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-server/auth"
-	"github.com/interline-io/transitland-server/authz"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionImportResult, error) {
+func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder, checker model.Checker, user authn.User, fvid int) (*model.FeedVersionImportResult, error) {
 	if checker != nil {
-		if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+		if check, err := checker.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 			return nil, err
 		} else if !check.Actions.CanEdit {
-			return nil, authz.ErrUnauthorized
+			return nil, errors.New("unauthorized")
 		}
 	}
 	opts := importer.Options{
@@ -38,12 +38,12 @@ func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder,
 	return &mr, nil
 }
 
-func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionUnimportResult, error) {
+func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finder, checker model.Checker, user authn.User, fvid int) (*model.FeedVersionUnimportResult, error) {
 	if checker != nil {
-		if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+		if check, err := checker.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 			return nil, err
 		} else if !check.Actions.CanEdit {
-			return nil, authz.ErrUnauthorized
+			return nil, errors.New("unauthorized")
 		}
 	}
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
@@ -58,12 +58,12 @@ func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finde
 	return &mr, nil
 }
 
-func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int, values model.FeedVersionSetInput) error {
+func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder, checker model.Checker, user authn.User, fvid int, values model.FeedVersionSetInput) error {
 	if checker != nil {
-		if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+		if check, err := checker.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 			return err
 		} else if !check.Actions.CanEdit {
-			return authz.ErrUnauthorized
+			return errors.New("unauthorized")
 		}
 	}
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
@@ -91,12 +91,12 @@ func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder,
 	return nil
 }
 
-func FeedVersionDelete(ctx context.Context, cfg config.Config, dbf model.Finder, checker *authz.Checker, user auth.User, fvid int) (*model.FeedVersionDeleteResult, error) {
+func FeedVersionDelete(ctx context.Context, cfg config.Config, dbf model.Finder, checker model.Checker, user authn.User, fvid int) (*model.FeedVersionDeleteResult, error) {
 	if checker != nil {
-		if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+		if check, err := checker.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 			return nil, err
 		} else if !check.Actions.CanEdit {
-			return nil, authz.ErrUnauthorized
+			return nil, errors.New("unauthorized")
 		}
 	}
 	return nil, errors.New("temporarily unavailable")
