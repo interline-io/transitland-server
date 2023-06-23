@@ -9,12 +9,12 @@ import (
 
 var ErrUnauthorized = errors.New("unauthorized")
 
-type AuthnProvider interface {
+type UserProvider interface {
 	Users(context.Context, string) ([]*azpb.User, error)
 	UserByID(context.Context, string) (*azpb.User, error)
 }
 
-type AuthzProvider interface {
+type FGAProvider interface {
 	Check(context.Context, TupleKey, ...TupleKey) (bool, error)
 	ListObjects(context.Context, TupleKey) ([]TupleKey, error)
 	GetObjectTuples(context.Context, TupleKey) ([]TupleKey, error)

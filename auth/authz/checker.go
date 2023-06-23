@@ -20,35 +20,35 @@ func init() {
 }
 
 type Checker struct {
-	authn        AuthnProvider
-	authz        AuthzProvider
+	userClient   UserProvider
+	fgaClient    FGAProvider
 	db           sqlx.Ext
 	globalAdmins []string
 	azpb.UnsafeCheckerServer
 }
 
 func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Client) (*Checker, error) {
-	var authn AuthnProvider
-	authn = NewMockAuthnClient()
-	var authz AuthzProvider
-	authz = NewMockAuthzClient()
+	var userClient UserProvider
+	userClient = NewMockUserProvider()
+	var fgaClient FGAProvider
+	fgaClient = NewMockFGAClient()
 
-	// Load Auth0 if configured
+	// Use Auth0 if configured
 	if cfg.Auth0Domain != "" {
-		var err error
-		authn, err = NewAuth0Client(cfg.Auth0Domain, cfg.Auth0ClientID, cfg.Auth0ClientSecret)
+		auth0Client, err := NewAuth0Client(cfg.Auth0Domain, cfg.Auth0ClientID, cfg.Auth0ClientSecret)
 		if err != nil {
 			return nil, err
 		}
+		userClient = auth0Client
 	}
 
-	// Load FGA if configured
+	// Use FGA if configured
 	if cfg.FGAEndpoint != "" {
 		fgac, err := NewFGAClient(cfg.FGAEndpoint, cfg.FGAStoreID, cfg.FGAModelID)
 		if err != nil {
 			return nil, err
 		}
-		authz = fgac
+		fgaClient = fgac
 		// Create test FGA environment
 		if cfg.FGALoadModelFile != "" {
 			if cfg.FGAStoreID == "" {
@@ -62,18 +62,18 @@ func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Clien
 		}
 	}
 
-	checker := NewChecker(authn, authz, db, redisClient)
+	checker := NewChecker(userClient, fgaClient, db, redisClient)
 	if cfg.GlobalAdmin != "" {
 		checker.globalAdmins = append(checker.globalAdmins, cfg.GlobalAdmin)
 	}
 	return checker, nil
 }
 
-func NewChecker(n AuthnProvider, p AuthzProvider, db sqlx.Ext, redisClient *redis.Client) *Checker {
+func NewChecker(n UserProvider, p FGAProvider, db sqlx.Ext, redisClient *redis.Client) *Checker {
 	return &Checker{
-		authn: n,
-		authz: p,
-		db:    db,
+		userClient: n,
+		fgaClient:  p,
+		db:         db,
 	}
 }
 
@@ -83,7 +83,7 @@ func NewChecker(n AuthnProvider, p AuthzProvider, db sqlx.Ext, redisClient *redi
 
 func (c *Checker) UserList(ctx context.Context, req *azpb.UserListRequest) (*azpb.UserListResponse, error) {
 	// TODO: filter users
-	users, err := c.authn.Users(ctx, req.GetQ())
+	users, err := c.userClient.Users(ctx, req.GetQ())
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (c *Checker) UserList(ctx context.Context, req *azpb.UserListRequest) (*azp
 
 func (c *Checker) User(ctx context.Context, req *azpb.UserRequest) (*azpb.UserResponse, error) {
 	// TODO: filter users
-	ret, err := c.authn.UserByID(ctx, req.GetId())
+	ret, err := c.userClient.UserByID(ctx, req.GetId())
 	if ret == nil || err != nil {
 		return nil, ErrUnauthorized
 	}
@@ -106,7 +106,7 @@ func (c *Checker) CheckGlobalAdmin(ctx context.Context) (bool, error) {
 func (c *Checker) hydrateUsers(ctx context.Context, users []*azpb.User) ([]*azpb.User, error) {
 	var ret []*azpb.User
 	for _, u := range users {
-		uu, err := c.authn.UserByID(ctx, u.Id)
+		uu, err := c.userClient.UserByID(ctx, u.Id)
 		if err == nil && uu != nil {
 			ret = append(ret, uu)
 		}
@@ -209,7 +209,7 @@ func (c *Checker) TenantAddPermission(ctx context.Context, req *azpb.TenantModif
 	}
 	tk := userRelTk(req.GetUserRelation(), NewEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantAddPermission")
-	return &azpb.TenantSaveResponse{}, c.authz.ReplaceTuple(ctx, tk)
+	return &azpb.TenantSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
 }
 
 func (c *Checker) TenantRemovePermission(ctx context.Context, req *azpb.TenantModifyPermissionRequest) (*azpb.TenantSaveResponse, error) {
@@ -221,7 +221,7 @@ func (c *Checker) TenantRemovePermission(ctx context.Context, req *azpb.TenantMo
 	}
 	tk := userRelTk(req.GetUserRelation(), NewEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantRemovePermission")
-	return &azpb.TenantSaveResponse{}, c.authz.DeleteTuple(ctx, tk)
+	return &azpb.TenantSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
 func (c *Checker) TenantCreate(ctx context.Context, req *azpb.TenantCreateRequest) (*azpb.TenantSaveResponse, error) {
@@ -251,7 +251,7 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, req *azpb.TenantCreateG
 		return nil, err
 	}
 	addTk := NewTupleKey().WithSubjectID(TenantType, tenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
-	if err := c.authz.WriteTuple(ctx, addTk); err != nil {
+	if err := c.fgaClient.WriteTuple(ctx, addTk); err != nil {
 		return nil, err
 	}
 	return &azpb.GroupSaveResponse{Group: &azpb.Group{Id: groupId}}, err
@@ -363,7 +363,7 @@ func (c *Checker) GroupAddPermission(ctx context.Context, req *azpb.GroupModifyP
 	}
 	tk := userRelTk(req.GetUserRelation(), NewEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupAddPermission")
-	return &azpb.GroupSaveResponse{}, c.authz.ReplaceTuple(ctx, tk)
+	return &azpb.GroupSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
 }
 
 func (c *Checker) GroupRemovePermission(ctx context.Context, req *azpb.GroupModifyPermissionRequest) (*azpb.GroupSaveResponse, error) {
@@ -375,7 +375,7 @@ func (c *Checker) GroupRemovePermission(ctx context.Context, req *azpb.GroupModi
 	}
 	tk := userRelTk(req.GetUserRelation(), NewEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupRemovePermission")
-	return &azpb.GroupSaveResponse{}, c.authz.DeleteTuple(ctx, tk)
+	return &azpb.GroupSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
 // ///////////////////
@@ -446,7 +446,7 @@ func (c *Checker) FeedSetGroup(ctx context.Context, req *azpb.FeedSetGroupReques
 	}
 	tk := NewTupleKey().WithSubjectID(GroupType, newGroup).WithObjectID(FeedType, feedId).WithRelation(ParentRelation)
 	log.Trace().Str("tk", tk.String()).Int64("id", feedId).Msg("FeedSetGroup")
-	return &azpb.FeedSaveResponse{}, c.authz.ReplaceTuple(ctx, tk)
+	return &azpb.FeedSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
 }
 
 /////////////////////
@@ -533,7 +533,7 @@ func (c *Checker) FeedVersionAddPermission(ctx context.Context, req *azpb.FeedVe
 	}
 	tk := userRelTk(req.GetUserRelation(), NewEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionAddPermission")
-	return &azpb.FeedVersionSaveResponse{}, c.authz.ReplaceTuple(ctx, tk)
+	return &azpb.FeedVersionSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
 }
 
 func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *azpb.FeedVersionModifyPermissionRequest) (*azpb.FeedVersionSaveResponse, error) {
@@ -545,7 +545,7 @@ func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *azpb.Fee
 	}
 	tk := userRelTk(req.GetUserRelation(), NewEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionRemovePermission")
-	return &azpb.FeedVersionSaveResponse{}, c.authz.DeleteTuple(ctx, tk)
+	return &azpb.FeedVersionSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
 // ///////////////////
@@ -558,7 +558,7 @@ func (c *Checker) listCtxObjects(ctx context.Context, objectType ObjectType, act
 		return nil, ErrUnauthorized
 	}
 	tk := NewTupleKey().WithUser(checkUser.Name()).WithObject(objectType, "").WithAction(action)
-	objTks, err := c.authz.ListObjects(ctx, tk)
+	objTks, err := c.fgaClient.ListObjects(ctx, tk)
 	if err != nil {
 		return nil, err
 	}
@@ -571,7 +571,7 @@ func (c *Checker) listCtxObjects(ctx context.Context, objectType ObjectType, act
 
 func (c *Checker) listSubjectRelations(ctx context.Context, sub EntityKey, objectType ObjectType, relation Relation) ([]int64, error) {
 	tk := NewTupleKey().WithSubject(sub.Type, sub.Name).WithObject(objectType, "").WithRelation(relation)
-	rels, err := c.authz.ListObjects(ctx, tk)
+	rels, err := c.fgaClient.ListObjects(ctx, tk)
 	if err != nil {
 		return nil, err
 	}
@@ -583,7 +583,7 @@ func (c *Checker) listSubjectRelations(ctx context.Context, sub EntityKey, objec
 }
 
 func (c *Checker) getObjectTuples(ctx context.Context, obj EntityKey, ctxtk ...TupleKey) ([]TupleKey, error) {
-	return c.authz.GetObjectTuples(ctx, NewTupleKey().WithObject(obj.Type, obj.Name))
+	return c.fgaClient.GetObjectTuples(ctx, NewTupleKey().WithObject(obj.Type, obj.Name))
 }
 
 func (c *Checker) checkActionOrError(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) error {
@@ -608,7 +608,7 @@ func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj Entit
 		return true, nil
 	}
 	checkTk := NewTupleKey().WithUser(userName).WithObject(obj.Type, obj.Name).WithAction(checkAction)
-	ret, err := c.authz.Check(ctx, checkTk, ctxtk...)
+	ret, err := c.fgaClient.Check(ctx, checkTk, ctxtk...)
 	log.Trace().Str("tk", checkTk.String()).Bool("result", ret).Err(err).Msg("checkAction")
 	return ret, err
 }

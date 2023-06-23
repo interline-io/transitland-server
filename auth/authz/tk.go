@@ -11,6 +11,10 @@ import (
 )
 
 // For convenience
+type Action = azpb.Action
+type ObjectType = azpb.ObjectType
+type Relation = azpb.Relation
+
 var FeedType = azpb.ObjectType_feed
 var UserType = azpb.ObjectType_user
 var TenantType = azpb.ObjectType_tenant
@@ -34,10 +38,6 @@ var CanSetGroup = azpb.Action_can_set_group
 var CanCreateOrg = azpb.Action_can_create_org
 var CanEditMembers = azpb.Action_can_edit_members
 var CanDeleteOrg = azpb.Action_can_delete_org
-
-type Action = azpb.Action
-type ObjectType = azpb.ObjectType
-type Relation = azpb.Relation
 
 func RelationString(v string) (Relation, error) {
 	if a, ok := azpb.Relation_value[v]; ok {

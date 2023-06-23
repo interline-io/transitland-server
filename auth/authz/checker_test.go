@@ -1336,17 +1336,17 @@ func newTestChecker(t testing.TB, testData []testTuple) *Checker {
 
 	// Add test data
 	for _, tc := range testData {
-		if err := checker.authz.WriteTuple(context.Background(), dbTupleLookup(t, dbx, tc.TupleKey())); err != nil {
+		if err := checker.fgaClient.WriteTuple(context.Background(), dbTupleLookup(t, dbx, tc.TupleKey())); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	// Override AuthnProvider
-	auth0c := NewMockAuthnClient()
-	auth0c.AddUser("ian", &azpb.User{Name: "Ian", Id: "ian", Email: "ian@example.com"})
-	auth0c.AddUser("drew", &azpb.User{Name: "Drew", Id: "drew", Email: "drew@example.com"})
-	auth0c.AddUser("tl-tenant-member", &azpb.User{Name: "Tenant Member", Id: "tl-tenant-member", Email: "tl-tenant-member@example.com"})
-	checker.authn = auth0c
+	// Override UserProvider
+	userClient := NewMockUserProvider()
+	userClient.AddUser("ian", &azpb.User{Name: "Ian", Id: "ian", Email: "ian@example.com"})
+	userClient.AddUser("drew", &azpb.User{Name: "Drew", Id: "drew", Email: "drew@example.com"})
+	userClient.AddUser("tl-tenant-member", &azpb.User{Name: "Tenant Member", Id: "tl-tenant-member", Email: "tl-tenant-member@example.com"})
+	checker.userClient = userClient
 	return checker
 }
 
