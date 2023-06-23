@@ -212,7 +212,7 @@ func checkUserRel(r *http.Request, idKey string) (int64, *azpb.UserRelation, err
 	id := int64(0)
 	tk := &azpb.UserRelation{}
 	var err error
-	if tk.Relation, err = RelationString(chi.URLParam(r, "relation")); err != nil {
+	if tk.Relation, err = azpb.RelationString(chi.URLParam(r, "relation")); err != nil {
 		return 0, tk, err
 	}
 	if vid, err := strconv.Atoi(chi.URLParam(r, idKey)); err != nil {

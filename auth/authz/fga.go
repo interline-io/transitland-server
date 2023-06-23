@@ -41,11 +41,11 @@ func (c *FGAClient) Check(ctx context.Context, tk TupleKey, ctxTuples ...TupleKe
 	}
 	var fgaCtxTuples openfga.ContextualTupleKeys
 	for _, ctxTuple := range ctxTuples {
-		fgaCtxTuples.TupleKeys = append(fgaCtxTuples.TupleKeys, ctxTuple.FGATupleKey())
+		fgaCtxTuples.TupleKeys = append(fgaCtxTuples.TupleKeys, ToFGATupleKey(ctxTuple))
 	}
 	body := openfga.CheckRequest{
 		AuthorizationModelId: openfga.PtrString(c.ModelID),
-		TupleKey:             tk.FGATupleKey(),
+		TupleKey:             ToFGATupleKey(tk),
 		ContextualTuples:     &fgaCtxTuples,
 	}
 	data, _, err := c.client.OpenFgaApi.Check(context.Background()).Body(body).Execute()
@@ -81,7 +81,7 @@ func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKe
 	if err := tk.Validate(); err != nil {
 		return nil, err
 	}
-	fgatk := tk.FGATupleKey()
+	fgatk := ToFGATupleKey(tk)
 	body := openfga.ReadRequest{
 		TupleKey: &fgatk,
 	}
@@ -92,7 +92,7 @@ func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKe
 	}
 	var ret []TupleKey
 	for _, t := range *data.Tuples {
-		ret = append(ret, fromFGATupleKey(t.GetKey()))
+		ret = append(ret, FromFGATupleKey(t.GetKey()))
 	}
 	return ret, nil
 }
@@ -138,7 +138,7 @@ func (c *FGAClient) WriteTuple(ctx context.Context, tk TupleKey) error {
 	}
 	log.Trace().Str("tk", tk.String()).Msg("WriteTuple")
 	body := openfga.WriteRequest{
-		Writes:               &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
+		Writes:               &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{ToFGATupleKey(tk)}},
 		AuthorizationModelId: openfga.PtrString(c.ModelID),
 	}
 	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()
@@ -152,7 +152,7 @@ func (c *FGAClient) DeleteTuple(ctx context.Context, tk TupleKey) error {
 	}
 	log.Trace().Str("tk", tk.String()).Msg("DeleteTuple")
 	body := openfga.WriteRequest{
-		Deletes:              &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{tk.FGATupleKey()}},
+		Deletes:              &openfga.TupleKeys{TupleKeys: []openfga.TupleKey{ToFGATupleKey(tk)}},
 		AuthorizationModelId: openfga.PtrString(c.ModelID),
 	}
 	_, _, err := c.client.OpenFgaApi.Write(context.Background()).Body(body).Execute()

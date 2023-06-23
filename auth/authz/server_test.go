@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -423,7 +424,7 @@ func responseGetActions(t testing.TB, data []byte) []Action {
 	var ret []Action
 	for k, v := range a.Map() {
 		if v.Bool() {
-			a, err := ActionString(k)
+			a, err := azpb.ActionString(k)
 			if err != nil {
 				t.Errorf("invalid action %s", k)
 			}
