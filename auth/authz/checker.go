@@ -2,7 +2,10 @@ package authz
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"strings"
+	"testing"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
@@ -57,6 +60,19 @@ func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Clien
 				}
 			}
 			if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
+				return nil, err
+			}
+		}
+		// Add test data
+		for _, tk := range cfg.FGALoadTestData {
+			ltk, found, err := ekLookup(db, tk)
+			if !found {
+				log.Info().Msgf("warning, tuple entities not found in database: %s", tk.String())
+			}
+			if err != nil {
+				return nil, err
+			}
+			if err := fgaClient.WriteTuple(context.Background(), ltk); err != nil {
 				return nil, err
 			}
 		}
@@ -555,7 +571,7 @@ func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *azpb.Fee
 func (c *Checker) listCtxObjects(ctx context.Context, objectType ObjectType, action Action) ([]int64, error) {
 	checkUser := authn.ForContext(ctx)
 	if checkUser == nil {
-		return nil, ErrUnauthorized
+		return nil, nil
 	}
 	tk := NewTupleKey().WithUser(checkUser.Name()).WithObject(objectType, "").WithAction(action)
 	objTks, err := c.fgaClient.ListObjects(ctx, tk)
@@ -600,7 +616,7 @@ func (c *Checker) checkActionOrError(ctx context.Context, checkAction Action, ob
 func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) (bool, error) {
 	checkUser := authn.ForContext(ctx)
 	if checkUser == nil {
-		return false, ErrUnauthorized
+		return false, nil
 	}
 	userName := checkUser.Name()
 	if c.checkGlobalAdmin(checkUser) {
@@ -685,4 +701,73 @@ func newUser(id string) *azpb.User {
 
 func newUserRel(userId string, rel Relation) *azpb.UserRelation {
 	return &azpb.UserRelation{UserId: userId, Relation: rel}
+}
+
+// todo: rename to dbTestTupleLookup and make arg TestTuple
+func dbTupleLookup(t testing.TB, dbx sqlx.Ext, tk TupleKey) TupleKey {
+	var err error
+	var found bool
+	tk.Subject, found, err = dbNameToEntityKey(dbx, tk.Subject)
+	if !found && t != nil {
+		t.Logf("lookup warning: %s not found", tk.Subject.String())
+	}
+	if err != nil {
+		t.Log(err)
+	}
+	tk.Object, found, err = dbNameToEntityKey(dbx, tk.Object)
+	if !found && t != nil {
+		t.Logf("lookup warning: %s not found", tk.Object.String())
+	}
+	if err != nil {
+		t.Log(err)
+	}
+	return tk
+}
+
+func ekLookup(dbx sqlx.Ext, tk TupleKey) (TupleKey, bool, error) {
+	var err error
+	var found1 bool
+	var found2 bool
+	tk.Subject, found1, err = dbNameToEntityKey(dbx, tk.Subject)
+	if err != nil {
+		return tk, false, err
+	}
+	tk.Object, found2, err = dbNameToEntityKey(dbx, tk.Object)
+	if err != nil {
+		return tk, false, err
+	}
+	return tk, found1 && found2, nil
+}
+
+func dbNameToEntityKey(dbx sqlx.Ext, ek EntityKey) (EntityKey, bool, error) {
+	if ek.Name == "" {
+		return ek, false, nil
+	}
+	nsplit := strings.Split(ek.Name, "#")
+	oname := nsplit[0]
+	nname := ek.Name
+	var err error
+	switch ek.Type {
+	case TenantType:
+		err = sqlx.Get(dbx, &nname, "select id from tl_tenants where tenant_name = $1", oname)
+	case GroupType:
+		err = sqlx.Get(dbx, &nname, "select id from tl_groups where group_name = $1", oname)
+	case FeedType:
+		err = sqlx.Get(dbx, &nname, "select id from current_feeds where onestop_id = $1", oname)
+	case FeedVersionType:
+		err = sqlx.Get(dbx, &nname, "select id from feed_versions where sha1 = $1", oname)
+	case UserType:
+	}
+	found := false
+	if err == sql.ErrNoRows {
+		err = nil
+	} else {
+		found = true
+	}
+	if err != nil {
+		return ek, found, err
+	}
+	nsplit[0] = nname
+	ek.Name = strings.Join(nsplit, "#")
+	return ek, found, nil
 }

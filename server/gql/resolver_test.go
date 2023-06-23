@@ -27,7 +27,6 @@ type testcase struct {
 	selectExpect       []string
 	selectExpectUnique []string
 	selectExpectCount  int
-	rtfiles            []testfinder.RTJsonFile
 	f                  func(*testing.T, string)
 }
 
@@ -69,7 +68,10 @@ func queryTestcase(t *testing.T, c *client.Client, tc testcase) {
 	for k, v := range tc.vars {
 		opts = append(opts, client.Var(k, v))
 	}
-	c.MustPost(tc.query, &resp, opts...)
+	if err := c.Post(tc.query, &resp, opts...); err != nil {
+		t.Error(err)
+		return
+	}
 	jj := toJson(resp)
 	if tc.expect != "" {
 		tested = true

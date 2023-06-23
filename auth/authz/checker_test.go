@@ -2,12 +2,10 @@ package authz
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -15,7 +13,6 @@ import (
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/internal/testutil"
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1358,43 +1355,6 @@ func newTestChecker(t testing.TB, url string, testData []TestTuple) *Checker {
 	userClient.AddUser("tl-tenant-member", &azpb.User{Name: "Tenant Member", Id: "tl-tenant-member", Email: "tl-tenant-member@example.com"})
 	checker.userClient = userClient
 	return checker
-}
-
-func dbTupleLookup(t testing.TB, dbx sqlx.Ext, tk TupleKey) TupleKey {
-	tk.Subject = dbNameToEntityKey(t, dbx, tk.Subject)
-	tk.Object = dbNameToEntityKey(t, dbx, tk.Object)
-	return tk
-}
-
-func dbNameToEntityKey(t testing.TB, dbx sqlx.Ext, ek EntityKey) EntityKey {
-	if ek.Name == "" {
-		return ek
-	}
-	nsplit := strings.Split(ek.Name, "#")
-	oname := nsplit[0]
-	nname := ek.Name
-	var err error
-	switch ek.Type {
-	case TenantType:
-		err = sqlx.Get(dbx, &nname, "select id from tl_tenants where tenant_name = $1", oname)
-	case GroupType:
-		err = sqlx.Get(dbx, &nname, "select id from tl_groups where group_name = $1", oname)
-	case FeedType:
-		err = sqlx.Get(dbx, &nname, "select id from current_feeds where onestop_id = $1", oname)
-	case FeedVersionType:
-		err = sqlx.Get(dbx, &nname, "select id from feed_versions where sha1 = $1", oname)
-	case UserType:
-	}
-	if err == sql.ErrNoRows {
-		t.Log("lookup warning:", ek.Type, "name:", ek.Name, "not found")
-		err = nil
-	}
-	if err != nil {
-		t.Fatal(err)
-	}
-	nsplit[0] = nname
-	ek.Name = strings.Join(nsplit, "#")
-	return ek
 }
 
 func newEntityKeys(t ObjectType, keys ...string) []EntityKey {

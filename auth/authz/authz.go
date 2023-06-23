@@ -34,7 +34,7 @@ type AuthzConfig struct {
 	FGAModelID        string
 	FGAEndpoint       string
 	FGALoadModelFile  string
-	FGALoadTupleFile  string
+	FGALoadTestData   []TupleKey
 	GlobalAdmin       string
 }
 
@@ -118,4 +118,32 @@ func ToFGATupleKey(tk TupleKey) openfga.TupleKey {
 		fgatk.Relation = openfga.PtrString(tk.Relation.String())
 	}
 	return fgatk
+}
+
+// For testing
+
+type TestTuple struct {
+	Subject            azpb.EntityKey
+	Object             azpb.EntityKey
+	Action             azpb.Action
+	Relation           azpb.Relation
+	Expect             string
+	Notes              string
+	ExpectError        bool
+	ExpectUnauthorized bool
+	CheckAsUser        string
+	ExpectActions      []azpb.Action
+	ExpectKeys         []azpb.EntityKey
+}
+
+func (tk *TestTuple) TupleKey() TupleKey {
+	return TupleKey{Subject: tk.Subject, Object: tk.Object, Relation: tk.Relation, Action: tk.Action}
+}
+
+func (tk *TestTuple) String() string {
+	a := tk.TupleKey().String()
+	if tk.CheckAsUser != "" {
+		a = a + "|checkuser:" + tk.CheckAsUser
+	}
+	return a
 }

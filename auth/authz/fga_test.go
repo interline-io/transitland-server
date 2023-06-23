@@ -7,12 +7,9 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/dbutil"
-	"github.com/interline-io/transitland-server/internal/testauthz"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
-
-type TestTuple = testauthz.TestTuple
 
 func newTestFGAClient(t testing.TB, url string, testTuples []TestTuple) *FGAClient {
 	cfg := AuthzConfig{

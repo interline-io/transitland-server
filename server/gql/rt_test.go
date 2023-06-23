@@ -129,7 +129,10 @@ func testRt(t *testing.T, tc rtTestCase) {
 	for k, v := range tc.vars {
 		opts = append(opts, client.Var(k, v))
 	}
-	c.MustPost(tc.query, &resp, opts...)
+	if err := c.Post(tc.query, &resp, opts...); err != nil {
+		t.Error(err)
+		return
+	}
 	jj := toJson(resp)
 	if tc.cb != nil {
 		tc.cb(t, jj)

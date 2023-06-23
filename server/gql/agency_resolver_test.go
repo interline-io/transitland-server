@@ -3,6 +3,14 @@ package gql
 import (
 	"context"
 	"testing"
+
+	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/authz"
+	"github.com/interline-io/transitland-server/internal/dbutil"
+	"github.com/interline-io/transitland-server/internal/generated/azpb"
+	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
 func TestAgencyResolver(t *testing.T) {
@@ -227,6 +235,52 @@ func TestAgencyResolver_Cursor(t *testing.T) {
 			vars:         hw{"after": allEnts[1].ID},
 			selector:     "agencies.#.agency_id",
 			selectExpect: allIds[2:],
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			queryTestcase(t, c, tc)
+		})
+	}
+}
+
+var fgaTestTuples = []authz.TupleKey{
+	{
+		Subject:  authz.NewEntityKey(azpb.UserType, "ian"),
+		Object:   authz.NewEntityKey(azpb.TenantType, "tl-tenant"),
+		Relation: azpb.AdminRelation,
+	},
+	{
+		Object:   authz.NewEntityKey(azpb.GroupType, "BA-group"),
+		Subject:  authz.NewEntityKey(azpb.TenantType, "tl-tenant"),
+		Relation: azpb.ParentRelation,
+	},
+	{
+		Subject:  authz.NewEntityKey(azpb.GroupType, "BA-group"),
+		Object:   authz.NewEntityKey(azpb.FeedType, "BA"),
+		Relation: azpb.ParentRelation,
+	},
+}
+
+func TestAgencyResolver_Authz(t *testing.T) {
+	_, a, ok := dbutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	if !ok {
+		t.Skip(a)
+		return
+	}
+	teOpts := testfinder.TestFinderOptions{
+		FGAModelFile:   testutil.RelPath("test/authz/tls.json"),
+		FGAModelTuples: fgaTestTuples,
+	}
+	te := testfinder.FindersWithOptions(t, teOpts)
+	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
+	c := client.New(authn.UserDefaultMiddleware("ian")(srv))
+	testcases := []testcase{
+		{
+			name:         "basic",
+			query:        `query { agencies {agency_id}}`,
+			selector:     "agencies.#.agency_id",
+			selectExpect: []string{"BART"},
 		},
 	}
 	for _, tc := range testcases {

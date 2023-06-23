@@ -159,7 +159,10 @@ func TestTripResolver_StopPatternID(t *testing.T) {
 	}`
 	c, _ := newTestClient(t)
 	var resp map[string]interface{}
-	c.MustPost(query, &resp)
+	if err := c.Post(query, &resp); err != nil {
+		t.Error(err)
+		return
+	}
 	jj := toJson(resp)
 	patId := gjson.Get(jj, "trips.0.stop_pattern_id").Int()
 	tc := testcase{

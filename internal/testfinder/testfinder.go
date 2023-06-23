@@ -27,35 +27,34 @@ import (
 
 var db *sqlx.DB
 
-type TestEnv struct {
-	Config     config.Config
-	Finder     model.Finder
-	RTFinder   model.RTFinder
-	GbfsFinder model.GbfsFinder
-	Checker    model.Checker
+type TestFinderOptions struct {
+	Clock          clock.Clock
+	RTJsons        []RTJsonFile
+	FGAModelFile   string
+	FGAModelTuples []authz.TupleKey
 }
 
-func newFinders(t testing.TB, db sqlx.Ext, cl clock.Clock, rtJsons []RTJsonFile) model.Finders {
-	if cl == nil {
-		cl = &clock.Real{}
+func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders {
+	if opts.Clock == nil {
+		opts.Clock = &clock.Real{}
 	}
 	cfg := config.Config{
-		Clock:     cl,
+		Clock:     opts.Clock,
 		Storage:   t.TempDir(),
 		RTStorage: t.TempDir(),
 	}
 
 	// Setup DB
 	dbf := dbfinder.NewFinder(db)
-	dbf.Clock = cl
+	dbf.Clock = opts.Clock
 
 	// Setup RT
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
-	rtf.Clock = cl
+	rtf.Clock = opts.Clock
 
 	// Setup GBFS
 	gbf := gbfsfinder.NewFinder(nil)
-	for _, rtj := range rtJsons {
+	for _, rtj := range opts.RTJsons {
 		fn := testutil.RelPath("test", "data", "rt", rtj.Fname)
 		if err := FetchRTJson(rtj.Feed, rtj.Ftype, fn, rtf); err != nil {
 			t.Fatal(err)
@@ -64,13 +63,14 @@ func newFinders(t testing.TB, db sqlx.Ext, cl clock.Clock, rtJsons []RTJsonFile)
 
 	// Setup Checker
 	checkerCfg := authz.AuthzConfig{
-		FGAEndpoint: os.Getenv("TL_TEST_FGA_ENDPOINT"),
+		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
+		FGALoadModelFile: opts.FGAModelFile,
+		FGALoadTestData:  opts.FGAModelTuples,
 	}
 	checker, err := authz.NewCheckerFromConfig(checkerCfg, db, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	return model.Finders{
 		Config:     cfg,
 		Finder:     dbf,
@@ -84,7 +84,14 @@ func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) model.Finders {
 	if db == nil {
 		db = dbutil.MustOpenTestDB()
 	}
-	return newFinders(t, db, cl, rtJsons)
+	return newFinders(t, db, TestFinderOptions{Clock: cl, RTJsons: rtJsons})
+}
+
+func FindersWithOptions(t testing.TB, opts TestFinderOptions) model.Finders {
+	if db == nil {
+		db = dbutil.MustOpenTestDB()
+	}
+	return newFinders(t, db, opts)
 }
 
 func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Finders) error) {
@@ -97,7 +104,7 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model
 	defer tx.Rollback()
 
 	// Get finders
-	testEnv := newFinders(t, tx, cl, rtJsons)
+	testEnv := newFinders(t, db, TestFinderOptions{Clock: cl, RTJsons: rtJsons})
 
 	// Commit or rollback
 	if err := cb(testEnv); err != nil {
