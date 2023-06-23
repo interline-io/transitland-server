@@ -11,6 +11,7 @@ import (
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -42,7 +43,7 @@ func TestMain(m *testing.M) {
 
 // Test helpers
 
-func newTestClient(t testing.TB) (*client.Client, testfinder.TestEnv) {
+func newTestClient(t testing.TB) (*client.Client, model.Finders) {
 	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
 	if err != nil {
 		t.Fatal(err)
@@ -50,7 +51,7 @@ func newTestClient(t testing.TB) (*client.Client, testfinder.TestEnv) {
 	return newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
 }
 
-func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, testfinder.TestEnv) {
+func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Finders) {
 	te := testfinder.Finders(t, cl, rtfiles)
 	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, nil)
 	return client.New(srv), te

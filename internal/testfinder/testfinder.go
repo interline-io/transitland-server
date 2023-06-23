@@ -35,7 +35,7 @@ type TestEnv struct {
 	Checker    model.Checker
 }
 
-func newFinders(t testing.TB, db sqlx.Ext, cl clock.Clock, rtJsons []RTJsonFile) TestEnv {
+func newFinders(t testing.TB, db sqlx.Ext, cl clock.Clock, rtJsons []RTJsonFile) model.Finders {
 	if cl == nil {
 		cl = &clock.Real{}
 	}
@@ -71,7 +71,7 @@ func newFinders(t testing.TB, db sqlx.Ext, cl clock.Clock, rtJsons []RTJsonFile)
 		t.Fatal(err)
 	}
 
-	return TestEnv{
+	return model.Finders{
 		Config:     cfg,
 		Finder:     dbf,
 		RTFinder:   rtf,
@@ -80,14 +80,14 @@ func newFinders(t testing.TB, db sqlx.Ext, cl clock.Clock, rtJsons []RTJsonFile)
 	}
 }
 
-func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) TestEnv {
+func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) model.Finders {
 	if db == nil {
 		db = dbutil.MustOpenTestDB()
 	}
 	return newFinders(t, db, cl, rtJsons)
 }
 
-func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestEnv) error) {
+func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Finders) error) {
 	// Check open DB
 	if db == nil {
 		db = dbutil.MustOpenTestDB()
@@ -107,8 +107,8 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestE
 	}
 }
 
-func FindersTxRollback(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(TestEnv)) {
-	FindersTx(t, cl, rtJsons, func(c TestEnv) error {
+func FindersTxRollback(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Finders)) {
+	FindersTx(t, cl, rtJsons, func(c model.Finders) error {
 		cb(c)
 		return errors.New("rollback")
 	})

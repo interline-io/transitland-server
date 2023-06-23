@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -34,7 +34,7 @@ func BenchmarkStopResolver(b *testing.B) {
 	benchmarkTestcases(b, c, stopResolverTestcases(b, te))
 }
 
-func stopResolverTestcases(t testing.TB, te testfinder.TestEnv) []testcase {
+func stopResolverTestcases(t testing.TB, te model.Finders) []testcase {
 	bartStops := []string{"12TH", "16TH", "19TH", "19TH_N", "24TH", "ANTC", "ASHB", "BALB", "BAYF", "CAST", "CIVC", "COLS", "COLM", "CONC", "DALY", "DBRK", "DUBL", "DELN", "PLZA", "EMBR", "FRMT", "FTVL", "GLEN", "HAYW", "LAFY", "LAKE", "MCAR", "MCAR_S", "MLBR", "MONT", "NBRK", "NCON", "OAKL", "ORIN", "PITT", "PCTR", "PHIL", "POWL", "RICH", "ROCK", "SBRN", "SFIA", "SANL", "SHAY", "SSAN", "UCTY", "WCRK", "WARM", "WDUB", "WOAK"}
 	caltrainRailStops := []string{"70011", "70012", "70021", "70022", "70031", "70032", "70041", "70042", "70051", "70052", "70061", "70062", "70071", "70072", "70081", "70082", "70091", "70092", "70101", "70102", "70111", "70112", "70121", "70122", "70131", "70132", "70141", "70142", "70151", "70152", "70161", "70162", "70171", "70172", "70191", "70192", "70201", "70202", "70211", "70212", "70221", "70222", "70231", "70232", "70241", "70242", "70251", "70252", "70261", "70262", "70271", "70272", "70281", "70282", "70291", "70292", "70301", "70302", "70311", "70312", "70321", "70322"}
 	caltrainBusStops := []string{"777402", "777403"}
@@ -369,7 +369,7 @@ func stopResolverTestcases(t testing.TB, te testfinder.TestEnv) []testcase {
 	return testcases
 }
 
-func stopResolverCursorTestcases(t *testing.T, te testfinder.TestEnv) []testcase {
+func stopResolverCursorTestcases(t *testing.T, te model.Finders) []testcase {
 	// First 1000 stops...
 	dbf := te.Finder
 	allEnts, err := dbf.FindStops(context.Background(), nil, nil, nil, nil, nil)
@@ -421,7 +421,7 @@ func stopResolverCursorTestcases(t *testing.T, te testfinder.TestEnv) []testcase
 	return testcases
 }
 
-func stopResolverPreviousOnestopIDTestcases(t testing.TB, te testfinder.TestEnv) []testcase {
+func stopResolverPreviousOnestopIDTestcases(t testing.TB, te model.Finders) []testcase {
 	testcases := []testcase{
 		{
 			name:         "default",
@@ -455,7 +455,7 @@ func stopResolverPreviousOnestopIDTestcases(t testing.TB, te testfinder.TestEnv)
 	return testcases
 }
 
-func stopResolverLicenseTestcases(t testing.TB, te testfinder.TestEnv) []testcase {
+func stopResolverLicenseTestcases(t testing.TB, te model.Finders) []testcase {
 	q := `
 	query ($lic: LicenseFilter) {
 		stops(limit: 10000, where: {license: $lic}) {

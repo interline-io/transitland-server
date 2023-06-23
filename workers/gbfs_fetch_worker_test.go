@@ -18,7 +18,7 @@ func TestGbfsFetchWorker(t *testing.T) {
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
 	defer ts.Close()
 
-	testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+	testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 		job := jobs.Job{}
 		job.Opts.Finder = te.Finder
 		job.Opts.RTFinder = te.RTFinder

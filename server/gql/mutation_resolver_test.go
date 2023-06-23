@@ -10,6 +10,7 @@ import (
 	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +24,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
 			srv = authn.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
 			// Run all requests as admin
@@ -126,7 +127,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+			testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 				srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
 				srv = authn.UserDefaultMiddleware("test")(srv) // Run all requests as user
 				c := client.New(srv)
@@ -135,7 +136,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil) // all requests run as anonymous context by default
 			c := client.New(srv)
 			resp := make(map[string]interface{})

@@ -13,6 +13,7 @@ import (
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -109,7 +110,7 @@ func TestStaticFetchWorker(t *testing.T) {
 
 			// Setup job
 			feedUrl := ts.URL + "/" + tc.serveFile
-			testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+			testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 				// Run job
 				if result, err := StaticFetch(context.Background(), te.Config, te.Finder, tc.feedId, nil, feedUrl, nil, nil); err != nil && !tc.expectError {
 					_ = result
