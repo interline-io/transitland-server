@@ -104,7 +104,7 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model
 	defer tx.Rollback()
 
 	// Get finders
-	testEnv := newFinders(t, db, TestFinderOptions{Clock: cl, RTJsons: rtJsons})
+	testEnv := newFinders(t, tx, TestFinderOptions{Clock: cl, RTJsons: rtJsons})
 
 	// Commit or rollback
 	if err := cb(testEnv); err != nil {
