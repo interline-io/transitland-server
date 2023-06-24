@@ -130,11 +130,24 @@ func (c *Checker) hydrateUsers(ctx context.Context, users []*azpb.User) ([]*azpb
 	return ret, nil
 }
 
-func (c *Checker) hydrateUserRels(ctx context.Context, users []*azpb.EntityRelation) ([]*azpb.EntityRelation, error) {
-	for i := 0; i < len(users); i++ {
-		users[i].Name = users[i].Id
+func (c *Checker) hydrateEntityRels(ctx context.Context, ers []*azpb.EntityRelation) ([]*azpb.EntityRelation, error) {
+	// This is awful :( :(
+	for i, v := range ers {
+		if v.Type == TenantType {
+			if t, _ := c.getTenants(ctx, []int64{v.Int64()}); len(t) > 0 && t[0] != nil {
+				ers[i].Name = t[0].Name
+			}
+		} else if v.Type == GroupType {
+			if t, _ := c.getGroups(ctx, []int64{v.Int64()}); len(t) > 0 && t[0] != nil {
+				ers[i].Name = t[0].Name
+			}
+		} else if v.Type == UserType {
+			if t, err := c.User(ctx, &azpb.UserRequest{Id: v.Id}); err == nil && t != nil && t.User != nil {
+				ers[i].Name = t.User.Name
+			}
+		}
 	}
-	return users, nil
+	return ers, nil
 }
 
 // ///////////////////
@@ -191,14 +204,14 @@ func (c *Checker) TenantPermissions(ctx context.Context, req *azpb.TenantRequest
 	}
 	for _, tk := range tps {
 		if tk.Relation == AdminRelation {
-			ret.Users.Admins = append(ret.Users.Admins, newUserRel(tk.Subject, tk.Relation))
+			ret.Users.Admins = append(ret.Users.Admins, azpb.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 		if tk.Relation == MemberRelation {
-			ret.Users.Members = append(ret.Users.Members, newUserRel(tk.Subject, tk.Relation))
+			ret.Users.Members = append(ret.Users.Members, azpb.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 	}
-	ret.Users.Admins, _ = c.hydrateUserRels(ctx, ret.Users.Admins)
-	ret.Users.Members, _ = c.hydrateUserRels(ctx, ret.Users.Members)
+	ret.Users.Admins, _ = c.hydrateEntityRels(ctx, ret.Users.Admins)
+	ret.Users.Members, _ = c.hydrateEntityRels(ctx, ret.Users.Members)
 	return ret, nil
 }
 
@@ -230,7 +243,7 @@ func (c *Checker) TenantAddPermission(ctx context.Context, req *azpb.TenantModif
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := userRelTk(req.GetEntityRelation(), NewEntityID(TenantType, tenantId))
+	tk := req.GetEntityRelation().WithObject(NewEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantAddPermission")
 	return &azpb.TenantSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
 }
@@ -242,7 +255,7 @@ func (c *Checker) TenantRemovePermission(ctx context.Context, req *azpb.TenantMo
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := userRelTk(req.GetEntityRelation(), NewEntityID(TenantType, tenantId))
+	tk := req.GetEntityRelation().WithObject(NewEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantRemovePermission")
 	return &azpb.TenantSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
@@ -341,18 +354,18 @@ func (c *Checker) GroupPermissions(ctx context.Context, req *azpb.GroupRequest) 
 			ret.Tenant = ct.Tenant
 		}
 		if tk.Relation == ManagerRelation {
-			ret.Users.Managers = append(ret.Users.Managers, newUserRel(tk.Subject, tk.Relation))
+			ret.Users.Managers = append(ret.Users.Managers, azpb.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 		if tk.Relation == EditorRelation {
-			ret.Users.Editors = append(ret.Users.Editors, newUserRel(tk.Subject, tk.Relation))
+			ret.Users.Editors = append(ret.Users.Editors, azpb.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 		if tk.Relation == ViewerRelation {
-			ret.Users.Viewers = append(ret.Users.Viewers, newUserRel(tk.Subject, tk.Relation))
+			ret.Users.Viewers = append(ret.Users.Viewers, azpb.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 	}
-	ret.Users.Managers, _ = c.hydrateUserRels(ctx, ret.Users.Managers)
-	ret.Users.Editors, _ = c.hydrateUserRels(ctx, ret.Users.Editors)
-	ret.Users.Viewers, _ = c.hydrateUserRels(ctx, ret.Users.Viewers)
+	ret.Users.Managers, _ = c.hydrateEntityRels(ctx, ret.Users.Managers)
+	ret.Users.Editors, _ = c.hydrateEntityRels(ctx, ret.Users.Editors)
+	ret.Users.Viewers, _ = c.hydrateEntityRels(ctx, ret.Users.Viewers)
 	return ret, nil
 }
 
@@ -384,7 +397,7 @@ func (c *Checker) GroupAddPermission(ctx context.Context, req *azpb.GroupModifyP
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := userRelTk(req.GetEntityRelation(), NewEntityID(GroupType, groupId))
+	tk := req.GetEntityRelation().WithObject(NewEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupAddPermission")
 	return &azpb.GroupSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
 }
@@ -396,7 +409,7 @@ func (c *Checker) GroupRemovePermission(ctx context.Context, req *azpb.GroupModi
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := userRelTk(req.GetEntityRelation(), NewEntityID(GroupType, groupId))
+	tk := req.GetEntityRelation().WithObject(NewEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupRemovePermission")
 	return &azpb.GroupSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
@@ -536,14 +549,14 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, req *azpb.FeedVers
 	}
 	for _, tk := range tps {
 		if tk.Relation == EditorRelation {
-			ret.Users.Editors = append(ret.Users.Editors, newUserRel(tk.Subject, tk.Relation))
+			ret.Users.Editors = append(ret.Users.Editors, azpb.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 		if tk.Relation == ViewerRelation {
-			ret.Users.Viewers = append(ret.Users.Viewers, newUserRel(tk.Subject, tk.Relation))
+			ret.Users.Viewers = append(ret.Users.Viewers, azpb.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 	}
-	ret.Users.Editors, _ = c.hydrateUserRels(ctx, ret.Users.Editors)
-	ret.Users.Viewers, _ = c.hydrateUserRels(ctx, ret.Users.Viewers)
+	ret.Users.Editors, _ = c.hydrateEntityRels(ctx, ret.Users.Editors)
+	ret.Users.Viewers, _ = c.hydrateEntityRels(ctx, ret.Users.Viewers)
 	return ret, nil
 }
 
@@ -554,7 +567,7 @@ func (c *Checker) FeedVersionAddPermission(ctx context.Context, req *azpb.FeedVe
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := userRelTk(req.GetEntityRelation(), NewEntityID(FeedVersionType, fvid))
+	tk := req.GetEntityRelation().WithObject(NewEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionAddPermission")
 	return &azpb.FeedVersionSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
 }
@@ -566,7 +579,7 @@ func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *azpb.Fee
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
-	tk := userRelTk(req.GetEntityRelation(), NewEntityID(FeedVersionType, fvid))
+	tk := req.GetEntityRelation().WithObject(NewEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionRemovePermission")
 	return &azpb.FeedVersionSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
@@ -653,28 +666,6 @@ func (c *Checker) checkGlobalAdmin(checkUser authn.User) bool {
 }
 
 // Helpers
-
-// TODO: sort out and combine these functions?
-func newUserRel(ek EntityKey, rel Relation) *azpb.EntityRelation {
-	ur := azpb.EntityRelation{
-		Type:        ek.Type,
-		Id:          ek.Name,
-		RefRelation: ek.RefRel,
-		Relation:    rel,
-	}
-	return &ur
-}
-
-func userRelTk(userRel *azpb.EntityRelation, entKey EntityKey) TupleKey {
-	tk := NewTupleKey().
-		WithSubject(userRel.GetType(), userRel.GetId()).
-		WithObjectID(entKey.Type, entKey.ID()).
-		WithRelation(userRel.GetRelation())
-	if userRel.RefRelation > 0 {
-		tk.Subject = tk.Subject.WithRefRel(userRel.RefRelation)
-	}
-	return tk
-}
 
 type hasId interface {
 	GetId() int64

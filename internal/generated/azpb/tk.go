@@ -68,6 +68,33 @@ func IsObjectType(v ObjectType) bool {
 	return ok && v > 0
 }
 
+func NewEntityRelation(ek EntityKey, rel Relation) *EntityRelation {
+	ur := EntityRelation{
+		Type:        ek.Type,
+		Id:          ek.Name,
+		RefRelation: ek.RefRel,
+		Relation:    rel,
+	}
+	return &ur
+}
+
+func (er *EntityRelation) Int64() int64 {
+	a, _ := strconv.Atoi(er.Id)
+	return int64(a)
+}
+
+func (er *EntityRelation) WithObject(ek EntityKey) TupleKey {
+	tk := NewTupleKey().
+		WithSubject(er.GetType(), er.GetId()).
+		WithObjectID(ek.Type, ek.ID()).
+		WithRelation(er.GetRelation())
+	if er.RefRelation > 0 {
+		tk.Subject = tk.Subject.WithRefRel(er.RefRelation)
+	}
+	return tk
+
+}
+
 type EntityKey struct {
 	Type   ObjectType `json:"type"`
 	Name   string     `json:"name"`

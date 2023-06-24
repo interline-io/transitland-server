@@ -534,7 +534,7 @@ func TestChecker(t *testing.T) {
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.TenantModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -618,7 +618,7 @@ func TestChecker(t *testing.T) {
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.TenantModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1059,7 +1059,7 @@ func TestChecker(t *testing.T) {
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.GroupModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1135,7 +1135,7 @@ func TestChecker(t *testing.T) {
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.GroupModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1599,7 +1599,7 @@ func TestChecker(t *testing.T) {
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.FeedVersionModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1651,7 +1651,7 @@ func TestChecker(t *testing.T) {
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.FeedVersionModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)

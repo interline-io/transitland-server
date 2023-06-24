@@ -60,22 +60,22 @@ func NewServer(checker *Checker) (http.Handler, error) {
 		_, err := checker.TenantCreateGroup(r.Context(), &azpb.TenantCreateGroupRequest{Id: checkId(r, "tenant_id"), Group: &check})
 		handleJson(w, nil, err)
 	})
-	router.Post("/tenants/{tenant_id}/permissions/{type}/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		entId, userRel, err := checkUserRel(r, "tenant_id")
-		if err != nil {
+	router.Post("/tenants/{tenant_id}/permissions", func(w http.ResponseWriter, r *http.Request) {
+		check := &azpb.EntityRelation{}
+		if err := parseJson(r.Body, check); err != nil {
 			handleJson(w, nil, err)
-			return
 		}
-		_, err = checker.TenantAddPermission(r.Context(), &azpb.TenantModifyPermissionRequest{Id: entId, EntityRelation: userRel})
+		entId := checkId(r, "tenant_id")
+		_, err := checker.TenantAddPermission(r.Context(), &azpb.TenantModifyPermissionRequest{Id: entId, EntityRelation: check})
 		handleJson(w, nil, err)
 	})
-	router.Delete("/tenants/{tenant_id}/permissions/{type}/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		entId, userRel, err := checkUserRel(r, "tenant_id")
-		if err != nil {
+	router.Delete("/tenants/{tenant_id}/permissions", func(w http.ResponseWriter, r *http.Request) {
+		check := &azpb.EntityRelation{}
+		if err := parseJson(r.Body, check); err != nil {
 			handleJson(w, nil, err)
-			return
 		}
-		_, err = checker.TenantRemovePermission(r.Context(), &azpb.TenantModifyPermissionRequest{Id: entId, EntityRelation: userRel})
+		entId := checkId(r, "tenant_id")
+		_, err := checker.TenantRemovePermission(r.Context(), &azpb.TenantModifyPermissionRequest{Id: entId, EntityRelation: check})
 		handleJson(w, nil, err)
 	})
 
@@ -101,22 +101,22 @@ func NewServer(checker *Checker) (http.Handler, error) {
 		ret, err := checker.GroupPermissions(r.Context(), &azpb.GroupRequest{Id: checkId(r, "group_id")})
 		handleJson(w, ret, err)
 	})
-	router.Post("/groups/{group_id}/permissions/{type}/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		entId, userRel, err := checkUserRel(r, "group_id")
-		if err != nil {
+	router.Post("/groups/{group_id}/permissions", func(w http.ResponseWriter, r *http.Request) {
+		check := &azpb.EntityRelation{}
+		if err := parseJson(r.Body, check); err != nil {
 			handleJson(w, nil, err)
-			return
 		}
-		_, err = checker.GroupAddPermission(r.Context(), &azpb.GroupModifyPermissionRequest{Id: entId, EntityRelation: userRel})
+		entId := checkId(r, "group_id")
+		_, err := checker.GroupAddPermission(r.Context(), &azpb.GroupModifyPermissionRequest{Id: entId, EntityRelation: check})
 		handleJson(w, nil, err)
 	})
-	router.Delete("/groups/{group_id}/permissions/{type}/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		entId, userRel, err := checkUserRel(r, "group_id")
-		if err != nil {
+	router.Delete("/groups/{group_id}/permissions", func(w http.ResponseWriter, r *http.Request) {
+		check := &azpb.EntityRelation{}
+		if err := parseJson(r.Body, check); err != nil {
 			handleJson(w, nil, err)
-			return
 		}
-		_, err = checker.GroupRemovePermission(r.Context(), &azpb.GroupModifyPermissionRequest{Id: entId, EntityRelation: userRel})
+		entId := checkId(r, "group_id")
+		_, err := checker.GroupRemovePermission(r.Context(), &azpb.GroupModifyPermissionRequest{Id: entId, EntityRelation: check})
 		handleJson(w, nil, err)
 	})
 
@@ -155,22 +155,22 @@ func NewServer(checker *Checker) (http.Handler, error) {
 		ret, err := checker.FeedVersionPermissions(r.Context(), &azpb.FeedVersionRequest{Id: checkId(r, "feed_version_id")})
 		handleJson(w, ret, err)
 	})
-	router.Post("/feed_versions/{feed_version_id}/permissions/{type}/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		entId, userRel, err := checkUserRel(r, "feed_version_id")
-		if err != nil {
+	router.Post("/feed_versions/{feed_version_id}/permissions", func(w http.ResponseWriter, r *http.Request) {
+		check := &azpb.EntityRelation{}
+		if err := parseJson(r.Body, check); err != nil {
 			handleJson(w, nil, err)
-			return
 		}
-		_, err = checker.FeedVersionAddPermission(r.Context(), &azpb.FeedVersionModifyPermissionRequest{Id: entId, EntityRelation: userRel})
+		entId := checkId(r, "feed_version_id")
+		_, err := checker.FeedVersionAddPermission(r.Context(), &azpb.FeedVersionModifyPermissionRequest{Id: entId, EntityRelation: check})
 		handleJson(w, nil, err)
 	})
-	router.Delete("/feed_versions/{feed_version_id}/permissions/{type}/{relation}/{user}", func(w http.ResponseWriter, r *http.Request) {
-		entId, userRel, err := checkUserRel(r, "feed_version_id")
-		if err != nil {
+	router.Delete("/feed_versions/{feed_version_id}/permissions", func(w http.ResponseWriter, r *http.Request) {
+		check := &azpb.EntityRelation{}
+		if err := parseJson(r.Body, check); err != nil {
 			handleJson(w, nil, err)
-			return
 		}
-		_, err = checker.FeedVersionRemovePermission(r.Context(), &azpb.FeedVersionModifyPermissionRequest{Id: entId, EntityRelation: userRel})
+		entId := checkId(r, "feed_version_id")
+		_, err := checker.FeedVersionRemovePermission(r.Context(), &azpb.FeedVersionModifyPermissionRequest{Id: entId, EntityRelation: check})
 		handleJson(w, nil, err)
 	})
 
