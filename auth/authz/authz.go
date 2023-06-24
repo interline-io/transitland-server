@@ -84,6 +84,11 @@ func NewEntityKeySplit(v string) EntityKey {
 	} else if len(a) > 0 {
 		ret.Type, _ = azpb.ObjectTypeString(a[0])
 	}
+	ns := strings.Split(ret.Name, "#")
+	if len(ns) > 1 {
+		ret.Name = ns[0]
+		ret.RefRel, _ = azpb.RelationString(ns[1])
+	}
 	return ret
 }
 

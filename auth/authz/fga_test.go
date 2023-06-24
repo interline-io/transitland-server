@@ -177,12 +177,12 @@ func TestFGAClient(t *testing.T) {
 			Relation: ViewerRelation,
 		},
 		{
-			Subject:  NewEntityKey(GroupType, "test-group#viewer"),
+			Subject:  NewEntityKey(GroupType, "test-group").WithRefRel(ViewerRelation),
 			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			Relation: ViewerRelation,
 		},
 		{
-			Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
+			Subject:  NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
 			Object:   NewEntityKey(FeedVersionType, "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			Relation: ViewerRelation,
 		},
@@ -213,7 +213,7 @@ func TestFGAClient(t *testing.T) {
 				expect := strings.Split(tc.Expect, " ")
 				var got []string
 				for _, vtk := range tks {
-					got = append(got, fmt.Sprintf("%s:%s:%s", vtk.Subject.Type, vtk.Subject.Name, vtk.Relation))
+					got = append(got, fmt.Sprintf("%s:%s", vtk.Subject.String(), vtk.Relation))
 				}
 				assert.ElementsMatch(t, expect, got, "usertype:username:relation does not match")
 
@@ -799,11 +799,10 @@ func TestFGAClient(t *testing.T) {
 				ExpectError: true,
 			},
 			{
-				Notes:       "a group#viewer can be an editor of a feed version",
-				Subject:     NewEntityKey(TenantType, "HA-group#viewer"),
-				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Relation:    EditorRelation,
-				ExpectError: true,
+				Notes:    "a group#viewer can be an editor of a feed version",
+				Subject:  NewEntityKey(GroupType, "HA-group").WithRefRel(ViewerRelation),
+				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation: EditorRelation,
 			},
 		}
 		for _, tc := range checks {
@@ -823,9 +822,9 @@ func TestFGAClient(t *testing.T) {
 				}
 				var gotTks []string
 				for _, v := range tks {
-					gotTks = append(gotTks, fmt.Sprintf("%s:%s:%s", v.Subject.Type, v.Subject.Name, v.Relation))
+					gotTks = append(gotTks, fmt.Sprintf("%s:%s", v.Subject.String(), v.Relation))
 				}
-				checkTk := fmt.Sprintf("%s:%s:%s", ltk.Subject.Type, ltk.Subject.Name, ltk.Relation)
+				checkTk := fmt.Sprintf("%s:%s", ltk.Subject.String(), ltk.Relation)
 				assert.Contains(t, gotTks, checkTk, "written tuple not found in updated object tuples")
 			})
 		}

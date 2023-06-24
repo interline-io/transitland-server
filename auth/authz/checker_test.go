@@ -118,7 +118,7 @@ func TestChecker(t *testing.T) {
 			Relation: ParentRelation,
 		},
 		{
-			Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
+			Subject:  NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
 			Object:   NewEntityKey(GroupType, "HA-group"),
 			Relation: ViewerRelation,
 		},
@@ -181,12 +181,12 @@ func TestChecker(t *testing.T) {
 			Relation: ViewerRelation,
 		},
 		{
-			Subject:  NewEntityKey(GroupType, "test-group#viewer"),
+			Subject:  NewEntityKey(GroupType, "test-group").WithRefRel(ViewerRelation),
 			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			Relation: ViewerRelation,
 		},
 		{
-			Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
+			Subject:  NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
 			Object:   NewEntityKey(FeedVersionType, "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			Relation: ViewerRelation,
 		},
@@ -533,8 +533,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.TenantAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.TenantModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Type, ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -617,8 +617,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.TenantRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.TenantModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Type, ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -966,14 +966,14 @@ func TestChecker(t *testing.T) {
 			},
 			{
 				Notes:       "tl-tenant-admin is manager of CT-group through tl-tenant and can add tenant#member as viewer",
-				Subject:     NewEntityKey(TenantType, "tl-tenant#member"),
+				Subject:     NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
 				Object:      NewEntityKey(GroupType, "CT-group"),
 				Relation:    ViewerRelation,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
 				Notes:       "tl-tenant-admin is manager of CT-group through tl-tenant and can add tenant#member as editor",
-				Subject:     NewEntityKey(TenantType, "tl-tenant#member"),
+				Subject:     NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
 				Object:      NewEntityKey(GroupType, "CT-group"),
 				Relation:    EditorRelation,
 				CheckAsUser: "tl-tenant-admin",
@@ -1020,7 +1020,7 @@ func TestChecker(t *testing.T) {
 			},
 			{
 				Notes:       "error for disallowed relation",
-				Subject:     NewEntityKey(GroupType, "BA-group#member"),
+				Subject:     NewEntityKey(GroupType, "BA-group").WithRefRel(MemberRelation),
 				Object:      NewEntityKey(GroupType, "CT-group"),
 				Relation:    ViewerRelation,
 				CheckAsUser: "tl-tenant-admin",
@@ -1058,8 +1058,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.GroupAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.GroupModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Type, ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1134,8 +1134,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.GroupRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.GroupModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Type, ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1598,8 +1598,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.FeedVersionAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.FeedVersionModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Type, ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1650,8 +1650,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.FeedVersionRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.FeedVersionModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Type, ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: newUserRel(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1773,10 +1773,6 @@ func checkErrUnauthorized(t testing.TB, err error, expectError bool, expectUnaut
 		}
 	}
 	return err != nil
-}
-
-func newUserRel(t ObjectType, userId string, rel Relation) *azpb.UserRelation {
-	return &azpb.UserRelation{Type: t, UserId: userId, Relation: rel}
 }
 
 // test user

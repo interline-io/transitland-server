@@ -68,11 +68,13 @@ enum Relation {
 	parent = 6;
 }
 
-message UserRelation {
+message EntityRelation {
     ObjectType type = 1;
-    Relation relation = 2;
-    string UserId = 3;
-}
+    string id = 2;
+    string name = 3;
+    Relation ref_relation = 4;
+    Relation relation = 5;
+} 
 
 //////
 
@@ -135,8 +137,8 @@ message TenantPermissionsResponse {
     }
     Actions actions = 3;
     message Users {
-        repeated User admins = 1;
-        repeated User members = 2;
+        repeated EntityRelation admins = 1;
+        repeated EntityRelation members = 2;
     }
     Users users = 4;
 }
@@ -154,7 +156,7 @@ message TenantCreateGroupResponse {
 
 message TenantModifyPermissionRequest {
     int64 id = 1;
-    UserRelation user_relation = 2;
+    EntityRelation entity_relation = 2;
 }
 
 
@@ -180,7 +182,7 @@ message GroupListRequest {}
 
 message GroupModifyPermissionRequest {
     int64 id = 1;
-    UserRelation user_relation = 2;
+    EntityRelation entity_relation = 2;
 }
 
 message GroupResponse {
@@ -204,9 +206,9 @@ message GroupPermissionsResponse {
     } 
     Actions actions = 4;
     message Users {
-        repeated User managers = 1;
-        repeated User editors = 2;
-        repeated User viewers = 3;
+        repeated EntityRelation managers = 1;
+        repeated EntityRelation editors = 2;
+        repeated EntityRelation viewers = 3;
     }
     Users users = 5;
 }
@@ -294,15 +296,15 @@ message FeedVersionPermissionsResponse {
     }
     Actions actions = 4;
     message Users {
-        repeated User editors = 1;
-        repeated User viewers = 2;
+        repeated EntityRelation editors = 1;
+        repeated EntityRelation viewers = 2;
     }
     Users users = 5;
 }
 
 message FeedVersionModifyPermissionRequest {
     int64 id = 1;
-    UserRelation user_relation = 2;
+    EntityRelation entity_relation = 2;
 }
 
 message FeedVersionSaveResponse {

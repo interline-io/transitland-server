@@ -69,12 +69,18 @@ func IsObjectType(v ObjectType) bool {
 }
 
 type EntityKey struct {
-	Type ObjectType `json:"Type"`
-	Name string     `json:"Name"`
+	Type   ObjectType `json:"type"`
+	Name   string     `json:"name"`
+	RefRel Relation   `json:"ref_rel"`
 }
 
 func NewEntityKey(t ObjectType, name string) EntityKey {
 	return EntityKey{Type: t, Name: name}
+}
+
+func (ek EntityKey) WithRefRel(r Relation) EntityKey {
+	ek.RefRel = r
+	return ek
 }
 
 func (ek EntityKey) ID() int64 {
@@ -85,6 +91,9 @@ func (ek EntityKey) ID() int64 {
 func (ek EntityKey) String() string {
 	if ek.Name == "" {
 		return ek.Type.String()
+	}
+	if ek.RefRel > 0 {
+		return fmt.Sprintf("%s:%s#%s", ek.Type.String(), ek.Name, ek.RefRel.String())
 	}
 	return fmt.Sprintf("%s:%s", ek.Type.String(), ek.Name)
 }
