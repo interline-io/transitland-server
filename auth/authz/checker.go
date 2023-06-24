@@ -648,8 +648,18 @@ func (c *Checker) checkGlobalAdmin(checkUser authn.User) bool {
 // Helpers
 
 func userRelTk(userRel *azpb.UserRelation, entKey EntityKey) TupleKey {
+	var t ObjectType
+	switch urt := userRel.GetType(); urt {
+	case GroupType:
+		t = urt
+	case TenantType:
+		t = urt
+	case UserType:
+		t = urt
+	default:
+	}
 	return NewTupleKey().
-		WithUser(userRel.GetUserId()).
+		WithSubject(t, userRel.GetUserId()).
 		WithObjectID(entKey.Type, entKey.ID()).
 		WithRelation(userRel.GetRelation())
 }
@@ -697,10 +707,6 @@ func first[T any](v []T) T {
 
 func newUser(id string) *azpb.User {
 	return &azpb.User{Id: id}
-}
-
-func newUserRel(userId string, rel Relation) *azpb.UserRelation {
-	return &azpb.UserRelation{UserId: userId, Relation: rel}
 }
 
 // todo: rename to dbTestTupleLookup and make arg TestTuple

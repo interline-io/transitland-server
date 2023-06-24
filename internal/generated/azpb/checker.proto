@@ -69,8 +69,9 @@ enum Relation {
 }
 
 message UserRelation {
-    Relation relation = 1;
-    string UserId = 2;
+    ObjectType type = 1;
+    Relation relation = 2;
+    string UserId = 3;
 }
 
 //////

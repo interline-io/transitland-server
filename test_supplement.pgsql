@@ -43,6 +43,7 @@ insert into ext_performance_stop_observations(id,feed_version_id,source,trip_sta
 
 insert into tl_tenants(tenant_name) values ('tl-tenant');
 insert into tl_tenants(tenant_name) values ('restricted-tenant');
+insert into tl_tenants(tenant_name) values ('all-users-tenant');
 
 insert into tl_groups(group_name) values ('CT-group');
 insert into tl_groups(group_name) values ('BA-group');

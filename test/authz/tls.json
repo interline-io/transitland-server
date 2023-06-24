@@ -70,6 +70,10 @@
                         "directly_related_user_types": [
                             {
                                 "type": "user"
+                            },
+                            {
+                                "type": "user",
+                                "wildcard": {}
                             }
                         ]
                     },
@@ -199,6 +203,10 @@
                         "directly_related_user_types": [
                             {
                                 "type": "user"
+                            },
+                            {
+                                "type": "tenant",
+                                "relation": "member"
                             }
                         ]
                     },
@@ -475,6 +483,10 @@
                             {
                                 "type": "org",
                                 "relation": "viewer"
+                            },
+                            {
+                                "type": "tenant",
+                                "relation": "member"
                             }
                         ]
                     },
@@ -486,6 +498,10 @@
                             {
                                 "type": "org",
                                 "relation": "viewer"
+                            },
+                            {
+                                "type": "tenant",
+                                "relation": "member"
                             }
                         ]
                     },

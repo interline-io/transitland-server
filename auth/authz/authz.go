@@ -141,6 +141,9 @@ func (tk *TestTuple) TupleKey() TupleKey {
 }
 
 func (tk *TestTuple) String() string {
+	if tk.Notes != "" {
+		return tk.Notes
+	}
 	a := tk.TupleKey().String()
 	if tk.CheckAsUser != "" {
 		a = a + "|checkuser:" + tk.CheckAsUser
