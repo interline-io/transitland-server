@@ -48,7 +48,7 @@ enum Action {
 	can_create_feed = 8;
 	can_delete_feed = 9;
 	can_set_group = 10;
-    set_set_tenant = 11;
+    can_set_tenant = 11;
 }
 
 enum ObjectType {

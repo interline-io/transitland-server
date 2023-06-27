@@ -31,7 +31,7 @@ var CanSetGroup = Action_can_set_group
 var CanCreateOrg = Action_can_create_org
 var CanEditMembers = Action_can_edit_members
 var CanDeleteOrg = Action_can_delete_org
-var CanSetTenant = Action_set_set_tenant
+var CanSetTenant = Action_can_set_tenant
 
 func RelationString(v string) (Relation, error) {
 	if a, ok := Relation_value[v]; ok {

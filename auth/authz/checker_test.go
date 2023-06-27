@@ -485,12 +485,11 @@ func TestChecker(t *testing.T) {
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
-				Notes:       "error if relation already exists",
+				Notes:       "replaces relation if it already exists",
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(TenantType, "tl-tenant"),
 				Relation:    MemberRelation,
 				CheckAsUser: "tl-tenant-admin",
-				ExpectError: true,
 			},
 			{
 				Notes:              "users get unauthorized when attempting to add user to not found tenant",
@@ -920,7 +919,7 @@ func TestChecker(t *testing.T) {
 				Notes:         "global admins are managers of all groups",
 				Subject:       NewEntityKey(UserType, "global_admin"),
 				Object:        NewEntityKey(GroupType, "EX-group"),
-				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed, CanSetTenant},
 			},
 			{
 				Notes:       "global admins get not found for not found groups",
@@ -1551,11 +1550,10 @@ func TestChecker(t *testing.T) {
 			},
 			// General checks
 			{
-				Notes:       "existing tuple returns error",
+				Notes:       "existing tuple will still remove other subject matched tuples",
 				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
-				ExpectError: true,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{

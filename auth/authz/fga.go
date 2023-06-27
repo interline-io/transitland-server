@@ -156,7 +156,7 @@ func (c *FGAClient) ReplaceTuple(ctx context.Context, tk TupleKey) error {
 		return err
 	}
 
-	// Write new tuple before deleting others
+	// Write new tuple before deleting others, if it exists
 	exists := false
 	for _, checkTk := range currentTks {
 		if tk.Equals(checkTk) {
