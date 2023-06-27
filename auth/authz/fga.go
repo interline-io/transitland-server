@@ -97,6 +97,53 @@ func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKe
 	return ret, nil
 }
 
+func (c *FGAClient) ReplaceAllRelation(ctx context.Context, tk TupleKey) error {
+	if err := tk.Validate(); err != nil {
+		log.Error().Err(err).Str("tk", tk.String()).Msg("ReplaceAllRelation")
+		return err
+	}
+	log.Trace().Str("tk", tk.String()).Msg("ReplaceAllRelation")
+
+	currentTks, err := c.GetObjectTuples(ctx, NewTupleKey().WithObject(tk.Object.Type, tk.Object.Name))
+	if err != nil {
+		return err
+	}
+	var matched []TupleKey
+	var notMatched []TupleKey
+	for _, checkTk := range currentTks {
+		if tk.Relation != checkTk.Relation {
+			continue
+		}
+		if tk.Equals(checkTk) {
+			matched = append(matched, checkTk)
+		} else {
+			notMatched = append(notMatched, checkTk)
+		}
+	}
+
+	// Write new tuple before deleting others
+	if len(matched) == 0 {
+		if err := c.WriteTuple(ctx, tk); err != nil {
+			return err
+		}
+	}
+
+	// Delete exsiting tuples
+	var errs []error
+	for _, delTk := range notMatched {
+		if err := c.DeleteTuple(ctx, delTk); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	for _, err := range errs {
+		log.Trace().Err(err).Str("tk", tk.String()).Msg("ReplaceAllRelation")
+	}
+	if len(errs) > 0 {
+		return errs[0]
+	}
+	return nil
+}
+
 func (c *FGAClient) ReplaceTuple(ctx context.Context, tk TupleKey) error {
 	if err := tk.Validate(); err != nil {
 		log.Error().Err(err).Str("tk", tk.String()).Msg("ReplaceTuple")
@@ -104,18 +151,27 @@ func (c *FGAClient) ReplaceTuple(ctx context.Context, tk TupleKey) error {
 	}
 	log.Trace().Str("tk", tk.String()).Msg("ReplaceTuple")
 
-	// Write new tuple before deleting others
-	var errs []error
-	if err := c.WriteTuple(ctx, tk); err != nil {
-		errs = append(errs, err)
+	currentTks, err := c.GetObjectTuples(ctx, NewTupleKey().WithObject(tk.Object.Type, tk.Object.Name))
+	if err != nil {
+		return err
+	}
+
+	// Write new tuple before deleting others, if it exists
+	exists := false
+	for _, checkTk := range currentTks {
+		if tk.Equals(checkTk) {
+			exists = true
+		}
+	}
+	if !exists {
+		if err := c.WriteTuple(ctx, tk); err != nil {
+			return err
+		}
 	}
 
 	// Delete other tuples
-	delKeys, err := c.GetObjectTuples(ctx, NewTupleKey().WithObject(tk.Object.Type, tk.Object.Name))
-	if err != nil {
-		errs = append(errs, err)
-	}
-	for _, k := range delKeys {
+	var errs []error
+	for _, k := range currentTks {
 		if k.Subject.Type == tk.Subject.Type && k.Subject.Name == tk.Subject.Name && k.Relation != tk.Relation {
 			if err := c.DeleteTuple(ctx, k); err != nil {
 				errs = append(errs, err)

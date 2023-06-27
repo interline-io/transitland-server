@@ -31,6 +31,7 @@ var CanSetGroup = Action_can_set_group
 var CanCreateOrg = Action_can_create_org
 var CanEditMembers = Action_can_edit_members
 var CanDeleteOrg = Action_can_delete_org
+var CanSetTenant = Action_can_set_tenant
 
 func RelationString(v string) (Relation, error) {
 	if a, ok := Relation_value[v]; ok {
@@ -68,13 +69,52 @@ func IsObjectType(v ObjectType) bool {
 	return ok && v > 0
 }
 
+func NewEntityRelation(ek EntityKey, rel Relation) *EntityRelation {
+	ur := EntityRelation{
+		Type:        ek.Type,
+		Id:          ek.Name,
+		RefRelation: ek.RefRel,
+		Relation:    rel,
+	}
+	return &ur
+}
+
+func (er *EntityRelation) Int64() int64 {
+	a, _ := strconv.Atoi(er.Id)
+	return int64(a)
+}
+
+func (er *EntityRelation) WithObject(ek EntityKey) TupleKey {
+	tk := NewTupleKey().
+		WithSubject(er.GetType(), er.GetId()).
+		WithObjectID(ek.Type, ek.ID()).
+		WithRelation(er.GetRelation())
+	if er.RefRelation > 0 {
+		tk.Subject = tk.Subject.WithRefRel(er.RefRelation)
+	}
+	return tk
+
+}
+
 type EntityKey struct {
-	Type ObjectType `json:"Type"`
-	Name string     `json:"Name"`
+	Type   ObjectType `json:"type"`
+	Name   string     `json:"name"`
+	RefRel Relation   `json:"ref_rel"`
 }
 
 func NewEntityKey(t ObjectType, name string) EntityKey {
 	return EntityKey{Type: t, Name: name}
+}
+
+func (ek EntityKey) Equals(other EntityKey) bool {
+	return ek.Type == other.Type &&
+		ek.Name == other.Name &&
+		ek.RefRel == other.RefRel
+}
+
+func (ek EntityKey) WithRefRel(r Relation) EntityKey {
+	ek.RefRel = r
+	return ek
 }
 
 func (ek EntityKey) ID() int64 {
@@ -85,6 +125,9 @@ func (ek EntityKey) ID() int64 {
 func (ek EntityKey) String() string {
 	if ek.Name == "" {
 		return ek.Type.String()
+	}
+	if ek.RefRel > 0 {
+		return fmt.Sprintf("%s:%s#%s", ek.Type.String(), ek.Name, ek.RefRel.String())
 	}
 	return fmt.Sprintf("%s:%s", ek.Type.String(), ek.Name)
 }
@@ -97,6 +140,13 @@ type TupleKey struct {
 }
 
 func NewTupleKey() TupleKey { return TupleKey{} }
+
+func (tk TupleKey) Equals(other TupleKey) bool {
+	return tk.Subject.Equals(other.Subject) &&
+		tk.Object.Equals(other.Object) &&
+		tk.Action == other.Action &&
+		tk.Relation == other.Relation
+}
 
 func (tk TupleKey) String() string {
 	r := ""

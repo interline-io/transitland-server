@@ -3,6 +3,8 @@ package playground
 import (
 	"html/template"
 	"net/http"
+
+	"github.com/interline-io/transitland-server/internal/util"
 )
 
 const doc = `
@@ -101,7 +103,7 @@ func Handler(title string, endpoint string) http.HandlerFunc {
 			"jsSRI":       "sha384-TqI6gT2PjmSrnEOTvGHLad1U4Vm5VoyzMmcKK0C/PLCWTnwPyXhCJY6NYhC/tp19",
 		})
 		if err != nil {
-			http.Error(w, "internal server error", http.StatusInternalServerError)
+			http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusInternalServerError)
 		}
 	}
 }

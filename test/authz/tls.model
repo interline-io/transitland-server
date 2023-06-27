@@ -4,7 +4,7 @@ type user
 type tenant
   relations
     define admin: [user]
-    define member: [user] or admin
+    define member: [user,user:*] or admin
     define can_create_org: admin
     define can_delete_org: admin
     define can_edit: admin
@@ -14,7 +14,7 @@ type org
   relations
     define parent: [tenant]
     define manager: [user] or admin from parent
-    define editor: [user] or manager
+    define editor: [user,tenant#member] or manager
     define viewer: [user,tenant#member] or editor
     define can_edit_members: manager
     define can_create_feed: manager
@@ -36,8 +36,8 @@ type feed_version
   relations
     define parent: [feed]
     define manager: manager from parent
-    define editor: [user,org#viewer] or manager or editor from parent
-    define viewer: [user,org#viewer] or editor or viewer from parent
+    define editor: [user,org#viewer,tenant#member] or manager or editor from parent
+    define viewer: [user,org#viewer,tenant#member] or editor or viewer from parent
     define can_edit_members: manager
     define can_edit: editor
     define can_view: viewer

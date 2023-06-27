@@ -18,6 +18,7 @@ import (
 	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/meters"
+	"github.com/interline-io/transitland-server/internal/util"
 )
 
 // DEFAULTLIMIT is the default API limit
@@ -196,7 +197,7 @@ func makeHandler(cfg restConfig, handlerName string, f func() apiHandler) http.H
 
 		format := opts["format"]
 		if format == "png" && cfg.DisableImage {
-			http.Error(w, "image generation disabled", http.StatusInternalServerError)
+			http.Error(w, util.MakeJsonError("image generation disabled"), http.StatusInternalServerError)
 			return
 		}
 
@@ -217,12 +218,12 @@ func makeHandler(cfg restConfig, handlerName string, f func() apiHandler) http.H
 		s, err := json.Marshal(opts)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to marshal request params")
-			http.Error(w, "parameter error", http.StatusInternalServerError)
+			http.Error(w, util.MakeJsonError("parameter error"), http.StatusInternalServerError)
 			return
 		}
 		if err := json.Unmarshal(s, ent); err != nil {
 			log.Error().Err(err).Msg("failed to unmarshal request params")
-			http.Error(w, "parameter error", http.StatusInternalServerError)
+			http.Error(w, util.MakeJsonError("parameter error"), http.StatusInternalServerError)
 			return
 		}
 

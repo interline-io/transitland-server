@@ -23,6 +23,7 @@ type FGAProvider interface {
 	GetObjectTuples(context.Context, TupleKey) ([]TupleKey, error)
 	WriteTuple(context.Context, TupleKey) error
 	ReplaceTuple(context.Context, TupleKey) error
+	ReplaceAllRelation(context.Context, TupleKey) error
 	DeleteTuple(context.Context, TupleKey) error
 }
 
@@ -67,6 +68,7 @@ var CanSetGroup = azpb.CanSetGroup
 var CanCreateOrg = azpb.CanCreateOrg
 var CanEditMembers = azpb.CanEditMembers
 var CanDeleteOrg = azpb.CanDeleteOrg
+var CanSetTenant = azpb.CanSetTenant
 
 type EntityKey = azpb.EntityKey
 type TupleKey = azpb.TupleKey
@@ -83,6 +85,11 @@ func NewEntityKeySplit(v string) EntityKey {
 		ret.Name = a[1]
 	} else if len(a) > 0 {
 		ret.Type, _ = azpb.ObjectTypeString(a[0])
+	}
+	ns := strings.Split(ret.Name, "#")
+	if len(ns) > 1 {
+		ret.Name = ns[0]
+		ret.RefRel, _ = azpb.RelationString(ns[1])
 	}
 	return ret
 }
@@ -141,6 +148,9 @@ func (tk *TestTuple) TupleKey() TupleKey {
 }
 
 func (tk *TestTuple) String() string {
+	if tk.Notes != "" {
+		return tk.Notes
+	}
 	a := tk.TupleKey().String()
 	if tk.CheckAsUser != "" {
 		a = a + "|checkuser:" + tk.CheckAsUser

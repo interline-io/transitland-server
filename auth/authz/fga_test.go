@@ -43,31 +43,65 @@ func TestFGAClient(t *testing.T) {
 	}
 
 	testData := []TestTuple{
+		// Assign users to tenants
 		{
+			Notes:    "All users can access all-users-tenant",
+			Subject:  NewEntityKey(UserType, "*"),
+			Object:   NewEntityKey(TenantType, "all-users-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "tl-tenant-admin"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: AdminRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "ian"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "drew"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "test2"),
+			Object:   NewEntityKey(TenantType, "restricted-tenant"),
+			Relation: MemberRelation,
+		},
+		// Assign groups to tenants
+		{
+			Notes:    "org:CT-group belongs to tenant:tl-tenant",
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),
 			Object:   NewEntityKey(GroupType, "CT-group"),
 			Relation: ParentRelation,
-			Notes:    "org:CT-group is belongs to tenant:tl-tenant",
 		},
 		{
+			Notes:    "org:BA-group belongs to tenant:tl-tenant",
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),
 			Object:   NewEntityKey(GroupType, "BA-group"),
 			Relation: ParentRelation,
-			Notes:    "org:BA-group belongs to tenant:tl-tenant",
 		},
 		{
+			Notes:    "org:HA-group belongs to tenant:tl-tenant",
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),
 			Object:   NewEntityKey(GroupType, "HA-group"),
 			Relation: ParentRelation,
-			Notes:    "org:HA-group belongs to tenant:tl-tenant",
 		},
 		{
+			Notes:    "org:EX-group will be for admins only",
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),
 			Object:   NewEntityKey(GroupType, "EX-group"),
 			Relation: ParentRelation,
-			Notes:    "org:EX-group will be for admins only",
 		},
 		{
+			Notes:    "all tl-tenant members can view HA-group",
 			Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
 			Object:   NewEntityKey(GroupType, "HA-group"),
 			Relation: ViewerRelation,
@@ -76,8 +110,34 @@ func TestFGAClient(t *testing.T) {
 			Subject:  NewEntityKey(TenantType, "restricted-tenant"),
 			Object:   NewEntityKey(GroupType, "test-group"),
 			Relation: ParentRelation,
-			Notes:    "org:no-one",
 		},
+		// Assign users to groups
+		{
+			Subject:  NewEntityKey(UserType, "ian"),
+			Object:   NewEntityKey(GroupType, "CT-group"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "ian"),
+			Object:   NewEntityKey(GroupType, "BA-group"),
+			Relation: EditorRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "drew"),
+			Object:   NewEntityKey(GroupType, "CT-group"),
+			Relation: EditorRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "test-group-viewer"),
+			Object:   NewEntityKey(GroupType, "test-group"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "test-group-editor"),
+			Object:   NewEntityKey(GroupType, "test-group"),
+			Relation: EditorRelation,
+		},
+		// Assign feeds to groups
 		{
 			Subject:  NewEntityKey(GroupType, "CT-group"),
 			Object:   NewEntityKey(FeedType, "CT"),
@@ -94,78 +154,37 @@ func TestFGAClient(t *testing.T) {
 			Subject:  NewEntityKey(GroupType, "HA-group"),
 			Object:   NewEntityKey(FeedType, "HA"),
 			Relation: ParentRelation,
-			Notes:    "feed:HA should be viewable to all members of tenant:tl-tenant (tl-tenant-admin tl-tenant-member ian drew) and editable by org:HA-group editors ()",
+			Notes:    "feed:HA should be viewable to all members of tenant:tl-tenant",
 		},
 		{
 			Subject:  NewEntityKey(GroupType, "EX-group"),
 			Object:   NewEntityKey(FeedType, "EX"),
 			Relation: ParentRelation,
-			Notes:    "feed:EX should only be viewable to admins of tenant:tl-tenant (admin)",
+			Notes:    "feed:EX should only be viewable to admins of tenant:tl-tenant",
 		},
+		// Assign feed version specific permissions
+		// NOTE: This assignment is necessary for FGA tests
+		// This relation is implicit in full Checker tests
 		{
 			Subject:  NewEntityKey(FeedType, "BA"),
 			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			Relation: ParentRelation,
 		},
-		{
-			Subject:  NewEntityKey(UserType, "tl-tenant-admin"),
-			Object:   NewEntityKey(TenantType, "tl-tenant"),
-			Relation: AdminRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "ian"),
-			Object:   NewEntityKey(GroupType, "CT-group"),
-			Relation: ViewerRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "ian"),
-			Object:   NewEntityKey(GroupType, "BA-group"),
-			Relation: EditorRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "ian"),
-			Object:   NewEntityKey(TenantType, "tl-tenant"),
-			Relation: MemberRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "drew"),
-			Object:   NewEntityKey(GroupType, "CT-group"),
-			Relation: EditorRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "drew"),
-			Object:   NewEntityKey(TenantType, "tl-tenant"),
-			Relation: MemberRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "test-group-viewer"),
-			Object:   NewEntityKey(GroupType, "test-group"),
-			Relation: ViewerRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "test-group-editor"),
-			Object:   NewEntityKey(GroupType, "test-group"),
-			Relation: EditorRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
-			Object:   NewEntityKey(TenantType, "tl-tenant"),
-			Relation: MemberRelation,
-		},
+		// Assign users to feed versions
 		{
 			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
 			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 			Relation: ViewerRelation,
 		},
 		{
-			Subject:  NewEntityKey(UserType, "test2"),
-			Object:   NewEntityKey(TenantType, "restricted-tenant"),
-			Relation: MemberRelation,
+			Subject:  NewEntityKey(GroupType, "test-group").WithRefRel(ViewerRelation),
+			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+			Relation: ViewerRelation,
 		},
 		{
-			Subject:  NewEntityKey(GroupType, "test-group#viewer"),
-			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-			Relation: EditorRelation,
+			Subject:  NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
+			Object:   NewEntityKey(FeedVersionType, "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
+			Relation: ViewerRelation,
 		},
 	}
 
@@ -178,7 +197,7 @@ func TestFGAClient(t *testing.T) {
 			},
 			{
 				Object: NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Expect: "feed:BA:parent user:tl-tenant-member:viewer org:test-group#viewer:editor",
+				Expect: "feed:BA:parent user:tl-tenant-member:viewer org:test-group#viewer:viewer",
 			},
 			{
 				Object: NewEntityKey(FeedType, "CT"),
@@ -194,7 +213,7 @@ func TestFGAClient(t *testing.T) {
 				expect := strings.Split(tc.Expect, " ")
 				var got []string
 				for _, vtk := range tks {
-					got = append(got, fmt.Sprintf("%s:%s:%s", vtk.Subject.Type, vtk.Subject.Name, vtk.Relation))
+					got = append(got, fmt.Sprintf("%s:%s", vtk.Subject.String(), vtk.Relation))
 				}
 				assert.ElementsMatch(t, expect, got, "usertype:username:relation does not match")
 
@@ -311,11 +330,19 @@ func TestFGAClient(t *testing.T) {
 				ExpectActions: []Action{-CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
 			{
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(TenantType, "all-users-tenant"),
+				ExpectActions: []Action{CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
+			},
+			{
+				Subject:       NewEntityKey(UserType, "drew"),
+				Object:        NewEntityKey(TenantType, "all-users-tenant"),
+				ExpectActions: []Action{CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
+			},
+			{
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{-CanView},
-				Notes:         "only feed:BA readers and nisar",
-				ExpectError:   true,
 			},
 			{
 				Subject:       NewEntityKey(UserType, "drew"),
@@ -440,12 +467,12 @@ func TestFGAClient(t *testing.T) {
 			{
 				Subject:       NewEntityKey(UserType, "test-group-viewer"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers},
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers},
 			},
 			{
 				Subject:       NewEntityKey(UserType, "test-group-editor"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers},
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers},
 			},
 		}
 		for _, tc := range checks {
@@ -478,120 +505,137 @@ func TestFGAClient(t *testing.T) {
 		fgac := newTestFGAClient(t, fgaUrl, testData)
 		checks := []TestTuple{
 			{
+				Notes:      "tl-tenant-admin can access all feeds in tl-tenant",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
 			},
 			{
+				Notes:      "tl-tenant-admin can edit all feeds in tl-tenant",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanEdit,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
 			},
-
 			{
+				Notes:      "tl-tenant-admin can view all groups in tl-tenant",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
 			},
 			{
+				Notes:      "tl-tenant-admin can edit all groups in tl-tenant",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanEdit,
 				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group", "EX-group"),
 			},
-
 			{
+				Notes:      "tl-tenant-admin can view tenants tl-tenant and all-users-tenant",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant", "all-users-tenant"),
 			},
 			{
+				Notes:      "tl-tenant-admin can view a feed version that belongs to a feed or group in tl-tenant or d281 which viewable to all tenant members",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedVersionType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			},
 			{
+				Notes:      "ian can edit feed BA in tl-tenant",
 				Subject:    NewEntityKey(UserType, "ian"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanEdit,
 				ExpectKeys: newEntityKeys(FeedType, "BA"),
 			},
 			{
+				Notes:      "ian can view feeds CT, BA, HA",
 				Subject:    NewEntityKey(UserType, "ian"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA"),
 			},
 			{
+				Notes:      "ian can view groups CT-group BA-group HA-group",
 				Subject:    NewEntityKey(UserType, "ian"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(GroupType, "CT-group", "BA-group", "HA-group"),
 			},
 			{
+				Notes:      "ian can view tenants tl-tenant (member explicitly) and all-users-tenant (user:*)",
 				Subject:    NewEntityKey(UserType, "ian"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant", "all-users-tenant"),
 			},
 			{
+				Notes:      "ian can view feed version e535 because of access to feed BA, group BA-group or d281 which is viewable to all tenant members",
 				Subject:    NewEntityKey(UserType, "ian"),
 				Object:     NewEntityKey(FeedVersionType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			},
 			{
+				Notes:      "drew can edit feed CT because editor of CT-group",
 				Subject:    NewEntityKey(UserType, "drew"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanEdit,
 				ExpectKeys: newEntityKeys(FeedType, "CT"),
 			},
 			{
+				Notes:      "drew can view feed CT because editor of CT-group and HA because HA has all tenant members",
 				Subject:    NewEntityKey(UserType, "drew"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "HA"),
 			},
 			{
+				Notes:      "drew can access tl-tenant because member and all-users-tenant because user:*",
 				Subject:    NewEntityKey(UserType, "drew"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant", "all-users-tenant"),
 			},
 			{
+				Notes:      "drew can access group CT-group because member and HA-group through tenant#member",
 				Subject:    NewEntityKey(UserType, "drew"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(GroupType, "CT-group", "HA-group"),
 			},
 			{
+				Notes:      "drew is not explicitly assigned any feed versions but can access d281 because it is viewable to all tenant members",
 				Subject:    NewEntityKey(UserType, "drew"),
 				Object:     NewEntityKey(FeedVersionType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(FeedVersionType),
+				ExpectKeys: newEntityKeys(FeedVersionType, "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			},
 			{
+				Notes:      "tl-tenant-member can access HA-group through HA-group#viewer:tl-tenant#member",
 				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(GroupType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(GroupType, "HA-group"),
 			},
 			{
+				Notes:      "tl-tenant-member can access feed HA through group:HA-group",
 				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "HA"),
 			},
 			{
+				Notes:      "tl-tenant-member can view tl-tenant through member and all-users-tenant through user:*",
 				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant", "all-users-tenant"),
 			},
 		}
 		for _, tc := range checks {
@@ -616,70 +660,155 @@ func TestFGAClient(t *testing.T) {
 	})
 
 	t.Run("WriteTuple", func(t *testing.T) {
-		fgac := newTestFGAClient(t, fgaUrl, testData)
 		checks := []TestTuple{
 			{
+				Notes:    "user:* can be a member of a tenant",
+				Subject:  NewEntityKey(UserType, "*"),
+				Object:   NewEntityKey(TenantType, "tl-tenants"),
+				Relation: MemberRelation,
+			},
+			{
+				Notes:       "user:* cannot be an admin of a tenant",
+				Subject:     NewEntityKey(UserType, "*"),
+				Object:      NewEntityKey(TenantType, "tl-tenants"),
+				Relation:    AdminRelation,
+				ExpectError: true,
+			},
+			{
+				Notes:    "a tenant#member can be a viewer of a group",
+				Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
+				Object:   NewEntityKey(GroupType, "BA-group"),
+				Relation: ViewerRelation,
+			},
+			{
+				Notes:       "a tenant#admin cannot be a viewer of a group",
+				Subject:     NewEntityKey(TenantType, "tl-tenant#admin"),
+				Object:      NewEntityKey(GroupType, "BA-group"),
+				Relation:    ViewerRelation,
+				ExpectError: true,
+			},
+			{
+				Notes:    "a tenant#member can be an editor of a group",
+				Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
+				Object:   NewEntityKey(GroupType, "BA-group"),
+				Relation: EditorRelation,
+				// Formerly disallowed, now OK
+				// ExpectError: true,
+			},
+			{
+				Notes:    "user can be a member of a tenant",
 				Subject:  NewEntityKey(UserType, "test100"),
 				Object:   NewEntityKey(TenantType, "tl-tenant"),
 				Relation: MemberRelation,
 			},
 			{
+				Notes:    "user can be an admin of a tenant",
 				Subject:  NewEntityKey(UserType, "test100"),
-				Object:   NewEntityKey(GroupType, "CT-group"),
-				Relation: ViewerRelation,
+				Object:   NewEntityKey(TenantType, "tl-tenant"),
+				Relation: AdminRelation,
 			},
 			{
-				Subject:     NewEntityKey(UserType, "test100"),
-				Object:      NewEntityKey(GroupType, "CT-group"),
-				Relation:    ViewerRelation,
+				Notes:       "already exists",
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(TenantType, "tl-tenant"),
+				Relation:    MemberRelation,
 				ExpectError: true,
 			},
 			{
+				Notes:    "a user can be a viewer of a group",
 				Subject:  NewEntityKey(UserType, "test100"),
 				Object:   NewEntityKey(GroupType, "HA-group"),
 				Relation: ViewerRelation,
 			},
 			{
+				Notes:    "a user can be an editor of a group",
+				Subject:  NewEntityKey(UserType, "test100"),
+				Object:   NewEntityKey(GroupType, "HA-group"),
+				Relation: EditorRelation,
+			},
+			{
+				Notes:    "a user can be a manager of a group",
+				Subject:  NewEntityKey(UserType, "test100"),
+				Object:   NewEntityKey(GroupType, "HA-group"),
+				Relation: ManagerRelation,
+			},
+			{
+				Notes:       "invalid relation",
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(GroupType, "HA-group"),
-				Notes:       "invalid relation",
+				Relation:    ParentRelation,
 				ExpectError: true,
 			},
 			{
+				Notes:    "a user can be a viewer of a group",
 				Subject:  NewEntityKey(UserType, "test102"),
 				Object:   NewEntityKey(GroupType, "100"),
 				Relation: ViewerRelation,
 			},
 			{
+				Notes:    "a user can be a viewer of a feed version",
 				Subject:  NewEntityKey(UserType, "ian"),
 				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation: ViewerRelation,
 			},
 			{
+				Notes:    "a user can be a editor of a feed version",
+				Subject:  NewEntityKey(UserType, "ian"),
+				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation: EditorRelation,
+			},
+			{
+				Notes:       "already exists",
 				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
-				Notes:       "already exists",
 				ExpectError: true,
 			},
 			{
-				Subject:  NewEntityKey(UserType, "test1"),
+				Notes:    "a tenant#member can be a viewer of a feed version",
+				Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
 				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation: ViewerRelation,
 			},
 			{
-				Subject:  NewEntityKey(UserType, "test2"),
+				Notes:    "a tenant#member can be an editor of a feed version",
+				Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
+				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation: EditorRelation,
+				// Formerly disallowed, now OK
+				// ExpectError: true,
+			},
+			{
+				Notes:       "a tenant#admin can be a viewer of a feed version",
+				Subject:     NewEntityKey(TenantType, "tl-tenant#admin"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				ExpectError: true,
+			},
+			{
+				Notes:    "a group#member can be a viewer of a feed version",
+				Subject:  NewEntityKey(TenantType, "HA-group#member"),
 				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation: ViewerRelation,
 			},
 			{
-				Subject:  NewEntityKey(UserType, "test3"),
+				Notes:       "a group#editor cannot be a viewer of a feed version",
+				Subject:     NewEntityKey(GroupType, "HA-group#editor"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				ExpectError: true,
+			},
+			{
+				Notes:    "a group#viewer can be an editor of a feed version",
+				Subject:  NewEntityKey(GroupType, "HA-group").WithRefRel(ViewerRelation),
 				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Relation: ViewerRelation,
+				Relation: EditorRelation,
 			},
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating, so create fresh each test
+				fgac := newTestFGAClient(t, fgaUrl, testData)
 				// Write tuple and check if error was expected
 				ltk := tc.TupleKey()
 				err := fgac.WriteTuple(context.Background(), ltk)
@@ -693,28 +822,20 @@ func TestFGAClient(t *testing.T) {
 				}
 				var gotTks []string
 				for _, v := range tks {
-					gotTks = append(gotTks, fmt.Sprintf("%s:%s:%s", v.Subject.Type, v.Subject.Name, v.Relation))
+					gotTks = append(gotTks, fmt.Sprintf("%s:%s", v.Subject.String(), v.Relation))
 				}
-				checkTk := fmt.Sprintf("%s:%s:%s", ltk.Subject.Type, ltk.Subject.Name, ltk.Relation)
+				checkTk := fmt.Sprintf("%s:%s", ltk.Subject.String(), ltk.Relation)
 				assert.Contains(t, gotTks, checkTk, "written tuple not found in updated object tuples")
 			})
 		}
 	})
 
 	t.Run("DeleteTuple", func(t *testing.T) {
-		fgac := newTestFGAClient(t, fgaUrl, testData)
 		checks := []TestTuple{
 			{
 				Subject:  NewEntityKey(UserType, "ian"),
 				Object:   NewEntityKey(GroupType, "CT-group"),
 				Relation: 4,
-			},
-			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(GroupType, "CT-group"),
-				Relation:    4,
-				Notes:       "already deleted",
-				ExpectError: true,
 			},
 			{
 				Subject:     NewEntityKey(UserType, "test102"),
@@ -727,13 +848,6 @@ func TestFGAClient(t *testing.T) {
 				Subject:  NewEntityKey(UserType, "tl-tenant-member"),
 				Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation: 4,
-			},
-			{
-				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
-				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Relation:    4,
-				Notes:       "already deleted",
-				ExpectError: true,
 			},
 			{
 				Subject:     NewEntityKey(UserType, "ian"),
@@ -764,6 +878,8 @@ func TestFGAClient(t *testing.T) {
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test
+				fgac := newTestFGAClient(t, fgaUrl, testData)
 				ltk := tc.TupleKey()
 				err := fgac.DeleteTuple(context.Background(), ltk)
 				if !checkExpectError(t, err, tc.ExpectError) {

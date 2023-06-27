@@ -64,63 +64,12 @@ func TestChecker(t *testing.T) {
 	}
 	dbx := dbutil.MustOpenTestDB()
 	checkerTestData := []TestTuple{
+		// Assign users to tenants
 		{
-			Subject:  NewEntityKey(TenantType, "tl-tenant"),
-			Object:   NewEntityKey(GroupType, "CT-group"),
-			Relation: ParentRelation,
-			Notes:    "org:CT-group is belongs to tenant:tl-tenant",
-		},
-		{
-			Subject:  NewEntityKey(TenantType, "tl-tenant"),
-			Object:   NewEntityKey(GroupType, "BA-group"),
-			Relation: ParentRelation,
-			Notes:    "org:BA-group belongs to tenant:tl-tenant",
-		},
-		{
-			Subject:  NewEntityKey(TenantType, "tl-tenant"),
-			Object:   NewEntityKey(GroupType, "HA-group"),
-			Relation: ParentRelation,
-			Notes:    "org:HA-group belongs to tenant:tl-tenant",
-		},
-		{
-			Subject:  NewEntityKey(TenantType, "tl-tenant"),
-			Object:   NewEntityKey(GroupType, "EX-group"),
-			Relation: ParentRelation,
-			Notes:    "org:EX-group will be for admins only",
-		},
-		{
-			Subject:  NewEntityKey(TenantType, "tl-tenant#member"),
-			Object:   NewEntityKey(GroupType, "HA-group"),
-			Relation: ViewerRelation,
-		},
-		{
-			Subject:  NewEntityKey(TenantType, "restricted-tenant"),
-			Object:   NewEntityKey(GroupType, "test-group"),
-			Relation: ParentRelation,
-		},
-		{
-			Subject:  NewEntityKey(GroupType, "CT-group"),
-			Object:   NewEntityKey(FeedType, "CT"),
-			Relation: ParentRelation,
-			Notes:    "feed:CT should be viewable to members of org:CT-group (ian drew) and editable by org:CT-group editors (drew)",
-		},
-		{
-			Subject:  NewEntityKey(GroupType, "BA-group"),
-			Object:   NewEntityKey(FeedType, "BA"),
-			Relation: ParentRelation,
-			Notes:    "feed:BA should be viewable to members of org:BA-group () and editable by org:BA-group editors (ian)",
-		},
-		{
-			Subject:  NewEntityKey(GroupType, "HA-group"),
-			Object:   NewEntityKey(FeedType, "HA"),
-			Relation: ParentRelation,
-			Notes:    "feed:HA-group should be viewable to all members of tenant:tl-tenant (tl-tenant-admin tl-tenant-member ian drew) and editable by org:HA-group editors ()",
-		},
-		{
-			Subject:  NewEntityKey(GroupType, "EX-group"),
-			Object:   NewEntityKey(FeedType, "EX"),
-			Relation: ParentRelation,
-			Notes:    "feed:EX should only be viewable to admins of tenant:tl-tenant (tl-tenant-admin)",
+			Notes:    "all users can access all-users-tenant",
+			Subject:  NewEntityKey(UserType, "*"),
+			Object:   NewEntityKey(TenantType, "all-users-tenant"),
+			Relation: MemberRelation,
 		},
 		{
 			Subject:  NewEntityKey(UserType, "tl-tenant-admin"),
@@ -129,6 +78,58 @@ func TestChecker(t *testing.T) {
 		},
 		{
 			Subject:  NewEntityKey(UserType, "ian"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "drew"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "test2"),
+			Object:   NewEntityKey(TenantType, "restricted-tenant"),
+			Relation: MemberRelation,
+		},
+		{
+			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
+			Object:   NewEntityKey(TenantType, "tl-tenant"),
+			Relation: MemberRelation,
+		},
+		// Assign groups to tenants
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant"),
+			Object:   NewEntityKey(GroupType, "CT-group"),
+			Relation: ParentRelation,
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant"),
+			Object:   NewEntityKey(GroupType, "BA-group"),
+			Relation: ParentRelation,
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant"),
+			Object:   NewEntityKey(GroupType, "HA-group"),
+			Relation: ParentRelation,
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant"),
+			Object:   NewEntityKey(GroupType, "EX-group"),
+			Relation: ParentRelation,
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
+			Object:   NewEntityKey(GroupType, "HA-group"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "restricted-tenant"),
+			Object:   NewEntityKey(GroupType, "test-group"),
+			Relation: ParentRelation,
+		},
+		// Assign users to groups
+		{
+			Subject:  NewEntityKey(UserType, "ian"),
 			Object:   NewEntityKey(GroupType, "CT-group"),
 			Relation: ViewerRelation,
 		},
@@ -138,34 +139,9 @@ func TestChecker(t *testing.T) {
 			Relation: EditorRelation,
 		},
 		{
-			Subject:  NewEntityKey(UserType, "ian"),
-			Object:   NewEntityKey(TenantType, "tl-tenant"),
-			Relation: MemberRelation,
-		},
-		{
 			Subject:  NewEntityKey(UserType, "drew"),
 			Object:   NewEntityKey(GroupType, "CT-group"),
-			Relation: EditorRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "drew"),
-			Object:   NewEntityKey(TenantType, "tl-tenant"),
-			Relation: MemberRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
-			Object:   NewEntityKey(TenantType, "tl-tenant"),
-			Relation: MemberRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
-			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-			Relation: ViewerRelation,
-		},
-		{
-			Subject:  NewEntityKey(UserType, "test2"),
-			Object:   NewEntityKey(TenantType, "restricted-tenant"),
-			Relation: MemberRelation,
+			Relation: ManagerRelation,
 		},
 		{
 			Subject:  NewEntityKey(UserType, "test-group-viewer"),
@@ -177,10 +153,42 @@ func TestChecker(t *testing.T) {
 			Object:   NewEntityKey(GroupType, "test-group"),
 			Relation: EditorRelation,
 		},
+		// Assign feeds to groups
 		{
-			Subject:  NewEntityKey(GroupType, "test-group#viewer"),
+			Subject:  NewEntityKey(GroupType, "CT-group"),
+			Object:   NewEntityKey(FeedType, "CT"),
+			Relation: ParentRelation,
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "BA-group"),
+			Object:   NewEntityKey(FeedType, "BA"),
+			Relation: ParentRelation,
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "HA-group"),
+			Object:   NewEntityKey(FeedType, "HA"),
+			Relation: ParentRelation,
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "EX-group"),
+			Object:   NewEntityKey(FeedType, "EX"),
+			Relation: ParentRelation,
+		},
+		// Assign feed versions
+		{
+			Subject:  NewEntityKey(UserType, "tl-tenant-member"),
 			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-			Relation: EditorRelation,
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(GroupType, "test-group").WithRefRel(ViewerRelation),
+			Object:   NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+			Relation: ViewerRelation,
+		},
+		{
+			Subject:  NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
+			Object:   NewEntityKey(FeedVersionType, "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
+			Relation: ViewerRelation,
 		},
 	}
 
@@ -189,16 +197,19 @@ func TestChecker(t *testing.T) {
 	t.Run("UserList", func(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		tcs := []struct {
+			Notes       string
 			CheckAsUser string
 			ExpectUsers []string
 			ExpectError bool
 			Query       string
 		}{
 			{
+				Notes:       "user ian can see all users",
 				CheckAsUser: "ian",
-				ExpectUsers: []string{"ian", "drew", "tl-tenant-member"},
+				ExpectUsers: []string{"ian", "drew", "tl-tenant-member", "new-user"},
 			},
 			{
+				Notes:       "user ian can filter with query=drew",
 				CheckAsUser: "ian",
 				Query:       "drew",
 				ExpectUsers: []string{"drew"},
@@ -211,7 +222,7 @@ func TestChecker(t *testing.T) {
 			// },
 		}
 		for _, tc := range tcs {
-			t.Run("", func(t *testing.T) {
+			t.Run(tc.Notes, func(t *testing.T) {
 				ents, err := checker.UserList(testUserCtx(tc.CheckAsUser), &azpb.UserListRequest{Q: tc.Query})
 				if !checkExpectError(t, err, tc.ExpectError) {
 					return
@@ -228,22 +239,25 @@ func TestChecker(t *testing.T) {
 	t.Run("User", func(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		tcs := []struct {
+			Notes        string
 			CheckAsUser  string
 			ExpectUserId string
 			ExpectError  bool
 		}{
 			{
+				Notes:        "ok",
 				CheckAsUser:  "ian",
 				ExpectUserId: "drew",
 			},
 			{
+				Notes:        "not found",
 				CheckAsUser:  "ian",
-				ExpectUserId: "not-found",
+				ExpectUserId: "not found",
 				ExpectError:  true,
 			},
 		}
 		for _, tc := range tcs {
-			t.Run("", func(t *testing.T) {
+			t.Run(tc.Notes, func(t *testing.T) {
 				ent, err := checker.User(
 					testUserCtx(tc.CheckAsUser),
 					&azpb.UserRequest{Id: tc.ExpectUserId},
@@ -265,34 +279,32 @@ func TestChecker(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		checks := []TestTuple{
 			{
+				Notes:      "user tl-tenant-admin is admin of tl-tenant and user:* on all-users-tenant",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant", "all-users-tenant"),
 			},
 			{
+				Notes:      "user ian is member of tl-tenant and user:* on all-users-tenant",
 				Subject:    NewEntityKey(UserType, "ian"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant", "all-users-tenant"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "drew"),
-				Object:     NewEntityKey(TenantType, ""),
-				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
-			},
-			{
+				Notes:      "user tl-tenant-member is member of tl-tenant and user:* on all-users-tenant",
 				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType, "tl-tenant"),
+				ExpectKeys: newEntityKeys(TenantType, "tl-tenant", "all-users-tenant"),
 			},
 			{
-				Subject:    NewEntityKey(UserType, "unknown"),
+				Notes:      "user new-user is user:* on all-users-tenant",
+				Subject:    NewEntityKey(UserType, "new-user"),
 				Object:     NewEntityKey(TenantType, ""),
 				Action:     CanView,
-				ExpectKeys: newEntityKeys(TenantType),
+				ExpectKeys: newEntityKeys(TenantType, "all-users-tenant"),
 			},
 		}
 
@@ -321,61 +333,97 @@ func TestChecker(t *testing.T) {
 	t.Run("TenantPermissions", func(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:         "user tl-tenant-admin is an admin of tl-tenant",
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateOrg, CanDeleteOrg},
 			},
 			{
+				Notes:              "user tl-tenant-admin is unauthorized for restricted-tenant",
 				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user ian is viewer of tl-tenant",
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
 			{
+				Notes:              "user ian is unauthorized for restricted-tenant",
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user drew is a viewer of tl-tenant",
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
 			{
+				Notes:              "user drew is unauthorized for restricted-tenant",
 				Subject:            NewEntityKey(UserType, "drew"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user tl-tenant-member is a viewer of tl-tenant",
 				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
+				Notes:              "user tl-tenant-member is unauthorized for restricted-tenant",
 				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user tl-tenant-member is a viewer of tl-tenant",
 				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(TenantType, "tl-tenant"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
 			},
 			{
+				Notes:              "user tl-tenant-member is unauthorized for restricted-tenant",
 				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:              "user tl-tenant-member expects unauthorized error for non-existing tenant",
 				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
-				Object:             NewEntityKey(TenantType, "not-found"),
+				Object:             NewEntityKey(TenantType, "not found"),
 				ExpectUnauthorized: true,
-				Notes:              "not found",
+			},
+			{
+				Notes:         "user ian is viewer of all-users-tenant through user:*",
+				Subject:       NewEntityKey(UserType, "ian"),
+				Object:        NewEntityKey(TenantType, "all-users-tenant"),
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
+			},
+			{
+				Notes:         "user new-user is viewer of all-users-tenant through user:*",
+				Subject:       NewEntityKey(UserType, "new-user"),
+				Object:        NewEntityKey(TenantType, "all-users-tenant"),
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateOrg, -CanDeleteOrg},
+			},
+			// General checks
+			{
+				Notes:         "global admins are admins of all tenants",
+				Subject:       NewEntityKey(UserType, "global_admin"),
+				Object:        NewEntityKey(TenantType, "all-users-tenant"),
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateOrg, CanDeleteOrg},
+			},
+			{
+				Notes:       "global admins get not found on not found tenant",
+				Subject:     NewEntityKey(UserType, "global_admin"),
+				Object:      NewEntityKey(TenantType, "not found"),
+				ExpectError: true,
 			},
 		}
 		for _, tc := range checks {
@@ -396,35 +444,85 @@ func TestChecker(t *testing.T) {
 
 	t.Run("TenantAddPermission", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
 			{
-				Subject:     NewEntityKey(UserType, "test100"),
+				Notes:       "user tl-tenant-admin is an admin of tl-tenant and can add a user",
+				Subject:     NewEntityKey(UserType, "new-user"),
 				Object:      NewEntityKey(TenantType, "tl-tenant"),
 				Relation:    MemberRelation,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
-				Subject:     NewEntityKey(UserType, "ian"),
+				Notes:       "user tl-tenant-admin is an admin of tl-tenant and can add user:*",
+				Subject:     NewEntityKey(UserType, "*"),
 				Object:      NewEntityKey(TenantType, "tl-tenant"),
 				Relation:    MemberRelation,
 				CheckAsUser: "tl-tenant-admin",
-				ExpectError: true,
-				Notes:       "already exists",
 			},
 			{
-				Subject:            NewEntityKey(UserType, "test100"),
+				Notes:              "user ian is a vewier of tl-tenant is not authorized to add a user",
+				Subject:            NewEntityKey(UserType, "new-user"),
 				Object:             NewEntityKey(TenantType, "tl-tenant"),
 				Relation:           MemberRelation,
 				CheckAsUser:        "ian",
 				ExpectUnauthorized: true,
 			},
+			// General checks
 			{
-				Subject:            NewEntityKey(UserType, "test100"),
-				Object:             NewEntityKey(TenantType, "not-found"),
+				Notes:       "error for invalid relation",
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(TenantType, "tl-tenant"),
+				Relation:    ParentRelation,
+				ExpectError: true,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:       "error for disallowed relation",
+				Subject:     NewEntityKey(UserType, "*"),
+				Object:      NewEntityKey(TenantType, "tl-tenant"),
+				Relation:    AdminRelation,
+				ExpectError: true,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:       "replaces relation if it already exists",
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(TenantType, "tl-tenant"),
+				Relation:    MemberRelation,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:              "users get unauthorized when attempting to add user to not found tenant",
+				Subject:            NewEntityKey(UserType, "new-user"),
+				Object:             NewEntityKey(TenantType, "not found"),
 				Relation:           MemberRelation,
 				CheckAsUser:        "tl-tenant-admin",
 				ExpectUnauthorized: true,
-				Notes:              "not found",
 			},
+			{
+				Notes:       "global admins can add users to all tenants",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(TenantType, "restricted-tenant"),
+				Relation:    MemberRelation,
+				CheckAsUser: "global_admin",
+			},
+			{
+				Notes:       "global admins get not found when adding user to a not found tenant",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(TenantType, "not found"),
+				Relation:    MemberRelation,
+				CheckAsUser: "global_admin",
+				ExpectError: true,
+			},
+			// TODO
+			// {
+			// 	Notes:       "user tl-tenant-admin gets an error when attempting to add a user that does not exist",
+			// 	Subject:     NewEntityKey(UserType, "not found"),
+			// 	Object:      NewEntityKey(TenantType, "tl-tenant"),
+			// 	Relation:    MemberRelation,
+			// 	CheckAsUser: "tl-tenant-admin",
+			// 	ExpectError: true,
+			// },
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
@@ -434,8 +532,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.TenantAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.TenantModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -445,27 +543,70 @@ func TestChecker(t *testing.T) {
 
 	t.Run("TenantRemovePermission", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:       "tl-tenant-admin is a admin of tl-tenant and can remove a user",
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(TenantType, "tl-tenant"),
 				Relation:    MemberRelation,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
+				Notes:              "user ian is a viewer of tl-tenant and is not authorized to remove a user",
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(TenantType, "tl-tenant"),
 				Relation:           MemberRelation,
 				CheckAsUser:        "ian",
 				ExpectUnauthorized: true,
 			},
-
 			{
+				Notes:              "user tl-tenant-admin is not a member of restricted-tenant and is not authorized to remove a user",
 				Subject:            NewEntityKey(UserType, "test2"),
 				Object:             NewEntityKey(TenantType, "restricted-tenant"),
 				Relation:           MemberRelation,
 				CheckAsUser:        "tl-tenant-admin",
 				ExpectUnauthorized: true,
 			},
+			// General checks
+			{
+				Notes:       "error if relation does not exist",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(TenantType, "tl-tenant"),
+				Relation:    MemberRelation,
+				CheckAsUser: "tl-tenant-admin",
+				ExpectError: true,
+			}, {
+				Notes:              "users get unauthorized when attemping to add user to not found tenant",
+				Subject:            NewEntityKey(UserType, "new-user"),
+				Object:             NewEntityKey(TenantType, "not found"),
+				Relation:           MemberRelation,
+				CheckAsUser:        "tl-tenant-admin",
+				ExpectUnauthorized: true,
+			},
+			{
+				Notes:       "global admins can remove users from all tenants",
+				Subject:     NewEntityKey(UserType, "test2"),
+				Object:      NewEntityKey(TenantType, "restricted-tenant"),
+				Relation:    MemberRelation,
+				CheckAsUser: "global_admin",
+			},
+			{
+				Notes:       "global admins get error when removing user from not found tenant",
+				Subject:     NewEntityKey(UserType, "test2"),
+				Object:      NewEntityKey(TenantType, "not found"),
+				Relation:    MemberRelation,
+				CheckAsUser: "global_admin",
+				ExpectError: true,
+			},
+			// TODO
+			// {
+			// 	Notes:       "removing a non-existing user causes an error",
+			// 	Subject:     NewEntityKey(UserType, "asd123"),
+			// 	Object:      NewEntityKey(TenantType, "tl-tenant"),
+			// 	Relation:    MemberRelation,
+			// 	CheckAsUser: "tl-tenant-admin",
+			// 	ExpectError: true,
+			// },
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
@@ -475,8 +616,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.TenantRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.TenantModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -486,21 +627,39 @@ func TestChecker(t *testing.T) {
 
 	t.Run("TenantSave", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:              "user ian is a viewer of tl-tenant and is not authorized to edit",
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(TenantType, "tl-tenant"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:              "user new-user is not a viewer of tl-tenant",
+				Subject:            NewEntityKey(UserType, "new-user"),
+				Object:             NewEntityKey(TenantType, "tl-tenant"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Notes:              "user new-user is a viewer of all-users-tenant through user:* but not admin",
+				Subject:            NewEntityKey(UserType, "new-user"),
+				Object:             NewEntityKey(TenantType, "all-users-tenant"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Notes:   "user tl-tenant-admin is admin of tl-tenant and can edit",
 				Subject: NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:  NewEntityKey(TenantType, "tl-tenant"),
 			},
+			// General checks
 			{
+				Notes:              "users get unauthorized for tenant that does not exist",
 				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:             NewEntityKey(TenantType, "not found"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:       "global admins get error for not found tenant",
 				Subject:     NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:      NewEntityKey(TenantType, "new tenant"),
 				CheckAsUser: "global_admin",
@@ -533,21 +692,46 @@ func TestChecker(t *testing.T) {
 
 	t.Run("TenantCreateGroup", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:              "user ian is viewer of tl-tenant and not authorized to create groups",
 				Subject:            NewEntityKey(TenantType, "tl-tenant"),
 				Object:             NewEntityKey(GroupType, "new-group"),
 				ExpectUnauthorized: true,
 				CheckAsUser:        "ian",
 			},
 			{
+				Notes:              "user new-user is viewer of all-users-tenant and not authorized to create groups",
+				Subject:            NewEntityKey(TenantType, "all-users-tenant"),
+				Object:             NewEntityKey(GroupType, "new-group"),
+				ExpectUnauthorized: true,
+				CheckAsUser:        "new-user",
+			},
+			{
+				Notes:       "user tl-tenant-admin is admin of tl-tenant and can create groups",
 				Subject:     NewEntityKey(TenantType, "tl-tenant"),
 				Object:      NewEntityKey(GroupType, fmt.Sprintf("new-group2-%d", time.Now().UnixNano())),
 				CheckAsUser: "tl-tenant-admin",
 			},
+			// General checks
 			{
+				Notes:       "global admins can create groups in all tenants",
 				Subject:     NewEntityKey(TenantType, "tl-tenant"),
 				Object:      NewEntityKey(GroupType, fmt.Sprintf("new-group3-%d", time.Now().UnixNano())),
 				CheckAsUser: "global_admin",
+			},
+			{
+				Notes:       "global admins can create groups in all tenants",
+				Subject:     NewEntityKey(TenantType, "restricted-tenant"),
+				Object:      NewEntityKey(GroupType, fmt.Sprintf("new-group4-%d", time.Now().UnixNano())),
+				CheckAsUser: "global_admin",
+			},
+			{
+				Notes:       "global admins get not found for tenant that does not exist",
+				Subject:     NewEntityKey(TenantType, "not found"),
+				Object:      NewEntityKey(GroupType, fmt.Sprintf("new-group5-%d", time.Now().UnixNano())),
+				CheckAsUser: "global_admin",
+				ExpectError: true,
 			},
 		}
 		for _, tc := range checks {
@@ -627,90 +811,121 @@ func TestChecker(t *testing.T) {
 	t.Run("GroupPermissions", func(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:         "user tl-tenant-admin is admin of parent tenant to CT-group",
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "CT-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
+				Notes:         "user tl-tenant-admin is admin of parent tenant to BA-group",
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "BA-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
+				Notes:         "user tl-tenant-admin is admin of parent tenant to BA-group",
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
+				Notes:         "user tl-tenant-admin is admin of parent tenant to BA-group",
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(GroupType, "EX-group"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
-				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
-				Object:             NewEntityKey(GroupType, "test-group"),
-				ExpectUnauthorized: true,
-			},
-			{
+				Notes:         "user ian is a viewer of CT-group",
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(GroupType, "CT-group"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
 			},
 			{
+				Notes:         "user ian is a editor of CT-group",
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(GroupType, "BA-group"),
 				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
 			},
 			{
+				Notes:         "user ian is a viewer of HA-group through tl-tenant#member",
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
 			},
 			{
+				Notes:              "user ian is not authorized for EX-group",
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(GroupType, "EX-group"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:              "user ian is not authorized for test-group",
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(GroupType, "test-group"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user drew is a manager of CT-group",
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(GroupType, "CT-group"),
-				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed},
 			},
 			{
+				Notes:              "user drew is not authrozied for BA-group",
 				Subject:            NewEntityKey(UserType, "drew"),
 				Object:             NewEntityKey(GroupType, "BA-group"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user drew is a viewer of HA-group through tl-tenant#member",
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers, -CanCreateFeed, -CanDeleteFeed},
 			},
 			{
+				Notes:              "user drew is not authorized for EX-group",
 				Subject:            NewEntityKey(UserType, "drew"),
 				Object:             NewEntityKey(GroupType, "EX-group"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:              "user drew is not authorized for group test-group",
 				Subject:            NewEntityKey(UserType, "drew"),
 				Object:             NewEntityKey(GroupType, "test-group"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user tl-tenant-member is a viewer of HA-group through tl-tenant#member",
 				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(GroupType, "HA-group"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
+				Notes:              "tl-tenant-member is not authorized to access EX-group",
 				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(GroupType, "EX-group"),
 				ExpectUnauthorized: true,
+			},
+			// General checks
+			{
+				Notes:              "users get unauthorized for groups that are not found",
+				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
+				Object:             NewEntityKey(GroupType, "test-group"),
+				ExpectUnauthorized: true,
+			},
+			{
+				Notes:         "global admins are managers of all groups",
+				Subject:       NewEntityKey(UserType, "global_admin"),
+				Object:        NewEntityKey(GroupType, "EX-group"),
+				ExpectActions: []Action{CanView, CanEdit, CanEditMembers, CanCreateFeed, CanDeleteFeed, CanSetTenant},
+			},
+			{
+				Notes:       "global admins get not found for not found groups",
+				Subject:     NewEntityKey(UserType, "global_admin"),
+				Object:      NewEntityKey(GroupType, "not found"),
+				ExpectError: true,
 			},
 		}
 		for _, tc := range checks {
@@ -731,39 +946,107 @@ func TestChecker(t *testing.T) {
 
 	t.Run("GroupAddPermission", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
+			// TODO
+			// {
+			// 	Notes:       "user tl-tenant-admin gets error when adding user that does not exist",
+			// 	Subject:     NewEntityKey(UserType, "test100"),
+			// 	Object:      NewEntityKey(GroupType, "HA-group"),
+			// 	Relation:    ViewerRelation,
+			// 	ExpectError: true,
+			// 	CheckAsUser: "tl-tenant-admin",
+			// },
 			{
-				Subject:     NewEntityKey(UserType, "test100"),
-				Object:      NewEntityKey(GroupType, "HA-group"),
-				Relation:    ViewerRelation,
-				Notes:       "does not exist",
-				CheckAsUser: "tl-tenant-admin",
-			},
-			{
-				Subject:     NewEntityKey(UserType, "ian"),
-				Object:      NewEntityKey(GroupType, "HA-group"),
-				Notes:       "invalid relation",
-				ExpectError: true,
-				CheckAsUser: "tl-tenant-admin",
-			},
-			{
-				Subject:            NewEntityKey(UserType, "test102"),
-				Object:             NewEntityKey(GroupType, "100"),
-				Relation:           ViewerRelation,
-				CheckAsUser:        "ian",
-				ExpectUnauthorized: true,
-			},
-			{
-				Subject:     NewEntityKey(UserType, "test100"),
+				Notes:       "tl-tenant-admin is manager of CT-group through tl-tenant and can add user",
+				Subject:     NewEntityKey(UserType, "new-user"),
 				Object:      NewEntityKey(GroupType, "CT-group"),
 				Relation:    ViewerRelation,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
-				Subject:            NewEntityKey(UserType, "test100"),
+				Notes:       "tl-tenant-admin is manager of CT-group through tl-tenant and can add tenant#member as viewer",
+				Subject:     NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:       "tl-tenant-admin is manager of CT-group through tl-tenant and can add tenant#member as editor",
+				Subject:     NewEntityKey(TenantType, "tl-tenant").WithRefRel(MemberRelation),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    EditorRelation,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:              "user ian is viewer of CT-group and not authorized to add users",
+				Subject:            NewEntityKey(UserType, "new-user"),
 				Object:             NewEntityKey(GroupType, "CT-group"),
 				Relation:           ViewerRelation,
 				ExpectUnauthorized: true,
 				CheckAsUser:        "ian",
+			},
+			{
+				Notes:       "user drew is a manager of CT-group and can add users",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "drew",
+			},
+			// General checks
+			{
+				Notes:              "users get unauthorized for groups that do not exist",
+				Subject:            NewEntityKey(UserType, "new-user"),
+				Object:             NewEntityKey(GroupType, "not found"),
+				Relation:           ViewerRelation,
+				CheckAsUser:        "ian",
+				ExpectUnauthorized: true,
+			},
+			{
+				Notes:       "error for invalid relation",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ParentRelation,
+				CheckAsUser: "tl-tenant-admin",
+				ExpectError: true,
+			},
+			{
+				Notes:       "error for invalid relation",
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(GroupType, "HA-group"),
+				Relation:    ParentRelation,
+				ExpectError: true,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:       "error for disallowed relation",
+				Subject:     NewEntityKey(GroupType, "BA-group").WithRefRel(MemberRelation),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "tl-tenant-admin",
+				ExpectError: true,
+			},
+			{
+				Notes:       "error for disallowed relation",
+				Subject:     NewEntityKey(TenantType, "tl-tenant#admin"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    EditorRelation,
+				CheckAsUser: "tl-tenant-admin",
+				ExpectError: true,
+			},
+			{
+				Notes:       "global admin can add users to any group",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "global_admin",
+			},
+			{
+				Notes:       "global admin gets not found for groups that do not exist",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(GroupType, "not found"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "global_admin",
+				ExpectError: true,
 			},
 		}
 		for _, tc := range checks {
@@ -774,8 +1057,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.GroupAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.GroupModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -785,33 +1068,61 @@ func TestChecker(t *testing.T) {
 
 	t.Run("GroupRemovePermission", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:       "user tl-tenant-admin is manager of CT-group through tl-tenant",
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(GroupType, "CT-group"),
 				Relation:    ViewerRelation,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
-				Subject:            NewEntityKey(UserType, "test102"),
-				Object:             NewEntityKey(GroupType, "100"),
-				Relation:           ViewerRelation,
-				ExpectUnauthorized: true,
-				CheckAsUser:        "ian",
-			},
-			{
-				Subject:     NewEntityKey(UserType, "test101"),
-				Object:      NewEntityKey(GroupType, "BA-group"),
-				Relation:    ViewerRelation,
-				Notes:       "does not exist",
-				ExpectError: true,
-				CheckAsUser: "tl-tenant-admin",
-			},
-			{
-				Subject:            NewEntityKey(UserType, "test101"),
+				Notes:              "user ian is viewer of BA-group and is not authorized to add users",
+				Subject:            NewEntityKey(UserType, "new-user"),
 				Object:             NewEntityKey(GroupType, "BA-group"),
 				Relation:           ViewerRelation,
 				ExpectUnauthorized: true,
 				CheckAsUser:        "ian",
+			},
+			// General checks
+			{
+				Notes:              "users get authorized for groups that do not exist",
+				Subject:            NewEntityKey(UserType, "new-user"),
+				Object:             NewEntityKey(GroupType, "not found"),
+				Relation:           ViewerRelation,
+				ExpectUnauthorized: true,
+				CheckAsUser:        "ian",
+			},
+			{
+				Notes:       "users get error for removing tuple that does not exist",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(GroupType, "BA-group"),
+				Relation:    ViewerRelation,
+				ExpectError: true,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:       "global admins can remove users from any group",
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "global_admin",
+			},
+			{
+				Notes:       "global admins get error for removing tuples that do not exist",
+				Subject:     NewEntityKey(UserType, "ian"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				Relation:    EditorRelation,
+				CheckAsUser: "global_admin",
+				ExpectError: true,
+			},
+			{
+				Notes:       "global admins get not found for groups that do not exist",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(GroupType, "not found"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "global_admin",
+				ExpectError: true,
 			},
 		}
 		for _, tc := range checks {
@@ -822,8 +1133,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.GroupRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.GroupModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -833,22 +1144,32 @@ func TestChecker(t *testing.T) {
 
 	t.Run("GroupSave", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
 			{
-				Subject:            NewEntityKey(UserType, "ian"),
+				Notes:              "user ian is a viewer of CT-group and cannot edit",
+				CheckAsUser:        "ian",
 				Object:             NewEntityKey(GroupType, "CT-group"),
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject: NewEntityKey(UserType, "tl-tenant-admin"),
-				Object:  NewEntityKey(GroupType, "BA-group"),
+				Notes:       "user tl-tenant-admin is a manager of BA-group through tl-tenant and can edit",
+				Object:      NewEntityKey(GroupType, "BA-group"),
+				CheckAsUser: "tl-tenant-admin",
 			},
+			// General checks
 			{
-				Subject:            NewEntityKey(UserType, "tl-tenant-admin"),
+				Notes:              "users get unauthorized for groups that are not found",
 				Object:             NewEntityKey(GroupType, "not found"),
+				CheckAsUser:        "tl-tenant-admin",
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:     NewEntityKey(UserType, "tl-tenant-admin"),
+				Notes:       "global admins can edit any group",
+				Object:      NewEntityKey(GroupType, "BA-group"),
+				CheckAsUser: "global_admin",
+			},
+			{
+				Notes:       "global admins get not found for groups that are not found",
 				Object:      NewEntityKey(GroupType, "not found"),
 				CheckAsUser: "global_admin",
 				ExpectError: true,
@@ -883,25 +1204,28 @@ func TestChecker(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		checks := []TestTuple{
 			{
+				Notes:      "user tl-tenant-admin can see all feeds with groups that are in tl-tenant",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA", "EX"),
 			},
 			{
+				Notes:      "user ian is viewer in CT-group, BA-group, and also HA-group through tl-tenant#member",
 				Subject:    NewEntityKey(UserType, "ian"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "BA", "HA"),
 			},
 			{
+				Notes:      "user drew is editor of CT-group and can see feed CT and also feed HA through tl-tenant#member on HA-group",
 				Subject:    NewEntityKey(UserType, "drew"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
 				ExpectKeys: newEntityKeys(FeedType, "CT", "HA"),
 			},
-
 			{
+				Notes:      "user tl-tenant-member can see feed HA through tl-tenant#member on HA-group",
 				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(FeedType, ""),
 				Action:     CanView,
@@ -933,81 +1257,85 @@ func TestChecker(t *testing.T) {
 	t.Run("FeedPermissions", func(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:         "user ian is a viewer of CT through CT-group",
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(FeedType, "CT"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanCreateFeedVersion, -CanDeleteFeedVersion},
 			},
 			{
+				Notes:         "user ian is a editor of BA through BA-group",
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(FeedType, "BA"),
 				ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion},
 			},
 			{
+				Notes:         "user ian is a viewer of HA through HA-group through tl-tenant#member",
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(FeedType, "HA"),
 				ExpectActions: []Action{CanView, -CanEdit, -CanCreateFeedVersion, -CanDeleteFeedVersion},
 			},
 			{
+				Notes:              "user ian is unauthorized for feed EX",
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(FeedType, "EX"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:              "user ian is unauthorized for feed test",
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(FeedType, "test"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user drew is manager of feed CT through CT-group",
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(FeedType, "CT"),
-				ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion},
+				ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion, CanSetGroup},
 			},
 			{
+				Notes:              "user drew is unauthorized for feed BA",
 				Subject:            NewEntityKey(UserType, "drew"),
 				Object:             NewEntityKey(FeedType, "BA"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user drew is viewer of feed HA through HA-group through tl-tenant#member",
 				Subject:       NewEntityKey(UserType, "drew"),
 				Object:        NewEntityKey(FeedType, "HA"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
 			{
-				Subject:            NewEntityKey(UserType, "drew"),
-				Object:             NewEntityKey(FeedType, "EX"),
-				ExpectUnauthorized: true,
-			},
-			{
-				Subject:            NewEntityKey(UserType, "drew"),
-				Object:             NewEntityKey(FeedType, "test"),
-				ExpectActions:      []Action{-CanView, -CanEdit},
-				ExpectUnauthorized: true,
-			},
-			{
-				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
-				Object:             NewEntityKey(FeedType, "CT"),
-				ExpectUnauthorized: true,
-			},
-			{
+				Notes:              "user tl-tenant-member is unauthorized for feed BA",
 				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
 				Object:             NewEntityKey(FeedType, "BA"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "user tl-tenant-member is viewer for feed HA through HA-group through tl-tenant#member",
 				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedType, "HA"),
 				ExpectActions: []Action{CanView, -CanEdit},
 			},
+			// General checks
 			{
-				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
-				Object:             NewEntityKey(FeedType, "EX"),
+				Notes:              "users get unauthorized for a feed that is not found",
+				Subject:            NewEntityKey(UserType, "ian"),
+				Object:             NewEntityKey(FeedType, "not found"),
 				ExpectUnauthorized: true,
 			},
 			{
-				Subject:            NewEntityKey(UserType, "tl-tenant-member"),
-				Object:             NewEntityKey(FeedType, "test"),
-				ExpectUnauthorized: true,
+				Notes:         "global admins are manager for all feeds",
+				Subject:       NewEntityKey(UserType, "global_admin"),
+				Object:        NewEntityKey(FeedType, "BA"),
+				ExpectActions: []Action{CanView, CanEdit, CanCreateFeedVersion, CanDeleteFeedVersion, CanSetGroup},
+			},
+			{
+				Notes:       "global admins get not found for feed that does not exist",
+				Subject:     NewEntityKey(UserType, "global_admin"),
+				Object:      NewEntityKey(FeedType, "not found"),
+				ExpectError: true,
 			},
 		}
 		for _, tc := range checks {
@@ -1028,16 +1356,34 @@ func TestChecker(t *testing.T) {
 
 	t.Run("FeedSetGroup", func(t *testing.T) {
 		tcs := []TestTuple{
+			// User checks
+			// TODO!!
+			// {
+			// 	Notes:       "user drew is a manager of feed CT and can assign it to a different group",
+			// 	Subject:     NewEntityKey(FeedType, "CT"),
+			// 	Object:      NewEntityKey(GroupType, "test-group"),
+			// 	CheckAsUser: "drew",
+			// },
 			{
-				Subject:     NewEntityKey(FeedType, "BA"),
-				Object:      NewEntityKey(GroupType, "CT-group"),
-				CheckAsUser: "global_admin",
+				Notes:              "user ian is an editor of group BA and is not authorized to assign to a different group",
+				Subject:            NewEntityKey(FeedType, "BA"),
+				Object:             NewEntityKey(GroupType, "test-group"),
+				CheckAsUser:        "ian",
+				ExpectUnauthorized: true,
 			},
 			{
+				Notes:              "user drew is not authorized to assign feed EX to a group",
 				Subject:            NewEntityKey(FeedType, "EX"),
 				Object:             NewEntityKey(GroupType, "EX-group"),
 				CheckAsUser:        "drew",
 				ExpectUnauthorized: true,
+			},
+			// General checks
+			{
+				Notes:       "user global_admin is a global admin and can assign a feed to a group",
+				Subject:     NewEntityKey(FeedType, "BA"),
+				Object:      NewEntityKey(GroupType, "CT-group"),
+				CheckAsUser: "global_admin",
 			},
 		}
 		for _, tc := range tcs {
@@ -1070,26 +1416,32 @@ func TestChecker(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		// Only user:tl-tenant-member has permissions explicitly defined
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:      "tl-tenant-admin has no explicit feed versions but can access d281 through tenant#member",
 				Subject:    NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:     NewEntityKey(FeedVersionType, ""),
-				ExpectKeys: newEntityKeys(FeedVersionType),
+				ExpectKeys: newEntityKeys(FeedVersionType, "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			},
 			{
+				Notes:      "ian has no explicit feed versions but can access d281 through tenant#member",
 				Subject:    NewEntityKey(UserType, "ian"),
 				Object:     NewEntityKey(FeedVersionType, ""),
-				ExpectKeys: newEntityKeys(FeedVersionType),
+				ExpectKeys: newEntityKeys(FeedVersionType, "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			},
 			{
+				Notes:      "drew has no explicit feed versions but can access d281 through tenant#member",
 				Subject:    NewEntityKey(UserType, "drew"),
 				Object:     NewEntityKey(FeedVersionType, ""),
-				ExpectKeys: newEntityKeys(FeedVersionType),
+				ExpectKeys: newEntityKeys(FeedVersionType, "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			},
 			{
+				Notes:      "tl-tenant-admin has explicit access to e535 and can access d281 through tenant#member",
 				Subject:    NewEntityKey(UserType, "tl-tenant-member"),
 				Object:     NewEntityKey(FeedVersionType, ""),
-				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				ExpectKeys: newEntityKeys(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6"),
 			},
+			// General checks
 		}
 		for _, tc := range checks {
 			t.Run(tc.String(), func(t *testing.T) {
@@ -1116,41 +1468,49 @@ func TestChecker(t *testing.T) {
 	t.Run("FeedVersionPermissions", func(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:         "tl-tenant-admin is a editor of e535 through tenant",
 				Subject:       NewEntityKey(UserType, "tl-tenant-admin"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{CanView, CanEdit, CanEditMembers},
 			},
 			{
+				Notes:         "user ian is an editor of e535 through feed BA through group BA-group",
 				Subject:       NewEntityKey(UserType, "ian"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{CanView, CanEdit},
 			},
 			{
+				Notes:              "drew is not authorized to read e535",
 				Subject:            NewEntityKey(UserType, "drew"),
 				Object:             NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions:      []Action{-CanView},
-				Notes:              "only feed:BA readers and tl-tenant-member",
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:         "tl-tenant-member is directly granted viewer on e535",
 				Subject:       NewEntityKey(UserType, "tl-tenant-member"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				ExpectActions: []Action{CanView},
 			},
 			{
+				Notes:         "user test-group-viewer is viewer on e535 through grant to test-group#viewer",
 				Subject:       NewEntityKey(UserType, "test-group-viewer"),
 				Object:        NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				ExpectActions: []Action{CanView, CanEdit, -CanEditMembers},
+				ExpectActions: []Action{CanView, -CanEdit, -CanEditMembers},
 			},
+			// General checks
 			{
+				Notes:              "users get unauthorized for feed versions that do not exist",
 				Subject:            NewEntityKey(UserType, "test-group-viewer"),
-				Object:             NewEntityKey(FeedVersionType, "not-found"),
+				Object:             NewEntityKey(FeedVersionType, "not found"),
 				ExpectUnauthorized: true,
 			},
 			{
+				Notes:       "global admins get error for feed versions that do not exist",
 				Subject:     NewEntityKey(UserType, "global_admin"),
-				Object:      NewEntityKey(FeedVersionType, "not-found"),
+				Object:      NewEntityKey(FeedVersionType, "not found"),
 				ExpectError: true,
 			},
 		}
@@ -1172,45 +1532,60 @@ func TestChecker(t *testing.T) {
 
 	t.Run("FeedVersionAddPermission", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:       "user tl-tenant-admin is a manager of e535 through tenant#admin and can edit users",
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
-				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
-				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Relation:    ViewerRelation,
-				Notes:       "already exists",
-				ExpectError: true,
-				CheckAsUser: "tl-tenant-admin",
-			},
-			{
-				Subject:     NewEntityKey(UserType, "test1"),
-				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Relation:    ViewerRelation,
-				CheckAsUser: "tl-tenant-admin",
-			},
-			{
-				Subject:     NewEntityKey(UserType, "test2"),
-				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
-				Relation:    ViewerRelation,
-				CheckAsUser: "tl-tenant-admin",
-			},
-			{
+				Notes:              "user ian is editor of e535 through BA and BA-group and can not edit users",
 				Subject:            NewEntityKey(UserType, "test3"),
 				Object:             NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:           ViewerRelation,
 				CheckAsUser:        "ian",
 				ExpectUnauthorized: true,
 			},
+			// General checks
 			{
+				Notes:       "existing tuple will still remove other subject matched tuples",
+				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:       "invalid relation returns error",
+				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ParentRelation,
+				ExpectError: true,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:       "disallowed relation returns error",
+				Subject:     NewEntityKey(GroupType, "BA-group#editor"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				ExpectError: true,
+				CheckAsUser: "tl-tenant-admin",
+			},
+			{
+				Notes:       "global admins get error when editing feed version that does not exist",
 				Subject:     NewEntityKey(UserType, "test3"),
 				Object:      NewEntityKey(FeedVersionType, "not found"),
 				Relation:    ViewerRelation,
 				CheckAsUser: "global_admin",
 				ExpectError: true,
+			},
+			{
+				Notes:       "global admins can edit users of any feed version",
+				Subject:     NewEntityKey(UserType, "new-user"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
+				CheckAsUser: "global_admin",
 			},
 		}
 		for _, tc := range checks {
@@ -1221,8 +1596,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.FeedVersionAddPermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.FeedVersionModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1232,24 +1607,36 @@ func TestChecker(t *testing.T) {
 
 	t.Run("FeedVersionRemovePermission", func(t *testing.T) {
 		checks := []TestTuple{
+			// User checks
 			{
+				Notes:       "user tl-tenant-admin is a manager of feed version e535 through tenant#admin and can edit permissions",
 				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
 				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:    ViewerRelation,
 				CheckAsUser: "tl-tenant-admin",
 			},
 			{
+				Notes:              "user ian is not a manager of feed version e535",
 				Subject:            NewEntityKey(UserType, "ian"),
 				Object:             NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
 				Relation:           ViewerRelation,
 				ExpectUnauthorized: true,
 				CheckAsUser:        "ian",
 			},
+			// General checks
 			{
+				Notes:       "global admins get not found when editing permissions of a feed version that does not exist",
 				Subject:     NewEntityKey(UserType, "ian"),
 				Object:      NewEntityKey(FeedVersionType, "not found"),
 				Relation:    ViewerRelation,
 				ExpectError: true,
+				CheckAsUser: "global_admin",
+			},
+			{
+				Notes:       "global admins can edit permissions of any feed version",
+				Subject:     NewEntityKey(UserType, "tl-tenant-member"),
+				Object:      NewEntityKey(FeedVersionType, "e535eb2b3b9ac3ef15d82c56575e914575e732e0"),
+				Relation:    ViewerRelation,
 				CheckAsUser: "global_admin",
 			},
 		}
@@ -1261,8 +1648,8 @@ func TestChecker(t *testing.T) {
 				_, err := checker.FeedVersionRemovePermission(
 					testUserCtx(tc.CheckAsUser, ltk.Subject.Name),
 					&azpb.FeedVersionModifyPermissionRequest{
-						Id:           ltk.Object.ID(),
-						UserRelation: newUserRel(ltk.Subject.Name, ltk.Relation),
+						Id:             ltk.Object.ID(),
+						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1353,6 +1740,7 @@ func newTestChecker(t testing.TB, url string, testData []TestTuple) *Checker {
 	userClient.AddUser("ian", &azpb.User{Name: "Ian", Id: "ian", Email: "ian@example.com"})
 	userClient.AddUser("drew", &azpb.User{Name: "Drew", Id: "drew", Email: "drew@example.com"})
 	userClient.AddUser("tl-tenant-member", &azpb.User{Name: "Tenant Member", Id: "tl-tenant-member", Email: "tl-tenant-member@example.com"})
+	userClient.AddUser("new-user", &azpb.User{Name: "Unassigned Member", Id: "new-user", Email: "new-user@example.com"})
 	checker.userClient = userClient
 	return checker
 }
@@ -1377,6 +1765,9 @@ func checkErrUnauthorized(t testing.TB, err error, expectError bool, expectUnaut
 	} else {
 		if expectUnauthorized && err != ErrUnauthorized {
 			t.Errorf("expected unauthorized, got error '%s'", err.Error())
+		}
+		if !(expectUnauthorized || expectError) {
+			t.Errorf("got error '%s', expected no error", err.Error())
 		}
 	}
 	return err != nil

@@ -38,6 +38,7 @@ type CheckerClient interface {
 	GroupSave(ctx context.Context, in *GroupSaveRequest, opts ...grpc.CallOption) (*GroupSaveResponse, error)
 	GroupAddPermission(ctx context.Context, in *GroupModifyPermissionRequest, opts ...grpc.CallOption) (*GroupSaveResponse, error)
 	GroupRemovePermission(ctx context.Context, in *GroupModifyPermissionRequest, opts ...grpc.CallOption) (*GroupSaveResponse, error)
+	GroupSetTenant(ctx context.Context, in *GroupSetTenantRequest, opts ...grpc.CallOption) (*GroupSetTenantResponse, error)
 	FeedList(ctx context.Context, in *FeedListRequest, opts ...grpc.CallOption) (*FeedListResponse, error)
 	Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error)
 	FeedPermissions(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedPermissionsResponse, error)
@@ -201,6 +202,15 @@ func (c *checkerClient) GroupRemovePermission(ctx context.Context, in *GroupModi
 	return out, nil
 }
 
+func (c *checkerClient) GroupSetTenant(ctx context.Context, in *GroupSetTenantRequest, opts ...grpc.CallOption) (*GroupSetTenantResponse, error) {
+	out := new(GroupSetTenantResponse)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/GroupSetTenant", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *checkerClient) FeedList(ctx context.Context, in *FeedListRequest, opts ...grpc.CallOption) (*FeedListResponse, error) {
 	out := new(FeedListResponse)
 	err := c.cc.Invoke(ctx, "/azpb.Checker/FeedList", in, out, opts...)
@@ -302,6 +312,7 @@ type CheckerServer interface {
 	GroupSave(context.Context, *GroupSaveRequest) (*GroupSaveResponse, error)
 	GroupAddPermission(context.Context, *GroupModifyPermissionRequest) (*GroupSaveResponse, error)
 	GroupRemovePermission(context.Context, *GroupModifyPermissionRequest) (*GroupSaveResponse, error)
+	GroupSetTenant(context.Context, *GroupSetTenantRequest) (*GroupSetTenantResponse, error)
 	FeedList(context.Context, *FeedListRequest) (*FeedListResponse, error)
 	Feed(context.Context, *FeedRequest) (*FeedResponse, error)
 	FeedPermissions(context.Context, *FeedRequest) (*FeedPermissionsResponse, error)
@@ -365,6 +376,9 @@ func (UnimplementedCheckerServer) GroupAddPermission(context.Context, *GroupModi
 }
 func (UnimplementedCheckerServer) GroupRemovePermission(context.Context, *GroupModifyPermissionRequest) (*GroupSaveResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GroupRemovePermission not implemented")
+}
+func (UnimplementedCheckerServer) GroupSetTenant(context.Context, *GroupSetTenantRequest) (*GroupSetTenantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GroupSetTenant not implemented")
 }
 func (UnimplementedCheckerServer) FeedList(context.Context, *FeedListRequest) (*FeedListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FeedList not implemented")
@@ -694,6 +708,24 @@ func _Checker_GroupRemovePermission_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Checker_GroupSetTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GroupSetTenantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CheckerServer).GroupSetTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/azpb.Checker/GroupSetTenant",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CheckerServer).GroupSetTenant(ctx, req.(*GroupSetTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Checker_FeedList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FeedListRequest)
 	if err := dec(in); err != nil {
@@ -926,6 +958,10 @@ var Checker_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GroupRemovePermission",
 			Handler:    _Checker_GroupRemovePermission_Handler,
+		},
+		{
+			MethodName: "GroupSetTenant",
+			Handler:    _Checker_GroupSetTenant_Handler,
 		},
 		{
 			MethodName: "FeedList",
