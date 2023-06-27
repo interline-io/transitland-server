@@ -2,7 +2,6 @@ package authz
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
+	"github.com/interline-io/transitland-server/internal/util"
 )
 
 func NewServer(checker *Checker) (http.Handler, error) {
@@ -119,6 +119,16 @@ func NewServer(checker *Checker) (http.Handler, error) {
 		_, err := checker.GroupRemovePermission(r.Context(), &azpb.GroupModifyPermissionRequest{Id: entId, EntityRelation: check})
 		handleJson(w, nil, err)
 	})
+	router.Post("/groups/{group_id}/tenant", func(w http.ResponseWriter, r *http.Request) {
+		check := azpb.GroupSetTenantRequest{}
+		if err := parseJson(r.Body, &check); err != nil {
+			handleJson(w, nil, err)
+			return
+		}
+		check.Id = checkId(r, "group_id")
+		_, err := checker.GroupSetTenant(r.Context(), &check)
+		handleJson(w, nil, err)
+	})
 
 	/////////////////
 	// FEEDS
@@ -180,11 +190,11 @@ func NewServer(checker *Checker) (http.Handler, error) {
 func handleJson(w http.ResponseWriter, ret any, err error) {
 	if err == ErrUnauthorized {
 		log.Error().Err(err).Msg("unauthorized")
-		http.Error(w, "error", http.StatusUnauthorized)
+		http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
 		return
 	} else if err != nil {
 		log.Error().Err(err).Msg("admin api error")
-		http.Error(w, "error", http.StatusInternalServerError)
+		http.Error(w, util.MakeJsonError(http.StatusText(http.StatusInternalServerError)), http.StatusInternalServerError)
 		return
 	}
 	if ret == nil {
@@ -206,23 +216,4 @@ func parseJson(r io.Reader, v any) error {
 		return err
 	}
 	return json.Unmarshal(data, v)
-}
-
-func checkUserRel(r *http.Request, idKey string) (int64, *azpb.EntityRelation, error) {
-	id := int64(0)
-	tk := &azpb.EntityRelation{}
-	var err error
-	if tk.Type, err = azpb.ObjectTypeString(chi.URLParam(r, "type")); err != nil {
-		return 0, tk, err
-	}
-	if tk.Relation, err = azpb.RelationString(chi.URLParam(r, "relation")); err != nil {
-		return 0, tk, err
-	}
-	if vid, err := strconv.Atoi(chi.URLParam(r, idKey)); err != nil {
-		return 0, tk, errors.New("invalid id")
-	} else {
-		id = int64(vid)
-	}
-	tk.Id = chi.URLParam(r, "user")
-	return id, tk, nil
 }

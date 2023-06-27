@@ -12,6 +12,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/internal/ecache"
+	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/tidwall/gjson"
 )
 
@@ -31,7 +32,7 @@ func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 				checkUser, err := gk.GetUser(ctx, user.Name())
 				if err != nil {
 					if !allowError {
-						http.Error(w, "error", http.StatusUnauthorized)
+						http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
 						return
 					}
 				} else {

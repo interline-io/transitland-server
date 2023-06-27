@@ -31,6 +31,7 @@ var CanSetGroup = Action_can_set_group
 var CanCreateOrg = Action_can_create_org
 var CanEditMembers = Action_can_edit_members
 var CanDeleteOrg = Action_can_delete_org
+var CanSetTenant = Action_set_set_tenant
 
 func RelationString(v string) (Relation, error) {
 	if a, ok := Relation_value[v]; ok {
@@ -105,6 +106,12 @@ func NewEntityKey(t ObjectType, name string) EntityKey {
 	return EntityKey{Type: t, Name: name}
 }
 
+func (ek EntityKey) Equals(other EntityKey) bool {
+	return ek.Type == other.Type &&
+		ek.Name == other.Name &&
+		ek.RefRel == other.RefRel
+}
+
 func (ek EntityKey) WithRefRel(r Relation) EntityKey {
 	ek.RefRel = r
 	return ek
@@ -133,6 +140,13 @@ type TupleKey struct {
 }
 
 func NewTupleKey() TupleKey { return TupleKey{} }
+
+func (tk TupleKey) Equals(other TupleKey) bool {
+	return tk.Subject.Equals(other.Subject) &&
+		tk.Object.Equals(other.Object) &&
+		tk.Action == other.Action &&
+		tk.Relation == other.Relation
+}
 
 func (tk TupleKey) String() string {
 	r := ""

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/interline-io/transitland-server/internal/util"
 )
 
 type MiddlewareFunc func(http.Handler) http.Handler
@@ -99,7 +100,7 @@ func RoleRequired(role string) func(http.Handler) http.Handler {
 			ctx := r.Context()
 			user := ForContext(ctx)
 			if user == nil || !user.HasRole(role) {
-				http.Error(w, `{"error":"permission denied"}`, http.StatusUnauthorized)
+				http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
 				return
 			}
 			next.ServeHTTP(w, r)

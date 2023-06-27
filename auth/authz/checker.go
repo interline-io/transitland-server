@@ -107,6 +107,11 @@ func (c *Checker) UserList(ctx context.Context, req *azpb.UserListRequest) (*azp
 }
 
 func (c *Checker) User(ctx context.Context, req *azpb.UserRequest) (*azpb.UserResponse, error) {
+	// Special case "*"
+	if req.Id == "*" {
+		user := &azpb.User{Id: "*", Name: "All users"}
+		return &azpb.UserResponse{User: user}, nil
+	}
 	// TODO: filter users
 	ret, err := c.userClient.UserByID(ctx, req.GetId())
 	if ret == nil || err != nil {
@@ -338,6 +343,7 @@ func (c *Checker) GroupPermissions(ctx context.Context, req *azpb.GroupRequest) 
 	ret.Actions.CanEdit, _ = c.checkAction(ctx, CanEdit, entKey)
 	ret.Actions.CanCreateFeed, _ = c.checkAction(ctx, CanCreateFeed, entKey)
 	ret.Actions.CanDeleteFeed, _ = c.checkAction(ctx, CanDeleteFeed, entKey)
+	ret.Actions.CanSetTenant = c.ctxIsGlobalAdmin(ctx)
 
 	// Get feeds
 	feedIds, _ := c.listSubjectRelations(ctx, entKey, FeedType, ParentRelation)
@@ -414,6 +420,19 @@ func (c *Checker) GroupRemovePermission(ctx context.Context, req *azpb.GroupModi
 	return &azpb.GroupSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
+func (c *Checker) GroupSetTenant(ctx context.Context, req *azpb.GroupSetTenantRequest) (*azpb.GroupSetTenantResponse, error) {
+	groupId := req.GetId()
+	newTenantId := req.GetTenantId()
+	if check, err := c.GroupPermissions(ctx, &azpb.GroupRequest{Id: groupId}); err != nil {
+		return nil, err
+	} else if !check.Actions.CanSetTenant {
+		return nil, ErrUnauthorized
+	}
+	tk := NewTupleKey().WithSubjectID(TenantType, newTenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
+	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupSetTenant")
+	return &azpb.GroupSetTenantResponse{}, c.fgaClient.ReplaceAllRelation(ctx, tk)
+}
+
 // ///////////////////
 // FEEDS
 // ///////////////////
@@ -482,7 +501,7 @@ func (c *Checker) FeedSetGroup(ctx context.Context, req *azpb.FeedSetGroupReques
 	}
 	tk := NewTupleKey().WithSubjectID(GroupType, newGroup).WithObjectID(FeedType, feedId).WithRelation(ParentRelation)
 	log.Trace().Str("tk", tk.String()).Int64("id", feedId).Msg("FeedSetGroup")
-	return &azpb.FeedSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
+	return &azpb.FeedSaveResponse{}, c.fgaClient.ReplaceAllRelation(ctx, tk)
 }
 
 /////////////////////
@@ -647,6 +666,14 @@ func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj Entit
 	ret, err := c.fgaClient.Check(ctx, checkTk, ctxtk...)
 	log.Trace().Str("tk", checkTk.String()).Bool("result", ret).Err(err).Msg("checkAction")
 	return ret, err
+}
+
+func (c *Checker) ctxIsGlobalAdmin(ctx context.Context) bool {
+	checkUser := authn.ForContext(ctx)
+	if checkUser == nil {
+		return false
+	}
+	return c.checkGlobalAdmin(checkUser)
 }
 
 func (c *Checker) checkGlobalAdmin(checkUser authn.User) bool {

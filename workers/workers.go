@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/jobs"
+	"github.com/interline-io/transitland-server/internal/util"
 )
 
 // GetWorker returns the correct worker type for this job.
@@ -136,7 +137,7 @@ func requestGetJob(req *http.Request) (jobs.Job, error) {
 // writeJobResponse writes job response
 func writeJobResponse(ret jobResponse, w http.ResponseWriter) {
 	if rj, err := json.Marshal(ret); err != nil {
-		http.Error(w, "request failed", http.StatusBadRequest)
+		http.Error(w, util.MakeJsonError(http.StatusText(http.StatusBadRequest)), http.StatusBadRequest)
 		return
 	} else {
 		w.Write(rj)

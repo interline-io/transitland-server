@@ -66,6 +66,10 @@ func (c *MockFGAClient) WriteTuple(context.Context, TupleKey) error {
 	return nil
 }
 
+func (c *MockFGAClient) ReplaceAllRelation(context.Context, TupleKey) error {
+	return nil
+}
+
 func (c *MockFGAClient) ReplaceTuple(context.Context, TupleKey) error {
 	return nil
 }

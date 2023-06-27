@@ -23,6 +23,7 @@ type FGAProvider interface {
 	GetObjectTuples(context.Context, TupleKey) ([]TupleKey, error)
 	WriteTuple(context.Context, TupleKey) error
 	ReplaceTuple(context.Context, TupleKey) error
+	ReplaceAllRelation(context.Context, TupleKey) error
 	DeleteTuple(context.Context, TupleKey) error
 }
 
@@ -67,6 +68,7 @@ var CanSetGroup = azpb.CanSetGroup
 var CanCreateOrg = azpb.CanCreateOrg
 var CanEditMembers = azpb.CanEditMembers
 var CanDeleteOrg = azpb.CanDeleteOrg
+var CanSetTenant = azpb.CanSetTenant
 
 type EntityKey = azpb.EntityKey
 type TupleKey = azpb.TupleKey

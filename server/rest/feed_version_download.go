@@ -12,6 +12,7 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/request"
 	"github.com/interline-io/transitland-server/internal/meters"
+	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/tidwall/gjson"
 )
 
@@ -35,7 +36,7 @@ func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *
 	key := chi.URLParam(r, "feed_key")
 	gvars := hw{}
 	if key == "" {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, util.MakeJsonError("not found"), http.StatusNotFound)
 		return
 	} else if v, err := strconv.Atoi(key); err == nil {
 		gvars["ids"] = []int{v}
@@ -46,14 +47,14 @@ func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *
 	// Check if we're allowed to redistribute feed and look up latest feed version
 	feedResponse, err := makeGraphQLRequest(r.Context(), cfg.srv, latestFeedVersionQuery, gvars)
 	if err != nil {
-		http.Error(w, "server error", http.StatusInternalServerError)
+		http.Error(w, util.MakeJsonError("server error"), http.StatusInternalServerError)
 		return
 	}
 	found := false
 	allowed := false
 	json, err := json.Marshal(feedResponse)
 	if err != nil {
-		http.Error(w, "server error", http.StatusInternalServerError)
+		http.Error(w, util.MakeJsonError("server error"), http.StatusInternalServerError)
 		return
 	}
 	if gjson.Get(string(json), "feeds.0.feed_versions.0.sha1").Exists() {
@@ -65,11 +66,11 @@ func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *
 	fid := gjson.Get(string(json), "feeds.0.onestop_id").String()
 	fvsha1 := gjson.Get(string(json), "feeds.0.feed_versions.0.sha1").String()
 	if !found {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, util.MakeJsonError("not found"), http.StatusNotFound)
 		return
 	}
 	if !allowed {
-		http.Error(w, "not authorized", http.StatusUnauthorized)
+		http.Error(w, util.MakeJsonError("not authorized"), http.StatusUnauthorized)
 		return
 	}
 
@@ -105,7 +106,7 @@ func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.R
 	gvars := hw{}
 	key := chi.URLParam(r, "feed_version_key")
 	if key == "" {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, util.MakeJsonError("not found"), http.StatusNotFound)
 		return
 	} else if v, err := strconv.Atoi(key); err == nil {
 		gvars["ids"] = []int{v}
@@ -115,7 +116,7 @@ func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.R
 	// Check if we're allowed to redistribute feed
 	checkfv, err := makeGraphQLRequest(r.Context(), cfg.srv, feedVersionFileQuery, gvars)
 	if err != nil {
-		http.Error(w, "server error", http.StatusInternalServerError)
+		http.Error(w, util.MakeJsonError("server error"), http.StatusInternalServerError)
 		return
 	}
 	// todo: use gjson
@@ -140,11 +141,11 @@ func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.R
 		}
 	}
 	if !found {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, util.MakeJsonError("not found"), http.StatusNotFound)
 		return
 	}
 	if !allowed {
-		http.Error(w, "not authorized", http.StatusUnauthorized)
+		http.Error(w, util.MakeJsonError("not authorized"), http.StatusUnauthorized)
 		return
 	}
 
@@ -164,14 +165,14 @@ func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.R
 func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string) {
 	store, err := store.GetStore(storage)
 	if err != nil {
-		http.Error(w, "failed access file", http.StatusInternalServerError)
+		http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
 		return
 	}
 	fvkey := fmt.Sprintf("%s.zip", fvsha1)
 	if v, ok := store.(request.Presigner); ok {
 		signedUrl, err := v.CreateSignedUrl(r.Context(), fvkey, tl.Secret{})
 		if err != nil {
-			http.Error(w, "failed access file", http.StatusInternalServerError)
+			http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
 			return
 		}
 		w.Header().Add("Location", signedUrl)
@@ -179,11 +180,11 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 	} else {
 		rdr, _, err := store.Download(r.Context(), fvkey, tl.Secret{}, tl.FeedAuthorization{})
 		if err != nil {
-			http.Error(w, "failed access file", http.StatusInternalServerError)
+			http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
 			return
 		}
 		if _, err := io.Copy(w, rdr); err != nil {
-			http.Error(w, "failed access file", http.StatusInternalServerError)
+			http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
 		}
 	}
 }
