@@ -22,8 +22,8 @@ type FGAProvider interface {
 	ListObjects(context.Context, TupleKey) ([]TupleKey, error)
 	GetObjectTuples(context.Context, TupleKey) ([]TupleKey, error)
 	WriteTuple(context.Context, TupleKey) error
-	ReplaceTuple(context.Context, TupleKey) error
-	ReplaceAllRelation(context.Context, TupleKey) error
+	SetExclusiveSubjectRelation(context.Context, TupleKey, ...Relation) error
+	SetExclusiveRelation(context.Context, TupleKey) error
 	DeleteTuple(context.Context, TupleKey) error
 }
 

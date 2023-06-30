@@ -216,7 +216,6 @@ func TestFGAClient(t *testing.T) {
 					got = append(got, fmt.Sprintf("%s:%s", vtk.Subject.String(), vtk.Relation))
 				}
 				assert.ElementsMatch(t, expect, got, "usertype:username:relation does not match")
-
 			})
 		}
 	})
@@ -888,6 +887,121 @@ func TestFGAClient(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("SetExclusiveSubjectRelation", func(t *testing.T) {
+		checks := []TestTuple{
+			{
+				Notes:    "changes ian permissions from Viewer to Manager",
+				Subject:  NewEntityKey(UserType, "ian"),
+				Object:   NewEntityKey(GroupType, "CT-group"),
+				Relation: ManagerRelation,
+				Expect:   "user:ian:manager user:drew:editor",
+			},
+			{
+				Notes:    "changes drew permissions from Editor to Viewer",
+				Subject:  NewEntityKey(UserType, "drew"),
+				Object:   NewEntityKey(GroupType, "CT-group"),
+				Relation: ViewerRelation,
+				Expect:   "user:drew:viewer user:ian:viewer",
+			},
+			{
+				Notes:    "assigns ian permissions as Manager, nothing to delete",
+				Subject:  NewEntityKey(UserType, "ian"),
+				Object:   NewEntityKey(GroupType, "HA-group"),
+				Relation: ManagerRelation,
+				Expect:   "user:ian:manager tenant:tl-tenant#member:viewer",
+			},
+		}
+		for _, tc := range checks {
+			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test
+				fgac := newTestFGAClient(t, fgaUrl, testData)
+				ltk := tc.TupleKey()
+				checkRelTypes := []Relation{ViewerRelation, EditorRelation, ManagerRelation}
+				err := fgac.SetExclusiveSubjectRelation(context.Background(), ltk, checkRelTypes...)
+				if !checkExpectError(t, err, tc.ExpectError) {
+					return
+				}
+				newTks, err := fgac.GetObjectTuples(context.Background(), NewTupleKey().WithObject(ltk.Object.Type, ltk.Object.Name))
+				if err != nil {
+					t.Error(err)
+				}
+				expect := strings.Split(tc.Expect, " ")
+				var got []string
+				for _, vtk := range newTks {
+					ok := false
+					for _, checkRel := range checkRelTypes {
+						if vtk.Relation == checkRel {
+							ok = true
+						}
+					}
+					if !ok {
+						continue
+					}
+					got = append(got, fmt.Sprintf("%s:%s", vtk.Subject.String(), vtk.Relation))
+				}
+				assert.ElementsMatch(t, expect, got, "usertype:username:relation does not match")
+			})
+		}
+	})
+
+	t.Run("SetExclusiveRelation", func(t *testing.T) {
+		checks := []TestTuple{
+			{
+				Notes:    "changes feed parent",
+				Object:   NewEntityKey(FeedType, "CT"),
+				Subject:  NewEntityKey(GroupType, "BA-group"),
+				Relation: ParentRelation,
+				Expect:   "org:BA-group:parent",
+			},
+			{
+				Notes:    "changes group tenant",
+				Object:   NewEntityKey(GroupType, "CT-group"),
+				Subject:  NewEntityKey(TenantType, "all-users-tenant"),
+				Relation: ParentRelation,
+				Expect:   "tenant:all-users-tenant:parent",
+			},
+			{
+				Notes:    "assigns group to tenant",
+				Object:   NewEntityKey(GroupType, "new-group"),
+				Subject:  NewEntityKey(TenantType, "all-users-tenant"),
+				Relation: ParentRelation,
+				Expect:   "tenant:all-users-tenant:parent",
+			},
+		}
+		for _, tc := range checks {
+			t.Run(tc.String(), func(t *testing.T) {
+				// Mutating test
+				fgac := newTestFGAClient(t, fgaUrl, testData)
+				ltk := tc.TupleKey()
+				checkRelTypes := []Relation{ParentRelation}
+				err := fgac.SetExclusiveRelation(context.Background(), ltk)
+				if !checkExpectError(t, err, tc.ExpectError) {
+					return
+				}
+				newTks, err := fgac.GetObjectTuples(context.Background(), NewTupleKey().WithObject(ltk.Object.Type, ltk.Object.Name))
+				if err != nil {
+					t.Error(err)
+				}
+				expect := strings.Split(tc.Expect, " ")
+				var got []string
+				for _, vtk := range newTks {
+					ok := false
+					for _, checkRel := range checkRelTypes {
+						if vtk.Relation == checkRel {
+							ok = true
+						}
+					}
+					if !ok {
+						continue
+					}
+					got = append(got, fmt.Sprintf("%s:%s", vtk.Subject.String(), vtk.Relation))
+				}
+				assert.ElementsMatch(t, expect, got, "usertype:username:relation does not match")
+			})
+		}
+	})
+
 }
 
 func checkExpectError(t testing.TB, err error, expect bool) bool {

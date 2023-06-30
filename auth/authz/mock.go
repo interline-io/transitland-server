@@ -66,11 +66,11 @@ func (c *MockFGAClient) WriteTuple(context.Context, TupleKey) error {
 	return nil
 }
 
-func (c *MockFGAClient) ReplaceAllRelation(context.Context, TupleKey) error {
+func (c *MockFGAClient) SetExclusiveRelation(context.Context, TupleKey) error {
 	return nil
 }
 
-func (c *MockFGAClient) ReplaceTuple(context.Context, TupleKey) error {
+func (c *MockFGAClient) SetExclusiveSubjectRelation(context.Context, TupleKey, ...Relation) error {
 	return nil
 }
 
