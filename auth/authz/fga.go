@@ -3,6 +3,7 @@ package authz
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/url"
 
@@ -85,7 +86,6 @@ func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKe
 	body := openfga.ReadRequest{
 		TupleKey: &fgatk,
 	}
-
 	data, _, err := c.client.OpenFgaApi.Read(ctx).Body(body).Execute()
 	if err != nil {
 		return nil, err
@@ -97,32 +97,60 @@ func (c *FGAClient) GetObjectTuples(ctx context.Context, tk TupleKey) ([]TupleKe
 	return ret, nil
 }
 
-func (c *FGAClient) ReplaceAllRelation(ctx context.Context, tk TupleKey) error {
+func (c *FGAClient) SetExclusiveRelation(ctx context.Context, tk TupleKey) error {
+	return c.replaceTuple(ctx, tk, false, tk.Relation)
+
+}
+
+func (c *FGAClient) SetExclusiveSubjectRelation(ctx context.Context, tk TupleKey, checkRelations ...Relation) error {
+	return c.replaceTuple(ctx, tk, true, checkRelations...)
+}
+
+func (c *FGAClient) replaceTuple(ctx context.Context, tk TupleKey, checkSubjectEqual bool, checkRelations ...Relation) error {
 	if err := tk.Validate(); err != nil {
-		log.Error().Err(err).Str("tk", tk.String()).Msg("ReplaceAllRelation")
+		log.Error().Err(err).Str("tk", tk.String()).Msg("replaceTuple")
 		return err
 	}
-	log.Trace().Str("tk", tk.String()).Msg("ReplaceAllRelation")
+	relTypeOk := false
+	for _, checkRel := range checkRelations {
+		if tk.Relation == checkRel {
+			relTypeOk = true
+		}
+	}
+	if !relTypeOk {
+		return fmt.Errorf("unknown relation %s for types %s and %s", tk.Relation.String(), tk.Subject.Type.String(), tk.Object.Type.String())
+	}
+	log.Trace().Str("tk", tk.String()).Msg("replaceTuple")
 
 	currentTks, err := c.GetObjectTuples(ctx, NewTupleKey().WithObject(tk.Object.Type, tk.Object.Name))
 	if err != nil {
 		return err
 	}
-	var matched []TupleKey
-	var notMatched []TupleKey
+
+	var matchTks []TupleKey
+	var delTks []TupleKey
 	for _, checkTk := range currentTks {
-		if tk.Relation != checkTk.Relation {
+		relMatch := false
+		for _, r := range checkRelations {
+			if checkTk.Relation == r {
+				relMatch = true
+			}
+		}
+		if !relMatch {
 			continue
 		}
-		if tk.Equals(checkTk) {
-			matched = append(matched, checkTk)
+		if checkSubjectEqual && !checkTk.Subject.Equals(tk.Subject) {
+			continue
+		}
+		if checkTk.Equals(tk) {
+			matchTks = append(matchTks, checkTk)
 		} else {
-			notMatched = append(notMatched, checkTk)
+			delTks = append(delTks, checkTk)
 		}
 	}
 
 	// Write new tuple before deleting others
-	if len(matched) == 0 {
+	if len(matchTks) == 0 {
 		if err := c.WriteTuple(ctx, tk); err != nil {
 			return err
 		}
@@ -130,56 +158,13 @@ func (c *FGAClient) ReplaceAllRelation(ctx context.Context, tk TupleKey) error {
 
 	// Delete exsiting tuples
 	var errs []error
-	for _, delTk := range notMatched {
+	for _, delTk := range delTks {
 		if err := c.DeleteTuple(ctx, delTk); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	for _, err := range errs {
-		log.Trace().Err(err).Str("tk", tk.String()).Msg("ReplaceAllRelation")
-	}
-	if len(errs) > 0 {
-		return errs[0]
-	}
-	return nil
-}
-
-func (c *FGAClient) ReplaceTuple(ctx context.Context, tk TupleKey) error {
-	if err := tk.Validate(); err != nil {
-		log.Error().Err(err).Str("tk", tk.String()).Msg("ReplaceTuple")
-		return err
-	}
-	log.Trace().Str("tk", tk.String()).Msg("ReplaceTuple")
-
-	currentTks, err := c.GetObjectTuples(ctx, NewTupleKey().WithObject(tk.Object.Type, tk.Object.Name))
-	if err != nil {
-		return err
-	}
-
-	// Write new tuple before deleting others, if it exists
-	exists := false
-	for _, checkTk := range currentTks {
-		if tk.Equals(checkTk) {
-			exists = true
-		}
-	}
-	if !exists {
-		if err := c.WriteTuple(ctx, tk); err != nil {
-			return err
-		}
-	}
-
-	// Delete other tuples
-	var errs []error
-	for _, k := range currentTks {
-		if k.Subject.Type == tk.Subject.Type && k.Subject.Name == tk.Subject.Name && k.Relation != tk.Relation {
-			if err := c.DeleteTuple(ctx, k); err != nil {
-				errs = append(errs, err)
-			}
-		}
-	}
-	for _, err := range errs {
-		log.Trace().Err(err).Str("tk", tk.String()).Msg("ReplaceTuple")
+		log.Trace().Err(err).Str("tk", tk.String()).Msg("replaceTuple")
 	}
 	if len(errs) > 0 {
 		return errs[0]

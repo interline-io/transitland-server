@@ -250,7 +250,7 @@ func (c *Checker) TenantAddPermission(ctx context.Context, req *azpb.TenantModif
 	}
 	tk := req.GetEntityRelation().WithObject(NewEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantAddPermission")
-	return &azpb.TenantSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
+	return &azpb.TenantSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, MemberRelation, AdminRelation)
 }
 
 func (c *Checker) TenantRemovePermission(ctx context.Context, req *azpb.TenantModifyPermissionRequest) (*azpb.TenantSaveResponse, error) {
@@ -405,7 +405,7 @@ func (c *Checker) GroupAddPermission(ctx context.Context, req *azpb.GroupModifyP
 	}
 	tk := req.GetEntityRelation().WithObject(NewEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupAddPermission")
-	return &azpb.GroupSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
+	return &azpb.GroupSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, ViewerRelation, EditorRelation, ManagerRelation)
 }
 
 func (c *Checker) GroupRemovePermission(ctx context.Context, req *azpb.GroupModifyPermissionRequest) (*azpb.GroupSaveResponse, error) {
@@ -430,7 +430,7 @@ func (c *Checker) GroupSetTenant(ctx context.Context, req *azpb.GroupSetTenantRe
 	}
 	tk := NewTupleKey().WithSubjectID(TenantType, newTenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupSetTenant")
-	return &azpb.GroupSetTenantResponse{}, c.fgaClient.ReplaceAllRelation(ctx, tk)
+	return &azpb.GroupSetTenantResponse{}, c.fgaClient.SetExclusiveRelation(ctx, tk)
 }
 
 // ///////////////////
@@ -501,7 +501,7 @@ func (c *Checker) FeedSetGroup(ctx context.Context, req *azpb.FeedSetGroupReques
 	}
 	tk := NewTupleKey().WithSubjectID(GroupType, newGroup).WithObjectID(FeedType, feedId).WithRelation(ParentRelation)
 	log.Trace().Str("tk", tk.String()).Int64("id", feedId).Msg("FeedSetGroup")
-	return &azpb.FeedSaveResponse{}, c.fgaClient.ReplaceAllRelation(ctx, tk)
+	return &azpb.FeedSaveResponse{}, c.fgaClient.SetExclusiveRelation(ctx, tk)
 }
 
 /////////////////////
@@ -588,7 +588,7 @@ func (c *Checker) FeedVersionAddPermission(ctx context.Context, req *azpb.FeedVe
 	}
 	tk := req.GetEntityRelation().WithObject(NewEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionAddPermission")
-	return &azpb.FeedVersionSaveResponse{}, c.fgaClient.ReplaceTuple(ctx, tk)
+	return &azpb.FeedVersionSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, ViewerRelation, EditorRelation, ManagerRelation)
 }
 
 func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *azpb.FeedVersionModifyPermissionRequest) (*azpb.FeedVersionSaveResponse, error) {

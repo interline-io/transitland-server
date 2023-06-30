@@ -1387,7 +1387,7 @@ func TestChecker(t *testing.T) {
 			},
 		}
 		for _, tc := range tcs {
-			t.Run("", func(t *testing.T) {
+			t.Run(tc.String(), func(t *testing.T) {
 				// Mutating test - initialize for each test
 				checker := newTestChecker(t, fgaUrl, checkerTestData)
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
@@ -1406,6 +1406,7 @@ func TestChecker(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
+				fmt.Println("tc.Object:", tc.Object, "fr.Group:", fr.Group)
 				assert.Equal(t, tc.Object.Name, fr.Group.Name)
 			})
 		}
