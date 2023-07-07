@@ -123,7 +123,10 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		q = q.Distinct().Options("on (gtfs_stops.feed_version_id,gtfs_stops.id)")
 	}
 	if active {
-		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
+		// in (select feed_version_id) from feed_states -- helps the query planner skip fv's that dont contribute to result
+		q = q.
+			Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id").
+			Where(sq.Expr("feed_versions.id in (select feed_version_id from feed_states)"))
 	}
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"gtfs_stops.id": ids})
@@ -132,10 +135,15 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
+		// first check helps improve query performance
 		if after.FeedVersionID == 0 {
-			q = q.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (select feed_version_id,id from gtfs_stops where id = ?)", after.ID))
+			q = q.
+				Where(sq.Expr("gtfs_stops.feed_version_id >= (select feed_version_id from gtfs_stops where id = ?)", after.ID)).
+				Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (select feed_version_id,id from gtfs_stops where id = ?)", after.ID))
 		} else {
-			q = q.Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (?,?)", after.FeedVersionID, after.ID))
+			q = q.
+				Where(sq.Expr("gtfs_stops.feed_version_id >= ?", after.FeedVersionID)).
+				Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
 	}
 
