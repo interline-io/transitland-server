@@ -101,16 +101,29 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"gtfs_routes.id": ids})
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
-	}
+
+	// Handle cursor
 	if after != nil && after.Valid && after.ID > 0 {
+		// first check helps improve query performance
 		if after.FeedVersionID == 0 {
-			q = q.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (select feed_version_id,id from gtfs_routes where id = ?)", after.ID))
+			q = q.
+				Where(sq.Expr("gtfs_routes.feed_version_id >= (select feed_version_id from gtfs_routes where id = ?)", after.ID)).
+				Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (select feed_version_id,id from gtfs_routes where id = ?)", after.ID))
 		} else {
-			q = q.Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (?,?)", after.FeedVersionID, after.ID))
+			q = q.
+				Where(sq.Expr("gtfs_routes.feed_version_id >= ?", after.FeedVersionID)).
+				Where(sq.Expr("(gtfs_routes.feed_version_id, gtfs_routes.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
 	}
+
+	// Handle permissions
+	q = q.
+		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+		Where(sq.Or{
+			sq.Expr("fsp.public = true"),
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+		})
 
 	// Outer query
 	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t")

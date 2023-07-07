@@ -34,6 +34,7 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, permFilter *model.PermFilt
 	).
 		From("gtfs_trips").
 		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
+		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
 		OrderBy("sts.stop_sequence, sts.arrival_time")
@@ -54,9 +55,16 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, permFilter *model.PermFilt
 		eids, fvids := pairKeys(spairs)
 		q = q.Where(sq.Eq{"sts.stop_id": eids, "sts.feed_version_id": fvids})
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
-	}
+
+	// Handle permissions
+	q = q.
+		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+		Where(sq.Or{
+			sq.Expr("fsp.public = true"),
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+		})
+
 	return q
 }
 
@@ -88,6 +96,7 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 	).
 		From("gtfs_trips").
 		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
+		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
 		JoinClause(`join lateral (select min(stop_sequence), max(stop_sequence) max from gtfs_stop_times sts2 where sts2.trip_id = t2.id AND sts2.feed_version_id = t2.feed_version_id) trip_stop_sequence on true`).
@@ -179,9 +188,16 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 			q = q.Where(sq.LtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.EndTime})
 		}
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
-	}
+
+	// Handle permissions
+	q = q.
+		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+		Where(sq.Or{
+			sq.Expr("fsp.public = true"),
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+		})
+
 	return q
 }
 

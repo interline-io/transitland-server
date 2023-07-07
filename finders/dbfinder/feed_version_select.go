@@ -11,7 +11,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 	q := sq.StatementBuilder.
 		Select("t.*").
 		From("feed_versions t").
-		Join("current_feeds cf on cf.id = t.feed_id").Where(sq.Eq{"cf.deleted_at": nil}).
+		Join("current_feeds on current_feeds.id = t.feed_id").Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Limit(checkLimit(limit)).
 		OrderBy("t.fetched_at desc, t.id desc")
 
@@ -26,7 +26,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 			q = q.Where(sq.Eq{"t.feed_id": where.FeedIds})
 		}
 		if where.FeedOnestopID != nil {
-			q = q.Where(sq.Eq{"cf.onestop_id": *where.FeedOnestopID})
+			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
 
 		// Coverage
@@ -81,12 +81,18 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"t.id": ids})
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"t.feed_id": permFilter.AllowedFeeds}, sq.Eq{"t.id": permFilter.AllowedFeedVersions}})
-	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at,id from feed_versions where id = ?)", after.ID))
 	}
+
+	// Handle permissions
+	q = q.
+		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+		Where(sq.Or{
+			sq.Expr("fsp.public = true"),
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"t.id": permFilter.GetAllowedFeedVersions()},
+		})
 	return q
 }
 

@@ -15,6 +15,20 @@ type PermFilter struct {
 	AllowedFeedVersions []int
 }
 
+func (pf *PermFilter) GetAllowedFeeds() []int {
+	if pf == nil {
+		return nil
+	}
+	return pf.AllowedFeeds
+}
+
+func (pf *PermFilter) GetAllowedFeedVersions() []int {
+	if pf == nil {
+		return nil
+	}
+	return pf.AllowedFeedVersions
+}
+
 type Cursor struct {
 	FeedVersionID int
 	ID            int

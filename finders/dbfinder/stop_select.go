@@ -119,6 +119,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		// Handle license filtering
 		q = licenseFilter(where.License, q)
 	}
+
 	if distinct {
 		q = q.Distinct().Options("on (gtfs_stops.feed_version_id,gtfs_stops.id)")
 	}
@@ -131,9 +132,8 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"gtfs_stops.id": ids})
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
-	}
+
+	// Handle cursor
 	if after != nil && after.Valid && after.ID > 0 {
 		// first check helps improve query performance
 		if after.FeedVersionID == 0 {
@@ -146,6 +146,15 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				Where(sq.Expr("(gtfs_stops.feed_version_id, gtfs_stops.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
 	}
+
+	// Handle permissions
+	q = q.
+		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+		Where(sq.Or{
+			sq.Expr("fsp.public = true"),
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+		})
 
 	// Outer query
 	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t")
