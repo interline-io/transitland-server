@@ -51,9 +51,9 @@ type Command struct {
 	EnableJobsApi     bool
 	EnableWorkers     bool
 	EnableProfiler    bool
-	AuthMiddlewares   ArrayFlags
 	DefaultQueue      string
 	SecretsFile       string
+	AuthMiddlewares   arrayFlags
 	metersConfig      metersConfig
 	metricsConfig     metricsConfig
 	AuthConfig        authn.AuthConfig
@@ -164,15 +164,59 @@ func (cmd *Command) Parse(args []string) error {
 }
 
 func (cmd *Command) Run() error {
-	// Default finders and job queue
 	cfg := cmd.Config
 
-	var dbFinder model.Finder
+	// Open database
+	var db sqlx.Ext
+	dbx, err := dbutil.OpenDB(cfg.DBURL)
+	if err != nil {
+		return err
+	}
+	db = dbx
+	if log.Logger.GetLevel() == zerolog.TraceLevel {
+		db = dbutil.LogDB(dbx)
+	}
+
+	// Create Finder
+	var dbFinder model.Finder = dbfinder.NewFinder(db)
+
+	// Open redis
+	var redisClient *redis.Client
+	if cmd.RedisURL != "" {
+		rOpts, err := getRedisOpts(cfg.RedisURL)
+		if err != nil {
+			return err
+		}
+		redisClient = redis.NewClient(rOpts)
+	}
+
+	// Create RTFinder, GBFSFinder
 	var rtFinder model.RTFinder
 	var gbfsFinder model.GbfsFinder
 	var jobQueue jobs.JobQueue
+	if redisClient != nil {
+		// Use redis backed finders
+		rtFinder = rtfinder.NewFinder(rtfinder.NewRedisCache(redisClient), db)
+		gbfsFinder = gbfsfinder.NewFinder(redisClient)
+		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
+	} else {
+		// Default to in-memory cache
+		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
+		gbfsFinder = gbfsfinder.NewFinder(nil)
+		jobQueue = jobs.NewLocalJobs()
+	}
 
-	// Open metrics
+	// Setup authorization checker
+	var checker model.Checker
+	if cmd.AuthzConfig.FGAEndpoint != "" {
+		authzChecker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig, db, redisClient)
+		if err != nil {
+			return err
+		}
+		checker = authzChecker
+	}
+
+	// Setup metrics
 	var metricProvider metrics.MetricProvider
 	metricProvider = metrics.NewDefaultMetric()
 	if cmd.metricsConfig.EnableMetrics {
@@ -181,7 +225,7 @@ func (cmd *Command) Run() error {
 		}
 	}
 
-	// Open metering
+	// Setup metering
 	var meterProvider meters.MeterProvider
 	meterProvider = meters.NewDefaultMeter()
 	if cmd.metersConfig.EnableMetering {
@@ -195,44 +239,6 @@ func (cmd *Command) Run() error {
 			meterProvider = a
 		}
 		defer meterProvider.Close()
-	}
-
-	// Open database
-	var db sqlx.Ext
-	dbx, err := dbutil.OpenDB(cfg.DBURL)
-	if err != nil {
-		return err
-	}
-	db = dbx
-	if log.Logger.GetLevel() == zerolog.TraceLevel {
-		db = dbutil.LogDB(dbx)
-	}
-
-	// Open redis
-	var redisClient *redis.Client
-	if cmd.RedisURL != "" {
-		// Redis backed RTFinder
-		rOpts, err := getRedisOpts(cfg.RedisURL)
-		if err != nil {
-			return err
-		}
-		redisClient = redis.NewClient(rOpts)
-	}
-
-	// Create Finder
-	dbFinder = dbfinder.NewFinder(db)
-
-	// Create RTFinder
-	if cmd.RedisURL != "" {
-		// Use redis backed finders
-		rtFinder = rtfinder.NewFinder(rtfinder.NewRedisCache(redisClient), db)
-		gbfsFinder = gbfsfinder.NewFinder(redisClient)
-		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
-	} else {
-		// Default to in-memory cache
-		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
-		gbfsFinder = gbfsfinder.NewFinder(nil)
-		jobQueue = jobs.NewLocalJobs()
 	}
 
 	// Setup router
@@ -275,22 +281,6 @@ func (cmd *Command) Run() error {
 		root.Handle("/metrics", metricProvider.MetricsHandler())
 	}
 
-	// Admin API
-	checker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig, db, redisClient)
-	if cmd.EnableAdminApi {
-		if err != nil {
-			return err
-		}
-		adminServer, err := authz.NewServer(checker)
-		if err != nil {
-			return err
-		}
-		r := chi.NewRouter()
-		r.Use(authn.UserRequired)
-		r.Mount("/", adminServer)
-		root.Mount("/admin", r)
-	}
-
 	// GraphQL API
 	graphqlServer, err := gql.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
 	if err != nil {
@@ -318,6 +308,23 @@ func (cmd *Command) Run() error {
 		r.Use(authn.UserRequired)
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)
+	}
+
+	// GraphQL Playground
+	if cmd.EnablePlayground && !cmd.DisableGraphql {
+		root.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	}
+
+	// Admin API
+	if cmd.EnableAdminApi {
+		adminServer, err := authz.NewServer(checker)
+		if err != nil {
+			return err
+		}
+		r := chi.NewRouter()
+		r.Use(authn.UserRequired)
+		r.Mount("/", adminServer)
+		root.Mount("/admin", r)
 	}
 
 	// Workers
@@ -353,11 +360,6 @@ func (cmd *Command) Run() error {
 		}
 	}
 
-	// GraphQL Playground
-	if cmd.EnablePlayground && !cmd.DisableGraphql {
-		root.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	}
-
 	// Start server
 	timeOut := time.Duration(cmd.Timeout) * time.Second
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
@@ -388,15 +390,15 @@ func (cmd *Command) Run() error {
 	return srv.Shutdown(gracefullCtx)
 }
 
-// ArrayFlags allow repeatable command line options.
+// arrayFlags allow repeatable command line options.
 // https://stackoverflow.com/questions/28322997/how-to-get-a-list-of-values-into-a-flag-in-golang/28323276#28323276
-type ArrayFlags []string
+type arrayFlags []string
 
-func (i *ArrayFlags) String() string {
+func (i *arrayFlags) String() string {
 	return strings.Join(*i, ",")
 }
 
-func (i *ArrayFlags) Set(value string) error {
+func (i *arrayFlags) Set(value string) error {
 	*i = append(*i, value)
 	return nil
 }

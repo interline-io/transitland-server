@@ -6,6 +6,7 @@ import (
 )
 
 func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) sq.SelectBuilder {
+	// PlaceSelect is limited to active feed versions
 	var groupKeys []string
 	groupKeys = []string{"adm0name"}
 	if level != nil {
@@ -27,8 +28,8 @@ func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceA
 	q := sq.StatementBuilder.
 		Select(groupKeys...).
 		Columns("json_agg(distinct tlap.agency_id) as agency_ids").
-		From("feed_states fs").
-		Join("tl_agency_places tlap on tlap.feed_version_id = fs.feed_version_id").
+		From("feed_states").
+		Join("tl_agency_places tlap on tlap.feed_version_id = feed_states.feed_version_id").
 		GroupBy(groupKeys...)
 
 	if where != nil {
@@ -42,8 +43,14 @@ func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceA
 			q = q.Where(sq.Eq{"name": where.CityName})
 		}
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"fs.feed_id": permFilter.AllowedFeeds}, sq.Eq{"fs.feed_version_id": permFilter.AllowedFeedVersions}})
-	}
+
+	// Handle permissions
+	q = q.
+		Where(sq.Or{
+			sq.Expr("feed_states.public = true"),
+			sq.Eq{"feed_states.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"feed_states.feed_version_id": permFilter.GetAllowedFeedVersions()},
+		})
+
 	return q
 }

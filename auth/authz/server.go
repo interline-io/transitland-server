@@ -11,9 +11,10 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/internal/util"
+	"github.com/interline-io/transitland-server/model"
 )
 
-func NewServer(checker *Checker) (http.Handler, error) {
+func NewServer(checker model.Checker) (http.Handler, error) {
 	router := chi.NewRouter()
 
 	/////////////////

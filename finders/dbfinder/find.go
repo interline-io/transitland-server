@@ -59,9 +59,9 @@ func alphanumeric(v string) string {
 	return string(ret)
 }
 
-// az09 removes any character that is not a a-z or 0-9 or _
+// az09 removes any character that is not a a-z or 0-9 or _ or .
 func az09(v string) string {
-	reg := regexp.MustCompile("[^a-zA-Z0-9_]+")
+	reg := regexp.MustCompile("[^a-zA-Z0-9_\\.]+")
 	return reg.ReplaceAllString(v, "")
 }
 

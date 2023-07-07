@@ -103,10 +103,10 @@ type canCheckGlobalAdmin interface {
 }
 
 func checkActive(ctx context.Context, ids []int, checker model.Checker) (*model.PermFilter, error) {
-	if checker == nil {
-		return nil, nil
-	}
 	active := &model.PermFilter{}
+	if checker == nil {
+		return active, nil
+	}
 
 	// TODO: Make this part of actual checker interface
 	if c, ok := checker.(canCheckGlobalAdmin); ok {

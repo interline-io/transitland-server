@@ -73,6 +73,7 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 		// Handle license filtering
 		q = licenseFilter(where.License, q)
 	}
+
 	if distinct {
 		q = q.Distinct().Options("on (gtfs_agencies.feed_version_id,gtfs_agencies.id)")
 	}
@@ -82,16 +83,29 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
-	}
+
+	// Handle cursor
 	if after != nil && after.Valid && after.ID > 0 {
+		// first check helps improve query performance
 		if after.FeedVersionID == 0 {
-			q = q.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (select feed_version_id,id from gtfs_agencies where id = ?)", after.ID))
+			q = q.
+				Where(sq.Expr("gtfs_agencies.feed_version_id >= (select feed_version_id from gtfs_agencies where id = ?)", after.ID)).
+				Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (select feed_version_id,id from gtfs_agencies where id = ?)", after.ID))
 		} else {
-			q = q.Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (?,?)", after.FeedVersionID, after.ID))
+			q = q.
+				Where(sq.Expr("gtfs_agencies.feed_version_id >= ?", after.FeedVersionID)).
+				Where(sq.Expr("(gtfs_agencies.feed_version_id, gtfs_agencies.id) > (?,?)", after.FeedVersionID, after.ID))
 		}
 	}
+
+	// Handle permissions
+	q = q.
+		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+		Where(sq.Or{
+			sq.Expr("fsp.public = true"),
+			sq.Eq{"feed_versions.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+		})
 
 	// Outer query
 	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))

@@ -1007,7 +1007,7 @@ func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVe
 	qents := []*model.FeedVersion{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(FeedVersionSelect(params[0].Limit, nil, nil, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
+		lateralWrap(FeedVersionSelect(params[0].Limit, nil, nil, nil, params[0].Where), "current_feeds", "id", "t.feed_id", ids),
 		&qents,
 	)
 	if err != nil {

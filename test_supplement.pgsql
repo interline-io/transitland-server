@@ -50,3 +50,6 @@ insert into tl_groups(group_name) values ('BA-group');
 insert into tl_groups(group_name) values ('HA-group');
 insert into tl_groups(group_name) values ('EX-group');
 insert into tl_groups(group_name) values ('test-group');
+
+-- set public
+update feed_states set public = true;

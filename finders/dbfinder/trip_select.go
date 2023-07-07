@@ -58,9 +58,15 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"feed_versions.feed_id": permFilter.AllowedFeeds}, sq.Eq{"feed_versions.id": permFilter.AllowedFeedVersions}})
-	}
+
+	// Handle permissions
+	q = q.
+		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+		Where(sq.Or{
+			sq.Expr("fsp.public = true"),
+			sq.Eq{"feed_versions.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+		})
 
 	// Outer query
 	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t")

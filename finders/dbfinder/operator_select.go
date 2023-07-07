@@ -85,15 +85,20 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"coif.id": ids})
 	}
-	if permFilter != nil {
-		q = q.Where(sq.Or{sq.Eq{"coif.feed_id": permFilter.AllowedFeeds}})
-	}
 	if len(feedIds) > 0 {
 		q = q.Where(sq.Eq{"coif.feed_id": feedIds})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"coif.id": after.ID})
 	}
+
+	// Handle permissions
+	q = q.
+		Join("feed_states fsp on fsp.feed_id = coif.feed_id").
+		Where(sq.Or{
+			sq.Expr("fsp.public = true"),
+			sq.Eq{"coif.feed_id": permFilter.GetAllowedFeeds()},
+		})
 
 	// Outer query
 	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
