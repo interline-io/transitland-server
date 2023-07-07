@@ -61,7 +61,7 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, permFilter *model.PermFilt
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"feed_versions.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})
 
@@ -194,7 +194,7 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"feed_versions.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})
 

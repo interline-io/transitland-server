@@ -90,7 +90,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"t.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 			sq.Eq{"t.id": permFilter.GetAllowedFeedVersions()},
 		})
 	return q

@@ -101,7 +101,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 		Join("feed_states fsp on fsp.feed_id = t.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"t.id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 		})
 
 	return q

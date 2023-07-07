@@ -103,7 +103,7 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"feed_versions.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})
 

@@ -97,7 +97,7 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 		Join("feed_states fsp on fsp.feed_id = coif.feed_id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"coif.feed_id": permFilter.GetAllowedFeeds()},
+			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 		})
 
 	// Outer query
