@@ -66,7 +66,9 @@ func Select(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface
 			err = sqlx.Select(db, dest, qstr, qargs...)
 		}
 	}
-	if err != nil {
+	if ctx.Err() == context.Canceled {
+		log.Trace().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query canceled")
+	} else if err != nil {
 		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
 	}
 	return err
@@ -91,7 +93,9 @@ func Get(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{})
 			err = sqlx.Get(db, dest, qstr, qargs...)
 		}
 	}
-	if err != nil {
+	if ctx.Err() == context.Canceled {
+		log.Trace().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query canceled")
+	} else if err != nil {
 		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
 	}
 	return err
