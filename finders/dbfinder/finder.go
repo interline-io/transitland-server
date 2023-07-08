@@ -39,7 +39,7 @@ func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Curs
 	}
 	q := AgencySelect(limit, after, ids, active, permFilter, where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
-		return nil, logErr(err)
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -52,7 +52,7 @@ func (f *Finder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor
 	}
 	q := RouteSelect(limit, after, ids, active, permFilter, where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
-		return nil, logErr(err)
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -65,7 +65,7 @@ func (f *Finder) FindStops(ctx context.Context, limit *int, after *model.Cursor,
 	}
 	q := StopSelect(limit, after, ids, active, permFilter, where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
-		return nil, logErr(err)
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -78,7 +78,7 @@ func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor,
 	}
 	q := TripSelect(limit, after, ids, active, permFilter, where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
-		return nil, logErr(err)
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -86,7 +86,7 @@ func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor,
 func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
 	if err := dbutil.Select(ctx, f.db, FeedVersionSelect(limit, after, ids, permFilter, where), &ents); err != nil {
-		return nil, logErr(err)
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -94,7 +94,7 @@ func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.
 func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) ([]*model.Feed, error) {
 	var ents []*model.Feed
 	if err := dbutil.Select(ctx, f.db, FeedSelect(limit, after, ids, permFilter, where), &ents); err != nil {
-		return nil, logErr(err)
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -102,7 +102,7 @@ func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor,
 func (f *Finder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
 	if err := dbutil.Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, permFilter, where), &ents); err != nil {
-		return nil, logErr(err)
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -123,7 +123,7 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 	var ents []*model.RouteStopBuffer
 	q := RouteStopBufferSelect(*param)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
-		return nil, logErr(err)
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -153,7 +153,7 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (ti
 		Limit(1000)
 	var ents []fvslQuery
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
-		return startDate, endDate, bestWeek, logErr(err)
+		return startDate, endDate, bestWeek, logErr(ctx, err)
 	}
 	if len(ents) == 0 {
 		return startDate, endDate, bestWeek, errors.New("no fvsl results")
@@ -162,7 +162,7 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (ti
 	var fis []tl.FeedInfo
 	fiq := sq.StatementBuilder.Select("*").From("gtfs_feed_infos").Where(sq.Eq{"feed_version_id": fvid}).OrderBy("feed_start_date").Limit(1)
 	if err := dbutil.Select(ctx, f.db, fiq, &fis); err != nil {
-		return startDate, endDate, bestWeek, logErr(err)
+		return startDate, endDate, bestWeek, logErr(ctx, err)
 	}
 
 	// Check if we have feed infos, otherwise calculate based on fetched week or highest service week
@@ -247,7 +247,7 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (ti
 func (f *Finder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip, errs []error) {
 	ents, err := f.FindTrips(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Trip) int { return ent.ID }), nil
 }
@@ -261,7 +261,7 @@ func (f *Finder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []e
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Level) int { return ent.ID }), nil
 }
@@ -274,7 +274,7 @@ func (f *Finder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calenda
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Calendar) int { return ent.ID }), nil
 }
@@ -287,7 +287,7 @@ func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []e
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Shape) int { return ent.ID }), nil
 }
@@ -295,7 +295,7 @@ func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []e
 func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
 	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.FeedVersion) int { return ent.ID }), nil
 }
@@ -303,7 +303,7 @@ func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.Feed
 func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
 	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Feed) int { return ent.ID }), nil
 }
@@ -357,7 +357,7 @@ func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.St
 	// q = q.Where("end_time <= ?", where.EndTime)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		// return retError[[]*model.StopObservation](len(params))
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	byid := map[int][]*model.StopObservation{}
 	for _, ent := range ents {
@@ -392,7 +392,7 @@ func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, 
 	var ents []*model.Agency
 	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Agency) int { return ent.ID }), nil
 
@@ -401,7 +401,7 @@ func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, 
 func (f *Finder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
 	ents, err := f.FindStops(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Stop) int { return ent.ID }), nil
 }
@@ -409,7 +409,7 @@ func (f *Finder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []err
 func (f *Finder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
 	ents, err := f.FindRoutes(ctx, nil, nil, ids, nil, nil)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Route) int { return ent.ID }), nil
 }
@@ -422,7 +422,7 @@ func (f *Finder) CensusTableByID(ctx context.Context, ids []int) ([]*model.Censu
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.CensusTable) int { return ent.ID }), nil
 }
@@ -435,7 +435,7 @@ func (f *Finder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids 
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.FeedVersionGtfsImport) int { return ent.FeedVersionID }), nil
 }
@@ -448,7 +448,7 @@ func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.Fe
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
 }
@@ -461,7 +461,7 @@ func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Opera
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.ID }), nil
 }
@@ -474,7 +474,7 @@ func (f *Finder) OperatorsByOnestopID(ctx context.Context, ids []string) ([]*mod
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Operator) string { return ent.OnestopID.Val }), nil
 }
@@ -487,7 +487,7 @@ func (f *Finder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.O
 		&ents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.AgencyID }), nil
 }
@@ -509,7 +509,7 @@ func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorP
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Operator{}
 	for _, ent := range qents {
@@ -559,7 +559,7 @@ func (f *Finder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedFet
 			&qents,
 		)
 		if err != nil {
-			return nil, logExtendErr(len(params), err)
+			return nil, logExtendErr(ctx, len(params), err)
 		}
 		group := map[int][]*model.FeedFetch{}
 		for _, ent := range qents {
@@ -598,7 +598,7 @@ func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.Fe
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[string][]*model.Feed{}
 	for i := 0; i < len(qents); i++ {
@@ -633,7 +633,7 @@ func (f *Finder) FrequenciesByTripID(ctx context.Context, params []model.Frequen
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Frequency{}
 	for _, ent := range qents {
@@ -661,7 +661,7 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 	}
 	pitemGroups, err := paramsByGroup(pitems)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	ret := make([][]*model.StopTime, len(params))
 	for _, group := range pitemGroups {
@@ -671,7 +671,7 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 			StopTimeSelect(group.Keys, nil, nil, group.Where),
 			&qents,
 		); err != nil {
-			return nil, logExtendErr(len(params), err)
+			return nil, logExtendErr(ctx, len(params), err)
 		}
 		grouped := groupBy(group.Keys, qents, checkLimit(group.Limit), func(ent *model.StopTime) FVPair {
 			return FVPair{EntityID: atoi(ent.TripID), FeedVersionID: ent.FeedVersionID}
@@ -701,7 +701,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 		dg := &dGroup{Where: p.Where, Limit: p.Limit}
 		key, err := json.Marshal(dg)
 		if err != nil {
-			return nil, logExtendErr(len(params), err)
+			return nil, logExtendErr(ctx, len(params), err)
 		}
 		if a, ok := dGroups[string(key)]; ok {
 			dg = a
@@ -726,7 +726,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				&qents,
 			)
 			if err != nil {
-				return nil, logExtendErr(len(params), err)
+				return nil, logExtendErr(ctx, len(params), err)
 			}
 		} else {
 			// Otherwise get all stop_times for stop
@@ -736,7 +736,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				&qents,
 			)
 			if err != nil {
-				return nil, logExtendErr(len(params), err)
+				return nil, logExtendErr(ctx, len(params), err)
 			}
 		}
 		for _, ent := range qents {
@@ -770,7 +770,7 @@ func (f *Finder) RouteStopsByStopID(ctx context.Context, params []model.RouteSto
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.RouteStop{}
 	for _, ent := range qents {
@@ -804,7 +804,7 @@ func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) (
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Stop{}
 	for _, ent := range qents {
@@ -832,7 +832,7 @@ func (f *Finder) RouteStopsByRouteID(ctx context.Context, params []model.RouteSt
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.RouteStop{}
 	for _, ent := range qents {
@@ -860,7 +860,7 @@ func (f *Finder) RouteHeadwaysByRouteID(ctx context.Context, params []model.Rout
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.RouteHeadway{}
 	for _, ent := range qents {
@@ -895,7 +895,7 @@ func (f *Finder) RouteStopPatternsByRouteID(ctx context.Context, params []model.
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.RouteStopPattern{}
 	for _, ent := range qents {
@@ -923,7 +923,7 @@ func (f *Finder) FeedVersionFileInfosByFeedVersionID(ctx context.Context, params
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.FeedVersionFileInfo{}
 	for _, ent := range qents {
@@ -951,7 +951,7 @@ func (f *Finder) StopsByParentStopID(ctx context.Context, params []model.StopPar
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Stop{}
 	for _, ent := range qents {
@@ -983,7 +983,7 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 		q,
 		&qents,
 	); err != nil {
-		return nil, logExtendErr(0, err)
+		return nil, logExtendErr(ctx, 0, err)
 	}
 	group := map[int]*model.Stop{}
 	for _, ent := range qents {
@@ -1011,7 +1011,7 @@ func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVe
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	return groupBy(ids, qents, checkLimit(params[0].Limit), func(ent *model.FeedVersion) int { return ent.FeedID }), nil
 }
@@ -1035,7 +1035,7 @@ func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.Agen
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.AgencyPlace{}
 	for _, ent := range qents {
@@ -1063,7 +1063,7 @@ func (f *Finder) RouteGeometriesByRouteID(ctx context.Context, params []model.Ro
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.RouteGeometry{}
 	for _, ent := range qents {
@@ -1091,7 +1091,7 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Trip{}
 	for _, ent := range qents {
@@ -1119,7 +1119,7 @@ func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Route{}
 	for _, ent := range qents {
@@ -1147,7 +1147,7 @@ func (f *Finder) AgenciesByFeedVersionID(ctx context.Context, params []model.Age
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Agency{}
 	for _, ent := range qents {
@@ -1175,7 +1175,7 @@ func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyP
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[string][]*model.Agency{}
 	for _, ent := range qents {
@@ -1203,7 +1203,7 @@ func (f *Finder) StopsByFeedVersionID(ctx context.Context, params []model.StopPa
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Stop{}
 	for _, ent := range qents {
@@ -1231,7 +1231,7 @@ func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) (
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Stop{}
 	for _, ent := range qents {
@@ -1259,7 +1259,7 @@ func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripPa
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Trip{}
 	for _, ent := range qents {
@@ -1287,7 +1287,7 @@ func (f *Finder) FeedInfosByFeedVersionID(ctx context.Context, params []model.Fe
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.FeedInfo{}
 	for _, ent := range qents {
@@ -1315,7 +1315,7 @@ func (f *Finder) RoutesByFeedVersionID(ctx context.Context, params []model.Route
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Route{}
 	for _, ent := range qents {
@@ -1343,7 +1343,7 @@ func (f *Finder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, pa
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.FeedVersionServiceLevel{}
 	for _, ent := range qents {
@@ -1371,7 +1371,7 @@ func (f *Finder) PathwaysByFromStopID(ctx context.Context, params []model.Pathwa
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Pathway{}
 	for _, ent := range qents {
@@ -1399,7 +1399,7 @@ func (f *Finder) PathwaysByToStopID(ctx context.Context, params []model.PathwayP
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.Pathway{}
 	for _, ent := range qents {
@@ -1427,7 +1427,7 @@ func (f *Finder) CalendarDatesByServiceID(ctx context.Context, params []model.Ca
 		&qents,
 	)
 	if err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.CalendarDate{}
 	for _, ent := range qents {
@@ -1446,7 +1446,7 @@ func (f *Finder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.
 	}
 	qents := []*FeedVersionGeometry{}
 	if err := dbutil.Select(ctx, f.db, FeedVersionGeometrySelect(ids), &qents); err != nil {
-		return nil, logExtendErr(len(ids), err)
+		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	group := map[int]*tt.Polygon{}
 	for _, ent := range qents {
@@ -1469,7 +1469,7 @@ func (f *Finder) CensusGeographiesByEntityID(ctx context.Context, params []model
 	}
 	qents := []*model.CensusGeography{}
 	if err := dbutil.Select(ctx, f.db, CensusGeographySelect(&params[0], ids), &qents); err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.CensusGeography{}
 	for _, ent := range qents {
@@ -1494,7 +1494,7 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 	params[0].Limit = &a // only a single result allowed
 	qents := []*model.CensusValue{}
 	if err := dbutil.Select(ctx, f.db, CensusValueSelect(&params[0], ids), &qents); err != nil {
-		return nil, logExtendErr(len(params), err)
+		return nil, logExtendErr(ctx, len(params), err)
 	}
 	group := map[int][]*model.CensusValue{}
 	for _, ent := range qents {
@@ -1507,14 +1507,20 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 	return ents, nil
 }
 
-func logErr(err error) error {
+func logErr(ctx context.Context, err error) error {
+	if ctx.Err() == context.Canceled {
+		return nil
+	}
 	log.Error().Err(err).Msg("query failed")
 	return errors.New("database error")
 }
 
-func logExtendErr(size int, err error) []error {
-	log.Error().Err(err).Msg("query failed")
+func logExtendErr(ctx context.Context, size int, err error) []error {
 	errs := make([]error, size)
+	if ctx.Err() == context.Canceled {
+		return errs
+	}
+	log.Error().Err(err).Msg("query failed")
 	for i := 0; i < len(errs); i++ {
 		errs[i] = errors.New("database error")
 	}
