@@ -79,7 +79,9 @@ func (f *LocalJobs) Run() error {
 		wg.Add(1)
 		go func(jf func(Job) error, w *sync.WaitGroup) {
 			for job := range f.jobs {
-				jf(job)
+				if err := jf(job); err != nil {
+					log.Trace().Err(err).Msg("job failed")
+				}
 			}
 			wg.Done()
 		}(jobfunc, &wg)
