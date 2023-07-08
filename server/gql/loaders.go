@@ -7,6 +7,7 @@ import (
 	"time"
 
 	dataloader "github.com/graph-gophers/dataloader/v7"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
@@ -165,7 +166,15 @@ func unwrapResult[
 	cb func(context.Context, []ParamT) ([]T, []error),
 ) func(context.Context, []ParamT) []*dataloader.Result[T] {
 	x := func(ctx context.Context, ps []ParamT) []*dataloader.Result[T] {
-		a, _ := cb(ctx, ps)
+		a, err := cb(ctx, ps)
+		if len(err) > 0 {
+			log.Trace().Err(err[0]).Msg("error in dataloader")
+			return nil
+		}
+		if len(a) != len(ps) {
+			log.Trace().Msgf("error in dataloader, result len %d did not match param length %d", len(a), len(ps))
+			return nil
+		}
 		ret := make([]*dataloader.Result[T], len(ps))
 		for idx := range ps {
 			ret[idx] = &dataloader.Result[T]{Data: a[idx]}
