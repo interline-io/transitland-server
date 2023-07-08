@@ -81,7 +81,10 @@ func (f *RedisJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) err
 				return errors.New("no job")
 			}
 		}
-		return w.Run(context.TODO(), job)
+		if err := w.Run(context.TODO(), job); err != nil {
+			log.Trace().Err(err).Msg("job failed")
+		}
+		return nil
 	}
 	manager.AddWorker(f.queueName, count, processMessage)
 	return nil
