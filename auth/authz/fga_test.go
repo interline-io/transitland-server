@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,7 +35,7 @@ func newTestFGAClient(t testing.TB, url string, testTuples []TestTuple) *FGAClie
 }
 
 func TestFGAClient(t *testing.T) {
-	fgaUrl, a, ok := dbutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	fgaUrl, a, ok := testutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
 	if !ok {
 		t.Skip(a)
 		return

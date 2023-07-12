@@ -11,8 +11,8 @@ import (
 
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 	// Increase limit for test
 	MAXLIMIT = 100_000
 	gql.MAXLIMIT = MAXLIMIT
-	if a, ok := dbutil.CheckTestDB(); !ok {
+	if a, ok := testutil.CheckTestDB(); !ok {
 		log.Print(a)
 		return
 	}

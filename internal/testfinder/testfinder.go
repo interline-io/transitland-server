@@ -15,7 +15,6 @@ import (
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -24,8 +23,6 @@ import (
 )
 
 // Test helpers
-
-var db *sqlx.DB
 
 type TestFinderOptions struct {
 	Clock          clock.Clock
@@ -81,24 +78,18 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 }
 
 func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) model.Finders {
-	if db == nil {
-		db = dbutil.MustOpenTestDB()
-	}
+	db := testutil.MustOpenTestDB()
 	return newFinders(t, db, TestFinderOptions{Clock: cl, RTJsons: rtJsons})
 }
 
 func FindersWithOptions(t testing.TB, opts TestFinderOptions) model.Finders {
-	if db == nil {
-		db = dbutil.MustOpenTestDB()
-	}
+	db := testutil.MustOpenTestDB()
 	return newFinders(t, db, opts)
 }
 
 func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Finders) error) {
 	// Check open DB
-	if db == nil {
-		db = dbutil.MustOpenTestDB()
-	}
+	db := testutil.MustOpenTestDB()
 	// Start Txn
 	tx := db.MustBeginTx(context.Background(), nil)
 	defer tx.Rollback()

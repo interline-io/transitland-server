@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/dbutil"
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -14,11 +14,11 @@ import (
 var TestFinder model.Finder
 
 func TestMain(m *testing.M) {
-	if a, ok := dbutil.CheckTestDB(); !ok {
+	if a, ok := testutil.CheckTestDB(); !ok {
 		log.Print(a)
 		return
 	}
-	db := dbutil.MustOpenTestDB()
+	db := testutil.MustOpenTestDB()
 	dbf := NewFinder(db)
 	TestFinder = dbf
 	os.Exit(m.Run())

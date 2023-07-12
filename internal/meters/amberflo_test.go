@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-server/internal/dbutil"
+	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
 type amberfloTestUser struct {
@@ -34,7 +34,7 @@ func TestAmberFloMeter(t *testing.T) {
 		"TL_TEST_AMBERFLO_USER3",
 	}
 	for _, k := range checkKeys {
-		_, a, ok := dbutil.CheckEnv(k)
+		_, a, ok := testutil.CheckEnv(k)
 		if !ok {
 			t.Skip(a)
 			return

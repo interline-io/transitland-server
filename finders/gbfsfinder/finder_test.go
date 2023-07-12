@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/internal/xy"
@@ -15,11 +14,11 @@ import (
 )
 
 func TestGbfsFinder(t *testing.T) {
-	if a, ok := dbutil.CheckTestRedisClient(); !ok {
+	if a, ok := testutil.CheckTestRedisClient(); !ok {
 		t.Skip(a)
 		return
 	}
-	client := dbutil.MustOpenTestRedisClient()
+	client := testutil.MustOpenTestRedisClient()
 	gbf := NewFinder(client)
 	setupGbfs(gbf)
 

@@ -9,8 +9,8 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -23,6 +23,7 @@ type testcase struct {
 	query              string
 	vars               hw
 	expect             string
+	user               string
 	selector           string
 	selectExpect       []string
 	selectExpectUnique []string
@@ -33,7 +34,7 @@ type testcase struct {
 func TestMain(m *testing.M) {
 	// Increase default limit for testing purposes
 	MAXLIMIT = 100_000
-	if a, ok := dbutil.CheckTestDB(); !ok {
+	if a, ok := testutil.CheckTestDB(); !ok {
 		log.Print(a)
 		return
 	}
