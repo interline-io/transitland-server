@@ -10,14 +10,13 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-server/auth/authn"
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
-	if a, ok := dbutil.CheckTestDB(); !ok {
+	if a, ok := testutil.CheckTestDB(); !ok {
 		log.Print(a)
 		return
 	}
@@ -53,16 +52,16 @@ var checkerGetTests = []TestTuple{
 }
 
 func TestChecker(t *testing.T) {
-	fgaUrl, a, ok := dbutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	fgaUrl, a, ok := testutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
 	if !ok {
 		t.Skip(a)
 		return
 	}
-	if a, ok := dbutil.CheckTestDB(); !ok {
+	if a, ok := testutil.CheckTestDB(); !ok {
 		t.Skip(a)
 		return
 	}
-	dbx := dbutil.MustOpenTestDB()
+	dbx := testutil.MustOpenTestDB()
 	checkerTestData := []TestTuple{
 		// Assign users to tenants
 		{
@@ -1717,7 +1716,7 @@ func checkActionsToMap(v []Action) map[string]bool {
 }
 
 func newTestChecker(t testing.TB, url string, testData []TestTuple) *Checker {
-	dbx := dbutil.MustOpenTestDB()
+	dbx := testutil.MustOpenTestDB()
 	cfg := AuthzConfig{
 		FGAEndpoint:      url,
 		FGALoadModelFile: testutil.RelPath("test/authz/tls.json"),

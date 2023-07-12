@@ -2,14 +2,11 @@ package dbutil
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/go-redis/redis/v8"
 
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tldb"
@@ -99,40 +96,4 @@ func Get(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{})
 		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
 	}
 	return err
-}
-
-// Test helpers
-
-func CheckEnv(key string) (string, string, bool) {
-	g := os.Getenv(key)
-	if g == "" {
-		return "", fmt.Sprintf("%s is not set, skipping", key), false
-	}
-	return g, "", true
-}
-
-func CheckTestDB() (string, bool) {
-	_, a, ok := CheckEnv("TL_TEST_SERVER_DATABASE_URL")
-	return a, ok
-}
-
-func CheckTestRedisClient() (string, bool) {
-	_, a, ok := CheckEnv("TL_TEST_REDIS_URL")
-	return a, ok
-}
-
-func MustOpenTestDB() *sqlx.DB {
-	dburl := os.Getenv("TL_TEST_SERVER_DATABASE_URL")
-	db, err := OpenDB(dburl)
-	if err != nil {
-		log.Fatal().Err(err).Msgf("database error")
-		return nil
-	}
-	return db
-}
-
-func MustOpenTestRedisClient() *redis.Client {
-	redisUrl := os.Getenv("TL_TEST_REDIS_URL")
-	client := redis.NewClient(&redis.Options{Addr: redisUrl})
-	return client
 }

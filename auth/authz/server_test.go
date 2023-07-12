@@ -7,19 +7,19 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/auth/authn"
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
+	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
 func TestServer(t *testing.T) {
-	fgaUrl, a, ok := dbutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	fgaUrl, a, ok := testutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
 	if !ok {
 		t.Skip(a)
 		return
 	}
-	dbx := dbutil.MustOpenTestDB()
+	dbx := testutil.MustOpenTestDB()
 	serverTestData := []TestTuple{
 		{
 			Subject:  NewEntityKey(TenantType, "tl-tenant"),

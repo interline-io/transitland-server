@@ -7,7 +7,6 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/auth/authz"
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
@@ -255,15 +254,22 @@ var fgaTestTuples = []authz.TupleKey{
 		Subject:  authz.NewEntityKey(azpb.TenantType, "tl-tenant"),
 		Relation: azpb.ParentRelation,
 	},
+	// This is a public feed
 	{
 		Subject:  authz.NewEntityKey(azpb.GroupType, "BA-group"),
 		Object:   authz.NewEntityKey(azpb.FeedType, "BA"),
 		Relation: azpb.ParentRelation,
 	},
+	// This is a non-public feed
+	{
+		Subject:  authz.NewEntityKey(azpb.GroupType, "BA-group"),
+		Object:   authz.NewEntityKey(azpb.FeedType, "EG"),
+		Relation: azpb.ParentRelation,
+	},
 }
 
 func TestAgencyResolver_Authz(t *testing.T) {
-	_, a, ok := dbutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	_, a, ok := testutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
 	if !ok {
 		t.Skip(a)
 		return
@@ -274,17 +280,25 @@ func TestAgencyResolver_Authz(t *testing.T) {
 	}
 	te := testfinder.FindersWithOptions(t, teOpts)
 	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
-	c := client.New(authn.UserDefaultMiddleware("ian")(srv))
 	testcases := []testcase{
 		{
 			name:         "basic",
 			query:        `query { agencies {agency_id}}`,
+			user:         "ian",
 			selector:     "agencies.#.agency_id",
-			selectExpect: []string{"BART"},
+			selectExpect: []string{"caltrain-ca-us", "BART", "", "573"},
+		},
+		{
+			name:         "basic",
+			query:        `query { agencies {agency_id}}`,
+			user:         "public",
+			selector:     "agencies.#.agency_id",
+			selectExpect: []string{"caltrain-ca-us", "BART", ""},
 		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			c := client.New(authn.UserDefaultMiddleware(tc.user)(srv))
 			queryTestcase(t, c, tc)
 		})
 	}
