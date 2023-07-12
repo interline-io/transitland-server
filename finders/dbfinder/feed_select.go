@@ -8,8 +8,9 @@ import (
 
 func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
-		Select("t.*").
+		Select("t.*", "feed_states.fetch_wait", "feed_states.public").
 		From("current_feeds t").
+		Join("feed_states on feed_states.feed_id = t.id").
 		OrderBy("t.id asc").
 		Limit(checkRange(limit, 0, 10_000)).
 		Where(sq.Eq{"deleted_at": nil})
@@ -97,12 +98,10 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = t.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-		})
+	q = q.Where(sq.Or{
+		sq.Expr("feed_states.public = true"),
+		sq.Eq{"feed_states.feed_id": permFilter.GetAllowedFeeds()},
+	})
 
 	return q
 }

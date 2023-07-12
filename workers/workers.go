@@ -17,6 +17,8 @@ func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
 	var r jobs.JobWorker
 	class := job.JobType
 	switch class {
+	case "fetch-enqueue":
+		r = &FetchEnqueueWorker{}
 	case "rt-enqueue":
 		r = &RTEnqueueWorker{}
 	case "rt-fetch":

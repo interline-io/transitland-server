@@ -13,6 +13,8 @@ import (
 
 type Feed struct {
 	SearchRank *string
+	FetchWait  tt.Int
+	Public     bool
 	tl.Feed
 }
 
