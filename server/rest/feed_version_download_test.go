@@ -6,11 +6,11 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/auth/authn"
-	"github.com/interline-io/transitland-server/internal/dbutil"
+	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
-	g, a, ok := dbutil.CheckEnv("TL_TEST_STORAGE")
+	g, a, ok := testutil.CheckEnv("TL_TEST_STORAGE")
 	if !ok {
 		t.Skip(a)
 		return
@@ -53,7 +53,7 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 }
 
 func TestFeedDownloadLatestRequest(t *testing.T) {
-	g, a, ok := dbutil.CheckEnv("TL_TEST_STORAGE")
+	g, a, ok := testutil.CheckEnv("TL_TEST_STORAGE")
 	if !ok {
 		t.Skip(a)
 		return
