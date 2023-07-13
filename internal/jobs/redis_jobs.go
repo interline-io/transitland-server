@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/bsm/redislock"
 	workers "github.com/digitalocean/go-workers2"
 	"github.com/go-redis/redis/v8"
 
@@ -22,14 +21,12 @@ type RedisJobs struct {
 	manager     *workers.Manager
 	client      *redis.Client
 	middlewares []JobMiddleware
-	rs          *redislock.Client
 }
 
 func NewRedisJobs(client *redis.Client, queuePrefix string) *RedisJobs {
 	f := RedisJobs{
 		queuePrefix: queuePrefix,
 		client:      client,
-		rs:          redislock.New(client),
 	}
 	f.Use(newLog())
 	return &f
