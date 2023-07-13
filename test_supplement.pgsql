@@ -43,6 +43,9 @@ update feed_states set feed_version_id = null where feed_id = (select id from cu
 -- set public
 update feed_states set public = true where id in (select id from current_feeds where onestop_id != 'EG');
 
+-- turn off fetch wait
+update feed_states set fetch_wait = 0;
+
 insert into tl_tenants(tenant_name) values ('tl-tenant');
 insert into tl_tenants(tenant_name) values ('restricted-tenant');
 insert into tl_tenants(tenant_name) values ('all-users-tenant');

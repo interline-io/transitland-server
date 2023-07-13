@@ -8,7 +8,7 @@ import (
 
 func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
-		Select("t.*", "feed_states.fetch_wait", "feed_states.public").
+		Select("t.*").
 		From("current_feeds t").
 		Join("feed_states on feed_states.feed_id = t.id").
 		OrderBy("t.id asc").

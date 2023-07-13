@@ -11,15 +11,14 @@ import (
 )
 
 type GbfsFetchWorker struct {
-	Target       string `json:"target"`
-	Url          string `json:"url"`
-	SourceType   string `json:"source_type"`
-	SourceFeedID string `json:"source_feed_id"`
+	Url        string `json:"url"`
+	FeedID     string `json:"feed_id"`
+	FetchEpoch int64  `json:"fetch_epoch"`
 }
 
 func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
-	log := job.Opts.Logger.With().Str("target", w.Target).Str("source_feed_id", w.SourceFeedID).Str("source_type", w.SourceType).Str("url", w.Url).Logger()
-	gfeeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &w.SourceFeedID})
+	log := job.Opts.Logger.With().Str("feed_id", w.FeedID).Str("url", w.Url).Logger()
+	gfeeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &w.FeedID})
 	if err != nil {
 		log.Error().Err(err).Msg("gbfsfetch worker: error loading source feed")
 		return err
@@ -43,7 +42,7 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	}
 	// Save to cache
 	for _, feed := range feeds {
-		key := fmt.Sprintf("%s:%s", w.SourceFeedID, feed.SystemInformation.Language.Val)
+		key := fmt.Sprintf("%s:%s", w.FeedID, feed.SystemInformation.Language.Val)
 		job.Opts.GbfsFinder.AddData(ctx, key, feed)
 	}
 	log.Info().Msg("gbfs fetch worker: success")

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -131,56 +130,144 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 	return rtf.AddData(key, rtdata)
 }
 
-func CheckFetchWait(ctx context.Context, db sqlx.Ext, feedId int, urlType string, fetchWait time.Duration) (bool, error) {
-	// Check if minimum fetch time has elapsed
+type CheckFetchWaitResult struct {
+	ID               int
+	OnestopID        tt.String
+	FetchWait        tt.Int
+	LastFetchedAt    tt.Time
+	URLType          string
+	DefaultFetchWait int64
+	Failures         int
+	CheckedAt        time.Time
+}
+
+func (check *CheckFetchWaitResult) OK() bool {
+	now := check.CheckedAt
+	lastFetchedAt := check.LastFetchedAt.Val
+	lastFetchAgo := now.Sub(lastFetchedAt)
+	failureBackoff := check.failureBackoff()
+	fetchWait := time.Duration(check.DefaultFetchWait) * time.Second
+	if check.FetchWait.Valid {
+		fetchWait = time.Duration(check.FetchWait.Val) * time.Second
+	}
+	logMsg := log.Trace().
+		Int("feed_id", check.ID).
+		Str("onestop_id", check.OnestopID.Val).
+		Str("url_type", check.URLType).
+		Float64("failure_backoff", failureBackoff.Seconds()).
+		Int("failures", check.Failures).
+		Float64("last_fetch_ago", lastFetchAgo.Seconds()).
+		Float64("fetch_wait", fetchWait.Seconds())
+	if !check.LastFetchedAt.Valid {
+		logMsg.Msg("fetch wait: ok - first check")
+		return true
+	}
+	if now.Before(lastFetchedAt.Add(failureBackoff)) {
+		logMsg.Msg("fetch wait: skipping, failure backoff")
+		return false
+	}
+	if now.Before(lastFetchedAt.Add(fetchWait)) {
+		logMsg.Msg("fetch wait: skipping, too soon")
+		return false
+	}
+	logMsg.Msg("fetch wait: ok")
+	return true
+}
+
+func (check *CheckFetchWaitResult) FetchEpoch() int64 {
+	fw := check.FetchWait.Val
+	if fw == 0 {
+		fw = 1
+	}
+	fetchEpoch := (check.LastFetchedAt.Val.Unix() / fw) * (check.FetchWait.Val * 1)
+	return fetchEpoch
+}
+
+func (check *CheckFetchWaitResult) Deadline() time.Time {
+	fetchWait := time.Duration(check.DefaultFetchWait) * time.Second
+	if check.FetchWait.Valid {
+		fetchWait = time.Duration(check.FetchWait.Val) * time.Second
+	}
+	return check.CheckedAt.Add(fetchWait)
+}
+
+func (check *CheckFetchWaitResult) failureBackoff() time.Duration {
+	if check.Failures == 0 {
+		return time.Duration(0)
+	}
+	failureBackoff := time.Duration(math.Pow(4, float64(check.Failures+1))) * time.Second
+	failureBackoffMax := (time.Duration(24*24*60) * time.Second)
+	if failureBackoff.Seconds() > failureBackoffMax.Seconds() {
+		failureBackoff = failureBackoffMax
+	}
+	return failureBackoff
+}
+
+func CheckFetchWaitBatch(ctx context.Context, db sqlx.Ext, feedIds []int, urlType string) ([]CheckFetchWaitResult, error) {
 	now := time.Now().In(time.UTC)
-	q := sq.
-		Select("feed_fetches.*").
-		From("feed_fetches").
-		Where(sq.Eq{"feed_id": feedId}).
-		Where(sq.Eq{"url_type": urlType}).
-		OrderBy("fetched_at desc").
-		Limit(10)
-	var lastFetches []dmfr.FeedFetch
+	defaultFetchWait := int64(3600)
+	defaultFetchWaitUrlType := map[string]int64{
+		"static_current":             3600,
+		"realtime_alerts":            60,
+		"realtime_trip_updates":      60,
+		"realtime_vehicle_positions": 60,
+		"gbfs_auto_discovery":        60,
+	}
+	q := sq.Select("cf.id", "cf.onestop_id", "fs.fetch_wait", "ff.fetched_at", "ff.success").
+		From("current_feeds cf").
+		Join("feed_states fs on fs.feed_id = cf.id").
+		JoinClause("left join lateral (select fetched_at, success from feed_fetches ff where ff.feed_id = cf.id and ff.url_type = ? and ff.fetched_at >= (NOW() - INTERVAL '1 DAY') order by fetched_at desc limit 8) ff on true", urlType).
+		Where(sq.Eq{"cf.id": feedIds})
+	var lastFetches []struct {
+		ID        int
+		OnestopID tt.String
+		FetchWait tt.Int
+		FetchedAt tt.Time
+		Success   tt.Bool
+	}
 	if err := dbutil.Select(ctx, db, q, &lastFetches); err != nil {
+		return nil, err
+	}
+	checks := map[int]CheckFetchWaitResult{}
+	for _, fetch := range lastFetches {
+		a, _ := checks[fetch.ID]
+		a.CheckedAt = now
+		a.ID = fetch.ID
+		a.OnestopID = fetch.OnestopID
+		a.DefaultFetchWait = defaultFetchWait
+		if v, ok := defaultFetchWaitUrlType[urlType]; ok {
+			a.DefaultFetchWait = v
+		}
+		if fetch.FetchWait.Valid {
+			a.FetchWait = fetch.FetchWait
+		}
+		if !fetch.Success.Val {
+			a.Failures += 1
+		}
+		if fetch.FetchedAt.Valid && fetch.FetchedAt.Val.After(a.LastFetchedAt.Val) {
+			a.LastFetchedAt = fetch.FetchedAt
+		}
+		checks[fetch.ID] = a
+	}
+	var ret []CheckFetchWaitResult
+	for _, check := range checks {
+		ret = append(ret, check)
+	}
+	return ret, nil
+}
+
+func CheckFetchWait(ctx context.Context, db sqlx.Ext, feedId int, urlType string) (bool, error) {
+	a, err := CheckFetchWaitBatch(ctx, db, []int{feedId}, urlType)
+	if err != nil {
 		return false, err
 	}
-	if len(lastFetches) == 0 {
+	if len(a) == 0 {
+		return false, nil
+	}
+	if a[0].OK() {
 		return true, nil
 	}
-
-	// Get exponential backoff
-	// Based on failures in the past 24 hours
-	failures := 0
-	lastFetchAgo := time.Duration(0)
-	checkFailureWindow := time.Duration(60*60*24) * time.Second
-	for _, fetch := range lastFetches {
-		timeAgo := now.Sub(fetch.FetchedAt.Val.In(time.UTC))
-		if lastFetchAgo == 0 || timeAgo < lastFetchAgo {
-			lastFetchAgo = timeAgo
-		}
-		if fetch.Success {
-			break
-		}
-		if timeAgo > checkFailureWindow {
-			break
-		}
-		failures += 1
-	}
-	failureBackoff := time.Duration(math.Pow(4, float64(failures+1))) * time.Second
-	if failureBackoff > checkFailureWindow {
-		failureBackoff = checkFailureWindow
-	}
-	// fmt.Println("\tfailures:", failures, "failureBackoff:", failureBackoff)
-	if failures > 0 && lastFetchAgo < failureBackoff {
-		log.Trace().Int("feed_id", feedId).Str("url_type", urlType).Float64("failure_backoff", failureBackoff.Seconds()).Int("failures", failures).Float64("last_fetch_ago", lastFetchAgo.Seconds()).Msg("skipping - failure backoff")
-		return false, nil
-	}
-	if lastFetchAgo < fetchWait {
-		log.Trace().Int("feed_id", feedId).Str("url_type", urlType).Float64("fetch_wait", fetchWait.Seconds()).Float64("last_fetch_ago", lastFetchAgo.Seconds()).Msg("skipping - fetch wait")
-		return false, nil
-	}
-	return true, nil
+	return false, nil
 }
 
 func fetchCheckFeed(ctx context.Context, dbf model.Finder, checker model.Checker, feedId string, urlType string, url string) (*model.Feed, error) {
@@ -205,7 +292,7 @@ func fetchCheckFeed(ctx context.Context, dbf model.Finder, checker model.Checker
 
 	// Re-check last fetched
 	db := dbf.DBX()
-	if ok, err := CheckFetchWait(ctx, db, feed.ID, urlType, time.Duration(feed.FetchWait.Val)*time.Second); err != nil {
+	if ok, err := CheckFetchWait(ctx, db, feed.ID, urlType); err != nil {
 		return nil, err
 	} else if !ok {
 		return nil, nil

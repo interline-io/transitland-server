@@ -24,9 +24,8 @@ func TestGbfsFetchWorker(t *testing.T) {
 		job.Opts.RTFinder = te.RTFinder
 		job.Opts.GbfsFinder = te.GbfsFinder
 		w := GbfsFetchWorker{
-			Url:          ts.URL + "/gbfs.json",
-			SourceType:   "gbfs",
-			SourceFeedID: "test-gbfs",
+			Url:    ts.URL + "/gbfs.json",
+			FeedID: "test-gbfs",
 		}
 		err := w.Run(context.Background(), job)
 		if err != nil {
