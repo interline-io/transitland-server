@@ -106,10 +106,6 @@ func (f *RedisJobs) processMessage(queueName string, getWorker GetWorker, jo Job
 	job.JobDeadline, _ = j.Get("job_deadline").Int64()
 	job.Unique, _ = j.Get("unique").Bool()
 	now := time.Now().Unix()
-	if job.JobDeadline > 0 && job.JobDeadline < now {
-		log.Trace().Int64("job_deadline", job.JobDeadline).Int64("now", now).Msg("job skipped - deadline in past")
-		return nil
-	}
 	if job.Unique {
 		// Consider more advanced locking options
 		key, err := job.HexKey()
@@ -125,6 +121,10 @@ func (f *RedisJobs) processMessage(queueName string, getWorker GetWorker, jo Job
 			}
 			logMsg.Msg("unique job unlocked")
 		}()
+	}
+	if job.JobDeadline > 0 && job.JobDeadline < now {
+		log.Trace().Int64("job_deadline", job.JobDeadline).Int64("now", now).Msg("job skipped - deadline in past")
+		return nil
 	}
 	w, err := getWorker(job)
 	if err != nil {

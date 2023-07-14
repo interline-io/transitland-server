@@ -10,8 +10,8 @@ import (
 )
 
 type FetchEnqueueWorker struct {
-	URLTypes []string
-	FeedIDs  []string
+	URLTypes []string `json:"url_types"`
+	FeedIDs  []string `json:"feed_ids"`
 }
 
 func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
@@ -59,7 +59,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 			continue
 		}
 		var feedIds []int
-		for _, feed := range feeds {
+		for _, feed := range feedLookup {
 			if getUrl(feed.URLs, urlType) != "" {
 				feedIds = append(feedIds, feed.ID)
 			}

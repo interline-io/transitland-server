@@ -330,7 +330,7 @@ func (cmd *Command) Run() error {
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
 		// Start workers/api
-		jobWorkers := 4
+		jobWorkers := 8
 		jobOptions := jobs.JobOptions{
 			Logger:     log.Logger,
 			JobQueue:   jobQueue,
@@ -345,7 +345,7 @@ func (cmd *Command) Run() error {
 			log.Infof("Enabling job workers")
 			jobQueue.AddWorker("default", workers.GetWorker, jobOptions, jobWorkers)
 			jobQueue.AddWorker("rt-fetch", workers.GetWorker, jobOptions, jobWorkers)
-			jobQueue.AddWorker("static-fetch", workers.GetWorker, jobOptions, 16)
+			jobQueue.AddWorker("static-fetch", workers.GetWorker, jobOptions, jobWorkers)
 			jobQueue.AddWorker("gbfs-fetch", workers.GetWorker, jobOptions, jobWorkers)
 			go jobQueue.Run()
 		}

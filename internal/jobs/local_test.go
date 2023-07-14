@@ -8,11 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func TestLocalJobs(t *testing.T) {
-// 	rtJobs := NewLocalJobs()
-// 	testJobs(t, rtJobs)
-// }
-
 func TestLocalJobs(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		rtJobs := NewLocalJobs()
