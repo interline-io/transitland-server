@@ -3,30 +3,40 @@ package jobs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	workers "github.com/digitalocean/go-workers2"
 	"github.com/go-redis/redis/v8"
+
 	"github.com/interline-io/transitland-lib/log"
 )
 
 // RedisJobs is a simple wrapper around go-workers
 type RedisJobs struct {
-	queueName   string
+	queuePrefix string
 	producer    *workers.Producer
 	manager     *workers.Manager
 	client      *redis.Client
 	middlewares []JobMiddleware
 }
 
-func NewRedisJobs(client *redis.Client, queueName string) *RedisJobs {
+func NewRedisJobs(client *redis.Client, queuePrefix string) *RedisJobs {
 	f := RedisJobs{
-		queueName: queueName,
-		client:    client,
+		queuePrefix: queuePrefix,
+		client:      client,
 	}
 	f.Use(newLog())
 	return &f
+}
+
+type redisJob struct {
+	JobType     string  `json:"job_type"`
+	JobArgs     JobArgs `json:"job_args"`
+	JobDeadline int64   `json:"job_deadline"`
+	Unique      bool    `json:"unique"`
 }
 
 func (f *RedisJobs) Use(mwf JobMiddleware) {
@@ -43,8 +53,39 @@ func (f *RedisJobs) AddJob(job Job) error {
 			return err
 		}
 	}
-	_, err := f.producer.Enqueue(f.queueName, job.JobType, job.JobArgs)
+	if job.Unique {
+		key, err := job.HexKey()
+		if err != nil {
+			return err
+		}
+		fullKey := fmt.Sprintf("queue:%s:unique:%s", f.queueName(job.Queue), key)
+		deadlineTtl := time.Duration(60*60) * time.Second
+		if sec := job.JobDeadline - time.Now().Unix(); sec > 0 {
+			deadlineTtl = time.Duration(sec) * time.Second
+		}
+		logMsg := log.Trace().Interface("job", job).Str("key", fullKey).Float64("ttl", deadlineTtl.Seconds())
+		if !f.client.SetNX(context.Background(), fullKey, "unique", deadlineTtl).Val() {
+			logMsg.Msg("unique job already locked")
+			return nil
+		} else {
+			logMsg.Msg("unique job locked")
+		}
+	}
+	rjob := redisJob{
+		JobType:     job.JobType,
+		JobArgs:     job.JobArgs,
+		Unique:      job.Unique,
+		JobDeadline: job.JobDeadline,
+	}
+	_, err := f.producer.Enqueue(f.queueName(job.Queue), rjob.JobType, rjob)
 	return err
+}
+
+func (f *RedisJobs) queueName(q string) string {
+	if q == "" {
+		q = "default"
+	}
+	return f.queuePrefix + q
 }
 
 func (f *RedisJobs) getManager() (*workers.Manager, error) {
@@ -57,36 +98,68 @@ func (f *RedisJobs) getManager() (*workers.Manager, error) {
 	return f.manager, err
 }
 
-func (f *RedisJobs) AddWorker(getWorker GetWorker, jo JobOptions, count int) error {
+func (f *RedisJobs) processMessage(queueName string, getWorker GetWorker, jo JobOptions, msg *workers.Msg) error {
+	j := msg.Args()
+	job := Job{
+		JobType: msg.Class(),
+		jobId:   msg.Jid(),
+		Opts:    jo,
+	}
+	job.JobArgs, _ = j.Get("job_args").Map()
+	job.JobDeadline, _ = j.Get("job_deadline").Int64()
+	job.Unique, _ = j.Get("unique").Bool()
+	now := time.Now().Unix()
+	if job.Unique {
+		// Consider more advanced locking options
+		key, err := job.HexKey()
+		if err != nil {
+			return err
+		}
+		fullKey := fmt.Sprintf("queue:%s:unique:%s", f.queueName(job.Queue), key)
+		ctx := context.Background()
+		logMsg := log.Trace().Str("key", key)
+		defer func() {
+			if _, err := f.client.Del(ctx, fullKey).Result(); err != nil {
+				panic(err)
+			}
+			logMsg.Msg("unique job unlocked")
+		}()
+	}
+	if job.JobDeadline > 0 && now > job.JobDeadline {
+		log.Trace().Int64("job_deadline", job.JobDeadline).Int64("now", now).Msg("job skipped - deadline in past")
+		return nil
+	}
+	w, err := getWorker(job)
+	if err != nil {
+		return err
+	}
+	if w == nil {
+		return errors.New("no job")
+	}
+	for _, mwf := range f.middlewares {
+		w = mwf(w)
+		if w == nil {
+			return errors.New("no job")
+		}
+	}
+	if err := w.Run(context.TODO(), job); err != nil {
+		log.Trace().Err(err).Msg("job failed")
+	}
+	return nil
+}
+
+func (f *RedisJobs) AddWorker(queue string, getWorker GetWorker, jo JobOptions, count int) error {
 	manager, err := f.getManager()
 	if err != nil {
 		return err
 	}
 	processMessage := func(msg *workers.Msg) error {
-		jargs, err := msg.Args().Map()
-		if err != nil {
-			return err
-		}
-		job := Job{JobType: msg.Class(), JobArgs: jargs, Opts: jo, jobId: msg.Jid()}
-		w, err := getWorker(job)
-		if err != nil {
-			return err
-		}
-		if w == nil {
-			return errors.New("no job")
-		}
-		for _, mwf := range f.middlewares {
-			w = mwf(w)
-			if w == nil {
-				return errors.New("no job")
-			}
-		}
-		if err := w.Run(context.TODO(), job); err != nil {
-			log.Trace().Err(err).Msg("job failed")
-		}
-		return nil
+		return f.processMessage(queue, getWorker, jo, msg)
 	}
-	manager.AddWorker(f.queueName, count, processMessage)
+	if queue == "" {
+		queue = "default"
+	}
+	manager.AddWorker(f.queueName(queue), count, processMessage)
 	return nil
 }
 

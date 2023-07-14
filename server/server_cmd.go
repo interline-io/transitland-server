@@ -51,7 +51,7 @@ type Command struct {
 	EnableJobsApi     bool
 	EnableWorkers     bool
 	EnableProfiler    bool
-	DefaultQueue      string
+	QueuePrefix       string
 	SecretsFile       string
 	AuthMiddlewares   arrayFlags
 	metersConfig      metersConfig
@@ -87,7 +87,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.RTStorage, "rt-storage", "", "RT storage backend")
 	fl.StringVar(&cmd.SecretsFile, "secrets", "", "DMFR file containing secrets")
 	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
-	fl.StringVar(&cmd.DefaultQueue, "queue", "tlv2-default", "Job queue name")
+	fl.StringVar(&cmd.QueuePrefix, "queue", "", "Job name prefix")
 
 	fl.Var(&cmd.AuthMiddlewares, "auth", "Add one or more auth middlewares")
 	fl.StringVar(&cmd.AuthConfig.DefaultUsername, "default-username", "", "Default user name (for --auth=admin)")
@@ -198,7 +198,7 @@ func (cmd *Command) Run() error {
 		// Use redis backed finders
 		rtFinder = rtfinder.NewFinder(rtfinder.NewRedisCache(redisClient), db)
 		gbfsFinder = gbfsfinder.NewFinder(redisClient)
-		jobQueue = jobs.NewRedisJobs(redisClient, cmd.DefaultQueue)
+		jobQueue = jobs.NewRedisJobs(redisClient, cmd.QueuePrefix)
 	} else {
 		// Default to in-memory cache
 		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
@@ -330,7 +330,7 @@ func (cmd *Command) Run() error {
 	// Workers
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
 		// Start workers/api
-		jobWorkers := 10
+		jobWorkers := 8
 		jobOptions := jobs.JobOptions{
 			Logger:     log.Logger,
 			JobQueue:   jobQueue,
@@ -343,12 +343,15 @@ func (cmd *Command) Run() error {
 		jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
 		if cmd.EnableWorkers {
 			log.Infof("Enabling job workers")
-			jobQueue.AddWorker(workers.GetWorker, jobOptions, jobWorkers)
+			jobQueue.AddWorker("default", workers.GetWorker, jobOptions, jobWorkers)
+			jobQueue.AddWorker("rt-fetch", workers.GetWorker, jobOptions, jobWorkers)
+			jobQueue.AddWorker("static-fetch", workers.GetWorker, jobOptions, jobWorkers)
+			jobQueue.AddWorker("gbfs-fetch", workers.GetWorker, jobOptions, jobWorkers)
 			go jobQueue.Run()
 		}
 		if cmd.EnableJobsApi {
 			log.Infof("Enabling job api")
-			jobServer, err := workers.NewServer(cfg, cmd.DefaultQueue, jobWorkers, jobOptions)
+			jobServer, err := workers.NewServer(cfg, "", jobWorkers, jobOptions)
 			if err != nil {
 				return err
 			}
