@@ -50,8 +50,10 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 
 	// Save to cache
 	for _, feed := range feeds {
-		key := fmt.Sprintf("%s:%s", w.FeedID, feed.SystemInformation.Language.Val)
-		job.Opts.GbfsFinder.AddData(ctx, key, feed)
+		if feed.SystemInformation != nil {
+			key := fmt.Sprintf("%s:%s", w.FeedID, feed.SystemInformation.Language.Val)
+			job.Opts.GbfsFinder.AddData(ctx, key, feed)
+		}
 	}
 	log.Info().Msg("gbfs fetch worker: success")
 	return nil

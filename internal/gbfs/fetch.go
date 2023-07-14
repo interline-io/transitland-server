@@ -90,7 +90,9 @@ func fetchAll(sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error
 		case "system_information":
 			e := SystemInformationFile{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.SystemInformation = e.Data
+			if err != nil {
+				ret.SystemInformation = e.Data
+			}
 		case "station_information":
 			e := StationInformationFile{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
@@ -102,39 +104,57 @@ func fetchAll(sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error
 		case "free_bike_status":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Bikes = e.Data.Bikes
+			if e.Data != nil {
+				ret.Bikes = e.Data.Bikes
+			}
 		case "system_hours":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.RentalHours = e.Data.RentalHours
+			if e.Data != nil {
+				ret.RentalHours = e.Data.RentalHours
+			}
 		case "system_calendar":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Calendars = e.Data.Calendars
+			if e.Data != nil {
+				ret.Calendars = e.Data.Calendars
+			}
 		case "system_regions":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Regions = e.Data.Regions
+			if e.Data != nil {
+				ret.Regions = e.Data.Regions
+			}
 		case "system_alerts":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Alerts = e.Data.Alerts
+			if e.Data != nil {
+				ret.Alerts = e.Data.Alerts
+			}
 		case "vehicle_types":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.VehicleTypes = e.Data.VehicleTypes
+			if e.Data != nil {
+				ret.VehicleTypes = e.Data.VehicleTypes
+			}
 		case "system_pricing_plans":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Plans = e.Data.Plans
+			if e.Data != nil {
+				ret.Plans = e.Data.Plans
+			}
 		case "geofencing_zones":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.GeofencingZones = e.Data.GeofencingZones
+			if e.Data != nil {
+				ret.GeofencingZones = e.Data.GeofencingZones
+			}
 		case "gbfs_versions":
 			e := GbfsFeedData{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			ret.Versions = e.Data.Versions
+			if e.Data != nil {
+				ret.Versions = e.Data.Versions
+			}
 		}
 		if err != nil {
 			log.Info().Err(err).Str("url", v.URL.Val).Msgf("failed to parse %s", v.Name.Val)

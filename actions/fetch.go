@@ -191,10 +191,10 @@ func CheckFetchWaitBatch(ctx context.Context, db sqlx.Ext, feedIds []int, urlTyp
 	defaultFetchWait := int64(3600)
 	defaultFetchWaitUrlType := map[string]int64{
 		"static_current":             3600,
+		"gbfs_auto_discovery":        600,
 		"realtime_alerts":            60,
 		"realtime_trip_updates":      60,
 		"realtime_vehicle_positions": 60,
-		"gbfs_auto_discovery":        60,
 	}
 	checks := map[int]CheckFetchWaitResult{}
 	for _, chunk := range chunkBy(feedIds, 1000) {
