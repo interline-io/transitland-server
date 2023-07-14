@@ -12,6 +12,7 @@ type RTFetchWorker struct {
 	Url          string `json:"url"`
 	SourceType   string `json:"source_type"`
 	SourceFeedID string `json:"source_feed_id"`
+	FetchEpoch   int64  `json:"fetch_epoch"`
 }
 
 func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {

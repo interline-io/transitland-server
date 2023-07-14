@@ -9,8 +9,9 @@ import (
 )
 
 type StaticFetchWorker struct {
-	FeedUrl string `json:"feed_url"`
-	FeedID  string `json:"feed_id"`
+	FeedUrl    string `json:"feed_url"`
+	FeedID     string `json:"feed_id"`
+	FetchEpoch int64  `json:"fetch_epoch"`
 }
 
 func (w *StaticFetchWorker) Run(ctx context.Context, job jobs.Job) error {
