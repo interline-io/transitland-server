@@ -17,14 +17,12 @@ func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
 	var r jobs.JobWorker
 	class := job.JobType
 	switch class {
-	case "rt-enqueue":
-		r = &RTEnqueueWorker{}
+	case "fetch-enqueue":
+		r = &FetchEnqueueWorker{}
 	case "rt-fetch":
 		r = &RTFetchWorker{}
 	case "static-fetch":
 		r = &StaticFetchWorker{}
-	case "gbfs-enqueue":
-		r = &GbfsEnqueueWorker{}
 	case "gbfs-fetch":
 		r = &GbfsFetchWorker{}
 	case "test-ok":
@@ -109,7 +107,7 @@ func runJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions)
 		ret.Success = false
 	}
 	job.Opts = jo
-	if err := wk.Run(context.TODO(), job); err != nil {
+	if err := wk.Run(context.Background(), job); err != nil {
 		ret.Error = err.Error()
 		ret.Status = "failed"
 		ret.Success = false

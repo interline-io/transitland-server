@@ -6,48 +6,43 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"os"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/proto"
 )
 
 func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user authn.User, checker model.Checker) (*model.FeedVersionFetchResult, error) {
-	// Check feed exists
-	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	urlType := "static_current"
+	feed, err := fetchCheckFeed(ctx, dbf, checker, feedId, urlType, feedUrl)
 	if err != nil {
 		return nil, err
 	}
-	if len(feeds) == 0 {
-		return nil, errors.New("feed not found")
-	}
-	feed := feeds[0].Feed
-
-	// Check feed permissions
-	if checker != nil {
-		if check, err := checker.FeedPermissions(ctx, &azpb.FeedRequest{Id: int64(feed.ID)}); err != nil {
-			return nil, err
-		} else if !check.Actions.CanEdit {
-			return nil, errors.New("unauthorized")
-		}
+	if feed == nil {
+		return nil, nil
 	}
 
 	// Prepare
 	fetchOpts := fetch.Options{
 		FeedID:    feed.ID,
-		URLType:   "static_current",
+		URLType:   urlType,
 		FeedURL:   feedUrl,
 		Storage:   cfg.Storage,
 		Secrets:   cfg.Secrets,
-		FetchedAt: time.Now(),
+		FetchedAt: time.Now().In(time.UTC),
 	}
 	if user != nil {
 		fetchOpts.CreatedBy = tt.NewString(user.Name())
@@ -90,40 +85,28 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 }
 
 func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model.RTFinder, target string, feedId string, feedUrl string, urlType string, checker model.Checker) error {
-	// Check feed exists
-	rtfeeds, err := dbf.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	feed, err := fetchCheckFeed(ctx, dbf, checker, feedId, urlType, feedUrl)
 	if err != nil {
 		return err
 	}
-	if len(rtfeeds) == 0 {
-		return errors.New("feed not found")
-	}
-	rtfeed := rtfeeds[0]
-
-	// Check feed permissions
-	if checker != nil {
-		if check, err := checker.FeedPermissions(ctx, &azpb.FeedRequest{Id: int64(rtfeed.ID)}); err != nil {
-			return err
-		} else if !check.Actions.CanEdit {
-			return errors.New("unauthorized")
-		}
+	if feed == nil {
+		return nil
 	}
 
 	// Prepare
 	fetchOpts := fetch.Options{
-		FeedID:    rtfeed.ID,
+		FeedID:    feed.ID,
 		URLType:   urlType,
 		FeedURL:   feedUrl,
 		Storage:   cfg.RTStorage,
 		Secrets:   cfg.Secrets,
-		FetchedAt: time.Now(),
+		FetchedAt: time.Now().In(time.UTC),
 	}
 
 	// Make request
 	var rtMsg *pb.FeedMessage
 	var fetchErr error
-	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
-	if err := db.Tx(func(atx tldb.Adapter) error {
+	if err := tldb.NewPostgresAdapterFromDBX(dbf.DBX()).Tx(func(atx tldb.Adapter) error {
 		m, fr, err := fetch.RTFetch(atx, fetchOpts)
 		if err != nil {
 			return err
@@ -145,4 +128,144 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 	}
 	key := fmt.Sprintf("rtdata:%s:%s", target, urlType)
 	return rtf.AddData(key, rtdata)
+}
+
+type CheckFetchWaitResult struct {
+	ID               int
+	OnestopID        tt.String
+	FetchWait        tt.Int
+	LastFetchedAt    tt.Time
+	URLType          string
+	DefaultFetchWait int64
+	Failures         int
+	CheckedAt        time.Time
+}
+
+func (check *CheckFetchWaitResult) OK() bool {
+	now := check.CheckedAt
+	lastFetchedAt := check.LastFetchedAt.Val
+	lastFetchAgo := now.Sub(lastFetchedAt)
+	failureBackoff := time.Duration(0)
+	if check.Failures > 0 {
+		failureBackoff = time.Duration(math.Pow(4, float64(check.Failures+1))) * time.Second
+		failureBackoffMax := (time.Duration(24*24*60) * time.Second)
+		if failureBackoff.Seconds() > failureBackoffMax.Seconds() {
+			failureBackoff = failureBackoffMax
+		}
+	}
+	fetchWait := time.Duration(check.DefaultFetchWait) * time.Second
+	if check.FetchWait.Valid {
+		fetchWait = time.Duration(check.FetchWait.Val) * time.Second
+	}
+
+	logMsg := log.Trace().
+		Int("feed_id", check.ID).
+		Str("onestop_id", check.OnestopID.Val).
+		Str("url_type", check.URLType).
+		Float64("failure_backoff", failureBackoff.Seconds()).
+		Int("failures", check.Failures).
+		Str("last_fetched_at", lastFetchedAt.String()).
+		Float64("last_fetch_ago", lastFetchAgo.Seconds()).
+		Float64("fetch_wait", fetchWait.Seconds())
+
+	if check.Failures > 0 && failureBackoff > 0 && now.Before(lastFetchedAt.Add(failureBackoff)) {
+		logMsg.Msg("fetch wait: skipping, failure backoff")
+		return false
+	}
+	if check.LastFetchedAt.Valid && fetchWait > 0 && now.Before(lastFetchedAt.Add(fetchWait)) {
+		logMsg.Msg("fetch wait: skipping, too soon")
+		return false
+	}
+	logMsg.Msg("fetch wait: ok")
+	return true
+}
+
+func (check *CheckFetchWaitResult) Deadline() time.Duration {
+	// TODO: Consider deadline based on fetchWait/failureBackoff
+	deadline := time.Duration(60*60) * time.Second
+	return deadline
+}
+
+func CheckFetchWaitBatch(ctx context.Context, db sqlx.Ext, feedIds []int, urlType string) ([]CheckFetchWaitResult, error) {
+	now := time.Now().In(time.UTC)
+	defaultFetchWait := int64(3600)
+	defaultFetchWaitUrlType := map[string]int64{
+		"static_current":             3600,
+		"gbfs_auto_discovery":        600,
+		"realtime_alerts":            60,
+		"realtime_trip_updates":      60,
+		"realtime_vehicle_positions": 60,
+	}
+	checks := map[int]CheckFetchWaitResult{}
+	for _, chunk := range chunkBy(feedIds, 1000) {
+		q := sq.Select("cf.id", "cf.onestop_id", "fs.fetch_wait", "ff.fetched_at", "ff.success").
+			From("current_feeds cf").
+			Join("feed_states fs on fs.feed_id = cf.id").
+			JoinClause(`left join lateral (select fetched_at, success from feed_fetches ff where ff.feed_id = cf.id and ff.url_type = ? and ff.fetched_at >= (NOW() - INTERVAL '1 DAY') order by fetched_at desc limit 8) ff on true`, urlType).
+			Where(sq.Eq{"cf.id": chunk})
+		var lastFetches []struct {
+			ID        int
+			OnestopID tt.String
+			FetchWait tt.Int
+			FetchedAt tt.Time
+			Success   tt.Bool
+		}
+		if err := dbutil.Select(ctx, db, q, &lastFetches); err != nil {
+			return nil, err
+		}
+		for _, fetch := range lastFetches {
+			a, _ := checks[fetch.ID]
+			a.CheckedAt = now
+			a.ID = fetch.ID
+			a.OnestopID = fetch.OnestopID
+			a.DefaultFetchWait = defaultFetchWait
+			if v, ok := defaultFetchWaitUrlType[urlType]; ok {
+				a.DefaultFetchWait = v
+			}
+			if fetch.FetchWait.Valid {
+				a.FetchWait = fetch.FetchWait
+			}
+			if fetch.Success.Valid && !fetch.Success.Val {
+				a.Failures += 1
+			}
+			if fetch.FetchedAt.Valid && fetch.FetchedAt.Val.After(a.LastFetchedAt.Val) {
+				a.LastFetchedAt = fetch.FetchedAt
+			}
+			checks[fetch.ID] = a
+		}
+	}
+	var ret []CheckFetchWaitResult
+	for _, check := range checks {
+		ret = append(ret, check)
+	}
+	return ret, nil
+}
+
+func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
+	for chunkSize < len(items) {
+		items, chunks = items[chunkSize:], append(chunks, items[0:chunkSize:chunkSize])
+	}
+	return append(chunks, items)
+}
+
+func fetchCheckFeed(ctx context.Context, dbf model.Finder, checker model.Checker, feedId string, urlType string, url string) (*model.Feed, error) {
+	// Check feed exists
+	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	if err != nil {
+		return nil, err
+	}
+	if len(feeds) == 0 {
+		return nil, errors.New("feed not found")
+	}
+	feed := feeds[0]
+
+	// Check feed permissions
+	if checker != nil {
+		if check, err := checker.FeedPermissions(ctx, &azpb.FeedRequest{Id: int64(feed.ID)}); err != nil {
+			return nil, err
+		} else if !check.Actions.CanCreateFeedVersion {
+			return nil, errors.New("unauthorized")
+		}
+	}
+	return feed, nil
 }

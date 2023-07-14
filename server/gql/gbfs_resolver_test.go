@@ -18,7 +18,7 @@ func setupGbfs(gbf model.GbfsFinder) error {
 	defer ts.Close()
 	opts := gbfs.Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")
-	feeds, _, err := gbfs.Fetch(opts)
+	feeds, _, err := gbfs.Fetch(nil, opts)
 	if err != nil {
 		return err
 	}
