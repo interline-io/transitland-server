@@ -90,9 +90,7 @@ func fetchAll(sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error
 		case "system_information":
 			e := SystemInformationFile{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)
-			if err != nil {
-				ret.SystemInformation = e.Data
-			}
+			ret.SystemInformation = e.Data
 		case "station_information":
 			e := StationInformationFile{}
 			_, err = fetchUnmarshal(v.URL.Val, &e, reqOpts...)

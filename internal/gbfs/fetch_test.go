@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGbfsFetchWorker(t *testing.T) {
+func TestGbfsFetch(t *testing.T) {
 	ts := httptest.NewServer(&TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
 	defer ts.Close()
 	opts := Options{}
