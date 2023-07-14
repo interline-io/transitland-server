@@ -103,6 +103,7 @@ func (f *RedisJobs) processMessage(queueName string, getWorker GetWorker, jo Job
 	job := Job{
 		JobType: msg.Class(),
 		jobId:   msg.Jid(),
+		Queue:   queueName,
 		Opts:    jo,
 	}
 	job.JobArgs, _ = j.Get("job_args").Map()
@@ -117,10 +118,12 @@ func (f *RedisJobs) processMessage(queueName string, getWorker GetWorker, jo Job
 		}
 		fullKey := fmt.Sprintf("queue:%s:unique:%s", f.queueName(job.Queue), key)
 		ctx := context.Background()
-		logMsg := log.Trace().Str("key", key)
+		logMsg := log.Trace().Str("key", fullKey)
 		defer func() {
-			if _, err := f.client.Del(ctx, fullKey).Result(); err != nil {
+			if a, err := f.client.Del(ctx, fullKey).Result(); err != nil {
 				panic(err)
+			} else {
+				fmt.Println("RESULT:", a)
 			}
 			logMsg.Msg("unique job unlocked")
 		}()
