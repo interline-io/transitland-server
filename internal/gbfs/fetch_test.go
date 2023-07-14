@@ -14,7 +14,7 @@ func TestGbfsFetchWorker(t *testing.T) {
 	defer ts.Close()
 	opts := Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")
-	feeds, _, err := Fetch(opts)
+	feeds, _, err := Fetch(nil, opts)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/model"
@@ -27,19 +28,26 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		log.Error().Err(err).Msg("gbfsfetch worker: source feed not found")
 		return errors.New("feed not found")
 	}
+
 	// Make request
 	opts := gbfs.Options{}
 	opts.FeedURL = gfeeds[0].URLs.GbfsAutoDiscovery
+	opts.FeedID = gfeeds[0].ID
+	opts.URLType = "gbfs_auto_discovery"
 	if w.Url != "" {
 		opts.FeedURL = w.Url
 	}
-	feeds, result, err := gbfs.Fetch(opts)
+	feeds, result, err := gbfs.Fetch(
+		tldb.NewPostgresAdapterFromDBX(job.Opts.Finder.DBX()),
+		opts,
+	)
 	if err != nil {
 		return err
 	}
 	if result.FetchError != nil {
 		return result.FetchError
 	}
+
 	// Save to cache
 	for _, feed := range feeds {
 		key := fmt.Sprintf("%s:%s", w.FeedID, feed.SystemInformation.Language.Val)
