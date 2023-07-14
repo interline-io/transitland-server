@@ -66,9 +66,15 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				feedIds = append(feedIds, feed.ID)
 			}
 		}
-		feedsOk, err := actions.CheckFetchWaitBatch(ctx, db, feedIds, urlType)
+		feedChecks, err := actions.CheckFetchWaitBatch(ctx, db, feedIds, urlType)
 		if err != nil {
 			return err
+		}
+		var feedsOk []actions.CheckFetchWaitResult
+		for _, check := range feedChecks {
+			if check.OK() {
+				feedsOk = append(feedsOk, check)
+			}
 		}
 		feedsByUrlType[urlType] = feedsOk
 	}
@@ -81,13 +87,6 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 			if !ok {
 				continue
 			}
-			url := getUrl(feed.URLs, urlType)
-			if url == "" {
-				continue
-			}
-			if !check.OK() {
-				continue
-			}
 			// TODO: Make this type safe, use StaticFetchWorker{} as job args
 			jj = append(jj, jobs.Job{
 				Queue:       "static-fetch",
@@ -95,7 +94,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				Unique:      true,
 				JobDeadline: now.Add(check.Deadline()).Unix(),
 				JobArgs: jobs.JobArgs{
-					"feed_url":    url,
+					"feed_url":    getUrl(feed.URLs, urlType),
 					"feed_id":     feed.FeedID,
 					"fetch_epoch": 0,
 				},
@@ -110,13 +109,6 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 			if !ok {
 				continue
 			}
-			url := getUrl(feed.URLs, urlType)
-			if url == "" {
-				continue
-			}
-			if !check.OK() {
-				continue
-			}
 			// TODO: Make this type safe, use StaticFetchWorker{} as job args
 			jj = append(jj, jobs.Job{
 				Queue:       "rt-fetch",
@@ -125,7 +117,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				JobDeadline: now.Add(check.Deadline()).Unix(),
 				JobArgs: jobs.JobArgs{
 					"target":         feed.FeedID,
-					"url":            url,
+					"url":            getUrl(feed.URLs, urlType),
 					"source_type":    urlType,
 					"source_feed_id": feed.FeedID,
 					"fetch_epoch":    0,
@@ -141,20 +133,13 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 			if !ok {
 				continue
 			}
-			url := getUrl(feed.URLs, urlType)
-			if url == "" {
-				continue
-			}
-			if !check.OK() {
-				continue
-			}
 			jj = append(jj, jobs.Job{
 				Queue:       "gbfs-fetch",
 				JobType:     "gbfs-fetch",
 				Unique:      true,
 				JobDeadline: now.Add(check.Deadline()).Unix(),
 				JobArgs: jobs.JobArgs{
-					"url":         url,
+					"url":         getUrl(feed.URLs, urlType),
 					"feed_id":     feed.FeedID,
 					"fetch_epoch": 0,
 				},
