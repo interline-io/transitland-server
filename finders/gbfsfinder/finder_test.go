@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/internal/xy"
@@ -66,7 +65,7 @@ func setupGbfs(dbf model.Finder, gbf model.GbfsFinder) error {
 	defer ts.Close()
 	opts := gbfs.Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")
-	feeds, _, err := gbfs.Fetch(tldb.NewPostgresAdapterFromDBX(dbf.DBX()), opts)
+	feeds, _, err := gbfs.Fetch(nil, opts)
 	if err != nil {
 		return err
 	}
