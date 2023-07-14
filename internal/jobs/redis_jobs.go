@@ -120,12 +120,11 @@ func (f *RedisJobs) processMessage(queueName string, getWorker GetWorker, jo Job
 		ctx := context.Background()
 		logMsg := log.Trace().Str("key", fullKey)
 		defer func() {
-			if a, err := f.client.Del(ctx, fullKey).Result(); err != nil {
-				panic(err)
+			if result, err := f.client.Del(ctx, fullKey).Result(); err != nil {
+				logMsg.Err(err).Msg("error unlocking job!")
 			} else {
-				fmt.Println("RESULT:", a)
+				logMsg.Int64("result", result).Msg("unique job unlocked")
 			}
-			logMsg.Msg("unique job unlocked")
 		}()
 	}
 	if job.JobDeadline > 0 && now > job.JobDeadline {
