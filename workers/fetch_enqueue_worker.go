@@ -97,7 +97,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				JobArgs: jobs.JobArgs{
 					"feed_url":    url,
 					"feed_id":     feed.FeedID,
-					"fetch_epoch": check.FetchEpoch(),
+					"fetch_epoch": 0,
 				},
 			})
 		}
@@ -128,7 +128,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 					"url":            url,
 					"source_type":    urlType,
 					"source_feed_id": feed.FeedID,
-					"fetch_epoch":    check.FetchEpoch(),
+					"fetch_epoch":    0,
 				},
 			})
 		}
@@ -156,7 +156,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				JobArgs: jobs.JobArgs{
 					"url":         url,
 					"feed_id":     feed.FeedID,
-					"fetch_epoch": check.FetchEpoch(),
+					"fetch_epoch": 0,
 				},
 			})
 		}

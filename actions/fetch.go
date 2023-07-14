@@ -164,6 +164,7 @@ func (check *CheckFetchWaitResult) OK() bool {
 		Str("url_type", check.URLType).
 		Float64("failure_backoff", failureBackoff.Seconds()).
 		Int("failures", check.Failures).
+		Str("last_fetched_at", lastFetchedAt.String()).
 		Float64("last_fetch_ago", lastFetchAgo.Seconds()).
 		Float64("fetch_wait", fetchWait.Seconds())
 
@@ -180,30 +181,9 @@ func (check *CheckFetchWaitResult) OK() bool {
 }
 
 func (check *CheckFetchWaitResult) Deadline() time.Duration {
-	fetchWait := time.Duration(check.DefaultFetchWait) * time.Second
-	if check.FetchWait.Valid {
-		fetchWait = time.Duration(check.FetchWait.Val) * time.Second
-	}
-	deadline := time.Duration(60) * time.Second
-	if fetchWait > deadline {
-		deadline = fetchWait
-	}
+	// TODO: Consider deadline based on fetchWait/failureBackoff
+	deadline := time.Duration(60*60) * time.Second
 	return deadline
-}
-
-func (check *CheckFetchWaitResult) FetchEpoch() int64 {
-	fw := check.FetchWait.Val
-	if fw == 0 {
-		fw = 1
-	}
-	if fw < 0 {
-		fw = 1
-	}
-	fetchEpoch := (check.LastFetchedAt.Val.Unix() / fw) * (fw)
-	if fetchEpoch < 0 {
-		return 0
-	}
-	return fetchEpoch
 }
 
 func CheckFetchWaitBatch(ctx context.Context, db sqlx.Ext, feedIds []int, urlType string) ([]CheckFetchWaitResult, error) {
@@ -218,7 +198,7 @@ func CheckFetchWaitBatch(ctx context.Context, db sqlx.Ext, feedIds []int, urlTyp
 	}
 	checks := map[int]CheckFetchWaitResult{}
 	for _, chunk := range chunkBy(feedIds, 1000) {
-		q := sq.Select("cf.id", "cf.onestop_id", "fs.fetch_wait", "now() as fetched_at", "true success").
+		q := sq.Select("cf.id", "cf.onestop_id", "fs.fetch_wait", "ff.fetched_at", "ff.success").
 			From("current_feeds cf").
 			Join("feed_states fs on fs.feed_id = cf.id").
 			JoinClause(`left join lateral (select fetched_at, success from feed_fetches ff where ff.feed_id = cf.id and ff.url_type = ? and ff.fetched_at >= (NOW() - INTERVAL '1 DAY') order by fetched_at desc limit 8) ff on true`, urlType).
