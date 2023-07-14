@@ -53,12 +53,6 @@ func (f *RedisJobs) AddJob(job Job) error {
 			return err
 		}
 	}
-	rjob := redisJob{
-		JobType:     job.JobType,
-		JobArgs:     job.JobArgs,
-		Unique:      job.Unique,
-		JobDeadline: job.JobDeadline,
-	}
 	queue := job.Queue
 	if job.Queue == "" {
 		queue = "default"
@@ -80,6 +74,12 @@ func (f *RedisJobs) AddJob(job Job) error {
 		} else {
 			logMsg.Msg("unique job locked")
 		}
+	}
+	rjob := redisJob{
+		JobType:     job.JobType,
+		JobArgs:     job.JobArgs,
+		Unique:      job.Unique,
+		JobDeadline: job.JobDeadline,
 	}
 	_, err := f.producer.Enqueue(f.queuePrefix+queue, rjob.JobType, rjob)
 	return err
@@ -122,7 +122,7 @@ func (f *RedisJobs) processMessage(queueName string, getWorker GetWorker, jo Job
 			logMsg.Msg("unique job unlocked")
 		}()
 	}
-	if job.JobDeadline > 0 && job.JobDeadline < now {
+	if job.JobDeadline > 0 && now > job.JobDeadline {
 		log.Trace().Int64("job_deadline", job.JobDeadline).Int64("now", now).Msg("job skipped - deadline in past")
 		return nil
 	}

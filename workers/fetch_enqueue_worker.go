@@ -2,6 +2,7 @@ package workers
 
 import (
 	"context"
+	"time"
 
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/actions"
@@ -17,6 +18,7 @@ type FetchEnqueueWorker struct {
 func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	opts := job.Opts
 	db := opts.Finder.DBX()
+	now := time.Now().In(time.UTC)
 	feeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{})
 	if err != nil {
 		return err
@@ -87,12 +89,17 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				continue
 			}
 			// TODO: Make this type safe, use StaticFetchWorker{} as job args
-			jobArgs := jobs.JobArgs{
-				"feed_url":    url,
-				"feed_id":     feed.FeedID,
-				"fetch_epoch": check.FetchEpoch(),
-			}
-			jj = append(jj, jobs.Job{Queue: "static-fetch", JobType: "static-fetch", Unique: true, JobArgs: jobArgs, JobDeadline: check.Deadline().Unix()})
+			jj = append(jj, jobs.Job{
+				Queue:       "static-fetch",
+				JobType:     "static-fetch",
+				Unique:      true,
+				JobDeadline: now.Add(check.Deadline()).Unix(),
+				JobArgs: jobs.JobArgs{
+					"feed_url":    url,
+					"feed_id":     feed.FeedID,
+					"fetch_epoch": check.FetchEpoch(),
+				},
+			})
 		}
 	}
 
@@ -111,14 +118,19 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				continue
 			}
 			// TODO: Make this type safe, use StaticFetchWorker{} as job args
-			jobArgs := jobs.JobArgs{
-				"target":         feed.FeedID,
-				"url":            url,
-				"source_type":    urlType,
-				"source_feed_id": feed.FeedID,
-				"fetch_epoch":    check.FetchEpoch(),
-			}
-			jj = append(jj, jobs.Job{Queue: "rt-fetch", JobType: "rt-fetch", Unique: true, JobArgs: jobArgs, JobDeadline: check.Deadline().Unix()})
+			jj = append(jj, jobs.Job{
+				Queue:       "rt-fetch",
+				JobType:     "rt-fetch",
+				Unique:      true,
+				JobDeadline: now.Add(check.Deadline()).Unix(),
+				JobArgs: jobs.JobArgs{
+					"target":         feed.FeedID,
+					"url":            url,
+					"source_type":    urlType,
+					"source_feed_id": feed.FeedID,
+					"fetch_epoch":    check.FetchEpoch(),
+				},
+			})
 		}
 	}
 
@@ -136,18 +148,21 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 			if !check.OK() {
 				continue
 			}
-			jobArgs := jobs.JobArgs{
-				"url":         url,
-				"feed_id":     feed.FeedID,
-				"fetch_epoch": check.FetchEpoch(),
-			}
-			jj = append(jj, jobs.Job{Queue: "gbfs-fetch", JobType: "gbfs-fetch", Unique: true, JobArgs: jobArgs, JobDeadline: check.Deadline().Unix()})
+			jj = append(jj, jobs.Job{
+				Queue:       "gbfs-fetch",
+				JobType:     "gbfs-fetch",
+				Unique:      true,
+				JobDeadline: now.Add(check.Deadline()).Unix(),
+				JobArgs: jobs.JobArgs{
+					"url":         url,
+					"feed_id":     feed.FeedID,
+					"fetch_epoch": check.FetchEpoch(),
+				},
+			})
 		}
 	}
 
 	for _, j := range jj {
-		// jx, _ := json.Marshal(j)
-		// fmt.Println("add job:", string(jx))
 		if err := opts.JobQueue.AddJob(j); err != nil {
 			return err
 		}
