@@ -32,24 +32,24 @@ func (m *PromMetrics) MetricsHandler() http.Handler {
 }
 
 func (m *PromMetrics) NewJobMetric(queue string) JobMetric {
-	reg := prometheus.WrapRegistererWith(prometheus.Labels{"queue": queue}, m.registry)
+	reg := m.registry
 	jobsTotal := promauto.With(reg).NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "jobs_processed",
 			Help: "Total number of jobs processed",
-		}, []string{"class"},
+		}, []string{"queue", "class"},
 	)
 	jobsOk := promauto.With(reg).NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "jobs_ok",
 			Help: "Number of jobs completed successfully",
-		}, []string{"class"},
+		}, []string{"queue", "class"},
 	)
 	jobsFailed := promauto.With(reg).NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "jobs_failed",
 			Help: "Failed number of jobs",
-		}, []string{"class"},
+		}, []string{"queue", "class"},
 	)
 	return &promJobMetrics{
 		jobsTotal:  jobsTotal,
@@ -102,16 +102,16 @@ type promJobMetrics struct {
 	jobsFailed *prometheus.CounterVec
 }
 
-func (m *promJobMetrics) AddStartedJob(jobType string) {
-	m.jobsTotal.With(prometheus.Labels{"class": jobType}).Add(1)
+func (m *promJobMetrics) AddStartedJob(queueName string, jobType string) {
+	m.jobsTotal.With(prometheus.Labels{"queue": queueName, "class": jobType}).Add(1)
 }
 
-func (m *promJobMetrics) AddCompletedJob(jobType string, success bool) {
+func (m *promJobMetrics) AddCompletedJob(queueName string, jobType string, success bool) {
 	if success {
-		m.jobsOk.With(prometheus.Labels{"class": jobType}).Add(1)
+		m.jobsOk.With(prometheus.Labels{"queue": queueName, "class": jobType}).Add(1)
 		return
 	}
-	m.jobsFailed.With(prometheus.Labels{"class": jobType}).Add(1)
+	m.jobsFailed.With(prometheus.Labels{"queue": queueName, "class": jobType}).Add(1)
 }
 
 type promApiMetrics struct {

@@ -20,11 +20,11 @@ func (m *DefaultMetric) MetricsHandler() http.Handler {
 	return nil
 }
 
-func (m *DefaultMetric) AddStartedJob(jobType string) {
+func (m *DefaultMetric) AddStartedJob(queueName string, jobType string) {
 	return
 }
 
-func (m *DefaultMetric) AddCompletedJob(jobType string, success bool) {
+func (m *DefaultMetric) AddCompletedJob(queueName string, jobType string, success bool) {
 	return
 }
 
