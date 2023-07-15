@@ -7,8 +7,8 @@ type ApiMetric interface {
 }
 
 type JobMetric interface {
-	AddStartedJob(string)
-	AddCompletedJob(string, bool)
+	AddStartedJob(string, string)
+	AddCompletedJob(string, string, bool)
 }
 
 type MetricProvider interface {
