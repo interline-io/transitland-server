@@ -41,10 +41,10 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 				Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
 			q = q.JoinClause(subClause)
 		} else {
-			q = q.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id`)
+			q = q.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id and tl_route_onestop_ids.feed_version_id = gtfs_routes.feed_version_id`)
 		}
 	} else {
-		q = q.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id`)
+		q = q.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id and tl_route_onestop_ids.feed_version_id = gtfs_routes.feed_version_id`)
 	}
 
 	if where != nil {
@@ -126,8 +126,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 		})
 
 	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t")
-	qView = qView.Limit(checkLimit(limit))
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 0 {
 			rank, wc := tsQuery(*where.Search)

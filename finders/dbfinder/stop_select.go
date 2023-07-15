@@ -43,10 +43,10 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				Suffix(") tl_stop_onestop_ids on tl_stop_onestop_ids.stop_id = gtfs_stops.stop_id and tl_stop_onestop_ids.feed_id = feed_versions.feed_id")
 			q = q.JoinClause(subClause)
 		} else {
-			q = q.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`)
+			q = q.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id and tl_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
 		}
 	} else {
-		q = q.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id`)
+		q = q.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id and tl_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
 	}
 
 	// Handle other clauses
@@ -157,8 +157,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		})
 
 	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t")
-	qView = qView.Limit(checkLimit(limit))
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
 	if where != nil {
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsQuery(*where.Search)

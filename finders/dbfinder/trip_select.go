@@ -22,9 +22,22 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			q = q.Where(sq.Eq{"stop_pattern_id": where.StopPatternID})
 		}
 		if len(where.RouteOnestopIds) > 0 {
-			q = q.Join("tl_route_onestop_ids tlros on tlros.route_id = gtfs_trips.route_id")
+			q = q.Join("tl_route_onestop_ids tlros on tlros.route_id = gtfs_trips.route_id and tlros.feed_version_id = gtfs_trips.feed_version_id")
 			q = q.Where(sq.Eq{"tlros.onestop_id": where.RouteOnestopIds})
 		}
+		if where.FeedVersionSha1 != nil {
+			q = q.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
+		}
+		if where.FeedOnestopID != nil {
+			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
+		}
+		if where.TripID != nil {
+			q = q.Where(sq.Eq{"gtfs_trips.trip_id": *where.TripID})
+		}
+		if len(where.RouteIds) > 0 {
+			q = q.Where(sq.Eq{"gtfs_trips.route_id": where.RouteIds})
+		}
+
 		if where.ServiceDate != nil {
 			serviceDate := where.ServiceDate.Val
 			q = q.JoinClause(`
@@ -58,6 +71,18 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
+	if len(ids) > 0 {
+		q = q.Where(sq.Eq{"gtfs_trips.id": ids})
+	}
+
+	// Handle cursor
+	if after != nil && after.Valid && after.ID > 0 {
+		if after.FeedVersionID == 0 {
+			q = q.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (select feed_version_id,id from gtfs_trips where id = ?)", after.ID))
+		} else {
+			q = q.Where(sq.Expr("(gtfs_trips.feed_version_id, gtfs_trips.id) > (?,?)", after.FeedVersionID, after.ID))
+		}
+	}
 
 	// Handle permissions
 	q = q.
@@ -69,31 +94,6 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		})
 
 	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t")
-	if len(ids) > 0 {
-		qView = qView.Where(sq.Eq{"t.id": ids})
-	}
-	if after != nil && after.Valid && after.ID > 0 {
-		if after.FeedVersionID == 0 {
-			qView = qView.Where(sq.Expr("(t.feed_version_id, t.id) > (select feed_version_id,id from gtfs_trips where id = ?)", after.ID))
-		} else {
-			qView = qView.Where(sq.Expr("(t.feed_version_id, t.id) > (?,?)", after.FeedVersionID, after.ID))
-		}
-	}
-	qView = qView.Limit(checkLimit(limit))
-	if where != nil {
-		if where.FeedVersionSha1 != nil {
-			qView = qView.Where(sq.Eq{"feed_version_sha1": *where.FeedVersionSha1})
-		}
-		if where.FeedOnestopID != nil {
-			qView = qView.Where(sq.Eq{"feed_onestop_id": *where.FeedOnestopID})
-		}
-		if len(where.RouteIds) > 0 {
-			qView = qView.Where(sq.Eq{"route_id": where.RouteIds})
-		}
-		if where.TripID != nil {
-			qView = qView.Where(sq.Eq{"trip_id": *where.TripID})
-		}
-	}
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
 	return qView
 }
