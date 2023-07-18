@@ -37,7 +37,7 @@ func NewCache[T any](client *redis.Client, topic string) *Cache[T] {
 func (e *Cache[T]) GetRecheckKeys(ctx context.Context) []string {
 	e.lock.Lock()
 	defer e.lock.Unlock()
-	t := time.Now()
+	t := time.Now().In(time.UTC)
 	var ret []string
 	for k, v := range e.m {
 		// Refresh local cache
@@ -80,7 +80,7 @@ func (e *Cache[T]) LocalKeys() []string {
 func (e *Cache[T]) SetTTL(ctx context.Context, key string, value T, ttl1 time.Duration, ttl2 time.Duration) error {
 	e.lock.Lock()
 	defer e.lock.Unlock()
-	n := time.Now()
+	n := time.Now().In(time.UTC)
 	item := Item[T]{
 		Value:     value,
 		RecheckAt: n.Add(ttl1),
@@ -101,7 +101,7 @@ func (e *Cache[T]) getLocal(key string) (Item[T], bool) {
 }
 
 func (e *Cache[T]) getRedis(ctx context.Context, key string) (Item[T], bool) {
-	t := time.Now()
+	t := time.Now().In(time.UTC)
 	ld := Item[T]{
 		ExpiresAt: t,
 		RecheckAt: t,

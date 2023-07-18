@@ -37,7 +37,7 @@ func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, err
 		return &ret, nil
 	}
 
-	departAt := time.Now()
+	departAt := time.Now().In(time.UTC)
 	if h.Clock != nil {
 		departAt = h.Clock.Now()
 	}

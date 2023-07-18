@@ -45,7 +45,7 @@ func (c *Finder) AddData(ctx context.Context, topic string, sf gbfs.GbfsFeed) er
 		return err
 	}
 	// Geosearch index bikes
-	ts := time.Now().Unix()
+	ts := time.Now().In(time.UTC).Unix()
 	_ = ts
 	if c.client != nil {
 		bbox := geom.NewBounds(geom.XY)

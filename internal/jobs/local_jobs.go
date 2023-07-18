@@ -68,7 +68,7 @@ func (f *LocalJobs) processMessage(getWorker GetWorker, jo JobOptions, job Job) 
 		Opts:        jo,
 		jobId:       fmt.Sprintf("%d", atomic.AddUint64(&jobCounter, 1)),
 	}
-	now := time.Now().Unix()
+	now := time.Now().In(time.UTC).Unix()
 	if job.JobDeadline > 0 && job.JobDeadline < now {
 		log.Trace().Int64("job_deadline", job.JobDeadline).Int64("now", now).Msg("job skipped - deadline in past")
 		return nil

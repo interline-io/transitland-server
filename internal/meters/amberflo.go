@@ -93,7 +93,7 @@ func (m *AmberFlo) getValue(user MeterUser, meterName string) (float64, bool) {
 		return 0, false
 	}
 
-	startTimeInSeconds := (time.Now().UnixNano() / int64(time.Second)) - (24 * 60 * 60)
+	startTimeInSeconds := (time.Now().In(time.UTC).UnixNano() / int64(time.Second)) - (24 * 60 * 60)
 	timeRange := &metering.TimeRange{
 		StartTimeInSeconds: startTimeInSeconds,
 	}
@@ -131,7 +131,7 @@ func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, ex
 		return nil
 	}
 	uniqueId := uuid.NewRandom().String()
-	utcMillis := time.Now().UnixNano() / int64(time.Millisecond)
+	utcMillis := time.Now().In(time.UTC).UnixNano() / int64(time.Millisecond)
 	dimensions := map[string]string{}
 	for k, v := range cfg.Dimensions {
 		dimensions[k] = v

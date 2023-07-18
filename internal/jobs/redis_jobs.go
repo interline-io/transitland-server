@@ -60,7 +60,7 @@ func (f *RedisJobs) AddJob(job Job) error {
 		}
 		fullKey := fmt.Sprintf("queue:%s:unique:%s", f.queueName(job.Queue), key)
 		deadlineTtl := time.Duration(60*60) * time.Second
-		if sec := job.JobDeadline - time.Now().Unix(); sec > 0 {
+		if sec := job.JobDeadline - time.Now().In(time.UTC).Unix(); sec > 0 {
 			deadlineTtl = time.Duration(sec) * time.Second
 		}
 		logMsg := log.Trace().Interface("job", job).Str("key", fullKey).Float64("ttl", deadlineTtl.Seconds())
@@ -109,7 +109,7 @@ func (f *RedisJobs) processMessage(queueName string, getWorker GetWorker, jo Job
 	job.JobArgs, _ = j.Get("job_args").Map()
 	job.JobDeadline, _ = j.Get("job_deadline").Int64()
 	job.Unique, _ = j.Get("unique").Bool()
-	now := time.Now().Unix()
+	now := time.Now().In(time.UTC).Unix()
 	if job.Unique {
 		// Consider more advanced locking options
 		key, err := job.HexKey()

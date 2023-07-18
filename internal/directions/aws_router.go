@@ -87,7 +87,7 @@ func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, erro
 		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
 	// Departure time
-	now := time.Now()
+	now := time.Now().In(time.UTC)
 	if h.Clock != nil {
 		now = h.Clock.Now()
 	}
