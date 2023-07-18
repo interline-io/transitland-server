@@ -73,7 +73,7 @@ func (h *valhallaRouter) Request(req model.DirectionRequest) (*model.Directions,
 	} else {
 		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
-	departAt := time.Now()
+	departAt := time.Now().In(time.UTC)
 	if h.Clock != nil {
 		departAt = h.Clock.Now()
 	}

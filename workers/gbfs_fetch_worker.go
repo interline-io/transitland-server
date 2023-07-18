@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/gbfs"
@@ -34,6 +35,7 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	opts.FeedURL = gfeeds[0].URLs.GbfsAutoDiscovery
 	opts.FeedID = gfeeds[0].ID
 	opts.URLType = "gbfs_auto_discovery"
+	opts.FetchedAt = time.Now().In(time.UTC)
 	if w.Url != "" {
 		opts.FeedURL = w.Url
 	}
