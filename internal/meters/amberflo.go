@@ -131,7 +131,7 @@ func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, ex
 		return nil
 	}
 	uniqueId := uuid.NewRandom().String()
-	utcMillis := time.In(time.UTC).Now().UnixNano() / int64(time.Millisecond)
+	utcMillis := time.Now().In(time.UTC).UnixNano() / int64(time.Millisecond)
 	dimensions := map[string]string{}
 	for k, v := range cfg.Dimensions {
 		dimensions[k] = v
