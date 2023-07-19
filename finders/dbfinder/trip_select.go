@@ -26,7 +26,7 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			q = q.Where(sq.Eq{"tlros.onestop_id": where.RouteOnestopIds})
 		}
 		if where.FeedVersionSha1 != nil {
-			q = q.Where(sq.Eq{"feed_versions.sha1": *where.FeedVersionSha1})
+			q = q.Where("feed_versions.id = (select id from feed_versions where sha1 = ? limit 1)", *where.FeedVersionSha1)
 		}
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
