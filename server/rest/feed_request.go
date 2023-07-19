@@ -25,8 +25,6 @@ type FeedRequest struct {
 	WithCursor
 }
 
-func (r FeedRequest) CheckLimit() int { return r.Limit }
-
 // ResponseKey .
 func (r FeedRequest) ResponseKey() string {
 	return "feeds"
