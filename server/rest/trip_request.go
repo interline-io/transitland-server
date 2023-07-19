@@ -11,8 +11,6 @@ var tripQuery string
 // TripRequest holds options for a /trips request
 type TripRequest struct {
 	ID               int    `json:"id,string"`
-	Limit            int    `json:"limit,string"`
-	After            int    `json:"after,string"`
 	TripID           string `json:"trip_id"`
 	RouteKey         string `json:"route_key"`
 	RouteID          int    `json:"route_id,string"`
@@ -25,6 +23,7 @@ type TripRequest struct {
 	IncludeAlerts    bool   `json:"include_alerts,string"`
 	Format           string
 	LicenseFilter
+	WithCursor
 }
 
 // ResponseKey .
@@ -75,8 +74,8 @@ func (r TripRequest) Query() (string, map[string]interface{}) {
 	}
 	includeRoute := false
 	return tripQuery, hw{
-		"limit":              checkLimit(r.Limit),
-		"after":              checkAfter(r.After),
+		"limit":              r.CheckLimit(),
+		"after":              r.CheckAfter(),
 		"ids":                checkIds(r.ID),
 		"where":              where,
 		"include_geometry":   includeGeometry,

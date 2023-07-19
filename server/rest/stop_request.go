@@ -12,9 +12,7 @@ var stopQuery string
 // StopRequest holds options for a /stops request
 type StopRequest struct {
 	ID                 int     `json:"id,string"`
-	Limit              int     `json:"limit,string"`
 	StopKey            string  `json:"stop_key"`
-	After              int     `json:"after,string"`
 	StopID             string  `json:"stop_id"`
 	OnestopID          string  `json:"onestop_id"`
 	FeedVersionSHA1    string  `json:"feed_version_sha1"`
@@ -27,6 +25,7 @@ type StopRequest struct {
 	IncludeAlerts      bool    `json:"include_alerts,string"`
 	IncludeRoutes      bool    `json:"include_routes,string"`
 	LicenseFilter
+	WithCursor
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -72,8 +71,8 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return stopQuery, hw{
-		"limit":          checkLimit(r.Limit),
-		"after":          checkAfter(r.After),
+		"limit":          r.CheckLimit(),
+		"after":          r.CheckAfter(),
 		"ids":            checkIds(r.ID),
 		"include_alerts": r.IncludeAlerts,
 		"include_routes": r.IncludeRoutes,

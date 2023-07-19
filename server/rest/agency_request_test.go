@@ -176,27 +176,27 @@ func TestAgencyRequest_Pagination(t *testing.T) {
 	testcases := []testRest{
 		{
 			name:         "limit:1",
-			h:            AgencyRequest{Limit: 1},
+			h:            AgencyRequest{WithCursor: WithCursor{Limit: 1}},
 			selector:     "agencies.#.agency_id",
 			expectSelect: nil,
 			expectLength: 1,
 		},
 		{
 			name:         "pagination exists",
-			h:            AgencyRequest{},
+			h:            AgencyRequest{WithCursor: WithCursor{Limit: 1}},
 			selector:     "meta.after",
 			expectSelect: nil,
 			expectLength: 1,
 		}, // just check presence
 		{
 			name:         "pagination limit 1",
-			h:            AgencyRequest{Limit: 1},
+			h:            AgencyRequest{WithCursor: WithCursor{Limit: 1}},
 			selector:     "agencies.#.agency_id",
 			expectSelect: allIds[:1],
 		},
 		{
 			name:         "pagination after 1",
-			h:            AgencyRequest{Limit: 1, After: allEnts[0].ID},
+			h:            AgencyRequest{WithCursor: WithCursor{Limit: 1, After: allEnts[0].ID}},
 			selector:     "agencies.#.agency_id",
 			expectSelect: allIds[1:2],
 		},
@@ -212,47 +212,47 @@ func TestAgencyRequest_License(t *testing.T) {
 	testcases := []testRest{
 		{
 			name: "license:share_alike_optional yes",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{""},
 		},
 		{
 			name: "license:share_alike_optional no",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "no"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "no"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{"BART"},
 		},
 		{
 			name: "license:share_alike_optional exclude_no",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "exclude_no"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "exclude_no"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{"caltrain-ca-us", ""},
 		},
 		{
 			name: "license:commercial_use_allowed yes",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "yes"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "yes"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{""},
 		},
 		{
 			name: "license:commercial_use_allowed no",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "no"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "no"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{"BART"},
 		},
 		{
 			name: "license:commercial_use_allowed exclude_no",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "exclude_no"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "exclude_no"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{"caltrain-ca-us", ""},
 		},
 		{
 			name: "license:create_derived_product yes",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "yes"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "yes"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{""},
 		},
 		{
 			name: "license:create_derived_product no",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "no"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "no"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{"BART"},
 		},
 		{
 			name: "license:create_derived_product exclude_no",
-			h:    AgencyRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "exclude_no"}}, selector: "agencies.#.agency_id",
+			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "exclude_no"}}, selector: "agencies.#.agency_id",
 			expectSelect: []string{"caltrain-ca-us", ""},
 		},
 	}

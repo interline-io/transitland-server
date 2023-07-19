@@ -13,8 +13,6 @@ type FeedVersionRequest struct {
 	FeedVersionKey  string `json:"feed_version_key"`
 	FeedKey         string `json:"feed_key"`
 	ID              int    `json:"id,string"`
-	Limit           int    `json:"limit,string"`
-	After           int    `json:"after,string"`
 	FeedID          int    `json:"feed_id,string"`
 	FeedOnestopID   string `json:"feed_onestop_id"`
 	Sha1            string `json:"sha1"`
@@ -22,6 +20,7 @@ type FeedVersionRequest struct {
 	FetchedAfter    string `json:"fetched_after"`
 	CoversStartDate string `json:"covers_start_date"`
 	CoversEndDate   string `json:"covers_end_date"`
+	WithCursor
 }
 
 // Query returns a GraphQL query string and variables.
@@ -68,7 +67,7 @@ func (r FeedVersionRequest) Query() (string, map[string]interface{}) {
 	if len(whereCovers) > 0 {
 		where["covers"] = whereCovers
 	}
-	return feedVersionQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
+	return feedVersionQuery, hw{"limit": r.CheckLimit(), "after": r.CheckAfter(), "ids": checkIds(r.ID), "where": where}
 }
 
 // ResponseKey .

@@ -23,7 +23,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			name:         "departure 10:00:00",
-			h:            StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", Limit: 5},
+			h:            StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", StartTime: "10:00:00", WithCursor: WithCursor{Limit: 5}},
 			format:       "",
 			selector:     "stops.0.departures.#.departure_time",
 			expectSelect: []string{"10:02:00", "10:02:00", "10:05:00", "10:09:00", "10:12:00"},
@@ -87,7 +87,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		},
 		{
 			name:         "no pagination",
-			h:            StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", Limit: 1},
+			h:            StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-04", WithCursor: WithCursor{Limit: 1}},
 			format:       "",
 			selector:     "meta.next",
 			expectSelect: []string{},
