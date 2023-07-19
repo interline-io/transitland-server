@@ -14,7 +14,7 @@ func TestRouteRequest(t *testing.T) {
 	testcases := []testRest{
 		{
 			name:         "none",
-			h:            RouteRequest{Limit: 1000},
+			h:            RouteRequest{WithCursor: WithCursor{Limit: 1000}},
 			selector:     "routes.#.route_id",
 			expectSelect: routeIds,
 			expectLength: 0,
@@ -128,14 +128,14 @@ func TestRouteRequest_Pagination(t *testing.T) {
 	testcases := []testRest{
 		{
 			name:         "limit:1",
-			h:            RouteRequest{Limit: 1},
+			h:            RouteRequest{WithCursor: WithCursor{Limit: 1}},
 			selector:     "routes.#.route_id",
 			expectSelect: nil,
 			expectLength: 1,
 		},
 		{
 			name:         "limit:100",
-			h:            RouteRequest{Limit: 100},
+			h:            RouteRequest{WithCursor: WithCursor{Limit: 100}},
 			selector:     "routes.#.route_id",
 			expectSelect: nil,
 			expectLength: 57,
@@ -149,14 +149,14 @@ func TestRouteRequest_Pagination(t *testing.T) {
 		}, // just check presence
 		{
 			name:         "pagination limit 10",
-			h:            RouteRequest{Limit: 10},
+			h:            RouteRequest{WithCursor: WithCursor{Limit: 10}},
 			selector:     "routes.#.route_id",
 			expectSelect: allIds[:10],
 			expectLength: 0,
 		},
 		{
 			name:         "pagination after 10",
-			h:            RouteRequest{Limit: 10, After: allEnts[10].ID},
+			h:            RouteRequest{WithCursor: WithCursor{Limit: 10, After: allEnts[10].ID}},
 			selector:     "routes.#.route_id",
 			expectSelect: allIds[11:21],
 			expectLength: 0,
@@ -173,47 +173,47 @@ func TestRouteRequest_License(t *testing.T) {
 	testcases := []testRest{
 		{
 			name: "license:share_alike_optional yes",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}}, selector: "routes.#.route_id",
 			expectLength: 45,
 		},
 		{
 			name: "license:share_alike_optional no",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "no"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "no"}}, selector: "routes.#.route_id",
 			expectLength: 6,
 		},
 		{
 			name: "license:share_alike_optional exclude_no",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "exclude_no"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "exclude_no"}}, selector: "routes.#.route_id",
 			expectLength: 51,
 		},
 		{
 			name: "license:commercial_use_allowed yes",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "yes"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "yes"}}, selector: "routes.#.route_id",
 			expectLength: 45,
 		},
 		{
 			name: "license:commercial_use_allowed no",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "no"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "no"}}, selector: "routes.#.route_id",
 			expectLength: 6,
 		},
 		{
 			name: "license:commercial_use_allowed exclude_no",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "exclude_no"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCommercialUseAllowed: "exclude_no"}}, selector: "routes.#.route_id",
 			expectLength: 51,
 		},
 		{
 			name: "license:create_derived_product yes",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "yes"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "yes"}}, selector: "routes.#.route_id",
 			expectLength: 45,
 		},
 		{
 			name: "license:create_derived_product no",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "no"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "no"}}, selector: "routes.#.route_id",
 			expectLength: 6,
 		},
 		{
 			name: "license:create_derived_product exclude_no",
-			h:    RouteRequest{Limit: 10_000, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "exclude_no"}}, selector: "routes.#.route_id",
+			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseCreateDerivedProduct: "exclude_no"}}, selector: "routes.#.route_id",
 			expectLength: 51,
 		},
 	}

@@ -12,9 +12,7 @@ var agencyQuery string
 // AgencyRequest holds options for a Route request
 type AgencyRequest struct {
 	ID              int     `json:"id,string"`
-	Limit           int     `json:"limit,string"`
 	AgencyKey       string  `json:"agency_key"`
-	After           int     `json:"after,string"`
 	AgencyID        string  `json:"agency_id"`
 	AgencyName      string  `json:"agency_name"`
 	OnestopID       string  `json:"onestop_id"`
@@ -32,6 +30,7 @@ type AgencyRequest struct {
 	IncludeAlerts   bool    `json:"include_alerts,string"`
 	IncludeRoutes   bool    `json:"include_routes,string"`
 	LicenseFilter
+	WithCursor
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -92,8 +91,8 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return agencyQuery, hw{
-		"limit":          checkLimit(r.Limit),
-		"after":          checkAfter(r.After),
+		"limit":          r.CheckLimit(),
+		"after":          r.CheckAfter(),
 		"ids":            checkIds(r.ID),
 		"include_alerts": r.IncludeAlerts,
 		"include_routes": r.IncludeRoutes,

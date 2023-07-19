@@ -17,7 +17,7 @@ func TestFeedVersionRequest(t *testing.T) {
 		},
 		{
 			name:         "limit:1",
-			h:            FeedVersionRequest{Limit: 1},
+			h:            FeedVersionRequest{WithCursor: WithCursor{Limit: 1}},
 			format:       "",
 			selector:     "feed_versions.#.sha1",
 			expectSelect: []string{},
@@ -33,7 +33,7 @@ func TestFeedVersionRequest(t *testing.T) {
 		},
 		{
 			name:         "feed_onestop_id,limit:100",
-			h:            FeedVersionRequest{Limit: 100, FeedOnestopID: "BA"},
+			h:            FeedVersionRequest{WithCursor: WithCursor{Limit: 100}, FeedOnestopID: "BA"},
 			format:       "",
 			selector:     "feed_versions.#.sha1",
 			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},

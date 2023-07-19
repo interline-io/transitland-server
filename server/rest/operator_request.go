@@ -12,8 +12,6 @@ var operatorQuery string
 type OperatorRequest struct {
 	OperatorKey   string `json:"operator_key"`
 	ID            int    `json:"id,string"`
-	Limit         int    `json:"limit,string"`
-	After         int    `json:"after,string"`
 	OnestopID     string `json:"onestop_id"`
 	FeedOnestopID string `json:"feed_onestop_id"`
 	Search        string `json:"search"`
@@ -26,6 +24,7 @@ type OperatorRequest struct {
 	CityName      string `json:"city_name"`
 	IncludeAlerts bool   `json:"include_alerts,string"`
 	LicenseFilter
+	WithCursor
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -71,8 +70,8 @@ func (r OperatorRequest) Query() (string, map[string]interface{}) {
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return operatorQuery, hw{
-		"limit":          checkLimit(r.Limit),
-		"after":          checkAfter(r.After),
+		"limit":          r.CheckLimit(),
+		"after":          r.CheckAfter(),
 		"ids":            checkIds(r.ID),
 		"include_alerts": r.IncludeAlerts,
 		"where":          where,

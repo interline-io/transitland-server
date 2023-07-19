@@ -13,7 +13,6 @@ var stopDepartureQuery string
 type StopDepartureRequest struct {
 	StopKey          string `json:"stop_key"`
 	ID               int    `json:"id,string"`
-	Limit            int    `json:"limit,string"`
 	StopID           string `json:"stop_id"`
 	FeedOnestopID    string `json:"feed_onestop_id"`
 	OnestopID        string `json:"onestop_id"`
@@ -24,6 +23,7 @@ type StopDepartureRequest struct {
 	IncludeGeometry  bool   `json:"include_geometry,string"`
 	IncludeAlerts    bool   `json:"include_alerts,string"`
 	UseServiceWindow *bool  `json:"use_service_window,string"`
+	WithCursor
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -75,7 +75,7 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	return stopDepartureQuery, hw{
 		"include_geometry": r.IncludeGeometry,
 		"include_alerts":   r.IncludeAlerts,
-		"limit":            checkLimit(r.Limit),
+		"limit":            r.CheckLimit(),
 		"ids":              checkIds(r.ID),
 		"where":            where,
 		"stop_time_where":  stwhere,

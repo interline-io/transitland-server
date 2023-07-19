@@ -117,6 +117,35 @@ type canIncludeNext interface {
 	IncludeNext() bool
 }
 
+// A type that defines a per-page limit
+type canLimit interface {
+	CheckLimit() int
+}
+
+type WithCursor struct {
+	Limit int `json:"limit,string"`
+	After int `json:"after,string"`
+}
+
+func (w WithCursor) CheckLimit() int {
+	limit := w.Limit
+	if limit <= 0 {
+		return DEFAULTLIMIT
+	}
+	if limit > MAXLIMIT {
+		return MAXLIMIT
+	}
+	return limit
+}
+
+func (w WithCursor) CheckAfter() int {
+	after := w.After
+	if after < 0 {
+		return 0
+	}
+	return after
+}
+
 // A type that specifies a JSON response key.
 type hasResponseKey interface {
 	ResponseKey() string
@@ -142,25 +171,6 @@ func checkIds(id int) []int {
 		return []int{id}
 	}
 	return nil
-}
-
-// checkAfter checks the value is positive.
-func checkAfter(after int) int {
-	if after < 0 {
-		return 0
-	}
-	return after
-}
-
-// checkLimit checks the limit is positive and below the maximum limit.
-func checkLimit(limit int) int {
-	if limit <= 0 {
-		return DEFAULTLIMIT
-	}
-	if limit > MAXLIMIT {
-		return MAXLIMIT
-	}
-	return limit
 }
 
 // queryToMap converts url.Values to map[string]string
@@ -296,9 +306,9 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 		addMeta = v.IncludeNext()
 	}
 	if addMeta {
-		if lastId, err := getAfterID(ent, response); err != nil {
+		if lastId, nextPage, err := getAfterID(ent, response); err != nil {
 			log.Error().Err(err).Msg("pagination failed to get max entity id")
-		} else if lastId > 0 {
+		} else if nextPage && lastId > 0 {
 			meta := hw{"after": lastId}
 			if u != nil {
 				newUrl, err := url.Parse(u.String())
@@ -345,24 +355,41 @@ func makeHandlerFunc(cfg restConfig, handlerName string, f func(restConfig, http
 	}
 }
 
-func getAfterID(ent apiHandler, response map[string]interface{}) (int, error) {
+func getAfterID(ent apiHandler, response map[string]interface{}) (int, bool, error) {
 	maxid := 0
 	fkey := ""
+
+	// Get request limit
+	limit := MAXLIMIT
+	if v, ok := ent.(canLimit); ok {
+		limit = v.CheckLimit()
+	}
+
+	// Get response key
 	if v, ok := ent.(hasResponseKey); ok {
 		fkey = v.ResponseKey()
 	} else {
-		return 0, errors.New("pagination: response key missing")
+		return 0, false, errors.New("pagination: response key missing")
 	}
+
+	// Get entities
 	entities, ok := response[fkey].([]interface{})
 	if !ok {
-		return 0, errors.New("pagination: unknown response key value")
+		return 0, false, errors.New("pagination: unknown response key value")
 	}
+
+	// No next page if there are no entities, or if less entities than the limit
 	if len(entities) == 0 {
-		return 0, nil
+		return 0, false, nil
 	}
+	if len(entities) < limit {
+		return 0, false, nil
+	}
+
+	// Get last entity ID
 	lastEnt, ok := entities[len(entities)-1].(map[string]interface{})
 	if !ok {
-		return 0, errors.New("pagination: last entity not map[string]interface{}")
+		return 0, false, errors.New("pagination: last entity not map[string]interface{}")
 	}
 	switch id := lastEnt["id"].(type) {
 	case int:
@@ -372,7 +399,7 @@ func getAfterID(ent apiHandler, response map[string]interface{}) (int, error) {
 	case int64:
 		maxid = int(id)
 	default:
-		return 0, errors.New("pagination: last entity id not numeric")
+		return 0, false, errors.New("pagination: last entity id not numeric")
 	}
-	return maxid, nil
+	return maxid, true, nil
 }

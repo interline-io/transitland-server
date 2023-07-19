@@ -12,8 +12,6 @@ var feedQuery string
 type FeedRequest struct {
 	FeedKey          string `json:"feed_key"`
 	ID               int    `json:"id,string"`
-	Limit            int    `json:"limit,string"`
-	After            int    `json:"after,string"`
 	OnestopID        string `json:"onestop_id"`
 	Spec             string `json:"spec"`
 	Search           string `json:"search"`
@@ -24,6 +22,7 @@ type FeedRequest struct {
 	URLType          string `json:"url_type"`
 	URLCaseSensitive bool   `json:"url_case_sensitive"`
 	LicenseFilter
+	WithCursor
 }
 
 // ResponseKey .
@@ -69,7 +68,7 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 		where["source_url"] = sourceUrl
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
-	return feedQuery, hw{"limit": checkLimit(r.Limit), "after": checkAfter(r.After), "ids": checkIds(r.ID), "where": where}
+	return feedQuery, hw{"limit": r.CheckLimit(), "after": r.CheckAfter(), "ids": checkIds(r.ID), "where": where}
 }
 
 // ProcessGeoJSON .

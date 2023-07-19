@@ -13,8 +13,6 @@ var routeQuery string
 type RouteRequest struct {
 	ID                int     `json:"id,string"`
 	RouteKey          string  `json:"route_key"`
-	Limit             int     `json:"limit,string"`
-	After             int     `json:"after,string"`
 	AgencyKey         string  `json:"agency_key"`
 	RouteID           string  `json:"route_id"`
 	RouteType         string  `json:"route_type"`
@@ -32,6 +30,7 @@ type RouteRequest struct {
 	IncludeAlerts     bool    `json:"include_alerts,string"`
 	IncludeStops      bool    `json:"include_stops,string"`
 	LicenseFilter
+	WithCursor
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -95,8 +94,8 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return routeQuery, hw{
-		"limit":            checkLimit(r.Limit),
-		"after":            checkAfter(r.After),
+		"limit":            r.CheckLimit(),
+		"after":            r.CheckAfter(),
 		"ids":              checkIds(r.ID),
 		"where":            where,
 		"include_alerts":   r.IncludeAlerts,
