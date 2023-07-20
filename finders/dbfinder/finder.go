@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -1459,6 +1460,45 @@ func (f *Finder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.
 	return ents, nil
 }
 
+func (f *Finder) StopPlacesByStopID(ctx context.Context, ids []int) ([]*model.StopPlace, []error) {
+	q := sq.
+		Select("ne.admin as adm0_name", "ne.name as adm1_name").
+		FromSelect(sq.Select("ST_ConvexHull(ST_Collect(gtfs_stops.geometry::geometry)) as env").From("gtfs_stops").Where(sq.Eq{"id": ids}), "env").
+		Join("ne_10m_admin_1_states_provinces ne on ST_Intersects(env::geography, ne.geometry::geography)")
+	type result struct {
+		StopID int
+		model.StopPlace
+	}
+	var ents []result
+	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	for _, ent := range ents {
+		fmt.Println("ent:", *ent.Adm0Name, *ent.Adm1Name)
+	}
+	if len(ents) == 1 {
+		var ents2 = make([]result, len(ids))
+		for i := 0; i < len(ids); i++ {
+			a := ents[0]
+			a.StopID = ids[i]
+			ents2[i] = a
+		}
+		ents = ents2
+		fmt.Println("using ents2")
+	} else if len(ents) > 1 {
+		detailedQuery := sq.Select("gtfs_stops.id as stop_id", "ne.name as adm1_name", "ne.admin as adm0_name").
+			From("ne_10m_admin_1_states_provinces ne").
+			Join("gtfs_stops on ST_Intersects(gtfs_stops.geometry, ne.geometry)").
+			Where(sq.Eq{"gtfs_stops.id": ids})
+		var ents2 []result
+		if err := dbutil.Select(ctx, f.db, detailedQuery, &ents2); err != nil {
+			return nil, logExtendErr(ctx, len(ids), err)
+		}
+		ents = ents2
+	}
+	return arrangeMap(ids, ents, func(ent result) (int, *model.StopPlace) { return ent.StopID, &ent.StopPlace }), nil
+}
+
 func (f *Finder) CensusGeographiesByEntityID(ctx context.Context, params []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
 	if len(params) == 0 {
 		return nil, nil
@@ -1561,6 +1601,19 @@ func arrangeBy[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
 		bykey[cb(ent)] = ent
 	}
 	ret := make([]T, len(keys))
+	for idx, key := range keys {
+		ret[idx] = bykey[key]
+	}
+	return ret
+}
+
+func arrangeMap[K comparable, T any, O any](keys []K, ents []T, cb func(T) (K, O)) []O {
+	bykey := map[K]O{}
+	for _, ent := range ents {
+		k, o := cb(ent)
+		bykey[k] = o
+	}
+	ret := make([]O, len(keys))
 	for idx, key := range keys {
 		ret[idx] = bykey[key]
 	}

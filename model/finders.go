@@ -60,6 +60,7 @@ type EntityLoader interface {
 	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
 	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 	FeedVersionGeometryByID(context.Context, []int) ([]*tt.Polygon, []error)
+	StopPlacesByStopID(context.Context, []int) ([]*StopPlace, []error)
 
 	// Other loaders
 	FeedVersionGtfsImportsByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)

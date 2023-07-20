@@ -340,6 +340,7 @@ type Stop {
   departures(limit: Int, where: StopTimeFilter): [StopTime!]!
   arrivals(limit: Int, where: StopTimeFilter): [StopTime!]!
   search_rank: String # only for search results
+  place: StopPlace
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
   nearby_stops(limit: Int, radius: Float): [Stop!]
@@ -507,6 +508,11 @@ type StopExternalReference {
   target_stop_id: String
   inactive: Boolean
   target_active_stop: Stop
+}
+
+type StopPlace {
+  adm1_name: String
+  adm0_name: String
 }
 
 type AgencyPlace {

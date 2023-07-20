@@ -317,6 +317,11 @@ type StopObservationFilter struct {
 	TripStartDate tt.Date `json:"trip_start_date"`
 }
 
+type StopPlace struct {
+	Adm1Name *string `json:"adm1_name"`
+	Adm0Name *string `json:"adm0_name"`
+}
+
 type StopTimeFilter struct {
 	ServiceDate                  *tt.Date     `json:"service_date"`
 	UseServiceWindow             *bool        `json:"use_service_window"`
