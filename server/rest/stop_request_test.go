@@ -134,6 +134,13 @@ func TestStopRequest(t *testing.T) {
 			expectSelect: []string{"FTVL"},
 			expectLength: 0,
 		},
+		{
+			name:         "place",
+			h:            StopRequest{StopKey: "BA:FTVL"},
+			selector:     "stops.#.place.adm1_name",
+			expectSelect: []string{"California"},
+			expectLength: 0,
+		},
 	}
 	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
@@ -141,6 +148,28 @@ func TestStopRequest(t *testing.T) {
 			testquery(t, srv, te, tc)
 		})
 	}
+}
+
+func TestStopRequest_AdminCache(t *testing.T) {
+	tc := testRest{
+		name:         "place",
+		h:            StopRequest{StopKey: "BA:FTVL"},
+		selector:     "stops.#.place.adm1_name",
+		expectSelect: []string{"California"},
+		expectLength: 0,
+	}
+	type canLoadAdmins interface {
+		LoadAdmins() error
+	}
+	srv, te := testRestConfig(t)
+	if v, ok := te.Finder.(canLoadAdmins); !ok {
+		t.Fatal("finder cant load admins")
+	} else {
+		if err := v.LoadAdmins(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	testquery(t, srv, te, tc)
 }
 
 func TestStopRequest_Pagination(t *testing.T) {

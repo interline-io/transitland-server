@@ -10,6 +10,7 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/internal/directions"
+	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -47,7 +48,8 @@ func (r *stopResolver) Children(ctx context.Context, obj *model.Stop, limit *int
 }
 
 func (r *stopResolver) Place(ctx context.Context, obj *model.Stop) (*model.StopPlace, error) {
-	return For(ctx).StopPlacesByStopID.Load(ctx, obj.ID)()
+	pt := xy.Point{Lon: obj.Geometry.X(), Lat: obj.Geometry.Y()}
+	return For(ctx).StopPlacesByStopID.Load(ctx, model.StopPlaceParam{ID: obj.ID, Point: pt})()
 }
 
 func (r *stopResolver) RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error) {

@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-server/internal/admincache"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/dbutil"
+	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -20,8 +21,9 @@ import (
 ////////
 
 type Finder struct {
-	Clock clock.Clock
-	db    sqlx.Ext
+	Clock      clock.Clock
+	db         sqlx.Ext
+	adminCache *admincache.AdminCache
 }
 
 func NewFinder(db sqlx.Ext) *Finder {
@@ -30,6 +32,16 @@ func NewFinder(db sqlx.Ext) *Finder {
 
 func (f *Finder) DBX() sqlx.Ext {
 	return f.db
+}
+
+func (f *Finder) LoadAdmins() error {
+	log.Trace().Msg("loading admins")
+	adminCache := admincache.NewAdminCache()
+	if err := adminCache.LoadAdmins(context.Background(), f.db); err != nil {
+		return err
+	}
+	f.adminCache = adminCache
+	return nil
 }
 
 func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.AgencyFilter) ([]*model.Agency, error) {
@@ -1460,41 +1472,74 @@ func (f *Finder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.
 	return ents, nil
 }
 
-func (f *Finder) StopPlacesByStopID(ctx context.Context, ids []int) ([]*model.StopPlace, []error) {
-	q := sq.
-		Select("ne.admin as adm0_name", "ne.name as adm1_name").
-		FromSelect(sq.Select("ST_ConvexHull(ST_Collect(gtfs_stops.geometry::geometry)) as env").From("gtfs_stops").Where(sq.Eq{"id": ids}), "env").
-		Join("ne_10m_admin_1_states_provinces ne on ST_Intersects(env::geography, ne.geometry::geography)")
+func (f *Finder) StopPlacesByStopID(ctx context.Context, params []model.StopPlaceParam) ([]*model.StopPlace, []error) {
+	if f.adminCache == nil {
+		return f.stopPlacesByStopIdFallback(ctx, params)
+	}
+
+	// Lookup any geometries that were not passed in
+	var geomLookup []int
+	for _, param := range params {
+		if param.Point.Lon == 0 && param.Point.Lat == 0 {
+			geomLookup = append(geomLookup, param.ID)
+		}
+	}
+	if len(geomLookup) > 0 {
+		var ents []struct {
+			ID       int
+			Geometry tt.Point
+		}
+		q := sq.Select("gtfs_stops.id", "gtfs_stops.geometry").From("gtfs_stops").Where(sq.Eq{"id": geomLookup})
+		if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
+			return nil, logExtendErr(ctx, len(params), err)
+		}
+		lk := map[int]xy.Point{}
+		for _, ent := range ents {
+			lk[ent.ID] = xy.Point{Lon: ent.Geometry.X(), Lat: ent.Geometry.Y()}
+		}
+		for i := 0; i < len(params); i++ {
+			if pt, ok := lk[params[i].ID]; ok {
+				params[i].Point = pt
+			}
+		}
+	}
+
+	// Lookup stop places using AdminCache
+	a := map[int]*model.StopPlace{}
+	for _, param := range params {
+		if admin := f.adminCache.Check(param.Point); admin.Count == 1 {
+			a[param.ID] = &model.StopPlace{
+				Adm0Name: &admin.Adm0Name,
+				Adm1Name: &admin.Adm1Name,
+				Adm0Iso:  &admin.Adm0Iso,
+				Adm1Iso:  &admin.Adm1Iso,
+			}
+		}
+	}
+	ret := make([]*model.StopPlace, len(params))
+	for idx, param := range params {
+		ret[idx] = a[param.ID]
+	}
+	return ret, nil
+}
+
+func (f *Finder) stopPlacesByStopIdFallback(ctx context.Context, params []model.StopPlaceParam) ([]*model.StopPlace, []error) {
+	// Fallback without adminCache
+	var ids []int
+	for _, param := range params {
+		ids = append(ids, param.ID)
+	}
 	type result struct {
 		StopID int
 		model.StopPlace
 	}
 	var ents []result
-	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
+	detailedQuery := sq.Select("gtfs_stops.id as stop_id", "ne.name as adm1_name", "ne.admin as adm0_name").
+		From("ne_10m_admin_1_states_provinces ne").
+		Join("gtfs_stops on ST_Intersects(gtfs_stops.geometry, ne.geometry)").
+		Where(sq.Eq{"gtfs_stops.id": ids})
+	if err := dbutil.Select(ctx, f.db, detailedQuery, &ents); err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
-	}
-	for _, ent := range ents {
-		fmt.Println("ent:", *ent.Adm0Name, *ent.Adm1Name)
-	}
-	if len(ents) == 1 {
-		var ents2 = make([]result, len(ids))
-		for i := 0; i < len(ids); i++ {
-			a := ents[0]
-			a.StopID = ids[i]
-			ents2[i] = a
-		}
-		ents = ents2
-		fmt.Println("using ents2")
-	} else if len(ents) > 1 {
-		detailedQuery := sq.Select("gtfs_stops.id as stop_id", "ne.name as adm1_name", "ne.admin as adm0_name").
-			From("ne_10m_admin_1_states_provinces ne").
-			Join("gtfs_stops on ST_Intersects(gtfs_stops.geometry, ne.geometry)").
-			Where(sq.Eq{"gtfs_stops.id": ids})
-		var ents2 []result
-		if err := dbutil.Select(ctx, f.db, detailedQuery, &ents2); err != nil {
-			return nil, logExtendErr(ctx, len(ids), err)
-		}
-		ents = ents2
 	}
 	return arrangeMap(ids, ents, func(ent result) (int, *model.StopPlace) { return ent.StopID, &ent.StopPlace }), nil
 }

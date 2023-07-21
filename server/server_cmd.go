@@ -178,7 +178,10 @@ func (cmd *Command) Run() error {
 	}
 
 	// Create Finder
-	var dbFinder model.Finder = dbfinder.NewFinder(db)
+	var dbFinder model.Finder
+	f := dbfinder.NewFinder(db)
+	f.LoadAdmins()
+	dbFinder = f
 
 	// Open redis
 	var redisClient *redis.Client

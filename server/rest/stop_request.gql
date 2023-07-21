@@ -44,6 +44,12 @@ query ($limit: Int, $after: Int, $ids: [Int!], $include_alerts: Boolean!, $inclu
     location_type
     onestop_id
     geometry
+    place {
+      adm0_name
+      adm1_name
+      adm0_iso
+      adm1_iso
+    }
     feed_version {
       id
       sha1
