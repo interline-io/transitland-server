@@ -29,6 +29,59 @@ func TestStopResolver_License(t *testing.T) {
 	queryTestcases(t, c, stopResolverLicenseTestcases(t, te))
 }
 
+func TestStopResolver_AdminCache(t *testing.T) {
+	type canLoadAdmins interface {
+		LoadAdmins() error
+	}
+	c, te := newTestClient(t)
+	if v, ok := te.Finder.(canLoadAdmins); !ok {
+		t.Fatal("finder cant load admins")
+	} else {
+		if err := v.LoadAdmins(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	q := `query($feed_version_sha1:String!, $stop_id:String!) { stops(where:{stop_id:$stop_id, feed_version_sha1:$feed_version_sha1}) { place { adm0_name adm1_name adm0_iso adm1_iso } } }`
+	tcs := []testcase{
+		{
+			name:         "usa",
+			query:        q,
+			vars:         hw{"feed_version_sha1": "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "stop_id": "FTVL"},
+			selector:     "stops.#.place.adm0_name",
+			selectExpect: []string{"United States of America"},
+		},
+		{
+			name:         "california",
+			query:        q,
+			vars:         hw{"feed_version_sha1": "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "stop_id": "FTVL"},
+			selector:     "stops.#.place.adm1_name",
+			selectExpect: []string{"California"},
+		},
+		{
+			name:         "adm0_iso",
+			query:        q,
+			vars:         hw{"feed_version_sha1": "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "stop_id": "FTVL"},
+			selector:     "stops.#.place.adm0_iso",
+			selectExpect: []string{"US"},
+		},
+		{
+			name:         "adm1_iso",
+			query:        q,
+			vars:         hw{"feed_version_sha1": "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "stop_id": "FTVL"},
+			selector:     "stops.#.place.adm1_iso",
+			selectExpect: []string{"US-CA"},
+		},
+		{
+			name:         "florida",
+			query:        q,
+			vars:         hw{"feed_version_sha1": "c969427f56d3a645195dd8365cde6d7feae7e99b", "stop_id": "8032"},
+			selector:     "stops.#.place.adm1_name",
+			selectExpect: []string{"Florida"},
+		},
+	}
+	queryTestcases(t, c, tcs)
+}
+
 func BenchmarkStopResolver(b *testing.B) {
 	c, te := newTestClient(b)
 	benchmarkTestcases(b, c, stopResolverTestcases(b, te))

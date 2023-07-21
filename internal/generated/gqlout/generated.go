@@ -817,6 +817,7 @@ type ComplexityRoot struct {
 		Parent             func(childComplexity int) int
 		PathwaysFromStop   func(childComplexity int, limit *int) int
 		PathwaysToStop     func(childComplexity int, limit *int) int
+		Place              func(childComplexity int) int
 		PlatformCode       func(childComplexity int) int
 		RouteStops         func(childComplexity int, limit *int) int
 		SearchRank         func(childComplexity int) int
@@ -855,6 +856,13 @@ type ComplexityRoot struct {
 		TripID                 func(childComplexity int) int
 		TripStartDate          func(childComplexity int) int
 		TripStartTime          func(childComplexity int) int
+	}
+
+	StopPlace struct {
+		Adm0Iso  func(childComplexity int) int
+		Adm0Name func(childComplexity int) int
+		Adm1Iso  func(childComplexity int) int
+		Adm1Name func(childComplexity int) int
 	}
 
 	StopTime struct {
@@ -1095,6 +1103,7 @@ type StopResolver interface {
 	Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
 	Arrivals(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
 
+	Place(ctx context.Context, obj *model.Stop) (*model.StopPlace, error)
 	CensusGeographies(ctx context.Context, obj *model.Stop, layer string, radius *float64, limit *int) ([]*model.CensusGeography, error)
 	Directions(ctx context.Context, obj *model.Stop, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) (*model.Directions, error)
 	NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error)
@@ -5132,6 +5141,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.PathwaysToStop(childComplexity, args["limit"].(*int)), true
 
+	case "Stop.place":
+		if e.complexity.Stop.Place == nil {
+			break
+		}
+
+		return e.complexity.Stop.Place(childComplexity), true
+
 	case "Stop.platform_code":
 		if e.complexity.Stop.PlatformCode == nil {
 			break
@@ -5365,6 +5381,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StopObservation.TripStartTime(childComplexity), true
+
+	case "StopPlace.adm0_iso":
+		if e.complexity.StopPlace.Adm0Iso == nil {
+			break
+		}
+
+		return e.complexity.StopPlace.Adm0Iso(childComplexity), true
+
+	case "StopPlace.adm0_name":
+		if e.complexity.StopPlace.Adm0Name == nil {
+			break
+		}
+
+		return e.complexity.StopPlace.Adm0Name(childComplexity), true
+
+	case "StopPlace.adm1_iso":
+		if e.complexity.StopPlace.Adm1Iso == nil {
+			break
+		}
+
+		return e.complexity.StopPlace.Adm1Iso(childComplexity), true
+
+	case "StopPlace.adm1_name":
+		if e.complexity.StopPlace.Adm1Name == nil {
+			break
+		}
+
+		return e.complexity.StopPlace.Adm1Name(childComplexity), true
 
 	case "StopTime.arrival":
 		if e.complexity.StopTime.Arrival == nil {
@@ -6955,6 +6999,7 @@ type Stop {
   departures(limit: Int, where: StopTimeFilter): [StopTime!]!
   arrivals(limit: Int, where: StopTimeFilter): [StopTime!]!
   search_rank: String # only for search results
+  place: StopPlace
   census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
   nearby_stops(limit: Int, radius: Float): [Stop!]
@@ -7124,10 +7169,17 @@ type StopExternalReference {
   target_active_stop: Stop
 }
 
-type AgencyPlace {
-  city_name: String
+type StopPlace {
   adm1_name: String
   adm0_name: String
+  adm0_iso: String
+  adm1_iso: String
+}
+
+type AgencyPlace {
+  city_name: String
+  adm0_name: String
+  adm1_name: String
   rank: Float
 }
 
@@ -9758,10 +9810,10 @@ func (ec *executionContext) fieldContext_Agency_places(ctx context.Context, fiel
 			switch field.Name {
 			case "city_name":
 				return ec.fieldContext_AgencyPlace_city_name(ctx, field)
-			case "adm1_name":
-				return ec.fieldContext_AgencyPlace_adm1_name(ctx, field)
 			case "adm0_name":
 				return ec.fieldContext_AgencyPlace_adm0_name(ctx, field)
+			case "adm1_name":
+				return ec.fieldContext_AgencyPlace_adm1_name(ctx, field)
 			case "rank":
 				return ec.fieldContext_AgencyPlace_rank(ctx, field)
 			}
@@ -10080,47 +10132,6 @@ func (ec *executionContext) fieldContext_AgencyPlace_city_name(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _AgencyPlace_adm1_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AgencyPlace_adm1_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Adm1Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AgencyPlace_adm1_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AgencyPlace",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _AgencyPlace_adm0_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AgencyPlace_adm0_name(ctx, field)
 	if err != nil {
@@ -10150,6 +10161,47 @@ func (ec *executionContext) _AgencyPlace_adm0_name(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_AgencyPlace_adm0_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AgencyPlace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AgencyPlace_adm1_name(ctx context.Context, field graphql.CollectedField, obj *model.AgencyPlace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AgencyPlace_adm1_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm1Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AgencyPlace_adm1_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AgencyPlace",
 		Field:      field,
@@ -16178,6 +16230,8 @@ func (ec *executionContext) fieldContext_FeedVersion_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -26875,6 +26929,8 @@ func (ec *executionContext) fieldContext_Level_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -28572,6 +28628,8 @@ func (ec *executionContext) fieldContext_Pathway_from_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -28684,6 +28742,8 @@ func (ec *executionContext) fieldContext_Pathway_to_stop(ctx context.Context, fi
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -29426,6 +29486,8 @@ func (ec *executionContext) fieldContext_Query_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -31756,6 +31818,8 @@ func (ec *executionContext) fieldContext_Route_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -32718,6 +32782,8 @@ func (ec *executionContext) fieldContext_RouteHeadway_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -33356,6 +33422,8 @@ func (ec *executionContext) fieldContext_RouteStop_stop(ctx context.Context, fie
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -35282,6 +35350,8 @@ func (ec *executionContext) fieldContext_Stop_parent(ctx context.Context, field 
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -35526,6 +35596,8 @@ func (ec *executionContext) fieldContext_Stop_children(ctx context.Context, fiel
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -36097,6 +36169,57 @@ func (ec *executionContext) fieldContext_Stop_search_rank(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Stop_place(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stop_place(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().Place(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StopPlace)
+	fc.Result = res
+	return ec.marshalOStopPlace2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopPlace(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stop_place(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "adm1_name":
+				return ec.fieldContext_StopPlace_adm1_name(ctx, field)
+			case "adm0_name":
+				return ec.fieldContext_StopPlace_adm0_name(ctx, field)
+			case "adm0_iso":
+				return ec.fieldContext_StopPlace_adm0_iso(ctx, field)
+			case "adm1_iso":
+				return ec.fieldContext_StopPlace_adm1_iso(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StopPlace", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Stop_census_geographies(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Stop_census_geographies(ctx, field)
 	if err != nil {
@@ -36338,6 +36461,8 @@ func (ec *executionContext) fieldContext_Stop_nearby_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -36697,6 +36822,8 @@ func (ec *executionContext) fieldContext_StopExternalReference_target_active_sto
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -37286,6 +37413,170 @@ func (ec *executionContext) fieldContext_StopObservation_observed_departure_time
 	return fc, nil
 }
 
+func (ec *executionContext) _StopPlace_adm1_name(ctx context.Context, field graphql.CollectedField, obj *model.StopPlace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopPlace_adm1_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm1Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopPlace_adm1_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopPlace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopPlace_adm0_name(ctx context.Context, field graphql.CollectedField, obj *model.StopPlace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopPlace_adm0_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm0Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopPlace_adm0_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopPlace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopPlace_adm0_iso(ctx context.Context, field graphql.CollectedField, obj *model.StopPlace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopPlace_adm0_iso(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm0Iso, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopPlace_adm0_iso(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopPlace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopPlace_adm1_iso(ctx context.Context, field graphql.CollectedField, obj *model.StopPlace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopPlace_adm1_iso(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm1Iso, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopPlace_adm1_iso(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopPlace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _StopTime_arrival_time(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_StopTime_arrival_time(ctx, field)
 	if err != nil {
@@ -37720,6 +38011,8 @@ func (ec *executionContext) fieldContext_StopTime_stop(ctx context.Context, fiel
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -40139,6 +40432,8 @@ func (ec *executionContext) fieldContext_ValidationResult_stops(ctx context.Cont
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -40965,6 +41260,8 @@ func (ec *executionContext) fieldContext_VehiclePosition_stop_id(ctx context.Con
 				return ec.fieldContext_Stop_arrivals(ctx, field)
 			case "search_rank":
 				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
 			case "census_geographies":
 				return ec.fieldContext_Stop_census_geographies(ctx, field)
 			case "directions":
@@ -44782,13 +45079,13 @@ func (ec *executionContext) _AgencyPlace(ctx context.Context, sel ast.SelectionS
 
 			out.Values[i] = ec._AgencyPlace_city_name(ctx, field, obj)
 
-		case "adm1_name":
-
-			out.Values[i] = ec._AgencyPlace_adm1_name(ctx, field, obj)
-
 		case "adm0_name":
 
 			out.Values[i] = ec._AgencyPlace_adm0_name(ctx, field, obj)
+
+		case "adm1_name":
+
+			out.Values[i] = ec._AgencyPlace_adm1_name(ctx, field, obj)
 
 		case "rank":
 
@@ -50140,6 +50437,23 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Stop_search_rank(ctx, field, obj)
 
+		case "place":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_place(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "census_geographies":
 			field := field
 
@@ -50344,6 +50658,43 @@ func (ec *executionContext) _StopObservation(ctx context.Context, sel ast.Select
 		case "observed_departure_time":
 
 			out.Values[i] = ec._StopObservation_observed_departure_time(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stopPlaceImplementors = []string{"StopPlace"}
+
+func (ec *executionContext) _StopPlace(ctx context.Context, sel ast.SelectionSet, obj *model.StopPlace) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stopPlaceImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StopPlace")
+		case "adm1_name":
+
+			out.Values[i] = ec._StopPlace_adm1_name(ctx, field, obj)
+
+		case "adm0_name":
+
+			out.Values[i] = ec._StopPlace_adm0_name(ctx, field, obj)
+
+		case "adm0_iso":
+
+			out.Values[i] = ec._StopPlace_adm0_iso(ctx, field, obj)
+
+		case "adm1_iso":
+
+			out.Values[i] = ec._StopPlace_adm1_iso(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -55999,6 +56350,13 @@ func (ec *executionContext) unmarshalOStopObservationFilter2ᚖgithubᚗcomᚋin
 	}
 	res, err := ec.unmarshalInputStopObservationFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOStopPlace2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopPlace(ctx context.Context, sel ast.SelectionSet, v *model.StopPlace) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._StopPlace(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOStopTime2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopTime(ctx context.Context, sel ast.SelectionSet, v *model.StopTime) graphql.Marshaler {

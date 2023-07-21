@@ -68,6 +68,7 @@ type EntityLoader interface {
 	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
 	OperatorsByOnestopID(context.Context, []string) ([]*Operator, []error)
 	OperatorsByAgencyID(context.Context, []int) ([]*Operator, []error)
+	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 
 	// Param loaders
 	FeedFetchesByFeedID(context.Context, []FeedFetchParam) ([][]*FeedFetch, []error)

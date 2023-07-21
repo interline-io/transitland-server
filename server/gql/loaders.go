@@ -39,6 +39,7 @@ type Loaders struct {
 	FeedVersionGtfsImportsByFeedVersionID   *dataloader.Loader[int, *model.FeedVersionGtfsImport]
 	CensusTableByID                         *dataloader.Loader[int, *model.CensusTable]
 	FeedVersionGeometryByID                 *dataloader.Loader[int, *tt.Polygon]
+	StopPlacesByStopID                      *dataloader.Loader[model.StopPlaceParam, *model.StopPlace]
 	FeedVersionsByFeedID                    *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
 	FeedFetchesByFeedID                     *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
 	OperatorsByFeedID                       *dataloader.Loader[model.OperatorParam, []*model.Operator]
@@ -130,6 +131,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		StopsByLevelID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByLevelID),
 		TargetStopsByStopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.TargetStopsByStopID),
 		RouteAttributesByRouteID:                withWaitAndCapacity(waitTime, maxBatch, dbf.RouteAttributesByRouteID),
+		StopPlacesByStopID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.StopPlacesByStopID),
 	}
 	return loaders
 }
