@@ -49,7 +49,6 @@ func TestAdminCache(t *testing.T) {
 	dbx := testutil.MustOpenTestDB()
 	c := NewAdminCache()
 	c.LoadAdmins(context.Background(), dbx)
-	c.CheckIndex(xy.Point{Lon: -122.431297, Lat: 37.773972})
 	tcs := getTestCases()
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
