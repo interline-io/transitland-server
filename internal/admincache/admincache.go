@@ -39,7 +39,6 @@ func NewAdminCache() *AdminCache {
 func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	// Don't have a tt.MultiPolygon to handle encoding/decoding
 	var ents []struct {
 		Adm0Name tt.String
 		Adm1Name tt.String
@@ -47,7 +46,14 @@ func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 		Adm1Iso  tt.String
 		Geometry tt.Geometry
 	}
-	q := sq.Select("ne.name as adm1_name", "ne.admin as adm0_name", "iso_a2 as adm0_iso", "iso_3166_2 as adm1_iso", "ne.geometry").From("ne_10m_admin_1_states_provinces ne")
+	q := sq.Select(
+		"ne.name as adm1_name",
+		"ne.admin as adm0_name",
+		"iso_a2 as adm0_iso",
+		"iso_3166_2 as adm1_iso",
+		"ne.geometry",
+	).
+		From("ne_10m_admin_1_states_provinces ne")
 	if err := dbutil.Select(ctx, dbx, q, &ents); err != nil {
 		return err
 	}
@@ -73,45 +79,14 @@ func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 	return nil
 }
 
-func (c *AdminCache) CheckPoints(pts []xy.Point) ([]AdminItem, error) {
-	ret := make([]AdminItem, len(pts))
-	for i, pt := range pts {
-		ret[i] = c.Check(pt)
-	}
-	return ret, nil
-}
-
 func (c *AdminCache) Check(pt xy.Point) AdminItem {
-	// This can be much faster, but can be invalid in open water, e.g. 0,0 = Kiribati
-	// However, in practice, most land area on Earth falls into more than 1 admin bbox
-	// if a, _ := c.CheckIndex(pt); a.Count < 2 {
-	// 	fmt.Println("index ok")
-	// 	return a
-	// }
 	a, _ := c.CheckPolygon(pt)
 	return a
 }
 
-func (c *AdminCache) CheckIndex(p xy.Point) (AdminItem, int) {
-	ret := AdminItem{}
-	count := 0
-	c.index.Search(
-		[2]float64{p.Lon, p.Lat},
-		[2]float64{p.Lon, p.Lat},
-		func(min, max [2]float64, s *AdminItem) bool {
-			ret.Adm0Name = s.Adm0Name
-			ret.Adm1Name = s.Adm1Name
-			ret.Adm0Iso = s.Adm0Iso
-			ret.Adm1Iso = s.Adm1Iso
-			ret.Count += 1
-			count += 1
-			return true
-		},
-	)
-	return ret, count
-}
-
 func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
+	// Checking just the index can be much faster, but can be invalid in open water, e.g. 0,0 = Kiribati
+	// However, in practice, most land area on Earth falls into more than 1 admin bbox
 	// No, we are not being fancy with projections.
 	// That could be improved.
 	ret := AdminItem{}
