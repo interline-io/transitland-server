@@ -7,7 +7,22 @@ import (
 
 func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.RouteFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
-		"gtfs_routes.*",
+		"gtfs_routes.id",
+		"gtfs_routes.feed_version_id",
+		"gtfs_routes.agency_id",
+		"gtfs_routes.route_id",
+		"gtfs_routes.route_short_name",
+		"gtfs_routes.route_long_name",
+		"gtfs_routes.route_color",
+		"gtfs_routes.route_desc",
+		"gtfs_routes.route_type",
+		"gtfs_routes.route_url",
+		"gtfs_routes.route_text_color",
+		"gtfs_routes.route_sort_order",
+		"gtfs_routes.network_id",
+		"gtfs_routes.as_route",
+		"gtfs_routes.continuous_pickup",
+		"gtfs_routes.continuous_drop_off",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
@@ -17,7 +32,8 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		OrderBy("gtfs_routes.feed_version_id,gtfs_routes.id")
+		OrderBy("gtfs_routes.feed_version_id,gtfs_routes.id").
+		Limit(checkLimit(limit))
 
 	// Handle previous OnestopIds
 	if where != nil {
@@ -94,6 +110,12 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 		}
 		// Handle license filtering
 		q = licenseFilter(where.License, q)
+
+		// Text search
+		if where.Search != nil && len(*where.Search) > 1 {
+			rank, wc := tsTableQuery("gtfs_routes", *where.Search)
+			q = q.Column(rank).Where(wc)
+		}
 	}
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
@@ -125,15 +147,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})
 
-	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
-	if where != nil {
-		if where.Search != nil && len(*where.Search) > 0 {
-			rank, wc := tsQuery(*where.Search)
-			qView = qView.Column(rank).Where(wc)
-		}
-	}
-	return qView
+	return q
 }
 
 func RouteStopBufferSelect(param model.RouteStopBufferParam) sq.SelectBuilder {

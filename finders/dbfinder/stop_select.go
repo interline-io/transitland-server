@@ -7,7 +7,22 @@ import (
 
 func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.StopFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
-		"gtfs_stops.*",
+		"gtfs_stops.id",
+		"gtfs_stops.feed_version_id",
+		"gtfs_stops.stop_id",
+		"gtfs_stops.stop_code",
+		"gtfs_stops.stop_name",
+		"gtfs_stops.stop_timezone",
+		"gtfs_stops.stop_url",
+		"gtfs_stops.location_type",
+		"gtfs_stops.wheelchair_boarding",
+		"gtfs_stops.zone_id",
+		"gtfs_stops.platform_code",
+		"gtfs_stops.tts_stop_name",
+		"gtfs_stops.geometry",
+		"gtfs_stops.level_id",
+		"gtfs_stops.parent_station",
+		"gtfs_stops.area_id",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
@@ -17,7 +32,8 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		Join("feed_versions ON feed_versions.id = gtfs_stops.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		OrderBy("gtfs_stops.feed_version_id,gtfs_stops.id")
+		OrderBy("gtfs_stops.feed_version_id,gtfs_stops.id").
+		Limit(checkLimit(limit))
 	distinct := false
 
 	// Handle previous OnestopIds
@@ -81,11 +97,13 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				q = q.Where(sq.Eq{"scount.stop_id": nil})
 			}
 		}
+
 		// Served by agency ID
 		if len(where.AgencyIds) > 0 {
 			distinct = true
 			q = q.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(sq.Eq{"tl_route_stops.agency_id": where.AgencyIds})
 		}
+
 		// Accepts both route and operator Onestop IDs
 		if len(where.ServedByOnestopIds) > 0 {
 			distinct = true
@@ -116,8 +134,15 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				q = q.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
 			}
 		}
+
 		// Handle license filtering
 		q = licenseFilter(where.License, q)
+
+		// Text search
+		if where.Search != nil && len(*where.Search) > 1 {
+			rank, wc := tsTableQuery("gtfs_stops", *where.Search)
+			q = q.Column(rank).Where(wc)
+		}
 	}
 
 	if distinct {
@@ -156,13 +181,5 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})
 
-	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
-	if where != nil {
-		if where.Search != nil && len(*where.Search) > 1 {
-			rank, wc := tsQuery(*where.Search)
-			qView = qView.Column(rank).Where(wc)
-		}
-	}
-	return qView
+	return q
 }

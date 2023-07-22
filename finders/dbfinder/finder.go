@@ -518,7 +518,14 @@ func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorP
 	qents := []*model.Operator{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(OperatorSelect(params[0].Limit, nil, nil, ids, nil, params[0].Where), "current_feeds", "id", "feed_id", ids),
+		lateralWrap(
+			OperatorSelect(params[0].Limit, nil, nil, ids, nil, params[0].Where),
+			"current_feeds",
+			"id",
+			"t",
+			"feed_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -568,7 +575,7 @@ func (f *Finder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedFet
 		}
 		err := dbutil.Select(ctx,
 			f.db,
-			lateralWrap(q, "current_feeds", "id", "feed_id", ids),
+			lateralWrap(q, "current_feeds", "id", "feed_fetches", "feed_id", ids),
 			&qents,
 		)
 		if err != nil {
@@ -601,9 +608,9 @@ func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.Fe
 	}
 	var qents []*ffeed
 	q := FeedSelect(nil, nil, nil, nil, params[0].Where).
-		Distinct().Options("on (coif.resolved_onestop_id, t.id)").
+		Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
 		Column("coif.resolved_onestop_id as operator_onestop_id").
-		Join("current_operators_in_feed coif on coif.feed_id = t.id").
+		Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
 		Where(sq.Eq{"coif.resolved_onestop_id": osids})
 	err := dbutil.Select(ctx,
 		f.db,
@@ -642,7 +649,14 @@ func (f *Finder) FrequenciesByTripID(ctx context.Context, params []model.Frequen
 	qents := []*model.Frequency{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(quickSelect("gtfs_frequencies", params[0].Limit, nil, nil), "gtfs_trips", "id", "trip_id", ids),
+		lateralWrap(
+			quickSelect("gtfs_frequencies", params[0].Limit, nil, nil),
+			"gtfs_trips",
+			"id",
+			"gtfs_frequencies",
+			"trip_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -779,7 +793,14 @@ func (f *Finder) RouteStopsByStopID(ctx context.Context, params []model.RouteSto
 	qents := []*model.RouteStop{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(quickSelectOrder("tl_route_stops", params[0].Limit, nil, nil, "stop_id"), "gtfs_stops", "id", "stop_id", ids),
+		lateralWrap(
+			quickSelectOrder("tl_route_stops", params[0].Limit, nil, nil, "stop_id"),
+			"gtfs_stops",
+			"id",
+			"tl_route_stops",
+			"stop_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -841,7 +862,14 @@ func (f *Finder) RouteStopsByRouteID(ctx context.Context, params []model.RouteSt
 	qents := []*model.RouteStop{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(quickSelectOrder("tl_route_stops", params[0].Limit, nil, nil, "stop_id"), "gtfs_routes", "id", "route_id", ids),
+		lateralWrap(
+			quickSelectOrder("tl_route_stops", params[0].Limit, nil, nil, "stop_id"),
+			"gtfs_routes",
+			"id",
+			"tl_route_stops",
+			"route_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -869,7 +897,14 @@ func (f *Finder) RouteHeadwaysByRouteID(ctx context.Context, params []model.Rout
 	qents := []*model.RouteHeadway{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(quickSelectOrder("tl_route_headways", params[0].Limit, nil, nil, "route_id"), "gtfs_routes", "id", "route_id", ids),
+		lateralWrap(
+			quickSelectOrder("tl_route_headways", params[0].Limit, nil, nil, "route_id"),
+			"gtfs_routes",
+			"id",
+			"tl_route_headways",
+			"route_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -932,7 +967,14 @@ func (f *Finder) FeedVersionFileInfosByFeedVersionID(ctx context.Context, params
 	qents := []*model.FeedVersionFileInfo{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(quickSelectOrder("feed_version_file_infos", params[0].Limit, nil, nil, "id"), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(
+			quickSelectOrder("feed_version_file_infos", params[0].Limit, nil, nil, "feed_version_id"),
+			"feed_versions",
+			"id",
+			"feed_version_file_infos",
+			"feed_version_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -960,7 +1002,14 @@ func (f *Finder) StopsByParentStopID(ctx context.Context, params []model.StopPar
 	qents := []*model.Stop{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "gtfs_stops", "id", "parent_station", ids),
+		lateralWrap(
+			StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			"gtfs_stops",
+			"id",
+			"gtfs_stops",
+			"parent_station",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -986,11 +1035,12 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 		SourceID int
 		*model.Stop
 	}
-	qents := []*qlookup{}
-	q := StopSelect(nil, nil, nil, true, nil, nil)
-	q = q.Column("tlse.id as source_id")
-	q = q.Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id")
-	q = q.Where(sq.Eq{"tlse.id": ids})
+	var qents []*qlookup
+	q := sq.
+		Select("t.*", "tlse.id as source_id").
+		FromSelect(StopSelect(nil, nil, nil, true, nil, nil), "t").
+		Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id").
+		Where(sq.Eq{"tlse.id": ids})
 	if err := dbutil.Select(ctx,
 		f.db,
 		q,
@@ -1020,7 +1070,14 @@ func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVe
 	qents := []*model.FeedVersion{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(FeedVersionSelect(params[0].Limit, nil, nil, nil, params[0].Where), "current_feeds", "id", "t.feed_id", ids),
+		lateralWrap(
+			FeedVersionSelect(params[0].Limit, nil, nil, nil, params[0].Where),
+			"current_feeds",
+			"id",
+			"feed_versions",
+			"feed_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1044,7 +1101,14 @@ func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.Agen
 	qents := []*model.AgencyPlace{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(quickSelectOrder("tl_agency_places", params[0].Limit, nil, nil, "agency_id").Where(sq.GtOrEq{"rank": minRank}), "gtfs_agencies", "id", "agency_id", ids),
+		lateralWrap(
+			quickSelectOrder("tl_agency_places", params[0].Limit, nil, nil, "agency_id").Where(sq.GtOrEq{"rank": minRank}),
+			"gtfs_agencies",
+			"id",
+			"tl_agency_places",
+			"agency_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1072,7 +1136,14 @@ func (f *Finder) RouteGeometriesByRouteID(ctx context.Context, params []model.Ro
 	qents := []*model.RouteGeometry{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(quickSelectOrder("tl_route_geometries", params[0].Limit, nil, nil, "route_id"), "gtfs_routes", "id", "route_id", ids),
+		lateralWrap(
+			quickSelectOrder("tl_route_geometries", params[0].Limit, nil, nil, "route_id"),
+			"gtfs_routes",
+			"id",
+			"tl_route_geometries",
+			"route_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1100,7 +1171,14 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 	qents := []*model.Trip{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(TripSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "gtfs_routes", "id", "route_id", ids),
+		lateralWrap(
+			TripSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			"gtfs_routes",
+			"id",
+			"gtfs_trips",
+			"route_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1128,7 +1206,14 @@ func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam
 	qents := []*model.Route{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "gtfs_agencies", "id", "agency_id", ids),
+		lateralWrap(
+			RouteSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			"gtfs_agencies",
+			"id",
+			"gtfs_routes",
+			"agency_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1156,7 +1241,14 @@ func (f *Finder) AgenciesByFeedVersionID(ctx context.Context, params []model.Age
 	qents := []*model.Agency{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(AgencySelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(
+			AgencySelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			"feed_versions",
+			"id",
+			"gtfs_agencies",
+			"feed_version_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1212,7 +1304,7 @@ func (f *Finder) StopsByFeedVersionID(ctx context.Context, params []model.StopPa
 	qents := []*model.Stop{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "gtfs_stops", "feed_version_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1240,7 +1332,14 @@ func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) (
 	qents := []*model.Stop{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "gtfs_levels", "id", "level_id", ids),
+		lateralWrap(
+			StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			"gtfs_levels",
+			"id",
+			"gtfs_stops",
+			"level_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1268,7 +1367,14 @@ func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripPa
 	qents := []*model.Trip{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(TripSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(
+			TripSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			"feed_versions",
+			"id",
+			"gtfs_trips",
+			"feed_version_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1296,7 +1402,14 @@ func (f *Finder) FeedInfosByFeedVersionID(ctx context.Context, params []model.Fe
 	qents := []*model.FeedInfo{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(quickSelectOrder("gtfs_feed_infos", params[0].Limit, nil, nil, "id"), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(
+			quickSelectOrder("gtfs_feed_infos", params[0].Limit, nil, nil, "feed_version_id"),
+			"feed_versions",
+			"id",
+			"gtfs_feed_infos",
+			"feed_version_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1324,7 +1437,14 @@ func (f *Finder) RoutesByFeedVersionID(ctx context.Context, params []model.Route
 	qents := []*model.Route{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(RouteSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(
+			RouteSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			"feed_versions",
+			"id",
+			"gtfs_routes",
+			"feed_version_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1352,7 +1472,14 @@ func (f *Finder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, pa
 	qents := []*model.FeedVersionServiceLevel{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(FeedVersionServiceLevelSelect(params[0].Limit, nil, nil, params[0].Where), "feed_versions", "id", "feed_version_id", ids),
+		lateralWrap(
+			FeedVersionServiceLevelSelect(params[0].Limit, nil, nil, params[0].Where),
+			"feed_versions",
+			"id",
+			"feed_version_service_levels",
+			"feed_version_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1380,7 +1507,14 @@ func (f *Finder) PathwaysByFromStopID(ctx context.Context, params []model.Pathwa
 	qents := []*model.Pathway{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(PathwaySelect(params[0].Limit, nil, nil, nil, params[0].Where), "gtfs_stops", "id", "from_stop_id", ids),
+		lateralWrap(
+			PathwaySelect(params[0].Limit, nil, nil, nil, params[0].Where),
+			"gtfs_stops",
+			"id",
+			"gtfs_pathways",
+			"from_stop_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {
@@ -1408,7 +1542,14 @@ func (f *Finder) PathwaysByToStopID(ctx context.Context, params []model.PathwayP
 	qents := []*model.Pathway{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(PathwaySelect(params[0].Limit, nil, nil, nil, params[0].Where), "gtfs_stops", "id", "to_stop_id", ids),
+		lateralWrap(
+			PathwaySelect(params[0].Limit, nil, nil, nil, params[0].Where),
+			"gtfs_stops",
+			"id",
+			"gtfs_pathways",
+			"to_stop_id",
+			ids,
+		),
 		&qents,
 	)
 	if err != nil {

@@ -7,7 +7,21 @@ import (
 
 func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.TripFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
-		"gtfs_trips.*",
+		"gtfs_trips.id",
+		"gtfs_trips.feed_version_id",
+		"gtfs_trips.route_id",
+		"gtfs_trips.service_id",
+		"gtfs_trips.shape_id",
+		"gtfs_trips.trip_id",
+		"gtfs_trips.trip_headsign",
+		"gtfs_trips.trip_short_name",
+		"gtfs_trips.direction_id",
+		"gtfs_trips.block_id",
+		"gtfs_trips.wheelchair_accessible",
+		"gtfs_trips.bikes_allowed",
+		"gtfs_trips.stop_pattern_id",
+		"gtfs_trips.journey_pattern_id",
+		"gtfs_trips.journey_pattern_offset",
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
@@ -15,7 +29,8 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		From("gtfs_trips").
 		Join("feed_versions ON feed_versions.id = gtfs_trips.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		OrderBy("gtfs_trips.feed_version_id,gtfs_trips.id")
+		OrderBy("gtfs_trips.feed_version_id,gtfs_trips.id").
+		Limit(checkLimit(limit))
 
 	if where != nil {
 		if where.StopPatternID != nil {
@@ -93,7 +108,5 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})
 
-	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
-	return qView
+	return q
 }

@@ -9,21 +9,34 @@ import (
 
 func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
-		Select("t.*").
-		From("feed_versions t").
-		Join("current_feeds on current_feeds.id = t.feed_id").Where(sq.Eq{"current_feeds.deleted_at": nil}).
+		Select(
+			"feed_versions.id",
+			"feed_versions.feed_id",
+			"feed_versions.sha1",
+			"feed_versions.fetched_at",
+			"feed_versions.url",
+			"feed_versions.earliest_calendar_date",
+			"feed_versions.latest_calendar_date",
+			"feed_versions.created_by",
+			"feed_versions.updated_by",
+			"feed_versions.name",
+			"feed_versions.description",
+			"feed_versions.file",
+		).
+		From("feed_versions").
+		Join("current_feeds on current_feeds.id = feed_versions.feed_id").Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Limit(checkLimit(limit)).
-		OrderBy("t.fetched_at desc, t.id desc")
+		OrderBy("feed_versions.fetched_at desc, feed_versions.id desc")
 
 	if where != nil {
 		if where.Sha1 != nil {
-			q = q.Where(sq.Eq{"t.sha1": *where.Sha1})
+			q = q.Where(sq.Eq{"feed_versions.sha1": *where.Sha1})
 		}
 		if where.File != nil {
-			q = q.Where(sq.Eq{"t.file": where.File})
+			q = q.Where(sq.Eq{"feed_versions.file": where.File})
 		}
 		if len(where.FeedIds) > 0 {
-			q = q.Where(sq.Eq{"t.feed_id": where.FeedIds})
+			q = q.Where(sq.Eq{"feed_versions.feed_id": where.FeedIds})
 		}
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
@@ -45,13 +58,13 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
 			}
 			if joinFvsw {
-				q = q.Join("feed_version_service_windows fvsw on fvsw.feed_version_id = t.id")
+				q = q.Join("feed_version_service_windows fvsw on fvsw.feed_version_id = feed_versions.id")
 			}
 			if covers.FetchedBefore != nil {
-				q = q.Where(sq.Lt{"t.fetched_at": covers.FetchedBefore})
+				q = q.Where(sq.Lt{"feed_versions.fetched_at": covers.FetchedBefore})
 			}
 			if covers.FetchedAfter != nil {
-				q = q.Where(sq.Gt{"t.fetched_at": covers.FetchedAfter})
+				q = q.Where(sq.Gt{"feed_versions.fetched_at": covers.FetchedAfter})
 			}
 		}
 
@@ -74,15 +87,15 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 			default:
 				log.Error().Str("value", v.String()).Msg("unknown import status enum")
 			}
-			q = q.Join(`feed_version_gtfs_imports fvgi on fvgi.feed_version_id = t.id`).
+			q = q.Join(`feed_version_gtfs_imports fvgi on fvgi.feed_version_id = feed_versions.id`).
 				Where(sq.Eq{"fvgi.success": checkSuccess, "fvgi.in_progress": checkInProgress})
 		}
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"t.id": ids})
+		q = q.Where(sq.Eq{"feed_versions.id": ids})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
-		q = q.Where(sq.Expr("(t.fetched_at,t.id) < (select fetched_at,id from feed_versions where id = ?)", after.ID))
+		q = q.Where(sq.Expr("(feed_versions.fetched_at,feed_versions.id) < (select fetched_at,id from feed_versions where id = ?)", after.ID))
 	}
 
 	// Handle permissions
@@ -91,17 +104,30 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
 			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"t.id": permFilter.GetAllowedFeedVersions()},
+			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})
 	return q
 }
 
 func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
-		Select("t.*").
-		From("feed_version_service_levels t").
+		Select(
+			"feed_version_service_levels.id",
+			"feed_version_service_levels.feed_version_id",
+			"feed_version_service_levels.route_id",
+			"feed_version_service_levels.start_date",
+			"feed_version_service_levels.end_date",
+			"feed_version_service_levels.monday",
+			"feed_version_service_levels.tuesday",
+			"feed_version_service_levels.wednesday",
+			"feed_version_service_levels.thursday",
+			"feed_version_service_levels.friday",
+			"feed_version_service_levels.saturday",
+			"feed_version_service_levels.sunday",
+		).
+		From("feed_version_service_levels").
 		Limit(checkLimit(limit)).
-		OrderBy("t.id")
+		OrderBy("feed_version_service_levels.id")
 
 	if where == nil {
 		where = &model.FeedVersionServiceLevelFilter{}
@@ -114,10 +140,10 @@ func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, w
 		q = q.Where(sq.LtOrEq{"end_date": where.EndDate})
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"t.id": ids})
+		q = q.Where(sq.Eq{"feed_version_service_levels.id": ids})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
-		q = q.Where(sq.Gt{"t.id": after.ID})
+		q = q.Where(sq.Gt{"feed_version_service_levels.id": after.ID})
 	}
 	return q
 }
