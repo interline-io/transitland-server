@@ -2,7 +2,6 @@ package admincache
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	sq "github.com/Masterminds/squirrel"
@@ -88,7 +87,7 @@ func (c *AdminCache) Check(pt xy.Point) AdminItem {
 	nearestAdmin, d := c.NearestPolygon(pt)
 	if d >= 0 && d < 0.2 {
 		ret = nearestAdmin
-		fmt.Println("found:", ret, "minDist:", d)
+		// fmt.Println("found:", ret, "minDist:", d)
 		ret.Count = 1
 	}
 	return ret
