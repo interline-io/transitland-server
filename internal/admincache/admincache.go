@@ -2,6 +2,7 @@ package admincache
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	sq "github.com/Masterminds/squirrel"
@@ -80,8 +81,17 @@ func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 }
 
 func (c *AdminCache) Check(pt xy.Point) AdminItem {
-	a, _ := c.CheckPolygon(pt)
-	return a
+	ret, count := c.CheckPolygon(pt)
+	if count >= 1 {
+		return ret
+	}
+	nearestAdmin, d := c.NearestPolygon(pt)
+	if d >= 0 && d < 0.2 {
+		ret = nearestAdmin
+		fmt.Println("found:", ret, "minDist:", d)
+		ret.Count = 1
+	}
+	return ret
 }
 
 func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
@@ -110,6 +120,28 @@ func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
 	return ret, count
 }
 
+func (c *AdminCache) NearestPolygon(p xy.Point) (AdminItem, float64) {
+	ret := AdminItem{}
+	minDist := -1.0
+	gp := geom.NewPointFlat(geom.XY, []float64{p.Lon, p.Lat})
+	c.index.Search(
+		[2]float64{p.Lon, p.Lat},
+		[2]float64{p.Lon, p.Lat},
+		func(min, max [2]float64, s *AdminItem) bool {
+			d := pointPolygonDistance(s.Geometry, gp)
+			if d < minDist || minDist < 0 {
+				ret.Adm0Name = s.Adm0Name
+				ret.Adm1Name = s.Adm1Name
+				ret.Adm0Iso = s.Adm0Iso
+				ret.Adm1Iso = s.Adm1Iso
+				minDist = d
+			}
+			return true
+		},
+	)
+	return ret, minDist
+}
+
 func pointInPolygon(pg *geom.Polygon, p *geom.Point) bool {
 	if !geomxy.IsPointInRing(geom.XY, p.Coords(), pg.LinearRing(0).FlatCoords()) {
 		return false
@@ -120,4 +152,16 @@ func pointInPolygon(pg *geom.Polygon, p *geom.Point) bool {
 		}
 	}
 	return true
+}
+
+func pointPolygonDistance(pg *geom.Polygon, p *geom.Point) float64 {
+	minDist := -1.0
+	c := geom.Coord{p.X(), p.Y()}
+	for i := 0; i < pg.NumLinearRings(); i++ {
+		d := geomxy.DistanceFromPointToLineString(p.Layout(), c, pg.LinearRing(i).FlatCoords())
+		if d < minDist || minDist < 0 {
+			minDist = d
+		}
+	}
+	return minDist
 }
