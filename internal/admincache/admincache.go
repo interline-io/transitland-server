@@ -85,7 +85,7 @@ func (c *AdminCache) Check(pt xy.Point) AdminItem {
 		return ret
 	}
 	nearestAdmin, d := c.NearestPolygon(pt)
-	if d >= 0 && d < 0.2 {
+	if d >= 0 && d < 0.5 {
 		ret = nearestAdmin
 		// fmt.Println("found:", ret, "minDist:", d)
 		ret.Count = 1
