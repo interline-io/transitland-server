@@ -21,7 +21,6 @@ type AdminItem struct {
 	Adm0Iso  string
 	Adm1Iso  string
 	Geometry *geom.Polygon
-	Count    int
 }
 
 type AdminCache struct {
@@ -79,18 +78,15 @@ func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 	return nil
 }
 
-func (c *AdminCache) Check(pt xy.Point) AdminItem {
+func (c *AdminCache) Check(pt xy.Point) (AdminItem, bool) {
 	ret, count := c.CheckPolygon(pt)
 	if count >= 1 {
-		return ret
+		return ret, count == 1
 	}
-	nearestAdmin, d := c.NearestPolygon(pt)
-	if d >= 0 && d < 0.5 {
-		ret = nearestAdmin
-		// fmt.Println("found:", ret, "minDist:", d)
-		ret.Count = 1
-	}
-	return ret
+	tolerance := 0.1
+	nearestAdmin, _, count := c.NearestPolygon(pt, tolerance)
+	// fmt.Println("nearestPolygon:", pt.Lon, pt.Lat, "admin:", nearestAdmin, "count:", count)
+	return nearestAdmin, count >= 1
 }
 
 func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
@@ -110,7 +106,6 @@ func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
 				ret.Adm1Name = s.Adm1Name
 				ret.Adm0Iso = s.Adm0Iso
 				ret.Adm1Iso = s.Adm1Iso
-				ret.Count += 1
 				count += 1
 			}
 			return true
@@ -119,26 +114,28 @@ func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
 	return ret, count
 }
 
-func (c *AdminCache) NearestPolygon(p xy.Point) (AdminItem, float64) {
+func (c *AdminCache) NearestPolygon(p xy.Point, tolerance float64) (AdminItem, float64, int) {
 	ret := AdminItem{}
 	minDist := -1.0
 	gp := geom.NewPointFlat(geom.XY, []float64{p.Lon, p.Lat})
+	count := 0
 	c.index.Search(
-		[2]float64{p.Lon, p.Lat},
-		[2]float64{p.Lon, p.Lat},
+		[2]float64{p.Lon - tolerance, p.Lat - tolerance},
+		[2]float64{p.Lon + tolerance, p.Lat + tolerance},
 		func(min, max [2]float64, s *AdminItem) bool {
 			d := pointPolygonDistance(s.Geometry, gp)
-			if d < minDist || minDist < 0 {
+			if d < tolerance && (d < minDist || minDist < 0) {
 				ret.Adm0Name = s.Adm0Name
 				ret.Adm1Name = s.Adm1Name
 				ret.Adm0Iso = s.Adm0Iso
 				ret.Adm1Iso = s.Adm1Iso
+				count += 1
 				minDist = d
 			}
 			return true
 		},
 	)
-	return ret, minDist
+	return ret, minDist, count
 }
 
 func pointInPolygon(pg *geom.Polygon, p *geom.Point) bool {

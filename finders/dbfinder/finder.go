@@ -1507,7 +1507,7 @@ func (f *Finder) StopPlacesByStopID(ctx context.Context, params []model.StopPlac
 	// Lookup stop places using AdminCache
 	a := map[int]*model.StopPlace{}
 	for _, param := range params {
-		if admin := f.adminCache.Check(param.Point); admin.Count == 1 {
+		if admin, ok := f.adminCache.Check(param.Point); ok {
 			a[param.ID] = &model.StopPlace{
 				Adm0Name: &admin.Adm0Name,
 				Adm1Name: &admin.Adm1Name,
