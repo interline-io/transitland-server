@@ -21,7 +21,6 @@ type AdminItem struct {
 	Adm0Iso  string
 	Adm1Iso  string
 	Geometry *geom.Polygon
-	Count    int
 }
 
 type AdminCache struct {
@@ -79,9 +78,15 @@ func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 	return nil
 }
 
-func (c *AdminCache) Check(pt xy.Point) AdminItem {
-	a, _ := c.CheckPolygon(pt)
-	return a
+func (c *AdminCache) Check(pt xy.Point) (AdminItem, bool) {
+	ret, count := c.CheckPolygon(pt)
+	if count >= 1 {
+		return ret, count == 1
+	}
+	tolerance := 0.25
+	nearestAdmin, _, count := c.NearestPolygon(pt, tolerance)
+	// fmt.Println("nearestPolygon:", pt.Lon, pt.Lat, "admin:", nearestAdmin, "count:", count)
+	return nearestAdmin, count >= 1
 }
 
 func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
@@ -101,13 +106,36 @@ func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
 				ret.Adm1Name = s.Adm1Name
 				ret.Adm0Iso = s.Adm0Iso
 				ret.Adm1Iso = s.Adm1Iso
-				ret.Count += 1
 				count += 1
 			}
 			return true
 		},
 	)
 	return ret, count
+}
+
+func (c *AdminCache) NearestPolygon(p xy.Point, tolerance float64) (AdminItem, float64, int) {
+	ret := AdminItem{}
+	minDist := -1.0
+	gp := geom.NewPointFlat(geom.XY, []float64{p.Lon, p.Lat})
+	count := 0
+	c.index.Search(
+		[2]float64{p.Lon - tolerance, p.Lat - tolerance},
+		[2]float64{p.Lon + tolerance, p.Lat + tolerance},
+		func(min, max [2]float64, s *AdminItem) bool {
+			d := pointPolygonDistance(s.Geometry, gp)
+			if d < tolerance && (d < minDist || minDist < 0) {
+				ret.Adm0Name = s.Adm0Name
+				ret.Adm1Name = s.Adm1Name
+				ret.Adm0Iso = s.Adm0Iso
+				ret.Adm1Iso = s.Adm1Iso
+				count += 1
+				minDist = d
+			}
+			return true
+		},
+	)
+	return ret, minDist, count
 }
 
 func pointInPolygon(pg *geom.Polygon, p *geom.Point) bool {
@@ -120,4 +148,16 @@ func pointInPolygon(pg *geom.Polygon, p *geom.Point) bool {
 		}
 	}
 	return true
+}
+
+func pointPolygonDistance(pg *geom.Polygon, p *geom.Point) float64 {
+	minDist := -1.0
+	c := geom.Coord{p.X(), p.Y()}
+	for i := 0; i < pg.NumLinearRings(); i++ {
+		d := geomxy.DistanceFromPointToLineString(p.Layout(), c, pg.LinearRing(i).FlatCoords())
+		if d < minDist || minDist < 0 {
+			minDist = d
+		}
+	}
+	return minDist
 }
