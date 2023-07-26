@@ -83,7 +83,7 @@ func (c *AdminCache) Check(pt xy.Point) (AdminItem, bool) {
 	if count >= 1 {
 		return ret, count == 1
 	}
-	tolerance := 0.1
+	tolerance := 0.25
 	nearestAdmin, _, count := c.NearestPolygon(pt, tolerance)
 	// fmt.Println("nearestPolygon:", pt.Lon, pt.Lat, "admin:", nearestAdmin, "count:", count)
 	return nearestAdmin, count >= 1
