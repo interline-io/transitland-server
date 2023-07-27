@@ -152,7 +152,7 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 			serviceDate,
 			pqfvids).
 		Where(sq.Eq{"sts.stop_id": sids, "sts.feed_version_id": fvids}).
-		OrderBy("departure_time") // base + offset
+		OrderBy("sts.departure_time + gtfs_trips.journey_pattern_offset", "sts.trip_id") // base + offset
 
 	if where != nil {
 		if where.ExcludeFirst != nil && *where.ExcludeFirst {
@@ -168,19 +168,20 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 					Select("gtfs_routes.route_id", "feed_versions.feed_id").
 					Distinct().Options("on (gtfs_routes.route_id, feed_versions.feed_id)").
 					From("tl_route_onestop_ids").
-					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id").
+					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id and gtfs_routes.feed_version_id = tl_route_onestop_ids.feed_version_id").
 					Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
 					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds}).
 					OrderBy("gtfs_routes.route_id, feed_versions.feed_id, feed_versions.id DESC")
+				// note: string join on route_id
 				subClause := sub.
 					Prefix("JOIN (").
-					Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
+					Suffix(") tlros on tlros.route_id = gtfs_routes.route_id and tlros.feed_id = feed_versions.feed_id")
 				q = q.
-					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
+					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id and gtfs_routes.feed_version_id = gtfs_trips.feed_version_id").
 					JoinClause(subClause)
 			} else {
 				q = q.
-					Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_trips.route_id").
+					Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_trips.route_id and tl_route_onestop_ids.feed_version_id = gtfs_trips.feed_version_id").
 					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 
 			}
