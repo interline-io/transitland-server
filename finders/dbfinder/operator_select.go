@@ -26,21 +26,26 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 		LeftJoin("current_operators co on co.id = coif.operator_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
-		OrderBy("coif.resolved_onestop_id, coif.operator_id")
+		OrderBy("coif.resolved_onestop_id, coif.operator_id").
+		Limit(checkLimit(limit))
 
 	if where != nil {
 		if where.Merged != nil && !*where.Merged {
 			distinct = false
 		}
+
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"current_feeds.onestop_id": where.FeedOnestopID})
 		}
+
 		if where.AgencyID != nil {
 			q = q.Where(sq.Eq{"coif.resolved_gtfs_agency_id": where.AgencyID})
 		}
+
 		if where.OnestopID != nil {
 			q = q.Where(sq.Eq{"coif.resolved_onestop_id": where.OnestopID})
 		}
+
 		// Tags
 		if where.Tags != nil {
 			for _, k := range where.Tags.Keys() {
@@ -53,6 +58,7 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 				}
 			}
 		}
+
 		// Places
 		if where.Adm0Iso != nil || where.Adm1Iso != nil || where.Adm0Name != nil || where.Adm1Name != nil || where.CityName != nil {
 			q = q.
@@ -76,8 +82,15 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 				q = q.Where(sq.ILike{"tlap.name": *where.CityName})
 			}
 		}
+
 		// Handle license filtering
 		q = licenseFilter(where.License, q)
+
+		// Text search
+		if where.Search != nil && len(*where.Search) > 1 {
+			rank, wc := tsTableQuery("coif", *where.Search)
+			q = q.Column(rank).Where(wc)
+		}
 	}
 	if distinct {
 		q = q.Distinct().Options("on (coif.resolved_onestop_id)")
@@ -87,9 +100,6 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 	}
 	if len(feedIds) > 0 {
 		q = q.Where(sq.Eq{"coif.feed_id": feedIds})
-	}
-	if after != nil && after.Valid && after.ID > 0 {
-		q = q.Where(sq.Gt{"coif.id": after.ID})
 	}
 
 	// Handle permissions
@@ -101,14 +111,10 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 		})
 
 	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
-	if where != nil {
-		if where.Search != nil && len(*where.Search) > 0 {
-			rank, wc := tsQuery(*where.Search)
-			qView = qView.Column(rank).Where(wc)
-		}
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").OrderBy("id")
+	if after != nil && after.Valid && after.ID > 0 {
+		qView = qView.Where(sq.Gt{"t.id": after.ID})
 	}
-	qView = qView.OrderBy("id")
 	return qView
 }
 

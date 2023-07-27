@@ -7,12 +7,27 @@ import (
 
 func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.PathwayFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
-		Select("t.*").
-		From("gtfs_pathways t").
-		Join("feed_versions on feed_versions.id = t.feed_version_id").
+		Select(
+			"gtfs_pathways.id",
+			"gtfs_pathways.feed_version_id",
+			"gtfs_pathways.pathway_id",
+			"gtfs_pathways.from_stop_id",
+			"gtfs_pathways.to_stop_id",
+			"gtfs_pathways.pathway_mode",
+			"gtfs_pathways.is_bidirectional",
+			"gtfs_pathways.length",
+			"gtfs_pathways.traversal_time",
+			"gtfs_pathways.stair_count",
+			"gtfs_pathways.max_slope",
+			"gtfs_pathways.min_width",
+			"gtfs_pathways.signposted_as",
+			"gtfs_pathways.reverse_signposted_as",
+		).
+		From("gtfs_pathways").
+		Join("feed_versions on feed_versions.id = gtfs_pathways.feed_version_id").
 		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
 		Limit(checkLimit(limit)).
-		OrderBy("t.id")
+		OrderBy("gtfs_pathways.id")
 
 	if where != nil {
 		if where.PathwayMode != nil {
@@ -20,10 +35,10 @@ func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model
 		}
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"t.id": ids})
+		q = q.Where(sq.Eq{"gtfs_pathways.id": ids})
 	}
 	if after != nil && after.Valid && after.ID > 0 {
-		q = q.Where(sq.Gt{"t.id": after.ID})
+		q = q.Where(sq.Gt{"gtfs_pathways.id": after.ID})
 	}
 
 	// Handle permissions

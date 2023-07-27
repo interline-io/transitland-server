@@ -9,7 +9,16 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 	distinct := false
 	q := sq.StatementBuilder.
 		Select(
-			"gtfs_agencies.*",
+			"gtfs_agencies.id",
+			"gtfs_agencies.feed_version_id",
+			"gtfs_agencies.agency_id",
+			"gtfs_agencies.agency_name",
+			"gtfs_agencies.agency_url",
+			"gtfs_agencies.agency_timezone",
+			"gtfs_agencies.agency_lang",
+			"gtfs_agencies.agency_phone",
+			"gtfs_agencies.agency_fare_url",
+			"gtfs_agencies.agency_email",
 			"tl_agency_geometries.geometry",
 			"feed_versions.sha1 AS feed_version_sha1",
 			"current_feeds.onestop_id AS feed_onestop_id",
@@ -22,7 +31,8 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 		JoinClause("left join tl_agency_geometries ON tl_agency_geometries.agency_id = gtfs_agencies.id").
 		JoinClause("left join current_operators_in_feed coif ON coif.feed_id = current_feeds.id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		OrderBy("gtfs_agencies.feed_version_id,gtfs_agencies.id")
+		OrderBy("gtfs_agencies.feed_version_id,gtfs_agencies.id").
+		Limit(checkLimit(limit))
 
 	if where != nil {
 		if where.FeedVersionSha1 != nil {
@@ -72,6 +82,12 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 		}
 		// Handle license filtering
 		q = licenseFilter(where.License, q)
+
+		// Text search
+		if where.Search != nil && len(*where.Search) > 1 {
+			rank, wc := tsTableQuery("gtfs_agencies", *where.Search)
+			q = q.Column(rank).Where(wc)
+		}
 	}
 
 	if distinct {
@@ -107,13 +123,5 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})
 
-	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").Limit(checkLimit(limit))
-	if where != nil {
-		if where.Search != nil && len(*where.Search) > 1 {
-			rank, wc := tsQuery(*where.Search)
-			qView = qView.Column(rank).Where(wc)
-		}
-	}
-	return qView
+	return q
 }
