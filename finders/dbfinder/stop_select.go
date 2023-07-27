@@ -11,6 +11,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		"gtfs_stops.feed_version_id",
 		"gtfs_stops.stop_id",
 		"gtfs_stops.stop_code",
+		"gtfs_stops.stop_desc",
 		"gtfs_stops.stop_name",
 		"gtfs_stops.stop_timezone",
 		"gtfs_stops.stop_url",

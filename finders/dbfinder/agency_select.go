@@ -9,8 +9,8 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 	distinct := false
 	q := sq.StatementBuilder.
 		Select(
-			"gtfs_agencies.feed_version_id",
 			"gtfs_agencies.id",
+			"gtfs_agencies.feed_version_id",
 			"gtfs_agencies.agency_id",
 			"gtfs_agencies.agency_name",
 			"gtfs_agencies.agency_url",

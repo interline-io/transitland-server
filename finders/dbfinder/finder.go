@@ -1271,12 +1271,14 @@ func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyP
 	}
 	ids := []string{}
 	for _, p := range params {
-		ids = append(ids, *p.OnestopID)
+		if p.OnestopID != nil {
+			ids = append(ids, *p.OnestopID)
+		}
 	}
 	qents := []*model.Agency{}
 	err := dbutil.Select(ctx,
 		f.db,
-		AgencySelect(params[0].Limit, nil, nil, true, &model.PermFilter{}, nil).Where(sq.Eq{"onestop_id": ids}), // active=true
+		AgencySelect(params[0].Limit, nil, nil, true, &model.PermFilter{}, nil).Where(sq.Eq{"coif.resolved_onestop_id": ids}), // active=true
 		&qents,
 	)
 	if err != nil {
