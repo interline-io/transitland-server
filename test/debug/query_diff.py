@@ -2,7 +2,7 @@ import json
 import requests
 import sys
 import os
-from difflib import Differ
+from difflib import Differ, context_diff
 from pprint import pprint
 
 queryfile = sys.argv[1]
@@ -16,7 +16,9 @@ with open(queryfile, encoding='utf-8') as f:
 
 for count,req in enumerate(reqs):
     print("q:", count)
-    b = req['body']
+    b = req.get('body')
+    if not b:
+        continue
     resps = []
     for ep in endpoints:
         print("\t", ep)
@@ -24,14 +26,22 @@ for count,req in enumerate(reqs):
         print("\t\tok")
         resps.append(resp)
 
+
+    ok = True
     for i in range(1,len(resps)):
         r1 = resps[i]
         r2 = resps[i-1]
         if r1 != r2:
             print("diff:")
-            d = Differ()
             text1 = json.dumps(r1, indent=2).splitlines()
             text2 = json.dumps(r2, indent=2).splitlines()
-            result = list(d.compare(text1, text2))
-            sys.stdout.writelines(result)
-                
+            result = list(context_diff(text1, text2))
+            # pprint(result)
+            print("\n".join(result))
+            ok = False    
+
+    if not ok:
+        for i,resp in enumerate(resps):
+            with open(f"q-{count}-{i}.json", "w", encoding="utf-8") as outf:
+                json.dump(resp, outf, indent=2)
+            
