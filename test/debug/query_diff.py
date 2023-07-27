@@ -2,9 +2,11 @@ import json
 import requests
 import sys
 import os
+import time
 from difflib import Differ, context_diff
 from pprint import pprint
 
+tnow = time.time()
 queryfile = sys.argv[1]
 endpoints = sys.argv[2:]
 apikey = os.environ.get('TRANSITLAND_API_KEY')
@@ -19,11 +21,14 @@ for count,req in enumerate(reqs):
     b = req.get('body')
     if not b:
         continue
+    print(b.get('query'))
+    print(b.get('variables'))
     resps = []
     for ep in endpoints:
         print("\t", ep)
+        t = time.time()
         resp = requests.post(ep, json = b, headers={'apikey':apikey}).json()
-        print("\t\tok")
+        print("\t\tok", time.time()-t)
         resps.append(resp)
 
 
@@ -42,6 +47,6 @@ for count,req in enumerate(reqs):
 
     if not ok:
         for i,resp in enumerate(resps):
-            with open(f"q-{count}-{i}.json", "w", encoding="utf-8") as outf:
+            with open(f"q-result-{tnow}-{count}-{i}.json", "w", encoding="utf-8") as outf:
                 json.dump(resp, outf, indent=2)
             

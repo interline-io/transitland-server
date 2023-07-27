@@ -51,6 +51,7 @@ type Command struct {
 	EnableJobsApi     bool
 	EnableWorkers     bool
 	EnableProfiler    bool
+	LoadAdmins        bool
 	QueuePrefix       string
 	SecretsFile       string
 	AuthMiddlewares   arrayFlags
@@ -107,6 +108,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
 	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
 	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
+	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
 
 	// Admin api
 	fl.StringVar(&cmd.AuthzConfig.GlobalAdmin, "global-admin", "", "Global admin user")
@@ -180,7 +182,9 @@ func (cmd *Command) Run() error {
 	// Create Finder
 	var dbFinder model.Finder
 	f := dbfinder.NewFinder(db)
-	f.LoadAdmins()
+	if cmd.LoadAdmins {
+		f.LoadAdmins()
+	}
 	dbFinder = f
 
 	// Open redis

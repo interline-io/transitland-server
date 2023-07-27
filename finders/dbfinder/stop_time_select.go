@@ -36,7 +36,7 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, permFilter *model.PermFilt
 		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
 		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
-		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
+		Join("gtfs_stop_times sts ON sts.trip_id = t2.id AND sts.feed_version_id = t2.feed_version_id").
 		OrderBy("sts.stop_sequence, sts.arrival_time")
 
 	if where != nil {
@@ -98,8 +98,16 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
 		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
-		Join("gtfs_stop_times sts ON sts.trip_id = t2.id").
-		JoinClause(`join lateral (select min(stop_sequence), max(stop_sequence) max from gtfs_stop_times sts2 where sts2.trip_id = t2.id AND sts2.feed_version_id = t2.feed_version_id) trip_stop_sequence on true`).
+		Join("gtfs_stop_times sts ON sts.trip_id = t2.id and sts.feed_version_id = t2.feed_version_id").
+		JoinClause(`join lateral (
+			select 
+				min(stop_sequence), 
+				max(stop_sequence) max 
+			from gtfs_stop_times sts2 
+			where 
+				sts2.trip_id = t2.id 
+				AND sts2.feed_version_id = t2.feed_version_id
+			) trip_stop_sequence on true`).
 		JoinClause(`join (
 			SELECT
 				id
@@ -118,11 +126,6 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 					WHEN 7 THEN sunday = 1
 				END)
 				AND feed_version_id = ANY(?)
-				AND id NOT IN (
-					SELECT service_id 
-					FROM gtfs_calendar_dates 
-					WHERE service_id = gtfs_calendars.id AND date = ? AND exception_type = 2 AND feed_version_id = ANY(?)
-				)
 			UNION
 			SELect
 				service_id as id
@@ -132,7 +135,14 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 				date = ?
 				AND exception_type = 1
 				AND feed_version_id = ANY(?)
-		) gc on gc.id = gtfs_trips.service_id`,
+			EXCEPT
+			SELECT service_id as id
+			FROM gtfs_calendar_dates 
+			WHERE 
+				date = ? 
+				AND exception_type = 2 
+				AND feed_version_id = ANY(?)			
+			) gc on gc.id = gtfs_trips.service_id`,
 			serviceDate,
 			serviceDate,
 			serviceDate,
@@ -142,7 +152,7 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 			serviceDate,
 			pqfvids).
 		Where(sq.Eq{"sts.stop_id": sids, "sts.feed_version_id": fvids}).
-		OrderBy("departure_time") // base + offset
+		OrderBy("sts.departure_time + gtfs_trips.journey_pattern_offset", "sts.trip_id") // base + offset
 
 	if where != nil {
 		if where.ExcludeFirst != nil && *where.ExcludeFirst {
@@ -158,19 +168,20 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 					Select("gtfs_routes.route_id", "feed_versions.feed_id").
 					Distinct().Options("on (gtfs_routes.route_id, feed_versions.feed_id)").
 					From("tl_route_onestop_ids").
-					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id").
+					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id and gtfs_routes.feed_version_id = tl_route_onestop_ids.feed_version_id").
 					Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
 					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds}).
 					OrderBy("gtfs_routes.route_id, feed_versions.feed_id, feed_versions.id DESC")
+				// note: string join on route_id
 				subClause := sub.
 					Prefix("JOIN (").
-					Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
+					Suffix(") tlros on tlros.route_id = gtfs_routes.route_id and tlros.feed_id = feed_versions.feed_id")
 				q = q.
-					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
+					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id and gtfs_routes.feed_version_id = gtfs_trips.feed_version_id").
 					JoinClause(subClause)
 			} else {
 				q = q.
-					Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_trips.route_id").
+					Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_trips.route_id and tl_route_onestop_ids.feed_version_id = gtfs_trips.feed_version_id").
 					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 
 			}
@@ -182,10 +193,10 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 			where.EndTime = &where.End.Seconds
 		}
 		if where.StartTime != nil {
-			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.StartTime})
+			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": *where.StartTime})
 		}
 		if where.EndTime != nil {
-			q = q.Where(sq.LtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.EndTime})
+			q = q.Where(sq.LtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": *where.EndTime})
 		}
 	}
 
