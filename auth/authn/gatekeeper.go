@@ -76,7 +76,7 @@ func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (User, error)
 			return nil, err
 		}
 	}
-	user := newCtxUser(gkUser.Name).WithRoles(gkUser.Roles...).WithExternalIDs(gkUser.ExternalIDs)
+	user := newCtxUser(gkUser.ID).WithRoles(gkUser.Roles...).WithExternalIDs(gkUser.ExternalIDs)
 	return user, nil
 }
 
@@ -144,7 +144,7 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 
 	// Process roles and external IDs
 	item := gkCacheItem{
-		Name:        userKey,
+		ID:          userKey,
 		Roles:       []string{},
 		ExternalIDs: map[string]string{},
 	}
@@ -163,7 +163,7 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 
 // gkCacheItem needed for internal cached representation of ctxUser (Roles/ExternalIDs as exported fields)
 type gkCacheItem struct {
-	Name        string
+	ID          string
 	Roles       []string
 	ExternalIDs map[string]string
 }

@@ -15,15 +15,15 @@ type CtxUser struct {
 }
 
 func NewCtxUser(id string, name string, email string) CtxUser {
-	a := newCtxUserWith(id, nil, nil)
-	a.name = name
-	a.email = email
+	a := newCtxUserWith(id, name, email, nil, nil)
 	return a
 }
 
-func newCtxUserWith(id string, roles map[string]bool, externalIds map[string]string) CtxUser {
+func newCtxUserWith(id string, name string, email string, roles map[string]bool, externalIds map[string]string) CtxUser {
 	u := CtxUser{
 		id:          id,
+		name:        name,
+		email:       email,
 		valid:       true,
 		roles:       map[string]bool{},
 		externalIds: map[string]string{},
@@ -38,7 +38,7 @@ func newCtxUserWith(id string, roles map[string]bool, externalIds map[string]str
 }
 
 func (user CtxUser) clone() CtxUser {
-	return newCtxUserWith(user.name, user.roles, user.externalIds)
+	return newCtxUserWith(user.id, user.name, user.email, user.roles, user.externalIds)
 }
 
 func (user CtxUser) Name() string {

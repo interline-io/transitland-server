@@ -93,7 +93,7 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"locally cached value ok when endpoint available",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
+				u := gkCacheItem{ID: testEmail, Roles: []string{testRole}}
 				gk := NewGatekeeper(nil, ts200.URL, "user", "roles", "external_ids")
 				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
@@ -105,7 +105,7 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"locally cached value ok when endpoint down",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
+				u := gkCacheItem{ID: testEmail, Roles: []string{testRole}}
 				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles", "external_ids")
 				gk.RequestTimeout = 100 * time.Millisecond
 				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
@@ -191,7 +191,7 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"redis cached value ok when endpoint down",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
+				u := gkCacheItem{ID: testEmail, Roles: []string{testRole}}
 				db, mock := redismock.NewClientMock()
 				mock.ExpectGet(cacheRedisKey("gatekeeper", testEmail)).SetVal(cacheItemJson(u, 0))
 				gk := NewGatekeeper(db, tsTimeout.URL, "user", "roles", "external_ids")
@@ -262,7 +262,6 @@ func (gk *GatekeeperTestServer) AddUser(key string, user userWithRoles) {
 		gk.users = map[string]userWithRoles{}
 	}
 	gk.users[key] = newCtxUser(user.ID()).WithRoles(user.Roles()...)
-
 }
 
 func (gk *GatekeeperTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {

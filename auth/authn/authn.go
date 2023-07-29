@@ -19,8 +19,8 @@ func WithUser(ctx context.Context, user auth.User) context.Context {
 	return auth.WithUser(ctx, user)
 }
 
-func newCtxUser(name string) auth.CtxUser {
-	return auth.NewCtxUser(name, "", "")
+func newCtxUser(id string) auth.CtxUser {
+	return auth.NewCtxUser(id, "", "")
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
