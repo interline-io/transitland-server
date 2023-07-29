@@ -17,6 +17,7 @@ with open(queryfile, encoding='utf-8') as f:
         reqs.append(json.loads(row))
 
 for count,req in enumerate(reqs):
+    print("=============================")
     print("q:", count)
     b = req.get('body')
     if not b:

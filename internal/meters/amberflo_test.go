@@ -12,7 +12,7 @@ type amberfloTestUser struct {
 	name string
 }
 
-func (u *amberfloTestUser) Name() string {
+func (u *amberfloTestUser) ID() string {
 	return u.name
 }
 

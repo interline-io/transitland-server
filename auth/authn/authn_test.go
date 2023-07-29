@@ -5,19 +5,25 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/interline-io/transitland-server/auth"
 	"github.com/stretchr/testify/assert"
 )
+
+type userWithRoles interface {
+	User
+	Roles() []string
+}
 
 func TestUserMiddleware(t *testing.T) {
 	a := UserDefaultMiddleware("test")
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	testAuthMiddleware(t, req, a, 200, newCtxUser("test"))
+	testAuthMiddleware(t, req, a, 200, auth.NewCtxUser("test", "", ""))
 }
 
 func TestAdminMiddleware(t *testing.T) {
 	a := AdminDefaultMiddleware("test")
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	testAuthMiddleware(t, req, a, 200, newCtxUser("test").WithRoles("admin"))
+	testAuthMiddleware(t, req, a, 200, auth.NewCtxUser("test", "", "").WithRoles("admin"))
 }
 
 func TestNoMiddleware(t *testing.T) {
@@ -34,7 +40,7 @@ func TestUserRequired(t *testing.T) {
 		name string
 		mwf  MiddlewareFunc
 		code int
-		user User
+		user userWithRoles
 	}{
 		{"with user", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("test")(UserRequired(next)) }, 200, newCtxUser("test").WithRoles("admin")},
 		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("test")(UserRequired(next)) }, 200, newCtxUser("test")},
@@ -53,7 +59,7 @@ func TestAdminRequired(t *testing.T) {
 		name string
 		mwf  MiddlewareFunc
 		code int
-		user User
+		user userWithRoles
 	}{
 		{"with admin", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("test")(AdminRequired(next)) }, 200, newCtxUser("test").WithRoles("admin")},
 		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("test")(AdminRequired(next)) }, 401, nil}, // mw kills request before handler
@@ -67,7 +73,7 @@ func TestAdminRequired(t *testing.T) {
 	}
 }
 
-func testAuthMiddleware(t *testing.T, req *http.Request, mwf MiddlewareFunc, expectCode int, expectUser User) {
+func testAuthMiddleware(t *testing.T, req *http.Request, mwf MiddlewareFunc, expectCode int, expectUser userWithRoles) {
 	var user User
 	testHandler := func(w http.ResponseWriter, r *http.Request) {
 		user = ForContext(r.Context())
@@ -81,8 +87,10 @@ func testAuthMiddleware(t *testing.T, req *http.Request, mwf MiddlewareFunc, exp
 	//
 	assert.Equal(t, expectCode, w.Result().StatusCode)
 	if expectUser != nil && user != nil {
-		assert.Equal(t, expectUser.Name(), user.Name())
-		assert.ElementsMatch(t, expectUser.Roles(), user.Roles())
+		assert.Equal(t, expectUser.ID(), user.ID())
+		for _, checkRole := range expectUser.Roles() {
+			assert.Equalf(t, true, user.HasRole(checkRole), "checking role '%s'", checkRole)
+		}
 	} else if expectUser == nil && user != nil {
 		t.Errorf("got user, expected none")
 	} else if expectUser != nil && user == nil {

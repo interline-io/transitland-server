@@ -24,7 +24,7 @@ func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 			t1 := time.Now()
 			userName := ""
 			if user := authn.ForContext(ctx); user != nil {
-				userName = user.Name()
+				userName = user.ID()
 			}
 			// Get request body for logging if request is json and length under 20kb
 			var body []byte

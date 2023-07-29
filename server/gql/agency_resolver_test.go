@@ -6,7 +6,6 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-server/auth/authn"
-	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
@@ -243,27 +242,27 @@ func TestAgencyResolver_Cursor(t *testing.T) {
 	}
 }
 
-var fgaTestTuples = []authz.TupleKey{
+var fgaTestTuples = []azpb.TupleKey{
 	{
-		Subject:  authz.NewEntityKey(azpb.UserType, "ian"),
-		Object:   authz.NewEntityKey(azpb.TenantType, "tl-tenant"),
+		Subject:  azpb.NewEntityKey(azpb.UserType, "ian"),
+		Object:   azpb.NewEntityKey(azpb.TenantType, "tl-tenant"),
 		Relation: azpb.AdminRelation,
 	},
 	{
-		Object:   authz.NewEntityKey(azpb.GroupType, "BA-group"),
-		Subject:  authz.NewEntityKey(azpb.TenantType, "tl-tenant"),
+		Object:   azpb.NewEntityKey(azpb.GroupType, "BA-group"),
+		Subject:  azpb.NewEntityKey(azpb.TenantType, "tl-tenant"),
 		Relation: azpb.ParentRelation,
 	},
 	// This is a public feed
 	{
-		Subject:  authz.NewEntityKey(azpb.GroupType, "BA-group"),
-		Object:   authz.NewEntityKey(azpb.FeedType, "BA"),
+		Subject:  azpb.NewEntityKey(azpb.GroupType, "BA-group"),
+		Object:   azpb.NewEntityKey(azpb.FeedType, "BA"),
 		Relation: azpb.ParentRelation,
 	},
 	// This is a non-public feed
 	{
-		Subject:  authz.NewEntityKey(azpb.GroupType, "BA-group"),
-		Object:   authz.NewEntityKey(azpb.FeedType, "EG"),
+		Subject:  azpb.NewEntityKey(azpb.GroupType, "BA-group"),
+		Object:   azpb.NewEntityKey(azpb.FeedType, "EG"),
 		Relation: azpb.ParentRelation,
 	},
 }

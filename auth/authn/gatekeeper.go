@@ -28,8 +28,8 @@ func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Check context for a user name; if it is present, replace user context with gatekeeper user
 			ctx := r.Context()
-			if user := ForContext(ctx); user != nil && user.Name() != "" {
-				checkUser, err := gk.GetUser(ctx, user.Name())
+			if user := ForContext(ctx); user != nil && user.ID() != "" {
+				checkUser, err := gk.GetUser(ctx, user.ID())
 				if err != nil {
 					if !allowError {
 						http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
@@ -67,14 +67,6 @@ func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey 
 	return gk
 }
 
-func (gk *Gatekeeper) GetUserRoles(ctx context.Context, userKey string) ([]string, error) {
-	u, err := gk.GetUser(ctx, userKey)
-	if err != nil {
-		return nil, err
-	}
-	return u.Roles(), nil
-}
-
 func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (User, error) {
 	gkUser, ok := gk.cache.Get(ctx, userKey)
 	if !ok {
@@ -102,9 +94,10 @@ func (gk *Gatekeeper) updateUsers(ctx context.Context) {
 	// This can be improved to avoid races
 	keys := gk.cache.GetRecheckKeys(ctx)
 	for _, userKey := range keys {
-		if _, err := gk.updateUser(ctx, userKey); err != nil {
-			// Failed :( Error logging handled in updateUser
-		}
+		gk.updateUser(ctx, userKey)
+		// ; err != nil {
+		// 	// Failed :( Error logging handled in updateUser
+		// }
 	}
 }
 

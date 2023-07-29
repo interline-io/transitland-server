@@ -69,7 +69,7 @@ func TestGatekeeper(t *testing.T) {
 		name  string
 		mwf   MiddlewareFunc
 		code  int
-		user  User
+		user  userWithRoles
 		after func(*testing.T)
 	}{
 		{
@@ -250,18 +250,18 @@ func cacheRedisKey(topic string, key string) string {
 
 // Trivial implementation of Gatekeeper for testing purposes
 type GatekeeperTestServer struct {
-	users  map[string]User
+	users  map[string]userWithRoles
 	counts map[string]int
 	lock   sync.Mutex
 }
 
-func (gk *GatekeeperTestServer) AddUser(key string, user User) {
+func (gk *GatekeeperTestServer) AddUser(key string, user userWithRoles) {
 	gk.lock.Lock()
 	defer gk.lock.Unlock()
 	if gk.users == nil {
-		gk.users = map[string]User{}
+		gk.users = map[string]userWithRoles{}
 	}
-	gk.users[key] = newCtxUser(user.Name()).WithRoles(user.Roles()...)
+	gk.users[key] = newCtxUser(user.ID()).WithRoles(user.Roles()...)
 
 }
 
@@ -269,7 +269,7 @@ func (gk *GatekeeperTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 	gk.lock.Lock()
 	defer gk.lock.Unlock()
 	u := r.URL.Query()
-	var user User
+	var user userWithRoles
 	if a := u["user"]; len(a) > 0 {
 		user = gk.users[a[0]]
 	}
@@ -277,9 +277,11 @@ func (gk *GatekeeperTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 		if gk.counts == nil {
 			gk.counts = map[string]int{}
 		}
-		gk.counts[user.Name()] += 1
+		gk.counts[user.ID()] += 1
 		umap := map[string]any{
+			"id":    user.ID(),
 			"name":  user.Name(),
+			"email": user.Email(),
 			"roles": user.Roles(),
 		}
 		jb, err := json.Marshal(umap)

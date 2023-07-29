@@ -45,7 +45,7 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 		FetchedAt: time.Now().In(time.UTC),
 	}
 	if user != nil {
-		fetchOpts.CreatedBy = tt.NewString(user.Name())
+		fetchOpts.CreatedBy = tt.NewString(user.ID())
 	}
 
 	// Allow a Reader

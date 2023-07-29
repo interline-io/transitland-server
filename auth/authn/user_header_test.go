@@ -11,7 +11,7 @@ func TestKongMiddleware(t *testing.T) {
 		name       string
 		consumerId string
 		code       int
-		user       User
+		user       userWithRoles
 	}{
 		{"test", "test@transitland", 200, newCtxUser("test@transitland")},
 		{"no user", "", 200, nil},

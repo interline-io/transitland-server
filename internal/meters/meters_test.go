@@ -10,7 +10,7 @@ type testUser struct {
 	name string
 }
 
-func (u testUser) Name() string {
+func (u testUser) ID() string {
 	return u.name
 }
 
