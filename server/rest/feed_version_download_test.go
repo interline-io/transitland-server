@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/ancheck"
 	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
@@ -21,7 +21,7 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	restSrv = authn.AdminDefaultMiddleware("test")(restSrv)
+	restSrv = ancheck.AdminDefaultMiddleware("test")(restSrv)
 
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feed_versions/d2813c293bcfd7a97dde599527ae6c62c98e66c6/download", nil)

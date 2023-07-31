@@ -1,10 +1,12 @@
-package azpb
+package authz
 
 import (
 	"errors"
 	"fmt"
 	"strconv"
 )
+
+var ErrUnauthorized = errors.New("unauthorized")
 
 // For convenience
 

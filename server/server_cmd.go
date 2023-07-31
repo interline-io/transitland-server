@@ -21,8 +21,8 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-server/auth/authn"
-	"github.com/interline-io/transitland-server/auth/authz"
+	"github.com/interline-io/transitland-server/auth/ancheck"
+	"github.com/interline-io/transitland-server/auth/azcheck"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
@@ -57,8 +57,8 @@ type Command struct {
 	AuthMiddlewares   arrayFlags
 	metersConfig      metersConfig
 	metricsConfig     metricsConfig
-	AuthConfig        authn.AuthConfig
-	AuthzConfig       authz.AuthzConfig
+	AuthConfig        ancheck.AuthConfig
+	CheckerConfig     azcheck.CheckerConfig
 	config.Config
 }
 
@@ -111,14 +111,14 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
 
 	// Admin api
-	fl.StringVar(&cmd.AuthzConfig.GlobalAdmin, "global-admin", "", "Global admin user")
-	fl.StringVar(&cmd.AuthzConfig.Auth0ClientID, "auth0-client-id", "", "Auth0 client ID")
-	fl.StringVar(&cmd.AuthzConfig.Auth0ClientSecret, "auth0-client-secret", "", "Auth0 client secret")
-	fl.StringVar(&cmd.AuthzConfig.Auth0Domain, "auth0-domain", "", "Auth0 domain")
-	fl.StringVar(&cmd.AuthzConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
-	fl.StringVar(&cmd.AuthzConfig.FGAStoreID, "fga-store-id", "", "FGA store")
-	fl.StringVar(&cmd.AuthzConfig.FGAModelID, "fga-model-id", "", "FGA model")
-	fl.StringVar(&cmd.AuthzConfig.FGALoadModelFile, "fga-load-model-file", "", "")
+	fl.StringVar(&cmd.CheckerConfig.GlobalAdmin, "global-admin", "", "Global admin user")
+	fl.StringVar(&cmd.CheckerConfig.Auth0ClientID, "auth0-client-id", "", "Auth0 client ID")
+	fl.StringVar(&cmd.CheckerConfig.Auth0ClientSecret, "auth0-client-secret", "", "Auth0 client secret")
+	fl.StringVar(&cmd.CheckerConfig.Auth0Domain, "auth0-domain", "", "Auth0 domain")
+	fl.StringVar(&cmd.CheckerConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
+	fl.StringVar(&cmd.CheckerConfig.FGAStoreID, "fga-store-id", "", "FGA store")
+	fl.StringVar(&cmd.CheckerConfig.FGAModelID, "fga-model-id", "", "FGA model")
+	fl.StringVar(&cmd.CheckerConfig.FGALoadModelFile, "fga-load-model-file", "", "")
 
 	// Metrics
 	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
@@ -215,8 +215,8 @@ func (cmd *Command) Run() error {
 
 	// Setup authorization checker
 	var checker model.Checker
-	if cmd.AuthzConfig.FGAEndpoint != "" {
-		authzChecker, err := authz.NewCheckerFromConfig(cmd.AuthzConfig, db, redisClient)
+	if cmd.CheckerConfig.FGAEndpoint != "" {
+		authzChecker, err := azcheck.NewCheckerFromConfig(cmd.CheckerConfig, db, redisClient)
 		if err != nil {
 			return err
 		}
@@ -257,7 +257,7 @@ func (cmd *Command) Run() error {
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
-		if userMiddleware, err := authn.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
+		if userMiddleware, err := ancheck.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
 			return err
 		} else {
 			root.Use(userMiddleware)
@@ -298,7 +298,7 @@ func (cmd *Command) Run() error {
 		r := chi.NewRouter()
 		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("graphql")))
 		r.Use(meters.WithMeter(meterProvider, "graphql", 1.0, nil))
-		r.Use(authn.UserRequired)
+		r.Use(ancheck.UserRequired)
 		r.Mount("/", graphqlServer)
 		root.Mount("/query", r)
 	}
@@ -312,7 +312,7 @@ func (cmd *Command) Run() error {
 		r := chi.NewRouter()
 		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("rest")))
 		r.Use(meters.WithMeter(meterProvider, "rest", 1.0, nil))
-		r.Use(authn.UserRequired)
+		r.Use(ancheck.UserRequired)
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)
 	}
@@ -324,12 +324,12 @@ func (cmd *Command) Run() error {
 
 	// Admin API
 	if cmd.EnableAdminApi {
-		adminServer, err := authz.NewServer(checker)
+		adminServer, err := azcheck.NewServer(checker)
 		if err != nil {
 			return err
 		}
 		r := chi.NewRouter()
-		r.Use(authn.UserRequired)
+		r.Use(ancheck.UserRequired)
 		r.Mount("/", adminServer)
 		root.Mount("/admin", r)
 	}
@@ -364,7 +364,7 @@ func (cmd *Command) Run() error {
 			}
 			// Mount with admin permissions required
 			r := chi.NewRouter()
-			r.Use(authn.AdminRequired)
+			r.Use(ancheck.AdminRequired)
 			r.Mount("/", jobServer)
 			root.Mount("/jobs", r)
 		}

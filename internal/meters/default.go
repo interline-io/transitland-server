@@ -42,7 +42,7 @@ func (m *DefaultMeter) sendMeter(u MeterUser, meterName string, value float64, d
 	}
 	userName := ""
 	if u != nil {
-		userName = u.Name()
+		userName = u.ID()
 	}
 
 	a[userName] += value
@@ -63,7 +63,7 @@ func (m *DefaultMeter) getValue(u MeterUser, meterName string) (float64, bool) {
 		a = map[string]float64{}
 		m.values[meterName] = a
 	}
-	v, ok := a[u.Name()]
+	v, ok := a[u.ID()]
 	return v, ok
 }
 

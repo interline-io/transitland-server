@@ -6,9 +6,9 @@ import (
 
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -127,5 +127,5 @@ type GbfsFinder interface {
 }
 
 type Checker interface {
-	azpb.CheckerServer
+	authz.CheckerServer
 }

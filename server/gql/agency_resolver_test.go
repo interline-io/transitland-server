@@ -5,9 +5,8 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/ancheck"
 	"github.com/interline-io/transitland-server/auth/authz"
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 )
@@ -245,26 +244,26 @@ func TestAgencyResolver_Cursor(t *testing.T) {
 
 var fgaTestTuples = []authz.TupleKey{
 	{
-		Subject:  authz.NewEntityKey(azpb.UserType, "ian"),
-		Object:   authz.NewEntityKey(azpb.TenantType, "tl-tenant"),
-		Relation: azpb.AdminRelation,
+		Subject:  authz.NewEntityKey(authz.UserType, "ian"),
+		Object:   authz.NewEntityKey(authz.TenantType, "tl-tenant"),
+		Relation: authz.AdminRelation,
 	},
 	{
-		Object:   authz.NewEntityKey(azpb.GroupType, "BA-group"),
-		Subject:  authz.NewEntityKey(azpb.TenantType, "tl-tenant"),
-		Relation: azpb.ParentRelation,
+		Object:   authz.NewEntityKey(authz.GroupType, "BA-group"),
+		Subject:  authz.NewEntityKey(authz.TenantType, "tl-tenant"),
+		Relation: authz.ParentRelation,
 	},
 	// This is a public feed
 	{
-		Subject:  authz.NewEntityKey(azpb.GroupType, "BA-group"),
-		Object:   authz.NewEntityKey(azpb.FeedType, "BA"),
-		Relation: azpb.ParentRelation,
+		Subject:  authz.NewEntityKey(authz.GroupType, "BA-group"),
+		Object:   authz.NewEntityKey(authz.FeedType, "BA"),
+		Relation: authz.ParentRelation,
 	},
 	// This is a non-public feed
 	{
-		Subject:  authz.NewEntityKey(azpb.GroupType, "BA-group"),
-		Object:   authz.NewEntityKey(azpb.FeedType, "EG"),
-		Relation: azpb.ParentRelation,
+		Subject:  authz.NewEntityKey(authz.GroupType, "BA-group"),
+		Object:   authz.NewEntityKey(authz.FeedType, "EG"),
+		Relation: authz.ParentRelation,
 	},
 }
 
@@ -298,7 +297,7 @@ func TestAgencyResolver_Authz(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			c := client.New(authn.UserDefaultMiddleware(tc.user)(srv))
+			c := client.New(ancheck.UserDefaultMiddleware(tc.user)(srv))
 			queryTestcase(t, c, tc)
 		})
 	}

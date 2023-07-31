@@ -108,11 +108,11 @@ func (m *AmberFlo) getValue(user MeterUser, meterName string) (float64, bool) {
 		Filter:               filter,
 	})
 	if err != nil {
-		log.Error().Err(err).Str("user", user.Name()).Msg("could not get value")
+		log.Error().Err(err).Str("user", user.ID()).Msg("could not get value")
 		return 0, false
 	}
 	if usageResult == nil || len(usageResult.ClientMeters) == 0 || len(usageResult.ClientMeters[0].Values) == 0 {
-		log.Error().Err(err).Str("user", user.Name()).Msg("could not get value; no client value meter")
+		log.Error().Err(err).Str("user", user.ID()).Msg("could not get value; no client value meter")
 		return 0, false
 	}
 	cm := usageResult.ClientMeters[0].Values
@@ -127,7 +127,7 @@ func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, ex
 	}
 	customerId, ok := m.getCustomerID(cfg, user)
 	if !ok {
-		log.Error().Str("user", user.Name()).Msg("could not meter; no amberflo user id")
+		log.Error().Str("user", user.ID()).Msg("could not meter; no amberflo user id")
 		return nil
 	}
 	uniqueId := uuid.NewRandom().String()
@@ -161,7 +161,7 @@ func (m *AmberFlo) getCustomerID(cfg amberFloConfig, user MeterUser) (string, bo
 		}
 	}
 	if customerId == "" {
-		log.Error().Str("user", user.Name()).Str("external_id_key", cfg.ExternalIDKey).Msg("could not get value; no amberflo customer id")
+		log.Error().Str("user", user.ID()).Str("external_id_key", cfg.ExternalIDKey).Msg("could not get value; no amberflo customer id")
 	}
 	return customerId, customerId != ""
 }
@@ -205,7 +205,7 @@ func (m *amberFloMeter) Meter(meterName string, value float64, extraDimensions m
 		}
 	}
 	log.Trace().
-		Str("user", m.user.Name()).
+		Str("user", m.user.ID()).
 		Str("meter", meterName).
 		Float64("meter_value", value).
 		Msg("meter")

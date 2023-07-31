@@ -1,6 +1,7 @@
-package authn
+package ancheck
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -69,7 +70,7 @@ func TestGatekeeper(t *testing.T) {
 		name  string
 		mwf   MiddlewareFunc
 		code  int
-		user  User
+		user  userWithRoles
 		after func(*testing.T)
 	}{
 		{
@@ -93,9 +94,9 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"locally cached value ok when endpoint available",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
+				u := gkCacheItem{ID: testEmail, Roles: []string{testRole}}
 				gk := NewGatekeeper(nil, ts200.URL, "user", "roles", "external_ids")
-				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
+				gk.cache.SetTTL(context.Background(), testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
@@ -105,10 +106,10 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"locally cached value ok when endpoint down",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
+				u := gkCacheItem{ID: testEmail, Roles: []string{testRole}}
 				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles", "external_ids")
 				gk.RequestTimeout = 100 * time.Millisecond
-				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
+				gk.cache.SetTTL(context.Background(), testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
@@ -191,7 +192,7 @@ func TestGatekeeper(t *testing.T) {
 		{
 			"redis cached value ok when endpoint down",
 			func(next http.Handler) http.Handler {
-				u := gkCacheItem{Name: testEmail, Roles: []string{testRole}}
+				u := gkCacheItem{ID: testEmail, Roles: []string{testRole}}
 				db, mock := redismock.NewClientMock()
 				mock.ExpectGet(cacheRedisKey("gatekeeper", testEmail)).SetVal(cacheItemJson(u, 0))
 				gk := NewGatekeeper(db, tsTimeout.URL, "user", "roles", "external_ids")
@@ -250,26 +251,25 @@ func cacheRedisKey(topic string, key string) string {
 
 // Trivial implementation of Gatekeeper for testing purposes
 type GatekeeperTestServer struct {
-	users  map[string]User
+	users  map[string]userWithRoles
 	counts map[string]int
 	lock   sync.Mutex
 }
 
-func (gk *GatekeeperTestServer) AddUser(key string, user User) {
+func (gk *GatekeeperTestServer) AddUser(key string, user userWithRoles) {
 	gk.lock.Lock()
 	defer gk.lock.Unlock()
 	if gk.users == nil {
-		gk.users = map[string]User{}
+		gk.users = map[string]userWithRoles{}
 	}
-	gk.users[key] = newCtxUser(user.Name()).WithRoles(user.Roles()...)
-
+	gk.users[key] = newCtxUser(user.ID()).WithRoles(user.Roles()...)
 }
 
 func (gk *GatekeeperTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	gk.lock.Lock()
 	defer gk.lock.Unlock()
 	u := r.URL.Query()
-	var user User
+	var user userWithRoles
 	if a := u["user"]; len(a) > 0 {
 		user = gk.users[a[0]]
 	}
@@ -277,9 +277,11 @@ func (gk *GatekeeperTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 		if gk.counts == nil {
 			gk.counts = map[string]int{}
 		}
-		gk.counts[user.Name()] += 1
+		gk.counts[user.ID()] += 1
 		umap := map[string]any{
+			"id":    user.ID(),
 			"name":  user.Name(),
+			"email": user.Email(),
 			"roles": user.Roles(),
 		}
 		jb, err := json.Marshal(umap)

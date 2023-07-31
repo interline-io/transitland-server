@@ -22,7 +22,7 @@ type MeterProvider interface {
 }
 
 type MeterUser interface {
-	Name() string
+	ID() string
 	GetExternalID(string) (string, bool)
 }
 

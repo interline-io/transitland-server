@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v4.23.3
-// source: checker.proto
+// source: azpb.proto
 
-package azpb
+package authz
 
 import (
 	context "context"
@@ -1001,5 +1001,5 @@ var Checker_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "checker.proto",
+	Metadata: "azpb.proto",
 }

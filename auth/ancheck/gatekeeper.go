@@ -1,4 +1,4 @@
-package authn
+package ancheck
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/internal/ecache"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/tidwall/gjson"
@@ -28,15 +29,15 @@ func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Check context for a user name; if it is present, replace user context with gatekeeper user
 			ctx := r.Context()
-			if user := ForContext(ctx); user != nil && user.Name() != "" {
-				checkUser, err := gk.GetUser(ctx, user.Name())
+			if user := authn.ForContext(ctx); user != nil && user.ID() != "" {
+				checkUser, err := gk.GetUser(ctx, user.ID())
 				if err != nil {
 					if !allowError {
 						http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
 						return
 					}
 				} else {
-					r = r.WithContext(WithUser(r.Context(), checkUser))
+					r = r.WithContext(authn.WithUser(r.Context(), checkUser))
 				}
 			}
 			next.ServeHTTP(w, r)
@@ -67,15 +68,7 @@ func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey 
 	return gk
 }
 
-func (gk *Gatekeeper) GetUserRoles(ctx context.Context, userKey string) ([]string, error) {
-	u, err := gk.GetUser(ctx, userKey)
-	if err != nil {
-		return nil, err
-	}
-	return u.Roles(), nil
-}
-
-func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (User, error) {
+func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (authn.User, error) {
 	gkUser, ok := gk.cache.Get(ctx, userKey)
 	if !ok {
 		var err error
@@ -84,7 +77,7 @@ func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (User, error)
 			return nil, err
 		}
 	}
-	user := newCtxUser(gkUser.Name).WithRoles(gkUser.Roles...).WithExternalIDs(gkUser.ExternalIDs)
+	user := authn.NewCtxUser(gkUser.ID, "", "").WithRoles(gkUser.Roles...).WithExternalIDs(gkUser.ExternalIDs)
 	return user, nil
 }
 
@@ -102,9 +95,10 @@ func (gk *Gatekeeper) updateUsers(ctx context.Context) {
 	// This can be improved to avoid races
 	keys := gk.cache.GetRecheckKeys(ctx)
 	for _, userKey := range keys {
-		if _, err := gk.updateUser(ctx, userKey); err != nil {
-			// Failed :( Error logging handled in updateUser
-		}
+		gk.updateUser(ctx, userKey)
+		// ; err != nil {
+		// 	// Failed :( Error logging handled in updateUser
+		// }
 	}
 }
 
@@ -151,7 +145,7 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 
 	// Process roles and external IDs
 	item := gkCacheItem{
-		Name:        userKey,
+		ID:          userKey,
 		Roles:       []string{},
 		ExternalIDs: map[string]string{},
 	}
@@ -170,7 +164,7 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 
 // gkCacheItem needed for internal cached representation of ctxUser (Roles/ExternalIDs as exported fields)
 type gkCacheItem struct {
-	Name        string
+	ID          string
 	Roles       []string
 	ExternalIDs map[string]string
 }

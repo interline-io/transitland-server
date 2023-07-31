@@ -1,9 +1,10 @@
-package authn
+package ancheck
 
 import (
 	"net/http"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/internal/util"
 )
 
@@ -20,25 +21,6 @@ type AuthConfig struct {
 	JwtIssuer                    string
 	JwtPublicKeyFile             string
 	UserHeader                   string
-}
-
-// User provides access to key user metadata and roles.
-type User interface {
-	Name() string
-	IsValid() bool
-	Roles() []string
-	HasRole(string) bool
-	GetExternalID(string) (string, bool)
-	WithRoles(...string) User
-	WithExternalIDs(map[string]string) User
-}
-
-// A private key for context that only this package can access. This is important
-// to prevent collisions between different context uses
-var userCtxKey = &contextKey{"user"}
-
-type contextKey struct {
-	name string
 }
 
 // GetUserMiddleware returns a middleware that sets user details.
@@ -65,20 +47,20 @@ func GetUserMiddleware(authType string, cfg AuthConfig, client *redis.Client) (M
 
 // AdminDefaultMiddleware uses a default "admin" context.
 func AdminDefaultMiddleware(defaultName string) func(http.Handler) http.Handler {
-	return NewUserDefaultMiddleware(func() User { return newCtxUser(defaultName).WithRoles("admin") })
+	return newUserDefaultMiddleware(func() authn.User { return authn.NewCtxUser(defaultName, "", "").WithRoles("admin") })
 }
 
 // UserDefaultMiddleware uses a default "user" context.
 func UserDefaultMiddleware(defaultName string) func(http.Handler) http.Handler {
-	return NewUserDefaultMiddleware(func() User { return newCtxUser(defaultName) })
+	return newUserDefaultMiddleware(func() authn.User { return authn.NewCtxUser(defaultName, "", "") })
 }
 
-// NewUserDefaultMiddleware uses a default "user" context.
-func NewUserDefaultMiddleware(cb func() User) func(http.Handler) http.Handler {
+// newUserDefaultMiddleware uses a default "user" context.
+func newUserDefaultMiddleware(cb func() authn.User) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := cb()
-			r = r.WithContext(WithUser(r.Context(), user))
+			r = r.WithContext(authn.WithUser(r.Context(), user))
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -98,7 +80,7 @@ func RoleRequired(role string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			user := ForContext(ctx)
+			user := authn.ForContext(ctx)
 			if user == nil || !user.HasRole(role) {
 				http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
 				return

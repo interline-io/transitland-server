@@ -12,7 +12,6 @@ import (
 	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -20,7 +19,7 @@ func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder,
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}
-	if check, err := checker.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+	if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEdit {
 		return nil, authz.ErrUnauthorized
@@ -44,7 +43,7 @@ func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finde
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}
-	if check, err := checker.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+	if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEdit {
 		return nil, authz.ErrUnauthorized
@@ -65,7 +64,7 @@ func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder,
 	if checker == nil {
 		return authz.ErrUnauthorized
 	}
-	if check, err := checker.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+	if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 		return err
 	} else if !check.Actions.CanEdit {
 		return authz.ErrUnauthorized
@@ -99,7 +98,7 @@ func FeedVersionDelete(ctx context.Context, cfg config.Config, dbf model.Finder,
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}
-	if check, err := checker.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+	if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEdit {
 		return nil, authz.ErrUnauthorized

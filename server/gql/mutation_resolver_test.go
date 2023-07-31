@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/ancheck"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
@@ -26,7 +26,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 	t.Run("found sha1", func(t *testing.T) {
 		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
-			srv = authn.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
+			srv = ancheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
 			// Run all requests as admin
 			c := client.New(srv)
 			resp := make(map[string]interface{})
@@ -129,7 +129,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 				srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
-				srv = authn.UserDefaultMiddleware("test")(srv) // Run all requests as user
+				srv = ancheck.UserDefaultMiddleware("test")(srv) // Run all requests as user
 				c := client.New(srv)
 				queryTestcase(t, c, tc)
 			})

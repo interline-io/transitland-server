@@ -10,6 +10,7 @@ import (
 
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/auth/authz"
+	"github.com/interline-io/transitland-server/auth/azcheck"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
@@ -59,12 +60,12 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 	}
 
 	// Setup Checker
-	checkerCfg := authz.AuthzConfig{
+	checkerCfg := azcheck.CheckerConfig{
 		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
 		FGALoadModelFile: opts.FGAModelFile,
 		FGALoadTestData:  opts.FGAModelTuples,
 	}
-	checker, err := authz.NewCheckerFromConfig(checkerCfg, db, nil)
+	checker, err := azcheck.NewCheckerFromConfig(checkerCfg, db, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
