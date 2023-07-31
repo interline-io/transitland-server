@@ -58,7 +58,7 @@ type Command struct {
 	metersConfig      metersConfig
 	metricsConfig     metricsConfig
 	AuthConfig        ancheck.AuthConfig
-	AuthzConfig       azcheck.AuthzConfig
+	CheckerConfig     azcheck.CheckerConfig
 	config.Config
 }
 
@@ -111,14 +111,14 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
 
 	// Admin api
-	fl.StringVar(&cmd.AuthzConfig.GlobalAdmin, "global-admin", "", "Global admin user")
-	fl.StringVar(&cmd.AuthzConfig.Auth0ClientID, "auth0-client-id", "", "Auth0 client ID")
-	fl.StringVar(&cmd.AuthzConfig.Auth0ClientSecret, "auth0-client-secret", "", "Auth0 client secret")
-	fl.StringVar(&cmd.AuthzConfig.Auth0Domain, "auth0-domain", "", "Auth0 domain")
-	fl.StringVar(&cmd.AuthzConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
-	fl.StringVar(&cmd.AuthzConfig.FGAStoreID, "fga-store-id", "", "FGA store")
-	fl.StringVar(&cmd.AuthzConfig.FGAModelID, "fga-model-id", "", "FGA model")
-	fl.StringVar(&cmd.AuthzConfig.FGALoadModelFile, "fga-load-model-file", "", "")
+	fl.StringVar(&cmd.CheckerConfig.GlobalAdmin, "global-admin", "", "Global admin user")
+	fl.StringVar(&cmd.CheckerConfig.Auth0ClientID, "auth0-client-id", "", "Auth0 client ID")
+	fl.StringVar(&cmd.CheckerConfig.Auth0ClientSecret, "auth0-client-secret", "", "Auth0 client secret")
+	fl.StringVar(&cmd.CheckerConfig.Auth0Domain, "auth0-domain", "", "Auth0 domain")
+	fl.StringVar(&cmd.CheckerConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
+	fl.StringVar(&cmd.CheckerConfig.FGAStoreID, "fga-store-id", "", "FGA store")
+	fl.StringVar(&cmd.CheckerConfig.FGAModelID, "fga-model-id", "", "FGA model")
+	fl.StringVar(&cmd.CheckerConfig.FGALoadModelFile, "fga-load-model-file", "", "")
 
 	// Metrics
 	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
@@ -215,8 +215,8 @@ func (cmd *Command) Run() error {
 
 	// Setup authorization checker
 	var checker model.Checker
-	if cmd.AuthzConfig.FGAEndpoint != "" {
-		authzChecker, err := azcheck.NewCheckerFromConfig(cmd.AuthzConfig, db, redisClient)
+	if cmd.CheckerConfig.FGAEndpoint != "" {
+		authzChecker, err := azcheck.NewCheckerFromConfig(cmd.CheckerConfig, db, redisClient)
 		if err != nil {
 			return err
 		}

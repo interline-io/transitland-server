@@ -71,7 +71,7 @@ type FGAProvider interface {
 	DeleteTuple(context.Context, TupleKey) error
 }
 
-type AuthzConfig struct {
+type CheckerConfig struct {
 	Auth0Domain       string
 	Auth0ClientID     string
 	Auth0ClientSecret string
@@ -91,7 +91,7 @@ type Checker struct {
 	authz.UnsafeCheckerServer
 }
 
-func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Client) (*Checker, error) {
+func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext, redisClient *redis.Client) (*Checker, error) {
 	var userClient UserProvider
 	userClient = NewMockUserProvider()
 	var fgaClient FGAProvider

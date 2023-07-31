@@ -1751,7 +1751,7 @@ func checkActionsToMap(v []Action) map[string]bool {
 
 func newTestChecker(t testing.TB, url string, testData []testCase) *Checker {
 	dbx := testutil.MustOpenTestDB()
-	cfg := AuthzConfig{
+	cfg := CheckerConfig{
 		FGAEndpoint:      url,
 		FGALoadModelFile: testutil.RelPath("test/authz/tls.json"),
 		GlobalAdmin:      "global_admin",

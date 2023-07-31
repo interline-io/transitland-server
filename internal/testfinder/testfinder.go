@@ -60,7 +60,7 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 	}
 
 	// Setup Checker
-	checkerCfg := azcheck.AuthzConfig{
+	checkerCfg := azcheck.CheckerConfig{
 		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
 		FGALoadModelFile: opts.FGAModelFile,
 		FGALoadTestData:  opts.FGAModelTuples,
