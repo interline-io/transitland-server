@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package azpb;
+package authz;
 
 service Checker {
     rpc UserList (UserListRequest) returns (UserListResponse) {}

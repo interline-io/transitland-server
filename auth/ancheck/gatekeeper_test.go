@@ -1,6 +1,7 @@
-package authn
+package ancheck
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -95,7 +96,7 @@ func TestGatekeeper(t *testing.T) {
 			func(next http.Handler) http.Handler {
 				u := gkCacheItem{ID: testEmail, Roles: []string{testRole}}
 				gk := NewGatekeeper(nil, ts200.URL, "user", "roles", "external_ids")
-				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
+				gk.cache.SetTTL(context.Background(), testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,
@@ -108,7 +109,7 @@ func TestGatekeeper(t *testing.T) {
 				u := gkCacheItem{ID: testEmail, Roles: []string{testRole}}
 				gk := NewGatekeeper(nil, tsTimeout.URL, "user", "roles", "external_ids")
 				gk.RequestTimeout = 100 * time.Millisecond
-				gk.cache.SetTTL(nil, testEmail, u, 0, 0)
+				gk.cache.SetTTL(context.Background(), testEmail, u, 0, 0)
 				return UserDefaultMiddleware(testEmail)(newGatekeeperMiddleware(gk, false)(next))
 			},
 			200,

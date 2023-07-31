@@ -11,6 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.5
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/location v1.22.1
+	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/digitalocean/go-workers2 v0.10.3
 	github.com/flopp/go-staticmaps v0.0.0-20220221183018-c226716bec53
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
@@ -84,6 +85,8 @@ require (
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jlaffaye/ftp v0.1.0 // indirect
+	github.com/kr/pretty v0.2.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect

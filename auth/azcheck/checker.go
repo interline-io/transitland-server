@@ -1,4 +1,4 @@
-package authz
+package azcheck
 
 import (
 	"context"
@@ -15,55 +15,50 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth/auth0"
 	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/auth/fga"
 	"github.com/interline-io/transitland-server/internal/dbutil"
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
 )
 
 // For less typing
 
-type Action = azpb.Action
-type ObjectType = azpb.ObjectType
-type Relation = azpb.Relation
+type Action = authz.Action
+type ObjectType = authz.ObjectType
+type Relation = authz.Relation
 
-var FeedType = azpb.FeedType
-var UserType = azpb.UserType
-var TenantType = azpb.TenantType
-var GroupType = azpb.GroupType
-var FeedVersionType = azpb.FeedVersionType
+var FeedType = authz.FeedType
+var UserType = authz.UserType
+var TenantType = authz.TenantType
+var GroupType = authz.GroupType
+var FeedVersionType = authz.FeedVersionType
 
-var ViewerRelation = azpb.ViewerRelation
-var MemberRelation = azpb.MemberRelation
-var AdminRelation = azpb.AdminRelation
-var ManagerRelation = azpb.ManagerRelation
-var ParentRelation = azpb.ParentRelation
-var EditorRelation = azpb.EditorRelation
+var ViewerRelation = authz.ViewerRelation
+var MemberRelation = authz.MemberRelation
+var AdminRelation = authz.AdminRelation
+var ManagerRelation = authz.ManagerRelation
+var ParentRelation = authz.ParentRelation
+var EditorRelation = authz.EditorRelation
 
-var CanEdit = azpb.CanEdit
-var CanView = azpb.CanView
-var CanCreateFeedVersion = azpb.CanCreateFeedVersion
-var CanDeleteFeedVersion = azpb.CanDeleteFeedVersion
-var CanCreateFeed = azpb.CanCreateFeed
-var CanDeleteFeed = azpb.CanDeleteFeed
-var CanSetGroup = azpb.CanSetGroup
-var CanCreateOrg = azpb.CanCreateOrg
-var CanEditMembers = azpb.CanEditMembers
-var CanDeleteOrg = azpb.CanDeleteOrg
-var CanSetTenant = azpb.CanSetTenant
+var CanEdit = authz.CanEdit
+var CanView = authz.CanView
+var CanCreateFeedVersion = authz.CanCreateFeedVersion
+var CanDeleteFeedVersion = authz.CanDeleteFeedVersion
+var CanCreateFeed = authz.CanCreateFeed
+var CanDeleteFeed = authz.CanDeleteFeed
+var CanSetGroup = authz.CanSetGroup
+var CanCreateOrg = authz.CanCreateOrg
+var CanEditMembers = authz.CanEditMembers
+var CanDeleteOrg = authz.CanDeleteOrg
+var CanSetTenant = authz.CanSetTenant
 
-type EntityKey = azpb.EntityKey
-type TupleKey = azpb.TupleKey
-
-func init() {
-	// Ensure Checker implements CheckerServer
-	var _ azpb.CheckerServer = &Checker{}
-}
+type EntityKey = authz.EntityKey
+type TupleKey = authz.TupleKey
 
 var ErrUnauthorized = errors.New("unauthorized")
 
 type UserProvider interface {
-	Users(context.Context, string) ([]*azpb.User, error)
-	UserByID(context.Context, string) (*azpb.User, error)
+	Users(context.Context, string) ([]authn.User, error)
+	UserByID(context.Context, string) (authn.User, error)
 }
 
 type FGAProvider interface {
@@ -93,7 +88,7 @@ type Checker struct {
 	fgaClient    FGAProvider
 	db           sqlx.Ext
 	globalAdmins []string
-	azpb.UnsafeCheckerServer
+	authz.UnsafeCheckerServer
 }
 
 func NewCheckerFromConfig(cfg AuthzConfig, db sqlx.Ext, redisClient *redis.Client) (*Checker, error) {
@@ -163,45 +158,38 @@ func NewChecker(n UserProvider, p FGAProvider, db sqlx.Ext, redisClient *redis.C
 // USERS
 // ///////////////////
 
-func (c *Checker) UserList(ctx context.Context, req *azpb.UserListRequest) (*azpb.UserListResponse, error) {
+func (c *Checker) UserList(ctx context.Context, req *authz.UserListRequest) (*authz.UserListResponse, error) {
 	// TODO: filter users
 	users, err := c.userClient.Users(ctx, req.GetQ())
 	if err != nil {
 		return nil, err
 	}
-	return &azpb.UserListResponse{Users: users}, nil
+	var ret []*authz.User
+	for _, user := range users {
+		ret = append(ret, newAzpbUser(user))
+	}
+	return &authz.UserListResponse{Users: ret}, nil
 }
 
-func (c *Checker) User(ctx context.Context, req *azpb.UserRequest) (*azpb.UserResponse, error) {
+func (c *Checker) User(ctx context.Context, req *authz.UserRequest) (*authz.UserResponse, error) {
 	// Special case "*"
 	if req.Id == "*" {
-		user := &azpb.User{Id: "*", Name: "All users"}
-		return &azpb.UserResponse{User: user}, nil
+		user := &authz.User{Id: "*", Name: "All users"}
+		return &authz.UserResponse{User: user}, nil
 	}
 	// TODO: filter users
-	ret, err := c.userClient.UserByID(ctx, req.GetId())
-	if ret == nil || err != nil {
+	user, err := c.userClient.UserByID(ctx, req.GetId())
+	if user == nil || err != nil {
 		return nil, ErrUnauthorized
 	}
-	return &azpb.UserResponse{User: ret}, err
+	return &authz.UserResponse{User: newAzpbUser(user)}, err
 }
 
 func (c *Checker) CheckGlobalAdmin(ctx context.Context) (bool, error) {
 	return c.checkGlobalAdmin(authn.ForContext(ctx)), nil
 }
 
-func (c *Checker) hydrateUsers(ctx context.Context, users []*azpb.User) ([]*azpb.User, error) {
-	var ret []*azpb.User
-	for _, u := range users {
-		uu, err := c.userClient.UserByID(ctx, u.Id)
-		if err == nil && uu != nil {
-			ret = append(ret, uu)
-		}
-	}
-	return ret, nil
-}
-
-func (c *Checker) hydrateEntityRels(ctx context.Context, ers []*azpb.EntityRelation) ([]*azpb.EntityRelation, error) {
+func (c *Checker) hydrateEntityRels(ctx context.Context, ers []*authz.EntityRelation) ([]*authz.EntityRelation, error) {
 	// This is awful :( :(
 	for i, v := range ers {
 		if v.Type == TenantType {
@@ -213,7 +201,7 @@ func (c *Checker) hydrateEntityRels(ctx context.Context, ers []*azpb.EntityRelat
 				ers[i].Name = t[0].Name
 			}
 		} else if v.Type == UserType {
-			if t, err := c.User(ctx, &azpb.UserRequest{Id: v.Id}); err == nil && t != nil && t.User != nil {
+			if t, err := c.User(ctx, &authz.UserRequest{Id: v.Id}); err == nil && t != nil && t.User != nil {
 				ers[i].Name = t.User.Name
 			}
 		}
@@ -225,37 +213,37 @@ func (c *Checker) hydrateEntityRels(ctx context.Context, ers []*azpb.EntityRelat
 // TENANTS
 // ///////////////////
 
-func (c *Checker) getTenants(ctx context.Context, ids []int64) ([]*azpb.Tenant, error) {
-	return getEntities[*azpb.Tenant](ctx, c.db, ids, "tl_tenants", "id", "coalesce(tenant_name,'') as name")
+func (c *Checker) getTenants(ctx context.Context, ids []int64) ([]*authz.Tenant, error) {
+	return getEntities[*authz.Tenant](ctx, c.db, ids, "tl_tenants", "id", "coalesce(tenant_name,'') as name")
 }
 
-func (c *Checker) TenantList(ctx context.Context, req *azpb.TenantListRequest) (*azpb.TenantListResponse, error) {
+func (c *Checker) TenantList(ctx context.Context, req *authz.TenantListRequest) (*authz.TenantListResponse, error) {
 	ids, err := c.listCtxObjects(ctx, TenantType, CanView)
 	if err != nil {
 		return nil, err
 	}
 	t, err := c.getTenants(ctx, ids)
-	return &azpb.TenantListResponse{Tenants: t}, err
+	return &authz.TenantListResponse{Tenants: t}, err
 }
 
-func (c *Checker) Tenant(ctx context.Context, req *azpb.TenantRequest) (*azpb.TenantResponse, error) {
+func (c *Checker) Tenant(ctx context.Context, req *authz.TenantRequest) (*authz.TenantResponse, error) {
 	tenantId := req.GetId()
 	if err := c.checkActionOrError(ctx, CanView, newEntityID(TenantType, tenantId)); err != nil {
 		return nil, err
 	}
 	t, err := c.getTenants(ctx, []int64{tenantId})
-	return &azpb.TenantResponse{Tenant: first(t)}, err
+	return &authz.TenantResponse{Tenant: first(t)}, err
 }
 
-func (c *Checker) TenantPermissions(ctx context.Context, req *azpb.TenantRequest) (*azpb.TenantPermissionsResponse, error) {
+func (c *Checker) TenantPermissions(ctx context.Context, req *authz.TenantRequest) (*authz.TenantPermissionsResponse, error) {
 	ent, err := c.Tenant(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	ret := &azpb.TenantPermissionsResponse{
+	ret := &authz.TenantPermissionsResponse{
 		Tenant:  ent.Tenant,
-		Actions: &azpb.TenantPermissionsResponse_Actions{},
-		Users:   &azpb.TenantPermissionsResponse_Users{},
+		Actions: &authz.TenantPermissionsResponse_Actions{},
+		Users:   &authz.TenantPermissionsResponse_Users{},
 	}
 
 	// Actions
@@ -275,10 +263,10 @@ func (c *Checker) TenantPermissions(ctx context.Context, req *azpb.TenantRequest
 	}
 	for _, tk := range tps {
 		if tk.Relation == AdminRelation {
-			ret.Users.Admins = append(ret.Users.Admins, azpb.NewEntityRelation(tk.Subject, tk.Relation))
+			ret.Users.Admins = append(ret.Users.Admins, authz.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 		if tk.Relation == MemberRelation {
-			ret.Users.Members = append(ret.Users.Members, azpb.NewEntityRelation(tk.Subject, tk.Relation))
+			ret.Users.Members = append(ret.Users.Members, authz.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 	}
 	ret.Users.Admins, _ = c.hydrateEntityRels(ctx, ret.Users.Admins)
@@ -286,10 +274,10 @@ func (c *Checker) TenantPermissions(ctx context.Context, req *azpb.TenantRequest
 	return ret, nil
 }
 
-func (c *Checker) TenantSave(ctx context.Context, req *azpb.TenantSaveRequest) (*azpb.TenantSaveResponse, error) {
+func (c *Checker) TenantSave(ctx context.Context, req *authz.TenantSaveRequest) (*authz.TenantSaveResponse, error) {
 	t := req.GetTenant()
 	tenantId := t.GetId()
-	if check, err := c.TenantPermissions(ctx, &azpb.TenantRequest{Id: tenantId}); err != nil {
+	if check, err := c.TenantPermissions(ctx, &authz.TenantRequest{Id: tenantId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEdit {
 		return nil, ErrUnauthorized
@@ -304,41 +292,41 @@ func (c *Checker) TenantSave(ctx context.Context, req *azpb.TenantSaveRequest) (
 			"tenant_name": newName,
 		}).
 		Where("id = ?", tenantId).Exec()
-	return &azpb.TenantSaveResponse{}, err
+	return &authz.TenantSaveResponse{}, err
 }
 
-func (c *Checker) TenantAddPermission(ctx context.Context, req *azpb.TenantModifyPermissionRequest) (*azpb.TenantSaveResponse, error) {
+func (c *Checker) TenantAddPermission(ctx context.Context, req *authz.TenantModifyPermissionRequest) (*authz.TenantSaveResponse, error) {
 	tenantId := req.GetId()
-	if check, err := c.TenantPermissions(ctx, &azpb.TenantRequest{Id: tenantId}); err != nil {
+	if check, err := c.TenantPermissions(ctx, &authz.TenantRequest{Id: tenantId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantAddPermission")
-	return &azpb.TenantSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, MemberRelation, AdminRelation)
+	return &authz.TenantSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, MemberRelation, AdminRelation)
 }
 
-func (c *Checker) TenantRemovePermission(ctx context.Context, req *azpb.TenantModifyPermissionRequest) (*azpb.TenantSaveResponse, error) {
+func (c *Checker) TenantRemovePermission(ctx context.Context, req *authz.TenantModifyPermissionRequest) (*authz.TenantSaveResponse, error) {
 	tenantId := req.GetId()
-	if check, err := c.TenantPermissions(ctx, &azpb.TenantRequest{Id: tenantId}); err != nil {
+	if check, err := c.TenantPermissions(ctx, &authz.TenantRequest{Id: tenantId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(TenantType, tenantId))
 	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantRemovePermission")
-	return &azpb.TenantSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
+	return &authz.TenantSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
-func (c *Checker) TenantCreate(ctx context.Context, req *azpb.TenantCreateRequest) (*azpb.TenantSaveResponse, error) {
-	return &azpb.TenantSaveResponse{}, nil
+func (c *Checker) TenantCreate(ctx context.Context, req *authz.TenantCreateRequest) (*authz.TenantSaveResponse, error) {
+	return &authz.TenantSaveResponse{}, nil
 }
 
-func (c *Checker) TenantCreateGroup(ctx context.Context, req *azpb.TenantCreateGroupRequest) (*azpb.GroupSaveResponse, error) {
+func (c *Checker) TenantCreateGroup(ctx context.Context, req *authz.TenantCreateGroupRequest) (*authz.GroupSaveResponse, error) {
 	tenantId := req.GetId()
 	groupName := req.GetGroup().GetName()
-	if check, err := c.TenantPermissions(ctx, &azpb.TenantRequest{Id: tenantId}); err != nil {
+	if check, err := c.TenantPermissions(ctx, &authz.TenantRequest{Id: tenantId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanCreateOrg {
 		return nil, ErrUnauthorized
@@ -357,49 +345,49 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, req *azpb.TenantCreateG
 	if err != nil {
 		return nil, err
 	}
-	addTk := azpb.NewTupleKey().WithSubjectID(TenantType, tenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
+	addTk := authz.NewTupleKey().WithSubjectID(TenantType, tenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
 	if err := c.fgaClient.WriteTuple(ctx, addTk); err != nil {
 		return nil, err
 	}
-	return &azpb.GroupSaveResponse{Group: &azpb.Group{Id: groupId}}, err
+	return &authz.GroupSaveResponse{Group: &authz.Group{Id: groupId}}, err
 }
 
 // ///////////////////
 // GROUPS
 // ///////////////////
 
-func (c *Checker) getGroups(ctx context.Context, ids []int64) ([]*azpb.Group, error) {
-	return getEntities[*azpb.Group](ctx, c.db, ids, "tl_groups", "id", "coalesce(group_name,'') as name")
+func (c *Checker) getGroups(ctx context.Context, ids []int64) ([]*authz.Group, error) {
+	return getEntities[*authz.Group](ctx, c.db, ids, "tl_groups", "id", "coalesce(group_name,'') as name")
 }
 
-func (c *Checker) GroupList(ctx context.Context, req *azpb.GroupListRequest) (*azpb.GroupListResponse, error) {
+func (c *Checker) GroupList(ctx context.Context, req *authz.GroupListRequest) (*authz.GroupListResponse, error) {
 	ids, err := c.listCtxObjects(ctx, GroupType, CanView)
 	if err != nil {
 		return nil, err
 	}
 	t, err := c.getGroups(ctx, ids)
-	return &azpb.GroupListResponse{Groups: t}, err
+	return &authz.GroupListResponse{Groups: t}, err
 }
 
-func (c *Checker) Group(ctx context.Context, req *azpb.GroupRequest) (*azpb.GroupResponse, error) {
+func (c *Checker) Group(ctx context.Context, req *authz.GroupRequest) (*authz.GroupResponse, error) {
 	groupId := req.GetId()
 	if err := c.checkActionOrError(ctx, CanView, newEntityID(GroupType, groupId)); err != nil {
 		return nil, err
 	}
 	t, err := c.getGroups(ctx, []int64{groupId})
-	return &azpb.GroupResponse{Group: first(t)}, err
+	return &authz.GroupResponse{Group: first(t)}, err
 }
 
-func (c *Checker) GroupPermissions(ctx context.Context, req *azpb.GroupRequest) (*azpb.GroupPermissionsResponse, error) {
+func (c *Checker) GroupPermissions(ctx context.Context, req *authz.GroupRequest) (*authz.GroupPermissionsResponse, error) {
 	groupId := req.GetId()
 	ent, err := c.Group(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	ret := &azpb.GroupPermissionsResponse{
+	ret := &authz.GroupPermissionsResponse{
 		Group:   ent.Group,
-		Users:   &azpb.GroupPermissionsResponse_Users{},
-		Actions: &azpb.GroupPermissionsResponse_Actions{},
+		Users:   &authz.GroupPermissionsResponse_Users{},
+		Actions: &authz.GroupPermissionsResponse_Actions{},
 	}
 
 	// Actions
@@ -422,17 +410,17 @@ func (c *Checker) GroupPermissions(ctx context.Context, req *azpb.GroupRequest) 
 	}
 	for _, tk := range tps {
 		if tk.Relation == ParentRelation {
-			ct, _ := c.Tenant(ctx, &azpb.TenantRequest{Id: tk.Subject.ID()})
+			ct, _ := c.Tenant(ctx, &authz.TenantRequest{Id: tk.Subject.ID()})
 			ret.Tenant = ct.Tenant
 		}
 		if tk.Relation == ManagerRelation {
-			ret.Users.Managers = append(ret.Users.Managers, azpb.NewEntityRelation(tk.Subject, tk.Relation))
+			ret.Users.Managers = append(ret.Users.Managers, authz.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 		if tk.Relation == EditorRelation {
-			ret.Users.Editors = append(ret.Users.Editors, azpb.NewEntityRelation(tk.Subject, tk.Relation))
+			ret.Users.Editors = append(ret.Users.Editors, authz.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 		if tk.Relation == ViewerRelation {
-			ret.Users.Viewers = append(ret.Users.Viewers, azpb.NewEntityRelation(tk.Subject, tk.Relation))
+			ret.Users.Viewers = append(ret.Users.Viewers, authz.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 	}
 	ret.Users.Managers, _ = c.hydrateEntityRels(ctx, ret.Users.Managers)
@@ -441,11 +429,11 @@ func (c *Checker) GroupPermissions(ctx context.Context, req *azpb.GroupRequest) 
 	return ret, nil
 }
 
-func (c *Checker) GroupSave(ctx context.Context, req *azpb.GroupSaveRequest) (*azpb.GroupSaveResponse, error) {
+func (c *Checker) GroupSave(ctx context.Context, req *authz.GroupSaveRequest) (*authz.GroupSaveResponse, error) {
 	group := req.GetGroup()
 	groupId := group.GetId()
 	newName := group.GetName()
-	if check, err := c.GroupPermissions(ctx, &azpb.GroupRequest{Id: groupId}); err != nil {
+	if check, err := c.GroupPermissions(ctx, &authz.GroupRequest{Id: groupId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEdit {
 		return nil, ErrUnauthorized
@@ -459,80 +447,80 @@ func (c *Checker) GroupSave(ctx context.Context, req *azpb.GroupSaveRequest) (*a
 			"group_name": newName,
 		}).
 		Where("id = ?", groupId).Exec()
-	return &azpb.GroupSaveResponse{}, err
+	return &authz.GroupSaveResponse{}, err
 }
 
-func (c *Checker) GroupAddPermission(ctx context.Context, req *azpb.GroupModifyPermissionRequest) (*azpb.GroupSaveResponse, error) {
+func (c *Checker) GroupAddPermission(ctx context.Context, req *authz.GroupModifyPermissionRequest) (*authz.GroupSaveResponse, error) {
 	groupId := req.GetId()
-	if check, err := c.GroupPermissions(ctx, &azpb.GroupRequest{Id: groupId}); err != nil {
+	if check, err := c.GroupPermissions(ctx, &authz.GroupRequest{Id: groupId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupAddPermission")
-	return &azpb.GroupSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, ViewerRelation, EditorRelation, ManagerRelation)
+	return &authz.GroupSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, ViewerRelation, EditorRelation, ManagerRelation)
 }
 
-func (c *Checker) GroupRemovePermission(ctx context.Context, req *azpb.GroupModifyPermissionRequest) (*azpb.GroupSaveResponse, error) {
+func (c *Checker) GroupRemovePermission(ctx context.Context, req *authz.GroupModifyPermissionRequest) (*authz.GroupSaveResponse, error) {
 	groupId := req.GetId()
-	if check, err := c.GroupPermissions(ctx, &azpb.GroupRequest{Id: groupId}); err != nil {
+	if check, err := c.GroupPermissions(ctx, &authz.GroupRequest{Id: groupId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(GroupType, groupId))
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupRemovePermission")
-	return &azpb.GroupSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
+	return &authz.GroupSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
-func (c *Checker) GroupSetTenant(ctx context.Context, req *azpb.GroupSetTenantRequest) (*azpb.GroupSetTenantResponse, error) {
+func (c *Checker) GroupSetTenant(ctx context.Context, req *authz.GroupSetTenantRequest) (*authz.GroupSetTenantResponse, error) {
 	groupId := req.GetId()
 	newTenantId := req.GetTenantId()
-	if check, err := c.GroupPermissions(ctx, &azpb.GroupRequest{Id: groupId}); err != nil {
+	if check, err := c.GroupPermissions(ctx, &authz.GroupRequest{Id: groupId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanSetTenant {
 		return nil, ErrUnauthorized
 	}
-	tk := azpb.NewTupleKey().WithSubjectID(TenantType, newTenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
+	tk := authz.NewTupleKey().WithSubjectID(TenantType, newTenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
 	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupSetTenant")
-	return &azpb.GroupSetTenantResponse{}, c.fgaClient.SetExclusiveRelation(ctx, tk)
+	return &authz.GroupSetTenantResponse{}, c.fgaClient.SetExclusiveRelation(ctx, tk)
 }
 
 // ///////////////////
 // FEEDS
 // ///////////////////
 
-func (c *Checker) getFeeds(ctx context.Context, ids []int64) ([]*azpb.Feed, error) {
-	return getEntities[*azpb.Feed](ctx, c.db, ids, "current_feeds", "id", "onestop_id", "coalesce(name,'') as name")
+func (c *Checker) getFeeds(ctx context.Context, ids []int64) ([]*authz.Feed, error) {
+	return getEntities[*authz.Feed](ctx, c.db, ids, "current_feeds", "id", "onestop_id", "coalesce(name,'') as name")
 }
 
-func (c *Checker) FeedList(ctx context.Context, req *azpb.FeedListRequest) (*azpb.FeedListResponse, error) {
+func (c *Checker) FeedList(ctx context.Context, req *authz.FeedListRequest) (*authz.FeedListResponse, error) {
 	feedIds, err := c.listCtxObjects(ctx, FeedType, CanView)
 	if err != nil {
 		return nil, err
 	}
 	t, err := c.getFeeds(ctx, feedIds)
-	return &azpb.FeedListResponse{Feeds: t}, err
+	return &authz.FeedListResponse{Feeds: t}, err
 }
 
-func (c *Checker) Feed(ctx context.Context, req *azpb.FeedRequest) (*azpb.FeedResponse, error) {
+func (c *Checker) Feed(ctx context.Context, req *authz.FeedRequest) (*authz.FeedResponse, error) {
 	feedId := req.GetId()
 	if err := c.checkActionOrError(ctx, CanView, newEntityID(FeedType, feedId)); err != nil {
 		return nil, err
 	}
 	t, err := c.getFeeds(ctx, []int64{feedId})
-	return &azpb.FeedResponse{Feed: first(t)}, err
+	return &authz.FeedResponse{Feed: first(t)}, err
 }
 
-func (c *Checker) FeedPermissions(ctx context.Context, req *azpb.FeedRequest) (*azpb.FeedPermissionsResponse, error) {
+func (c *Checker) FeedPermissions(ctx context.Context, req *authz.FeedRequest) (*authz.FeedPermissionsResponse, error) {
 	ent, err := c.Feed(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	ret := &azpb.FeedPermissionsResponse{
+	ret := &authz.FeedPermissionsResponse{
 		Feed:    ent.Feed,
-		Actions: &azpb.FeedPermissionsResponse_Actions{},
+		Actions: &authz.FeedPermissionsResponse_Actions{},
 	}
 
 	// Actions
@@ -550,44 +538,44 @@ func (c *Checker) FeedPermissions(ctx context.Context, req *azpb.FeedRequest) (*
 	}
 	for _, tk := range tps {
 		if tk.Relation == ParentRelation {
-			ct, _ := c.Group(ctx, &azpb.GroupRequest{Id: tk.Subject.ID()})
+			ct, _ := c.Group(ctx, &authz.GroupRequest{Id: tk.Subject.ID()})
 			ret.Group = ct.Group
 		}
 	}
 	return ret, nil
 }
 
-func (c *Checker) FeedSetGroup(ctx context.Context, req *azpb.FeedSetGroupRequest) (*azpb.FeedSaveResponse, error) {
+func (c *Checker) FeedSetGroup(ctx context.Context, req *authz.FeedSetGroupRequest) (*authz.FeedSaveResponse, error) {
 	feedId := req.GetId()
 	newGroup := req.GetGroupId()
-	if check, err := c.FeedPermissions(ctx, &azpb.FeedRequest{Id: feedId}); err != nil {
+	if check, err := c.FeedPermissions(ctx, &authz.FeedRequest{Id: feedId}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanSetGroup {
 		return nil, ErrUnauthorized
 	}
-	tk := azpb.NewTupleKey().WithSubjectID(GroupType, newGroup).WithObjectID(FeedType, feedId).WithRelation(ParentRelation)
+	tk := authz.NewTupleKey().WithSubjectID(GroupType, newGroup).WithObjectID(FeedType, feedId).WithRelation(ParentRelation)
 	log.Trace().Str("tk", tk.String()).Int64("id", feedId).Msg("FeedSetGroup")
-	return &azpb.FeedSaveResponse{}, c.fgaClient.SetExclusiveRelation(ctx, tk)
+	return &authz.FeedSaveResponse{}, c.fgaClient.SetExclusiveRelation(ctx, tk)
 }
 
 /////////////////////
 // FEED VERSIONS
 /////////////////////
 
-func (c *Checker) getFeedVersions(ctx context.Context, ids []int64) ([]*azpb.FeedVersion, error) {
-	return getEntities[*azpb.FeedVersion](ctx, c.db, ids, "feed_versions", "id", "feed_id", "sha1", "coalesce(name,'') as name")
+func (c *Checker) getFeedVersions(ctx context.Context, ids []int64) ([]*authz.FeedVersion, error) {
+	return getEntities[*authz.FeedVersion](ctx, c.db, ids, "feed_versions", "id", "feed_id", "sha1", "coalesce(name,'') as name")
 }
 
-func (c *Checker) FeedVersionList(ctx context.Context, req *azpb.FeedVersionListRequest) (*azpb.FeedVersionListResponse, error) {
+func (c *Checker) FeedVersionList(ctx context.Context, req *authz.FeedVersionListRequest) (*authz.FeedVersionListResponse, error) {
 	fvids, err := c.listCtxObjects(ctx, FeedVersionType, CanView)
 	if err != nil {
 		return nil, err
 	}
 	t, err := c.getFeedVersions(ctx, fvids)
-	return &azpb.FeedVersionListResponse{FeedVersions: t}, err
+	return &authz.FeedVersionListResponse{FeedVersions: t}, err
 }
 
-func (c *Checker) FeedVersion(ctx context.Context, req *azpb.FeedVersionRequest) (*azpb.FeedVersionResponse, error) {
+func (c *Checker) FeedVersion(ctx context.Context, req *authz.FeedVersionRequest) (*authz.FeedVersionResponse, error) {
 	fvid := req.GetId()
 	feedId := int64(0)
 	// We need to get feed id before any other checks
@@ -598,7 +586,7 @@ func (c *Checker) FeedVersion(ctx context.Context, req *azpb.FeedVersionRequest)
 	if fv != nil {
 		feedId = fv.FeedId
 	}
-	ctxTk := azpb.NewTupleKey().WithObjectID(FeedVersionType, fvid).WithSubjectID(FeedType, feedId).WithRelation(ParentRelation)
+	ctxTk := authz.NewTupleKey().WithObjectID(FeedVersionType, fvid).WithSubjectID(FeedType, feedId).WithRelation(ParentRelation)
 	if err := c.checkActionOrError(ctx, CanView, newEntityID(FeedVersionType, fvid), ctxTk); err != nil {
 		return nil, err
 	}
@@ -606,22 +594,22 @@ func (c *Checker) FeedVersion(ctx context.Context, req *azpb.FeedVersionRequest)
 	if fvErr != nil {
 		return nil, fvErr
 	}
-	return &azpb.FeedVersionResponse{FeedVersion: fv}, nil
+	return &authz.FeedVersionResponse{FeedVersion: fv}, nil
 }
 
-func (c *Checker) FeedVersionPermissions(ctx context.Context, req *azpb.FeedVersionRequest) (*azpb.FeedVersionPermissionsResponse, error) {
+func (c *Checker) FeedVersionPermissions(ctx context.Context, req *authz.FeedVersionRequest) (*authz.FeedVersionPermissionsResponse, error) {
 	ent, err := c.FeedVersion(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	ret := &azpb.FeedVersionPermissionsResponse{
+	ret := &authz.FeedVersionPermissionsResponse{
 		FeedVersion: ent.FeedVersion,
-		Users:       &azpb.FeedVersionPermissionsResponse_Users{},
-		Actions:     &azpb.FeedVersionPermissionsResponse_Actions{},
+		Users:       &authz.FeedVersionPermissionsResponse_Users{},
+		Actions:     &authz.FeedVersionPermissionsResponse_Actions{},
 	}
 
 	// Actions
-	ctxTk := azpb.NewTupleKey().WithObjectID(FeedVersionType, ent.FeedVersion.Id).WithSubjectID(FeedType, ent.FeedVersion.FeedId).WithRelation(ParentRelation)
+	ctxTk := authz.NewTupleKey().WithObjectID(FeedVersionType, ent.FeedVersion.Id).WithSubjectID(FeedType, ent.FeedVersion.FeedId).WithRelation(ParentRelation)
 	entKey := newEntityID(FeedVersionType, req.GetId())
 	ret.Actions.CanView, _ = c.checkAction(ctx, CanView, entKey, ctxTk)
 	ret.Actions.CanEditMembers, _ = c.checkAction(ctx, CanEditMembers, entKey, ctxTk)
@@ -634,10 +622,10 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, req *azpb.FeedVers
 	}
 	for _, tk := range tps {
 		if tk.Relation == EditorRelation {
-			ret.Users.Editors = append(ret.Users.Editors, azpb.NewEntityRelation(tk.Subject, tk.Relation))
+			ret.Users.Editors = append(ret.Users.Editors, authz.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 		if tk.Relation == ViewerRelation {
-			ret.Users.Viewers = append(ret.Users.Viewers, azpb.NewEntityRelation(tk.Subject, tk.Relation))
+			ret.Users.Viewers = append(ret.Users.Viewers, authz.NewEntityRelation(tk.Subject, tk.Relation))
 		}
 	}
 	ret.Users.Editors, _ = c.hydrateEntityRels(ctx, ret.Users.Editors)
@@ -645,28 +633,28 @@ func (c *Checker) FeedVersionPermissions(ctx context.Context, req *azpb.FeedVers
 	return ret, nil
 }
 
-func (c *Checker) FeedVersionAddPermission(ctx context.Context, req *azpb.FeedVersionModifyPermissionRequest) (*azpb.FeedVersionSaveResponse, error) {
+func (c *Checker) FeedVersionAddPermission(ctx context.Context, req *authz.FeedVersionModifyPermissionRequest) (*authz.FeedVersionSaveResponse, error) {
 	fvid := req.GetId()
-	if check, err := c.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: fvid}); err != nil {
+	if check, err := c.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: fvid}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionAddPermission")
-	return &azpb.FeedVersionSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, ViewerRelation, EditorRelation, ManagerRelation)
+	return &authz.FeedVersionSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, ViewerRelation, EditorRelation, ManagerRelation)
 }
 
-func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *azpb.FeedVersionModifyPermissionRequest) (*azpb.FeedVersionSaveResponse, error) {
+func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *authz.FeedVersionModifyPermissionRequest) (*authz.FeedVersionSaveResponse, error) {
 	fvid := req.GetId()
-	if check, err := c.FeedVersionPermissions(ctx, &azpb.FeedVersionRequest{Id: fvid}); err != nil {
+	if check, err := c.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: fvid}); err != nil {
 		return nil, err
 	} else if !check.Actions.CanEditMembers {
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(FeedVersionType, fvid))
 	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionRemovePermission")
-	return &azpb.FeedVersionSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
+	return &authz.FeedVersionSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
 // ///////////////////
@@ -678,7 +666,7 @@ func (c *Checker) listCtxObjects(ctx context.Context, objectType ObjectType, act
 	if checkUser == nil {
 		return nil, nil
 	}
-	tk := azpb.NewTupleKey().WithUser(checkUser.ID()).WithObject(objectType, "").WithAction(action)
+	tk := authz.NewTupleKey().WithUser(checkUser.ID()).WithObject(objectType, "").WithAction(action)
 	objTks, err := c.fgaClient.ListObjects(ctx, tk)
 	if err != nil {
 		return nil, err
@@ -691,7 +679,7 @@ func (c *Checker) listCtxObjects(ctx context.Context, objectType ObjectType, act
 }
 
 func (c *Checker) listSubjectRelations(ctx context.Context, sub EntityKey, objectType ObjectType, relation Relation) ([]int64, error) {
-	tk := azpb.NewTupleKey().WithSubject(sub.Type, sub.Name).WithObject(objectType, "").WithRelation(relation)
+	tk := authz.NewTupleKey().WithSubject(sub.Type, sub.Name).WithObject(objectType, "").WithRelation(relation)
 	rels, err := c.fgaClient.ListObjects(ctx, tk)
 	if err != nil {
 		return nil, err
@@ -704,7 +692,7 @@ func (c *Checker) listSubjectRelations(ctx context.Context, sub EntityKey, objec
 }
 
 func (c *Checker) getObjectTuples(ctx context.Context, obj EntityKey, ctxtk ...TupleKey) ([]TupleKey, error) {
-	return c.fgaClient.GetObjectTuples(ctx, azpb.NewTupleKey().WithObject(obj.Type, obj.Name))
+	return c.fgaClient.GetObjectTuples(ctx, authz.NewTupleKey().WithObject(obj.Type, obj.Name))
 }
 
 func (c *Checker) checkActionOrError(ctx context.Context, checkAction Action, obj EntityKey, ctxtk ...TupleKey) error {
@@ -728,7 +716,7 @@ func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj Entit
 		log.Debug().Str("check_user", userName).Str("obj", obj.String()).Str("check_action", checkAction.String()).Msg("global admin action")
 		return true, nil
 	}
-	checkTk := azpb.NewTupleKey().WithUser(userName).WithObject(obj.Type, obj.Name).WithAction(checkAction)
+	checkTk := authz.NewTupleKey().WithUser(userName).WithObject(obj.Type, obj.Name).WithAction(checkAction)
 	ret, err := c.fgaClient.Check(ctx, checkTk, ctxtk...)
 	log.Trace().Str("tk", checkTk.String()).Bool("result", ret).Err(err).Msg("checkAction")
 	return ret, err
@@ -871,5 +859,9 @@ func dbNameToEntityKey(dbx sqlx.Ext, ek EntityKey) (EntityKey, bool, error) {
 }
 
 func newEntityID(t ObjectType, id int64) EntityKey {
-	return azpb.NewEntityKey(t, strconv.Itoa(int(id)))
+	return authz.NewEntityKey(t, strconv.Itoa(int(id)))
+}
+
+func newAzpbUser(u authn.User) *authz.User {
+	return &authz.User{Id: u.ID(), Name: u.Name(), Email: u.Email()}
 }

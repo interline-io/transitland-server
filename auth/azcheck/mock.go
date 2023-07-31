@@ -1,40 +1,40 @@
-package authz
+package azcheck
 
 import (
 	"context"
 	"errors"
 	"strings"
 
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
+	"github.com/interline-io/transitland-server/auth/authn"
 )
 
 type MockUserProvider struct {
-	users map[string]*azpb.User
+	users map[string]authn.User
 }
 
 func NewMockUserProvider() *MockUserProvider {
 	return &MockUserProvider{
-		users: map[string]*azpb.User{},
+		users: map[string]authn.User{},
 	}
 }
 
-func (c *MockUserProvider) AddUser(key string, u *azpb.User) {
-	c.users[key] = &azpb.User{Id: u.Id, Name: u.Name, Email: u.Email}
+func (c *MockUserProvider) AddUser(key string, u authn.User) {
+	c.users[key] = authn.NewCtxUser(u.ID(), u.Name(), u.Email())
 }
 
-func (c *MockUserProvider) UserByID(ctx context.Context, id string) (*azpb.User, error) {
+func (c *MockUserProvider) UserByID(ctx context.Context, id string) (authn.User, error) {
 	if user, ok := c.users[id]; ok {
 		return user, nil
 	}
 	return nil, errors.New("unauthorized")
 }
 
-func (c *MockUserProvider) Users(ctx context.Context, userQuery string) ([]*azpb.User, error) {
-	var ret []*azpb.User
+func (c *MockUserProvider) Users(ctx context.Context, userQuery string) ([]authn.User, error) {
+	var ret []authn.User
 	uq := strings.ToLower(userQuery)
 	for _, user := range c.users {
 		user := user
-		un := strings.ToLower(user.Name)
+		un := strings.ToLower(user.Name())
 		if userQuery == "" || strings.Contains(un, uq) {
 			ret = append(ret, user)
 		}

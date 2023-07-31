@@ -1,4 +1,4 @@
-package authz
+package azcheck
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-server/auth/authn"
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
+	"github.com/interline-io/transitland-server/auth/ancheck"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -379,7 +379,7 @@ func TestServer(t *testing.T) {
 
 func testServerWithUser(c *Checker, tk testCase) http.Handler {
 	srv, _ := NewServer(c)
-	srv = authn.UserDefaultMiddleware(stringOr(tk.CheckAsUser, tk.Subject.Name))(srv)
+	srv = ancheck.UserDefaultMiddleware(stringOr(tk.CheckAsUser, tk.Subject.Name))(srv)
 	return srv
 }
 
@@ -421,7 +421,7 @@ func responseGetActions(t testing.TB, data []byte) []Action {
 	var ret []Action
 	for k, v := range a.Map() {
 		if v.Bool() {
-			a, err := azpb.ActionString(k)
+			a, err := authz.ActionString(k)
 			if err != nil {
 				t.Errorf("invalid action %s", k)
 			}

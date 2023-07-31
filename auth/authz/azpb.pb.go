@@ -4,7 +4,7 @@
 // 	protoc        v4.23.3
 // source: checker.proto
 
-package azpb
+package authz
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

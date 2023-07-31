@@ -3,7 +3,7 @@ package gql
 import (
 	"context"
 
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -117,14 +117,14 @@ func checkActive(ctx context.Context, ids []int, checker model.Checker) (*model.
 		}
 	}
 
-	okFeeds, err := checker.FeedList(ctx, &azpb.FeedListRequest{})
+	okFeeds, err := checker.FeedList(ctx, &authz.FeedListRequest{})
 	if err != nil {
 		return nil, err
 	}
 	for _, feed := range okFeeds.Feeds {
 		active.AllowedFeeds = append(active.AllowedFeeds, int(feed.Id))
 	}
-	okFvids, err := checker.FeedVersionList(ctx, &azpb.FeedVersionListRequest{})
+	okFvids, err := checker.FeedVersionList(ctx, &authz.FeedVersionListRequest{})
 	if err != nil {
 		return nil, err
 	}

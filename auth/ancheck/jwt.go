@@ -1,4 +1,4 @@
-package authn
+package ancheck
 
 import (
 	"crypto/rsa"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/internal/util"
 )
 
@@ -32,7 +33,7 @@ func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (fun
 					http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
 					return
 				}
-				r = r.WithContext(WithUser(r.Context(), jwtUser))
+				r = r.WithContext(authn.WithUser(r.Context(), jwtUser))
 			}
 			next.ServeHTTP(w, r)
 		})
@@ -47,7 +48,7 @@ func (c *CustomClaimsExample) Valid() error {
 	return nil
 }
 
-func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer string, tokenString string) (User, error) {
+func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer string, tokenString string) (authn.User, error) {
 	// Parse the token
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaimsExample{}, func(token *jwt.Token) (interface{}, error) {
 		return rsaPublicKey, nil
@@ -62,6 +63,6 @@ func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer stri
 	if !claims.VerifyIssuer(jwtIssuer, true) {
 		return nil, errors.New("invalid issuer")
 	}
-	user := newCtxUser(claims.Subject)
+	user := authn.NewCtxUser(claims.Subject, "", "")
 	return user, nil
 }

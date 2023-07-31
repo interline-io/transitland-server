@@ -1,4 +1,4 @@
-package authn
+package ancheck
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/internal/ecache"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/tidwall/gjson"
@@ -28,7 +29,7 @@ func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Check context for a user name; if it is present, replace user context with gatekeeper user
 			ctx := r.Context()
-			if user := ForContext(ctx); user != nil && user.ID() != "" {
+			if user := authn.ForContext(ctx); user != nil && user.ID() != "" {
 				checkUser, err := gk.GetUser(ctx, user.ID())
 				if err != nil {
 					if !allowError {
@@ -36,7 +37,7 @@ func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 						return
 					}
 				} else {
-					r = r.WithContext(WithUser(r.Context(), checkUser))
+					r = r.WithContext(authn.WithUser(r.Context(), checkUser))
 				}
 			}
 			next.ServeHTTP(w, r)
@@ -67,7 +68,7 @@ func NewGatekeeper(client *redis.Client, endpoint string, param string, roleKey 
 	return gk
 }
 
-func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (User, error) {
+func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (authn.User, error) {
 	gkUser, ok := gk.cache.Get(ctx, userKey)
 	if !ok {
 		var err error
@@ -76,7 +77,7 @@ func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (User, error)
 			return nil, err
 		}
 	}
-	user := newCtxUser(gkUser.ID).WithRoles(gkUser.Roles...).WithExternalIDs(gkUser.ExternalIDs)
+	user := authn.NewCtxUser(gkUser.ID, "", "").WithRoles(gkUser.Roles...).WithExternalIDs(gkUser.ExternalIDs)
 	return user, nil
 }
 

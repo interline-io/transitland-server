@@ -9,14 +9,14 @@ import (
 	"strings"
 
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
+	"github.com/interline-io/transitland-server/auth/authz"
 	openfga "github.com/openfga/go-sdk"
 )
 
-func FromFGATupleKey(fgatk openfga.TupleKey) azpb.TupleKey {
-	rel, _ := azpb.RelationString(*fgatk.Relation)
-	act, _ := azpb.ActionString(*fgatk.Relation)
-	return azpb.TupleKey{
+func FromFGATupleKey(fgatk openfga.TupleKey) authz.TupleKey {
+	rel, _ := authz.RelationString(*fgatk.Relation)
+	act, _ := authz.ActionString(*fgatk.Relation)
+	return authz.TupleKey{
 		Subject:  NewEntityKeySplit(*fgatk.User),
 		Object:   NewEntityKeySplit(*fgatk.Object),
 		Relation: rel,
@@ -24,7 +24,7 @@ func FromFGATupleKey(fgatk openfga.TupleKey) azpb.TupleKey {
 	}
 }
 
-func ToFGATupleKey(tk azpb.TupleKey) openfga.TupleKey {
+func ToFGATupleKey(tk authz.TupleKey) openfga.TupleKey {
 	fgatk := openfga.TupleKey{}
 	if tk.Subject.Name != "" {
 		fgatk.User = openfga.PtrString(tk.Subject.String())
@@ -32,27 +32,27 @@ func ToFGATupleKey(tk azpb.TupleKey) openfga.TupleKey {
 	if tk.Object.Name != "" {
 		fgatk.Object = openfga.PtrString(tk.Object.String())
 	}
-	if azpb.IsAction(tk.Action) {
+	if authz.IsAction(tk.Action) {
 		fgatk.Relation = openfga.PtrString(tk.Action.String())
-	} else if azpb.IsRelation(tk.Relation) {
+	} else if authz.IsRelation(tk.Relation) {
 		fgatk.Relation = openfga.PtrString(tk.Relation.String())
 	}
 	return fgatk
 }
 
-func NewEntityKeySplit(v string) azpb.EntityKey {
-	ret := azpb.EntityKey{}
+func NewEntityKeySplit(v string) authz.EntityKey {
+	ret := authz.EntityKey{}
 	a := strings.Split(v, ":")
 	if len(a) > 1 {
-		ret.Type, _ = azpb.ObjectTypeString(a[0])
+		ret.Type, _ = authz.ObjectTypeString(a[0])
 		ret.Name = a[1]
 	} else if len(a) > 0 {
-		ret.Type, _ = azpb.ObjectTypeString(a[0])
+		ret.Type, _ = authz.ObjectTypeString(a[0])
 	}
 	ns := strings.Split(ret.Name, "#")
 	if len(ns) > 1 {
 		ret.Name = ns[0]
-		ret.RefRel, _ = azpb.RelationString(ns[1])
+		ret.RefRel, _ = authz.RelationString(ns[1])
 	}
 	return ret
 }
@@ -84,7 +84,7 @@ func NewFGAClient(endpoint string, storeId string, modelId string) (*FGAClient, 
 	}, nil
 }
 
-func (c *FGAClient) Check(ctx context.Context, tk azpb.TupleKey, ctxTuples ...azpb.TupleKey) (bool, error) {
+func (c *FGAClient) Check(ctx context.Context, tk authz.TupleKey, ctxTuples ...authz.TupleKey) (bool, error) {
 	if err := tk.Validate(); err != nil {
 		return false, err
 	}
@@ -104,7 +104,7 @@ func (c *FGAClient) Check(ctx context.Context, tk azpb.TupleKey, ctxTuples ...az
 	return data.GetAllowed(), nil
 }
 
-func (c *FGAClient) ListObjects(ctx context.Context, tk azpb.TupleKey) ([]azpb.TupleKey, error) {
+func (c *FGAClient) ListObjects(ctx context.Context, tk authz.TupleKey) ([]authz.TupleKey, error) {
 	body := openfga.ListObjectsRequest{
 		AuthorizationModelId: openfga.PtrString(c.ModelID),
 		User:                 tk.Subject.String(),
@@ -115,10 +115,10 @@ func (c *FGAClient) ListObjects(ctx context.Context, tk azpb.TupleKey) ([]azpb.T
 	if err != nil {
 		return nil, err
 	}
-	var ret []azpb.TupleKey
+	var ret []authz.TupleKey
 	for _, v := range data.GetObjects() {
-		ret = append(ret, azpb.TupleKey{
-			Subject: azpb.NewEntityKey(tk.Subject.Type, tk.Subject.Name),
+		ret = append(ret, authz.TupleKey{
+			Subject: authz.NewEntityKey(tk.Subject.Type, tk.Subject.Name),
 			Object:  NewEntityKeySplit(v),
 			Action:  tk.Action,
 		})
@@ -126,7 +126,7 @@ func (c *FGAClient) ListObjects(ctx context.Context, tk azpb.TupleKey) ([]azpb.T
 	return ret, nil
 }
 
-func (c *FGAClient) GetObjectTuples(ctx context.Context, tk azpb.TupleKey) ([]azpb.TupleKey, error) {
+func (c *FGAClient) GetObjectTuples(ctx context.Context, tk authz.TupleKey) ([]authz.TupleKey, error) {
 	if err := tk.Validate(); err != nil {
 		return nil, err
 	}
@@ -138,23 +138,23 @@ func (c *FGAClient) GetObjectTuples(ctx context.Context, tk azpb.TupleKey) ([]az
 	if err != nil {
 		return nil, err
 	}
-	var ret []azpb.TupleKey
+	var ret []authz.TupleKey
 	for _, t := range *data.Tuples {
 		ret = append(ret, FromFGATupleKey(t.GetKey()))
 	}
 	return ret, nil
 }
 
-func (c *FGAClient) SetExclusiveRelation(ctx context.Context, tk azpb.TupleKey) error {
+func (c *FGAClient) SetExclusiveRelation(ctx context.Context, tk authz.TupleKey) error {
 	return c.replaceTuple(ctx, tk, false, tk.Relation)
 
 }
 
-func (c *FGAClient) SetExclusiveSubjectRelation(ctx context.Context, tk azpb.TupleKey, checkRelations ...azpb.Relation) error {
+func (c *FGAClient) SetExclusiveSubjectRelation(ctx context.Context, tk authz.TupleKey, checkRelations ...authz.Relation) error {
 	return c.replaceTuple(ctx, tk, true, checkRelations...)
 }
 
-func (c *FGAClient) replaceTuple(ctx context.Context, tk azpb.TupleKey, checkSubjectEqual bool, checkRelations ...azpb.Relation) error {
+func (c *FGAClient) replaceTuple(ctx context.Context, tk authz.TupleKey, checkSubjectEqual bool, checkRelations ...authz.Relation) error {
 	if err := tk.Validate(); err != nil {
 		log.Error().Err(err).Str("tk", tk.String()).Msg("replaceTuple")
 		return err
@@ -170,13 +170,13 @@ func (c *FGAClient) replaceTuple(ctx context.Context, tk azpb.TupleKey, checkSub
 	}
 	log.Trace().Str("tk", tk.String()).Msg("replaceTuple")
 
-	currentTks, err := c.GetObjectTuples(ctx, azpb.NewTupleKey().WithObject(tk.Object.Type, tk.Object.Name))
+	currentTks, err := c.GetObjectTuples(ctx, authz.NewTupleKey().WithObject(tk.Object.Type, tk.Object.Name))
 	if err != nil {
 		return err
 	}
 
-	var matchTks []azpb.TupleKey
-	var delTks []azpb.TupleKey
+	var matchTks []authz.TupleKey
+	var delTks []authz.TupleKey
 	for _, checkTk := range currentTks {
 		relMatch := false
 		for _, r := range checkRelations {
@@ -220,7 +220,7 @@ func (c *FGAClient) replaceTuple(ctx context.Context, tk azpb.TupleKey, checkSub
 	return nil
 }
 
-func (c *FGAClient) WriteTuple(ctx context.Context, tk azpb.TupleKey) error {
+func (c *FGAClient) WriteTuple(ctx context.Context, tk authz.TupleKey) error {
 	if err := tk.Validate(); err != nil {
 		log.Error().Str("tk", tk.String()).Msg("WriteTuple")
 		return err
@@ -234,7 +234,7 @@ func (c *FGAClient) WriteTuple(ctx context.Context, tk azpb.TupleKey) error {
 	return err
 }
 
-func (c *FGAClient) DeleteTuple(ctx context.Context, tk azpb.TupleKey) error {
+func (c *FGAClient) DeleteTuple(ctx context.Context, tk authz.TupleKey) error {
 	if err := tk.Validate(); err != nil {
 		log.Error().Err(err).Str("tk", tk.String()).Msg("DeleteTuple")
 		return err

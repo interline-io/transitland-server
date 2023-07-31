@@ -1,4 +1,4 @@
-package authz
+package azcheck
 
 import (
 	"context"
@@ -9,24 +9,29 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-server/auth"
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
+	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	// Ensure Checker implements CheckerServer
+	var _ authz.CheckerServer = &Checker{}
+}
+
 type testCase struct {
-	Subject            azpb.EntityKey
-	Object             azpb.EntityKey
-	Action             azpb.Action
-	Relation           azpb.Relation
+	Subject            authz.EntityKey
+	Object             authz.EntityKey
+	Action             authz.Action
+	Relation           authz.Relation
 	Expect             string
 	Notes              string
 	ExpectError        bool
 	ExpectUnauthorized bool
 	CheckAsUser        string
-	ExpectActions      []azpb.Action
-	ExpectKeys         []azpb.EntityKey
+	ExpectActions      []authz.Action
+	ExpectKeys         []authz.EntityKey
 }
 
 func (tk *testCase) TupleKey() TupleKey {
@@ -251,7 +256,7 @@ func TestChecker(t *testing.T) {
 		}
 		for _, tc := range tcs {
 			t.Run(tc.Notes, func(t *testing.T) {
-				ents, err := checker.UserList(newUserCtx(tc.CheckAsUser), &azpb.UserListRequest{Q: tc.Query})
+				ents, err := checker.UserList(newUserCtx(tc.CheckAsUser), &authz.UserListRequest{Q: tc.Query})
 				if !checkExpectError(t, err, tc.ExpectError) {
 					return
 				}
@@ -288,7 +293,7 @@ func TestChecker(t *testing.T) {
 			t.Run(tc.Notes, func(t *testing.T) {
 				ent, err := checker.User(
 					newUserCtx(tc.CheckAsUser),
-					&azpb.UserRequest{Id: tc.ExpectUserId},
+					&authz.UserRequest{Id: tc.ExpectUserId},
 				)
 				if !checkExpectError(t, err, tc.ExpectError) {
 					return
@@ -340,7 +345,7 @@ func TestChecker(t *testing.T) {
 			t.Run(tc.String(), func(t *testing.T) {
 				ret, err := checker.TenantList(
 					newUserCtx(tc.CheckAsUser, tc.Subject.Name),
-					&azpb.TenantListRequest{},
+					&authz.TenantListRequest{},
 				)
 				if err != nil {
 					t.Fatal(err)
@@ -459,7 +464,7 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.TenantPermissions(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.TenantRequest{Id: ltk.Object.ID()},
+					&authz.TenantRequest{Id: ltk.Object.ID()},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
@@ -559,9 +564,9 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantAddPermission(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.TenantModifyPermissionRequest{
+					&authz.TenantModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
+						EntityRelation: authz.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -643,9 +648,9 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantRemovePermission(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.TenantModifyPermissionRequest{
+					&authz.TenantModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
+						EntityRelation: authz.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -701,8 +706,8 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantSave(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.TenantSaveRequest{
-						Tenant: &azpb.Tenant{
+					&authz.TenantSaveRequest{
+						Tenant: &authz.Tenant{
 							Id:   ltk.Object.ID(),
 							Name: tc.Object.Name,
 						},
@@ -769,9 +774,9 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.TenantCreateGroup(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.TenantCreateGroupRequest{
+					&authz.TenantCreateGroupRequest{
 						Id:    ltk.Subject.ID(),
-						Group: &azpb.Group{Name: tc.Object.Name},
+						Group: &authz.Group{Name: tc.Object.Name},
 					},
 				)
 				if checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized) {
@@ -818,7 +823,7 @@ func TestChecker(t *testing.T) {
 			t.Run(tc.String(), func(t *testing.T) {
 				ret, err := checker.GroupList(
 					newUserCtx(tc.CheckAsUser, tc.Subject.Name),
-					&azpb.GroupListRequest{},
+					&authz.GroupListRequest{},
 				)
 				if err != nil {
 					t.Fatal(err)
@@ -961,7 +966,7 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.GroupPermissions(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.GroupRequest{Id: ltk.Object.ID()},
+					&authz.GroupRequest{Id: ltk.Object.ID()},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
@@ -1084,9 +1089,9 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.GroupAddPermission(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.GroupModifyPermissionRequest{
+					&authz.GroupModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
+						EntityRelation: authz.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1160,9 +1165,9 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.GroupRemovePermission(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.GroupModifyPermissionRequest{
+					&authz.GroupModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
+						EntityRelation: authz.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1210,8 +1215,8 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.GroupSave(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.GroupSaveRequest{
-						Group: &azpb.Group{
+					&authz.GroupSaveRequest{
+						Group: &authz.Group{
 							Id:   ltk.Object.ID(),
 							Name: tc.Object.Name,
 						},
@@ -1264,7 +1269,7 @@ func TestChecker(t *testing.T) {
 			t.Run(tc.String(), func(t *testing.T) {
 				ret, err := checker.FeedList(
 					newUserCtx(tc.CheckAsUser, tc.Subject.Name),
-					&azpb.FeedListRequest{},
+					&authz.FeedListRequest{},
 				)
 				if err != nil {
 					t.Fatal(err)
@@ -1371,7 +1376,7 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.FeedPermissions(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.FeedRequest{Id: ltk.Object.ID()},
+					&authz.FeedRequest{Id: ltk.Object.ID()},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
@@ -1421,7 +1426,7 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.FeedSetGroup(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.FeedSetGroupRequest{Id: ltk.Subject.ID(), GroupId: ltk.Object.ID()},
+					&authz.FeedSetGroupRequest{Id: ltk.Subject.ID(), GroupId: ltk.Object.ID()},
 				)
 				if checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized) {
 					return
@@ -1429,7 +1434,7 @@ func TestChecker(t *testing.T) {
 				// Verify write
 				fr, err := checker.FeedPermissions(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.FeedRequest{Id: ltk.Subject.ID()},
+					&authz.FeedRequest{Id: ltk.Subject.ID()},
 				)
 				if err != nil {
 					t.Fatal(err)
@@ -1476,7 +1481,7 @@ func TestChecker(t *testing.T) {
 			t.Run(tc.String(), func(t *testing.T) {
 				ret, err := checker.FeedVersionList(
 					newUserCtx(tc.CheckAsUser, tc.Subject.Name),
-					&azpb.FeedVersionListRequest{},
+					&authz.FeedVersionListRequest{},
 				)
 				if err != nil {
 					t.Fatal(err)
@@ -1548,7 +1553,7 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				ret, err := checker.FeedVersionPermissions(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.FeedVersionRequest{Id: ltk.Object.ID()},
+					&authz.FeedVersionRequest{Id: ltk.Object.ID()},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
 				if err != nil {
@@ -1624,9 +1629,9 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.FeedVersionAddPermission(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.FeedVersionModifyPermissionRequest{
+					&authz.FeedVersionModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
+						EntityRelation: authz.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1676,9 +1681,9 @@ func TestChecker(t *testing.T) {
 				ltk := dbTupleLookup(t, dbx, tc.TupleKey())
 				_, err := checker.FeedVersionRemovePermission(
 					newUserCtx(tc.CheckAsUser, ltk.Subject.Name),
-					&azpb.FeedVersionModifyPermissionRequest{
+					&authz.FeedVersionModifyPermissionRequest{
 						Id:             ltk.Object.ID(),
-						EntityRelation: azpb.NewEntityRelation(ltk.Subject, ltk.Relation),
+						EntityRelation: authz.NewEntityRelation(ltk.Subject, ltk.Relation),
 					},
 				)
 				checkErrUnauthorized(t, err, tc.ExpectError, tc.ExpectUnauthorized)
@@ -1766,10 +1771,10 @@ func newTestChecker(t testing.TB, url string, testData []testCase) *Checker {
 
 	// Override UserProvider
 	userClient := NewMockUserProvider()
-	userClient.AddUser("ian", &azpb.User{Name: "Ian", Id: "ian", Email: "ian@example.com"})
-	userClient.AddUser("drew", &azpb.User{Name: "Drew", Id: "drew", Email: "drew@example.com"})
-	userClient.AddUser("tl-tenant-member", &azpb.User{Name: "Tenant Member", Id: "tl-tenant-member", Email: "tl-tenant-member@example.com"})
-	userClient.AddUser("new-user", &azpb.User{Name: "Unassigned Member", Id: "new-user", Email: "new-user@example.com"})
+	userClient.AddUser("ian", authn.NewCtxUser("ian", "Ian", "ian@example.com"))
+	userClient.AddUser("drew", authn.NewCtxUser("drew", "Drew", "drew@example.com"))
+	userClient.AddUser("tl-tenant-member", authn.NewCtxUser("tl-tenant-member", "Tenant Member", "tl-tenant-member@example.com"))
+	userClient.AddUser("new-user", authn.NewCtxUser("new-user", "Unassigned Member", "new-user@example.com"))
 	checker.userClient = userClient
 	return checker
 }
@@ -1810,7 +1815,7 @@ func checkExpectError(t testing.TB, err error, expect bool) bool {
 }
 
 func newEntityKey(t ObjectType, name string) EntityKey {
-	return azpb.NewEntityKey(t, name)
+	return authz.NewEntityKey(t, name)
 }
 
 func newEntityKeys(t ObjectType, keys ...string) []EntityKey {
@@ -1824,7 +1829,7 @@ func newEntityKeys(t ObjectType, keys ...string) []EntityKey {
 func newUserCtx(first ...string) context.Context {
 	for _, f := range first {
 		if f != "" {
-			return auth.WithUser(context.Background(), auth.NewCtxUser(f, f, f))
+			return authn.WithUser(context.Background(), authn.NewCtxUser(f, f, f))
 		}
 	}
 	return context.Background()

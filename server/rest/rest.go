@@ -15,7 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/ancheck"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/util"
@@ -61,7 +61,7 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	r.HandleFunc("/feed_versions/{feed_version_key}.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions/{feed_version_key}", feedVersionHandler)
 	r.HandleFunc("/feeds/{feed_key}/feed_versions", feedVersionHandler)
-	r.Handle("/feed_versions/{feed_version_key}/download", authn.RoleRequired("tl_user_pro")(makeHandlerFunc(restcfg, "feedVersionDownload", feedVersionDownloadHandler)))
+	r.Handle("/feed_versions/{feed_version_key}/download", ancheck.RoleRequired("tl_user_pro")(makeHandlerFunc(restcfg, "feedVersionDownload", feedVersionDownloadHandler)))
 
 	r.HandleFunc("/agencies.{format}", agencyHandler)
 	r.HandleFunc("/agencies", agencyHandler)

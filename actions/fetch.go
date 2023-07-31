@@ -17,9 +17,9 @@ import (
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/dbutil"
-	"github.com/interline-io/transitland-server/internal/generated/azpb"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/proto"
@@ -261,7 +261,7 @@ func fetchCheckFeed(ctx context.Context, dbf model.Finder, checker model.Checker
 
 	// Check feed permissions
 	if checker != nil {
-		if check, err := checker.FeedPermissions(ctx, &azpb.FeedRequest{Id: int64(feed.ID)}); err != nil {
+		if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
 			return nil, err
 		} else if !check.Actions.CanCreateFeedVersion {
 			return nil, errors.New("unauthorized")
