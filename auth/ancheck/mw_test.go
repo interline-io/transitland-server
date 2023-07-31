@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/bmizerany/assert"
 	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/stretchr/testify/assert"
 )
 
 func newCtxUser(id string) authn.CtxUser {
