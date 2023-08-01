@@ -304,7 +304,53 @@ func TestChecker(t *testing.T) {
 				assert.Equal(t, tc.ExpectUserId, ent.User.Id)
 			})
 		}
+	})
 
+	t.Run("Me", func(t *testing.T) {
+		checker := newTestChecker(t, fgaUrl, checkerTestData)
+		tcs := []struct {
+			Name             string
+			CheckAsUser      string
+			ExpectUserId     string
+			ExpectGroupNames []string
+			ExpectError      bool
+		}{
+			{
+				Name:             "ian",
+				CheckAsUser:      "ian",
+				ExpectUserId:     "ian",
+				ExpectGroupNames: []string{"CT-group", "HA-group", "BA-group"},
+			},
+			{
+				Name:             "drew",
+				CheckAsUser:      "drew",
+				ExpectUserId:     "drew",
+				ExpectGroupNames: []string{"CT-group", "HA-group"},
+			},
+			{
+				Name:         "no one",
+				CheckAsUser:  "no one",
+				ExpectUserId: "",
+				ExpectError:  true,
+			},
+		}
+		for _, tc := range tcs {
+			t.Run(tc.Name, func(t *testing.T) {
+				ent, err := checker.Me(newUserCtx(tc.CheckAsUser), &authz.MeRequest{})
+				if !checkExpectError(t, err, tc.ExpectError) {
+					return
+				}
+				if ent == nil {
+					t.Fatal("got no result")
+				}
+				assert.Equal(t, tc.ExpectUserId, ent.User.Id)
+				var groupNames []string
+				for _, g := range ent.Groups {
+					groupNames = append(groupNames, g.Name)
+				}
+				assert.ElementsMatch(t, tc.ExpectGroupNames, groupNames, "group names")
+			})
+		}
 	})
 
 	// TENANTS

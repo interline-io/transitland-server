@@ -107,6 +107,7 @@ message MeRequest {}
 
 message MeResponse {
     User user = 1;
+    repeated Group groups = 2;
 }
 
 ////// 
