@@ -425,7 +425,7 @@ func stopResolverTestcases(t testing.TB, te model.Finders) []testcase {
 func stopResolverCursorTestcases(t *testing.T, te model.Finders) []testcase {
 	// First 1000 stops...
 	dbf := te.Finder
-	allEnts, err := dbf.FindStops(context.Background(), nil, nil, nil, nil, nil)
+	allEnts, err := dbf.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

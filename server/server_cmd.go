@@ -179,14 +179,6 @@ func (cmd *Command) Run() error {
 		db = dbutil.LogDB(dbx)
 	}
 
-	// Create Finder
-	var dbFinder model.Finder
-	f := dbfinder.NewFinder(db)
-	if cmd.LoadAdmins {
-		f.LoadAdmins()
-	}
-	dbFinder = f
-
 	// Open redis
 	var redisClient *redis.Client
 	if cmd.RedisURL != "" {
@@ -196,6 +188,24 @@ func (cmd *Command) Run() error {
 		}
 		redisClient = redis.NewClient(rOpts)
 	}
+
+	// Setup authorization checker
+	var checker model.Checker
+	if cmd.CheckerConfig.FGAEndpoint != "" {
+		authzChecker, err := azcheck.NewCheckerFromConfig(cmd.CheckerConfig, db, redisClient)
+		if err != nil {
+			return err
+		}
+		checker = authzChecker
+	}
+
+	// Create Finder
+	var dbFinder model.Finder
+	f := dbfinder.NewFinder(db, checker)
+	if cmd.LoadAdmins {
+		f.LoadAdmins()
+	}
+	dbFinder = f
 
 	// Create RTFinder, GBFSFinder
 	var rtFinder model.RTFinder
@@ -211,16 +221,6 @@ func (cmd *Command) Run() error {
 		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 		gbfsFinder = gbfsfinder.NewFinder(nil)
 		jobQueue = jobs.NewLocalJobs()
-	}
-
-	// Setup authorization checker
-	var checker model.Checker
-	if cmd.CheckerConfig.FGAEndpoint != "" {
-		authzChecker, err := azcheck.NewCheckerFromConfig(cmd.CheckerConfig, db, redisClient)
-		if err != nil {
-			return err
-		}
-		checker = authzChecker
 	}
 
 	// Setup metrics
