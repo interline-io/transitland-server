@@ -98,6 +98,7 @@ func TestServer(t *testing.T) {
 			{
 				CheckAsUser: "asdf",
 				ExpectKeys:  newEntityKeys(GroupType),
+				ExpectError: true,
 			},
 		}
 		for _, tc := range checks {

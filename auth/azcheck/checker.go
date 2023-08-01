@@ -190,6 +190,10 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 	if checkUser == nil || checkUser.ID() == "" {
 		return nil, ErrUnauthorized
 	}
+	user, err := c.userClient.UserByID(ctx, checkUser.ID())
+	if err != nil {
+		return nil, err
+	}
 	ids, err := c.listCtxObjectRelations(
 		ctx,
 		GroupType,
@@ -203,7 +207,7 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 		return nil, err
 	}
 	ret := &authz.MeResponse{
-		User:   newAzpbUser(checkUser),
+		User:   newAzpbUser(user),
 		Groups: t,
 	}
 	return ret, nil
