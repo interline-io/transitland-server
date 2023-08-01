@@ -83,6 +83,39 @@ func TestServer(t *testing.T) {
 		},
 	}
 
+	// USERS
+	t.Run("Me", func(t *testing.T) {
+		checker := newTestChecker(t, fgaUrl, serverTestData)
+		checks := []testCase{
+			{
+				CheckAsUser: "ian",
+				ExpectKeys:  newEntityKeys(GroupType, "BA-group"),
+			},
+			{
+				CheckAsUser: "drew",
+				ExpectKeys:  newEntityKeys(GroupType, "CT-group"),
+			},
+			{
+				CheckAsUser: "asdf",
+				ExpectKeys:  newEntityKeys(GroupType),
+			},
+		}
+		for _, tc := range checks {
+			t.Run(tc.String(), func(t *testing.T) {
+				srv := testServerWithUser(checker, tc)
+				req, _ := http.NewRequest("GET", "/me", nil)
+				rr := httptest.NewRecorder()
+				srv.ServeHTTP(rr, req)
+				checkHttpExpectError(t, tc, rr)
+				assert.ElementsMatch(
+					t,
+					ekGetNames(tc.ExpectKeys),
+					responseGetNames(t, rr.Body.Bytes(), "groups", "name"),
+				)
+			})
+		}
+	})
+
 	// TENANTS
 	t.Run("TenantList", func(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, serverTestData)

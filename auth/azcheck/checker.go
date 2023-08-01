@@ -54,7 +54,7 @@ var CanSetTenant = authz.CanSetTenant
 type EntityKey = authz.EntityKey
 type TupleKey = authz.TupleKey
 
-var ErrUnauthorized = errors.New("unauthorized")
+var ErrUnauthorized = authz.ErrUnauthorized
 
 type UserProvider interface {
 	Users(context.Context, string) ([]authn.User, error)
@@ -187,7 +187,7 @@ func (c *Checker) User(ctx context.Context, req *authz.UserRequest) (*authz.User
 
 func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeResponse, error) {
 	checkUser := authn.ForContext(ctx)
-	if checkUser == nil {
+	if checkUser == nil || checkUser.ID() == "" {
 		return nil, ErrUnauthorized
 	}
 	ids, err := c.listCtxObjectRelations(
