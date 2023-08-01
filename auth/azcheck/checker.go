@@ -185,6 +185,10 @@ func (c *Checker) User(ctx context.Context, req *authz.UserRequest) (*authz.User
 	return &authz.UserResponse{User: newAzpbUser(user)}, err
 }
 
+func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeResponse, error) {
+	return nil, nil
+}
+
 func (c *Checker) CheckGlobalAdmin(ctx context.Context) (bool, error) {
 	return c.checkGlobalAdmin(authn.ForContext(ctx)), nil
 }
