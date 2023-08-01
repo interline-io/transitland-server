@@ -18,7 +18,7 @@ func licenseCheck(col string, v *model.LicenseValue, q sq.SelectBuilder) sq.Sele
 	} else if *v == model.LicenseValueNo {
 		q = q.Where(sq.Expr("jsonb_extract_path_text(license,?) = ?", col, "no"))
 	} else if *v == model.LicenseValueExcludeNo {
-		q = q.Where(sq.Expr("jsonb_extract_path_text(license,?) IN (?,?) or jsonb_extract_path_text(license,?) is null", col, "yes", "unknown", col))
+		q = q.Where(sq.Expr("(jsonb_extract_path_text(license,?) IN (?,?) or jsonb_extract_path_text(license,?) is null)", col, "yes", "unknown", col))
 	}
 	return q
 }
