@@ -42,8 +42,19 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 		RTStorage: t.TempDir(),
 	}
 
+	// Setup Checker
+	checkerCfg := azcheck.CheckerConfig{
+		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
+		FGALoadModelFile: opts.FGAModelFile,
+		FGALoadTestData:  opts.FGAModelTuples,
+	}
+	checker, err := azcheck.NewCheckerFromConfig(checkerCfg, db, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// Setup DB
-	dbf := dbfinder.NewFinder(db)
+	dbf := dbfinder.NewFinder(db, checker)
 	dbf.Clock = opts.Clock
 
 	// Setup RT
@@ -59,16 +70,6 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 		}
 	}
 
-	// Setup Checker
-	checkerCfg := azcheck.CheckerConfig{
-		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
-		FGALoadModelFile: opts.FGAModelFile,
-		FGALoadTestData:  opts.FGAModelTuples,
-	}
-	checker, err := azcheck.NewCheckerFromConfig(checkerCfg, db, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 	return model.Finders{
 		Config:     cfg,
 		Finder:     dbf,

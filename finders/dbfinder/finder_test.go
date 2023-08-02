@@ -19,14 +19,14 @@ func TestMain(m *testing.M) {
 		return
 	}
 	db := testutil.MustOpenTestDB()
-	dbf := NewFinder(db)
+	dbf := NewFinder(db, nil)
 	TestFinder = dbf
 	os.Exit(m.Run())
 }
 
 func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	fvm := map[string]int{}
-	fvs, err := TestFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil, nil)
+	fvs, err := TestFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

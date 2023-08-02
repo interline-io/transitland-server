@@ -20,7 +20,7 @@ type GbfsFetchWorker struct {
 
 func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	log := job.Opts.Logger.With().Str("feed_id", w.FeedID).Str("url", w.Url).Logger()
-	gfeeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &w.FeedID})
+	gfeeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &w.FeedID})
 	if err != nil {
 		log.Error().Err(err).Msg("gbfsfetch worker: error loading source feed")
 		return err

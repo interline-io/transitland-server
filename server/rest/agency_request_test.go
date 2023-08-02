@@ -165,7 +165,7 @@ func TestAgencyRequest(t *testing.T) {
 
 func TestAgencyRequest_Pagination(t *testing.T) {
 	srv, te := testRestConfig(t)
-	allEnts, err := te.Finder.FindAgencies(context.Background(), nil, nil, nil, nil, nil)
+	allEnts, err := te.Finder.FindAgencies(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

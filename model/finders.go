@@ -23,20 +23,25 @@ type Finders struct {
 
 // Finder provides all necessary database methods
 type Finder interface {
+	PermFinder
 	EntityFinder
 	EntityLoader
 }
 
+type PermFinder interface {
+	PermFilter(context.Context) *PermFilter
+}
+
 // Finder handles basic queries
 type EntityFinder interface {
-	FindAgencies(context.Context, *int, *Cursor, []int, *PermFilter, *AgencyFilter) ([]*Agency, error)
-	FindRoutes(context.Context, *int, *Cursor, []int, *PermFilter, *RouteFilter) ([]*Route, error)
-	FindStops(context.Context, *int, *Cursor, []int, *PermFilter, *StopFilter) ([]*Stop, error)
-	FindTrips(context.Context, *int, *Cursor, []int, *PermFilter, *TripFilter) ([]*Trip, error)
-	FindFeedVersions(context.Context, *int, *Cursor, []int, *PermFilter, *FeedVersionFilter) ([]*FeedVersion, error)
-	FindFeeds(context.Context, *int, *Cursor, []int, *PermFilter, *FeedFilter) ([]*Feed, error)
-	FindOperators(context.Context, *int, *Cursor, []int, *PermFilter, *OperatorFilter) ([]*Operator, error)
-	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PermFilter, *PlaceFilter) ([]*Place, error)
+	FindAgencies(context.Context, *int, *Cursor, []int, *AgencyFilter) ([]*Agency, error)
+	FindRoutes(context.Context, *int, *Cursor, []int, *RouteFilter) ([]*Route, error)
+	FindStops(context.Context, *int, *Cursor, []int, *StopFilter) ([]*Stop, error)
+	FindTrips(context.Context, *int, *Cursor, []int, *TripFilter) ([]*Trip, error)
+	FindFeedVersions(context.Context, *int, *Cursor, []int, *FeedVersionFilter) ([]*FeedVersion, error)
+	FindFeeds(context.Context, *int, *Cursor, []int, *FeedFilter) ([]*Feed, error)
+	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
+	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (time.Time, time.Time, time.Time, error)
 	DBX() sqlx.Ext // escape hatch, for now
