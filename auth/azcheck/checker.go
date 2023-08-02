@@ -54,7 +54,7 @@ var CanSetTenant = authz.CanSetTenant
 type EntityKey = authz.EntityKey
 type TupleKey = authz.TupleKey
 
-var ErrUnauthorized = errors.New("unauthorized")
+var ErrUnauthorized = authz.ErrUnauthorized
 
 type UserProvider interface {
 	Users(context.Context, string) ([]authn.User, error)
@@ -183,6 +183,34 @@ func (c *Checker) User(ctx context.Context, req *authz.UserRequest) (*authz.User
 		return nil, ErrUnauthorized
 	}
 	return &authz.UserResponse{User: newAzpbUser(user)}, err
+}
+
+func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeResponse, error) {
+	checkUser := authn.ForContext(ctx)
+	if checkUser == nil || checkUser.ID() == "" {
+		return nil, ErrUnauthorized
+	}
+	user, err := c.userClient.UserByID(ctx, checkUser.ID())
+	if err != nil {
+		return nil, err
+	}
+	ids, err := c.listCtxObjectRelations(
+		ctx,
+		GroupType,
+		ViewerRelation,
+	)
+	if err != nil {
+		return nil, err
+	}
+	t, err := c.getGroups(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	ret := &authz.MeResponse{
+		User:   newAzpbUser(user),
+		Groups: t,
+	}
+	return ret, nil
 }
 
 func (c *Checker) CheckGlobalAdmin(ctx context.Context) (bool, error) {
@@ -667,6 +695,23 @@ func (c *Checker) listCtxObjects(ctx context.Context, objectType ObjectType, act
 		return nil, nil
 	}
 	tk := authz.NewTupleKey().WithUser(checkUser.ID()).WithObject(objectType, "").WithAction(action)
+	objTks, err := c.fgaClient.ListObjects(ctx, tk)
+	if err != nil {
+		return nil, err
+	}
+	var ret []int64
+	for _, tk := range objTks {
+		ret = append(ret, tk.Object.ID())
+	}
+	return ret, nil
+}
+
+func (c *Checker) listCtxObjectRelations(ctx context.Context, objectType ObjectType, rel Relation) ([]int64, error) {
+	checkUser := authn.ForContext(ctx)
+	if checkUser == nil {
+		return nil, nil
+	}
+	tk := authz.NewTupleKey().WithUser(checkUser.ID()).WithObject(objectType, "").WithRelation(rel)
 	objTks, err := c.fgaClient.ListObjects(ctx, tk)
 	if err != nil {
 		return nil, err

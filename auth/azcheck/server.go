@@ -29,6 +29,10 @@ func NewServer(checker model.Checker) (http.Handler, error) {
 		ret, err := checker.User(r.Context(), &authz.UserRequest{Id: chi.URLParam(r, "user_id")})
 		handleJson(w, ret, err)
 	})
+	router.Get("/me", func(w http.ResponseWriter, r *http.Request) {
+		ret, err := checker.Me(r.Context(), &authz.MeRequest{})
+		handleJson(w, ret, err)
+	})
 
 	/////////////////
 	// TENANTS

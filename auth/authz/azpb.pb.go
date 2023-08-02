@@ -545,6 +545,99 @@ func (x *UserResponse) GetUser() *User {
 	return nil
 }
 
+type MeRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *MeRequest) Reset() {
+	*x = MeRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_azpb_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MeRequest) ProtoMessage() {}
+
+func (x *MeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_azpb_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MeRequest.ProtoReflect.Descriptor instead.
+func (*MeRequest) Descriptor() ([]byte, []int) {
+	return file_azpb_proto_rawDescGZIP(), []int{6}
+}
+
+type MeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	User   *User    `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	Groups []*Group `protobuf:"bytes,2,rep,name=groups,proto3" json:"groups,omitempty"`
+}
+
+func (x *MeResponse) Reset() {
+	*x = MeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_azpb_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MeResponse) ProtoMessage() {}
+
+func (x *MeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_azpb_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MeResponse.ProtoReflect.Descriptor instead.
+func (*MeResponse) Descriptor() ([]byte, []int) {
+	return file_azpb_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *MeResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+func (x *MeResponse) GetGroups() []*Group {
+	if x != nil {
+		return x.Groups
+	}
+	return nil
+}
+
 type Tenant struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -557,7 +650,7 @@ type Tenant struct {
 func (x *Tenant) Reset() {
 	*x = Tenant{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[6]
+		mi := &file_azpb_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -570,7 +663,7 @@ func (x *Tenant) String() string {
 func (*Tenant) ProtoMessage() {}
 
 func (x *Tenant) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[6]
+	mi := &file_azpb_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -583,7 +676,7 @@ func (x *Tenant) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tenant.ProtoReflect.Descriptor instead.
 func (*Tenant) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{6}
+	return file_azpb_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Tenant) GetId() int64 {
@@ -611,7 +704,7 @@ type TenantSaveRequest struct {
 func (x *TenantSaveRequest) Reset() {
 	*x = TenantSaveRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[7]
+		mi := &file_azpb_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -624,7 +717,7 @@ func (x *TenantSaveRequest) String() string {
 func (*TenantSaveRequest) ProtoMessage() {}
 
 func (x *TenantSaveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[7]
+	mi := &file_azpb_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -637,7 +730,7 @@ func (x *TenantSaveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantSaveRequest.ProtoReflect.Descriptor instead.
 func (*TenantSaveRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{7}
+	return file_azpb_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *TenantSaveRequest) GetTenant() *Tenant {
@@ -658,7 +751,7 @@ type TenantRequest struct {
 func (x *TenantRequest) Reset() {
 	*x = TenantRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[8]
+		mi := &file_azpb_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -671,7 +764,7 @@ func (x *TenantRequest) String() string {
 func (*TenantRequest) ProtoMessage() {}
 
 func (x *TenantRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[8]
+	mi := &file_azpb_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -684,7 +777,7 @@ func (x *TenantRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantRequest.ProtoReflect.Descriptor instead.
 func (*TenantRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{8}
+	return file_azpb_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *TenantRequest) GetId() int64 {
@@ -703,7 +796,7 @@ type TenantListRequest struct {
 func (x *TenantListRequest) Reset() {
 	*x = TenantListRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[9]
+		mi := &file_azpb_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -716,7 +809,7 @@ func (x *TenantListRequest) String() string {
 func (*TenantListRequest) ProtoMessage() {}
 
 func (x *TenantListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[9]
+	mi := &file_azpb_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -729,7 +822,7 @@ func (x *TenantListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantListRequest.ProtoReflect.Descriptor instead.
 func (*TenantListRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{9}
+	return file_azpb_proto_rawDescGZIP(), []int{11}
 }
 
 type TenantResponse struct {
@@ -743,7 +836,7 @@ type TenantResponse struct {
 func (x *TenantResponse) Reset() {
 	*x = TenantResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[10]
+		mi := &file_azpb_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -756,7 +849,7 @@ func (x *TenantResponse) String() string {
 func (*TenantResponse) ProtoMessage() {}
 
 func (x *TenantResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[10]
+	mi := &file_azpb_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -769,7 +862,7 @@ func (x *TenantResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantResponse.ProtoReflect.Descriptor instead.
 func (*TenantResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{10}
+	return file_azpb_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *TenantResponse) GetTenant() *Tenant {
@@ -790,7 +883,7 @@ type TenantListResponse struct {
 func (x *TenantListResponse) Reset() {
 	*x = TenantListResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[11]
+		mi := &file_azpb_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -803,7 +896,7 @@ func (x *TenantListResponse) String() string {
 func (*TenantListResponse) ProtoMessage() {}
 
 func (x *TenantListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[11]
+	mi := &file_azpb_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -816,7 +909,7 @@ func (x *TenantListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantListResponse.ProtoReflect.Descriptor instead.
 func (*TenantListResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{11}
+	return file_azpb_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *TenantListResponse) GetTenants() []*Tenant {
@@ -840,7 +933,7 @@ type TenantPermissionsResponse struct {
 func (x *TenantPermissionsResponse) Reset() {
 	*x = TenantPermissionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[12]
+		mi := &file_azpb_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -853,7 +946,7 @@ func (x *TenantPermissionsResponse) String() string {
 func (*TenantPermissionsResponse) ProtoMessage() {}
 
 func (x *TenantPermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[12]
+	mi := &file_azpb_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -866,7 +959,7 @@ func (x *TenantPermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantPermissionsResponse.ProtoReflect.Descriptor instead.
 func (*TenantPermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{12}
+	return file_azpb_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *TenantPermissionsResponse) GetTenant() *Tenant {
@@ -906,7 +999,7 @@ type TenantCreateRequest struct {
 func (x *TenantCreateRequest) Reset() {
 	*x = TenantCreateRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[13]
+		mi := &file_azpb_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -919,7 +1012,7 @@ func (x *TenantCreateRequest) String() string {
 func (*TenantCreateRequest) ProtoMessage() {}
 
 func (x *TenantCreateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[13]
+	mi := &file_azpb_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -932,7 +1025,7 @@ func (x *TenantCreateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantCreateRequest.ProtoReflect.Descriptor instead.
 func (*TenantCreateRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{13}
+	return file_azpb_proto_rawDescGZIP(), []int{15}
 }
 
 type TenantCreateGroupRequest struct {
@@ -947,7 +1040,7 @@ type TenantCreateGroupRequest struct {
 func (x *TenantCreateGroupRequest) Reset() {
 	*x = TenantCreateGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[14]
+		mi := &file_azpb_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -960,7 +1053,7 @@ func (x *TenantCreateGroupRequest) String() string {
 func (*TenantCreateGroupRequest) ProtoMessage() {}
 
 func (x *TenantCreateGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[14]
+	mi := &file_azpb_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -973,7 +1066,7 @@ func (x *TenantCreateGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantCreateGroupRequest.ProtoReflect.Descriptor instead.
 func (*TenantCreateGroupRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{14}
+	return file_azpb_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *TenantCreateGroupRequest) GetId() int64 {
@@ -1001,7 +1094,7 @@ type TenantCreateGroupResponse struct {
 func (x *TenantCreateGroupResponse) Reset() {
 	*x = TenantCreateGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[15]
+		mi := &file_azpb_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1014,7 +1107,7 @@ func (x *TenantCreateGroupResponse) String() string {
 func (*TenantCreateGroupResponse) ProtoMessage() {}
 
 func (x *TenantCreateGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[15]
+	mi := &file_azpb_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1027,7 +1120,7 @@ func (x *TenantCreateGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantCreateGroupResponse.ProtoReflect.Descriptor instead.
 func (*TenantCreateGroupResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{15}
+	return file_azpb_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *TenantCreateGroupResponse) GetGroup() *Group {
@@ -1049,7 +1142,7 @@ type TenantModifyPermissionRequest struct {
 func (x *TenantModifyPermissionRequest) Reset() {
 	*x = TenantModifyPermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[16]
+		mi := &file_azpb_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1062,7 +1155,7 @@ func (x *TenantModifyPermissionRequest) String() string {
 func (*TenantModifyPermissionRequest) ProtoMessage() {}
 
 func (x *TenantModifyPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[16]
+	mi := &file_azpb_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1075,7 +1168,7 @@ func (x *TenantModifyPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantModifyPermissionRequest.ProtoReflect.Descriptor instead.
 func (*TenantModifyPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{16}
+	return file_azpb_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *TenantModifyPermissionRequest) GetId() int64 {
@@ -1101,7 +1194,7 @@ type TenantSaveResponse struct {
 func (x *TenantSaveResponse) Reset() {
 	*x = TenantSaveResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[17]
+		mi := &file_azpb_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1114,7 +1207,7 @@ func (x *TenantSaveResponse) String() string {
 func (*TenantSaveResponse) ProtoMessage() {}
 
 func (x *TenantSaveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[17]
+	mi := &file_azpb_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1127,7 +1220,7 @@ func (x *TenantSaveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantSaveResponse.ProtoReflect.Descriptor instead.
 func (*TenantSaveResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{17}
+	return file_azpb_proto_rawDescGZIP(), []int{19}
 }
 
 type Group struct {
@@ -1142,7 +1235,7 @@ type Group struct {
 func (x *Group) Reset() {
 	*x = Group{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[18]
+		mi := &file_azpb_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1155,7 +1248,7 @@ func (x *Group) String() string {
 func (*Group) ProtoMessage() {}
 
 func (x *Group) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[18]
+	mi := &file_azpb_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1168,7 +1261,7 @@ func (x *Group) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Group.ProtoReflect.Descriptor instead.
 func (*Group) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{18}
+	return file_azpb_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Group) GetId() int64 {
@@ -1196,7 +1289,7 @@ type GroupRequest struct {
 func (x *GroupRequest) Reset() {
 	*x = GroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[19]
+		mi := &file_azpb_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1209,7 +1302,7 @@ func (x *GroupRequest) String() string {
 func (*GroupRequest) ProtoMessage() {}
 
 func (x *GroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[19]
+	mi := &file_azpb_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1222,7 +1315,7 @@ func (x *GroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupRequest.ProtoReflect.Descriptor instead.
 func (*GroupRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{19}
+	return file_azpb_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GroupRequest) GetId() int64 {
@@ -1243,7 +1336,7 @@ type GroupSaveRequest struct {
 func (x *GroupSaveRequest) Reset() {
 	*x = GroupSaveRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[20]
+		mi := &file_azpb_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1256,7 +1349,7 @@ func (x *GroupSaveRequest) String() string {
 func (*GroupSaveRequest) ProtoMessage() {}
 
 func (x *GroupSaveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[20]
+	mi := &file_azpb_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1269,7 +1362,7 @@ func (x *GroupSaveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupSaveRequest.ProtoReflect.Descriptor instead.
 func (*GroupSaveRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{20}
+	return file_azpb_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GroupSaveRequest) GetGroup() *Group {
@@ -1288,7 +1381,7 @@ type GroupListRequest struct {
 func (x *GroupListRequest) Reset() {
 	*x = GroupListRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[21]
+		mi := &file_azpb_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1301,7 +1394,7 @@ func (x *GroupListRequest) String() string {
 func (*GroupListRequest) ProtoMessage() {}
 
 func (x *GroupListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[21]
+	mi := &file_azpb_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1314,7 +1407,7 @@ func (x *GroupListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupListRequest.ProtoReflect.Descriptor instead.
 func (*GroupListRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{21}
+	return file_azpb_proto_rawDescGZIP(), []int{23}
 }
 
 type GroupModifyPermissionRequest struct {
@@ -1329,7 +1422,7 @@ type GroupModifyPermissionRequest struct {
 func (x *GroupModifyPermissionRequest) Reset() {
 	*x = GroupModifyPermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[22]
+		mi := &file_azpb_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1342,7 +1435,7 @@ func (x *GroupModifyPermissionRequest) String() string {
 func (*GroupModifyPermissionRequest) ProtoMessage() {}
 
 func (x *GroupModifyPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[22]
+	mi := &file_azpb_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1355,7 +1448,7 @@ func (x *GroupModifyPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupModifyPermissionRequest.ProtoReflect.Descriptor instead.
 func (*GroupModifyPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{22}
+	return file_azpb_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GroupModifyPermissionRequest) GetId() int64 {
@@ -1383,7 +1476,7 @@ type GroupResponse struct {
 func (x *GroupResponse) Reset() {
 	*x = GroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[23]
+		mi := &file_azpb_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1396,7 +1489,7 @@ func (x *GroupResponse) String() string {
 func (*GroupResponse) ProtoMessage() {}
 
 func (x *GroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[23]
+	mi := &file_azpb_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1409,7 +1502,7 @@ func (x *GroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupResponse.ProtoReflect.Descriptor instead.
 func (*GroupResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{23}
+	return file_azpb_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GroupResponse) GetGroup() *Group {
@@ -1430,7 +1523,7 @@ type GroupListResponse struct {
 func (x *GroupListResponse) Reset() {
 	*x = GroupListResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[24]
+		mi := &file_azpb_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1443,7 +1536,7 @@ func (x *GroupListResponse) String() string {
 func (*GroupListResponse) ProtoMessage() {}
 
 func (x *GroupListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[24]
+	mi := &file_azpb_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1456,7 +1549,7 @@ func (x *GroupListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupListResponse.ProtoReflect.Descriptor instead.
 func (*GroupListResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{24}
+	return file_azpb_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GroupListResponse) GetGroups() []*Group {
@@ -1481,7 +1574,7 @@ type GroupPermissionsResponse struct {
 func (x *GroupPermissionsResponse) Reset() {
 	*x = GroupPermissionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[25]
+		mi := &file_azpb_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1494,7 +1587,7 @@ func (x *GroupPermissionsResponse) String() string {
 func (*GroupPermissionsResponse) ProtoMessage() {}
 
 func (x *GroupPermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[25]
+	mi := &file_azpb_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1507,7 +1600,7 @@ func (x *GroupPermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupPermissionsResponse.ProtoReflect.Descriptor instead.
 func (*GroupPermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{25}
+	return file_azpb_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GroupPermissionsResponse) GetGroup() *Group {
@@ -1556,7 +1649,7 @@ type GroupSaveResponse struct {
 func (x *GroupSaveResponse) Reset() {
 	*x = GroupSaveResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[26]
+		mi := &file_azpb_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1569,7 +1662,7 @@ func (x *GroupSaveResponse) String() string {
 func (*GroupSaveResponse) ProtoMessage() {}
 
 func (x *GroupSaveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[26]
+	mi := &file_azpb_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1582,7 +1675,7 @@ func (x *GroupSaveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupSaveResponse.ProtoReflect.Descriptor instead.
 func (*GroupSaveResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{26}
+	return file_azpb_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GroupSaveResponse) GetGroup() *Group {
@@ -1604,7 +1697,7 @@ type GroupSetTenantRequest struct {
 func (x *GroupSetTenantRequest) Reset() {
 	*x = GroupSetTenantRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[27]
+		mi := &file_azpb_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1617,7 +1710,7 @@ func (x *GroupSetTenantRequest) String() string {
 func (*GroupSetTenantRequest) ProtoMessage() {}
 
 func (x *GroupSetTenantRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[27]
+	mi := &file_azpb_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1630,7 +1723,7 @@ func (x *GroupSetTenantRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupSetTenantRequest.ProtoReflect.Descriptor instead.
 func (*GroupSetTenantRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{27}
+	return file_azpb_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GroupSetTenantRequest) GetId() int64 {
@@ -1656,7 +1749,7 @@ type GroupSetTenantResponse struct {
 func (x *GroupSetTenantResponse) Reset() {
 	*x = GroupSetTenantResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[28]
+		mi := &file_azpb_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1669,7 +1762,7 @@ func (x *GroupSetTenantResponse) String() string {
 func (*GroupSetTenantResponse) ProtoMessage() {}
 
 func (x *GroupSetTenantResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[28]
+	mi := &file_azpb_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1682,7 +1775,7 @@ func (x *GroupSetTenantResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupSetTenantResponse.ProtoReflect.Descriptor instead.
 func (*GroupSetTenantResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{28}
+	return file_azpb_proto_rawDescGZIP(), []int{30}
 }
 
 type Feed struct {
@@ -1698,7 +1791,7 @@ type Feed struct {
 func (x *Feed) Reset() {
 	*x = Feed{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[29]
+		mi := &file_azpb_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1711,7 +1804,7 @@ func (x *Feed) String() string {
 func (*Feed) ProtoMessage() {}
 
 func (x *Feed) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[29]
+	mi := &file_azpb_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1724,7 +1817,7 @@ func (x *Feed) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Feed.ProtoReflect.Descriptor instead.
 func (*Feed) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{29}
+	return file_azpb_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *Feed) GetId() int64 {
@@ -1759,7 +1852,7 @@ type FeedRequest struct {
 func (x *FeedRequest) Reset() {
 	*x = FeedRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[30]
+		mi := &file_azpb_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1772,7 +1865,7 @@ func (x *FeedRequest) String() string {
 func (*FeedRequest) ProtoMessage() {}
 
 func (x *FeedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[30]
+	mi := &file_azpb_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1785,7 +1878,7 @@ func (x *FeedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedRequest.ProtoReflect.Descriptor instead.
 func (*FeedRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{30}
+	return file_azpb_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *FeedRequest) GetId() int64 {
@@ -1804,7 +1897,7 @@ type FeedListRequest struct {
 func (x *FeedListRequest) Reset() {
 	*x = FeedListRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[31]
+		mi := &file_azpb_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1817,7 +1910,7 @@ func (x *FeedListRequest) String() string {
 func (*FeedListRequest) ProtoMessage() {}
 
 func (x *FeedListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[31]
+	mi := &file_azpb_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1830,7 +1923,7 @@ func (x *FeedListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedListRequest.ProtoReflect.Descriptor instead.
 func (*FeedListRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{31}
+	return file_azpb_proto_rawDescGZIP(), []int{33}
 }
 
 type FeedPermissionsResponse struct {
@@ -1846,7 +1939,7 @@ type FeedPermissionsResponse struct {
 func (x *FeedPermissionsResponse) Reset() {
 	*x = FeedPermissionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[32]
+		mi := &file_azpb_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1859,7 +1952,7 @@ func (x *FeedPermissionsResponse) String() string {
 func (*FeedPermissionsResponse) ProtoMessage() {}
 
 func (x *FeedPermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[32]
+	mi := &file_azpb_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1872,7 +1965,7 @@ func (x *FeedPermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedPermissionsResponse.ProtoReflect.Descriptor instead.
 func (*FeedPermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{32}
+	return file_azpb_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *FeedPermissionsResponse) GetFeed() *Feed {
@@ -1907,7 +2000,7 @@ type FeedResponse struct {
 func (x *FeedResponse) Reset() {
 	*x = FeedResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[33]
+		mi := &file_azpb_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1920,7 +2013,7 @@ func (x *FeedResponse) String() string {
 func (*FeedResponse) ProtoMessage() {}
 
 func (x *FeedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[33]
+	mi := &file_azpb_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1933,7 +2026,7 @@ func (x *FeedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedResponse.ProtoReflect.Descriptor instead.
 func (*FeedResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{33}
+	return file_azpb_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *FeedResponse) GetFeed() *Feed {
@@ -1954,7 +2047,7 @@ type FeedListResponse struct {
 func (x *FeedListResponse) Reset() {
 	*x = FeedListResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[34]
+		mi := &file_azpb_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1967,7 +2060,7 @@ func (x *FeedListResponse) String() string {
 func (*FeedListResponse) ProtoMessage() {}
 
 func (x *FeedListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[34]
+	mi := &file_azpb_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1980,7 +2073,7 @@ func (x *FeedListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedListResponse.ProtoReflect.Descriptor instead.
 func (*FeedListResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{34}
+	return file_azpb_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *FeedListResponse) GetFeeds() []*Feed {
@@ -2002,7 +2095,7 @@ type FeedSetGroupRequest struct {
 func (x *FeedSetGroupRequest) Reset() {
 	*x = FeedSetGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[35]
+		mi := &file_azpb_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2015,7 +2108,7 @@ func (x *FeedSetGroupRequest) String() string {
 func (*FeedSetGroupRequest) ProtoMessage() {}
 
 func (x *FeedSetGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[35]
+	mi := &file_azpb_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2028,7 +2121,7 @@ func (x *FeedSetGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedSetGroupRequest.ProtoReflect.Descriptor instead.
 func (*FeedSetGroupRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{35}
+	return file_azpb_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *FeedSetGroupRequest) GetId() int64 {
@@ -2054,7 +2147,7 @@ type FeedSaveResponse struct {
 func (x *FeedSaveResponse) Reset() {
 	*x = FeedSaveResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[36]
+		mi := &file_azpb_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2067,7 +2160,7 @@ func (x *FeedSaveResponse) String() string {
 func (*FeedSaveResponse) ProtoMessage() {}
 
 func (x *FeedSaveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[36]
+	mi := &file_azpb_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2080,7 +2173,7 @@ func (x *FeedSaveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedSaveResponse.ProtoReflect.Descriptor instead.
 func (*FeedSaveResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{36}
+	return file_azpb_proto_rawDescGZIP(), []int{38}
 }
 
 type FeedVersion struct {
@@ -2097,7 +2190,7 @@ type FeedVersion struct {
 func (x *FeedVersion) Reset() {
 	*x = FeedVersion{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[37]
+		mi := &file_azpb_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2110,7 +2203,7 @@ func (x *FeedVersion) String() string {
 func (*FeedVersion) ProtoMessage() {}
 
 func (x *FeedVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[37]
+	mi := &file_azpb_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2123,7 +2216,7 @@ func (x *FeedVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedVersion.ProtoReflect.Descriptor instead.
 func (*FeedVersion) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{37}
+	return file_azpb_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *FeedVersion) GetId() int64 {
@@ -2163,7 +2256,7 @@ type FeedVersionListRequest struct {
 func (x *FeedVersionListRequest) Reset() {
 	*x = FeedVersionListRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[38]
+		mi := &file_azpb_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2176,7 +2269,7 @@ func (x *FeedVersionListRequest) String() string {
 func (*FeedVersionListRequest) ProtoMessage() {}
 
 func (x *FeedVersionListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[38]
+	mi := &file_azpb_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2189,7 +2282,7 @@ func (x *FeedVersionListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedVersionListRequest.ProtoReflect.Descriptor instead.
 func (*FeedVersionListRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{38}
+	return file_azpb_proto_rawDescGZIP(), []int{40}
 }
 
 type FeedVersionResponse struct {
@@ -2203,7 +2296,7 @@ type FeedVersionResponse struct {
 func (x *FeedVersionResponse) Reset() {
 	*x = FeedVersionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[39]
+		mi := &file_azpb_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2216,7 +2309,7 @@ func (x *FeedVersionResponse) String() string {
 func (*FeedVersionResponse) ProtoMessage() {}
 
 func (x *FeedVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[39]
+	mi := &file_azpb_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2229,7 +2322,7 @@ func (x *FeedVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedVersionResponse.ProtoReflect.Descriptor instead.
 func (*FeedVersionResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{39}
+	return file_azpb_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *FeedVersionResponse) GetFeedVersion() *FeedVersion {
@@ -2250,7 +2343,7 @@ type FeedVersionRequest struct {
 func (x *FeedVersionRequest) Reset() {
 	*x = FeedVersionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[40]
+		mi := &file_azpb_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2263,7 +2356,7 @@ func (x *FeedVersionRequest) String() string {
 func (*FeedVersionRequest) ProtoMessage() {}
 
 func (x *FeedVersionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[40]
+	mi := &file_azpb_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2276,7 +2369,7 @@ func (x *FeedVersionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedVersionRequest.ProtoReflect.Descriptor instead.
 func (*FeedVersionRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{40}
+	return file_azpb_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *FeedVersionRequest) GetId() int64 {
@@ -2297,7 +2390,7 @@ type FeedVersionListResponse struct {
 func (x *FeedVersionListResponse) Reset() {
 	*x = FeedVersionListResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[41]
+		mi := &file_azpb_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2310,7 +2403,7 @@ func (x *FeedVersionListResponse) String() string {
 func (*FeedVersionListResponse) ProtoMessage() {}
 
 func (x *FeedVersionListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[41]
+	mi := &file_azpb_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2323,7 +2416,7 @@ func (x *FeedVersionListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedVersionListResponse.ProtoReflect.Descriptor instead.
 func (*FeedVersionListResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{41}
+	return file_azpb_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *FeedVersionListResponse) GetFeedVersions() []*FeedVersion {
@@ -2348,7 +2441,7 @@ type FeedVersionPermissionsResponse struct {
 func (x *FeedVersionPermissionsResponse) Reset() {
 	*x = FeedVersionPermissionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[42]
+		mi := &file_azpb_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2361,7 +2454,7 @@ func (x *FeedVersionPermissionsResponse) String() string {
 func (*FeedVersionPermissionsResponse) ProtoMessage() {}
 
 func (x *FeedVersionPermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[42]
+	mi := &file_azpb_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2374,7 +2467,7 @@ func (x *FeedVersionPermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedVersionPermissionsResponse.ProtoReflect.Descriptor instead.
 func (*FeedVersionPermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{42}
+	return file_azpb_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *FeedVersionPermissionsResponse) GetFeedVersion() *FeedVersion {
@@ -2424,7 +2517,7 @@ type FeedVersionModifyPermissionRequest struct {
 func (x *FeedVersionModifyPermissionRequest) Reset() {
 	*x = FeedVersionModifyPermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[43]
+		mi := &file_azpb_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2437,7 +2530,7 @@ func (x *FeedVersionModifyPermissionRequest) String() string {
 func (*FeedVersionModifyPermissionRequest) ProtoMessage() {}
 
 func (x *FeedVersionModifyPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[43]
+	mi := &file_azpb_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2450,7 +2543,7 @@ func (x *FeedVersionModifyPermissionRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use FeedVersionModifyPermissionRequest.ProtoReflect.Descriptor instead.
 func (*FeedVersionModifyPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{43}
+	return file_azpb_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *FeedVersionModifyPermissionRequest) GetId() int64 {
@@ -2476,7 +2569,7 @@ type FeedVersionSaveResponse struct {
 func (x *FeedVersionSaveResponse) Reset() {
 	*x = FeedVersionSaveResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[44]
+		mi := &file_azpb_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2489,7 +2582,7 @@ func (x *FeedVersionSaveResponse) String() string {
 func (*FeedVersionSaveResponse) ProtoMessage() {}
 
 func (x *FeedVersionSaveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[44]
+	mi := &file_azpb_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2502,7 +2595,7 @@ func (x *FeedVersionSaveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedVersionSaveResponse.ProtoReflect.Descriptor instead.
 func (*FeedVersionSaveResponse) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{44}
+	return file_azpb_proto_rawDescGZIP(), []int{46}
 }
 
 type TenantPermissionsResponse_Actions struct {
@@ -2520,7 +2613,7 @@ type TenantPermissionsResponse_Actions struct {
 func (x *TenantPermissionsResponse_Actions) Reset() {
 	*x = TenantPermissionsResponse_Actions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[45]
+		mi := &file_azpb_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2533,7 +2626,7 @@ func (x *TenantPermissionsResponse_Actions) String() string {
 func (*TenantPermissionsResponse_Actions) ProtoMessage() {}
 
 func (x *TenantPermissionsResponse_Actions) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[45]
+	mi := &file_azpb_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2546,7 +2639,7 @@ func (x *TenantPermissionsResponse_Actions) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use TenantPermissionsResponse_Actions.ProtoReflect.Descriptor instead.
 func (*TenantPermissionsResponse_Actions) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{12, 0}
+	return file_azpb_proto_rawDescGZIP(), []int{14, 0}
 }
 
 func (x *TenantPermissionsResponse_Actions) GetCanEditMembers() bool {
@@ -2596,7 +2689,7 @@ type TenantPermissionsResponse_Users struct {
 func (x *TenantPermissionsResponse_Users) Reset() {
 	*x = TenantPermissionsResponse_Users{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[46]
+		mi := &file_azpb_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2609,7 +2702,7 @@ func (x *TenantPermissionsResponse_Users) String() string {
 func (*TenantPermissionsResponse_Users) ProtoMessage() {}
 
 func (x *TenantPermissionsResponse_Users) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[46]
+	mi := &file_azpb_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2622,7 +2715,7 @@ func (x *TenantPermissionsResponse_Users) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantPermissionsResponse_Users.ProtoReflect.Descriptor instead.
 func (*TenantPermissionsResponse_Users) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{12, 1}
+	return file_azpb_proto_rawDescGZIP(), []int{14, 1}
 }
 
 func (x *TenantPermissionsResponse_Users) GetAdmins() []*EntityRelation {
@@ -2655,7 +2748,7 @@ type GroupPermissionsResponse_Actions struct {
 func (x *GroupPermissionsResponse_Actions) Reset() {
 	*x = GroupPermissionsResponse_Actions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[47]
+		mi := &file_azpb_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2668,7 +2761,7 @@ func (x *GroupPermissionsResponse_Actions) String() string {
 func (*GroupPermissionsResponse_Actions) ProtoMessage() {}
 
 func (x *GroupPermissionsResponse_Actions) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[47]
+	mi := &file_azpb_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2681,7 +2774,7 @@ func (x *GroupPermissionsResponse_Actions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupPermissionsResponse_Actions.ProtoReflect.Descriptor instead.
 func (*GroupPermissionsResponse_Actions) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{25, 0}
+	return file_azpb_proto_rawDescGZIP(), []int{27, 0}
 }
 
 func (x *GroupPermissionsResponse_Actions) GetCanView() bool {
@@ -2739,7 +2832,7 @@ type GroupPermissionsResponse_Users struct {
 func (x *GroupPermissionsResponse_Users) Reset() {
 	*x = GroupPermissionsResponse_Users{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[48]
+		mi := &file_azpb_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2752,7 +2845,7 @@ func (x *GroupPermissionsResponse_Users) String() string {
 func (*GroupPermissionsResponse_Users) ProtoMessage() {}
 
 func (x *GroupPermissionsResponse_Users) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[48]
+	mi := &file_azpb_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2765,7 +2858,7 @@ func (x *GroupPermissionsResponse_Users) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupPermissionsResponse_Users.ProtoReflect.Descriptor instead.
 func (*GroupPermissionsResponse_Users) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{25, 1}
+	return file_azpb_proto_rawDescGZIP(), []int{27, 1}
 }
 
 func (x *GroupPermissionsResponse_Users) GetManagers() []*EntityRelation {
@@ -2804,7 +2897,7 @@ type FeedPermissionsResponse_Actions struct {
 func (x *FeedPermissionsResponse_Actions) Reset() {
 	*x = FeedPermissionsResponse_Actions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[49]
+		mi := &file_azpb_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2817,7 +2910,7 @@ func (x *FeedPermissionsResponse_Actions) String() string {
 func (*FeedPermissionsResponse_Actions) ProtoMessage() {}
 
 func (x *FeedPermissionsResponse_Actions) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[49]
+	mi := &file_azpb_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2830,7 +2923,7 @@ func (x *FeedPermissionsResponse_Actions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedPermissionsResponse_Actions.ProtoReflect.Descriptor instead.
 func (*FeedPermissionsResponse_Actions) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{32, 0}
+	return file_azpb_proto_rawDescGZIP(), []int{34, 0}
 }
 
 func (x *FeedPermissionsResponse_Actions) GetCanView() bool {
@@ -2881,7 +2974,7 @@ type FeedVersionPermissionsResponse_Actions struct {
 func (x *FeedVersionPermissionsResponse_Actions) Reset() {
 	*x = FeedVersionPermissionsResponse_Actions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[50]
+		mi := &file_azpb_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2894,7 +2987,7 @@ func (x *FeedVersionPermissionsResponse_Actions) String() string {
 func (*FeedVersionPermissionsResponse_Actions) ProtoMessage() {}
 
 func (x *FeedVersionPermissionsResponse_Actions) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[50]
+	mi := &file_azpb_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2907,7 +3000,7 @@ func (x *FeedVersionPermissionsResponse_Actions) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use FeedVersionPermissionsResponse_Actions.ProtoReflect.Descriptor instead.
 func (*FeedVersionPermissionsResponse_Actions) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{42, 0}
+	return file_azpb_proto_rawDescGZIP(), []int{44, 0}
 }
 
 func (x *FeedVersionPermissionsResponse_Actions) GetCanView() bool {
@@ -2943,7 +3036,7 @@ type FeedVersionPermissionsResponse_Users struct {
 func (x *FeedVersionPermissionsResponse_Users) Reset() {
 	*x = FeedVersionPermissionsResponse_Users{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_azpb_proto_msgTypes[51]
+		mi := &file_azpb_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2956,7 +3049,7 @@ func (x *FeedVersionPermissionsResponse_Users) String() string {
 func (*FeedVersionPermissionsResponse_Users) ProtoMessage() {}
 
 func (x *FeedVersionPermissionsResponse_Users) ProtoReflect() protoreflect.Message {
-	mi := &file_azpb_proto_msgTypes[51]
+	mi := &file_azpb_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2969,7 +3062,7 @@ func (x *FeedVersionPermissionsResponse_Users) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use FeedVersionPermissionsResponse_Users.ProtoReflect.Descriptor instead.
 func (*FeedVersionPermissionsResponse_Users) Descriptor() ([]byte, []int) {
-	return file_azpb_proto_rawDescGZIP(), []int{42, 1}
+	return file_azpb_proto_rawDescGZIP(), []int{44, 1}
 }
 
 func (x *FeedVersionPermissionsResponse_Users) GetEditors() []*EntityRelation {
@@ -3016,7 +3109,13 @@ var file_azpb_proto_rawDesc = []byte{
 	0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x22, 0x2e, 0x0a, 0x0c, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x04, 0x75, 0x73, 0x65, 0x72, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x55, 0x73, 0x65, 0x72,
-	0x52, 0x04, 0x75, 0x73, 0x65, 0x72, 0x22, 0x2c, 0x0a, 0x06, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74,
+	0x52, 0x04, 0x75, 0x73, 0x65, 0x72, 0x22, 0x0b, 0x0a, 0x09, 0x4d, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x22, 0x51, 0x0a, 0x0a, 0x4d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x1e, 0x0a, 0x04, 0x75, 0x73, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x0a, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x04, 0x75, 0x73, 0x65,
+	0x72, 0x12, 0x23, 0x0a, 0x06, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x0b, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x06,
+	0x67, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x22, 0x2c, 0x0a, 0x06, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74,
 	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64,
 	0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
 	0x6e, 0x61, 0x6d, 0x65, 0x22, 0x39, 0x0a, 0x11, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61,
@@ -3289,7 +3388,7 @@ var file_azpb_proto_rawDesc = []byte{
 	0x0a, 0x0a, 0x06, 0x6d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x10, 0x02, 0x12, 0x0b, 0x0a, 0x07, 0x6d,
 	0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x10, 0x03, 0x12, 0x0a, 0x0a, 0x06, 0x76, 0x69, 0x65, 0x77,
 	0x65, 0x72, 0x10, 0x04, 0x12, 0x0a, 0x0a, 0x06, 0x65, 0x64, 0x69, 0x74, 0x6f, 0x72, 0x10, 0x05,
-	0x12, 0x0a, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x10, 0x06, 0x32, 0x84, 0x0f, 0x0a,
+	0x12, 0x0a, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x10, 0x06, 0x32, 0xaf, 0x0f, 0x0a,
 	0x07, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x65, 0x72, 0x12, 0x3b, 0x0a, 0x08, 0x55, 0x73, 0x65, 0x72,
 	0x4c, 0x69, 0x73, 0x74, 0x12, 0x15, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x55, 0x73, 0x65, 0x72,
 	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x61, 0x7a,
@@ -3297,120 +3396,123 @@ var file_azpb_proto_rawDesc = []byte{
 	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x2f, 0x0a, 0x04, 0x55, 0x73, 0x65, 0x72, 0x12, 0x11, 0x2e,
 	0x61, 0x7a, 0x70, 0x62, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
 	0x1a, 0x12, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0a, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74,
-	0x4c, 0x69, 0x73, 0x74, 0x12, 0x17, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61,
-	0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e,
-	0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x35, 0x0a, 0x06, 0x54, 0x65, 0x6e,
-	0x61, 0x6e, 0x74, 0x12, 0x13, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e,
-	0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x14, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e,
-	0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x4b, 0x0a, 0x11, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73,
-	0x73, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x13, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e,
-	0x61, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x61, 0x7a, 0x70,
-	0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69,
-	0x6f, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x41, 0x0a,
-	0x0a, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61, 0x76, 0x65, 0x12, 0x17, 0x2e, 0x61, 0x7a,
-	0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61,
-	0x6e, 0x74, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x56, 0x0a, 0x13, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x41, 0x64, 0x64, 0x50, 0x65, 0x72,
-	0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x23, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54,
-	0x65, 0x6e, 0x61, 0x6e, 0x74, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x79, 0x50, 0x65, 0x72, 0x6d, 0x69,
-	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x61,
-	0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x59, 0x0a, 0x16, 0x54, 0x65, 0x6e, 0x61,
-	0x6e, 0x74, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x29, 0x0a, 0x02, 0x4d, 0x65, 0x12, 0x0f, 0x2e, 0x61,
+	0x7a, 0x70, 0x62, 0x2e, 0x4d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x10, 0x2e,
+	0x61, 0x7a, 0x70, 0x62, 0x2e, 0x4d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x41, 0x0a, 0x0a, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x12,
+	0x17, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x4c, 0x69, 0x73,
+	0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e,
+	0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x35, 0x0a, 0x06, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x12, 0x13,
+	0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x14, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e,
+	0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4b, 0x0a, 0x11, 0x54,
+	0x65, 0x6e, 0x61, 0x6e, 0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73,
+	0x12, 0x13, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e,
+	0x61, 0x6e, 0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0a, 0x54, 0x65, 0x6e, 0x61,
+	0x6e, 0x74, 0x53, 0x61, 0x76, 0x65, 0x12, 0x17, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65,
+	0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x18, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61, 0x76,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x56, 0x0a, 0x13, 0x54,
+	0x65, 0x6e, 0x61, 0x6e, 0x74, 0x41, 0x64, 0x64, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69,
 	0x6f, 0x6e, 0x12, 0x23, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74,
 	0x4d, 0x6f, 0x64, 0x69, 0x66, 0x79, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54,
 	0x65, 0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x00, 0x12, 0x45, 0x0a, 0x0c, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x12, 0x19, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e,
-	0x74, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18,
-	0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61, 0x76, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4e, 0x0a, 0x11, 0x54, 0x65,
-	0x6e, 0x61, 0x6e, 0x74, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x12,
-	0x1e, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x17, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x61, 0x76, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3e, 0x0a, 0x09, 0x47, 0x72,
-	0x6f, 0x75, 0x70, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x16, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47,
-	0x72, 0x6f, 0x75, 0x70, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x17, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x4c, 0x69, 0x73, 0x74,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x05, 0x47, 0x72,
-	0x6f, 0x75, 0x70, 0x12, 0x12, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x13, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47,
-	0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x48,
-	0x0a, 0x10, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f,
-	0x6e, 0x73, 0x12, 0x12, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72,
-	0x6f, 0x75, 0x70, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3e, 0x0a, 0x09, 0x47, 0x72, 0x6f, 0x75,
-	0x70, 0x53, 0x61, 0x76, 0x65, 0x12, 0x16, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f,
-	0x75, 0x70, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e,
-	0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x53, 0x0a, 0x12, 0x47, 0x72, 0x6f, 0x75,
-	0x70, 0x41, 0x64, 0x64, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x22,
-	0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x4d, 0x6f, 0x64, 0x69, 0x66,
+	0x65, 0x22, 0x00, 0x12, 0x59, 0x0a, 0x16, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x6d,
+	0x6f, 0x76, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x23, 0x2e,
+	0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x4d, 0x6f, 0x64, 0x69, 0x66,
 	0x79, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x17, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53,
-	0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x56, 0x0a,
-	0x15, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x50, 0x65, 0x72, 0x6d,
-	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x22, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72,
-	0x6f, 0x75, 0x70, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x79, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73,
-	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x61, 0x7a, 0x70,
+	0x73, 0x74, 0x1a, 0x18, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74,
+	0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x45,
+	0x0a, 0x0c, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x19,
+	0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x61, 0x7a, 0x70, 0x62,
+	0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4e, 0x0a, 0x11, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x43,
+	0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x12, 0x1e, 0x2e, 0x61, 0x7a, 0x70,
+	0x62, 0x2e, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x72,
+	0x6f, 0x75, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x61, 0x7a, 0x70,
 	0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x65,
-	0x74, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x12, 0x1b, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47,
-	0x72, 0x6f, 0x75, 0x70, 0x53, 0x65, 0x74, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75,
-	0x70, 0x53, 0x65, 0x74, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x3b, 0x0a, 0x08, 0x46, 0x65, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74,
-	0x12, 0x15, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46,
-	0x65, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x2f, 0x0a, 0x04, 0x46, 0x65, 0x65, 0x64, 0x12, 0x11, 0x2e, 0x61, 0x7a, 0x70, 0x62,
-	0x2e, 0x46, 0x65, 0x65, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x12, 0x2e, 0x61,
-	0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x45, 0x0a, 0x0f, 0x46, 0x65, 0x65, 0x64, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73,
-	0x73, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x11, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65,
-	0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e,
-	0x46, 0x65, 0x65, 0x64, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x43, 0x0a, 0x0c, 0x46, 0x65, 0x65,
-	0x64, 0x53, 0x65, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x12, 0x19, 0x2e, 0x61, 0x7a, 0x70, 0x62,
-	0x2e, 0x46, 0x65, 0x65, 0x64, 0x53, 0x65, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64,
-	0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x50,
-	0x0a, 0x0f, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4c, 0x69, 0x73,
-	0x74, 0x12, 0x1c, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72,
-	0x73, 0x69, 0x6f, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x1d, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69,
-	0x6f, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x44, 0x0a, 0x0b, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12,
-	0x18, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69,
-	0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x61, 0x7a, 0x70, 0x62,
-	0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5a, 0x0a, 0x16, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65,
-	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73,
-	0x12, 0x18, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73,
-	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x61, 0x7a, 0x70,
-	0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x50, 0x65, 0x72,
-	0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x65, 0x0a, 0x18, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f,
-	0x6e, 0x41, 0x64, 0x64, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x28,
-	0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f,
-	0x6e, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x79, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f,
-	0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e,
-	0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x53, 0x61, 0x76, 0x65, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x68, 0x0a, 0x1b, 0x46, 0x65, 0x65,
-	0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x50, 0x65,
-	0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x28, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e,
-	0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x69, 0x66,
-	0x79, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65,
-	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x00, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3e, 0x0a, 0x09, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x4c, 0x69,
+	0x73, 0x74, 0x12, 0x16, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x4c,
+	0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x61, 0x7a, 0x70,
+	0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x05, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x12, 0x12,
+	0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x13, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x48, 0x0a, 0x10, 0x47, 0x72, 0x6f,
+	0x75, 0x70, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x12, 0x2e,
+	0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x1e, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x50, 0x65,
+	0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x3e, 0x0a, 0x09, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x61, 0x76, 0x65,
+	0x12, 0x16, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x61, 0x76,
+	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e,
+	0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x53, 0x0a, 0x12, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x41, 0x64, 0x64, 0x50,
+	0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x22, 0x2e, 0x61, 0x7a, 0x70, 0x62,
+	0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x79, 0x50, 0x65, 0x72, 0x6d,
+	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e,
+	0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x56, 0x0a, 0x15, 0x47, 0x72, 0x6f, 0x75,
+	0x70, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f,
+	0x6e, 0x12, 0x22, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x4d, 0x6f,
+	0x64, 0x69, 0x66, 0x79, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f,
+	0x75, 0x70, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x4d, 0x0a, 0x0e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x65, 0x74, 0x54, 0x65, 0x6e, 0x61,
+	0x6e, 0x74, 0x12, 0x1b, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53,
+	0x65, 0x74, 0x54, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x1c, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x65, 0x74, 0x54,
+	0x65, 0x6e, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x3b, 0x0a, 0x08, 0x46, 0x65, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x15, 0x2e, 0x61, 0x7a,
+	0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x16, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x4c, 0x69,
+	0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x2f, 0x0a, 0x04,
+	0x46, 0x65, 0x65, 0x64, 0x12, 0x11, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x12, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46,
+	0x65, 0x65, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x45, 0x0a,
+	0x0f, 0x46, 0x65, 0x65, 0x64, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73,
+	0x12, 0x11, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x50,
+	0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x43, 0x0a, 0x0c, 0x46, 0x65, 0x65, 0x64, 0x53, 0x65, 0x74, 0x47,
+	0x72, 0x6f, 0x75, 0x70, 0x12, 0x19, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64,
+	0x53, 0x65, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x16, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x53, 0x61, 0x76, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x50, 0x0a, 0x0f, 0x46, 0x65, 0x65,
+	0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x1c, 0x2e, 0x61,
+	0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4c,
+	0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x61, 0x7a, 0x70,
+	0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4c, 0x69, 0x73,
+	0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x44, 0x0a, 0x0b, 0x46,
+	0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x18, 0x2e, 0x61, 0x7a, 0x70,
+	0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64,
+	0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x5a, 0x0a, 0x16, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
+	0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x18, 0x2e, 0x61, 0x7a,
+	0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65,
+	0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69,
+	0x6f, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x65, 0x0a,
+	0x18, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x41, 0x64, 0x64, 0x50,
+	0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x28, 0x2e, 0x61, 0x7a, 0x70, 0x62,
+	0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x69,
+	0x66, 0x79, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56,
+	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x68, 0x0a, 0x1b, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73,
+	0x69, 0x6f, 0x6e, 0x12, 0x28, 0x2e, 0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56,
+	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x79, 0x50, 0x65, 0x72, 0x6d,
+	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e,
+	0x61, 0x7a, 0x70, 0x62, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
+	0x53, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3426,7 +3528,7 @@ func file_azpb_proto_rawDescGZIP() []byte {
 }
 
 var file_azpb_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_azpb_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
+var file_azpb_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
 var file_azpb_proto_goTypes = []interface{}{
 	(Action)(0),                                    // 0: azpb.Action
 	(ObjectType)(0),                                // 1: azpb.ObjectType
@@ -3437,52 +3539,54 @@ var file_azpb_proto_goTypes = []interface{}{
 	(*UserRequest)(nil),                            // 6: azpb.UserRequest
 	(*UserListResponse)(nil),                       // 7: azpb.UserListResponse
 	(*UserResponse)(nil),                           // 8: azpb.UserResponse
-	(*Tenant)(nil),                                 // 9: azpb.Tenant
-	(*TenantSaveRequest)(nil),                      // 10: azpb.TenantSaveRequest
-	(*TenantRequest)(nil),                          // 11: azpb.TenantRequest
-	(*TenantListRequest)(nil),                      // 12: azpb.TenantListRequest
-	(*TenantResponse)(nil),                         // 13: azpb.TenantResponse
-	(*TenantListResponse)(nil),                     // 14: azpb.TenantListResponse
-	(*TenantPermissionsResponse)(nil),              // 15: azpb.TenantPermissionsResponse
-	(*TenantCreateRequest)(nil),                    // 16: azpb.TenantCreateRequest
-	(*TenantCreateGroupRequest)(nil),               // 17: azpb.TenantCreateGroupRequest
-	(*TenantCreateGroupResponse)(nil),              // 18: azpb.TenantCreateGroupResponse
-	(*TenantModifyPermissionRequest)(nil),          // 19: azpb.TenantModifyPermissionRequest
-	(*TenantSaveResponse)(nil),                     // 20: azpb.TenantSaveResponse
-	(*Group)(nil),                                  // 21: azpb.Group
-	(*GroupRequest)(nil),                           // 22: azpb.GroupRequest
-	(*GroupSaveRequest)(nil),                       // 23: azpb.GroupSaveRequest
-	(*GroupListRequest)(nil),                       // 24: azpb.GroupListRequest
-	(*GroupModifyPermissionRequest)(nil),           // 25: azpb.GroupModifyPermissionRequest
-	(*GroupResponse)(nil),                          // 26: azpb.GroupResponse
-	(*GroupListResponse)(nil),                      // 27: azpb.GroupListResponse
-	(*GroupPermissionsResponse)(nil),               // 28: azpb.GroupPermissionsResponse
-	(*GroupSaveResponse)(nil),                      // 29: azpb.GroupSaveResponse
-	(*GroupSetTenantRequest)(nil),                  // 30: azpb.GroupSetTenantRequest
-	(*GroupSetTenantResponse)(nil),                 // 31: azpb.GroupSetTenantResponse
-	(*Feed)(nil),                                   // 32: azpb.Feed
-	(*FeedRequest)(nil),                            // 33: azpb.FeedRequest
-	(*FeedListRequest)(nil),                        // 34: azpb.FeedListRequest
-	(*FeedPermissionsResponse)(nil),                // 35: azpb.FeedPermissionsResponse
-	(*FeedResponse)(nil),                           // 36: azpb.FeedResponse
-	(*FeedListResponse)(nil),                       // 37: azpb.FeedListResponse
-	(*FeedSetGroupRequest)(nil),                    // 38: azpb.FeedSetGroupRequest
-	(*FeedSaveResponse)(nil),                       // 39: azpb.FeedSaveResponse
-	(*FeedVersion)(nil),                            // 40: azpb.FeedVersion
-	(*FeedVersionListRequest)(nil),                 // 41: azpb.FeedVersionListRequest
-	(*FeedVersionResponse)(nil),                    // 42: azpb.FeedVersionResponse
-	(*FeedVersionRequest)(nil),                     // 43: azpb.FeedVersionRequest
-	(*FeedVersionListResponse)(nil),                // 44: azpb.FeedVersionListResponse
-	(*FeedVersionPermissionsResponse)(nil),         // 45: azpb.FeedVersionPermissionsResponse
-	(*FeedVersionModifyPermissionRequest)(nil),     // 46: azpb.FeedVersionModifyPermissionRequest
-	(*FeedVersionSaveResponse)(nil),                // 47: azpb.FeedVersionSaveResponse
-	(*TenantPermissionsResponse_Actions)(nil),      // 48: azpb.TenantPermissionsResponse.Actions
-	(*TenantPermissionsResponse_Users)(nil),        // 49: azpb.TenantPermissionsResponse.Users
-	(*GroupPermissionsResponse_Actions)(nil),       // 50: azpb.GroupPermissionsResponse.Actions
-	(*GroupPermissionsResponse_Users)(nil),         // 51: azpb.GroupPermissionsResponse.Users
-	(*FeedPermissionsResponse_Actions)(nil),        // 52: azpb.FeedPermissionsResponse.Actions
-	(*FeedVersionPermissionsResponse_Actions)(nil), // 53: azpb.FeedVersionPermissionsResponse.Actions
-	(*FeedVersionPermissionsResponse_Users)(nil),   // 54: azpb.FeedVersionPermissionsResponse.Users
+	(*MeRequest)(nil),                              // 9: azpb.MeRequest
+	(*MeResponse)(nil),                             // 10: azpb.MeResponse
+	(*Tenant)(nil),                                 // 11: azpb.Tenant
+	(*TenantSaveRequest)(nil),                      // 12: azpb.TenantSaveRequest
+	(*TenantRequest)(nil),                          // 13: azpb.TenantRequest
+	(*TenantListRequest)(nil),                      // 14: azpb.TenantListRequest
+	(*TenantResponse)(nil),                         // 15: azpb.TenantResponse
+	(*TenantListResponse)(nil),                     // 16: azpb.TenantListResponse
+	(*TenantPermissionsResponse)(nil),              // 17: azpb.TenantPermissionsResponse
+	(*TenantCreateRequest)(nil),                    // 18: azpb.TenantCreateRequest
+	(*TenantCreateGroupRequest)(nil),               // 19: azpb.TenantCreateGroupRequest
+	(*TenantCreateGroupResponse)(nil),              // 20: azpb.TenantCreateGroupResponse
+	(*TenantModifyPermissionRequest)(nil),          // 21: azpb.TenantModifyPermissionRequest
+	(*TenantSaveResponse)(nil),                     // 22: azpb.TenantSaveResponse
+	(*Group)(nil),                                  // 23: azpb.Group
+	(*GroupRequest)(nil),                           // 24: azpb.GroupRequest
+	(*GroupSaveRequest)(nil),                       // 25: azpb.GroupSaveRequest
+	(*GroupListRequest)(nil),                       // 26: azpb.GroupListRequest
+	(*GroupModifyPermissionRequest)(nil),           // 27: azpb.GroupModifyPermissionRequest
+	(*GroupResponse)(nil),                          // 28: azpb.GroupResponse
+	(*GroupListResponse)(nil),                      // 29: azpb.GroupListResponse
+	(*GroupPermissionsResponse)(nil),               // 30: azpb.GroupPermissionsResponse
+	(*GroupSaveResponse)(nil),                      // 31: azpb.GroupSaveResponse
+	(*GroupSetTenantRequest)(nil),                  // 32: azpb.GroupSetTenantRequest
+	(*GroupSetTenantResponse)(nil),                 // 33: azpb.GroupSetTenantResponse
+	(*Feed)(nil),                                   // 34: azpb.Feed
+	(*FeedRequest)(nil),                            // 35: azpb.FeedRequest
+	(*FeedListRequest)(nil),                        // 36: azpb.FeedListRequest
+	(*FeedPermissionsResponse)(nil),                // 37: azpb.FeedPermissionsResponse
+	(*FeedResponse)(nil),                           // 38: azpb.FeedResponse
+	(*FeedListResponse)(nil),                       // 39: azpb.FeedListResponse
+	(*FeedSetGroupRequest)(nil),                    // 40: azpb.FeedSetGroupRequest
+	(*FeedSaveResponse)(nil),                       // 41: azpb.FeedSaveResponse
+	(*FeedVersion)(nil),                            // 42: azpb.FeedVersion
+	(*FeedVersionListRequest)(nil),                 // 43: azpb.FeedVersionListRequest
+	(*FeedVersionResponse)(nil),                    // 44: azpb.FeedVersionResponse
+	(*FeedVersionRequest)(nil),                     // 45: azpb.FeedVersionRequest
+	(*FeedVersionListResponse)(nil),                // 46: azpb.FeedVersionListResponse
+	(*FeedVersionPermissionsResponse)(nil),         // 47: azpb.FeedVersionPermissionsResponse
+	(*FeedVersionModifyPermissionRequest)(nil),     // 48: azpb.FeedVersionModifyPermissionRequest
+	(*FeedVersionSaveResponse)(nil),                // 49: azpb.FeedVersionSaveResponse
+	(*TenantPermissionsResponse_Actions)(nil),      // 50: azpb.TenantPermissionsResponse.Actions
+	(*TenantPermissionsResponse_Users)(nil),        // 51: azpb.TenantPermissionsResponse.Users
+	(*GroupPermissionsResponse_Actions)(nil),       // 52: azpb.GroupPermissionsResponse.Actions
+	(*GroupPermissionsResponse_Users)(nil),         // 53: azpb.GroupPermissionsResponse.Users
+	(*FeedPermissionsResponse_Actions)(nil),        // 54: azpb.FeedPermissionsResponse.Actions
+	(*FeedVersionPermissionsResponse_Actions)(nil), // 55: azpb.FeedVersionPermissionsResponse.Actions
+	(*FeedVersionPermissionsResponse_Users)(nil),   // 56: azpb.FeedVersionPermissionsResponse.Users
 }
 var file_azpb_proto_depIdxs = []int32{
 	1,  // 0: azpb.EntityRelation.type:type_name -> azpb.ObjectType
@@ -3490,103 +3594,107 @@ var file_azpb_proto_depIdxs = []int32{
 	2,  // 2: azpb.EntityRelation.relation:type_name -> azpb.Relation
 	4,  // 3: azpb.UserListResponse.users:type_name -> azpb.User
 	4,  // 4: azpb.UserResponse.user:type_name -> azpb.User
-	9,  // 5: azpb.TenantSaveRequest.tenant:type_name -> azpb.Tenant
-	9,  // 6: azpb.TenantResponse.tenant:type_name -> azpb.Tenant
-	9,  // 7: azpb.TenantListResponse.tenants:type_name -> azpb.Tenant
-	9,  // 8: azpb.TenantPermissionsResponse.tenant:type_name -> azpb.Tenant
-	21, // 9: azpb.TenantPermissionsResponse.groups:type_name -> azpb.Group
-	48, // 10: azpb.TenantPermissionsResponse.actions:type_name -> azpb.TenantPermissionsResponse.Actions
-	49, // 11: azpb.TenantPermissionsResponse.users:type_name -> azpb.TenantPermissionsResponse.Users
-	21, // 12: azpb.TenantCreateGroupRequest.group:type_name -> azpb.Group
-	21, // 13: azpb.TenantCreateGroupResponse.group:type_name -> azpb.Group
-	3,  // 14: azpb.TenantModifyPermissionRequest.entity_relation:type_name -> azpb.EntityRelation
-	21, // 15: azpb.GroupSaveRequest.group:type_name -> azpb.Group
-	3,  // 16: azpb.GroupModifyPermissionRequest.entity_relation:type_name -> azpb.EntityRelation
-	21, // 17: azpb.GroupResponse.group:type_name -> azpb.Group
-	21, // 18: azpb.GroupListResponse.groups:type_name -> azpb.Group
-	21, // 19: azpb.GroupPermissionsResponse.group:type_name -> azpb.Group
-	9,  // 20: azpb.GroupPermissionsResponse.tenant:type_name -> azpb.Tenant
-	32, // 21: azpb.GroupPermissionsResponse.feeds:type_name -> azpb.Feed
-	50, // 22: azpb.GroupPermissionsResponse.actions:type_name -> azpb.GroupPermissionsResponse.Actions
-	51, // 23: azpb.GroupPermissionsResponse.users:type_name -> azpb.GroupPermissionsResponse.Users
-	21, // 24: azpb.GroupSaveResponse.group:type_name -> azpb.Group
-	32, // 25: azpb.FeedPermissionsResponse.feed:type_name -> azpb.Feed
-	21, // 26: azpb.FeedPermissionsResponse.group:type_name -> azpb.Group
-	52, // 27: azpb.FeedPermissionsResponse.actions:type_name -> azpb.FeedPermissionsResponse.Actions
-	32, // 28: azpb.FeedResponse.feed:type_name -> azpb.Feed
-	32, // 29: azpb.FeedListResponse.feeds:type_name -> azpb.Feed
-	40, // 30: azpb.FeedVersionResponse.feed_version:type_name -> azpb.FeedVersion
-	40, // 31: azpb.FeedVersionListResponse.feed_versions:type_name -> azpb.FeedVersion
-	40, // 32: azpb.FeedVersionPermissionsResponse.feed_version:type_name -> azpb.FeedVersion
-	32, // 33: azpb.FeedVersionPermissionsResponse.feed:type_name -> azpb.Feed
-	21, // 34: azpb.FeedVersionPermissionsResponse.group:type_name -> azpb.Group
-	53, // 35: azpb.FeedVersionPermissionsResponse.actions:type_name -> azpb.FeedVersionPermissionsResponse.Actions
-	54, // 36: azpb.FeedVersionPermissionsResponse.users:type_name -> azpb.FeedVersionPermissionsResponse.Users
-	3,  // 37: azpb.FeedVersionModifyPermissionRequest.entity_relation:type_name -> azpb.EntityRelation
-	3,  // 38: azpb.TenantPermissionsResponse.Users.admins:type_name -> azpb.EntityRelation
-	3,  // 39: azpb.TenantPermissionsResponse.Users.members:type_name -> azpb.EntityRelation
-	3,  // 40: azpb.GroupPermissionsResponse.Users.managers:type_name -> azpb.EntityRelation
-	3,  // 41: azpb.GroupPermissionsResponse.Users.editors:type_name -> azpb.EntityRelation
-	3,  // 42: azpb.GroupPermissionsResponse.Users.viewers:type_name -> azpb.EntityRelation
-	3,  // 43: azpb.FeedVersionPermissionsResponse.Users.editors:type_name -> azpb.EntityRelation
-	3,  // 44: azpb.FeedVersionPermissionsResponse.Users.viewers:type_name -> azpb.EntityRelation
-	5,  // 45: azpb.Checker.UserList:input_type -> azpb.UserListRequest
-	6,  // 46: azpb.Checker.User:input_type -> azpb.UserRequest
-	12, // 47: azpb.Checker.TenantList:input_type -> azpb.TenantListRequest
-	11, // 48: azpb.Checker.Tenant:input_type -> azpb.TenantRequest
-	11, // 49: azpb.Checker.TenantPermissions:input_type -> azpb.TenantRequest
-	10, // 50: azpb.Checker.TenantSave:input_type -> azpb.TenantSaveRequest
-	19, // 51: azpb.Checker.TenantAddPermission:input_type -> azpb.TenantModifyPermissionRequest
-	19, // 52: azpb.Checker.TenantRemovePermission:input_type -> azpb.TenantModifyPermissionRequest
-	16, // 53: azpb.Checker.TenantCreate:input_type -> azpb.TenantCreateRequest
-	17, // 54: azpb.Checker.TenantCreateGroup:input_type -> azpb.TenantCreateGroupRequest
-	24, // 55: azpb.Checker.GroupList:input_type -> azpb.GroupListRequest
-	22, // 56: azpb.Checker.Group:input_type -> azpb.GroupRequest
-	22, // 57: azpb.Checker.GroupPermissions:input_type -> azpb.GroupRequest
-	23, // 58: azpb.Checker.GroupSave:input_type -> azpb.GroupSaveRequest
-	25, // 59: azpb.Checker.GroupAddPermission:input_type -> azpb.GroupModifyPermissionRequest
-	25, // 60: azpb.Checker.GroupRemovePermission:input_type -> azpb.GroupModifyPermissionRequest
-	30, // 61: azpb.Checker.GroupSetTenant:input_type -> azpb.GroupSetTenantRequest
-	34, // 62: azpb.Checker.FeedList:input_type -> azpb.FeedListRequest
-	33, // 63: azpb.Checker.Feed:input_type -> azpb.FeedRequest
-	33, // 64: azpb.Checker.FeedPermissions:input_type -> azpb.FeedRequest
-	38, // 65: azpb.Checker.FeedSetGroup:input_type -> azpb.FeedSetGroupRequest
-	41, // 66: azpb.Checker.FeedVersionList:input_type -> azpb.FeedVersionListRequest
-	43, // 67: azpb.Checker.FeedVersion:input_type -> azpb.FeedVersionRequest
-	43, // 68: azpb.Checker.FeedVersionPermissions:input_type -> azpb.FeedVersionRequest
-	46, // 69: azpb.Checker.FeedVersionAddPermission:input_type -> azpb.FeedVersionModifyPermissionRequest
-	46, // 70: azpb.Checker.FeedVersionRemovePermission:input_type -> azpb.FeedVersionModifyPermissionRequest
-	7,  // 71: azpb.Checker.UserList:output_type -> azpb.UserListResponse
-	8,  // 72: azpb.Checker.User:output_type -> azpb.UserResponse
-	14, // 73: azpb.Checker.TenantList:output_type -> azpb.TenantListResponse
-	13, // 74: azpb.Checker.Tenant:output_type -> azpb.TenantResponse
-	15, // 75: azpb.Checker.TenantPermissions:output_type -> azpb.TenantPermissionsResponse
-	20, // 76: azpb.Checker.TenantSave:output_type -> azpb.TenantSaveResponse
-	20, // 77: azpb.Checker.TenantAddPermission:output_type -> azpb.TenantSaveResponse
-	20, // 78: azpb.Checker.TenantRemovePermission:output_type -> azpb.TenantSaveResponse
-	20, // 79: azpb.Checker.TenantCreate:output_type -> azpb.TenantSaveResponse
-	29, // 80: azpb.Checker.TenantCreateGroup:output_type -> azpb.GroupSaveResponse
-	27, // 81: azpb.Checker.GroupList:output_type -> azpb.GroupListResponse
-	26, // 82: azpb.Checker.Group:output_type -> azpb.GroupResponse
-	28, // 83: azpb.Checker.GroupPermissions:output_type -> azpb.GroupPermissionsResponse
-	29, // 84: azpb.Checker.GroupSave:output_type -> azpb.GroupSaveResponse
-	29, // 85: azpb.Checker.GroupAddPermission:output_type -> azpb.GroupSaveResponse
-	29, // 86: azpb.Checker.GroupRemovePermission:output_type -> azpb.GroupSaveResponse
-	31, // 87: azpb.Checker.GroupSetTenant:output_type -> azpb.GroupSetTenantResponse
-	37, // 88: azpb.Checker.FeedList:output_type -> azpb.FeedListResponse
-	36, // 89: azpb.Checker.Feed:output_type -> azpb.FeedResponse
-	35, // 90: azpb.Checker.FeedPermissions:output_type -> azpb.FeedPermissionsResponse
-	39, // 91: azpb.Checker.FeedSetGroup:output_type -> azpb.FeedSaveResponse
-	44, // 92: azpb.Checker.FeedVersionList:output_type -> azpb.FeedVersionListResponse
-	42, // 93: azpb.Checker.FeedVersion:output_type -> azpb.FeedVersionResponse
-	45, // 94: azpb.Checker.FeedVersionPermissions:output_type -> azpb.FeedVersionPermissionsResponse
-	47, // 95: azpb.Checker.FeedVersionAddPermission:output_type -> azpb.FeedVersionSaveResponse
-	47, // 96: azpb.Checker.FeedVersionRemovePermission:output_type -> azpb.FeedVersionSaveResponse
-	71, // [71:97] is the sub-list for method output_type
-	45, // [45:71] is the sub-list for method input_type
-	45, // [45:45] is the sub-list for extension type_name
-	45, // [45:45] is the sub-list for extension extendee
-	0,  // [0:45] is the sub-list for field type_name
+	4,  // 5: azpb.MeResponse.user:type_name -> azpb.User
+	23, // 6: azpb.MeResponse.groups:type_name -> azpb.Group
+	11, // 7: azpb.TenantSaveRequest.tenant:type_name -> azpb.Tenant
+	11, // 8: azpb.TenantResponse.tenant:type_name -> azpb.Tenant
+	11, // 9: azpb.TenantListResponse.tenants:type_name -> azpb.Tenant
+	11, // 10: azpb.TenantPermissionsResponse.tenant:type_name -> azpb.Tenant
+	23, // 11: azpb.TenantPermissionsResponse.groups:type_name -> azpb.Group
+	50, // 12: azpb.TenantPermissionsResponse.actions:type_name -> azpb.TenantPermissionsResponse.Actions
+	51, // 13: azpb.TenantPermissionsResponse.users:type_name -> azpb.TenantPermissionsResponse.Users
+	23, // 14: azpb.TenantCreateGroupRequest.group:type_name -> azpb.Group
+	23, // 15: azpb.TenantCreateGroupResponse.group:type_name -> azpb.Group
+	3,  // 16: azpb.TenantModifyPermissionRequest.entity_relation:type_name -> azpb.EntityRelation
+	23, // 17: azpb.GroupSaveRequest.group:type_name -> azpb.Group
+	3,  // 18: azpb.GroupModifyPermissionRequest.entity_relation:type_name -> azpb.EntityRelation
+	23, // 19: azpb.GroupResponse.group:type_name -> azpb.Group
+	23, // 20: azpb.GroupListResponse.groups:type_name -> azpb.Group
+	23, // 21: azpb.GroupPermissionsResponse.group:type_name -> azpb.Group
+	11, // 22: azpb.GroupPermissionsResponse.tenant:type_name -> azpb.Tenant
+	34, // 23: azpb.GroupPermissionsResponse.feeds:type_name -> azpb.Feed
+	52, // 24: azpb.GroupPermissionsResponse.actions:type_name -> azpb.GroupPermissionsResponse.Actions
+	53, // 25: azpb.GroupPermissionsResponse.users:type_name -> azpb.GroupPermissionsResponse.Users
+	23, // 26: azpb.GroupSaveResponse.group:type_name -> azpb.Group
+	34, // 27: azpb.FeedPermissionsResponse.feed:type_name -> azpb.Feed
+	23, // 28: azpb.FeedPermissionsResponse.group:type_name -> azpb.Group
+	54, // 29: azpb.FeedPermissionsResponse.actions:type_name -> azpb.FeedPermissionsResponse.Actions
+	34, // 30: azpb.FeedResponse.feed:type_name -> azpb.Feed
+	34, // 31: azpb.FeedListResponse.feeds:type_name -> azpb.Feed
+	42, // 32: azpb.FeedVersionResponse.feed_version:type_name -> azpb.FeedVersion
+	42, // 33: azpb.FeedVersionListResponse.feed_versions:type_name -> azpb.FeedVersion
+	42, // 34: azpb.FeedVersionPermissionsResponse.feed_version:type_name -> azpb.FeedVersion
+	34, // 35: azpb.FeedVersionPermissionsResponse.feed:type_name -> azpb.Feed
+	23, // 36: azpb.FeedVersionPermissionsResponse.group:type_name -> azpb.Group
+	55, // 37: azpb.FeedVersionPermissionsResponse.actions:type_name -> azpb.FeedVersionPermissionsResponse.Actions
+	56, // 38: azpb.FeedVersionPermissionsResponse.users:type_name -> azpb.FeedVersionPermissionsResponse.Users
+	3,  // 39: azpb.FeedVersionModifyPermissionRequest.entity_relation:type_name -> azpb.EntityRelation
+	3,  // 40: azpb.TenantPermissionsResponse.Users.admins:type_name -> azpb.EntityRelation
+	3,  // 41: azpb.TenantPermissionsResponse.Users.members:type_name -> azpb.EntityRelation
+	3,  // 42: azpb.GroupPermissionsResponse.Users.managers:type_name -> azpb.EntityRelation
+	3,  // 43: azpb.GroupPermissionsResponse.Users.editors:type_name -> azpb.EntityRelation
+	3,  // 44: azpb.GroupPermissionsResponse.Users.viewers:type_name -> azpb.EntityRelation
+	3,  // 45: azpb.FeedVersionPermissionsResponse.Users.editors:type_name -> azpb.EntityRelation
+	3,  // 46: azpb.FeedVersionPermissionsResponse.Users.viewers:type_name -> azpb.EntityRelation
+	5,  // 47: azpb.Checker.UserList:input_type -> azpb.UserListRequest
+	6,  // 48: azpb.Checker.User:input_type -> azpb.UserRequest
+	9,  // 49: azpb.Checker.Me:input_type -> azpb.MeRequest
+	14, // 50: azpb.Checker.TenantList:input_type -> azpb.TenantListRequest
+	13, // 51: azpb.Checker.Tenant:input_type -> azpb.TenantRequest
+	13, // 52: azpb.Checker.TenantPermissions:input_type -> azpb.TenantRequest
+	12, // 53: azpb.Checker.TenantSave:input_type -> azpb.TenantSaveRequest
+	21, // 54: azpb.Checker.TenantAddPermission:input_type -> azpb.TenantModifyPermissionRequest
+	21, // 55: azpb.Checker.TenantRemovePermission:input_type -> azpb.TenantModifyPermissionRequest
+	18, // 56: azpb.Checker.TenantCreate:input_type -> azpb.TenantCreateRequest
+	19, // 57: azpb.Checker.TenantCreateGroup:input_type -> azpb.TenantCreateGroupRequest
+	26, // 58: azpb.Checker.GroupList:input_type -> azpb.GroupListRequest
+	24, // 59: azpb.Checker.Group:input_type -> azpb.GroupRequest
+	24, // 60: azpb.Checker.GroupPermissions:input_type -> azpb.GroupRequest
+	25, // 61: azpb.Checker.GroupSave:input_type -> azpb.GroupSaveRequest
+	27, // 62: azpb.Checker.GroupAddPermission:input_type -> azpb.GroupModifyPermissionRequest
+	27, // 63: azpb.Checker.GroupRemovePermission:input_type -> azpb.GroupModifyPermissionRequest
+	32, // 64: azpb.Checker.GroupSetTenant:input_type -> azpb.GroupSetTenantRequest
+	36, // 65: azpb.Checker.FeedList:input_type -> azpb.FeedListRequest
+	35, // 66: azpb.Checker.Feed:input_type -> azpb.FeedRequest
+	35, // 67: azpb.Checker.FeedPermissions:input_type -> azpb.FeedRequest
+	40, // 68: azpb.Checker.FeedSetGroup:input_type -> azpb.FeedSetGroupRequest
+	43, // 69: azpb.Checker.FeedVersionList:input_type -> azpb.FeedVersionListRequest
+	45, // 70: azpb.Checker.FeedVersion:input_type -> azpb.FeedVersionRequest
+	45, // 71: azpb.Checker.FeedVersionPermissions:input_type -> azpb.FeedVersionRequest
+	48, // 72: azpb.Checker.FeedVersionAddPermission:input_type -> azpb.FeedVersionModifyPermissionRequest
+	48, // 73: azpb.Checker.FeedVersionRemovePermission:input_type -> azpb.FeedVersionModifyPermissionRequest
+	7,  // 74: azpb.Checker.UserList:output_type -> azpb.UserListResponse
+	8,  // 75: azpb.Checker.User:output_type -> azpb.UserResponse
+	10, // 76: azpb.Checker.Me:output_type -> azpb.MeResponse
+	16, // 77: azpb.Checker.TenantList:output_type -> azpb.TenantListResponse
+	15, // 78: azpb.Checker.Tenant:output_type -> azpb.TenantResponse
+	17, // 79: azpb.Checker.TenantPermissions:output_type -> azpb.TenantPermissionsResponse
+	22, // 80: azpb.Checker.TenantSave:output_type -> azpb.TenantSaveResponse
+	22, // 81: azpb.Checker.TenantAddPermission:output_type -> azpb.TenantSaveResponse
+	22, // 82: azpb.Checker.TenantRemovePermission:output_type -> azpb.TenantSaveResponse
+	22, // 83: azpb.Checker.TenantCreate:output_type -> azpb.TenantSaveResponse
+	31, // 84: azpb.Checker.TenantCreateGroup:output_type -> azpb.GroupSaveResponse
+	29, // 85: azpb.Checker.GroupList:output_type -> azpb.GroupListResponse
+	28, // 86: azpb.Checker.Group:output_type -> azpb.GroupResponse
+	30, // 87: azpb.Checker.GroupPermissions:output_type -> azpb.GroupPermissionsResponse
+	31, // 88: azpb.Checker.GroupSave:output_type -> azpb.GroupSaveResponse
+	31, // 89: azpb.Checker.GroupAddPermission:output_type -> azpb.GroupSaveResponse
+	31, // 90: azpb.Checker.GroupRemovePermission:output_type -> azpb.GroupSaveResponse
+	33, // 91: azpb.Checker.GroupSetTenant:output_type -> azpb.GroupSetTenantResponse
+	39, // 92: azpb.Checker.FeedList:output_type -> azpb.FeedListResponse
+	38, // 93: azpb.Checker.Feed:output_type -> azpb.FeedResponse
+	37, // 94: azpb.Checker.FeedPermissions:output_type -> azpb.FeedPermissionsResponse
+	41, // 95: azpb.Checker.FeedSetGroup:output_type -> azpb.FeedSaveResponse
+	46, // 96: azpb.Checker.FeedVersionList:output_type -> azpb.FeedVersionListResponse
+	44, // 97: azpb.Checker.FeedVersion:output_type -> azpb.FeedVersionResponse
+	47, // 98: azpb.Checker.FeedVersionPermissions:output_type -> azpb.FeedVersionPermissionsResponse
+	49, // 99: azpb.Checker.FeedVersionAddPermission:output_type -> azpb.FeedVersionSaveResponse
+	49, // 100: azpb.Checker.FeedVersionRemovePermission:output_type -> azpb.FeedVersionSaveResponse
+	74, // [74:101] is the sub-list for method output_type
+	47, // [47:74] is the sub-list for method input_type
+	47, // [47:47] is the sub-list for extension type_name
+	47, // [47:47] is the sub-list for extension extendee
+	0,  // [0:47] is the sub-list for field type_name
 }
 
 func init() { file_azpb_proto_init() }
@@ -3668,7 +3776,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Tenant); i {
+			switch v := v.(*MeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3680,7 +3788,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantSaveRequest); i {
+			switch v := v.(*MeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3692,7 +3800,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantRequest); i {
+			switch v := v.(*Tenant); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3704,7 +3812,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantListRequest); i {
+			switch v := v.(*TenantSaveRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3716,7 +3824,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantResponse); i {
+			switch v := v.(*TenantRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3728,7 +3836,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantListResponse); i {
+			switch v := v.(*TenantListRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3740,7 +3848,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantPermissionsResponse); i {
+			switch v := v.(*TenantResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3752,7 +3860,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantCreateRequest); i {
+			switch v := v.(*TenantListResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3764,7 +3872,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantCreateGroupRequest); i {
+			switch v := v.(*TenantPermissionsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3776,7 +3884,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantCreateGroupResponse); i {
+			switch v := v.(*TenantCreateRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3788,7 +3896,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantModifyPermissionRequest); i {
+			switch v := v.(*TenantCreateGroupRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3800,7 +3908,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantSaveResponse); i {
+			switch v := v.(*TenantCreateGroupResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3812,7 +3920,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Group); i {
+			switch v := v.(*TenantModifyPermissionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3824,7 +3932,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupRequest); i {
+			switch v := v.(*TenantSaveResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3836,7 +3944,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupSaveRequest); i {
+			switch v := v.(*Group); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3848,7 +3956,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupListRequest); i {
+			switch v := v.(*GroupRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3860,7 +3968,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupModifyPermissionRequest); i {
+			switch v := v.(*GroupSaveRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3872,7 +3980,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupResponse); i {
+			switch v := v.(*GroupListRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3884,7 +3992,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupListResponse); i {
+			switch v := v.(*GroupModifyPermissionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3896,7 +4004,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupPermissionsResponse); i {
+			switch v := v.(*GroupResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3908,7 +4016,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupSaveResponse); i {
+			switch v := v.(*GroupListResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3920,7 +4028,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupSetTenantRequest); i {
+			switch v := v.(*GroupPermissionsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3932,7 +4040,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupSetTenantResponse); i {
+			switch v := v.(*GroupSaveResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3944,7 +4052,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Feed); i {
+			switch v := v.(*GroupSetTenantRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3956,7 +4064,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedRequest); i {
+			switch v := v.(*GroupSetTenantResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3968,7 +4076,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedListRequest); i {
+			switch v := v.(*Feed); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3980,7 +4088,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedPermissionsResponse); i {
+			switch v := v.(*FeedRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3992,7 +4100,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedResponse); i {
+			switch v := v.(*FeedListRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4004,7 +4112,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedListResponse); i {
+			switch v := v.(*FeedPermissionsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4016,7 +4124,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedSetGroupRequest); i {
+			switch v := v.(*FeedResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4028,7 +4136,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedSaveResponse); i {
+			switch v := v.(*FeedListResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4040,7 +4148,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersion); i {
+			switch v := v.(*FeedSetGroupRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4052,7 +4160,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersionListRequest); i {
+			switch v := v.(*FeedSaveResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4064,7 +4172,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersionResponse); i {
+			switch v := v.(*FeedVersion); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4076,7 +4184,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersionRequest); i {
+			switch v := v.(*FeedVersionListRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4088,7 +4196,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersionListResponse); i {
+			switch v := v.(*FeedVersionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4100,7 +4208,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersionPermissionsResponse); i {
+			switch v := v.(*FeedVersionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4112,7 +4220,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersionModifyPermissionRequest); i {
+			switch v := v.(*FeedVersionListResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4124,7 +4232,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersionSaveResponse); i {
+			switch v := v.(*FeedVersionPermissionsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4136,7 +4244,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantPermissionsResponse_Actions); i {
+			switch v := v.(*FeedVersionModifyPermissionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4148,7 +4256,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TenantPermissionsResponse_Users); i {
+			switch v := v.(*FeedVersionSaveResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4160,7 +4268,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupPermissionsResponse_Actions); i {
+			switch v := v.(*TenantPermissionsResponse_Actions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4172,7 +4280,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GroupPermissionsResponse_Users); i {
+			switch v := v.(*TenantPermissionsResponse_Users); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4184,7 +4292,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedPermissionsResponse_Actions); i {
+			switch v := v.(*GroupPermissionsResponse_Actions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4196,7 +4304,7 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedVersionPermissionsResponse_Actions); i {
+			switch v := v.(*GroupPermissionsResponse_Users); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4208,6 +4316,30 @@ func file_azpb_proto_init() {
 			}
 		}
 		file_azpb_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FeedPermissionsResponse_Actions); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_azpb_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FeedVersionPermissionsResponse_Actions); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_azpb_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FeedVersionPermissionsResponse_Users); i {
 			case 0:
 				return &v.state
@@ -4226,7 +4358,7 @@ func file_azpb_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_azpb_proto_rawDesc,
 			NumEnums:      3,
-			NumMessages:   52,
+			NumMessages:   54,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

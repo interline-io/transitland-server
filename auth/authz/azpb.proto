@@ -5,6 +5,7 @@ package azpb;
 service Checker {
     rpc UserList (UserListRequest) returns (UserListResponse) {}
     rpc User (UserRequest) returns (UserResponse) {}
+    rpc Me (MeRequest) returns (MeResponse) {}
 
     rpc TenantList(TenantListRequest) returns (TenantListResponse) {}
     rpc Tenant(TenantRequest) returns (TenantResponse) {}
@@ -100,6 +101,13 @@ message UserListResponse {
 
 message UserResponse {
     User user = 1;
+}
+
+message MeRequest {}
+
+message MeResponse {
+    User user = 1;
+    repeated Group groups = 2;
 }
 
 ////// 

@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type CheckerClient interface {
 	UserList(ctx context.Context, in *UserListRequest, opts ...grpc.CallOption) (*UserListResponse, error)
 	User(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	Me(ctx context.Context, in *MeRequest, opts ...grpc.CallOption) (*MeResponse, error)
 	TenantList(ctx context.Context, in *TenantListRequest, opts ...grpc.CallOption) (*TenantListResponse, error)
 	Tenant(ctx context.Context, in *TenantRequest, opts ...grpc.CallOption) (*TenantResponse, error)
 	TenantPermissions(ctx context.Context, in *TenantRequest, opts ...grpc.CallOption) (*TenantPermissionsResponse, error)
@@ -70,6 +71,15 @@ func (c *checkerClient) UserList(ctx context.Context, in *UserListRequest, opts 
 func (c *checkerClient) User(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
 	err := c.cc.Invoke(ctx, "/azpb.Checker/User", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *checkerClient) Me(ctx context.Context, in *MeRequest, opts ...grpc.CallOption) (*MeResponse, error) {
+	out := new(MeResponse)
+	err := c.cc.Invoke(ctx, "/azpb.Checker/Me", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -298,6 +308,7 @@ func (c *checkerClient) FeedVersionRemovePermission(ctx context.Context, in *Fee
 type CheckerServer interface {
 	UserList(context.Context, *UserListRequest) (*UserListResponse, error)
 	User(context.Context, *UserRequest) (*UserResponse, error)
+	Me(context.Context, *MeRequest) (*MeResponse, error)
 	TenantList(context.Context, *TenantListRequest) (*TenantListResponse, error)
 	Tenant(context.Context, *TenantRequest) (*TenantResponse, error)
 	TenantPermissions(context.Context, *TenantRequest) (*TenantPermissionsResponse, error)
@@ -334,6 +345,9 @@ func (UnimplementedCheckerServer) UserList(context.Context, *UserListRequest) (*
 }
 func (UnimplementedCheckerServer) User(context.Context, *UserRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method User not implemented")
+}
+func (UnimplementedCheckerServer) Me(context.Context, *MeRequest) (*MeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Me not implemented")
 }
 func (UnimplementedCheckerServer) TenantList(context.Context, *TenantListRequest) (*TenantListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TenantList not implemented")
@@ -452,6 +466,24 @@ func _Checker_User_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckerServer).User(ctx, req.(*UserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Checker_Me_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CheckerServer).Me(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/azpb.Checker/Me",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CheckerServer).Me(ctx, req.(*MeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -902,6 +934,10 @@ var Checker_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "User",
 			Handler:    _Checker_User_Handler,
+		},
+		{
+			MethodName: "Me",
+			Handler:    _Checker_Me_Handler,
 		},
 		{
 			MethodName: "TenantList",
