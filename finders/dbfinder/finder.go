@@ -10,6 +10,7 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/internal/admincache"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/dbutil"
@@ -21,13 +22,14 @@ import (
 ////////
 
 type Finder struct {
-	Clock      clock.Clock
-	db         sqlx.Ext
-	adminCache *admincache.AdminCache
+	Clock        clock.Clock
+	db           sqlx.Ext
+	adminCache   *admincache.AdminCache
+	authzChecker model.Checker
 }
 
-func NewFinder(db sqlx.Ext) *Finder {
-	return &Finder{db: db}
+func NewFinder(db sqlx.Ext, checker model.Checker) *Finder {
+	return &Finder{db: db, authzChecker: checker}
 }
 
 func (f *Finder) DBX() sqlx.Ext {
@@ -44,85 +46,90 @@ func (f *Finder) LoadAdmins() error {
 	return nil
 }
 
-func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.AgencyFilter) ([]*model.Agency, error) {
+func (f *Finder) PermFilter(ctx context.Context) *model.PermFilter {
+	permFilter, _ := checkActive(ctx, f.authzChecker)
+	return permFilter
+}
+
+func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
 	var ents []*model.Agency
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := AgencySelect(limit, after, ids, active, permFilter, where)
+	q := AgencySelect(limit, after, ids, active, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
 
-func (f *Finder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.RouteFilter) ([]*model.Route, error) {
+func (f *Finder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
 	var ents []*model.Route
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := RouteSelect(limit, after, ids, active, permFilter, where)
+	q := RouteSelect(limit, after, ids, active, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
 
-func (f *Finder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.StopFilter) ([]*model.Stop, error) {
+func (f *Finder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
 	var ents []*model.Stop
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := StopSelect(limit, after, ids, active, permFilter, where)
+	q := StopSelect(limit, after, ids, active, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
 
-func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.TripFilter) ([]*model.Trip, error) {
+func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
 	var ents []*model.Trip
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) || (where != nil && len(where.RouteIds) > 0) {
 		active = false
 	}
-	q := TripSelect(limit, after, ids, active, permFilter, where)
+	q := TripSelect(limit, after, ids, active, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
 
-func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
+func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
-	if err := dbutil.Select(ctx, f.db, FeedVersionSelect(limit, after, ids, permFilter, where), &ents); err != nil {
+	if err := dbutil.Select(ctx, f.db, FeedVersionSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
 
-func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) ([]*model.Feed, error) {
+func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
 	var ents []*model.Feed
-	if err := dbutil.Select(ctx, f.db, FeedSelect(limit, after, ids, permFilter, where), &ents); err != nil {
+	if err := dbutil.Select(ctx, f.db, FeedSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
 
-func (f *Finder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) ([]*model.Operator, error) {
+func (f *Finder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
-	if err := dbutil.Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, permFilter, where), &ents); err != nil {
+	if err := dbutil.Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, f.PermFilter(ctx), where), &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
 
-func (f *Finder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) ([]*model.Place, error) {
+func (f *Finder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {
 	var ents []*model.Place
-	q := PlaceSelect(limit, after, ids, level, permFilter, where)
+	q := PlaceSelect(limit, after, ids, level, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, err
 	}
@@ -258,7 +265,7 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (ti
 // Loaders
 
 func (f *Finder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip, errs []error) {
-	ents, err := f.FindTrips(ctx, nil, nil, ids, nil, nil)
+	ents, err := f.FindTrips(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
@@ -306,7 +313,7 @@ func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []e
 }
 
 func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
-	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil, nil)
+	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
@@ -314,7 +321,7 @@ func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.Feed
 }
 
 func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
-	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil, nil)
+	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
@@ -403,7 +410,7 @@ func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*mo
 
 func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
 	var ents []*model.Agency
-	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil, nil)
+	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
@@ -412,7 +419,7 @@ func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, 
 }
 
 func (f *Finder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
-	ents, err := f.FindStops(ctx, nil, nil, ids, nil, nil)
+	ents, err := f.FindStops(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
@@ -420,7 +427,7 @@ func (f *Finder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []err
 }
 
 func (f *Finder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
-	ents, err := f.FindRoutes(ctx, nil, nil, ids, nil, nil)
+	ents, err := f.FindRoutes(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
@@ -470,7 +477,7 @@ func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Opera
 	var ents []*model.Operator
 	err := dbutil.Select(ctx,
 		f.db,
-		OperatorSelect(nil, nil, ids, nil, nil, nil),
+		OperatorSelect(nil, nil, ids, nil, f.PermFilter(ctx), nil),
 		&ents,
 	)
 	if err != nil {
@@ -519,7 +526,7 @@ func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorP
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			OperatorSelect(params[0].Limit, nil, nil, ids, nil, params[0].Where),
+			OperatorSelect(params[0].Limit, nil, nil, ids, f.PermFilter(ctx), params[0].Where),
 			"current_feeds",
 			"id",
 			"t",
@@ -607,7 +614,7 @@ func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.Fe
 		model.Feed
 	}
 	var qents []*ffeed
-	q := FeedSelect(nil, nil, nil, nil, params[0].Where).
+	q := FeedSelect(nil, nil, nil, f.PermFilter(ctx), params[0].Where).
 		Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
 		Column("coif.resolved_onestop_id as operator_onestop_id").
 		Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
@@ -695,7 +702,7 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 		qents := []*model.StopTime{}
 		if err := dbutil.Select(ctx,
 			f.db,
-			StopTimeSelect(group.Keys, nil, nil, group.Where),
+			StopTimeSelect(group.Keys, nil, f.PermFilter(ctx), group.Where),
 			&qents,
 		); err != nil {
 			return nil, logExtendErr(ctx, len(params), err)
@@ -749,7 +756,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 			// Get stops on a specified day
 			err := dbutil.Select(ctx,
 				f.db,
-				StopDeparturesSelect(dg.pairs, nil, p),
+				StopDeparturesSelect(dg.pairs, f.PermFilter(ctx), p),
 				&qents,
 			)
 			if err != nil {
@@ -759,7 +766,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 			// Otherwise get all stop_times for stop
 			err := dbutil.Select(ctx,
 				f.db,
-				StopTimeSelect(nil, dg.pairs, nil, nil),
+				StopTimeSelect(nil, dg.pairs, f.PermFilter(ctx), nil),
 				&qents,
 			)
 			if err != nil {
@@ -830,7 +837,7 @@ func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) (
 		routeIds = append(routeIds, p.RouteID)
 	}
 	qents := []*qEnt{}
-	qso := StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where)
+	qso := StopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where)
 	qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = t.id").Where(sq.Eq{"route_id": routeIds}).Column("route_id")
 	err := dbutil.Select(ctx,
 		f.db,
@@ -1003,7 +1010,7 @@ func (f *Finder) StopsByParentStopID(ctx context.Context, params []model.StopPar
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			StopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where),
 			"gtfs_stops",
 			"id",
 			"gtfs_stops",
@@ -1038,7 +1045,7 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 	var qents []*qlookup
 	q := sq.
 		Select("t.*", "tlse.id as source_id").
-		FromSelect(StopSelect(nil, nil, nil, true, nil, nil), "t").
+		FromSelect(StopSelect(nil, nil, nil, true, f.PermFilter(ctx), nil), "t").
 		Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id").
 		Where(sq.Eq{"tlse.id": ids})
 	if err := dbutil.Select(ctx,
@@ -1071,7 +1078,7 @@ func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVe
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			FeedVersionSelect(params[0].Limit, nil, nil, nil, params[0].Where),
+			FeedVersionSelect(params[0].Limit, nil, nil, f.PermFilter(ctx), params[0].Where),
 			"current_feeds",
 			"id",
 			"feed_versions",
@@ -1172,7 +1179,7 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			TripSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			TripSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where),
 			"gtfs_routes",
 			"id",
 			"gtfs_trips",
@@ -1207,7 +1214,7 @@ func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			RouteSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			RouteSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where),
 			"gtfs_agencies",
 			"id",
 			"gtfs_routes",
@@ -1242,7 +1249,7 @@ func (f *Finder) AgenciesByFeedVersionID(ctx context.Context, params []model.Age
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			AgencySelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			AgencySelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where),
 			"feed_versions",
 			"id",
 			"gtfs_agencies",
@@ -1278,7 +1285,7 @@ func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyP
 	qents := []*model.Agency{}
 	err := dbutil.Select(ctx,
 		f.db,
-		AgencySelect(params[0].Limit, nil, nil, true, &model.PermFilter{}, nil).Where(sq.Eq{"coif.resolved_onestop_id": ids}), // active=true
+		AgencySelect(params[0].Limit, nil, nil, true, f.PermFilter(ctx), nil).Where(sq.Eq{"coif.resolved_onestop_id": ids}), // active=true
 		&qents,
 	)
 	if err != nil {
@@ -1306,7 +1313,7 @@ func (f *Finder) StopsByFeedVersionID(ctx context.Context, params []model.StopPa
 	qents := []*model.Stop{}
 	err := dbutil.Select(ctx,
 		f.db,
-		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where), "feed_versions", "id", "gtfs_stops", "feed_version_id", ids),
+		lateralWrap(StopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where), "feed_versions", "id", "gtfs_stops", "feed_version_id", ids),
 		&qents,
 	)
 	if err != nil {
@@ -1335,7 +1342,7 @@ func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) (
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			StopSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			StopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where),
 			"gtfs_levels",
 			"id",
 			"gtfs_stops",
@@ -1370,7 +1377,7 @@ func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripPa
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			TripSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			TripSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where),
 			"feed_versions",
 			"id",
 			"gtfs_trips",
@@ -1440,7 +1447,7 @@ func (f *Finder) RoutesByFeedVersionID(ctx context.Context, params []model.Route
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			RouteSelect(params[0].Limit, nil, nil, false, nil, params[0].Where),
+			RouteSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), params[0].Where),
 			"feed_versions",
 			"id",
 			"gtfs_routes",
@@ -1475,7 +1482,7 @@ func (f *Finder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, pa
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			FeedVersionServiceLevelSelect(params[0].Limit, nil, nil, params[0].Where),
+			FeedVersionServiceLevelSelect(params[0].Limit, nil, nil, f.PermFilter(ctx), params[0].Where),
 			"feed_versions",
 			"id",
 			"feed_version_service_levels",
@@ -1510,7 +1517,7 @@ func (f *Finder) PathwaysByFromStopID(ctx context.Context, params []model.Pathwa
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			PathwaySelect(params[0].Limit, nil, nil, nil, params[0].Where),
+			PathwaySelect(params[0].Limit, nil, nil, f.PermFilter(ctx), params[0].Where),
 			"gtfs_stops",
 			"id",
 			"gtfs_pathways",
@@ -1545,7 +1552,7 @@ func (f *Finder) PathwaysByToStopID(ctx context.Context, params []model.PathwayP
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			PathwaySelect(params[0].Limit, nil, nil, nil, params[0].Where),
+			PathwaySelect(params[0].Limit, nil, nil, f.PermFilter(ctx), params[0].Where),
 			"gtfs_stops",
 			"id",
 			"gtfs_pathways",
@@ -1847,4 +1854,41 @@ func paramsByGroup[K comparable, M any](items []paramItem[K, M]) ([]paramGroup[K
 		ret = append(ret, v)
 	}
 	return ret, nil
+}
+
+type canCheckGlobalAdmin interface {
+	CheckGlobalAdmin(context.Context) (bool, error)
+}
+
+func checkActive(ctx context.Context, checker model.Checker) (*model.PermFilter, error) {
+	active := &model.PermFilter{}
+	if checker == nil {
+		return active, nil
+	}
+
+	// TODO: Make this part of actual checker interface
+	if c, ok := checker.(canCheckGlobalAdmin); ok {
+		if a, err := c.CheckGlobalAdmin(ctx); err != nil {
+			return nil, err
+		} else if a {
+			return nil, nil
+		}
+	}
+
+	okFeeds, err := checker.FeedList(ctx, &authz.FeedListRequest{})
+	if err != nil {
+		return nil, err
+	}
+	for _, feed := range okFeeds.Feeds {
+		active.AllowedFeeds = append(active.AllowedFeeds, int(feed.Id))
+	}
+	okFvids, err := checker.FeedVersionList(ctx, &authz.FeedVersionListRequest{})
+	if err != nil {
+		return nil, err
+	}
+	for _, fv := range okFvids.FeedVersions {
+		active.AllowedFeedVersions = append(active.AllowedFeedVersions, int(fv.Id))
+	}
+	// fmt.Println("active allowed feeds:", active.AllowedFeeds, "fvs:", active.AllowedFeedVersions)
+	return active, nil
 }

@@ -174,7 +174,7 @@ func TestStopRequest_AdminCache(t *testing.T) {
 
 func TestStopRequest_Pagination(t *testing.T) {
 	srv, te := testRestConfig(t)
-	allEnts, err := te.Finder.FindStops(context.Background(), nil, nil, nil, nil, nil)
+	allEnts, err := te.Finder.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

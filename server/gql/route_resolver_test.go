@@ -285,7 +285,7 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 
 func TestRouteResolver_Cursor(t *testing.T) {
 	c, te := newTestClient(t)
-	allEnts, err := te.Finder.FindRoutes(context.Background(), nil, nil, nil, nil, nil)
+	allEnts, err := te.Finder.FindRoutes(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -250,7 +250,7 @@ func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
 
 func fetchCheckFeed(ctx context.Context, dbf model.Finder, checker model.Checker, feedId string, urlType string, url string) (*model.Feed, error) {
 	// Check feed exists
-	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return nil, err
 	}

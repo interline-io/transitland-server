@@ -19,7 +19,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	opts := job.Opts
 	db := opts.Finder.DBX()
 	now := time.Now().In(time.UTC)
-	feeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, nil, &model.FeedFilter{})
+	feeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{})
 	if err != nil {
 		return err
 	}
