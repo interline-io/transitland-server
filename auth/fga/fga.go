@@ -28,9 +28,13 @@ func ToFGATupleKey(tk authz.TupleKey) openfga.TupleKey {
 	fgatk := openfga.TupleKey{}
 	if tk.Subject.Name != "" {
 		fgatk.User = openfga.PtrString(tk.Subject.String())
+	} else if authz.IsObjectType(tk.Subject.Type) {
+		fgatk.Object = openfga.PtrString(tk.Subject.Type.String() + ":")
 	}
 	if tk.Object.Name != "" {
 		fgatk.Object = openfga.PtrString(tk.Object.String())
+	} else if authz.IsObjectType(tk.Object.Type) {
+		fgatk.Object = openfga.PtrString(tk.Object.Type.String() + ":")
 	}
 	if authz.IsAction(tk.Action) {
 		fgatk.Relation = openfga.PtrString(tk.Action.String())

@@ -194,7 +194,26 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 	if err != nil {
 		return nil, err
 	}
-	ids, err := c.listCtxObjectRelations(
+
+	// Direct groups
+	var directGroupIds []int64
+	checkTk := authz.NewTupleKey().
+		WithSubject(authz.UserType, checkUser.ID()).
+		WithObject(authz.GroupType, "")
+	groupTuples, err := c.fgaClient.GetObjectTuples(ctx, checkTk)
+	if err != nil {
+		return nil, err
+	}
+	for _, groupTuple := range groupTuples {
+		directGroupIds = append(directGroupIds, groupTuple.Object.ID())
+	}
+	directGroups, err := c.getGroups(ctx, directGroupIds)
+	if err != nil {
+		return nil, err
+	}
+
+	// Expanded groups
+	expandedGroupIds, err := c.listCtxObjectRelations(
 		ctx,
 		GroupType,
 		ViewerRelation,
@@ -202,13 +221,16 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 	if err != nil {
 		return nil, err
 	}
-	t, err := c.getGroups(ctx, ids)
+	expandedGroups, err := c.getGroups(ctx, expandedGroupIds)
 	if err != nil {
 		return nil, err
 	}
+
+	// Return
 	ret := &authz.MeResponse{
-		User:   newAzpbUser(user),
-		Groups: t,
+		User:           newAzpbUser(user),
+		Groups:         directGroups,
+		ExpandedGroups: expandedGroups,
 	}
 	return ret, nil
 }
@@ -734,6 +756,10 @@ func (c *Checker) listSubjectRelations(ctx context.Context, sub EntityKey, objec
 		ret = append(ret, v.Object.ID())
 	}
 	return ret, nil
+}
+
+func (c *Checker) getSubjectTuples(ctx context.Context, obj EntityKey, ctxtk ...TupleKey) ([]TupleKey, error) {
+	return c.fgaClient.GetObjectTuples(ctx, authz.NewTupleKey().WithSubject(obj.Type, obj.Name))
 }
 
 func (c *Checker) getObjectTuples(ctx context.Context, obj EntityKey, ctxtk ...TupleKey) ([]TupleKey, error) {

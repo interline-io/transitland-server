@@ -309,23 +309,26 @@ func TestChecker(t *testing.T) {
 	t.Run("Me", func(t *testing.T) {
 		checker := newTestChecker(t, fgaUrl, checkerTestData)
 		tcs := []struct {
-			Name             string
-			CheckAsUser      string
-			ExpectUserId     string
-			ExpectGroupNames []string
-			ExpectError      bool
+			Name                     string
+			CheckAsUser              string
+			ExpectUserId             string
+			ExpectDirectGroupNames   []string
+			ExpectExpandedGroupNames []string
+			ExpectError              bool
 		}{
 			{
-				Name:             "ian",
-				CheckAsUser:      "ian",
-				ExpectUserId:     "ian",
-				ExpectGroupNames: []string{"CT-group", "HA-group", "BA-group"},
+				Name:                     "ian",
+				CheckAsUser:              "ian",
+				ExpectUserId:             "ian",
+				ExpectDirectGroupNames:   []string{"CT-group", "BA-group"},
+				ExpectExpandedGroupNames: []string{"CT-group", "HA-group", "BA-group"},
 			},
 			{
-				Name:             "drew",
-				CheckAsUser:      "drew",
-				ExpectUserId:     "drew",
-				ExpectGroupNames: []string{"CT-group", "HA-group"},
+				Name:                     "drew",
+				CheckAsUser:              "drew",
+				ExpectUserId:             "drew",
+				ExpectDirectGroupNames:   []string{"CT-group"},
+				ExpectExpandedGroupNames: []string{"CT-group", "HA-group"},
 			},
 			{
 				Name:         "no one",
@@ -344,11 +347,17 @@ func TestChecker(t *testing.T) {
 					t.Fatal("got no result")
 				}
 				assert.Equal(t, tc.ExpectUserId, ent.User.Id)
-				var groupNames []string
+				var directGroupNames []string
 				for _, g := range ent.Groups {
-					groupNames = append(groupNames, g.Name)
+					directGroupNames = append(directGroupNames, g.Name)
 				}
-				assert.ElementsMatch(t, tc.ExpectGroupNames, groupNames, "group names")
+				assert.ElementsMatch(t, tc.ExpectDirectGroupNames, directGroupNames, "group names")
+
+				var expandedGroupNames []string
+				for _, g := range ent.ExpandedGroups {
+					expandedGroupNames = append(expandedGroupNames, g.Name)
+				}
+				assert.ElementsMatch(t, tc.ExpectExpandedGroupNames, expandedGroupNames, "group names")
 			})
 		}
 	})
@@ -1485,7 +1494,6 @@ func TestChecker(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				fmt.Println("tc.Object:", tc.Object, "fr.Group:", fr.Group)
 				assert.Equal(t, tc.Object.Name, fr.Group.Name)
 			})
 		}
