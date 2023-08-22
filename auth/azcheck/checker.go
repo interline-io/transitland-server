@@ -194,15 +194,18 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 	if err != nil {
 		return nil, err
 	}
-	ids, err := c.listCtxObjectRelations(
-		ctx,
-		GroupType,
-		ViewerRelation,
-	)
+	var groupIds []int64
+	checkTk := authz.NewTupleKey().
+		WithSubject(authz.UserType, checkUser.ID()).
+		WithObject(authz.GroupType, "")
+	g, err := c.fgaClient.GetObjectTuples(ctx, checkTk)
+	for _, group := range g {
+		groupIds = append(groupIds, group.Object.ID())
+	}
 	if err != nil {
 		return nil, err
 	}
-	t, err := c.getGroups(ctx, ids)
+	t, err := c.getGroups(ctx, groupIds)
 	if err != nil {
 		return nil, err
 	}
@@ -734,6 +737,10 @@ func (c *Checker) listSubjectRelations(ctx context.Context, sub EntityKey, objec
 		ret = append(ret, v.Object.ID())
 	}
 	return ret, nil
+}
+
+func (c *Checker) getSubjectTuples(ctx context.Context, obj EntityKey, ctxtk ...TupleKey) ([]TupleKey, error) {
+	return c.fgaClient.GetObjectTuples(ctx, authz.NewTupleKey().WithSubject(obj.Type, obj.Name))
 }
 
 func (c *Checker) getObjectTuples(ctx context.Context, obj EntityKey, ctxtk ...TupleKey) ([]TupleKey, error) {

@@ -1485,7 +1485,6 @@ func TestChecker(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				fmt.Println("tc.Object:", tc.Object, "fr.Group:", fr.Group)
 				assert.Equal(t, tc.Object.Name, fr.Group.Name)
 			})
 		}
