@@ -521,6 +521,8 @@ type AgencyPlace {
   city_name: String
   adm0_name: String
   adm1_name: String
+  adm0_iso: String
+  adm1_iso: String
   rank: Float
 }
 
