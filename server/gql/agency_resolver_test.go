@@ -74,11 +74,26 @@ func TestAgencyResolver(t *testing.T) {
 		// places should test filters because it's not a root resolver
 		{
 			name:         "places",
-			query:        `query($agency_id:String!) { agencies(where:{agency_id:$agency_id}) {places {adm0_name adm1_name city_name}}}`,
+			query:        `query($agency_id:String!) { agencies(where:{agency_id:$agency_id}) {places {adm0_name adm0_iso adm1_name adm1_iso city_name}}}`,
 			vars:         vars,
 			selector:     "agencies.0.places.#.city_name",
 			selectExpect: []string{"San Mateo", "San Francisco", "San Jose", ""},
 		},
+		{
+			name:         "places get adm0_iso",
+			query:        `query($agency_id:String!) { agencies(where:{agency_id:$agency_id}) {places {adm0_name adm0_iso adm1_name adm1_iso city_name}}}`,
+			vars:         vars,
+			selector:     "agencies.0.places.#.adm0_iso",
+			selectExpect: []string{"US", "US", "US", "US"},
+		},
+		{
+			name:         "places get adm1_iso",
+			query:        `query($agency_id:String!) { agencies(where:{agency_id:$agency_id}) {places {adm0_name adm0_iso adm1_name adm1_iso city_name}}}`,
+			vars:         vars,
+			selector:     "agencies.0.places.#.adm1_iso",
+			selectExpect: []string{"US-CA", "US-CA", "US-CA", "US-CA"},
+		},
+
 		{
 			name:         "places rank 0.25",
 			query:        `query($agency_id:String!) { agencies(where:{agency_id:$agency_id}) {places(where:{min_rank:0.25}) {adm0_name adm1_name city_name}}}`,

@@ -210,6 +210,8 @@ type AgencyPlace struct {
 	CityName *string  `json:"city_name" db:"name" `
 	Adm0Name *string  `json:"adm0_name" db:"adm0name" `
 	Adm1Name *string  `json:"adm1_name" db:"adm1name" `
+	Adm0Iso  *string  `json:"adm0_iso" db:"adm0iso" `
+	Adm1Iso  *string  `json:"adm1_iso" db:"adm1iso" `
 	Rank     *float64 `json:"rank"`
 }
 
