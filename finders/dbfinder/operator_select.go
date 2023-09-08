@@ -26,8 +26,7 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 		LeftJoin("current_operators co on co.id = coif.operator_id").
 		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
-		OrderBy("coif.resolved_onestop_id, coif.operator_id").
-		Limit(checkLimit(limit))
+		OrderBy("coif.resolved_onestop_id, coif.operator_id")
 
 	if where != nil {
 		if where.Merged != nil && !*where.Merged {
@@ -111,7 +110,7 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 		})
 
 	// Outer query
-	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").OrderBy("id")
+	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").OrderBy("id").Limit(checkLimit(limit))
 	if after != nil && after.Valid && after.ID > 0 {
 		qView = qView.Where(sq.Gt{"t.id": after.ID})
 	}
