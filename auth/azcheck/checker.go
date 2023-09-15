@@ -75,6 +75,7 @@ type CheckerConfig struct {
 	Auth0Domain       string
 	Auth0ClientID     string
 	Auth0ClientSecret string
+	Auth0Connection   string
 	FGAStoreID        string
 	FGAModelID        string
 	FGAEndpoint       string
@@ -100,6 +101,7 @@ func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext, redisClient *redis.Cli
 	// Use Auth0 if configured
 	if cfg.Auth0Domain != "" {
 		auth0Client, err := auth0.NewAuth0Client(cfg.Auth0Domain, cfg.Auth0ClientID, cfg.Auth0ClientSecret)
+		auth0Client.Connection = cfg.Auth0Connection
 		if err != nil {
 			return nil, err
 		}
