@@ -2,13 +2,15 @@ package auth0
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/auth0/go-auth0/management"
 	"github.com/interline-io/transitland-server/auth/authn"
 )
 
 type Auth0Client struct {
-	client *management.Management
+	client     *management.Management
+	Connection string
 }
 
 func NewAuth0Client(domain string, clientId string, clientSecret string) (*Auth0Client, error) {
@@ -32,6 +34,16 @@ func (c *Auth0Client) UserByID(ctx context.Context, id string) (authn.User, erro
 }
 
 func (c *Auth0Client) Users(ctx context.Context, userQuery string) ([]authn.User, error) {
+	if userQuery != "" {
+		userQuery = fmt.Sprintf(`*%s*`, userQuery)
+	}
+	if c.Connection != "" {
+		if userQuery != "" {
+			userQuery = fmt.Sprintf(`identities.connection:"%s" AND %s`, c.Connection, userQuery)
+		} else {
+			userQuery = fmt.Sprintf(`identities.connection:"%s"`, c.Connection)
+		}
+	}
 	ul, err := c.client.User.List(management.Query(userQuery))
 	if err != nil {
 		return nil, err
