@@ -6587,6 +6587,7 @@ input StopFilter {
   search: String
   license: LicenseFilter
   served_by_onestop_ids: [String!]
+  served_by_route_type: Int
   agency_ids: [Int!] # keep?
 }
 
@@ -44497,7 +44498,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "within", "near", "search", "license", "served_by_onestop_ids", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "within", "near", "search", "license", "served_by_onestop_ids", "served_by_route_type", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44613,6 +44614,14 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("served_by_onestop_ids"))
 			it.ServedByOnestopIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "served_by_route_type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("served_by_route_type"))
+			it.ServedByRouteType, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}

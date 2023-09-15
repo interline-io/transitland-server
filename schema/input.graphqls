@@ -152,6 +152,7 @@ input StopFilter {
   search: String
   license: LicenseFilter
   served_by_onestop_ids: [String!]
+  served_by_route_type: Int
   agency_ids: [Int!] # keep?
 }
 

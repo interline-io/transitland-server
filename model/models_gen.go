@@ -291,6 +291,7 @@ type StopFilter struct {
 	Search                  *string        `json:"search"`
 	License                 *LicenseFilter `json:"license"`
 	ServedByOnestopIds      []string       `json:"served_by_onestop_ids"`
+	ServedByRouteType       *int           `json:"served_by_route_type"`
 	AgencyIds               []int          `json:"agency_ids"`
 }
 

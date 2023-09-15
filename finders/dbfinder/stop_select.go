@@ -91,7 +91,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			q = q.Where(sq.Eq{"gtfs_stops.stop_id": *where.StopID})
 		}
 		if where.Serviced != nil {
-			q = q.JoinClause(`left join lateral (select tlrs.stop_id from tl_route_stops tlrs where tlrs.stop_id = gtfs_stops.id limit 1) scount on true`)
+			q = q.JoinClause(`left join lateral (select tlrs_serviced.stop_id from tl_route_stops tlrs_serviced where tlrs_serviced.stop_id = gtfs_stops.id limit 1) scount on true`)
 			if *where.Serviced {
 				q = q.Where(sq.NotEq{"scount.stop_id": nil})
 			} else {
@@ -102,7 +102,12 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		// Served by agency ID
 		if len(where.AgencyIds) > 0 {
 			distinct = true
-			q = q.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(sq.Eq{"tl_route_stops.agency_id": where.AgencyIds})
+			q = q.Join("tl_route_stops tlrs_agencies on tlrs_agencies.stop_id = gtfs_stops.id").Where(sq.Eq{"tlrs_agencies.agency_id": where.AgencyIds})
+		}
+
+		// Served by route type
+		if where.ServedByRouteType != nil {
+			q = q.JoinClause(`join lateral (select tlrs_rt.stop_id from tl_route_stops tlrs_rt join gtfs_routes on gtfs_routes.id = tlrs_rt.route_id where tlrs_rt.stop_id = gtfs_stops.id and gtfs_routes.route_type = ? limit 1) rt on true`, *where.ServedByRouteType)
 		}
 
 		// Accepts both route and operator Onestop IDs
@@ -118,13 +123,13 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 					routes = append(routes, osid)
 				}
 			}
-			q = q.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id")
+			q = q.Join("tl_route_stops tlrs_routes on tlrs_routes.stop_id = gtfs_stops.id")
 			if len(routes) > 0 {
-				q = q.Join("tl_route_onestop_ids on tl_route_stops.route_id = tl_route_onestop_ids.route_id")
+				q = q.Join("tl_route_onestop_ids on tlrs_routes.route_id = tl_route_onestop_ids.route_id")
 			}
 			if len(agencies) > 0 {
 				q = q.
-					Join("gtfs_agencies on gtfs_agencies.id = tl_route_stops.agency_id").
+					Join("gtfs_agencies on gtfs_agencies.id = tlrs_routes.agency_id").
 					Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id")
 			}
 			if len(routes) > 0 && len(agencies) > 0 {
