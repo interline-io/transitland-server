@@ -98,12 +98,10 @@ func stopResolverTestcases(t testing.TB, te model.Finders) []testcase {
 	allStops = append(allStops, bartStops...)
 	allStops = append(allStops, caltrainStops...)
 	vars := hw{"stop_id": "MCAR"}
-
 	stopObsFvid := 0
 	if err := te.Finder.DBX().QueryRowx("select feed_version_id from ext_performance_stop_observations limit 1").Scan(&stopObsFvid); err != nil {
 		t.Errorf("could not get fvid for stop observation test: %s", err.Error())
 	}
-
 	testcases := []testcase{
 		{
 			name:         "basic",
@@ -415,6 +413,60 @@ func stopResolverTestcases(t testing.TB, te model.Finders) []testcase {
 			query:        `query{stops(where:{feed_onestop_id:"EX", feed_version_sha1:"43e2278aa272879c79460582152b04e7487f0493", serviced:false}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"NOTRIPS"},
+		},
+		// route_type
+		{
+			// tampa street car
+			name:         "stop route_type=0",
+			query:        `query{stops(where:{served_by_route_type:0}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"6690", "6691", "6692", "6693", "6694", "6695", "6698", "6699", "6700", "6701", "7713"},
+		},
+		{
+			name:         "stop route_type=0 empty",
+			query:        `query{stops(where:{served_by_route_type:0, feed_onestop_id:"BA"}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{},
+		},
+		{
+			// BART
+			name:         "stop route_type=1",
+			query:        `query{stops(where:{served_by_route_type:1, feed_onestop_id:"BA"}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: bartStops,
+		},
+		{
+			name:         "stop route_type=1 empty",
+			query:        `query{stops(where:{served_by_route_type:1, feed_onestop_id:"CT"}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{},
+		},
+		{
+			// Caltrain
+			name:         "stop route_type=2",
+			query:        `query{stops(where:{served_by_route_type:2, feed_onestop_id:"CT"}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: caltrainRailStops,
+		},
+		{
+			name:         "stop route_type=2 empty",
+			query:        `query{stops(where:{served_by_route_type:2, feed_onestop_id:"BA"}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{},
+		},
+
+		{
+			// Caltrain
+			name:         "stop route_type=3",
+			query:        `query{stops(where:{served_by_route_type:3, feed_onestop_id:"CT"}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: caltrainBusStops,
+		},
+		{
+			name:         "stop route_type=3 empty",
+			query:        `query{stops(where:{served_by_route_type:3, feed_onestop_id:"BA"}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{},
 		},
 		// TODO: census_geographies
 		// TODO: route_stop_buffer

@@ -22,6 +22,7 @@ type StopRequest struct {
 	Lat                float64 `json:"lat,string"`
 	Radius             float64 `json:"radius,string"`
 	ServedByOnestopIds string  `json:"served_by_onestop_ids"`
+	ServedByRouteType  *int    `json:"served_by_route_type,string"`
 	IncludeAlerts      bool    `json:"include_alerts,string"`
 	IncludeRoutes      bool    `json:"include_routes,string"`
 	LicenseFilter
@@ -68,6 +69,9 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.ServedByOnestopIds != "" {
 		where["served_by_onestop_ids"] = commaSplit(r.ServedByOnestopIds)
+	}
+	if r.ServedByRouteType != nil {
+		where["served_by_route_type"] = *r.ServedByRouteType
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return stopQuery, hw{

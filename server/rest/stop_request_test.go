@@ -102,8 +102,31 @@ func TestStopRequest(t *testing.T) {
 			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit,o-9q9-caltrain",
 			h:            StopRequest{ServedByOnestopIds: "o-9q9-bayarearapidtransit,o-9q9-caltrain", WithCursor: WithCursor{Limit: 1000}},
 			selector:     "stops.#.stop_id",
-			expectSelect: nil,
 			expectLength: 114,
+		},
+		{
+			name:         "served_by_route_type=0",
+			h:            StopRequest{ServedByRouteType: intp(0), FeedOnestopID: "HA", WithCursor: WithCursor{Limit: 1000}},
+			selector:     "stops.#.stop_id",
+			expectLength: 11,
+		},
+		{
+			name:         "served_by_route_type=1",
+			h:            StopRequest{ServedByRouteType: intp(1), FeedOnestopID: "BA", WithCursor: WithCursor{Limit: 1000}},
+			selector:     "stops.#.stop_id",
+			expectLength: 50,
+		},
+		{
+			name:         "served_by_route_type=2",
+			h:            StopRequest{ServedByRouteType: intp(2), FeedOnestopID: "CT", WithCursor: WithCursor{Limit: 1000}},
+			selector:     "stops.#.stop_id",
+			expectLength: 62,
+		},
+		{
+			name:         "served_by_route_type=3",
+			h:            StopRequest{ServedByRouteType: intp(3), FeedOnestopID: "CT", WithCursor: WithCursor{Limit: 1000}},
+			selector:     "stops.#.stop_id",
+			expectLength: 2,
 		},
 		// {"served_by_onestop_ids=o-9q9-caltrain,served_by_route_types=3", StopRequest{ServedByOnestopIds: []string{"o-9q9-caltrain"}, ServedByRouteTypes: []int{3}, WithCursor: WithCursor{Limit:100}}, "", "stops.#.stop_id", caltrainBusStops, 0},
 		{
@@ -301,4 +324,8 @@ func TestStopRequest_License(t *testing.T) {
 			testquery(t, srv, te, tc)
 		})
 	}
+}
+
+func intp(v int) *int {
+	return &v
 }
