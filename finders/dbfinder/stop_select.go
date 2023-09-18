@@ -68,11 +68,15 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 
 	// Handle other clauses
 	if where != nil {
+		if where.Bbox != nil {
+			bbox := where.Bbox
+			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", bbox.MinLon, bbox.MinLat, bbox.MaxLon, bbox.MaxLat)
+		}
 		if where.Within != nil && where.Within.Valid {
 			q = q.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
 		}
 		if where.Near != nil {
-			radius := checkFloat(&where.Near.Radius, 0, 10_000)
+			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
 			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
 		if where.StopCode != nil {

@@ -87,20 +87,28 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 				q = q.Where(sq.Eq{"scount.route_id": nil})
 			}
 		}
+		if where.Bbox != nil {
+			bbox := where.Bbox
+			q = q.JoinClause(`JOIN (
+				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
+				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
+				WHERE ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))
+			) tlrs_bbox on tlrs_bbox.route_id = gtfs_routes.id`, bbox.MinLon, bbox.MinLat, bbox.MaxLon, bbox.MaxLat)
+		}
 		if where.Within != nil && where.Within.Valid {
 			q = q.JoinClause(`JOIN (
 				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
 				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
 				WHERE ST_Intersects(gtfs_stops.geometry, ?)
-			) tlrs on tlrs.route_id = gtfs_routes.id`, where.Within)
+			) tlrs_within on tlrs_within.route_id = gtfs_routes.id`, where.Within)
 		}
 		if where.Near != nil {
-			radius := checkFloat(&where.Near.Radius, 0, 10_000)
+			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
 			q = q.JoinClause(`JOIN (
 				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
 				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
 				WHERE ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)
-			) tlrs on tlrs.route_id = gtfs_routes.id`, where.Near.Lon, where.Near.Lat, radius)
+			) tlrs_near on tlrs_near.route_id = gtfs_routes.id`, where.Near.Lon, where.Near.Lat, radius)
 		}
 		if where.OperatorOnestopID != nil {
 			q = q.

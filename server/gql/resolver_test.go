@@ -25,6 +25,7 @@ type testcase struct {
 	expect             string
 	user               string
 	selector           string
+	expectError        bool
 	selectExpect       []string
 	selectExpectUnique []string
 	selectExpectCount  int
@@ -70,8 +71,12 @@ func queryTestcase(t *testing.T, c *client.Client, tc testcase) {
 		opts = append(opts, client.Var(k, v))
 	}
 	if err := c.Post(tc.query, &resp, opts...); err != nil {
-		t.Error(err)
-		return
+		if tc.expectError {
+			// ok
+		} else {
+			t.Error(err)
+			return
+		}
 	}
 	jj := toJson(resp)
 	if tc.expect != "" {
@@ -144,5 +149,46 @@ func benchmarkTestcase(b *testing.B, c *client.Client, tc testcase) {
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		c.MustPost(tc.query, &resp, opts...)
+	}
+}
+
+func Test_checkBbox(t *testing.T) {
+	tcs := []struct {
+		name   string
+		bbox   model.BoundingBox
+		area   float64
+		expect bool
+	}{
+		{
+			name:   "small 1",
+			bbox:   model.BoundingBox{MinLon: -122.27023950636408, MinLat: 37.80659174954722, MaxLon: -122.26747210439623, MaxLat: 37.80928736232528},
+			area:   0.08 * 1e6,
+			expect: true,
+		},
+		{
+			name:   "small 2",
+			bbox:   model.BoundingBox{MinLon: -122.27023950636408, MinLat: 37.80659174954722, MaxLon: -122.26747210439623, MaxLat: 37.80928736232528},
+			area:   0.07 * 1e6,
+			expect: false,
+		},
+		{
+			name:   "big 1",
+			bbox:   model.BoundingBox{MinLon: -123.08182748515924, MinLat: 37.100203650623826, MaxLon: -121.31739022765265, MaxLat: 38.31972646345332},
+			area:   22000.0 * 1e6,
+			expect: true,
+		},
+		{
+			name:   "big 2",
+			bbox:   model.BoundingBox{MinLon: -123.08182748515924, MinLat: 37.100203650623826, MaxLon: -121.31739022765265, MaxLat: 38.31972646345332},
+			area:   20000.0 * 1e6,
+			expect: false,
+		},
+	}
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			v := checkBbox(&tc.bbox, tc.area)
+			assert.Equal(t, tc.expect, v, "expected result")
+
+		})
 	}
 }

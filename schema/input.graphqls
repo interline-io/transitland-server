@@ -102,6 +102,7 @@ input AgencyFilter {
   agency_id: String
   "Search for records with this GTFS agency_name"
   agency_name: String
+  bbox: BoundingBox
   within: Polygon
   "Search for agencies within a radius"
   near: PointRadius
@@ -129,6 +130,7 @@ input RouteFilter {
   route_id: String
   route_type: Int
   serviced: Boolean
+  bbox: BoundingBox
   within: Polygon
   near: PointRadius
   search: String
@@ -147,6 +149,7 @@ input StopFilter {
   stop_code: String
   location_type: Int
   serviced: Boolean
+  bbox: BoundingBox
   within: Polygon
   near: PointRadius
   search: String
@@ -237,4 +240,11 @@ input PointRadius {
   lat: Float!
   lon: Float!
   radius: Float!
+}
+
+input BoundingBox {
+  min_lon: Float!
+  min_lat: Float!
+  max_lon: Float!
+  max_lat: Float!
 }
