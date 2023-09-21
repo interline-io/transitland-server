@@ -88,12 +88,11 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 			}
 		}
 		if where.Bbox != nil {
-			bbox := where.Bbox
 			q = q.JoinClause(`JOIN (
 				SELECT DISTINCT ON (tlrs.route_id) tlrs.route_id FROM gtfs_stops
 				JOIN tl_route_stops tlrs ON gtfs_stops.id = tlrs.stop_id
 				WHERE ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))
-			) tlrs_bbox on tlrs_bbox.route_id = gtfs_routes.id`, bbox.MinLon, bbox.MinLat, bbox.MaxLon, bbox.MaxLat)
+			) tlrs_bbox on tlrs_bbox.route_id = gtfs_routes.id`, where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
 		}
 		if where.Within != nil && where.Within.Valid {
 			q = q.JoinClause(`JOIN (
