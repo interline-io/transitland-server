@@ -59,9 +59,6 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 	if r.Search != "" {
 		where["search"] = r.Search
 	}
-	if r.Search != "" {
-		where["search"] = r.Search
-	}
 	if r.TagKey != "" {
 		where["tags"] = hw{r.TagKey: r.TagValue}
 	}
