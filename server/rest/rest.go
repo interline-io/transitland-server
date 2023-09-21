@@ -19,6 +19,7 @@ import (
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/util"
+	"github.com/interline-io/transitland-server/model"
 )
 
 // DEFAULTLIMIT is the default API limit
@@ -240,7 +241,7 @@ func makeHandler(cfg restConfig, handlerName string, f func() apiHandler) http.H
 		// Make the request
 		response, err := makeRequest(r.Context(), cfg, ent, format, r.URL)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, util.MakeJsonError(err.Error()), http.StatusInternalServerError)
 			return
 		}
 
@@ -283,6 +284,12 @@ func makeGraphQLRequest(ctx context.Context, srv http.Handler, query string, var
 	if err := json.Unmarshal(wr.Body.Bytes(), &response); err != nil {
 		return nil, err
 	}
+	if e, ok := response["errors"].([]interface{}); ok && len(e) > 0 {
+		if emsg, ok := e[0].(map[string]interface{}); ok && emsg["message"] != nil {
+			return nil, errors.New(emsg["message"].(string))
+		}
+	}
+
 	data, ok := response["data"].(map[string]interface{})
 	if !ok {
 		return nil, err
@@ -297,7 +304,7 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 	if err != nil {
 		vjson, _ := json.Marshal(vars)
 		log.Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msgf("graphql request failed")
-		return nil, errors.New("request error")
+		return nil, err
 	}
 
 	// Add meta
@@ -402,4 +409,47 @@ func getAfterID(ent apiHandler, response map[string]interface{}) (int, bool, err
 		return 0, false, errors.New("pagination: last entity id not numeric")
 	}
 	return maxid, true, nil
+}
+
+//
+
+type restBbox struct {
+	model.BoundingBox
+}
+
+func (bbox *restBbox) UnmarshalText(v []byte) error {
+	s := strings.Split(string(v), ",")
+	if len(s) != 4 {
+		return errors.New("4 values needed")
+	}
+	if a, err := strconv.ParseFloat(s[0], 64); err != nil {
+		return err
+	} else {
+		bbox.MinLon = a
+	}
+	if a, err := strconv.ParseFloat(s[1], 64); err != nil {
+		return err
+	} else {
+		bbox.MinLat = a
+	}
+	if a, err := strconv.ParseFloat(s[2], 64); err != nil {
+		return err
+	} else {
+		bbox.MaxLon = a
+	}
+	if a, err := strconv.ParseFloat(s[3], 64); err != nil {
+		return err
+	} else {
+		bbox.MaxLat = a
+	}
+	return nil
+}
+
+func (bbox *restBbox) AsJson() map[string]any {
+	return map[string]any{
+		"min_lon": bbox.MinLon,
+		"min_lat": bbox.MinLat,
+		"max_lon": bbox.MaxLon,
+		"max_lat": bbox.MaxLat,
+	}
 }

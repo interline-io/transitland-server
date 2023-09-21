@@ -39,6 +39,23 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 			q = q.Where(sq.Eq{"spec": specs})
 		}
 
+		// Spatial
+		if where.Bbox != nil || where.Within != nil || where.Near != nil {
+			q = q.
+				Join("feed_states fs_geom on fs_geom.feed_id = current_feeds.id").
+				Join("tl_feed_version_geometries fv_geoms on fv_geoms.feed_version_id = fs_geom.feed_version_id")
+			if where.Bbox != nil {
+				q = q.Where("ST_Intersects(fv_geoms.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
+			}
+			if where.Within != nil && where.Within.Valid {
+				q = q.Where("ST_Intersects(fv_geoms.geometry, ?)", where.Within)
+			}
+			if where.Near != nil {
+				radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
+				q = q.Where("ST_DWithin(fv_geoms.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+			}
+		}
+
 		// Tags
 		if where.Tags != nil {
 			for _, k := range where.Tags.Keys() {

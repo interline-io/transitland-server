@@ -10,16 +10,20 @@ var feedVersionQuery string
 
 // FeedVersionRequest holds options for a Route request
 type FeedVersionRequest struct {
-	FeedVersionKey  string `json:"feed_version_key"`
-	FeedKey         string `json:"feed_key"`
-	ID              int    `json:"id,string"`
-	FeedID          int    `json:"feed_id,string"`
-	FeedOnestopID   string `json:"feed_onestop_id"`
-	Sha1            string `json:"sha1"`
-	FetchedBefore   string `json:"fetched_before"`
-	FetchedAfter    string `json:"fetched_after"`
-	CoversStartDate string `json:"covers_start_date"`
-	CoversEndDate   string `json:"covers_end_date"`
+	FeedVersionKey  string    `json:"feed_version_key"`
+	FeedKey         string    `json:"feed_key"`
+	ID              int       `json:"id,string"`
+	FeedID          int       `json:"feed_id,string"`
+	FeedOnestopID   string    `json:"feed_onestop_id"`
+	Sha1            string    `json:"sha1"`
+	FetchedBefore   string    `json:"fetched_before"`
+	FetchedAfter    string    `json:"fetched_after"`
+	CoversStartDate string    `json:"covers_start_date"`
+	CoversEndDate   string    `json:"covers_end_date"`
+	Lon             float64   `json:"lon,string"`
+	Lat             float64   `json:"lat,string"`
+	Radius          float64   `json:"radius,string"`
+	Bbox            *restBbox `json:"bbox"`
 	WithCursor
 }
 
@@ -50,6 +54,12 @@ func (r FeedVersionRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Sha1 != "" {
 		where["sha1"] = r.Sha1
+	}
+	if r.Lat != 0.0 && r.Lon != 0.0 {
+		where["near"] = hw{"lat": r.Lat, "lon": r.Lon, "radius": r.Radius}
+	}
+	if r.Bbox != nil {
+		where["bbox"] = r.Bbox.AsJson()
 	}
 	whereCovers := hw{}
 	if r.CoversStartDate != "" {

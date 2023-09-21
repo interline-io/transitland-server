@@ -42,6 +42,21 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
 
+		// Spatial
+		if where.Bbox != nil || where.Within != nil || where.Near != nil {
+			q = q.Join("tl_feed_version_geometries fv_geoms on fv_geoms.feed_version_id = feed_versions.id")
+			if where.Bbox != nil {
+				q = q.Where("ST_Intersects(fv_geoms.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
+			}
+			if where.Within != nil && where.Within.Valid {
+				q = q.Where("ST_Intersects(fv_geoms.geometry, ?)", where.Within)
+			}
+			if where.Near != nil {
+				radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
+				q = q.Where("ST_DWithin(fv_geoms.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+			}
+		}
+
 		// Coverage
 		if covers := where.Covers; covers != nil {
 			joinFvsw := false

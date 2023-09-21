@@ -96,6 +96,54 @@ func TestOperatorResolver(t *testing.T) {
 			selector:     "operators.#.onestop_id",
 			selectExpect: []string{"o-9q9-bayarearapidtransit"},
 		},
+
+		// spatial
+		{
+			name:         "near 100m",
+			query:        `query {operators(where:{near:{lon:-122.407974,lat:37.784471,radius:100.0}}) {onestop_id}}`,
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{"o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "near 10000m",
+			query:        `query {operators(where:{near:{lon:-122.407974,lat:37.784471,radius:10000.0}}) {onestop_id}}`,
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{"o-9q9-caltrain", "o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "within polygon",
+			query:        `query{operators(where:{within:{type:"Polygon",coordinates:[[[-122.39803791046143,37.794626736533836],[-122.40106344223022,37.792303711508595],[-122.3965573310852,37.789641468930114],[-122.3938751220703,37.792354581451946],[-122.39803791046143,37.794626736533836]]]}}){onestop_id}}`,
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{"o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "within polygon big",
+			query:        `query{operators(where:{within:{type:"Polygon",coordinates:[[[-122.39481925964355,37.80151060070086],[-122.41653442382812,37.78652126637423],[-122.39662170410156,37.76847577247014],[-122.37301826477051,37.784757615348575],[-122.39481925964355,37.80151060070086]]]}}){id onestop_id}}`,
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{"o-9q9-caltrain", "o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "where bbox 1",
+			query:        `query($bbox:BoundingBox) {operators(where:{bbox:$bbox}) {onestop_id}}`,
+			vars:         hw{"bbox": hw{"min_lon": -122.2698781543005, "min_lat": 37.80700393130445, "max_lon": -122.2677640139239, "max_lat": 37.8088734037938}},
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{"o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "where bbox 2",
+			query:        `query($bbox:BoundingBox) {operators(where:{bbox:$bbox}) {onestop_id}}`,
+			vars:         hw{"bbox": hw{"min_lon": -124.3340029563042, "min_lat": 40.65505368922123, "max_lon": -123.9653594784379, "max_lat": 40.896440342606525}},
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{},
+		},
+		{
+			name:        "where bbox too large",
+			query:       `query($bbox:BoundingBox) {operators(where:{bbox:$bbox}) {onestop_id}}`,
+			vars:        hw{"bbox": hw{"min_lon": -137.88020156441956, "min_lat": 30.072648315782004, "max_lon": -109.00421121090919, "max_lat": 45.02437957865729}},
+			expectError: true,
+			f: func(t *testing.T, jj string) {
+			},
+		},
 	}
 	c, _ := newTestClient(t)
 	for _, tc := range testcases {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -141,6 +142,13 @@ func TestStopRequest(t *testing.T) {
 			h:            StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000},
 			selector:     "stops.#.stop_id",
 			expectSelect: []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"},
+			expectLength: 0,
+		},
+		{
+			name:         "bbox",
+			h:            StopRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -122.2698781543005, MinLat: 37.80700393130445, MaxLon: -122.2677640139239, MaxLat: 37.8088734037938}}},
+			selector:     "stops.#.stop_id",
+			expectSelect: []string{"19TH", "19TH_N"},
 			expectLength: 0,
 		},
 		{

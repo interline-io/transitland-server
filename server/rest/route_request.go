@@ -11,24 +11,25 @@ var routeQuery string
 
 // RouteRequest holds options for a Route request
 type RouteRequest struct {
-	ID                int     `json:"id,string"`
-	RouteKey          string  `json:"route_key"`
-	AgencyKey         string  `json:"agency_key"`
-	RouteID           string  `json:"route_id"`
-	RouteType         string  `json:"route_type"`
-	OnestopID         string  `json:"onestop_id"`
-	OperatorOnestopID string  `json:"operator_onestop_id"`
-	Format            string  `json:"format"`
-	Search            string  `json:"search"`
-	AgencyID          int     `json:"agency_id,string"`
-	FeedVersionSHA1   string  `json:"feed_version_sha1"`
-	FeedOnestopID     string  `json:"feed_onestop_id"`
-	Lon               float64 `json:"lon,string"`
-	Lat               float64 `json:"lat,string"`
-	Radius            float64 `json:"radius,string"`
-	IncludeGeometry   bool    `json:"include_geometry,string"`
-	IncludeAlerts     bool    `json:"include_alerts,string"`
-	IncludeStops      bool    `json:"include_stops,string"`
+	ID                int       `json:"id,string"`
+	RouteKey          string    `json:"route_key"`
+	AgencyKey         string    `json:"agency_key"`
+	RouteID           string    `json:"route_id"`
+	RouteType         string    `json:"route_type"`
+	OnestopID         string    `json:"onestop_id"`
+	OperatorOnestopID string    `json:"operator_onestop_id"`
+	Format            string    `json:"format"`
+	Search            string    `json:"search"`
+	AgencyID          int       `json:"agency_id,string"`
+	FeedVersionSHA1   string    `json:"feed_version_sha1"`
+	FeedOnestopID     string    `json:"feed_onestop_id"`
+	Lon               float64   `json:"lon,string"`
+	Lat               float64   `json:"lat,string"`
+	Radius            float64   `json:"radius,string"`
+	Bbox              *restBbox `json:"bbox"`
+	IncludeGeometry   bool      `json:"include_geometry,string"`
+	IncludeAlerts     bool      `json:"include_alerts,string"`
+	IncludeStops      bool      `json:"include_stops,string"`
 	LicenseFilter
 	WithCursor
 }
@@ -88,6 +89,9 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Lat != 0.0 && r.Lon != 0.0 {
 		where["near"] = hw{"lat": r.Lat, "lon": r.Lon, "radius": r.Radius}
+	}
+	if r.Bbox != nil {
+		where["bbox"] = r.Bbox.AsJson()
 	}
 	if r.Search != "" {
 		where["search"] = r.Search

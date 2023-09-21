@@ -10,17 +10,21 @@ var feedQuery string
 
 // FeedRequest holds options for a Route request
 type FeedRequest struct {
-	FeedKey          string `json:"feed_key"`
-	ID               int    `json:"id,string"`
-	OnestopID        string `json:"onestop_id"`
-	Spec             string `json:"spec"`
-	Search           string `json:"search"`
-	FetchError       string `json:"fetch_error"`
-	TagKey           string `json:"tag_key"`
-	TagValue         string `json:"tag_value"`
-	URL              string `json:"url"`
-	URLType          string `json:"url_type"`
-	URLCaseSensitive bool   `json:"url_case_sensitive"`
+	FeedKey          string    `json:"feed_key"`
+	ID               int       `json:"id,string"`
+	OnestopID        string    `json:"onestop_id"`
+	Spec             string    `json:"spec"`
+	Search           string    `json:"search"`
+	FetchError       string    `json:"fetch_error"`
+	TagKey           string    `json:"tag_key"`
+	TagValue         string    `json:"tag_value"`
+	URL              string    `json:"url"`
+	URLType          string    `json:"url_type"`
+	URLCaseSensitive bool      `json:"url_case_sensitive"`
+	Lon              float64   `json:"lon,string"`
+	Lat              float64   `json:"lat,string"`
+	Radius           float64   `json:"radius,string"`
+	Bbox             *restBbox `json:"bbox"`
 	LicenseFilter
 	WithCursor
 }
@@ -45,6 +49,15 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Spec != "" {
 		where["spec"] = []string{r.Spec}
+	}
+	if r.Lat != 0.0 && r.Lon != 0.0 {
+		where["near"] = hw{"lat": r.Lat, "lon": r.Lon, "radius": r.Radius}
+	}
+	if r.Bbox != nil {
+		where["bbox"] = r.Bbox.AsJson()
+	}
+	if r.Search != "" {
+		where["search"] = r.Search
 	}
 	if r.Search != "" {
 		where["search"] = r.Search

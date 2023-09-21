@@ -116,6 +116,9 @@ type FeedFilter struct {
 	// Search for feeds by their source URLs
 	SourceURL *FeedSourceURL `json:"source_url"`
 	License   *LicenseFilter `json:"license"`
+	Bbox      *BoundingBox   `json:"bbox"`
+	Within    *tt.Polygon    `json:"within"`
+	Near      *PointRadius   `json:"near"`
 }
 
 type FeedSourceURL struct {
@@ -135,6 +138,9 @@ type FeedVersionFilter struct {
 	File          *string              `json:"file"`
 	FeedIds       []int                `json:"feed_ids"`
 	Covers        *ServiceCoversFilter `json:"covers"`
+	Bbox          *BoundingBox         `json:"bbox"`
+	Within        *tt.Polygon          `json:"within"`
+	Near          *PointRadius         `json:"near"`
 }
 
 type FeedVersionServiceLevelFilter struct {
@@ -201,6 +207,9 @@ type OperatorFilter struct {
 	Adm0Iso       *string        `json:"adm0_iso"`
 	Adm1Iso       *string        `json:"adm1_iso"`
 	License       *LicenseFilter `json:"license"`
+	Bbox          *BoundingBox   `json:"bbox"`
+	Within        *tt.Polygon    `json:"within"`
+	Near          *PointRadius   `json:"near"`
 }
 
 type PathwayFilter struct {

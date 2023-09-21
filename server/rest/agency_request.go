@@ -11,24 +11,25 @@ var agencyQuery string
 
 // AgencyRequest holds options for a Route request
 type AgencyRequest struct {
-	ID              int     `json:"id,string"`
-	AgencyKey       string  `json:"agency_key"`
-	AgencyID        string  `json:"agency_id"`
-	AgencyName      string  `json:"agency_name"`
-	OnestopID       string  `json:"onestop_id"`
-	FeedVersionSHA1 string  `json:"feed_version_sha1"`
-	FeedOnestopID   string  `json:"feed_onestop_id"`
-	Search          string  `json:"search"`
-	Lon             float64 `json:"lon,string"`
-	Lat             float64 `json:"lat,string"`
-	Radius          float64 `json:"radius,string"`
-	Adm0Name        string  `json:"adm0_name"`
-	Adm0Iso         string  `json:"adm0_iso"`
-	Adm1Name        string  `json:"adm1_name"`
-	Adm1Iso         string  `json:"adm1_iso"`
-	CityName        string  `json:"city_name"`
-	IncludeAlerts   bool    `json:"include_alerts,string"`
-	IncludeRoutes   bool    `json:"include_routes,string"`
+	ID              int       `json:"id,string"`
+	AgencyKey       string    `json:"agency_key"`
+	AgencyID        string    `json:"agency_id"`
+	AgencyName      string    `json:"agency_name"`
+	OnestopID       string    `json:"onestop_id"`
+	FeedVersionSHA1 string    `json:"feed_version_sha1"`
+	FeedOnestopID   string    `json:"feed_onestop_id"`
+	Search          string    `json:"search"`
+	Lon             float64   `json:"lon,string"`
+	Lat             float64   `json:"lat,string"`
+	Bbox            *restBbox `json:"bbox"`
+	Radius          float64   `json:"radius,string"`
+	Adm0Name        string    `json:"adm0_name"`
+	Adm0Iso         string    `json:"adm0_iso"`
+	Adm1Name        string    `json:"adm1_name"`
+	Adm1Iso         string    `json:"adm1_iso"`
+	CityName        string    `json:"city_name"`
+	IncludeAlerts   bool      `json:"include_alerts,string"`
+	IncludeRoutes   bool      `json:"include_routes,string"`
 	LicenseFilter
 	WithCursor
 }
@@ -73,6 +74,9 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Lat != 0.0 && r.Lon != 0.0 {
 		where["near"] = hw{"lat": r.Lat, "lon": r.Lon, "radius": r.Radius}
+	}
+	if r.Bbox != nil {
+		where["bbox"] = r.Bbox.AsJson()
 	}
 	if r.Adm0Name != "" {
 		where["adm0_name"] = r.Adm0Name

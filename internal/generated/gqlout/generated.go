@@ -6457,6 +6457,9 @@ input OperatorFilter {
   adm0_iso: String
   adm1_iso: String
   license: LicenseFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
 }
 
 input FeedVersionFilter {
@@ -6466,6 +6469,9 @@ input FeedVersionFilter {
   file: String
   feed_ids: [Int!]
   covers: ServiceCoversFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
 }
 
 enum ImportStatus {
@@ -6497,6 +6503,9 @@ input FeedFilter {
   "Search for feeds by their source URLs"
   source_url: FeedSourceUrl
   license: LicenseFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
 }
 
 input FeedFetchFilter {
@@ -43760,7 +43769,7 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "spec", "fetch_error", "import_status", "search", "tags", "source_url", "license"}
+	fieldsInOrder := [...]string{"onestop_id", "spec", "fetch_error", "import_status", "search", "tags", "source_url", "license", "bbox", "within", "near"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43831,6 +43840,30 @@ func (ec *executionContext) unmarshalInputFeedFilter(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
+		case "bbox":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
+			it.Bbox, err = ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "within":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
+			it.Within, err = ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "near":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			it.Near, err = ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -43888,7 +43921,7 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "file", "feed_ids", "covers"}
+	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "file", "feed_ids", "covers", "bbox", "within", "near"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43940,6 +43973,30 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("covers"))
 			it.Covers, err = ec.unmarshalOServiceCoversFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐServiceCoversFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bbox":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
+			it.Bbox, err = ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "within":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
+			it.Within, err = ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "near":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			it.Near, err = ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44144,7 +44201,7 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"merged", "onestop_id", "feed_onestop_id", "agency_id", "search", "tags", "city_name", "adm0_name", "adm1_name", "adm0_iso", "adm1_iso", "license"}
+	fieldsInOrder := [...]string{"merged", "onestop_id", "feed_onestop_id", "agency_id", "search", "tags", "city_name", "adm0_name", "adm1_name", "adm0_iso", "adm1_iso", "license", "bbox", "within", "near"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44244,6 +44301,30 @@ func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
 			it.License, err = ec.unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bbox":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
+			it.Bbox, err = ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "within":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
+			it.Within, err = ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "near":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			it.Near, err = ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
 			if err != nil {
 				return it, err
 			}
