@@ -60,16 +60,40 @@ func (r *queryResolver) Trips(ctx context.Context, limit *int, after *int, ids [
 
 func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	addMetric(ctx, "feedVersions")
+	if where != nil {
+		if where.Near != nil && where.Near.Radius > MAX_RADIUS {
+			return nil, errors.New("radius too large")
+		}
+		if where.Bbox != nil && !checkBbox(where.Bbox, MAX_RADIUS*MAX_RADIUS) {
+			return nil, errors.New("bbox too large")
+		}
+	}
 	return r.finder.FindFeedVersions(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
 	addMetric(ctx, "feeds")
+	if where != nil {
+		if where.Near != nil && where.Near.Radius > MAX_RADIUS {
+			return nil, errors.New("radius too large")
+		}
+		if where.Bbox != nil && !checkBbox(where.Bbox, MAX_RADIUS*MAX_RADIUS) {
+			return nil, errors.New("bbox too large")
+		}
+	}
 	return r.finder.FindFeeds(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	addMetric(ctx, "operators")
+	if where != nil {
+		if where.Near != nil && where.Near.Radius > MAX_RADIUS {
+			return nil, errors.New("radius too large")
+		}
+		if where.Bbox != nil && !checkBbox(where.Bbox, MAX_RADIUS*MAX_RADIUS) {
+			return nil, errors.New("bbox too large")
+		}
+	}
 	return r.finder.FindOperators(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
