@@ -77,6 +77,8 @@ func queryTestcase(t *testing.T, c *client.Client, tc testcase) {
 			t.Error(err)
 			return
 		}
+	} else if tc.expectError {
+		t.Error("expected error")
 	}
 	jj := toJson(resp)
 	if tc.expect != "" {
