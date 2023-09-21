@@ -51,11 +51,14 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 			q = q.Where(sq.Eq{"coif.resolved_onestop_id": *where.OnestopID})
 		}
 		// Spatial
+		if where.Bbox != nil {
+			q = q.Where("ST_Intersects(tl_agency_geometries.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
+		}
 		if where.Within != nil && where.Within.Valid {
 			q = q.Where("ST_Intersects(tl_agency_geometries.geometry, ?)", where.Within)
 		}
 		if where.Near != nil {
-			radius := checkFloat(&where.Near.Radius, 0, 10_000)
+			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
 			q = q.Where("ST_DWithin(tl_agency_geometries.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
 		// Places

@@ -223,7 +223,7 @@ func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *mo
 
 func (r *stopResolver) NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error) {
 	c := obj.Coordinates()
-	nearbyStops, err := r.finder.FindStops(ctx, checkLimit(limit), nil, nil, &model.StopFilter{Near: &model.PointRadius{Lon: c[0], Lat: c[1], Radius: checkFloat(radius, 0, 10_000)}})
+	nearbyStops, err := r.finder.FindStops(ctx, checkLimit(limit), nil, nil, &model.StopFilter{Near: &model.PointRadius{Lon: c[0], Lat: c[1], Radius: checkFloat(radius, 0, MAX_RADIUS)}})
 	return nearbyStops, err
 }
 

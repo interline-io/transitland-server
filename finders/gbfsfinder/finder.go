@@ -75,7 +75,7 @@ func (c *Finder) FindBikes(ctx context.Context, limit *int, where *model.GbfsBik
 	if where == nil || where.Near == nil {
 		return nil, nil
 	}
-	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 10_000)
+	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 1_000_000)
 	pt := *where.Near
 	topicKeys, err := c.geosearch(ctx, c.bikeSearchKey, pt)
 	if err != nil {
@@ -111,7 +111,7 @@ func (c *Finder) FindDocks(ctx context.Context, limit *int, where *model.GbfsDoc
 	if where == nil || where.Near == nil {
 		return nil, nil
 	}
-	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 10_000)
+	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 1_000_000)
 	pt := *where.Near
 	topicKeys, err := c.geosearch(ctx, c.stationSearchKey, pt)
 	if err != nil {

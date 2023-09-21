@@ -2,6 +2,8 @@ package rest
 
 import (
 	"testing"
+
+	"github.com/interline-io/transitland-server/model"
 )
 
 func TestFeedRequest(t *testing.T) {
@@ -109,6 +111,28 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{},
+			expectLength: 0,
+		},
+		// spatial
+		{
+			name:         "lat,lon,radius 100m",
+			h:            FeedRequest{Lon: -122.407974, Lat: 37.784471, Radius: 100},
+			selector:     "feeds.#.onestop_id",
+			expectSelect: []string{"BA"},
+			expectLength: 0,
+		},
+		{
+			name:         "lat,lon,radius 2000m",
+			h:            FeedRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000},
+			selector:     "feeds.#.onestop_id",
+			expectSelect: []string{"CT", "BA"},
+			expectLength: 0,
+		},
+		{
+			name:         "bbox",
+			h:            FeedRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -122.2698781543005, MinLat: 37.80700393130445, MaxLon: -122.2677640139239, MaxLat: 37.8088734037938}}},
+			selector:     "feeds.#.onestop_id",
+			expectSelect: []string{"BA"},
 			expectLength: 0,
 		},
 	}

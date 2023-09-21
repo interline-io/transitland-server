@@ -11,20 +11,21 @@ var stopQuery string
 
 // StopRequest holds options for a /stops request
 type StopRequest struct {
-	ID                 int     `json:"id,string"`
-	StopKey            string  `json:"stop_key"`
-	StopID             string  `json:"stop_id"`
-	OnestopID          string  `json:"onestop_id"`
-	FeedVersionSHA1    string  `json:"feed_version_sha1"`
-	FeedOnestopID      string  `json:"feed_onestop_id"`
-	Search             string  `json:"search"`
-	Lon                float64 `json:"lon,string"`
-	Lat                float64 `json:"lat,string"`
-	Radius             float64 `json:"radius,string"`
-	ServedByOnestopIds string  `json:"served_by_onestop_ids"`
-	ServedByRouteType  *int    `json:"served_by_route_type,string"`
-	IncludeAlerts      bool    `json:"include_alerts,string"`
-	IncludeRoutes      bool    `json:"include_routes,string"`
+	ID                 int       `json:"id,string"`
+	StopKey            string    `json:"stop_key"`
+	StopID             string    `json:"stop_id"`
+	OnestopID          string    `json:"onestop_id"`
+	FeedVersionSHA1    string    `json:"feed_version_sha1"`
+	FeedOnestopID      string    `json:"feed_onestop_id"`
+	Search             string    `json:"search"`
+	Bbox               *restBbox `json:"bbox"`
+	Lon                float64   `json:"lon,string"`
+	Lat                float64   `json:"lat,string"`
+	Radius             float64   `json:"radius,string"`
+	ServedByOnestopIds string    `json:"served_by_onestop_ids"`
+	ServedByRouteType  *int      `json:"served_by_route_type,string"`
+	IncludeAlerts      bool      `json:"include_alerts,string"`
+	IncludeRoutes      bool      `json:"include_routes,string"`
 	LicenseFilter
 	WithCursor
 }
@@ -63,6 +64,9 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.Lat != 0.0 && r.Lon != 0.0 {
 		where["near"] = hw{"lat": r.Lat, "lon": r.Lon, "radius": r.Radius}
+	}
+	if r.Bbox != nil {
+		where["bbox"] = r.Bbox.AsJson()
 	}
 	if r.Search != "" {
 		where["search"] = r.Search

@@ -207,6 +207,57 @@ func TestFeedVersionResolver(t *testing.T) {
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{},
 		},
+		// spatial
+		{
+			name:         "radius",
+			query:        `query($near:PointRadius) {feed_versions(where: {near:$near}) {sha1}}`,
+			vars:         hw{"near": hw{"lon": -122.2698781543005, "lat": 37.80700393130445, "radius": 1000}},
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		{
+			name:         "radius 2",
+			query:        `query($near:PointRadius) {feed_versions(where: {near:$near}) {sha1}}`,
+			vars:         hw{"near": hw{"lon": -82.45717479225324, "lat": 27.95070842389974, "radius": 1000}},
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"c969427f56d3a645195dd8365cde6d7feae7e99b"},
+		},
+		{
+			name:  "within",
+			query: `query($within:Polygon) {feed_versions(where: {within:$within}) {sha1}}`,
+			vars: hw{"within": hw{"type": "Polygon", "coordinates": [][][]float64{{
+				{-122.39803791046143, 37.794626736533836},
+				{-122.40106344223022, 37.792303711508595},
+				{-122.3965573310852, 37.789641468930114},
+				{-122.3938751220703, 37.792354581451946},
+				{-122.39803791046143, 37.794626736533836},
+			}}}},
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		{
+			name:         "bbox 1",
+			query:        `query($bbox:BoundingBox) {feed_versions(where: {bbox:$bbox}) {sha1}}`,
+			vars:         hw{"bbox": hw{"min_lon": -122.2698781543005, "min_lat": 37.80700393130445, "max_lon": -122.2677640139239, "max_lat": 37.8088734037938}},
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		{
+			name:         "bbox 2",
+			query:        `query($bbox:BoundingBox) {feed_versions(where: {bbox:$bbox}) {sha1}}`,
+			vars:         hw{"bbox": hw{"min_lon": -124.3340029563042, "min_lat": 40.65505368922123, "max_lon": -123.9653594784379, "max_lat": 40.896440342606525}},
+			selector:     "feed_versions.#.sha1",
+			selectExpect: []string{},
+		},
+		{
+			name:        "bbox too large",
+			query:       `query($bbox:BoundingBox) {feed_versions(where: {bbox:$bbox}) {sha1}}`,
+			vars:        hw{"bbox": hw{"min_lon": -137.88020156441956, "min_lat": 30.072648315782004, "max_lon": -109.00421121090919, "max_lat": 45.02437957865729}},
+			selector:    "feed_versions.#.sha1",
+			expectError: true,
+			f: func(t *testing.T, jj string) {
+			},
+		},
 	}
 	c, _ := newTestClient(t)
 	for _, tc := range testcases {

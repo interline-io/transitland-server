@@ -17,8 +17,9 @@ type AgencyFilter struct {
 	FeedOnestopID   *string `json:"feed_onestop_id"`
 	AgencyID        *string `json:"agency_id"`
 	// Search for records with this GTFS agency_name
-	AgencyName *string     `json:"agency_name"`
-	Within     *tt.Polygon `json:"within"`
+	AgencyName *string      `json:"agency_name"`
+	Bbox       *BoundingBox `json:"bbox"`
+	Within     *tt.Polygon  `json:"within"`
 	// Search for agencies within a radius
 	Near *PointRadius `json:"near"`
 	// Full text search
@@ -51,6 +52,13 @@ type Alert struct {
 	TtsDescriptionText []*RTTranslation `json:"tts_description_text"`
 	URL                []*RTTranslation `json:"url"`
 	SeverityLevel      *string          `json:"severity_level"`
+}
+
+type BoundingBox struct {
+	MinLon float64 `json:"min_lon"`
+	MinLat float64 `json:"min_lat"`
+	MaxLon float64 `json:"max_lon"`
+	MaxLat float64 `json:"max_lat"`
 }
 
 type CalendarDateFilter struct {
@@ -108,6 +116,9 @@ type FeedFilter struct {
 	// Search for feeds by their source URLs
 	SourceURL *FeedSourceURL `json:"source_url"`
 	License   *LicenseFilter `json:"license"`
+	Bbox      *BoundingBox   `json:"bbox"`
+	Within    *tt.Polygon    `json:"within"`
+	Near      *PointRadius   `json:"near"`
 }
 
 type FeedSourceURL struct {
@@ -127,6 +138,9 @@ type FeedVersionFilter struct {
 	File          *string              `json:"file"`
 	FeedIds       []int                `json:"feed_ids"`
 	Covers        *ServiceCoversFilter `json:"covers"`
+	Bbox          *BoundingBox         `json:"bbox"`
+	Within        *tt.Polygon          `json:"within"`
+	Near          *PointRadius         `json:"near"`
 }
 
 type FeedVersionServiceLevelFilter struct {
@@ -193,6 +207,9 @@ type OperatorFilter struct {
 	Adm0Iso       *string        `json:"adm0_iso"`
 	Adm1Iso       *string        `json:"adm1_iso"`
 	License       *LicenseFilter `json:"license"`
+	Bbox          *BoundingBox   `json:"bbox"`
+	Within        *tt.Polygon    `json:"within"`
+	Near          *PointRadius   `json:"near"`
 }
 
 type PathwayFilter struct {
@@ -250,6 +267,7 @@ type RouteFilter struct {
 	RouteID                 *string        `json:"route_id"`
 	RouteType               *int           `json:"route_type"`
 	Serviced                *bool          `json:"serviced"`
+	Bbox                    *BoundingBox   `json:"bbox"`
 	Within                  *tt.Polygon    `json:"within"`
 	Near                    *PointRadius   `json:"near"`
 	Search                  *string        `json:"search"`
@@ -286,6 +304,7 @@ type StopFilter struct {
 	StopCode                *string        `json:"stop_code"`
 	LocationType            *int           `json:"location_type"`
 	Serviced                *bool          `json:"serviced"`
+	Bbox                    *BoundingBox   `json:"bbox"`
 	Within                  *tt.Polygon    `json:"within"`
 	Near                    *PointRadius   `json:"near"`
 	Search                  *string        `json:"search"`

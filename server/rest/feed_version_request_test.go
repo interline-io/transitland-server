@@ -2,6 +2,8 @@ package rest
 
 import (
 	"testing"
+
+	"github.com/interline-io/transitland-server/model"
 )
 
 func TestFeedVersionRequest(t *testing.T) {
@@ -101,6 +103,28 @@ func TestFeedVersionRequest(t *testing.T) {
 			format:       "",
 			selector:     "feed_versions.#.sha1",
 			expectSelect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+		},
+		// spatial
+		{
+			name:         "lat,lon,radius 100m",
+			h:            FeedVersionRequest{Lon: -122.407974, Lat: 37.784471, Radius: 100},
+			selector:     "feed_versions.#.sha1",
+			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			expectLength: 0,
+		},
+		{
+			name:         "lat,lon,radius 2000m",
+			h:            FeedVersionRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000},
+			selector:     "feed_versions.#.sha1",
+			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			expectLength: 0,
+		},
+		{
+			name:         "bbox",
+			h:            FeedVersionRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -122.2698781543005, MinLat: 37.80700393130445, MaxLon: -122.2677640139239, MaxLat: 37.8088734037938}}},
+			selector:     "feed_versions.#.sha1",
+			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			expectLength: 0,
 		},
 	}
 	srv, te := testRestConfig(t)

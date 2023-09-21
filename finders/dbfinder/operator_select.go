@@ -58,6 +58,24 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 			}
 		}
 
+		// Spatial
+		if where.Bbox != nil || where.Within != nil || where.Near != nil {
+			q = q.
+				Join("feed_states fs_geom ON fs_geom.feed_id = coif.feed_id").
+				Join("gtfs_agencies a_geom ON a_geom.feed_version_id = fs_geom.feed_version_id AND a_geom.agency_id = coif.resolved_gtfs_agency_id").
+				Join("tl_agency_geometries ON tl_agency_geometries.agency_id = a_geom.id")
+			if where.Bbox != nil {
+				q = q.Where("ST_Intersects(tl_agency_geometries.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
+			}
+			if where.Within != nil && where.Within.Valid {
+				q = q.Where("ST_Intersects(tl_agency_geometries.geometry, ?)", where.Within)
+			}
+			if where.Near != nil {
+				radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
+				q = q.Where("ST_DWithin(tl_agency_geometries.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+			}
+		}
+
 		// Places
 		if where.Adm0Iso != nil || where.Adm1Iso != nil || where.Adm0Name != nil || where.Adm1Name != nil || where.CityName != nil {
 			q = q.

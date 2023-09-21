@@ -186,6 +186,57 @@ func TestFeedResolver(t *testing.T) {
 			selector:     "feeds.0.fail.#.success",
 			selectExpect: []string{},
 		},
+		// spatial
+		{
+			name:         "radius",
+			query:        `query($near:PointRadius) {feeds(where: {near:$near}) {onestop_id}}`,
+			vars:         hw{"near": hw{"lon": -122.2698781543005, "lat": 37.80700393130445, "radius": 1000}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"BA"},
+		},
+		{
+			name:         "radius 2",
+			query:        `query($near:PointRadius) {feeds(where: {near:$near}) {onestop_id}}`,
+			vars:         hw{"near": hw{"lon": -82.45717479225324, "lat": 27.95070842389974, "radius": 1000}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"HA"},
+		},
+		{
+			name:  "within",
+			query: `query($within:Polygon) {feeds(where: {within:$within}) {onestop_id}}`,
+			vars: hw{"within": hw{"type": "Polygon", "coordinates": [][][]float64{{
+				{-122.39803791046143, 37.794626736533836},
+				{-122.40106344223022, 37.792303711508595},
+				{-122.3965573310852, 37.789641468930114},
+				{-122.3938751220703, 37.792354581451946},
+				{-122.39803791046143, 37.794626736533836},
+			}}}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"BA"},
+		},
+		{
+			name:         "bbox 1",
+			query:        `query($bbox:BoundingBox) {feeds(where: {bbox:$bbox}) {onestop_id}}`,
+			vars:         hw{"bbox": hw{"min_lon": -122.2698781543005, "min_lat": 37.80700393130445, "max_lon": -122.2677640139239, "max_lat": 37.8088734037938}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"BA"},
+		},
+		{
+			name:         "bbox 2",
+			query:        `query($bbox:BoundingBox) {feeds(where: {bbox:$bbox}) {onestop_id}}`,
+			vars:         hw{"bbox": hw{"min_lon": -124.3340029563042, "min_lat": 40.65505368922123, "max_lon": -123.9653594784379, "max_lat": 40.896440342606525}},
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{},
+		},
+		{
+			name:        "bbox too large",
+			query:       `query($bbox:BoundingBox) {feeds(where: {bbox:$bbox}) {onestop_id}}`,
+			vars:        hw{"bbox": hw{"min_lon": -137.88020156441956, "min_lat": 30.072648315782004, "max_lon": -109.00421121090919, "max_lat": 45.02437957865729}},
+			selector:    "feeds.#.onestop_id",
+			expectError: true,
+			f: func(t *testing.T, jj string) {
+			},
+		},
 		// TODO: authorization,
 		// TODO: associated_operators
 	}

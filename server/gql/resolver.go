@@ -7,6 +7,7 @@ import (
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/fvsl"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
+	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -28,6 +29,23 @@ func checkLimit(limit *int) *int {
 		a = MAXLIMIT
 	}
 	return &a
+}
+
+func checkCursor(after *int) *model.Cursor {
+	var cursor *model.Cursor
+	if after != nil {
+		c := model.NewCursor(0, *after)
+		cursor = &c
+	}
+	return cursor
+}
+
+func checkBbox(bbox *model.BoundingBox, maxAreaM2 float64) bool {
+	approxDiag := xy.DistanceHaversine(bbox.MinLon, bbox.MinLat, bbox.MaxLon, bbox.MaxLat)
+	// fmt.Println("approxDiag:", approxDiag)
+	approxArea := 0.5 * (approxDiag * approxDiag)
+	// fmt.Println("approxArea:", approxArea, "maxAreaM2:", maxAreaM2)
+	return approxArea < maxAreaM2
 }
 
 func atoi(v string) int {
