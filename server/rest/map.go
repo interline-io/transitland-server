@@ -115,6 +115,7 @@ func processGeoJSON(ent apiHandler, response map[string]interface{}) error {
 			log.Infof("feature has no geometry, skipping")
 			continue
 		}
+		delete(f, "geometry")
 		properties := hw{}
 		for k, v := range f {
 			properties[k] = v
@@ -124,7 +125,6 @@ func processGeoJSON(ent apiHandler, response map[string]interface{}) error {
 			"properties": properties,
 			"geometry":   geometry,
 		})
-		delete(f, "geometry")
 	}
 	delete(response, fkey)
 	response["type"] = "FeatureCollection"
