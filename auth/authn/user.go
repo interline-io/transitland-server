@@ -6,12 +6,12 @@ import (
 
 // User is the base user implementation.
 type CtxUser struct {
-	id          string
-	name        string
-	email       string
-	valid       bool
-	roles       map[string]bool
-	externalIds map[string]string
+	id           string
+	name         string
+	email        string
+	valid        bool
+	roles        map[string]bool
+	externalData map[string]string
 }
 
 func NewCtxUser(id string, name string, email string) CtxUser {
@@ -19,26 +19,26 @@ func NewCtxUser(id string, name string, email string) CtxUser {
 	return a
 }
 
-func newCtxUserWith(id string, name string, email string, roles map[string]bool, externalIds map[string]string) CtxUser {
+func newCtxUserWith(id string, name string, email string, roles map[string]bool, externalData map[string]string) CtxUser {
 	u := CtxUser{
-		id:          id,
-		name:        name,
-		email:       email,
-		valid:       true,
-		roles:       map[string]bool{},
-		externalIds: map[string]string{},
+		id:           id,
+		name:         name,
+		email:        email,
+		valid:        true,
+		roles:        map[string]bool{},
+		externalData: map[string]string{},
 	}
 	for k, v := range roles {
 		u.roles[k] = v
 	}
-	for k, v := range externalIds {
-		u.externalIds[k] = v
+	for k, v := range externalData {
+		u.externalData[k] = v
 	}
 	return u
 }
 
 func (user CtxUser) clone() CtxUser {
-	return newCtxUserWith(user.id, user.name, user.email, user.roles, user.externalIds)
+	return newCtxUserWith(user.id, user.name, user.email, user.roles, user.externalData)
 }
 
 func (user CtxUser) Name() string {
@@ -57,15 +57,15 @@ func (user CtxUser) IsValid() bool {
 	return user.valid
 }
 
-func (user CtxUser) GetExternalID(eid string) (string, bool) {
-	a, ok := user.externalIds[eid]
+func (user CtxUser) GetExternalData(eid string) (string, bool) {
+	a, ok := user.externalData[eid]
 	return a, ok
 }
 
-func (user CtxUser) WithExternalIDs(m map[string]string) CtxUser {
+func (user CtxUser) WithExternalData(m map[string]string) CtxUser {
 	newUser := user.clone()
 	for k, v := range m {
-		newUser.externalIds[k] = v
+		newUser.externalData[k] = v
 	}
 	return newUser
 }

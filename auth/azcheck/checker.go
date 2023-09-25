@@ -233,6 +233,7 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 		User:           newAzpbUser(user),
 		Groups:         directGroups,
 		ExpandedGroups: expandedGroups,
+		ExternalData:   map[string]string{"hi": "ok"},
 	}
 	return ret, nil
 }

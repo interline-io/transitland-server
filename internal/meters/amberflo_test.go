@@ -16,7 +16,7 @@ func (u *amberfloTestUser) ID() string {
 	return u.name
 }
 
-func (u *amberfloTestUser) GetExternalID(eid string) (string, bool) {
+func (u *amberfloTestUser) GetExternalData(eid string) (string, bool) {
 	// must match key given in config below
 	if eid == "amberflo" {
 		return u.name, true

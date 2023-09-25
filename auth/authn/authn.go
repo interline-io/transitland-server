@@ -8,7 +8,7 @@ type User interface {
 	Name() string
 	Email() string
 	HasRole(string) bool
-	GetExternalID(string) (string, bool)
+	GetExternalData(string) (string, bool)
 }
 
 // A private key for context that only this package can access. This is important

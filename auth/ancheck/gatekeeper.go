@@ -77,7 +77,7 @@ func (gk *Gatekeeper) GetUser(ctx context.Context, userKey string) (authn.User, 
 			return nil, err
 		}
 	}
-	user := authn.NewCtxUser(gkUser.ID, "", "").WithRoles(gkUser.Roles...).WithExternalIDs(gkUser.ExternalIDs)
+	user := authn.NewCtxUser(gkUser.ID, "", "").WithRoles(gkUser.Roles...).WithExternalData(gkUser.ExternalData)
 	return user, nil
 }
 
@@ -108,7 +108,7 @@ func (gk *Gatekeeper) updateUser(ctx context.Context, userKey string) (gkCacheIt
 		log.Error().Err(err).Str("user", userKey).Msg("gatekeeper requestUser failed")
 		return gkUser, err
 	}
-	log.Trace().Str("user", userKey).Strs("roles", gkUser.Roles).Any("external_ids", gkUser.ExternalIDs).Msg("gatekeeper requestUser ok")
+	log.Trace().Str("user", userKey).Strs("roles", gkUser.Roles).Any("external_data", gkUser.ExternalData).Msg("gatekeeper requestUser ok")
 	gk.cache.SetTTL(ctx, userKey, gkUser, gk.recheckTtl, 24*time.Hour)
 	return gkUser, nil
 }
@@ -145,10 +145,11 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 
 	// Process roles and external IDs
 	item := gkCacheItem{
-		ID:          userKey,
-		Roles:       []string{},
-		ExternalIDs: map[string]string{},
+		ID:           userKey,
+		Roles:        []string{},
+		ExternalData: map[string]string{},
 	}
+	item.ExternalData["gatekeeper"] = string(body)
 	for _, r := range parsed.Get(gk.roleKey).Array() {
 		item.Roles = append(item.Roles, r.String())
 		// TODO: temporarily map "tl_admin" role to "admin" role.
@@ -157,14 +158,14 @@ func (gk *Gatekeeper) requestUser(ctx context.Context, userKey string) (gkCacheI
 		}
 	}
 	for k, v := range parsed.Get(gk.eidKey).Map() {
-		item.ExternalIDs[k] = v.String()
+		item.ExternalData[k] = v.String()
 	}
 	return item, nil
 }
 
-// gkCacheItem needed for internal cached representation of ctxUser (Roles/ExternalIDs as exported fields)
+// gkCacheItem needed for internal cached representation of ctxUser (Roles/ExternalData as exported fields)
 type gkCacheItem struct {
-	ID          string
-	Roles       []string
-	ExternalIDs map[string]string
+	ID           string
+	Roles        []string
+	ExternalData map[string]string
 }

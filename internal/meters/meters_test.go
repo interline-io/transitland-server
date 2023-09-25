@@ -14,7 +14,7 @@ func (u testUser) ID() string {
 	return u.name
 }
 
-func (u testUser) GetExternalID(string) (string, bool) {
+func (u testUser) GetExternalData(string) (string, bool) {
 	return "test", true
 }
 
