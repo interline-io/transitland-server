@@ -39,6 +39,7 @@ type Query {
   bikes(limit: Int, where: GbfsBikeRequest): [GbfsFreeBikeStatus!]
   docks(limit: Int, where: GbfsDockRequest): [GbfsStationInformation!]
   places(limit: Int,after: Int, level: PlaceAggregationLevel, where: PlaceFilter): [Place!]
+  me: Me!
 }
 
 type Mutation {
@@ -48,6 +49,13 @@ type Mutation {
     feed_version_import(id: Int!): FeedVersionImportResult! @hasRole(role: USER)
     feed_version_unimport(id: Int!): FeedVersionUnimportResult! @hasRole(role: USER)
     feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: USER)
+}
+
+type Me {
+  id: String!
+  name: String
+  email: String
+  external_data: Map
 }
 
 """

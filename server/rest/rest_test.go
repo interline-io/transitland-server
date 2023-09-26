@@ -36,7 +36,7 @@ func testRestConfig(t testing.TB) (http.Handler, model.Finders) {
 		t.Fatal(err)
 	}
 	te := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
-	srv, err := gql.NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, nil)
+	srv, err := gql.NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
 	if err != nil {
 		panic(err)
 	}

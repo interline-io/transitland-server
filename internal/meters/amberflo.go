@@ -156,7 +156,7 @@ func (m *AmberFlo) getCustomerID(cfg amberFloConfig, user MeterUser) (string, bo
 		if eidKey == "" {
 			eidKey = "amberflo"
 		}
-		if a, ok := user.GetExternalID(eidKey); ok {
+		if a, ok := user.GetExternalData(eidKey); ok {
 			customerId = a
 		}
 	}

@@ -11,7 +11,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth/auth0"
 	"github.com/interline-io/transitland-server/auth/authn"
@@ -92,7 +91,7 @@ type Checker struct {
 	authz.UnsafeCheckerServer
 }
 
-func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext, redisClient *redis.Client) (*Checker, error) {
+func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
 	var userClient UserProvider
 	userClient = NewMockUserProvider()
 	var fgaClient FGAProvider
@@ -141,14 +140,14 @@ func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext, redisClient *redis.Cli
 		}
 	}
 
-	checker := NewChecker(userClient, fgaClient, db, redisClient)
+	checker := NewChecker(userClient, fgaClient, db)
 	if cfg.GlobalAdmin != "" {
 		checker.globalAdmins = append(checker.globalAdmins, cfg.GlobalAdmin)
 	}
 	return checker, nil
 }
 
-func NewChecker(n UserProvider, p FGAProvider, db sqlx.Ext, redisClient *redis.Client) *Checker {
+func NewChecker(n UserProvider, p FGAProvider, db sqlx.Ext) *Checker {
 	return &Checker{
 		userClient: n,
 		fgaClient:  p,
@@ -188,19 +187,18 @@ func (c *Checker) User(ctx context.Context, req *authz.UserRequest) (*authz.User
 }
 
 func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeResponse, error) {
-	checkUser := authn.ForContext(ctx)
-	if checkUser == nil || checkUser.ID() == "" {
+	user := authn.ForContext(ctx)
+	if user == nil || user.ID() == "" {
 		return nil, ErrUnauthorized
 	}
-	user, err := c.userClient.UserByID(ctx, checkUser.ID())
-	if err != nil {
-		return nil, err
-	}
+
+	// TODO: consider an explicit check to authn provider .GetUser,
+	// however this requires a authn provider to be configured and not just the default.
 
 	// Direct groups
 	var directGroupIds []int64
 	checkTk := authz.NewTupleKey().
-		WithSubject(authz.UserType, checkUser.ID()).
+		WithSubject(authz.UserType, user.ID()).
 		WithObject(authz.GroupType, "")
 	groupTuples, err := c.fgaClient.GetObjectTuples(ctx, checkTk)
 	if err != nil {
@@ -228,11 +226,17 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 		return nil, err
 	}
 
+	extData := map[string]string{}
+	if gkData, ok := user.GetExternalData("gatekeeper"); ok {
+		extData["gatekeeper"] = gkData
+	}
+
 	// Return
 	ret := &authz.MeResponse{
 		User:           newAzpbUser(user),
 		Groups:         directGroups,
 		ExpandedGroups: expandedGroups,
+		ExternalData:   extData,
 	}
 	return ret, nil
 }

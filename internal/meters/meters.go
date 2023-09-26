@@ -23,7 +23,7 @@ type MeterProvider interface {
 
 type MeterUser interface {
 	ID() string
-	GetExternalID(string) (string, bool)
+	GetExternalData(string) (string, bool)
 }
 
 func WithMeter(apiMeter MeterProvider, meterName string, meterValue float64, dims map[string]string) func(http.Handler) http.Handler {

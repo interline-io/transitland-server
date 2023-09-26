@@ -27,8 +27,6 @@ func (r *placeResolver) Operators(ctx context.Context, obj *model.Place) ([]*mod
 			// oj, _ := json.Marshal(o)
 			// fmt.Println("got operator for:", oid, "json:", string(oj))
 			ret = append(ret, o)
-		} else {
-			// fmt.Println("no operator for:", oid)
 		}
 	}
 	// By OnestopID
