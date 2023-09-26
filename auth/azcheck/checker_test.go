@@ -1811,7 +1811,7 @@ func newTestChecker(t testing.TB, url string, testData []testCase) *Checker {
 		GlobalAdmin:      "global_admin",
 	}
 
-	checker, err := NewCheckerFromConfig(cfg, dbx, nil)
+	checker, err := NewCheckerFromConfig(cfg, dbx)
 	if err != nil {
 		t.Fatal(err)
 	}

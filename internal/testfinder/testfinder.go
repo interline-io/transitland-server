@@ -48,7 +48,7 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 		FGALoadModelFile: opts.FGAModelFile,
 		FGALoadTestData:  opts.FGAModelTuples,
 	}
-	checker, err := azcheck.NewCheckerFromConfig(checkerCfg, db, nil)
+	checker, err := azcheck.NewCheckerFromConfig(checkerCfg, db)
 	if err != nil {
 		t.Fatal(err)
 	}
