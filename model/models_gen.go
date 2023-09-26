@@ -194,6 +194,13 @@ type LicenseFilter struct {
 	RedistributionAllowed *LicenseValue `json:"redistribution_allowed"`
 }
 
+type Me struct {
+	ID           string                 `json:"id"`
+	Name         *string                `json:"name"`
+	Email        *string                `json:"email"`
+	ExternalData map[string]interface{} `json:"external_data"`
+}
+
 type OperatorFilter struct {
 	Merged        *bool          `json:"merged"`
 	OnestopID     *string        `json:"onestop_id"`

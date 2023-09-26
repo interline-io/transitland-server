@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -13,6 +14,23 @@ const MAX_RADIUS = 100_000
 // query root
 
 type queryResolver struct{ *Resolver }
+
+func (r *queryResolver) Me(ctx context.Context) (*model.Me, error) {
+	me, err := r.authzChecker.Me(ctx, &authz.MeRequest{})
+	if err != nil {
+		return nil, err
+	}
+	gme := model.Me{
+		ID:    me.User.Id,
+		Email: &me.User.Email,
+		Name:  &me.User.Name,
+	}
+	gme.ExternalData = map[string]any{}
+	for k, v := range me.ExternalData {
+		gme.ExternalData[k] = v
+	}
+	return &gme, nil
+}
 
 func (r *queryResolver) Agencies(ctx context.Context, limit *int, after *int, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
 	addMetric(ctx, "agencies")
