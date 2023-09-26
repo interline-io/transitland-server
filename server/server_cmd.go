@@ -192,13 +192,13 @@ func (cmd *Command) Run() error {
 
 	// Setup authorization checker
 	var checker model.Checker
-	if cmd.CheckerConfig.FGAEndpoint != "" {
-		authzChecker, err := azcheck.NewCheckerFromConfig(cmd.CheckerConfig, db, redisClient)
-		if err != nil {
-			return err
-		}
-		checker = authzChecker
+	// if cmd.CheckerConfig.FGAEndpoint != "" {
+	authzChecker, err := azcheck.NewCheckerFromConfig(cmd.CheckerConfig, db)
+	if err != nil {
+		return err
 	}
+	checker = authzChecker
+	//}
 
 	// Create Finder
 	var dbFinder model.Finder
