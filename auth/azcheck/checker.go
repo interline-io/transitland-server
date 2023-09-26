@@ -192,6 +192,9 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 		return nil, ErrUnauthorized
 	}
 
+	// TODO: consider an explicit check to authn provider .GetUser,
+	// however this requires a authn provider to be configured and not just the default.
+
 	// Direct groups
 	var directGroupIds []int64
 	checkTk := authz.NewTupleKey().
