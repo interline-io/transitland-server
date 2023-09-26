@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-server/auth/ancheck"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
@@ -54,8 +55,9 @@ func newTestClient(t testing.TB) (*client.Client, model.Finders) {
 
 func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Finders) {
 	te := testfinder.Finders(t, cl, rtfiles)
-	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, nil)
-	return client.New(srv), te
+	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
+	srvMiddleware := ancheck.UserDefaultMiddleware("testuser")
+	return client.New(srvMiddleware(srv)), te
 }
 
 func toJson(m map[string]interface{}) string {
