@@ -32,11 +32,12 @@ func newGatekeeperMiddleware(gk *Gatekeeper, allowError bool) MiddlewareFunc {
 			if user := authn.ForContext(ctx); user != nil && user.ID() != "" {
 				checkUser, err := gk.GetUser(ctx, user.ID())
 				if err != nil {
+					log.Error().Err(err).Msg("gatekeeper error")
 					if !allowError {
 						http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
 						return
 					}
-				} else {
+				} else if checkUser.ID() != "" {
 					r = r.WithContext(authn.WithUser(r.Context(), checkUser))
 				}
 			}
