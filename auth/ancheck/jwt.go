@@ -41,6 +41,7 @@ func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (fun
 }
 
 type CustomClaimsExample struct {
+	Email string
 	jwt.StandardClaims
 }
 
@@ -63,6 +64,6 @@ func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer stri
 	if !claims.VerifyIssuer(jwtIssuer, true) {
 		return nil, errors.New("invalid issuer")
 	}
-	user := authn.NewCtxUser(claims.Subject, "", "")
+	user := authn.NewCtxUser(claims.Email, claims.Subject, claims.Email)
 	return user, nil
 }
