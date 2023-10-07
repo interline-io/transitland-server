@@ -275,6 +275,12 @@ type ValidationResult struct {
 	Routes               []Route                      `json:"routes"`
 	Stops                []Stop                       `json:"stops"`
 	FeedInfos            []FeedInfo                   `json:"feed_infos"`
+	Realtime             []ValidationRealtimeResult   `json:"realtime"`
+}
+
+type ValidationRealtimeResult struct {
+	Url  string         `json:"url"`
+	Json map[string]any `json:"json"`
 }
 
 type ValidationResultError struct {

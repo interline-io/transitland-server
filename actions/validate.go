@@ -74,6 +74,7 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		IncludeServiceLevels:     true,
 		IncludeRouteGeometries:   true,
 		IncludeEntities:          true,
+		IncludeRealtimeJson:      true,
 		IncludeEntitiesLimit:     10000,
 		ValidateRealtimeMessages: rturls,
 	}
@@ -163,6 +164,12 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 	}
 	for _, v := range r.Stops {
 		result.Stops = append(result.Stops, model.Stop{Stop: v})
+	}
+	for _, v := range r.Realtime {
+		result.Realtime = append(result.Realtime, model.ValidationRealtimeResult{
+			Url:  v.Url,
+			Json: v.Json,
+		})
 	}
 	return &result, nil
 }
