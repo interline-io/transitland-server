@@ -732,6 +732,12 @@ type ValidationResult {
   routes(limit: Int): [Route!]!
   stops(limit: Int): [Stop!]!
   feed_infos(limit: Int): [FeedInfo!]!
+  realtime: [ValidationRealtimeResult!]
+}
+
+type ValidationRealtimeResult {
+  url: String!
+  json: Map
 }
 
 type ValidationResultErrorGroup {

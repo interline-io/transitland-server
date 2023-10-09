@@ -924,6 +924,11 @@ type ComplexityRoot struct {
 		WheelchairAccessible func(childComplexity int) int
 	}
 
+	ValidationRealtimeResult struct {
+		Json func(childComplexity int) int
+		Url  func(childComplexity int) int
+	}
+
 	ValidationResult struct {
 		Agencies             func(childComplexity int, limit *int) int
 		EarliestCalendarDate func(childComplexity int) int
@@ -932,6 +937,7 @@ type ComplexityRoot struct {
 		FeedInfos            func(childComplexity int, limit *int) int
 		Files                func(childComplexity int) int
 		LatestCalendarDate   func(childComplexity int) int
+		Realtime             func(childComplexity int) int
 		Routes               func(childComplexity int, limit *int) int
 		ServiceLevels        func(childComplexity int, limit *int, routeID *string) int
 		Sha1                 func(childComplexity int) int
@@ -5765,6 +5771,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Trip.WheelchairAccessible(childComplexity), true
 
+	case "ValidationRealtimeResult.json":
+		if e.complexity.ValidationRealtimeResult.Json == nil {
+			break
+		}
+
+		return e.complexity.ValidationRealtimeResult.Json(childComplexity), true
+
+	case "ValidationRealtimeResult.url":
+		if e.complexity.ValidationRealtimeResult.Url == nil {
+			break
+		}
+
+		return e.complexity.ValidationRealtimeResult.Url(childComplexity), true
+
 	case "ValidationResult.agencies":
 		if e.complexity.ValidationResult.Agencies == nil {
 			break
@@ -5823,6 +5843,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ValidationResult.LatestCalendarDate(childComplexity), true
+
+	case "ValidationResult.realtime":
+		if e.complexity.ValidationResult.Realtime == nil {
+			break
+		}
+
+		return e.complexity.ValidationResult.Realtime(childComplexity), true
 
 	case "ValidationResult.routes":
 		if e.complexity.ValidationResult.Routes == nil {
@@ -7471,6 +7498,12 @@ type ValidationResult {
   routes(limit: Int): [Route!]!
   stops(limit: Int): [Stop!]!
   feed_infos(limit: Int): [FeedInfo!]!
+  realtime: [ValidationRealtimeResult!]
+}
+
+type ValidationRealtimeResult {
+  url: String!
+  json: Map
 }
 
 type ValidationResultErrorGroup {
@@ -27375,6 +27408,8 @@ func (ec *executionContext) fieldContext_Mutation_validate_gtfs(ctx context.Cont
 				return ec.fieldContext_ValidationResult_stops(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_ValidationResult_feed_infos(ctx, field)
+			case "realtime":
+				return ec.fieldContext_ValidationResult_realtime(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ValidationResult", field.Name)
 		},
@@ -40057,6 +40092,91 @@ func (ec *executionContext) fieldContext_Trip_alerts(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationRealtimeResult_url(ctx context.Context, field graphql.CollectedField, obj *model.ValidationRealtimeResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationRealtimeResult_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Url, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationRealtimeResult_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationRealtimeResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationRealtimeResult_json(ctx context.Context, field graphql.CollectedField, obj *model.ValidationRealtimeResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationRealtimeResult_json(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Json, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]any)
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationRealtimeResult_json(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationRealtimeResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationResult_success(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationResult_success(ctx, field)
 	if err != nil {
@@ -40930,6 +41050,53 @@ func (ec *executionContext) fieldContext_ValidationResult_feed_infos(ctx context
 	if fc.Args, err = ec.field_ValidationResult_feed_infos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationResult_realtime(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResult_realtime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Realtime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]model.ValidationRealtimeResult)
+	fc.Result = res
+	return ec.marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationResult_realtime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_ValidationRealtimeResult_url(ctx, field)
+			case "json":
+				return ec.fieldContext_ValidationRealtimeResult_json(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ValidationRealtimeResult", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -51789,6 +51956,38 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
+var validationRealtimeResultImplementors = []string{"ValidationRealtimeResult"}
+
+func (ec *executionContext) _ValidationRealtimeResult(ctx context.Context, sel ast.SelectionSet, obj *model.ValidationRealtimeResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, validationRealtimeResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ValidationRealtimeResult")
+		case "url":
+
+			out.Values[i] = ec._ValidationRealtimeResult_url(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "json":
+
+			out.Values[i] = ec._ValidationRealtimeResult_json(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var validationResultImplementors = []string{"ValidationResult"}
 
 func (ec *executionContext) _ValidationResult(ctx context.Context, sel ast.SelectionSet, obj *model.ValidationResult) graphql.Marshaler {
@@ -51884,6 +52083,10 @@ func (ec *executionContext) _ValidationResult(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "realtime":
+
+			out.Values[i] = ec._ValidationResult_realtime(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -54426,6 +54629,10 @@ func (ec *executionContext) marshalNTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		return graphql.Null
 	}
 	return ec._Trip(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNValidationRealtimeResult2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx context.Context, sel ast.SelectionSet, v model.ValidationRealtimeResult) graphql.Marshaler {
+	return ec._ValidationRealtimeResult(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNValidationResultError2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResultErrorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidationResultError) graphql.Marshaler {
@@ -57265,6 +57472,53 @@ func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	}
 	res := graphql.MarshalUpload(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ValidationRealtimeResult) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNValidationRealtimeResult2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOValidationResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResult(ctx context.Context, sel ast.SelectionSet, v *model.ValidationResult) graphql.Marshaler {

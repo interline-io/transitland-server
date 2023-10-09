@@ -26,6 +26,9 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		}
 	}
 	rturls = rturlsok
+	if len(rturls) > 3 {
+		rturls = rturls[0:3]
+	}
 	if feedURL == nil || !checkurl(*feedURL) {
 		feedURL = nil
 	}
@@ -74,7 +77,9 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		IncludeServiceLevels:     true,
 		IncludeRouteGeometries:   true,
 		IncludeEntities:          true,
-		IncludeEntitiesLimit:     10000,
+		IncludeRealtimeJson:      true,
+		IncludeEntitiesLimit:     10_000,
+		MaxRTMessageSize:         10_000_000,
 		ValidateRealtimeMessages: rturls,
 	}
 	if cfg.ValidateLargeFiles {
@@ -163,6 +168,12 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 	}
 	for _, v := range r.Stops {
 		result.Stops = append(result.Stops, model.Stop{Stop: v})
+	}
+	for _, v := range r.Realtime {
+		result.Realtime = append(result.Realtime, model.ValidationRealtimeResult{
+			Url:  v.Url,
+			Json: v.Json,
+		})
 	}
 	return &result, nil
 }
