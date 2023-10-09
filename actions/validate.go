@@ -26,6 +26,9 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		}
 	}
 	rturls = rturlsok
+	if len(rturls) > 3 {
+		rturls = rturls[0:3]
+	}
 	if feedURL == nil || !checkurl(*feedURL) {
 		feedURL = nil
 	}
@@ -75,7 +78,8 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		IncludeRouteGeometries:   true,
 		IncludeEntities:          true,
 		IncludeRealtimeJson:      true,
-		IncludeEntitiesLimit:     10000,
+		IncludeEntitiesLimit:     10_000,
+		MaxRTMessageSize:         10_000_000,
 		ValidateRealtimeMessages: rturls,
 	}
 	if cfg.ValidateLargeFiles {

@@ -14,7 +14,7 @@ import (
 )
 
 // JWTMiddleware checks and pulls user information from JWT in Authorization header.
-func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (func(http.Handler) http.Handler, error) {
+func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string, useEmailAsId bool) (func(http.Handler) http.Handler, error) {
 	var verifyKey *rsa.PublicKey
 	verifyBytes, err := ioutil.ReadFile(pubKeyPath)
 	if err != nil {
@@ -27,12 +27,22 @@ func JWTMiddleware(jwtAudience string, jwtIssuer string, pubKeyPath string) (fun
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if tokenString := strings.Split(r.Header.Get("Authorization"), "Bearer "); len(tokenString) == 2 {
-				jwtUser, err := validateJwt(verifyKey, jwtAudience, jwtIssuer, tokenString[1])
+				claims, err := validateJwt(verifyKey, jwtAudience, jwtIssuer, tokenString[1])
 				if err != nil {
 					log.Error().Err(err).Msgf("invalid jwt token")
 					http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
 					return
 				}
+				if claims == nil {
+					log.Error().Err(err).Msgf("no claims")
+					http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusUnauthorized)
+					return
+				}
+				userId := claims.Subject
+				if useEmailAsId {
+					userId = claims.Email
+				}
+				jwtUser := authn.NewCtxUser(userId, claims.Subject, claims.Email)
 				r = r.WithContext(authn.WithUser(r.Context(), jwtUser))
 			}
 			next.ServeHTTP(w, r)
@@ -49,7 +59,7 @@ func (c *CustomClaimsExample) Valid() error {
 	return nil
 }
 
-func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer string, tokenString string) (authn.User, error) {
+func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer string, tokenString string) (*CustomClaimsExample, error) {
 	// Parse the token
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaimsExample{}, func(token *jwt.Token) (interface{}, error) {
 		return rsaPublicKey, nil
@@ -64,6 +74,5 @@ func validateJwt(rsaPublicKey *rsa.PublicKey, jwtAudience string, jwtIssuer stri
 	if !claims.VerifyIssuer(jwtIssuer, true) {
 		return nil, errors.New("invalid issuer")
 	}
-	user := authn.NewCtxUser(claims.Email, claims.Subject, claims.Email)
-	return user, nil
+	return claims, nil
 }

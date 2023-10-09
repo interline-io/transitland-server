@@ -20,6 +20,7 @@ type AuthConfig struct {
 	JwtAudience                  string
 	JwtIssuer                    string
 	JwtPublicKeyFile             string
+	JwtUseEmailAsId              bool
 	UserHeader                   string
 }
 
@@ -32,7 +33,7 @@ func GetUserMiddleware(authType string, cfg AuthConfig, client *redis.Client) (M
 	case "user":
 		return UserDefaultMiddleware(cfg.DefaultUsername), nil
 	case "jwt":
-		return JWTMiddleware(cfg.JwtAudience, cfg.JwtIssuer, cfg.JwtPublicKeyFile)
+		return JWTMiddleware(cfg.JwtAudience, cfg.JwtIssuer, cfg.JwtPublicKeyFile, cfg.JwtUseEmailAsId)
 	case "header":
 		return UserHeaderMiddleware(cfg.UserHeader)
 	case "kong":
