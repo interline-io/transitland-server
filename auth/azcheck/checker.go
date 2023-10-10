@@ -814,6 +814,9 @@ func (c *Checker) checkGlobalAdmin(checkUser authn.User) bool {
 	if checkUser == nil {
 		return false
 	}
+	if checkUser.HasRole("admin") {
+		return true
+	}
 	userName := checkUser.ID()
 	for _, v := range c.globalAdmins {
 		if v == userName {
