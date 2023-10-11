@@ -8,6 +8,11 @@ input FeedVersionSetInput {
 
 # Query filters
 
+input VehiclePositionRequest {
+	near: PointRadius
+}
+
+
 input OperatorFilter {
   merged: Boolean
   onestop_id: String

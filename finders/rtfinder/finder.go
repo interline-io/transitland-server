@@ -1,6 +1,7 @@
 package rtfinder
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -47,6 +48,10 @@ func (f *Finder) GetGtfsTripID(id int) (string, bool) {
 
 func (f *Finder) StopTimezone(id int, known string) (*time.Location, bool) {
 	return f.lc.StopTimezone(id, known)
+}
+
+func (f *Finder) FindVehiclePositions(ctx context.Context, limit *int, where *model.VehiclePositionRequest) ([]*model.VehiclePosition, error) {
+	return nil, nil
 }
 
 func (f *Finder) FindTrip(t *model.Trip) *pb.TripUpdate {
