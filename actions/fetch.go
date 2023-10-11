@@ -37,12 +37,13 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 
 	// Prepare
 	fetchOpts := fetch.Options{
-		FeedID:    feed.ID,
-		URLType:   urlType,
-		FeedURL:   feedUrl,
-		Storage:   cfg.Storage,
-		Secrets:   cfg.Secrets,
-		FetchedAt: time.Now().In(time.UTC),
+		FeedID:        feed.ID,
+		URLType:       urlType,
+		FeedURL:       feedUrl,
+		Storage:       cfg.Storage,
+		Secrets:       cfg.Secrets,
+		FetchedAt:     time.Now().In(time.UTC),
+		AllowFTPFetch: true,
 	}
 	if user != nil {
 		fetchOpts.CreatedBy = tt.NewString(user.ID())
