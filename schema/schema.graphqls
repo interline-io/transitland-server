@@ -38,6 +38,7 @@ type Query {
   directions(where: DirectionRequest!): Directions!
   bikes(limit: Int, where: GbfsBikeRequest): [GbfsFreeBikeStatus!]
   docks(limit: Int, where: GbfsDockRequest): [GbfsStationInformation!]
+  vehicles(limit: Int, where: VehiclePositionRequest): [VehiclePosition!]
   places(limit: Int,after: Int, level: PlaceAggregationLevel, where: PlaceFilter): [Place!]
   me: Me!
 }
@@ -644,6 +645,7 @@ type StopTimeEvent {
 [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
 """
 type VehiclePosition {
+  trip: RTTripDescriptor
   vehicle: RTVehicleDescriptor
   position: Point
   current_stop_sequence: Int

@@ -119,6 +119,8 @@ type RTFinder interface {
 	FindAlertsForAgency(*Agency, *int, *bool) []*Alert
 	GetAddedTripsForStop(*Stop) []*pb.TripUpdate
 	FindStopTimeUpdate(*Trip, *StopTime) (*pb.TripUpdate_StopTimeUpdate, bool)
+	// Vehicle Positions
+	FindVehiclePositions(context.Context, *int, *VehiclePositionRequest) ([]*VehiclePosition, error)
 	// lookup cache methods
 	StopTimezone(int, string) (*time.Location, bool)
 	GetGtfsTripID(int) (string, bool)

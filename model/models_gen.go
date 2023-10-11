@@ -383,6 +383,7 @@ type TripStopTimeFilter struct {
 
 // [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
 type VehiclePosition struct {
+	Trip                *RTTripDescriptor    `json:"trip"`
 	Vehicle             *RTVehicleDescriptor `json:"vehicle"`
 	Position            *tt.Point            `json:"position"`
 	CurrentStopSequence *int                 `json:"current_stop_sequence"`
@@ -390,6 +391,10 @@ type VehiclePosition struct {
 	CurrentStatus       *string              `json:"current_status"`
 	Timestamp           *time.Time           `json:"timestamp"`
 	CongestionLevel     *string              `json:"congestion_level"`
+}
+
+type VehiclePositionRequest struct {
+	Near *PointRadius `json:"near"`
 }
 
 type Waypoint struct {
