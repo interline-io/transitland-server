@@ -1,4 +1,5 @@
 # Scalar types
+scalar Counts
 scalar Tags
 scalar Geometry
 scalar Time
@@ -200,6 +201,8 @@ type FeedVersionFileInfo {
   header: String!
   csv_like: Boolean!
   size: Int!
+  values_count: Counts!
+  values_unique: Counts!
 }
 
 type FeedVersionGtfsImport {
