@@ -266,6 +266,8 @@ github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/interline-io/transitland-lib v0.13.1-0.20231017190530-476a215be8bc h1:GFzYjMovsDjXvCq5YNTNHN2w1dJ41rXpo70pNw2bpLI=
 github.com/interline-io/transitland-lib v0.13.1-0.20231017190530-476a215be8bc/go.mod h1:FgShFbyforb3tBSApO6wBlOedaGT6cXyWQlhOYClEyM=
+github.com/interline-io/transitland-lib v0.13.1-0.20231020230054-cc51ca21c554 h1:GZnrdlKxRuYr2oh5khDrB8+xOwNVWY5vw33ZuusQbsY=
+github.com/interline-io/transitland-lib v0.13.1-0.20231020230054-cc51ca21c554/go.mod h1:FgShFbyforb3tBSApO6wBlOedaGT6cXyWQlhOYClEyM=
 github.com/jarcoal/httpmock v1.3.0 h1:2RJ8GP0IIaWwcC9Fp2BmVi8Kog3v2Hn7VXM3fTd+nuc=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 h1:IPJ3dvxmJ4uczJe5YQdrYB16oTJlGSC/OyZDqUk9xX4=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=
