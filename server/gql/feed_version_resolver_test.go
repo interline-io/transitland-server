@@ -2,6 +2,9 @@ package gql
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestFeedVersionResolver(t *testing.T) {
@@ -44,6 +47,29 @@ func TestFeedVersionResolver(t *testing.T) {
 			vars:         vars,
 			selector:     "feed_versions.0.files.#.name",
 			selectExpect: []string{"agency.txt", "calendar.txt", "calendar_attributes.txt", "calendar_dates.txt", "directions.txt", "fare_attributes.txt", "fare_rules.txt", "farezone_attributes.txt", "frequencies.txt", "realtime_routes.txt", "routes.txt", "shapes.txt", "stop_attributes.txt", "stop_times.txt", "stops.txt", "transfers.txt", "trips.txt"},
+		},
+		{
+			name:     "file details",
+			query:    `query($feed_version_sha1: String!) {  feed_versions(where:{sha1:$feed_version_sha1}) {files {name rows sha1 header csv_like size values_count values_unique}} }`,
+			vars:     vars,
+			selector: "feed_versions.0.files.#.name",
+			f: func(t *testing.T, jj string) {
+
+				for _, fvfile := range gjson.Get(jj, "feed_versions.0.files").Array() {
+					if fvfile.Get("name").String() != "trips.txt" {
+						continue
+					}
+					assert.Equal(t, fvfile.Get("rows").Int(), int64(185))
+					assert.Equal(t, fvfile.Get("size").Int(), int64(14648))
+					assert.Equal(t, fvfile.Get("sha1").String(), "1ad77955e41e33cb1fceb694df27ced80e0ecbd3")
+					assert.Equal(t, fvfile.Get("header").String(), "route_id,service_id,trip_id,trip_headsign,direction_id,block_id,shape_id,wheelchair_accessible,bikes_allowed,trip_short_name")
+					assert.Equal(t, fvfile.Get("values_unique.service_id").Int(), int64(27))
+					assert.Equal(t, fvfile.Get("values_unique.wheelchair_accessible").Int(), int64(2))
+					assert.Equal(t, fvfile.Get("values_count.service_id").Int(), int64(185))
+					assert.Equal(t, fvfile.Get("values_count.trip_id").Int(), int64(185))
+				}
+
+			},
 		},
 		{
 			name:         "agencies",

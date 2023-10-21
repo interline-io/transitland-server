@@ -286,13 +286,15 @@ type ComplexityRoot struct {
 	}
 
 	FeedVersionFileInfo struct {
-		CSVLike func(childComplexity int) int
-		Header  func(childComplexity int) int
-		ID      func(childComplexity int) int
-		Name    func(childComplexity int) int
-		Rows    func(childComplexity int) int
-		SHA1    func(childComplexity int) int
-		Size    func(childComplexity int) int
+		CSVLike      func(childComplexity int) int
+		Header       func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Name         func(childComplexity int) int
+		Rows         func(childComplexity int) int
+		SHA1         func(childComplexity int) int
+		Size         func(childComplexity int) int
+		ValuesCount  func(childComplexity int) int
+		ValuesUnique func(childComplexity int) int
 	}
 
 	FeedVersionGtfsImport struct {
@@ -2396,6 +2398,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedVersionFileInfo.Size(childComplexity), true
+
+	case "FeedVersionFileInfo.values_count":
+		if e.complexity.FeedVersionFileInfo.ValuesCount == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionFileInfo.ValuesCount(childComplexity), true
+
+	case "FeedVersionFileInfo.values_unique":
+		if e.complexity.FeedVersionFileInfo.ValuesUnique == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionFileInfo.ValuesUnique(childComplexity), true
 
 	case "FeedVersionGtfsImport.created_at":
 		if e.complexity.FeedVersionGtfsImport.CreatedAt == nil {
@@ -6765,6 +6781,7 @@ input BoundingBox {
   max_lat: Float!
 }`, BuiltIn: false},
 	{Name: "../../../schema/schema.graphqls", Input: `# Scalar types
+scalar Counts
 scalar Tags
 scalar Geometry
 scalar Time
@@ -6966,6 +6983,8 @@ type FeedVersionFileInfo {
   header: String!
   csv_like: Boolean!
   size: Int!
+  values_count: Counts!
+  values_unique: Counts!
 }
 
 type FeedVersionGtfsImport {
@@ -16035,6 +16054,10 @@ func (ec *executionContext) fieldContext_FeedVersion_files(ctx context.Context, 
 				return ec.fieldContext_FeedVersionFileInfo_csv_like(ctx, field)
 			case "size":
 				return ec.fieldContext_FeedVersionFileInfo_size(ctx, field)
+			case "values_count":
+				return ec.fieldContext_FeedVersionFileInfo_values_count(ctx, field)
+			case "values_unique":
+				return ec.fieldContext_FeedVersionFileInfo_values_unique(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersionFileInfo", field.Name)
 		},
@@ -17198,6 +17221,94 @@ func (ec *executionContext) fieldContext_FeedVersionFileInfo_size(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionFileInfo_values_count(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionFileInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionFileInfo_values_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValuesCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(tt.Counts)
+	fc.Result = res
+	return ec.marshalNCounts2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐCounts(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionFileInfo_values_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionFileInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Counts does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionFileInfo_values_unique(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionFileInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionFileInfo_values_unique(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValuesUnique, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(tt.Counts)
+	fc.Result = res
+	return ec.marshalNCounts2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐCounts(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionFileInfo_values_unique(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionFileInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Counts does not have child fields")
 		},
 	}
 	return fc, nil
@@ -40556,6 +40667,10 @@ func (ec *executionContext) fieldContext_ValidationResult_files(ctx context.Cont
 				return ec.fieldContext_FeedVersionFileInfo_csv_like(ctx, field)
 			case "size":
 				return ec.fieldContext_FeedVersionFileInfo_size(ctx, field)
+			case "values_count":
+				return ec.fieldContext_FeedVersionFileInfo_values_count(ctx, field)
+			case "values_unique":
+				return ec.fieldContext_FeedVersionFileInfo_values_unique(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersionFileInfo", field.Name)
 		},
@@ -47377,6 +47492,20 @@ func (ec *executionContext) _FeedVersionFileInfo(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "values_count":
+
+			out.Values[i] = ec._FeedVersionFileInfo_values_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "values_unique":
+
+			out.Values[i] = ec._FeedVersionFileInfo_values_unique(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -52857,6 +52986,22 @@ func (ec *executionContext) marshalNCensusValue2ᚕᚖgithubᚗcomᚋinterline�
 	return ret
 }
 
+func (ec *executionContext) unmarshalNCounts2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐCounts(ctx context.Context, v interface{}) (tt.Counts, error) {
+	var res tt.Counts
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCounts2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐCounts(ctx context.Context, sel ast.SelectionSet, v tt.Counts) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, v interface{}) (tt.Date, error) {
 	var res tt.Date
 	err := res.UnmarshalGQL(v)
@@ -56587,7 +56732,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -56595,7 +56740,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
