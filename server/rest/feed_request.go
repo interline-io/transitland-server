@@ -3,6 +3,7 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+	"strings"
 )
 
 //go:embed feed_request.gql
@@ -48,7 +49,7 @@ func (r FeedRequest) Query() (string, map[string]interface{}) {
 		where["onestop_id"] = r.OnestopID
 	}
 	if r.Spec != "" {
-		where["spec"] = []string{r.Spec}
+		where["spec"] = []string{checkFeedSpecFilterValue(r.Spec)}
 	}
 	if r.Lat != 0.0 && r.Lon != 0.0 {
 		where["near"] = hw{"lat": r.Lat, "lon": r.Lon, "radius": r.Radius}
@@ -98,4 +99,13 @@ func (r FeedRequest) ProcessGeoJSON(response map[string]interface{}) error {
 		}
 	}
 	return processGeoJSON(r, response)
+}
+
+func checkFeedSpecFilterValue(v string) string {
+	v = strings.ToUpper(v)
+	switch v {
+	case "GTFS-RT":
+		return "GTFS_RT"
+	}
+	return v
 }

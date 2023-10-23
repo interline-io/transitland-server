@@ -34,6 +34,23 @@ func TestFeedRequest(t *testing.T) {
 			expectLength: 0,
 		},
 		{
+			name:         "spec lower case",
+			h:            &FeedRequest{Spec: "gtfs"},
+			format:       "",
+			selector:     "feeds.#.onestop_id",
+			expectSelect: []string{"CT", "BA", "HA", "test", "EX"},
+			expectLength: 0,
+		},
+		{
+			name:         "spec lower case dash",
+			h:            &FeedRequest{Spec: "gtfs-rt"},
+			format:       "",
+			selector:     "feeds.#.onestop_id",
+			expectSelect: []string{"BA~rt", "CT~rt"},
+			expectLength: 0,
+		},
+
+		{
 			name:         "search",
 			h:            &FeedRequest{Search: "ba"},
 			format:       "",
