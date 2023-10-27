@@ -119,14 +119,14 @@ func TestTripRequest(t *testing.T) {
 		},
 		{
 			name:         "include_geometry=true",
-			h:            TripRequest{TripID: "5132248WKDY", IncludeGeometry: "true"},
+			h:            TripRequest{TripID: "5132248WKDY", IncludeGeometry: true},
 			selector:     "trips.0.shape.geometry.type",
 			expectSelect: []string{"LineString"},
 			expectLength: 0,
 		},
 		{
 			name:         "include_geometry=false",
-			h:            TripRequest{TripID: "5132248WKDY", IncludeGeometry: "false"},
+			h:            TripRequest{TripID: "5132248WKDY", IncludeGeometry: false},
 			selector:     "trips.0.shape.geometry.type",
 			expectSelect: []string{},
 			expectLength: 0,

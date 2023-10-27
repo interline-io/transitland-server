@@ -17,9 +17,9 @@ type TripRequest struct {
 	RouteOnestopID   string `json:"route_onestop_id"`
 	FeedOnestopID    string `json:"feed_onestop_id"`
 	FeedVersionSHA1  string `json:"feed_version_sha1"`
-	IncludeGeometry  string `json:"include_geometry"`
-	IncludeStopTimes string `json:"include_stop_times"`
 	ServiceDate      string `json:"service_date"`
+	IncludeGeometry  bool   `json:"include_geometry,string"`
+	IncludeStopTimes bool   `json:"include_stop_times,string"`
 	IncludeAlerts    bool   `json:"include_alerts,string"`
 	Format           string
 	LicenseFilter
@@ -62,15 +62,13 @@ func (r TripRequest) Query() (string, map[string]interface{}) {
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	// Include geometry when in geojson format
-	includeGeometry := false
-	if r.ID > 0 || r.IncludeGeometry == "true" || r.Format == "geojson" {
-		includeGeometry = true
+	if r.ID > 0 || r.Format == "geojson" || r.Format == "geojsonl" {
+		r.IncludeGeometry = true
 	}
 	// Only include stop times when requesting a specific trip.
-	includeStopTimes := false
-	// || r.IncludeStopTimes == "true"
-	if r.ID > 0 || r.Format == "geojson" {
-		includeStopTimes = true
+	r.IncludeStopTimes = false
+	if r.ID > 0 {
+		r.IncludeStopTimes = true
 	}
 	includeRoute := false
 	return tripQuery, hw{
@@ -78,8 +76,8 @@ func (r TripRequest) Query() (string, map[string]interface{}) {
 		"after":              r.CheckAfter(),
 		"ids":                checkIds(r.ID),
 		"where":              where,
-		"include_geometry":   includeGeometry,
-		"include_stop_times": includeStopTimes,
+		"include_geometry":   r.IncludeGeometry,
+		"include_stop_times": r.IncludeStopTimes,
 		"include_route":      includeRoute,
 		"include_alerts":     r.IncludeAlerts,
 	}
