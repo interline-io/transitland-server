@@ -1,9 +1,12 @@
 package rest
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/interline-io/transitland-server/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestFeedRequest(t *testing.T) {
@@ -155,6 +158,42 @@ func TestFeedRequest(t *testing.T) {
 	}
 	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, srv, te, tc)
+		})
+	}
+}
+
+func TestFeedRequest_Format(t *testing.T) {
+	tcs := []testRest{
+		{
+			name:   "feed geojson",
+			format: "geojson",
+			h:      FeedRequest{WithCursor: WithCursor{Limit: 5}},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "features").Array()
+				assert.Equal(t, 5, len(a))
+				assert.Equal(t, "Feature", gjson.Get(jj, "features.0.type").String())
+				assert.Equal(t, "Polygon", gjson.Get(jj, "features.0.geometry.type").String())
+				assert.Equal(t, "CT", gjson.Get(jj, "features.0.properties.onestop_id").String())
+				assert.Greater(t, gjson.Get(jj, "meta.after").Int(), int64(0))
+			},
+		},
+		{
+			name:   "feed geojsonl",
+			format: "geojsonl",
+			h:      FeedRequest{WithCursor: WithCursor{Limit: 5}},
+			f: func(t *testing.T, jj string) {
+				split := strings.Split(jj, "\n")
+				assert.Equal(t, 5, len(split))
+				assert.Equal(t, "Feature", gjson.Get(split[0], "type").String())
+				assert.Equal(t, "Polygon", gjson.Get(split[0], "geometry.type").String())
+				assert.Equal(t, "CT", gjson.Get(split[0], "properties.onestop_id").String())
+			},
+		},
+	}
+	srv, te := testRestConfig(t)
+	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, srv, te, tc)
 		})

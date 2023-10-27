@@ -112,8 +112,10 @@ func processGeoJSON(ent apiHandler, response map[string]interface{}) error {
 		}
 		geometry := f["geometry"]
 		if geometry == nil {
-			log.Infof("feature has no geometry, skipping")
-			continue
+			geometry = map[string]any{
+				"type":        "Polygon",
+				"coordinates": []float64{},
+			}
 		}
 		delete(f, "geometry")
 		properties := hw{}

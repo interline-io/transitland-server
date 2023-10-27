@@ -46,6 +46,7 @@ query ($limit: Int, $after: Int, $include_alerts: Boolean!, $where: OperatorFilt
       id
       agency_id
       agency_name
+      geometry
       alerts @include(if: $include_alerts) {
         ...alert
       }

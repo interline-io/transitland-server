@@ -331,7 +331,7 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 		}
 	}
 
-	if format == "geojson" || format == "png" {
+	if format == "geojson" || format == "geojsonl" || format == "png" {
 		// TODO: Don't process response in-place.
 		if v, ok := ent.(canProcessGeoJSON); ok {
 			if err := v.ProcessGeoJSON(response); err != nil {
@@ -342,7 +342,9 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 				return nil, err
 			}
 		}
-		if format == "png" {
+		if format == "geojsonl" {
+			return renderGeojsonl(response)
+		} else if format == "png" {
 			b, err := json.Marshal(response)
 			if err != nil {
 				return nil, err
@@ -351,6 +353,26 @@ func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format str
 		}
 	}
 	return json.Marshal(response)
+}
+
+func renderGeojsonl(response map[string]any) ([]byte, error) {
+	var ret []byte
+	feats, ok := response["features"].([]map[string]any)
+	if !ok {
+		return nil, errors.New("not features")
+	}
+	for i, feat := range feats {
+		j, err := json.Marshal(feat)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, j...)
+		if i < len(feats)-1 {
+			ret = append(ret, byte('\n'))
+		}
+	}
+
+	return ret, nil
 }
 
 func makeHandlerFunc(cfg restConfig, handlerName string, f func(restConfig, http.ResponseWriter, *http.Request)) http.HandlerFunc {

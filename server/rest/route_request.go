@@ -39,6 +39,11 @@ func (r RouteRequest) ResponseKey() string { return "routes" }
 
 // Query returns a GraphQL query string and variables.
 func (r RouteRequest) Query() (string, map[string]interface{}) {
+	// These formats will need geometries included
+	if r.ID > 0 || r.Format == "geojson" || r.Format == "geojsonl" || r.Format == "png" {
+		r.IncludeGeometry = true
+	}
+
 	// Handle operator key
 	if r.AgencyKey == "" {
 		// pass
