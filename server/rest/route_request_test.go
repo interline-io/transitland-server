@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/interline-io/transitland-server/model"
@@ -117,6 +118,42 @@ func TestRouteRequest(t *testing.T) {
 	}
 	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, srv, te, tc)
+		})
+	}
+}
+
+func TestRouteRequest_Format(t *testing.T) {
+	tcs := []testRest{
+		{
+			name:   "route geojson",
+			format: "geojson",
+			h:      RouteRequest{FeedOnestopID: "CT", Format: "geojson", WithCursor: WithCursor{Limit: 5}},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "features").Array()
+				assert.Equal(t, 5, len(a))
+				assert.Equal(t, "Feature", gjson.Get(jj, "features.0.type").String())
+				assert.Equal(t, "MultiLineString", gjson.Get(jj, "features.0.geometry.type").String())
+				assert.Equal(t, "CT", gjson.Get(jj, "features.0.properties.feed_version.feed.onestop_id").String())
+				assert.Greater(t, gjson.Get(jj, "meta.after").Int(), int64(0))
+			},
+		},
+		{
+			name:   "route geojsonl",
+			format: "geojsonl",
+			h:      RouteRequest{FeedOnestopID: "CT", Format: "geojsonl", WithCursor: WithCursor{Limit: 5}},
+			f: func(t *testing.T, jj string) {
+				split := strings.Split(jj, "\n")
+				assert.Equal(t, 5, len(split))
+				assert.Equal(t, "Feature", gjson.Get(split[0], "type").String())
+				assert.Equal(t, "MultiLineString", gjson.Get(split[0], "geometry.type").String())
+				assert.Equal(t, "CT", gjson.Get(split[0], "properties.feed_version.feed.onestop_id").String())
+			},
+		},
+	}
+	srv, te := testRestConfig(t)
+	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, srv, te, tc)
 		})

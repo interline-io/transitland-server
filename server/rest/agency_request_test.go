@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -157,6 +158,42 @@ func TestAgencyRequest(t *testing.T) {
 		},
 	}
 	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			testquery(t, srv, te, tc)
+		})
+	}
+}
+
+func TestAgencyRequest_Format(t *testing.T) {
+	tcs := []testRest{
+		{
+			name:   "agency geojson",
+			format: "geojson",
+			h:      AgencyRequest{FeedOnestopID: "CT", WithCursor: WithCursor{Limit: 1}},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "features").Array()
+				assert.Equal(t, 1, len(a))
+				assert.Equal(t, "Feature", gjson.Get(jj, "features.0.type").String())
+				assert.Equal(t, "Polygon", gjson.Get(jj, "features.0.geometry.type").String())
+				assert.Equal(t, "CT", gjson.Get(jj, "features.0.properties.feed_version.feed.onestop_id").String())
+				assert.Greater(t, gjson.Get(jj, "meta.after").Int(), int64(0))
+			},
+		},
+		{
+			name:   "agency geojsonl",
+			format: "geojsonl",
+			h:      AgencyRequest{FeedOnestopID: "CT", WithCursor: WithCursor{Limit: 1}},
+			f: func(t *testing.T, jj string) {
+				split := strings.Split(jj, "\n")
+				assert.Equal(t, 1, len(split))
+				assert.Equal(t, "Feature", gjson.Get(split[0], "type").String())
+				assert.Equal(t, "Polygon", gjson.Get(split[0], "geometry.type").String())
+				assert.Equal(t, "CT", gjson.Get(split[0], "properties.feed_version.feed.onestop_id").String())
+			},
+		},
+	}
+	srv, te := testRestConfig(t)
+	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			testquery(t, srv, te, tc)
 		})

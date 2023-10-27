@@ -22,6 +22,7 @@ type StopRequest struct {
 	Lon                float64   `json:"lon,string"`
 	Lat                float64   `json:"lat,string"`
 	Radius             float64   `json:"radius,string"`
+	Format             string    `json:"format"`
 	ServedByOnestopIds string    `json:"served_by_onestop_ids"`
 	ServedByRouteType  *int      `json:"served_by_route_type,string"`
 	IncludeAlerts      bool      `json:"include_alerts,string"`

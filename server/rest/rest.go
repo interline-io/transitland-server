@@ -361,13 +361,15 @@ func renderGeojsonl(response map[string]any) ([]byte, error) {
 	if !ok {
 		return nil, errors.New("not features")
 	}
-	for _, feat := range feats {
+	for i, feat := range feats {
 		j, err := json.Marshal(feat)
 		if err != nil {
 			return nil, err
 		}
 		ret = append(ret, j...)
-		ret = append(ret, byte('\n'))
+		if i < len(feats)-1 {
+			ret = append(ret, byte('\n'))
+		}
 	}
 
 	return ret, nil
