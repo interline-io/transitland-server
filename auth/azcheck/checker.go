@@ -235,6 +235,7 @@ func (c *Checker) Me(ctx context.Context, req *authz.MeRequest) (*authz.MeRespon
 	ret := &authz.MeResponse{
 		User:           newAzpbUser(user),
 		Groups:         directGroups,
+		Roles:          user.Roles(),
 		ExpandedGroups: expandedGroups,
 		ExternalData:   extData,
 	}

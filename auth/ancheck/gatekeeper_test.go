@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redismock/v8"
+	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/internal/ecache"
 	"github.com/stretchr/testify/assert"
 )
@@ -70,7 +71,7 @@ func TestGatekeeper(t *testing.T) {
 		name  string
 		mwf   MiddlewareFunc
 		code  int
-		user  userWithRoles
+		user  authn.User
 		after func(*testing.T)
 	}{
 		{
@@ -251,16 +252,16 @@ func cacheRedisKey(topic string, key string) string {
 
 // Trivial implementation of Gatekeeper for testing purposes
 type GatekeeperTestServer struct {
-	users  map[string]userWithRoles
+	users  map[string]authn.User
 	counts map[string]int
 	lock   sync.Mutex
 }
 
-func (gk *GatekeeperTestServer) AddUser(key string, user userWithRoles) {
+func (gk *GatekeeperTestServer) AddUser(key string, user authn.User) {
 	gk.lock.Lock()
 	defer gk.lock.Unlock()
 	if gk.users == nil {
-		gk.users = map[string]userWithRoles{}
+		gk.users = map[string]authn.User{}
 	}
 	gk.users[key] = newCtxUser(user.ID()).WithRoles(user.Roles()...)
 }
@@ -269,7 +270,7 @@ func (gk *GatekeeperTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 	gk.lock.Lock()
 	defer gk.lock.Unlock()
 	u := r.URL.Query()
-	var user userWithRoles
+	var user authn.User
 	if a := u["user"]; len(a) > 0 {
 		user = gk.users[a[0]]
 	}

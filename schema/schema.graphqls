@@ -56,6 +56,7 @@ type Me {
   id: String!
   name: String
   email: String
+  roles: [String!]
   external_data: Map
 }
 

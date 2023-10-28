@@ -7,6 +7,7 @@ type User interface {
 	ID() string
 	Name() string
 	Email() string
+	Roles() []string
 	HasRole(string) bool
 	GetExternalData(string) (string, bool)
 }
