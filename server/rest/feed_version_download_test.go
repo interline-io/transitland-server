@@ -170,11 +170,11 @@ func TestFeedDownloadLatestRequest(t *testing.T) {
 			t.Errorf("got status code %d, expected 401", sc)
 		}
 	})
-	t.Run("not authorized as user,license", func(t *testing.T) {
+	t.Run("not authorized as user, not redistributable", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feeds/BA/download_latest_feed_version", nil)
 		rr := httptest.NewRecorder()
 		asUser := ancheck.NewUserDefaultMiddleware(func() authn.User {
-			return authn.NewCtxUser("testuser", "", "").WithRoles("testrole")
+			return authn.NewCtxUser("testuser", "", "").WithRoles("download_latest_feed_version")
 		})(restSrv)
 		asUser.ServeHTTP(rr, req)
 		if sc := rr.Result().StatusCode; sc != 401 {
