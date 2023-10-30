@@ -55,14 +55,14 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	r.HandleFunc("/feeds", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}.{format}", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}", feedHandler)
-	r.HandleFunc("/feeds/{feed_key}/download_latest_feed_version", makeHandlerFunc(restcfg, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler))
+	r.Handle("/feeds/{feed_key}/download_latest_feed_version", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(restcfg, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
 
 	r.HandleFunc("/feed_versions.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions", feedVersionHandler)
 	r.HandleFunc("/feed_versions/{feed_version_key}.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions/{feed_version_key}", feedVersionHandler)
 	r.HandleFunc("/feeds/{feed_key}/feed_versions", feedVersionHandler)
-	r.Handle("/feed_versions/{feed_version_key}/download", ancheck.RoleRequired("tl_user_pro")(makeHandlerFunc(restcfg, "feedVersionDownload", feedVersionDownloadHandler)))
+	r.Handle("/feed_versions/{feed_version_key}/download", ancheck.RoleRequired("tl_download_fv_historic")(makeHandlerFunc(restcfg, "feedVersionDownload", feedVersionDownloadHandler)))
 
 	r.HandleFunc("/agencies.{format}", agencyHandler)
 	r.HandleFunc("/agencies", agencyHandler)
