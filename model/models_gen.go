@@ -198,6 +198,7 @@ type Me struct {
 	ID           string                 `json:"id"`
 	Name         *string                `json:"name"`
 	Email        *string                `json:"email"`
+	Roles        []string               `json:"roles"`
 	ExternalData map[string]interface{} `json:"external_data"`
 }
 

@@ -24,6 +24,7 @@ func (r *queryResolver) Me(ctx context.Context) (*model.Me, error) {
 		ID:    me.User.Id,
 		Email: &me.User.Email,
 		Name:  &me.User.Name,
+		Roles: me.Roles,
 	}
 	gme.ExternalData = map[string]any{}
 	for k, v := range me.ExternalData {

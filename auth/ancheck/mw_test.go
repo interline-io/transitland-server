@@ -13,11 +13,6 @@ func newCtxUser(id string) authn.CtxUser {
 	return authn.NewCtxUser(id, "", "")
 }
 
-type userWithRoles interface {
-	authn.User
-	Roles() []string
-}
-
 func TestUserMiddleware(t *testing.T) {
 	a := UserDefaultMiddleware("test")
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -39,7 +34,7 @@ func TestNoMiddleware(t *testing.T) {
 	testAuthMiddleware(t, req, a, 200, nil)
 }
 
-func testAuthMiddleware(t *testing.T, req *http.Request, mwf MiddlewareFunc, expectCode int, expectUser userWithRoles) {
+func testAuthMiddleware(t *testing.T, req *http.Request, mwf MiddlewareFunc, expectCode int, expectUser authn.User) {
 	var user authn.User
 	testHandler := func(w http.ResponseWriter, r *http.Request) {
 		user = authn.ForContext(r.Context())
@@ -69,7 +64,7 @@ func TestUserRequired(t *testing.T) {
 		name string
 		mwf  MiddlewareFunc
 		code int
-		user userWithRoles
+		user authn.User
 	}{
 		{"with user", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("test")(UserRequired(next)) }, 200, newCtxUser("test").WithRoles("admin")},
 		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("test")(UserRequired(next)) }, 200, newCtxUser("test")},
@@ -88,7 +83,7 @@ func TestAdminRequired(t *testing.T) {
 		name string
 		mwf  MiddlewareFunc
 		code int
-		user userWithRoles
+		user authn.User
 	}{
 		{"with admin", func(next http.Handler) http.Handler { return AdminDefaultMiddleware("test")(AdminRequired(next)) }, 200, newCtxUser("test").WithRoles("admin")},
 		{"with user", func(next http.Handler) http.Handler { return UserDefaultMiddleware("test")(AdminRequired(next)) }, 401, nil}, // mw kills request before handler

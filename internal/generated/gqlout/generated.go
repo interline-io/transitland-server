@@ -621,6 +621,7 @@ type ComplexityRoot struct {
 		ExternalData func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
+		Roles        func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -3981,6 +3982,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Me.Name(childComplexity), true
 
+	case "Me.roles":
+		if e.complexity.Me.Roles == nil {
+			break
+		}
+
+		return e.complexity.Me.Roles(childComplexity), true
+
 	case "Mutation.feed_version_delete":
 		if e.complexity.Mutation.FeedVersionDelete == nil {
 			break
@@ -6838,6 +6846,7 @@ type Me {
   id: String!
   name: String
   email: String
+  roles: [String!]
   external_data: Map
 }
 
@@ -27392,6 +27401,47 @@ func (ec *executionContext) fieldContext_Me_email(ctx context.Context, field gra
 	return fc, nil
 }
 
+func (ec *executionContext) _Me_roles(ctx context.Context, field graphql.CollectedField, obj *model.Me) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Me_roles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Roles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Me_roles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Me",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Me_external_data(ctx context.Context, field graphql.CollectedField, obj *model.Me) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Me_external_data(ctx, field)
 	if err != nil {
@@ -30541,6 +30591,8 @@ func (ec *executionContext) fieldContext_Query_me(ctx context.Context, field gra
 				return ec.fieldContext_Me_name(ctx, field)
 			case "email":
 				return ec.fieldContext_Me_email(ctx, field)
+			case "roles":
+				return ec.fieldContext_Me_roles(ctx, field)
 			case "external_data":
 				return ec.fieldContext_Me_external_data(ctx, field)
 			}
@@ -49320,6 +49372,10 @@ func (ec *executionContext) _Me(ctx context.Context, sel ast.SelectionSet, obj *
 
 			out.Values[i] = ec._Me_email(ctx, field, obj)
 
+		case "roles":
+
+			out.Values[i] = ec._Me_roles(ctx, field, obj)
+
 		case "external_data":
 
 			out.Values[i] = ec._Me_external_data(ctx, field, obj)
@@ -56732,7 +56788,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -56740,7 +56796,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

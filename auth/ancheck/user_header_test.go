@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/interline-io/transitland-server/auth/authn"
 )
 
 func TestKongMiddleware(t *testing.T) {
@@ -11,7 +13,7 @@ func TestKongMiddleware(t *testing.T) {
 		name       string
 		consumerId string
 		code       int
-		user       userWithRoles
+		user       authn.User
 	}{
 		{"test", "test@transitland", 200, newCtxUser("test@transitland")},
 		{"no user", "", 200, nil},

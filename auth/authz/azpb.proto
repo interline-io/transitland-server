@@ -110,6 +110,7 @@ message MeResponse {
     repeated Group groups = 2;
     repeated Group expanded_groups = 3;
     map<string, string> external_data = 4;
+    repeated string roles = 5;
 }
 
 ////// 
