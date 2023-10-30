@@ -55,7 +55,7 @@ func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
 	r.HandleFunc("/feeds", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}.{format}", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}", feedHandler)
-	r.HandleFunc("/feeds/{feed_key}/download_latest_feed_version", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(restcfg, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
+	r.Handle("/feeds/{feed_key}/download_latest_feed_version", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(restcfg, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
 
 	r.HandleFunc("/feed_versions.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions", feedVersionHandler)
