@@ -10,12 +10,10 @@ import (
 
 var meterCtxKey = struct{ name string }{"apiMeter"}
 
-type Dimensions map[string]string
-
 type ApiMeter interface {
 	Meter(string, float64, Dimensions) error
 	AddDimension(string, string, string)
-	GetValue(string, time.Duration, Dimensions) (float64, bool)
+	GetValue(string, time.Time, time.Time, Dimensions) (float64, bool)
 }
 
 type MeterProvider interface {
@@ -45,4 +43,32 @@ func WithMeter(apiMeter MeterProvider, meterName string, meterValue float64, dim
 func ForContext(ctx context.Context) ApiMeter {
 	raw, _ := ctx.Value(meterCtxKey).(ApiMeter)
 	return raw
+}
+
+type Dimension struct {
+	Key   string
+	Value string
+}
+
+type Dimensions []Dimension
+
+type eventAddDim struct {
+	MeterName string
+	Key       string
+	Value     string
+}
+
+func matchDims(checkDims Dimensions, eventDims Dimensions) bool {
+	for _, matchDim := range checkDims {
+		match := false
+		for _, ed := range eventDims {
+			if ed.Key == matchDim.Key && ed.Value == matchDim.Value {
+				match = true
+			}
+		}
+		if !match {
+			return false
+		}
+	}
+	return true
 }

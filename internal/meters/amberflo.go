@@ -78,7 +78,7 @@ func (m *AmberFlo) Flush() error {
 	return nil
 }
 
-func (m *AmberFlo) getValue(user MeterUser, meterName string) (float64, bool) {
+func (m *AmberFlo) getValue(user MeterUser, meterName string, startTime time.Time, endTime time.Time, checkDims Dimensions) (float64, bool) {
 	// TODO: time period and aggregation is hardcoded as 1 day
 	cfg, ok := m.getcfg(meterName)
 	if !ok {
@@ -131,12 +131,12 @@ func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, ex
 	}
 	uniqueId := uuid.NewRandom().String()
 	utcMillis := time.Now().In(time.UTC).UnixNano() / int64(time.Millisecond)
-	dimensions := Dimensions{}
-	for k, v := range cfg.Dimensions {
-		dimensions[k] = v
+	amberFloDims := map[string]string{}
+	for _, v := range cfg.Dimensions {
+		amberFloDims[v.Key] = v.Value
 	}
-	for k, v := range extraDimensions {
-		dimensions[k] = v
+	for _, v := range extraDimensions {
+		amberFloDims[v.Key] = v.Value
 	}
 	return m.client.Meter(&metering.MeterMessage{
 		MeterApiName:      cfg.Name,
@@ -144,7 +144,7 @@ func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, ex
 		MeterTimeInMillis: utcMillis,
 		CustomerId:        customerId,
 		MeterValue:        value,
-		Dimensions:        dimensions,
+		Dimensions:        amberFloDims,
 	})
 }
 
@@ -182,41 +182,34 @@ func (m *AmberFlo) getcfg(meterName string) (amberFloConfig, bool) {
 //////////
 
 type amberFloMeter struct {
-	user MeterUser
-	dims []string
-	mp   *AmberFlo
+	user    MeterUser
+	addDims []eventAddDim
+	mp      *AmberFlo
 }
 
 func (m *amberFloMeter) Meter(meterName string, value float64, extraDimensions Dimensions) error {
-	var dm2 Dimensions
-	if len(extraDimensions) > 0 || len(m.dims) > 0 {
-		dm2 = Dimensions{}
-	}
-	for k, v := range extraDimensions {
-		dm2[k] = v
-	}
-	for i := 0; i < len(m.dims); i += 3 {
-		a := m.dims[i]
-		k := m.dims[i+1]
-		v := m.dims[i+2]
-		if a == "" || a == meterName {
-			dm2[k] = v
+	var eventDims []Dimension
+	// Copy in matching dimensions set through AddDimension
+	for _, addDim := range m.addDims {
+		if addDim.MeterName == meterName {
+			eventDims = append(eventDims, Dimension{Key: addDim.Key, Value: addDim.Value})
 		}
 	}
+	eventDims = append(eventDims, extraDimensions...)
 	log.Trace().
 		Str("user", m.user.ID()).
 		Str("meter", meterName).
 		Float64("meter_value", value).
 		Msg("meter")
-	return m.mp.sendMeter(m.user, meterName, value, dm2)
+	return m.mp.sendMeter(m.user, meterName, value, eventDims)
 }
 
 func (m *amberFloMeter) AddDimension(meterName string, key string, value string) {
-	m.dims = append(m.dims, meterName, key, value)
+	m.addDims = append(m.addDims, eventAddDim{MeterName: meterName, Key: key, Value: value})
 }
 
-func (m *amberFloMeter) GetValue(meterName string, d time.Duration, dims Dimensions) (float64, bool) {
-	return m.mp.getValue(m.user, meterName)
+func (m *amberFloMeter) GetValue(meterName string, startTime time.Time, endTime time.Time, dims Dimensions) (float64, bool) {
+	return m.mp.getValue(m.user, meterName, startTime, endTime, dims)
 }
 
 /////////

@@ -76,10 +76,10 @@ func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *
 
 	// Send request to metering
 	if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
-		dims := map[string]string{
-			"fv_sha1":                fvsha1,
-			"feed_onestop_id":        fid,
-			"is_latest_feed_version": "true",
+		dims := []meters.Dimension{
+			{Key: "fv_sha1", Value: fvsha1},
+			{Key: "feed_onestop_id", Value: fid},
+			{Key: "is_latest_feed_version", Value: "true"},
 		}
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
@@ -151,10 +151,10 @@ func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.R
 
 	// Send request to metering
 	if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
-		dims := map[string]string{
-			"fv_sha1":                fvsha1,
-			"feed_onestop_id":        fid,
-			"is_latest_feed_version": "false",
+		dims := []meters.Dimension{
+			{Key: "fv_sha1", Value: fvsha1},
+			{Key: "feed_onestop_id", Value: fid},
+			{Key: "is_latest_feed_version", Value: "false"},
 		}
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
