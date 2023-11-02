@@ -42,10 +42,10 @@ func NewAmberFlo(apikey string, interval time.Duration, batchSize int) *AmberFlo
 }
 
 type amberFloConfig struct {
-	Name          string            `json:"name,omitempty"`
-	DefaultUser   string            `json:"default_user,omitempty"`
-	ExternalIDKey string            `json:"external_id_key,omitempty"`
-	Dimensions    map[string]string `json:"dimensions,omitempty"`
+	Name          string     `json:"name,omitempty"`
+	DefaultUser   string     `json:"default_user,omitempty"`
+	ExternalIDKey string     `json:"external_id_key,omitempty"`
+	Dimensions    Dimensions `json:"dimensions,omitempty"`
 }
 
 func (m *AmberFlo) LoadConfig(path string) error {
@@ -79,7 +79,6 @@ func (m *AmberFlo) Flush() error {
 }
 
 func (m *AmberFlo) getValue(user MeterUser, meterName string) (float64, bool) {
-	// TODO: batch and cache
 	// TODO: time period and aggregation is hardcoded as 1 day
 	cfg, ok := m.getcfg(meterName)
 	if !ok {
@@ -120,7 +119,7 @@ func (m *AmberFlo) getValue(user MeterUser, meterName string) (float64, bool) {
 	return cmv, true
 }
 
-func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, extraDimensions map[string]string) error {
+func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, extraDimensions Dimensions) error {
 	cfg, ok := m.getcfg(meterName)
 	if !ok {
 		return nil
@@ -132,7 +131,7 @@ func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, ex
 	}
 	uniqueId := uuid.NewRandom().String()
 	utcMillis := time.Now().In(time.UTC).UnixNano() / int64(time.Millisecond)
-	dimensions := map[string]string{}
+	dimensions := Dimensions{}
 	for k, v := range cfg.Dimensions {
 		dimensions[k] = v
 	}
@@ -188,10 +187,10 @@ type amberFloMeter struct {
 	mp   *AmberFlo
 }
 
-func (m *amberFloMeter) Meter(meterName string, value float64, extraDimensions map[string]string) error {
-	var dm2 map[string]string
+func (m *amberFloMeter) Meter(meterName string, value float64, extraDimensions Dimensions) error {
+	var dm2 Dimensions
 	if len(extraDimensions) > 0 || len(m.dims) > 0 {
-		dm2 = map[string]string{}
+		dm2 = Dimensions{}
 	}
 	for k, v := range extraDimensions {
 		dm2[k] = v
@@ -216,7 +215,7 @@ func (m *amberFloMeter) AddDimension(meterName string, key string, value string)
 	m.dims = append(m.dims, meterName, key, value)
 }
 
-func (m *amberFloMeter) GetValue(meterName string) (float64, bool) {
+func (m *amberFloMeter) GetValue(meterName string, d time.Duration, dims Dimensions) (float64, bool) {
 	return m.mp.getValue(m.user, meterName)
 }
 

@@ -2,10 +2,14 @@ package meters
 
 import (
 	"testing"
+
+	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
-func TestDefaultMeter(t *testing.T) {
+func TestCacheMeter(t *testing.T) {
+	redisClient := testutil.MustOpenTestRedisClient()
 	mp := NewDefaultMeterProvider()
+	cmp := NewCacheMeterProvider(redisClient, mp)
 	testConfig := testMeterConfig{
 		testMeter1: "test1",
 		testMeter2: "test2",
@@ -13,5 +17,5 @@ func TestDefaultMeter(t *testing.T) {
 		user2:      &testUser{name: "test2"},
 		user3:      &testUser{name: "test3"},
 	}
-	testMeter(t, mp, testConfig)
+	testMeter(t, cmp, testConfig)
 }

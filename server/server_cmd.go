@@ -233,7 +233,7 @@ func (cmd *Command) Run() error {
 
 	// Setup metering
 	var meterProvider meters.MeterProvider
-	meterProvider = meters.NewDefaultMeter()
+	meterProvider = meters.NewDefaultMeterProvider()
 	if cmd.metersConfig.EnableMetering {
 		if cmd.metersConfig.MeteringProvider == "amberflo" {
 			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)

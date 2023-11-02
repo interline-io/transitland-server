@@ -4,8 +4,9 @@ import (
 	"testing"
 )
 
-func TestDefaultMeter(t *testing.T) {
+func TestLimitMeter(t *testing.T) {
 	mp := NewDefaultMeterProvider()
+	cmp := NewLimitMeterProvider(mp)
 	testConfig := testMeterConfig{
 		testMeter1: "test1",
 		testMeter2: "test2",
@@ -13,5 +14,5 @@ func TestDefaultMeter(t *testing.T) {
 		user2:      &testUser{name: "test2"},
 		user3:      &testUser{name: "test3"},
 	}
-	testMeter(t, mp, testConfig)
+	testMeter(t, cmp, testConfig)
 }

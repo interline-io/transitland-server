@@ -67,6 +67,12 @@ func (e *Cache[T]) Get(ctx context.Context, key string) (T, bool) {
 	return v.Value, ok
 }
 
+func (e *Cache[T]) ClearLocal() {
+	e.lock.Lock()
+	defer e.lock.Unlock()
+	e.m = map[string]Item[T]{}
+}
+
 func (e *Cache[T]) LocalKeys() []string {
 	e.lock.Lock()
 	defer e.lock.Unlock()
