@@ -2,22 +2,18 @@ package meters
 
 import (
 	"errors"
+	"fmt"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 func init() {
 	var _ MeterProvider = &LimitMeterProvider{}
 }
 
-type userMeterLimit struct {
-	User      string
-	MeterName string
-	Dims      Dimensions
-	Period    string
-	Limit     float64
-}
-
 type LimitMeterProvider struct {
+	Enabled    bool
 	UserLimits map[string][]userMeterLimit
 	MeterProvider
 }
@@ -46,7 +42,7 @@ type LimitMeter struct {
 	ApiMeter
 }
 
-func (c *LimitMeter) GetLimit(meterName string, checkDims Dimensions) (time.Time, time.Time, float64, bool) {
+func (c *LimitMeter) GetLimit(meterName string, checkDims Dimensions) (userMeterLimit, bool) {
 	var lim userMeterLimit
 	found := false
 	for _, checkLim := range c.provider.UserLimits[c.userId] {
@@ -57,13 +53,42 @@ func (c *LimitMeter) GetLimit(meterName string, checkDims Dimensions) (time.Time
 		}
 	}
 	if !found {
-		// fmt.Println("no limit found")
-		return time.Now(), time.Now(), 0, false
+		return lim, false
 	}
+	return lim, true
+}
+
+func (c *LimitMeter) Meter(meterName string, value float64, extraDimensions Dimensions) error {
+	lim, foundLimit := c.GetLimit(meterName, extraDimensions)
+	d1, d2 := lim.Span()
+	if c.provider.Enabled && foundLimit {
+		currentValue, _ := c.GetValue(meterName, d1, d2, extraDimensions)
+		if foundLimit && currentValue+value > lim.Limit {
+			log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", extraDimensions)).Msg("rate limited")
+			return errors.New("rate limited")
+		} else {
+			log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", extraDimensions)).Msg("rate check")
+		}
+	}
+	return c.ApiMeter.Meter(meterName, value, extraDimensions)
+}
+
+type userMeterLimit struct {
+	User      string
+	MeterName string
+	Dims      Dimensions
+	Period    string
+	Limit     float64
+}
+
+func (lim *userMeterLimit) Span() (time.Time, time.Time) {
 	now := time.Now().In(time.UTC)
 	d1 := now
 	d2 := now
-	if lim.Period == "day" {
+	if lim.Period == "hour" {
+		d1 = time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, time.UTC)
+		d2 = d1.Add(3600 * time.Second)
+	} else if lim.Period == "day" {
 		d1 = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 		d2 = d1.AddDate(0, 0, 1)
 	} else if lim.Period == "month" {
@@ -76,22 +101,7 @@ func (c *LimitMeter) GetLimit(meterName string, checkDims Dimensions) (time.Time
 		d1 = time.Unix(0, 0)
 		d2 = time.Unix(1<<63-1, 0)
 	} else {
-		return now, now, 0, false
+		return now, now
 	}
-	// fmt.Println("limit found:", d1, d2, lim.Limit, lim.Period)
-	return d1, d2, lim.Limit, true
-}
-
-func (c *LimitMeter) Meter(meterName string, value float64, extraDimensions Dimensions) error {
-	d1, d2, lim, foundLimit := c.GetLimit(meterName, extraDimensions)
-	a, valueFound := c.GetValue(meterName, d1, d2, extraDimensions)
-	_ = valueFound
-	// if !valueFound {
-	// 	fmt.Println("value not found")
-	// }
-	// fmt.Println("a:", a, "value:", value, "lim:", lim, "extraDims:", extraDimensions)
-	if foundLimit && a+value > lim {
-		return errors.New("rate limited")
-	}
-	return c.ApiMeter.Meter(meterName, value, extraDimensions)
+	return d1, d2
 }

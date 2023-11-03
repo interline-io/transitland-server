@@ -91,17 +91,34 @@ func (m *AmberFlo) getValue(user MeterUser, meterName string, startTime time.Tim
 	if cfg.Name == "" {
 		return 0, false
 	}
-
-	startTimeInSeconds := (time.Now().In(time.UTC).UnixNano() / int64(time.Second)) - (24 * 60 * 60)
 	timeRange := &metering.TimeRange{
-		StartTimeInSeconds: startTimeInSeconds,
+		StartTimeInSeconds: startTime.In(time.UTC).Unix(),
+		EndTimeInSeconds:   endTime.In(time.UTC).Unix(),
 	}
+	if timeRange.EndTimeInSeconds > time.Now().In(time.UTC).Unix() {
+		timeRange.EndTimeInSeconds = 0
+	}
+
 	filter := make(map[string][]string)
 	filter["customerId"] = []string{customerId}
+	for _, dim := range checkDims {
+		filter[dim.Key] = []string{dim.Value}
+	}
+
+	timeGroupingInterval := metering.Hour
+	switch timeSpan := endTime.Unix() - startTime.Unix(); {
+	case timeSpan > 24*60*60:
+		timeGroupingInterval = metering.Month
+	case timeSpan > 60*60:
+		timeGroupingInterval = metering.Day
+	default:
+		timeGroupingInterval = metering.Hour
+	}
+
 	usageResult, err := m.usageClient.GetUsage(&metering.UsagePayload{
 		MeterApiName:         cfg.Name,
 		Aggregation:          metering.Sum,
-		TimeGroupingInterval: metering.Day,
+		TimeGroupingInterval: timeGroupingInterval,
 		GroupBy:              []string{"customerId"},
 		TimeRange:            timeRange,
 		Filter:               filter,
@@ -114,9 +131,9 @@ func (m *AmberFlo) getValue(user MeterUser, meterName string, startTime time.Tim
 		log.Error().Err(err).Str("user", user.ID()).Msg("could not get value; no client value meter")
 		return 0, false
 	}
-	cm := usageResult.ClientMeters[0].Values
-	cmv := cm[len(cm)-1].Value
-	return cmv, true
+
+	total := usageResult.ClientMeters[0].GroupValue
+	return total, true
 }
 
 func (m *AmberFlo) sendMeter(user MeterUser, meterName string, value float64, extraDimensions Dimensions) error {

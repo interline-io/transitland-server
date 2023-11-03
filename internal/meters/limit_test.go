@@ -1,9 +1,9 @@
 package meters
 
 import (
+	"fmt"
 	"math"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -13,6 +13,7 @@ func TestLimitMeter(t *testing.T) {
 	user := testUser{name: "testuser"}
 	mp := NewDefaultMeterProvider()
 	cmp := NewLimitMeterProvider(mp)
+	cmp.Enabled = true
 	testLimitMeter(t, cmp, meterName, user)
 }
 
@@ -23,61 +24,79 @@ func TestLimitMeter_Amberflo(t *testing.T) {
 		return
 	}
 	cmp := NewLimitMeterProvider(mp)
+	cmp.Enabled = true
 	testLimitMeter(t, cmp, testConfig.testMeter1, testUser{name: testConfig.user1.ID()})
 }
 
 func testLimitMeter(t *testing.T, cmp *LimitMeterProvider, meterName string, user testUser) {
 	m := cmp.NewMeter(user)
-	testDims1 := Dimensions{{Key: "ok", Value: "test"}}
-	testDims2 := Dimensions{{Key: "ok", Value: "bar"}}
-
-	lim1 := 10.0
-	lim2 := 11.0
-	incr := 3.0
-
-	cmp.UserLimits[user.name] = append(cmp.UserLimits[user.name],
-		userMeterLimit{
+	testKey := 1 // time.Now().In(time.UTC).Unix()
+	lims := []userMeterLimit{
+		// foo tests
+		{
 			MeterName: meterName,
-			Period:    "month",
-			Limit:     lim1,
-			Dims:      testDims1,
+			Period:    "hour",
+			Limit:     5.0,
+			Dims:      Dimensions{{Key: "ok", Value: fmt.Sprintf("foo:%d", testKey)}},
 		},
-		userMeterLimit{
+		{
 			MeterName: meterName,
 			Period:    "day",
-			Limit:     lim2,
-			Dims:      testDims2,
+			Limit:     8.0,
+			Dims:      Dimensions{{Key: "ok", Value: fmt.Sprintf("foo:%d", testKey)}},
 		},
-	)
-
-	// 1
-	successCount1 := 0.0
-	for i := 0; i < 10; i++ {
-		err := m.Meter(meterName, incr, testDims1)
-		if err == nil {
-			successCount1 += 1
-		}
-		cmp.Flush()
+		{
+			MeterName: meterName,
+			Period:    "month",
+			Limit:     11.0,
+			Dims:      Dimensions{{Key: "ok", Value: fmt.Sprintf("foo:%d", testKey)}},
+		},
+		// bar tests
+		{
+			MeterName: meterName,
+			Period:    "hour",
+			Limit:     14.0,
+			Dims:      Dimensions{{Key: "ok", Value: fmt.Sprintf("bar:%d", testKey)}},
+		},
+		{
+			MeterName: meterName,
+			Period:    "day",
+			Limit:     17.0,
+			Dims:      Dimensions{{Key: "ok", Value: fmt.Sprintf("bar:%d", testKey)}},
+		},
+		{
+			MeterName: meterName,
+			Period:    "month",
+			Limit:     20.0,
+			Dims:      Dimensions{{Key: "ok", Value: fmt.Sprintf("bar:%d", testKey)}},
+		},
 	}
-	assert.Equal(t, successCount1, math.Floor(lim1/incr))
 
-	// 2
-	successCount2 := 0.0
-	for i := 0; i < 10; i++ {
-		err := m.Meter(meterName, incr, testDims2)
-		if err == nil {
-			successCount2 += 1
-		}
-		cmp.Flush()
+	incr := 3.0
+	for _, lim := range lims {
+		t.Run(fmt.Sprintf("%v", lim), func(t *testing.T) {
+			startTime, endTime := lim.Span()
+			base, _ := m.GetValue(meterName, startTime, endTime, lim.Dims)
+			lim.Limit += base
+			cmp.UserLimits[user.name] = []userMeterLimit{lim}
+
+			successCount := 0.0
+			for i := 0; i < 10; i++ {
+				err := m.Meter(meterName, incr, lim.Dims)
+				if err == nil {
+					successCount += 1
+				}
+				cmp.Flush()
+			}
+			expectCount := math.Floor((lim.Limit - base) / incr)
+			// fmt.Println("successCount:", successCount, "expectCount:", expectCount)
+			assert.Equal(t, expectCount, successCount)
+			total, _ := m.GetValue(meterName, startTime, endTime, lim.Dims)
+			total = total - base
+			expectTotal := successCount * incr
+			// fmt.Println("total:", total, "expectTotal:", expectTotal)
+			assert.Equal(t, expectTotal, total)
+		})
 	}
-	assert.Equal(t, successCount2, math.Floor(lim2/incr))
-
-	// total 1
-	v1, _ := m.GetValue(meterName, time.Unix(0, 0), time.Now(), testDims1)
-	assert.Equal(t, successCount1*incr, v1)
-
-	// total 2
-	v2, _ := m.GetValue(meterName, time.Unix(0, 0), time.Now(), testDims2)
-	assert.Equal(t, successCount2*incr, v2)
 
 }

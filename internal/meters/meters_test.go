@@ -2,7 +2,6 @@ package meters
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -28,8 +27,7 @@ type testMeterConfig struct {
 }
 
 func testMeter(t *testing.T, mp MeterProvider, cfg testMeterConfig) {
-	d1 := time.Unix(0, 0)
-	d2 := time.Now().Add(10 * time.Second)
+	d1, d2 := (&userMeterLimit{Period: "hour"}).Span()
 	t.Run("Meter", func(t *testing.T) {
 		m := mp.NewMeter(cfg.user1)
 		v, _ := m.GetValue(cfg.testMeter1, d1, d2, nil)
@@ -86,35 +84,38 @@ func testMeter(t *testing.T, mp MeterProvider, cfg testMeterConfig) {
 	})
 
 	t.Run("GetValue match dims", func(t *testing.T) {
-		addDims := []Dimension{{Key: "test", Value: "ok"}}
-		addDims2 := []Dimension{{Key: "test", Value: "not ok"}}
-		checkDims := []Dimension{{Key: "test", Value: "ok"}}
-		checkDims2 := []Dimension{{Key: "test", Value: "not ok"}}
+		addDims1 := []Dimension{{Key: "test", Value: "ok1"}}
+		addDims2 := []Dimension{{Key: "test", Value: "not ok1"}}
+		checkDims1 := addDims1
+		checkDims2 := addDims2
+
 		m1 := mp.NewMeter(cfg.user1)
 		m2 := mp.NewMeter(cfg.user2)
 		m3 := mp.NewMeter(cfg.user3)
-		v1, _ := m1.GetValue(cfg.testMeter1, d1, d2, checkDims)
-		v2, _ := m2.GetValue(cfg.testMeter1, d1, d2, checkDims)
-		v3, _ := m3.GetValue(cfg.testMeter1, d1, d2, checkDims)
+
+		// Initial values
+		v1, _ := m1.GetValue(cfg.testMeter1, d1, d2, checkDims1)
+		v2, _ := m2.GetValue(cfg.testMeter1, d1, d2, checkDims2)
+		v3, _ := m3.GetValue(cfg.testMeter1, d1, d2, checkDims1)
 
 		// m2 uses different dimension
-		m1.Meter(cfg.testMeter1, 1, addDims)
+		m1.Meter(cfg.testMeter1, 1, addDims1)
 		m2.Meter(cfg.testMeter1, 2.0, addDims2)
 		mp.Flush()
 
-		a, ok := m1.GetValue(cfg.testMeter1, d1, d2, checkDims)
+		a, ok := m1.GetValue(cfg.testMeter1, d1, d2, checkDims1)
 		assert.Equal(t, 1.0, a-v1)
 		assert.Equal(t, true, ok)
 
-		a, ok = m2.GetValue(cfg.testMeter1, d1, d2, checkDims)
-		assert.Equal(t, 0.0, a-v2)
+		a, ok = m2.GetValue(cfg.testMeter1, d1, d2, checkDims1)
+		assert.Equal(t, 0.0, a)
 		assert.Equal(t, true, ok)
 
 		a, ok = m2.GetValue(cfg.testMeter1, d1, d2, checkDims2)
 		assert.Equal(t, 2.0, a-v2)
 		assert.Equal(t, true, ok)
 
-		a, _ = m3.GetValue(cfg.testMeter1, d1, d2, checkDims)
+		a, _ = m3.GetValue(cfg.testMeter1, d1, d2, checkDims1)
 		assert.Equal(t, 0.0, a-v3)
 	})
 
