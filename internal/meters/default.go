@@ -47,7 +47,7 @@ func (m *DefaultMeterProvider) sendMeter(u MeterUser, meterName string, value fl
 	}
 	event := defaultMeterEvent{
 		value: value,
-		time:  time.Now(),
+		time:  time.Now().In(time.UTC),
 		dims:  dims,
 	}
 	a[userName] = append(a[userName], event)
@@ -70,15 +70,19 @@ func (m *DefaultMeterProvider) getValue(u MeterUser, meterName string, startTime
 	for _, userEvent := range a[u.ID()] {
 		match := true
 		if userEvent.time.Equal(endTime) || userEvent.time.After(endTime) {
+			// fmt.Println("not matched on end time", userEvent.time, endTime)
 			match = false
 		}
 		if userEvent.time.Before(startTime) {
+			// fmt.Println("not matched on start time", userEvent.time, startTime)
 			match = false
 		}
 		if !matchDims(checkDims, userEvent.dims) {
+			// fmt.Println("not matched on dims")
 			match = false
 		}
 		if match {
+			// fmt.Println("matched:", userEvent.value)
 			total += userEvent.value
 		}
 	}

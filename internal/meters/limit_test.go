@@ -13,46 +13,60 @@ func TestLimitMeter(t *testing.T) {
 	user := testUser{name: "testuser"}
 	mp := NewDefaultMeterProvider()
 	cmp := NewLimitMeterProvider(mp)
+
+	testLimitMeter(t, cmp, meterName, user)
+}
+
+func testLimitMeter(t *testing.T, cmp *LimitMeterProvider, meterName string, user testUser) {
 	m := cmp.NewMeter(user)
-	testDims := Dimensions{{Key: "ok", Value: "test"}}
+	testDims1 := Dimensions{{Key: "ok", Value: "test"}}
 	testDims2 := Dimensions{{Key: "ok", Value: "bar"}}
+
+	lim1 := 100.0
+	lim2 := 500.0
+	incr := 15.0
+
 	cmp.UserLimits[user.name] = append(cmp.UserLimits[user.name],
 		userMeterLimit{
 			MeterName: meterName,
 			Period:    "month",
-			Limit:     100.0,
-			Dims:      testDims,
+			Limit:     lim1,
+			Dims:      testDims1,
 		},
 		userMeterLimit{
 			MeterName: meterName,
 			Period:    "day",
-			Limit:     500.0,
+			Limit:     lim2,
 			Dims:      testDims2,
 		},
 	)
 
+	// 1
 	successCount1 := 0.0
-	for i := 0; i < 10; i++ {
-		err := m.Meter(meterName, 15.0, testDims)
+	for i := 0; i < 50; i++ {
+		err := m.Meter(meterName, incr, testDims1)
 		if err == nil {
 			successCount1 += 1
 		}
 	}
-	assert.Equal(t, successCount1, math.Floor(100.0/15.0))
+	assert.Equal(t, successCount1, math.Floor(lim1/incr))
 
+	// 2
 	successCount2 := 0.0
 	for i := 0; i < 50; i++ {
-		err := m.Meter(meterName, 15.0, testDims2)
+		err := m.Meter(meterName, incr, testDims2)
 		if err == nil {
 			successCount2 += 1
 		}
 	}
-	assert.Equal(t, successCount2, math.Floor(500.0/15.0))
+	assert.Equal(t, successCount2, math.Floor(lim2/incr))
 
-	v1, _ := m.GetValue(meterName, time.Unix(0, 0), time.Now(), testDims)
-	assert.Equal(t, successCount1*15.0, v1)
+	// total 1
+	v1, _ := m.GetValue(meterName, time.Unix(0, 0), time.Now(), testDims1)
+	assert.Equal(t, successCount1*incr, v1)
 
+	// total 2
 	v2, _ := m.GetValue(meterName, time.Unix(0, 0), time.Now(), testDims2)
-	assert.Equal(t, successCount2*15.0, v2)
+	assert.Equal(t, successCount2*incr, v2)
 
 }

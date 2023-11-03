@@ -18,8 +18,8 @@ type userMeterLimit struct {
 }
 
 type LimitMeterProvider struct {
-	MeterProvider
 	UserLimits map[string][]userMeterLimit
+	MeterProvider
 }
 
 func NewLimitMeterProvider(provider MeterProvider) *LimitMeterProvider {
@@ -57,32 +57,39 @@ func (c *LimitMeter) GetLimit(meterName string, checkDims Dimensions) (time.Time
 		}
 	}
 	if !found {
+		// fmt.Println("no limit found")
 		return time.Now(), time.Now(), 0, false
 	}
-	now := time.Now()
+	now := time.Now().In(time.UTC)
 	d1 := now
 	d2 := now
-	if lim.Period == "month" {
-		d1 = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
-		d2 = d1.AddDate(0, 1, 0)
-	} else if lim.Period == "day" {
+	if lim.Period == "day" {
 		d1 = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 		d2 = d1.AddDate(0, 0, 1)
-	} else if lim.Period == "year" {
+	} else if lim.Period == "month" {
 		d1 = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+		d2 = d1.AddDate(0, 1, 0)
+	} else if lim.Period == "year" {
+		d1 = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 		d2 = d1.AddDate(1, 0, 0)
 	} else if lim.Period == "total" {
 		d1 = time.Unix(0, 0)
 		d2 = time.Unix(1<<63-1, 0)
 	} else {
-		return time.Now(), time.Now(), 0, false
+		return now, now, 0, false
 	}
+	// fmt.Println("limit found:", d1, d2, lim.Limit, lim.Period)
 	return d1, d2, lim.Limit, true
 }
 
 func (c *LimitMeter) Meter(meterName string, value float64, extraDimensions Dimensions) error {
 	d1, d2, lim, foundLimit := c.GetLimit(meterName, extraDimensions)
-	a, _ := c.ApiMeter.GetValue(meterName, d1, d2, extraDimensions)
+	a, valueFound := c.GetValue(meterName, d1, d2, extraDimensions)
+	_ = valueFound
+	// if !valueFound {
+	// 	fmt.Println("value not found")
+	// }
+	// fmt.Println("a:", a, "value:", value, "lim:", lim, "extraDims:", extraDimensions)
 	if foundLimit && a+value > lim {
 		return errors.New("rate limited")
 	}
