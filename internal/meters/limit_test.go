@@ -13,8 +13,17 @@ func TestLimitMeter(t *testing.T) {
 	user := testUser{name: "testuser"}
 	mp := NewDefaultMeterProvider()
 	cmp := NewLimitMeterProvider(mp)
-
 	testLimitMeter(t, cmp, meterName, user)
+}
+
+func TestLimitMeter_Amberflo(t *testing.T) {
+	mp, testConfig, err := getTestAmberFloMeter()
+	if err != nil {
+		t.Skip(err.Error())
+		return
+	}
+	cmp := NewLimitMeterProvider(mp)
+	testLimitMeter(t, cmp, testConfig.testMeter1, testUser{name: testConfig.user1.ID()})
 }
 
 func testLimitMeter(t *testing.T, cmp *LimitMeterProvider, meterName string, user testUser) {
@@ -22,9 +31,9 @@ func testLimitMeter(t *testing.T, cmp *LimitMeterProvider, meterName string, use
 	testDims1 := Dimensions{{Key: "ok", Value: "test"}}
 	testDims2 := Dimensions{{Key: "ok", Value: "bar"}}
 
-	lim1 := 100.0
-	lim2 := 500.0
-	incr := 15.0
+	lim1 := 10.0
+	lim2 := 11.0
+	incr := 3.0
 
 	cmp.UserLimits[user.name] = append(cmp.UserLimits[user.name],
 		userMeterLimit{
@@ -43,21 +52,23 @@ func testLimitMeter(t *testing.T, cmp *LimitMeterProvider, meterName string, use
 
 	// 1
 	successCount1 := 0.0
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 10; i++ {
 		err := m.Meter(meterName, incr, testDims1)
 		if err == nil {
 			successCount1 += 1
 		}
+		cmp.Flush()
 	}
 	assert.Equal(t, successCount1, math.Floor(lim1/incr))
 
 	// 2
 	successCount2 := 0.0
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 10; i++ {
 		err := m.Meter(meterName, incr, testDims2)
 		if err == nil {
 			successCount2 += 1
 		}
+		cmp.Flush()
 	}
 	assert.Equal(t, successCount2, math.Floor(lim2/incr))
 

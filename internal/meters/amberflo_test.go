@@ -1,6 +1,7 @@
 package meters
 
 import (
+	"errors"
 	"os"
 	"testing"
 	"time"
@@ -25,6 +26,15 @@ func (u *amberfloTestUser) GetExternalData(eid string) (string, bool) {
 }
 
 func TestAmberFloMeter(t *testing.T) {
+	mp, testConfig, err := getTestAmberFloMeter()
+	if err != nil {
+		t.Skip(err.Error())
+		return
+	}
+	testMeter(t, mp, testConfig)
+}
+
+func getTestAmberFloMeter() (*AmberFlo, testMeterConfig, error) {
 	checkKeys := []string{
 		"TL_TEST_AMBERFLO_APIKEY",
 		"TL_TEST_AMBERFLO_METER1",
@@ -36,8 +46,7 @@ func TestAmberFloMeter(t *testing.T) {
 	for _, k := range checkKeys {
 		_, a, ok := testutil.CheckEnv(k)
 		if !ok {
-			t.Skip(a)
-			return
+			return nil, testMeterConfig{}, errors.New(a)
 		}
 	}
 	testConfig := testMeterConfig{
@@ -50,5 +59,5 @@ func TestAmberFloMeter(t *testing.T) {
 	mp := NewAmberFlo(os.Getenv("TL_TEST_AMBERFLO_APIKEY"), 1*time.Second, 1)
 	mp.cfgs[testConfig.testMeter1] = amberFloConfig{Name: testConfig.testMeter1, ExternalIDKey: "amberflo"}
 	mp.cfgs[testConfig.testMeter2] = amberFloConfig{Name: testConfig.testMeter2, ExternalIDKey: "amberflo"}
-	testMeter(t, mp, testConfig)
+	return mp, testConfig, nil
 }
