@@ -129,7 +129,7 @@ func (cmd *Command) Parse(args []string) error {
 	// Metering
 	// fl.BoolVar(&cmd.EnableMetering, "enable-metering", false, "Enable metering")
 	fl.StringVar(&cmd.metersConfig.MeteringProvider, "metering-provider", "", "Use metering provider")
-	fl.StringVar(&cmd.metersConfig.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for AmberFlo metering")
+	fl.StringVar(&cmd.metersConfig.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for Amberflo metering")
 
 	// Jobs
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
@@ -236,7 +236,7 @@ func (cmd *Command) Run() error {
 	meterProvider = meters.NewDefaultMeterProvider()
 	if cmd.metersConfig.EnableMetering {
 		if cmd.metersConfig.MeteringProvider == "amberflo" {
-			a := meters.NewAmberFlo(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
+			a := meters.NewAmberflo(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
 			if cmd.metersConfig.MeteringAmberfloConfig != "" {
 				if err := a.LoadConfig(cmd.metersConfig.MeteringAmberfloConfig); err != nil {
 					return err

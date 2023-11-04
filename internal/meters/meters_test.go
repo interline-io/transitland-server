@@ -8,14 +8,19 @@ import (
 
 type testUser struct {
 	name string
+	data map[string]string
 }
 
 func (u testUser) ID() string {
 	return u.name
 }
 
-func (u testUser) GetExternalData(string) (string, bool) {
-	return "test", true
+func (u testUser) GetExternalData(key string) (string, bool) {
+	if u.data == nil {
+		return "", false
+	}
+	a, ok := u.data[key]
+	return a, ok
 }
 
 type testMeterConfig struct {
@@ -27,7 +32,7 @@ type testMeterConfig struct {
 }
 
 func testMeter(t *testing.T, mp MeterProvider, cfg testMeterConfig) {
-	d1, d2 := (&userMeterLimit{Period: "hour"}).Span()
+	d1, d2 := (&userMeterLimit{Period: "hourly"}).Span()
 	t.Run("Meter", func(t *testing.T) {
 		m := mp.NewMeter(cfg.user1)
 		v, _ := m.GetValue(cfg.testMeter1, d1, d2, nil)

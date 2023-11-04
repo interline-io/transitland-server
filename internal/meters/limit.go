@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/tidwall/gjson"
 )
 
 func init() {
@@ -13,15 +14,14 @@ func init() {
 }
 
 type LimitMeterProvider struct {
-	Enabled    bool
-	UserLimits map[string][]userMeterLimit
+	Enabled       bool
+	DefaultLimits []userMeterLimit
 	MeterProvider
 }
 
 func NewLimitMeterProvider(provider MeterProvider) *LimitMeterProvider {
 	return &LimitMeterProvider{
 		MeterProvider: provider,
-		UserLimits:    map[string][]userMeterLimit{},
 	}
 }
 
@@ -42,32 +42,32 @@ type LimitMeter struct {
 	ApiMeter
 }
 
-func (c *LimitMeter) GetLimit(meterName string, checkDims Dimensions) (userMeterLimit, bool) {
-	var lim userMeterLimit
-	found := false
-	for _, checkLim := range c.provider.UserLimits[c.userId] {
+func (c *LimitMeter) GetLimits(meterName string, checkDims Dimensions) []userMeterLimit {
+	var lims []userMeterLimit
+	for _, checkLim := range parseGkUserLimits(c.userData) {
 		if checkLim.MeterName == meterName && matchDims(checkDims, checkLim.Dims) {
-			found = true
-			lim = checkLim
-			break
+			lims = append(lims, checkLim)
 		}
 	}
-	if !found {
-		return lim, false
+	for _, checkLim := range c.provider.DefaultLimits {
+		if checkLim.MeterName == meterName && matchDims(checkDims, checkLim.Dims) {
+			lims = append(lims, checkLim)
+		}
 	}
-	return lim, true
+	return lims
 }
 
 func (c *LimitMeter) Meter(meterName string, value float64, extraDimensions Dimensions) error {
-	lim, foundLimit := c.GetLimit(meterName, extraDimensions)
-	d1, d2 := lim.Span()
-	if c.provider.Enabled && foundLimit {
-		currentValue, _ := c.GetValue(meterName, d1, d2, extraDimensions)
-		if foundLimit && currentValue+value > lim.Limit {
-			log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", extraDimensions)).Msg("rate limited")
-			return errors.New("rate limited")
-		} else {
-			log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", extraDimensions)).Msg("rate check")
+	if c.provider.Enabled {
+		for _, lim := range c.GetLimits(meterName, extraDimensions) {
+			d1, d2 := lim.Span()
+			currentValue, _ := c.GetValue(meterName, d1, d2, extraDimensions)
+			if currentValue+value > lim.Limit {
+				log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", extraDimensions)).Msg("rate limited")
+				return errors.New("rate limited")
+			} else {
+				log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", extraDimensions)).Msg("rate check ok")
+			}
 		}
 	}
 	return c.ApiMeter.Meter(meterName, value, extraDimensions)
@@ -85,16 +85,16 @@ func (lim *userMeterLimit) Span() (time.Time, time.Time) {
 	now := time.Now().In(time.UTC)
 	d1 := now
 	d2 := now
-	if lim.Period == "hour" {
+	if lim.Period == "hourly" {
 		d1 = time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, time.UTC)
 		d2 = d1.Add(3600 * time.Second)
-	} else if lim.Period == "day" {
+	} else if lim.Period == "daily" {
 		d1 = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 		d2 = d1.AddDate(0, 0, 1)
-	} else if lim.Period == "month" {
+	} else if lim.Period == "monthly" {
 		d1 = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 		d2 = d1.AddDate(0, 1, 0)
-	} else if lim.Period == "year" {
+	} else if lim.Period == "yearly" {
 		d1 = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 		d2 = d1.AddDate(1, 0, 0)
 	} else if lim.Period == "total" {
@@ -104,4 +104,25 @@ func (lim *userMeterLimit) Span() (time.Time, time.Time) {
 		return now, now
 	}
 	return d1, d2
+}
+
+func parseGkUserLimits(v string) []userMeterLimit {
+	var lims []userMeterLimit
+	for _, productLimit := range gjson.Get(v, "product_limits").Map() {
+		for _, plim := range productLimit.Array() {
+			lim := userMeterLimit{
+				MeterName: plim.Get("amberflo_meter").String(),
+				Limit:     plim.Get("limit_value").Float(),
+				Period:    plim.Get("time_period").String(),
+			}
+			if dim := plim.Get("amberflo_dimension").String(); dim != "" {
+				lim.Dims = append(lim.Dims, Dimension{
+					Key:   dim,
+					Value: plim.Get("amberflo_dimension_value").String(),
+				})
+			}
+			lims = append(lims, lim)
+		}
+	}
+	return lims
 }
