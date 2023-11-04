@@ -51,6 +51,7 @@ type Command struct {
 	EnableJobsApi     bool
 	EnableWorkers     bool
 	EnableProfiler    bool
+	EnableRateLimits  bool
 	LoadAdmins        bool
 	QueuePrefix       string
 	SecretsFile       string
@@ -130,6 +131,7 @@ func (cmd *Command) Parse(args []string) error {
 	// fl.BoolVar(&cmd.EnableMetering, "enable-metering", false, "Enable metering")
 	fl.StringVar(&cmd.metersConfig.MeteringProvider, "metering-provider", "", "Use metering provider")
 	fl.StringVar(&cmd.metersConfig.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for Amberflo metering")
+	fl.BoolVar(&cmd.EnableRateLimits, "enable-rate-limits", false, "Enable rate limits")
 
 	// Jobs
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
@@ -243,6 +245,12 @@ func (cmd *Command) Run() error {
 				}
 			}
 			meterProvider = a
+		}
+		if cmd.EnableRateLimits {
+			mp := meters.NewLimitMeterProvider(meterProvider)
+			mp.Enabled = true
+			// mp.DefaultLimits = append(mp.DefaultLimits, meters.UserMeterLimit{Limit: 10, Period: "monthly", MeterName: "rest"})
+			meterProvider = mp
 		}
 		defer meterProvider.Close()
 	}

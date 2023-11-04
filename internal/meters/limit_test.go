@@ -17,7 +17,7 @@ func TestLimitMeter(t *testing.T) {
 			mp := NewDefaultMeterProvider()
 			cmp := NewLimitMeterProvider(mp)
 			cmp.Enabled = true
-			cmp.DefaultLimits = []userMeterLimit{lim}
+			cmp.DefaultLimits = []UserMeterLimit{lim}
 			testLimitMeter(t,
 				cmp,
 				lim.MeterName,
@@ -42,7 +42,7 @@ func TestLimitMeter_Amberflo(t *testing.T) {
 		t.Run("", func(t *testing.T) {
 			cmp := NewLimitMeterProvider(mp)
 			cmp.Enabled = true
-			cmp.DefaultLimits = []userMeterLimit{lim}
+			cmp.DefaultLimits = []UserMeterLimit{lim}
 			testLimitMeter(t,
 				cmp,
 				lim.MeterName,
@@ -94,9 +94,9 @@ func TestLimitMeter_Gatekeeper(t *testing.T) {
 	}
 }
 
-func testLims(meterName string) []userMeterLimit {
+func testLims(meterName string) []UserMeterLimit {
 	testKey := 1 // time.Now().In(time.UTC).Unix()
-	lims := []userMeterLimit{
+	lims := []UserMeterLimit{
 		// foo tests
 		{
 			MeterName: meterName,
@@ -139,7 +139,7 @@ func testLims(meterName string) []userMeterLimit {
 	return lims
 }
 
-func testLimitMeter(t *testing.T, cmp *LimitMeterProvider, meterName string, user testUser, lim userMeterLimit) {
+func testLimitMeter(t *testing.T, cmp *LimitMeterProvider, meterName string, user testUser, lim UserMeterLimit) {
 	incr := 1.0
 	m := cmp.NewMeter(user)
 	startTime, endTime := lim.Span()

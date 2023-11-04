@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/interline-io/transitland-lib/log"
 	"github.com/tidwall/gjson"
 )
 
@@ -15,7 +15,7 @@ func init() {
 
 type LimitMeterProvider struct {
 	Enabled       bool
-	DefaultLimits []userMeterLimit
+	DefaultLimits []UserMeterLimit
 	MeterProvider
 }
 
@@ -42,15 +42,15 @@ type LimitMeter struct {
 	ApiMeter
 }
 
-func (c *LimitMeter) GetLimits(meterName string, checkDims Dimensions) []userMeterLimit {
-	var lims []userMeterLimit
+func (c *LimitMeter) GetLimits(meterName string, checkDims Dimensions) []UserMeterLimit {
+	var lims []UserMeterLimit
 	for _, checkLim := range parseGkUserLimits(c.userData) {
-		if checkLim.MeterName == meterName && matchDims(checkDims, checkLim.Dims) {
+		if checkLim.MeterName == meterName && dimsContainedIn(checkLim.Dims, checkDims) {
 			lims = append(lims, checkLim)
 		}
 	}
 	for _, checkLim := range c.provider.DefaultLimits {
-		if checkLim.MeterName == meterName && matchDims(checkDims, checkLim.Dims) {
+		if checkLim.MeterName == meterName && dimsContainedIn(checkLim.Dims, checkDims) {
 			lims = append(lims, checkLim)
 		}
 	}
@@ -63,17 +63,17 @@ func (c *LimitMeter) Meter(meterName string, value float64, extraDimensions Dime
 			d1, d2 := lim.Span()
 			currentValue, _ := c.GetValue(meterName, d1, d2, extraDimensions)
 			if currentValue+value > lim.Limit {
-				log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", extraDimensions)).Msg("rate limited")
+				log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", lim.Dims)).Msg("rate limited")
 				return errors.New("rate limited")
 			} else {
-				log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", extraDimensions)).Msg("rate check ok")
+				log.Info().Str("meter", meterName).Str("user", c.userId).Float64("current", currentValue).Float64("add", value).Str("dims", fmt.Sprintf("%v", lim.Dims)).Msg("rate check ok")
 			}
 		}
 	}
 	return c.ApiMeter.Meter(meterName, value, extraDimensions)
 }
 
-type userMeterLimit struct {
+type UserMeterLimit struct {
 	User      string
 	MeterName string
 	Dims      Dimensions
@@ -81,7 +81,7 @@ type userMeterLimit struct {
 	Limit     float64
 }
 
-func (lim *userMeterLimit) Span() (time.Time, time.Time) {
+func (lim *UserMeterLimit) Span() (time.Time, time.Time) {
 	now := time.Now().In(time.UTC)
 	d1 := now
 	d2 := now
@@ -106,11 +106,11 @@ func (lim *userMeterLimit) Span() (time.Time, time.Time) {
 	return d1, d2
 }
 
-func parseGkUserLimits(v string) []userMeterLimit {
-	var lims []userMeterLimit
+func parseGkUserLimits(v string) []UserMeterLimit {
+	var lims []UserMeterLimit
 	for _, productLimit := range gjson.Get(v, "product_limits").Map() {
 		for _, plim := range productLimit.Array() {
-			lim := userMeterLimit{
+			lim := UserMeterLimit{
 				MeterName: plim.Get("amberflo_meter").String(),
 				Limit:     plim.Get("limit_value").Float(),
 				Period:    plim.Get("time_period").String(),

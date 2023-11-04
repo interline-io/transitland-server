@@ -58,7 +58,7 @@ type eventAddDim struct {
 	Value     string
 }
 
-func matchDims(checkDims Dimensions, eventDims Dimensions) bool {
+func dimsContainedIn(checkDims Dimensions, eventDims Dimensions) bool {
 	for _, matchDim := range checkDims {
 		match := false
 		for _, ed := range eventDims {
