@@ -5,7 +5,7 @@ import (
 )
 
 func TestDefaultMeter(t *testing.T) {
-	mp := NewDefaultMeter()
+	mp := NewDefaultMeterProvider()
 	testConfig := testMeterConfig{
 		testMeter1: "test1",
 		testMeter2: "test2",
