@@ -89,10 +89,10 @@ func testMeter(t *testing.T, mp MeterProvider, cfg testMeterConfig) {
 	})
 
 	t.Run("GetValue match dims", func(t *testing.T) {
-		addDims1 := []Dimension{{Key: "test", Value: "ok1"}}
-		addDims2 := []Dimension{{Key: "test", Value: "not ok1"}}
-		checkDims1 := addDims1
-		checkDims2 := addDims2
+		addDims1 := []Dimension{{Key: "test", Value: "a"}, {Key: "other", Value: "boo"}}
+		addDims2 := []Dimension{{Key: "test", Value: "b"}}
+		checkDims1 := []Dimension{{Key: "test", Value: "a"}}
+		checkDims2 := []Dimension{{Key: "test", Value: "b"}}
 
 		m1 := mp.NewMeter(cfg.user1)
 		m2 := mp.NewMeter(cfg.user2)
@@ -103,8 +103,9 @@ func testMeter(t *testing.T, mp MeterProvider, cfg testMeterConfig) {
 		v2, _ := m2.GetValue(cfg.testMeter1, d1, d2, checkDims2)
 		v3, _ := m3.GetValue(cfg.testMeter1, d1, d2, checkDims1)
 
-		// m2 uses different dimension
+		// m1 meter
 		m1.Meter(cfg.testMeter1, 1, addDims1)
+		// m2 uses different dimension
 		m2.Meter(cfg.testMeter1, 2.0, addDims2)
 		mp.Flush()
 
@@ -123,5 +124,4 @@ func testMeter(t *testing.T, mp MeterProvider, cfg testMeterConfig) {
 		a, _ = m3.GetValue(cfg.testMeter1, d1, d2, checkDims1)
 		assert.Equal(t, 0.0, a-v3)
 	})
-
 }

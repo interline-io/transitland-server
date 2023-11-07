@@ -43,15 +43,16 @@ type LimitMeter struct {
 }
 
 func (c *LimitMeter) GetLimits(meterName string, checkDims Dimensions) []UserMeterLimit {
+	// The limit matches the event dimensions if all of the LIMIT dimensions are contained in event
 	var lims []UserMeterLimit
-	for _, checkLim := range parseGkUserLimits(c.userData) {
-		if checkLim.MeterName == meterName && dimsContainedIn(checkLim.Dims, checkDims) {
-			lims = append(lims, checkLim)
+	for _, userLimit := range parseGkUserLimits(c.userData) {
+		if userLimit.MeterName == meterName && dimsContainedIn(userLimit.Dims, checkDims) {
+			lims = append(lims, userLimit)
 		}
 	}
-	for _, checkLim := range c.provider.DefaultLimits {
-		if checkLim.MeterName == meterName && dimsContainedIn(checkLim.Dims, checkDims) {
-			lims = append(lims, checkLim)
+	for _, defaultLimit := range c.provider.DefaultLimits {
+		if defaultLimit.MeterName == meterName && dimsContainedIn(defaultLimit.Dims, checkDims) {
+			lims = append(lims, defaultLimit)
 		}
 	}
 	return lims

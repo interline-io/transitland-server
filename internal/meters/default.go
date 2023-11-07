@@ -77,7 +77,7 @@ func (m *DefaultMeterProvider) getValue(u MeterUser, meterName string, startTime
 			// fmt.Println("not matched on start time", userEvent.time, startTime)
 			match = false
 		}
-		if !dimsContainedIn(userEvent.dims, checkDims) {
+		if !dimsContainedIn(checkDims, userEvent.dims) {
 			// fmt.Println("not matched on dims")
 			match = false
 		}
