@@ -126,6 +126,9 @@ func (m *Amberflo) getValue(user MeterUser, meterName string, startTime time.Tim
 		log.Error().Err(err).Str("user", user.ID()).Msg("could not get value")
 		return 0, false
 	}
+	// jj, _ := json.Marshal(&usageResult)
+	// fmt.Println("usageResult:", string(jj))
+
 	if usageResult == nil || len(usageResult.ClientMeters) == 0 || len(usageResult.ClientMeters[0].Values) == 0 {
 		log.Error().Err(err).Str("user", user.ID()).Msg("could not get value; no client value meter")
 		return 0, false
