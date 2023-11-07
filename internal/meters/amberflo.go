@@ -79,7 +79,6 @@ func (m *Amberflo) Flush() error {
 }
 
 func (m *Amberflo) getValue(user MeterUser, meterName string, startTime time.Time, endTime time.Time, checkDims Dimensions) (float64, bool) {
-	// TODO: time period and aggregation is hardcoded as 1 day
 	cfg, ok := m.getcfg(meterName)
 	if !ok {
 		return 0, false
