@@ -1,4 +1,4 @@
-package admincache
+package dbfinder
 
 import (
 	"context"
@@ -48,7 +48,7 @@ func getTestCases() []testCase {
 
 func TestAdminCache(t *testing.T) {
 	dbx := testutil.MustOpenTestDB()
-	c := NewAdminCache()
+	c := newAdminCache()
 	c.LoadAdmins(context.Background(), dbx)
 	tcs := getTestCases()
 	for _, tc := range tcs {
@@ -84,7 +84,7 @@ func TestAdminCache(t *testing.T) {
 
 func BenchmarkTestAdminCache(b *testing.B) {
 	dbx := testutil.MustOpenTestDB()
-	c := NewAdminCache()
+	c := newAdminCache()
 	c.LoadAdmins(context.Background(), dbx)
 	b.ResetTimer()
 	tcs := getTestCases()
@@ -101,7 +101,7 @@ func BenchmarkTestAdminCache(b *testing.B) {
 
 func BenchmarkTestAdminCache_LoadAdmins(b *testing.B) {
 	dbx := testutil.MustOpenTestDB()
-	c := NewAdminCache()
+	c := newAdminCache()
 	for n := 0; n < b.N; n++ {
 		if err := c.LoadAdmins(context.Background(), dbx); err != nil {
 			b.Fatal(err)
