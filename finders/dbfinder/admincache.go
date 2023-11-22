@@ -1,4 +1,4 @@
-package admincache
+package dbfinder
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/tidwall/rtree"
 )
 
-type AdminItem struct {
+type adminCacheItem struct {
 	Adm0Name string
 	Adm1Name string
 	Adm0Iso  string
@@ -23,19 +23,19 @@ type AdminItem struct {
 	Geometry *geom.Polygon
 }
 
-type AdminCache struct {
+type adminCache struct {
 	lock  sync.Mutex
-	index rtree.Generic[*AdminItem]
-	cache map[xy.Point]*AdminItem
+	index rtree.Generic[*adminCacheItem]
+	cache map[xy.Point]*adminCacheItem
 }
 
-func NewAdminCache() *AdminCache {
-	return &AdminCache{
-		cache: map[xy.Point]*AdminItem{},
+func newAdminCache() *adminCache {
+	return &adminCache{
+		cache: map[xy.Point]*adminCacheItem{},
 	}
 }
 
-func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
+func (c *adminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	var ents []struct {
@@ -62,7 +62,7 @@ func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 			continue
 		}
 		for i := 0; i < g.NumPolygons(); i++ {
-			item := AdminItem{
+			item := adminCacheItem{
 				Adm0Name: ent.Adm0Name.Val,
 				Adm1Name: ent.Adm1Name.Val,
 				Adm0Iso:  ent.Adm0Iso.Val,
@@ -78,7 +78,7 @@ func (c *AdminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 	return nil
 }
 
-func (c *AdminCache) Check(pt xy.Point) (AdminItem, bool) {
+func (c *adminCache) Check(pt xy.Point) (adminCacheItem, bool) {
 	ret, count := c.CheckPolygon(pt)
 	if count >= 1 {
 		return ret, count == 1
@@ -89,18 +89,18 @@ func (c *AdminCache) Check(pt xy.Point) (AdminItem, bool) {
 	return nearestAdmin, count >= 1
 }
 
-func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
+func (c *adminCache) CheckPolygon(p xy.Point) (adminCacheItem, int) {
 	// Checking just the index can be much faster, but can be invalid in open water, e.g. 0,0 = Kiribati
 	// However, in practice, most land area on Earth falls into more than 1 admin bbox
 	// No, we are not being fancy with projections.
 	// That could be improved.
-	ret := AdminItem{}
+	ret := adminCacheItem{}
 	gp := geom.NewPointFlat(geom.XY, []float64{p.Lon, p.Lat})
 	count := 0
 	c.index.Search(
 		[2]float64{p.Lon, p.Lat},
 		[2]float64{p.Lon, p.Lat},
-		func(min, max [2]float64, s *AdminItem) bool {
+		func(min, max [2]float64, s *adminCacheItem) bool {
 			if pointInPolygon(s.Geometry, gp) {
 				ret.Adm0Name = s.Adm0Name
 				ret.Adm1Name = s.Adm1Name
@@ -114,15 +114,15 @@ func (c *AdminCache) CheckPolygon(p xy.Point) (AdminItem, int) {
 	return ret, count
 }
 
-func (c *AdminCache) NearestPolygon(p xy.Point, tolerance float64) (AdminItem, float64, int) {
-	ret := AdminItem{}
+func (c *adminCache) NearestPolygon(p xy.Point, tolerance float64) (adminCacheItem, float64, int) {
+	ret := adminCacheItem{}
 	minDist := -1.0
 	gp := geom.NewPointFlat(geom.XY, []float64{p.Lon, p.Lat})
 	count := 0
 	c.index.Search(
 		[2]float64{p.Lon - tolerance, p.Lat - tolerance},
 		[2]float64{p.Lon + tolerance, p.Lat + tolerance},
-		func(min, max [2]float64, s *AdminItem) bool {
+		func(min, max [2]float64, s *adminCacheItem) bool {
 			d := pointPolygonDistance(s.Geometry, gp)
 			if d < tolerance && (d < minDist || minDist < 0) {
 				ret.Adm0Name = s.Adm0Name

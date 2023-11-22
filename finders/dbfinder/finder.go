@@ -11,7 +11,6 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/auth/authz"
-	"github.com/interline-io/transitland-server/internal/admincache"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/xy"
@@ -24,7 +23,7 @@ import (
 type Finder struct {
 	Clock        clock.Clock
 	db           sqlx.Ext
-	adminCache   *admincache.AdminCache
+	adminCache   *adminCache
 	authzChecker model.Checker
 }
 
@@ -38,7 +37,7 @@ func (f *Finder) DBX() sqlx.Ext {
 
 func (f *Finder) LoadAdmins() error {
 	log.Trace().Msg("loading admins")
-	adminCache := admincache.NewAdminCache()
+	adminCache := newAdminCache()
 	if err := adminCache.LoadAdmins(context.Background(), f.db); err != nil {
 		return err
 	}
@@ -1668,7 +1667,7 @@ func (f *Finder) StopPlacesByStopID(ctx context.Context, params []model.StopPlac
 		}
 	}
 
-	// Lookup stop places using AdminCache
+	// Lookup stop places using adminCache
 	a := map[int]*model.StopPlace{}
 	for _, param := range params {
 		if admin, ok := f.adminCache.Check(param.Point); ok {

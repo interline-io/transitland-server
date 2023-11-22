@@ -1,4 +1,4 @@
-package fvsl
+package gql
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-type FVSLWindow struct {
+type fvslWindow struct {
 	FetchedAt time.Time
 	StartDate time.Time
 	EndDate   time.Time
@@ -17,20 +17,20 @@ type FVSLWindow struct {
 	Valid     bool
 }
 
-type FVSLCache struct {
+type fvslCache struct {
 	Finder    model.Finder
 	lock      sync.Mutex
-	fvWindows map[int]FVSLWindow
+	fvWindows map[int]fvslWindow
 }
 
-func NewFVSLCache(f model.Finder) *FVSLCache {
-	return &FVSLCache{
+func newFvslCache(f model.Finder) *fvslCache {
+	return &fvslCache{
 		Finder:    f,
-		fvWindows: map[int]FVSLWindow{},
+		fvWindows: map[int]fvslWindow{},
 	}
 }
 
-func (f *FVSLCache) Get(fvid int) (FVSLWindow, bool) {
+func (f *fvslCache) Get(fvid int) (fvslWindow, bool) {
 	f.lock.Lock()
 	a, ok := f.fvWindows[fvid]
 	f.lock.Unlock()
@@ -45,15 +45,15 @@ func (f *FVSLCache) Get(fvid int) (FVSLWindow, bool) {
 	return a, a.Valid
 }
 
-func (f *FVSLCache) Set(fvid int, w FVSLWindow) {
+func (f *fvslCache) Set(fvid int, w fvslWindow) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	f.fvWindows[fvid] = w
 }
 
-func (f *FVSLCache) query(fvid int) (FVSLWindow, error) {
+func (f *fvslCache) query(fvid int) (fvslWindow, error) {
 	var err error
-	w := FVSLWindow{}
+	w := fvslWindow{}
 	w.StartDate, w.EndDate, w.BestWeek, err = f.Finder.FindFeedVersionServiceWindow(context.TODO(), fvid)
 	log.Trace().
 		Str("start_date", w.StartDate.Format("2006-01-02")).
