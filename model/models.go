@@ -283,21 +283,24 @@ type ValidationRealtimeResult struct {
 	Json map[string]any `json:"json"`
 }
 
-type ValidationResultError struct {
-	Filename  string `json:"filename"`
-	ErrorType string `json:"error_type"`
-	EntityID  string `json:"entity_id"`
-	Field     string `json:"field"`
-	Value     string `json:"value"`
-	Message   string `json:"message"`
-}
-
 type ValidationResultErrorGroup struct {
 	Filename  string                   `json:"filename"`
 	ErrorType string                   `json:"error_type"`
 	Count     int                      `json:"count"`
 	Limit     int                      `json:"limit"`
+	Code      int                      `json:"code"`
 	Errors    []*ValidationResultError `json:"errors"`
+}
+
+type ValidationResultError struct {
+	Filename   string         `json:"filename"`
+	ErrorType  string         `json:"error_type"`
+	EntityID   string         `json:"entity_id"`
+	Field      string         `json:"field"`
+	Value      string         `json:"value"`
+	Message    string         `json:"message"`
+	Code       *int           `json:"code"`
+	Geometries []*tt.Geometry `json:"geometries"`
 }
 
 ///////////////////// Fetch

@@ -60,8 +60,6 @@ type ResolverRoot interface {
 	StopExternalReference() StopExternalReferenceResolver
 	StopTime() StopTimeResolver
 	Trip() TripResolver
-	ValidationResultError() ValidationResultErrorResolver
-	ValidationResultErrorGroup() ValidationResultErrorGroupResolver
 }
 
 type DirectiveRoot struct {
@@ -1153,13 +1151,6 @@ type TripResolver interface {
 	ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error)
 	Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error)
 	Alerts(ctx context.Context, obj *model.Trip, active *bool, limit *int) ([]*model.Alert, error)
-}
-type ValidationResultErrorResolver interface {
-	Code(ctx context.Context, obj *model.ValidationResultError) (*int, error)
-	Geometries(ctx context.Context, obj *model.ValidationResultError) ([]*tt.Geometry, error)
-}
-type ValidationResultErrorGroupResolver interface {
-	Code(ctx context.Context, obj *model.ValidationResultErrorGroup) (*int, error)
 }
 
 type executableSchema struct {
@@ -41586,7 +41577,7 @@ func (ec *executionContext) _ValidationResultError_code(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidationResultError().Code(rctx, obj)
+		return obj.Code, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41604,8 +41595,8 @@ func (ec *executionContext) fieldContext_ValidationResultError_code(ctx context.
 	fc = &graphql.FieldContext{
 		Object:     "ValidationResultError",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
 		},
@@ -41627,7 +41618,7 @@ func (ec *executionContext) _ValidationResultError_geometries(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidationResultError().Geometries(rctx, obj)
+		return obj.Geometries, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41645,8 +41636,8 @@ func (ec *executionContext) fieldContext_ValidationResultError_geometries(ctx co
 	fc = &graphql.FieldContext{
 		Object:     "ValidationResultError",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Geometry does not have child fields")
 		},
@@ -41844,7 +41835,7 @@ func (ec *executionContext) _ValidationResultErrorGroup_code(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidationResultErrorGroup().Code(rctx, obj)
+		return obj.Code, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41853,17 +41844,17 @@ func (ec *executionContext) _ValidationResultErrorGroup_code(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationResultErrorGroup_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ValidationResultErrorGroup",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
 		},
@@ -52465,77 +52456,51 @@ func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.
 			out.Values[i] = ec._ValidationResultError_filename(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "error_type":
 
 			out.Values[i] = ec._ValidationResultError_error_type(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "entity_id":
 
 			out.Values[i] = ec._ValidationResultError_entity_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "field":
 
 			out.Values[i] = ec._ValidationResultError_field(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "value":
 
 			out.Values[i] = ec._ValidationResultError_value(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "message":
 
 			out.Values[i] = ec._ValidationResultError_message(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "code":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ValidationResultError_code(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._ValidationResultError_code(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "geometries":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ValidationResultError_geometries(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._ValidationResultError_geometries(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -52562,52 +52527,39 @@ func (ec *executionContext) _ValidationResultErrorGroup(ctx context.Context, sel
 			out.Values[i] = ec._ValidationResultErrorGroup_filename(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "error_type":
 
 			out.Values[i] = ec._ValidationResultErrorGroup_error_type(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "count":
 
 			out.Values[i] = ec._ValidationResultErrorGroup_count(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "limit":
 
 			out.Values[i] = ec._ValidationResultErrorGroup_limit(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "code":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ValidationResultErrorGroup_code(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._ValidationResultErrorGroup_code(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "errors":
 
 			out.Values[i] = ec._ValidationResultErrorGroup_errors(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -57060,7 +57012,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -57068,7 +57020,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
