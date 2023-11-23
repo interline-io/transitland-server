@@ -749,6 +749,7 @@ type ValidationResultErrorGroup {
   error_type: String!
   count: Int!
   limit: Int!
+  code: Int
   errors: [ValidationResultError!]!
 }
 
@@ -759,6 +760,8 @@ type ValidationResultError {
   field: String!
   value: String!
   message: String!
+  code: Int
+  geometries: [Geometry!]
 }
 
 type FeedVersionFetchResult {
