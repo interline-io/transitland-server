@@ -128,18 +128,17 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 				ErrorType: eg.ErrorType,
 				ErrorCode: eg.ErrorCode,
 			}
-			if v, ok := err.(hasGeometries); ok {
-				for _, g := range v.Geometries() {
-					g := g
-					err2.Geometries = append(err2.Geometries, &g)
-				}
-			}
-
 			if v, ok := err.(hasContext); ok {
 				c := v.Context()
 				err2.EntityID = c.EntityID
 				err2.ErrorCode = c.Code
 				err2.Field = c.Field
+			}
+			if v, ok := err.(hasGeometries); ok {
+				for _, g := range v.Geometries() {
+					g := g
+					err2.Geometries = append(err2.Geometries, &g)
+				}
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
 		}
@@ -170,6 +169,12 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 				c := v.Context()
 				err2.EntityID = c.EntityID
 				err2.Field = c.Field
+			}
+			if v, ok := err.(hasGeometries); ok {
+				for _, g := range v.Geometries() {
+					g := g
+					err2.Geometries = append(err2.Geometries, &g)
+				}
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
 		}
