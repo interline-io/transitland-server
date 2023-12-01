@@ -950,8 +950,8 @@ type ComplexityRoot struct {
 	}
 
 	ValidationResultError struct {
-		Code       func(childComplexity int) int
 		EntityID   func(childComplexity int) int
+		ErrorCode  func(childComplexity int) int
 		ErrorType  func(childComplexity int) int
 		Field      func(childComplexity int) int
 		Filename   func(childComplexity int) int
@@ -961,12 +961,14 @@ type ComplexityRoot struct {
 	}
 
 	ValidationResultErrorGroup struct {
-		Code      func(childComplexity int) int
 		Count     func(childComplexity int) int
+		ErrorCode func(childComplexity int) int
 		ErrorType func(childComplexity int) int
 		Errors    func(childComplexity int) int
+		Field     func(childComplexity int) int
 		Filename  func(childComplexity int) int
 		Limit     func(childComplexity int) int
+		Message   func(childComplexity int) int
 	}
 
 	VehiclePosition struct {
@@ -5935,19 +5937,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationResult.Warnings(childComplexity), true
 
-	case "ValidationResultError.code":
-		if e.complexity.ValidationResultError.Code == nil {
-			break
-		}
-
-		return e.complexity.ValidationResultError.Code(childComplexity), true
-
 	case "ValidationResultError.entity_id":
 		if e.complexity.ValidationResultError.EntityID == nil {
 			break
 		}
 
 		return e.complexity.ValidationResultError.EntityID(childComplexity), true
+
+	case "ValidationResultError.error_code":
+		if e.complexity.ValidationResultError.ErrorCode == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultError.ErrorCode(childComplexity), true
 
 	case "ValidationResultError.error_type":
 		if e.complexity.ValidationResultError.ErrorType == nil {
@@ -5991,19 +5993,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationResultError.Value(childComplexity), true
 
-	case "ValidationResultErrorGroup.code":
-		if e.complexity.ValidationResultErrorGroup.Code == nil {
-			break
-		}
-
-		return e.complexity.ValidationResultErrorGroup.Code(childComplexity), true
-
 	case "ValidationResultErrorGroup.count":
 		if e.complexity.ValidationResultErrorGroup.Count == nil {
 			break
 		}
 
 		return e.complexity.ValidationResultErrorGroup.Count(childComplexity), true
+
+	case "ValidationResultErrorGroup.error_code":
+		if e.complexity.ValidationResultErrorGroup.ErrorCode == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultErrorGroup.ErrorCode(childComplexity), true
 
 	case "ValidationResultErrorGroup.error_type":
 		if e.complexity.ValidationResultErrorGroup.ErrorType == nil {
@@ -6019,6 +6021,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationResultErrorGroup.Errors(childComplexity), true
 
+	case "ValidationResultErrorGroup.field":
+		if e.complexity.ValidationResultErrorGroup.Field == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultErrorGroup.Field(childComplexity), true
+
 	case "ValidationResultErrorGroup.filename":
 		if e.complexity.ValidationResultErrorGroup.Filename == nil {
 			break
@@ -6032,6 +6041,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ValidationResultErrorGroup.Limit(childComplexity), true
+
+	case "ValidationResultErrorGroup.message":
+		if e.complexity.ValidationResultErrorGroup.Message == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultErrorGroup.Message(childComplexity), true
 
 	case "VehiclePosition.congestion_level":
 		if e.complexity.VehiclePosition.CongestionLevel == nil {
@@ -7561,20 +7577,22 @@ type ValidationRealtimeResult {
 type ValidationResultErrorGroup {
   filename: String!
   error_type: String!
+  error_code: String!
+  message: String!
+  field: String!
   count: Int!
   limit: Int!
-  code: Int
   errors: [ValidationResultError!]!
 }
 
 type ValidationResultError {
   filename: String!
   error_type: String!
+  error_code: String!
   entity_id: String!
   field: String!
   value: String!
   message: String!
-  code: Int
   geometries: [Geometry!]
 }
 
@@ -40498,12 +40516,16 @@ func (ec *executionContext) fieldContext_ValidationResult_errors(ctx context.Con
 				return ec.fieldContext_ValidationResultErrorGroup_filename(ctx, field)
 			case "error_type":
 				return ec.fieldContext_ValidationResultErrorGroup_error_type(ctx, field)
+			case "error_code":
+				return ec.fieldContext_ValidationResultErrorGroup_error_code(ctx, field)
+			case "message":
+				return ec.fieldContext_ValidationResultErrorGroup_message(ctx, field)
+			case "field":
+				return ec.fieldContext_ValidationResultErrorGroup_field(ctx, field)
 			case "count":
 				return ec.fieldContext_ValidationResultErrorGroup_count(ctx, field)
 			case "limit":
 				return ec.fieldContext_ValidationResultErrorGroup_limit(ctx, field)
-			case "code":
-				return ec.fieldContext_ValidationResultErrorGroup_code(ctx, field)
 			case "errors":
 				return ec.fieldContext_ValidationResultErrorGroup_errors(ctx, field)
 			}
@@ -40556,12 +40578,16 @@ func (ec *executionContext) fieldContext_ValidationResult_warnings(ctx context.C
 				return ec.fieldContext_ValidationResultErrorGroup_filename(ctx, field)
 			case "error_type":
 				return ec.fieldContext_ValidationResultErrorGroup_error_type(ctx, field)
+			case "error_code":
+				return ec.fieldContext_ValidationResultErrorGroup_error_code(ctx, field)
+			case "message":
+				return ec.fieldContext_ValidationResultErrorGroup_message(ctx, field)
+			case "field":
+				return ec.fieldContext_ValidationResultErrorGroup_field(ctx, field)
 			case "count":
 				return ec.fieldContext_ValidationResultErrorGroup_count(ctx, field)
 			case "limit":
 				return ec.fieldContext_ValidationResultErrorGroup_limit(ctx, field)
-			case "code":
-				return ec.fieldContext_ValidationResultErrorGroup_code(ctx, field)
 			case "errors":
 				return ec.fieldContext_ValidationResultErrorGroup_errors(ctx, field)
 			}
@@ -41387,6 +41413,50 @@ func (ec *executionContext) fieldContext_ValidationResultError_error_type(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationResultError_error_code(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultError_error_code(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationResultError_error_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationResultError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationResultError_entity_id(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationResultError_entity_id(ctx, field)
 	if err != nil {
@@ -41563,47 +41633,6 @@ func (ec *executionContext) fieldContext_ValidationResultError_message(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResultError_code(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResultError_code(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Code, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ValidationResultError_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ValidationResultError",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ValidationResultError_geometries(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationResultError_geometries(ctx, field)
 	if err != nil {
@@ -41733,6 +41762,138 @@ func (ec *executionContext) fieldContext_ValidationResultErrorGroup_error_type(c
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationResultErrorGroup_error_code(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultErrorGroup_error_code(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationResultErrorGroup_error_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationResultErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationResultErrorGroup_message(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultErrorGroup_message(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationResultErrorGroup_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationResultErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationResultErrorGroup_field(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultErrorGroup_field(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Field, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationResultErrorGroup_field(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationResultErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationResultErrorGroup_count(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultErrorGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationResultErrorGroup_count(ctx, field)
 	if err != nil {
@@ -41821,47 +41982,6 @@ func (ec *executionContext) fieldContext_ValidationResultErrorGroup_limit(ctx co
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResultErrorGroup_code(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultErrorGroup) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResultErrorGroup_code(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Code, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ValidationResultErrorGroup_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ValidationResultErrorGroup",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ValidationResultErrorGroup_errors(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultErrorGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationResultErrorGroup_errors(ctx, field)
 	if err != nil {
@@ -41905,6 +42025,8 @@ func (ec *executionContext) fieldContext_ValidationResultErrorGroup_errors(ctx c
 				return ec.fieldContext_ValidationResultError_filename(ctx, field)
 			case "error_type":
 				return ec.fieldContext_ValidationResultError_error_type(ctx, field)
+			case "error_code":
+				return ec.fieldContext_ValidationResultError_error_code(ctx, field)
 			case "entity_id":
 				return ec.fieldContext_ValidationResultError_entity_id(ctx, field)
 			case "field":
@@ -41913,8 +42035,6 @@ func (ec *executionContext) fieldContext_ValidationResultErrorGroup_errors(ctx c
 				return ec.fieldContext_ValidationResultError_value(ctx, field)
 			case "message":
 				return ec.fieldContext_ValidationResultError_message(ctx, field)
-			case "code":
-				return ec.fieldContext_ValidationResultError_code(ctx, field)
 			case "geometries":
 				return ec.fieldContext_ValidationResultError_geometries(ctx, field)
 			}
@@ -52465,6 +52585,13 @@ func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "error_code":
+
+			out.Values[i] = ec._ValidationResultError_error_code(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "entity_id":
 
 			out.Values[i] = ec._ValidationResultError_entity_id(ctx, field, obj)
@@ -52493,10 +52620,6 @@ func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "code":
-
-			out.Values[i] = ec._ValidationResultError_code(ctx, field, obj)
-
 		case "geometries":
 
 			out.Values[i] = ec._ValidationResultError_geometries(ctx, field, obj)
@@ -52536,6 +52659,27 @@ func (ec *executionContext) _ValidationResultErrorGroup(ctx context.Context, sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "error_code":
+
+			out.Values[i] = ec._ValidationResultErrorGroup_error_code(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "message":
+
+			out.Values[i] = ec._ValidationResultErrorGroup_message(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "field":
+
+			out.Values[i] = ec._ValidationResultErrorGroup_field(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "count":
 
 			out.Values[i] = ec._ValidationResultErrorGroup_count(ctx, field, obj)
@@ -52550,10 +52694,6 @@ func (ec *executionContext) _ValidationResultErrorGroup(ctx context.Context, sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "code":
-
-			out.Values[i] = ec._ValidationResultErrorGroup_code(ctx, field, obj)
-
 		case "errors":
 
 			out.Values[i] = ec._ValidationResultErrorGroup_errors(ctx, field, obj)

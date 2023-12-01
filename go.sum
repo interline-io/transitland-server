@@ -264,8 +264,10 @@ github.com/iancoleman/orderedmap v0.2.0 h1:sq1N/TFpYH++aViPcaKjys3bDClUEU7s5B+z6
 github.com/iancoleman/orderedmap v0.2.0/go.mod h1:N0Wam8K1arqPXNWjMo21EXnBPOPp36vB07FNRdD2geA=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231122224424-d95957e76b4e h1:y24HWm0yVrlwE9a8oM+vKLDDW5F/zco/lFB+qX9Fx3I=
-github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231122224424-d95957e76b4e/go.mod h1:UcfuCX6DyKt/yn5GECFn3jQ6NcZEjt5XyPjf8a3tXZ4=
+github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231130233906-2adb3bfd1d44 h1:kRFPzcrs2SihxsTu+hOVTCRIICw6p+A2HlR9LzvXX6w=
+github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231130233906-2adb3bfd1d44/go.mod h1:UcfuCX6DyKt/yn5GECFn3jQ6NcZEjt5XyPjf8a3tXZ4=
+github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231201022717-a7acfe4abe4b h1:2O4SNVGuxBCQDwxC1oyiJSTWmfLytQJwO9ZokE1n5Yg=
+github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231201022717-a7acfe4abe4b/go.mod h1:UcfuCX6DyKt/yn5GECFn3jQ6NcZEjt5XyPjf8a3tXZ4=
 github.com/jarcoal/httpmock v1.3.0 h1:2RJ8GP0IIaWwcC9Fp2BmVi8Kog3v2Hn7VXM3fTd+nuc=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 h1:IPJ3dvxmJ4uczJe5YQdrYB16oTJlGSC/OyZDqUk9xX4=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=

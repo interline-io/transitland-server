@@ -747,20 +747,22 @@ type ValidationRealtimeResult {
 type ValidationResultErrorGroup {
   filename: String!
   error_type: String!
+  error_code: String!
+  message: String!
+  field: String!
   count: Int!
   limit: Int!
-  code: Int
   errors: [ValidationResultError!]!
 }
 
 type ValidationResultError {
   filename: String!
   error_type: String!
+  error_code: String!
   entity_id: String!
   field: String!
   value: String!
   message: String!
-  code: Int
   geometries: [Geometry!]
 }
 
