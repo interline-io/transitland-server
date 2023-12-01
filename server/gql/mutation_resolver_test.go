@@ -4,14 +4,20 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/auth/ancheck"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestFeedVersionFetchResolver(t *testing.T) {
@@ -52,15 +58,31 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 }
 
 func TestValidateGtfsResolver(t *testing.T) {
-	expectFile := testutil.RelPath("test/data/external/caltrain.zip")
+	baseDir := testutil.RelPath("test/data")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		buf, err := ioutil.ReadFile(expectFile)
+		p := r.URL.Path
+		buf, err := os.ReadFile(filepath.Join(baseDir, p))
 		if err != nil {
-			t.Error(err)
+			http.Error(w, "not found", 404)
+			return
+		}
+		// If RT json, convert to RT PB
+		if strings.HasSuffix(p, ".json") {
+			var msg pb.FeedMessage
+			if err := protojson.Unmarshal(buf, &msg); err != nil {
+				panic(err)
+			}
+			rtdata, err := proto.Marshal(&msg)
+			if err != nil {
+				panic(err)
+			}
+			buf = rtdata
 		}
 		w.Write(buf)
 	}))
-	vars := hw{"url": ts200.URL}
+	vars := hw{
+		"url": ts200.URL + "/external/caltrain.zip",
+	}
 	testcases := []testcase{
 		{
 			name:   "basic",
@@ -123,6 +145,37 @@ func TestValidateGtfsResolver(t *testing.T) {
 			vars:         vars,
 			selector:     "validate_gtfs.service_levels.#.thursday",
 			selectExpect: []string{"485220", "485220", "485220", "485220", "155940", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "485220", "490680", "485220", "485220", "485220", "485220"}, // todo: better checking...
+		},
+		// RT tests
+		{
+			name:  "rt1",
+			query: `mutation($url:String!, $realtime_urls:[String!]) {validate_gtfs(url:$url,realtime_urls:$realtime_urls){success errors{filename error_code field}}}`,
+			vars: hw{
+				"url":           ts200.URL + "/external/caltrain.zip",
+				"realtime_urls": []string{ts200.URL + "/rt/CT-missing-trip.json"},
+			},
+			selector:     "validate_gtfs.errors.0.error_code",
+			selectExpect: []string{"E003"},
+		},
+		{
+			name:  "rt2",
+			query: `mutation($url:String!, $realtime_urls:[String!]) {validate_gtfs(url:$url,realtime_urls:$realtime_urls){success errors{filename errors{filename field error_code message}}}}`,
+			vars: hw{
+				"url":           ts200.URL + "/external/caltrain.zip",
+				"realtime_urls": []string{ts200.URL + "/rt/CT-missing-trip.json"},
+			},
+			selector:     "validate_gtfs.errors.0.errors.0.error_code",
+			selectExpect: []string{"E003"},
+		},
+		{
+			name:  "rt-bad-vp",
+			query: `mutation($url:String!, $realtime_urls:[String!]) {validate_gtfs(url:$url,realtime_urls:$realtime_urls){success errors{filename errors{filename field error_code message geometries}}}}`,
+			vars: hw{
+				"url":           ts200.URL + "/external/caltrain.zip",
+				"realtime_urls": []string{ts200.URL + "/rt/CT-bad-vp.json"},
+			},
+			selector:     "validate_gtfs.errors.0.errors.0.geometries.#.type",
+			selectExpect: []string{"Point", "LineString"},
 		},
 	}
 	for _, tc := range testcases {

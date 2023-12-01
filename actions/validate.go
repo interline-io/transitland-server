@@ -9,12 +9,17 @@ import (
 
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/causes"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlcsv"
 	"github.com/interline-io/transitland-lib/validator"
 	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 )
+
+type hasGeometries interface {
+	Geometries() []tt.Geometry
+}
 
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
 func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedURL *string, rturls []string, user authn.User) (*model.ValidationResult, error) {
@@ -109,19 +114,31 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		}
 		eg2 := model.ValidationResultErrorGroup{
 			Filename:  eg.Filename,
+			Field:     eg.Field,
+			ErrorCode: eg.ErrorCode,
 			ErrorType: eg.ErrorType,
+			Message:   eg.Message,
 			Count:     eg.Count,
 			Limit:     eg.Limit,
 		}
 		for _, err := range eg.Errors {
 			err2 := model.ValidationResultError{
-				Filename: eg.Filename,
-				Message:  err.Error(),
+				Filename:  eg.Filename,
+				Message:   err.Error(),
+				ErrorType: eg.ErrorType,
+				ErrorCode: eg.ErrorCode,
 			}
 			if v, ok := err.(hasContext); ok {
 				c := v.Context()
 				err2.EntityID = c.EntityID
+				err2.ErrorCode = c.Code
 				err2.Field = c.Field
+			}
+			if v, ok := err.(hasGeometries); ok {
+				for _, g := range v.Geometries() {
+					g := g
+					err2.Geometries = append(err2.Geometries, &g)
+				}
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
 		}
@@ -133,19 +150,31 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		}
 		eg2 := model.ValidationResultErrorGroup{
 			Filename:  eg.Filename,
+			Field:     eg.Field,
+			ErrorCode: eg.ErrorCode,
 			ErrorType: eg.ErrorType,
+			Message:   eg.Message,
 			Count:     eg.Count,
 			Limit:     eg.Limit,
 		}
+
 		for _, err := range eg.Errors {
 			err2 := model.ValidationResultError{
-				Filename: eg.Filename,
-				Message:  err.Error(),
+				Filename:  eg.Filename,
+				Message:   err.Error(),
+				ErrorType: eg.ErrorType,
+				ErrorCode: eg.ErrorCode,
 			}
 			if v, ok := err.(hasContext); ok {
 				c := v.Context()
 				err2.EntityID = c.EntityID
 				err2.Field = c.Field
+			}
+			if v, ok := err.(hasGeometries); ok {
+				for _, g := range v.Geometries() {
+					g := g
+					err2.Geometries = append(err2.Geometries, &g)
+				}
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
 		}
