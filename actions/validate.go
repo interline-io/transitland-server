@@ -2,10 +2,12 @@ package actions
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/causes"
@@ -84,6 +86,7 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		IncludeEntities:          true,
 		IncludeRealtimeJson:      true,
 		IncludeEntitiesLimit:     10_000,
+		EvaluateAt:               time.Date(2018, 1, 18, 16, 0, 0, 0, time.UTC),
 		MaxRTMessageSize:         10_000_000,
 		ValidateRealtimeMessages: rturls,
 	}
@@ -199,10 +202,18 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		result.Stops = append(result.Stops, model.Stop{Stop: v})
 	}
 	for _, v := range r.Realtime {
+		fmt.Printf("RT: %#v\n", v)
 		result.Realtime = append(result.Realtime, model.ValidationRealtimeResult{
 			Url:  v.Url,
 			Json: v.Json,
 		})
+		for _, rs := range v.VehiclePositionStats {
+			_ = rs
+		}
+		for _, rs := range v.TripUpdateStats {
+			fmt.Printf("RS: %#v\n", rs)
+			_ = rs
+		}
 	}
 	return &result, nil
 }
