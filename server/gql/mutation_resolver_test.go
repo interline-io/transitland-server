@@ -6,18 +6,14 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/auth/ancheck"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
 
 func TestFeedVersionFetchResolver(t *testing.T) {
@@ -65,18 +61,6 @@ func TestValidateGtfsResolver(t *testing.T) {
 		if err != nil {
 			http.Error(w, "not found", 404)
 			return
-		}
-		// If RT json, convert to RT PB
-		if strings.HasSuffix(p, ".json") {
-			var msg pb.FeedMessage
-			if err := protojson.Unmarshal(buf, &msg); err != nil {
-				panic(err)
-			}
-			rtdata, err := proto.Marshal(&msg)
-			if err != nil {
-				panic(err)
-			}
-			buf = rtdata
 		}
 		w.Write(buf)
 	}))
