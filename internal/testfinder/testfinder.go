@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-server/auth/authz"
 	"github.com/interline-io/transitland-server/auth/azcheck"
 	"github.com/interline-io/transitland-server/config"
@@ -19,7 +18,6 @@ import (
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -60,15 +58,24 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 	// Setup RT
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = opts.Clock
-
-	// Setup GBFS
-	gbf := gbfsfinder.NewFinder(nil)
 	for _, rtj := range opts.RTJsons {
 		fn := testutil.RelPath("test", "data", "rt", rtj.Fname)
-		if err := FetchRTJson(rtj.Feed, rtj.Ftype, fn, rtf); err != nil {
+		msg, err := rt.ReadFile(fn)
+		if err != nil {
+			t.Fatal(err)
+		}
+		key := fmt.Sprintf("rtdata:%s:%s", rtj.Feed, rtj.Ftype)
+		rtdata, err := proto.Marshal(msg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := rtf.AddData(key, rtdata); err != nil {
 			t.Fatal(err)
 		}
 	}
+
+	// Setup GBFS
+	gbf := gbfsfinder.NewFinder(nil)
 
 	return model.Finders{
 		Config:     cfg,
@@ -126,23 +133,4 @@ func DefaultRTJson() []RTJsonFile {
 		{"BA", "realtime_alerts", "BA-alerts.json"},
 		{"CT", "realtime_trip_updates", "CT.json"},
 	}
-}
-
-// FetchRTJson fetches test protobuf in JSON format
-// URL is relative to project root
-func FetchRTJson(feed string, ftype string, url string, rtfinder model.RTFinder) error {
-	var msg pb.FeedMessage
-	jdata, err := ioutil.ReadFile(url)
-	if err != nil {
-		return err
-	}
-	if err := protojson.Unmarshal(jdata, &msg); err != nil {
-		return err
-	}
-	rtdata, err := proto.Marshal(&msg)
-	if err != nil {
-		return err
-	}
-	key := fmt.Sprintf("rtdata:%s:%s", feed, ftype)
-	return rtfinder.AddData(key, rtdata)
 }
