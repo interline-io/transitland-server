@@ -29,9 +29,9 @@ import (
 	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/jobs"
-	"github.com/interline-io/transitland-server/internal/meters"
-	"github.com/interline-io/transitland-server/internal/metrics"
 	"github.com/interline-io/transitland-server/internal/playground"
+	"github.com/interline-io/transitland-server/meters"
+	"github.com/interline-io/transitland-server/metrics"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/rest"
@@ -238,7 +238,7 @@ func (cmd *Command) Run() error {
 	meterProvider = meters.NewDefaultMeterProvider()
 	if cmd.metersConfig.EnableMetering {
 		if cmd.metersConfig.MeteringProvider == "amberflo" {
-			a := meters.NewAmberflo(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
+			a := meters.NewAmberfloMeterProvider(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
 			if cmd.metersConfig.MeteringAmberfloConfig != "" {
 				if err := a.LoadConfig(cmd.metersConfig.MeteringAmberfloConfig); err != nil {
 					return err
@@ -249,7 +249,7 @@ func (cmd *Command) Run() error {
 		if cmd.EnableRateLimits {
 			mp := meters.NewLimitMeterProvider(meterProvider)
 			mp.Enabled = true
-			// mp.DefaultLimits = append(mp.DefaultLimits, meters.UserMeterLimit{Limit: 10, Period: "monthly", MeterName: "rest"})
+			// mp.DefaultLimits = append(mp.DefaultLimits, meters.userMeterLimit{Limit: 10, Period: "monthly", MeterName: "rest"})
 			meterProvider = mp
 		}
 		defer meterProvider.Close()
