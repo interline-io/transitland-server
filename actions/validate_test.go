@@ -28,7 +28,7 @@ func TestValidateUpload(t *testing.T) {
 	testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 		url := ts200.URL + "/external/caltrain.zip"
 		rtUrls := []string{ts200.URL + "/rt/CT.json"}
-		vr, err := ValidateUpload(context.Background(), te.Config, nil, &url, rtUrls, nil)
+		vr, err := ValidateUpload(context.Background(), te.Config, te.Finder, nil, &url, rtUrls, nil)
 		if err != nil {
 			t.Fatal(err)
 		}

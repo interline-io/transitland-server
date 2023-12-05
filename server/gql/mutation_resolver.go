@@ -21,7 +21,7 @@ func (r *mutationResolver) ValidateGtfs(ctx context.Context, file *graphql.Uploa
 	if file != nil {
 		src = file.File
 	}
-	return actions.ValidateUpload(ctx, r.cfg, src, url, rturls, authn.ForContext(ctx))
+	return actions.ValidateUpload(ctx, r.cfg, r.finder, src, url, rturls, authn.ForContext(ctx))
 }
 
 func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.Upload, url *string, feedId string) (*model.FeedVersionFetchResult, error) {

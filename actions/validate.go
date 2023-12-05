@@ -23,8 +23,24 @@ type hasGeometries interface {
 	Geometries() []tt.Geometry
 }
 
+type ValidationReport struct {
+	tl.BaseEntity
+	ReportedAt tt.Time
+}
+
+func (e *ValidationReport) TableName() string {
+	return "tl_validation_reports"
+}
+
+type ValidationReportTripUpdateStat struct {
+	ValidationReportID int
+	RouteID            string
+	TripScheduledCount int
+	TripMatchCount     int
+}
+
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
-func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedURL *string, rturls []string, user authn.User) (*model.ValidationResult, error) {
+func ValidateUpload(ctx context.Context, cfg config.Config, dbf model.Finder, src io.Reader, feedURL *string, rturls []string, user authn.User) (*model.ValidationResult, error) {
 	// Check inputs
 	rturlsok := []string{}
 	for _, rturl := range rturls {
@@ -104,6 +120,16 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		result.FailureReason = "Could not validate file"
 		return &result, nil
 	}
+
+	// validationReport := ValidationReport{}
+	// validationReport.FeedVersionID = 1
+	// validationReport.ReportedAt = tt.NewTime(time.Now())
+	// db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+	// if eid, err := db.Insert(&validationReport); err != nil {
+	// 	panic(err)
+	// } else {
+	// 	fmt.Println("eid:", eid)
+	// }
 
 	// Some mapping is necessary because most gql models have some extra fields not in the base tl models.
 	result.Success = r.Success
@@ -202,7 +228,6 @@ func ValidateUpload(ctx context.Context, cfg config.Config, src io.Reader, feedU
 		result.Stops = append(result.Stops, model.Stop{Stop: v})
 	}
 	for _, v := range r.Realtime {
-		fmt.Printf("RT: %#v\n", v)
 		result.Realtime = append(result.Realtime, model.ValidationRealtimeResult{
 			Url:  v.Url,
 			Json: v.Json,
