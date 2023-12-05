@@ -16,3 +16,17 @@ type MetricProvider interface {
 	NewJobMetric(queue string) JobMetric
 	MetricsHandler() http.Handler
 }
+
+type Config struct {
+	EnableMetrics   bool
+	MetricsProvider string
+}
+
+func GetProvider(cfg Config) (MetricProvider, error) {
+	var metricProvider MetricProvider
+	metricProvider = NewDefaultMetric()
+	if cfg.MetricsProvider == "prometheus" {
+		metricProvider = NewPromMetrics()
+	}
+	return metricProvider, nil
+}

@@ -12,7 +12,7 @@ import (
 	"github.com/xtgo/uuid"
 )
 
-type Amberflo struct {
+type AmberfloMeterProvider struct {
 	apikey      string
 	interval    time.Duration
 	client      *metering.Metering
@@ -20,7 +20,7 @@ type Amberflo struct {
 	cfgs        map[string]amberFloConfig
 }
 
-func NewAmberflo(apikey string, interval time.Duration, batchSize int) *Amberflo {
+func NewAmberfloMeterProvider(apikey string, interval time.Duration, batchSize int) *AmberfloMeterProvider {
 	afLog := &amberfloLogger{logger: log.Logger}
 	meteringClient := metering.NewMeteringClient(
 		apikey,
@@ -32,7 +32,7 @@ func NewAmberflo(apikey string, interval time.Duration, batchSize int) *Amberflo
 		apikey,
 		metering.WithCustomLogger(afLog),
 	)
-	return &Amberflo{
+	return &AmberfloMeterProvider{
 		apikey:      apikey,
 		interval:    interval,
 		client:      meteringClient,
@@ -48,7 +48,7 @@ type amberFloConfig struct {
 	Dimensions    Dimensions `json:"dimensions,omitempty"`
 }
 
-func (m *Amberflo) LoadConfig(path string) error {
+func (m *AmberfloMeterProvider) LoadConfig(path string) error {
 	cfgs := map[string]amberFloConfig{}
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -61,24 +61,24 @@ func (m *Amberflo) LoadConfig(path string) error {
 	return nil
 }
 
-func (m *Amberflo) NewMeter(user MeterUser) ApiMeter {
+func (m *AmberfloMeterProvider) NewMeter(user MeterUser) ApiMeter {
 	return &amberFloMeter{
 		user: user,
 		mp:   m,
 	}
 }
 
-func (m *Amberflo) Close() error {
+func (m *AmberfloMeterProvider) Close() error {
 	return m.client.Shutdown()
 }
 
-func (m *Amberflo) Flush() error {
+func (m *AmberfloMeterProvider) Flush() error {
 	// metering.Flush() // in API docs but not in library
 	time.Sleep(m.interval)
 	return nil
 }
 
-func (m *Amberflo) getValue(user MeterUser, meterName string, startTime time.Time, endTime time.Time, checkDims Dimensions) (float64, bool) {
+func (m *AmberfloMeterProvider) getValue(user MeterUser, meterName string, startTime time.Time, endTime time.Time, checkDims Dimensions) (float64, bool) {
 	cfg, ok := m.getcfg(meterName)
 	if !ok {
 		return 0, false
@@ -138,7 +138,7 @@ func (m *Amberflo) getValue(user MeterUser, meterName string, startTime time.Tim
 	return total, true
 }
 
-func (m *Amberflo) sendMeter(user MeterUser, meterName string, value float64, extraDimensions Dimensions) error {
+func (m *AmberfloMeterProvider) sendMeter(user MeterUser, meterName string, value float64, extraDimensions Dimensions) error {
 	cfg, ok := m.getcfg(meterName)
 	if !ok {
 		return nil
@@ -167,7 +167,7 @@ func (m *Amberflo) sendMeter(user MeterUser, meterName string, value float64, ex
 	})
 }
 
-func (m *Amberflo) getCustomerID(cfg amberFloConfig, user MeterUser) (string, bool) {
+func (m *AmberfloMeterProvider) getCustomerID(cfg amberFloConfig, user MeterUser) (string, bool) {
 	customerId := cfg.DefaultUser
 	if user != nil {
 		eidKey := cfg.ExternalIDKey
@@ -184,7 +184,7 @@ func (m *Amberflo) getCustomerID(cfg amberFloConfig, user MeterUser) (string, bo
 	return customerId, customerId != ""
 }
 
-func (m *Amberflo) getcfg(meterName string) (amberFloConfig, bool) {
+func (m *AmberfloMeterProvider) getcfg(meterName string) (amberFloConfig, bool) {
 	cfg, ok := m.cfgs[meterName]
 	if !ok {
 		cfg = amberFloConfig{
@@ -203,7 +203,7 @@ func (m *Amberflo) getcfg(meterName string) (amberFloConfig, bool) {
 type amberFloMeter struct {
 	user    MeterUser
 	addDims []eventAddDim
-	mp      *Amberflo
+	mp      *AmberfloMeterProvider
 }
 
 func (m *amberFloMeter) Meter(meterName string, value float64, extraDimensions Dimensions) error {
