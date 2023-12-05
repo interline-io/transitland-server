@@ -15,7 +15,7 @@ func init() {
 
 type LimitMeterProvider struct {
 	Enabled       bool
-	DefaultLimits []userMeterLimit
+	DefaultLimits []UserMeterLimit
 	MeterProvider
 }
 
@@ -42,9 +42,9 @@ type LimitMeter struct {
 	ApiMeter
 }
 
-func (c *LimitMeter) GetLimits(meterName string, checkDims Dimensions) []userMeterLimit {
+func (c *LimitMeter) GetLimits(meterName string, checkDims Dimensions) []UserMeterLimit {
 	// The limit matches the event dimensions if all of the LIMIT dimensions are contained in event
-	var lims []userMeterLimit
+	var lims []UserMeterLimit
 	for _, userLimit := range parseGkUserLimits(c.userData) {
 		if userLimit.MeterName == meterName && dimsContainedIn(userLimit.Dims, checkDims) {
 			lims = append(lims, userLimit)
@@ -74,7 +74,7 @@ func (c *LimitMeter) Meter(meterName string, value float64, extraDimensions Dime
 	return c.ApiMeter.Meter(meterName, value, extraDimensions)
 }
 
-type userMeterLimit struct {
+type UserMeterLimit struct {
 	User      string
 	MeterName string
 	Dims      Dimensions
@@ -82,7 +82,7 @@ type userMeterLimit struct {
 	Limit     float64
 }
 
-func (lim *userMeterLimit) Span() (time.Time, time.Time) {
+func (lim *UserMeterLimit) Span() (time.Time, time.Time) {
 	now := time.Now().In(time.UTC)
 	d1 := now
 	d2 := now
@@ -107,11 +107,11 @@ func (lim *userMeterLimit) Span() (time.Time, time.Time) {
 	return d1, d2
 }
 
-func parseGkUserLimits(v string) []userMeterLimit {
-	var lims []userMeterLimit
+func parseGkUserLimits(v string) []UserMeterLimit {
+	var lims []UserMeterLimit
 	for _, productLimit := range gjson.Get(v, "product_limits").Map() {
 		for _, plim := range productLimit.Array() {
-			lim := userMeterLimit{
+			lim := UserMeterLimit{
 				MeterName: plim.Get("amberflo_meter").String(),
 				Limit:     plim.Get("limit_value").Float(),
 				Period:    plim.Get("time_period").String(),

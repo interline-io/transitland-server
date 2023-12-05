@@ -98,7 +98,7 @@ func GetProvider(cfg Config) (MeterProvider, error) {
 	if cfg.EnableRateLimits {
 		mp := NewLimitMeterProvider(meterProvider)
 		mp.Enabled = true
-		// mp.DefaultLimits = append(mp.DefaultLimits, meters.userMeterLimit{Limit: 10, Period: "monthly", MeterName: "rest"})
+		// mp.DefaultLimits = append(mp.DefaultLimits, meters.UserMeterLimit{Limit: 10, Period: "monthly", MeterName: "rest"})
 		meterProvider = mp
 	}
 	return meterProvider, nil
