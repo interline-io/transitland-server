@@ -17,7 +17,7 @@ import (
 )
 
 // log request and duration
-func loggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
+func LoggingMiddleware(longQueryDuration int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
