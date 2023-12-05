@@ -18,7 +18,7 @@ func TestAmberfloMeter(t *testing.T) {
 	testMeter(t, mp, testConfig)
 }
 
-func getTestAmberfloMeter() (*Amberflo, testMeterConfig, error) {
+func getTestAmberfloMeter() (*AmberfloMeterProvider, testMeterConfig, error) {
 	checkKeys := []string{
 		"TL_TEST_AMBERFLO_APIKEY",
 		"TL_TEST_AMBERFLO_METER1",
@@ -50,7 +50,7 @@ func getTestAmberfloMeter() (*Amberflo, testMeterConfig, error) {
 			data: map[string]string{eidKey: os.Getenv("TL_TEST_AMBERFLO_USER3")},
 		},
 	}
-	mp := NewAmberflo(os.Getenv("TL_TEST_AMBERFLO_APIKEY"), 1*time.Second, 1)
+	mp := NewAmberfloMeterProvider(os.Getenv("TL_TEST_AMBERFLO_APIKEY"), 1*time.Second, 1)
 	mp.cfgs[testConfig.testMeter1] = amberFloConfig{Name: testConfig.testMeter1, ExternalIDKey: eidKey}
 	mp.cfgs[testConfig.testMeter2] = amberFloConfig{Name: testConfig.testMeter2, ExternalIDKey: eidKey}
 	return mp, testConfig, nil

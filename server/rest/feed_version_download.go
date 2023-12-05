@@ -11,8 +11,8 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr/store"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/request"
-	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/util"
+	"github.com/interline-io/transitland-server/meters"
 	"github.com/tidwall/gjson"
 )
 

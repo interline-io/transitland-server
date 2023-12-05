@@ -29,9 +29,9 @@ import (
 	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/jobs"
-	"github.com/interline-io/transitland-server/internal/meters"
-	"github.com/interline-io/transitland-server/internal/metrics"
 	"github.com/interline-io/transitland-server/internal/playground"
+	"github.com/interline-io/transitland-server/meters"
+	"github.com/interline-io/transitland-server/metrics"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/rest"
@@ -56,22 +56,11 @@ type Command struct {
 	QueuePrefix       string
 	SecretsFile       string
 	AuthMiddlewares   arrayFlags
-	metersConfig      metersConfig
-	metricsConfig     metricsConfig
+	metersConfig      meters.Config
+	metricsConfig     metrics.Config
 	AuthConfig        ancheck.AuthConfig
 	CheckerConfig     azcheck.CheckerConfig
 	config.Config
-}
-
-type metricsConfig struct {
-	EnableMetrics   bool
-	MetricsProvider string
-}
-
-type metersConfig struct {
-	EnableMetering         bool
-	MeteringProvider       string
-	MeteringAmberfloConfig string
 }
 
 func (cmd *Command) Parse(args []string) error {
@@ -80,17 +69,29 @@ func (cmd *Command) Parse(args []string) error {
 		log.Print("Usage: server")
 		fl.PrintDefaults()
 	}
+
+	// Base config
 	fl.StringVar(&cmd.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
 	fl.StringVar(&cmd.RedisURL, "redisurl", "", "Redis URL (default: $TL_REDIS_URL)")
-	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
-	fl.IntVar(&cmd.LongQueryDuration, "long-query", 1000, "Log queries over this duration (ms)")
-	fl.StringVar(&cmd.Port, "port", "8080", "")
 	fl.StringVar(&cmd.Storage, "storage", "", "Static storage backend")
 	fl.StringVar(&cmd.RTStorage, "rt-storage", "", "RT storage backend")
-	fl.StringVar(&cmd.SecretsFile, "secrets", "", "DMFR file containing secrets")
 	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
-	fl.StringVar(&cmd.QueuePrefix, "queue", "", "Job name prefix")
+	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
+	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
 
+	// Server config
+	fl.StringVar(&cmd.Port, "port", "8080", "")
+	fl.StringVar(&cmd.SecretsFile, "secrets", "", "DMFR file containing secrets")
+	fl.StringVar(&cmd.QueuePrefix, "queue", "", "Job name prefix")
+	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
+	fl.IntVar(&cmd.LongQueryDuration, "long-query", 1000, "Log queries over this duration (ms)")
+	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
+	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
+	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
+	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
+	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
+
+	// Auth config
 	fl.Var(&cmd.AuthMiddlewares, "auth", "Add one or more auth middlewares")
 	fl.StringVar(&cmd.AuthConfig.DefaultUsername, "default-username", "", "Default user name (for --auth=admin)")
 	fl.StringVar(&cmd.AuthConfig.JwtAudience, "jwt-audience", "", "JWT Audience (use with -auth=jwt)")
@@ -103,14 +104,6 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.AuthConfig.GatekeeperParam, "gatekeeper-param", "", "Gatekeeper param (use with -auth=gatekeeper)")
 	fl.BoolVar(&cmd.AuthConfig.GatekeeperAllowError, "gatekeeper-allow-error", false, "Gatekeeper ignore errors (use with -auth=gatekeeper)")
 	fl.StringVar(&cmd.AuthConfig.UserHeader, "user-header", "", "Header to check for username (use with -auth=header)")
-
-	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
-	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
-	fl.BoolVar(&cmd.DisableGraphql, "disable-graphql", false, "Disable GraphQL endpoint")
-	fl.BoolVar(&cmd.DisableRest, "disable-rest", false, "Disable REST endpoint")
-	fl.BoolVar(&cmd.EnablePlayground, "enable-playground", false, "Enable GraphQL playground")
-	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
-	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
 
 	// Admin api
 	fl.StringVar(&cmd.CheckerConfig.GlobalAdmin, "global-admin", "", "Global admin user")
@@ -129,9 +122,9 @@ func (cmd *Command) Parse(args []string) error {
 
 	// Metering
 	// fl.BoolVar(&cmd.EnableMetering, "enable-metering", false, "Enable metering")
+	fl.BoolVar(&cmd.EnableRateLimits, "enable-rate-limits", false, "Enable rate limits")
 	fl.StringVar(&cmd.metersConfig.MeteringProvider, "metering-provider", "", "Use metering provider")
 	fl.StringVar(&cmd.metersConfig.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for Amberflo metering")
-	fl.BoolVar(&cmd.EnableRateLimits, "enable-rate-limits", false, "Enable rate limits")
 
 	// Jobs
 	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
@@ -225,34 +218,15 @@ func (cmd *Command) Run() error {
 	}
 
 	// Setup metrics
-	var metricProvider metrics.MetricProvider
-	metricProvider = metrics.NewDefaultMetric()
-	if cmd.metricsConfig.EnableMetrics {
-		if cmd.metricsConfig.MetricsProvider == "prometheus" {
-			metricProvider = metrics.NewPromMetrics()
-		}
+	metricProvider, err := metrics.GetProvider(cmd.metricsConfig)
+	if err != nil {
+		return err
 	}
 
 	// Setup metering
-	var meterProvider meters.MeterProvider
-	meterProvider = meters.NewDefaultMeterProvider()
-	if cmd.metersConfig.EnableMetering {
-		if cmd.metersConfig.MeteringProvider == "amberflo" {
-			a := meters.NewAmberflo(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
-			if cmd.metersConfig.MeteringAmberfloConfig != "" {
-				if err := a.LoadConfig(cmd.metersConfig.MeteringAmberfloConfig); err != nil {
-					return err
-				}
-			}
-			meterProvider = a
-		}
-		if cmd.EnableRateLimits {
-			mp := meters.NewLimitMeterProvider(meterProvider)
-			mp.Enabled = true
-			// mp.DefaultLimits = append(mp.DefaultLimits, meters.UserMeterLimit{Limit: 10, Period: "monthly", MeterName: "rest"})
-			meterProvider = mp
-		}
-		defer meterProvider.Close()
+	meterProvider, err := meters.GetProvider(cmd.metersConfig)
+	if err != nil {
+		return err
 	}
 
 	// Setup router
@@ -261,6 +235,12 @@ func (cmd *Command) Run() error {
 	root.Use(middleware.RealIP)
 	root.Use(middleware.Recoverer)
 	root.Use(middleware.StripSlashes)
+	root.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
+		AllowCredentials: true,
+	}))
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
@@ -272,15 +252,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// Add logging middleware - must be after auth
-	root.Use(loggingMiddleware(cmd.LongQueryDuration))
-
-	// Setup CORS
-	root.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
-		AllowCredentials: true,
-	}))
+	root.Use(LoggingMiddleware(cmd.LongQueryDuration))
 
 	// Profiling
 	if cmd.EnableProfiler {

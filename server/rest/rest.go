@@ -17,8 +17,8 @@ import (
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-server/auth/ancheck"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/internal/meters"
 	"github.com/interline-io/transitland-server/internal/util"
+	"github.com/interline-io/transitland-server/meters"
 	"github.com/interline-io/transitland-server/model"
 )
 

@@ -3,6 +3,7 @@ package meters
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/interline-io/transitland-server/auth/authn"
@@ -34,8 +35,11 @@ func WithMeter(apiMeter MeterProvider, meterName string, meterValue float64, dim
 			ctx := r.Context()
 			ctxMeter := apiMeter.NewMeter(authn.ForContext(ctx))
 			r = r.WithContext(context.WithValue(ctx, meterCtxKey, ctxMeter))
+			if err := ctxMeter.Meter(meterName, meterValue, dims); err != nil {
+				http.Error(w, "429", http.StatusTooManyRequests)
+				return
+			}
 			next.ServeHTTP(w, r)
-			ctxMeter.Meter(meterName, meterValue, dims)
 		})
 	}
 }
@@ -71,4 +75,34 @@ func dimsContainedIn(checkDims Dimensions, eventDims Dimensions) bool {
 		}
 	}
 	return true
+}
+
+//////
+
+type Config struct {
+	EnableMetering         bool
+	EnableRateLimits       bool
+	MeteringProvider       string
+	MeteringAmberfloConfig string
+}
+
+func GetProvider(cfg Config) (MeterProvider, error) {
+	var meterProvider MeterProvider
+	meterProvider = NewDefaultMeterProvider()
+	if cfg.MeteringProvider == "amberflo" {
+		a := NewAmberfloMeterProvider(os.Getenv("AMBERFLO_APIKEY"), 30*time.Second, 100)
+		if cfg.MeteringAmberfloConfig != "" {
+			if err := a.LoadConfig(cfg.MeteringAmberfloConfig); err != nil {
+				return nil, err
+			}
+		}
+		meterProvider = a
+	}
+	if cfg.EnableRateLimits {
+		mp := NewLimitMeterProvider(meterProvider)
+		mp.Enabled = true
+		// mp.DefaultLimits = append(mp.DefaultLimits, meters.UserMeterLimit{Limit: 10, Period: "monthly", MeterName: "rest"})
+		meterProvider = mp
+	}
+	return meterProvider, nil
 }
