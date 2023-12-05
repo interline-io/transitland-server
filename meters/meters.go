@@ -35,8 +35,11 @@ func WithMeter(apiMeter MeterProvider, meterName string, meterValue float64, dim
 			ctx := r.Context()
 			ctxMeter := apiMeter.NewMeter(authn.ForContext(ctx))
 			r = r.WithContext(context.WithValue(ctx, meterCtxKey, ctxMeter))
+			if err := ctxMeter.Meter(meterName, meterValue, dims); err != nil {
+				http.Error(w, "429", http.StatusTooManyRequests)
+				return
+			}
 			next.ServeHTTP(w, r)
-			ctxMeter.Meter(meterName, meterValue, dims)
 		})
 	}
 }
