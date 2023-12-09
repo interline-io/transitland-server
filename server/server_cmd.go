@@ -6,12 +6,14 @@ import (
 	"flag"
 	"fmt"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	"net/http"
 	"net/http/pprof"
+	"net/url"
 	"os"
 
 	"github.com/go-chi/chi/middleware"
@@ -23,6 +25,7 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/azcheck"
+	"github.com/interline-io/transitland-mw/lmw"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-mw/metrics"
 	"github.com/interline-io/transitland-server/config"
@@ -252,7 +255,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// Add logging middleware - must be after auth
-	root.Use(LoggingMiddleware(cmd.LongQueryDuration))
+	root.Use(lmw.LoggingMiddleware(cmd.LongQueryDuration))
 
 	// Profiling
 	if cmd.EnableProfiler {
@@ -390,4 +393,29 @@ func (i *arrayFlags) String() string {
 func (i *arrayFlags) Set(value string) error {
 	*i = append(*i, value)
 	return nil
+}
+
+func getRedisOpts(v string) (*redis.Options, error) {
+	a, err := url.Parse(v)
+	if err != nil {
+		return nil, err
+	}
+	if a.Scheme != "redis" {
+		return nil, errors.New("redis URL must begin with redis://")
+	}
+	port := a.Port()
+	if port == "" {
+		port = "6379"
+	}
+	addr := fmt.Sprintf("%s:%s", a.Hostname(), port)
+	dbNo := 0
+	if len(a.Path) > 0 {
+		var err error
+		f := a.Path[1:len(a.Path)]
+		dbNo, err = strconv.Atoi(f)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &redis.Options{Addr: addr, DB: dbNo}, nil
 }
