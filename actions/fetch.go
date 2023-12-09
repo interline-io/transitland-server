@@ -25,7 +25,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user authn.User, checker model.Checker) (*model.FeedVersionFetchResult, error) {
+func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, checker model.Checker) (*model.FeedVersionFetchResult, error) {
 	urlType := "static_current"
 	feed, err := fetchCheckFeed(ctx, dbf, checker, feedId, urlType, feedUrl)
 	if err != nil {
@@ -45,7 +45,8 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 		FetchedAt:     time.Now().In(time.UTC),
 		AllowFTPFetch: true,
 	}
-	if user != nil {
+
+	if user := authn.ForContext(ctx); user != nil {
 		fetchOpts.CreatedBy = tt.NewString(user.ID())
 	}
 
