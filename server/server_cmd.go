@@ -21,8 +21,10 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-server/auth/ancheck"
-	"github.com/interline-io/transitland-server/auth/azcheck"
+	"github.com/interline-io/transitland-mw/auth/ancheck"
+	"github.com/interline-io/transitland-mw/auth/azcheck"
+	"github.com/interline-io/transitland-mw/meters"
+	"github.com/interline-io/transitland-mw/metrics"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
@@ -30,8 +32,6 @@ import (
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/playground"
-	"github.com/interline-io/transitland-server/meters"
-	"github.com/interline-io/transitland-server/metrics"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/rest"
@@ -326,7 +326,7 @@ func (cmd *Command) Run() error {
 			Config:     cfg,
 		}
 		// Add metrics
-		jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
+		// jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
 		if cmd.EnableWorkers {
 			log.Infof("Enabling job workers")
 			jobQueue.AddWorker("default", workers.GetWorker, jobOptions, jobWorkers)

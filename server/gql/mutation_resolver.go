@@ -7,8 +7,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 
+	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/actions"
-	"github.com/interline-io/transitland-server/auth/authn"
 	"github.com/interline-io/transitland-server/model"
 )
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
 	"github.com/interline-io/transitland-server/model"

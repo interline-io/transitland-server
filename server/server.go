@@ -13,7 +13,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/log"
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/authn"
 )
 
 // log request and duration

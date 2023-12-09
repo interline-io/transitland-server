@@ -12,7 +12,7 @@ import (
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlcsv"
 	"github.com/interline-io/transitland-lib/validator"
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 )

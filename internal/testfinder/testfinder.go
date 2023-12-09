@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-lib/rt"
-	"github.com/interline-io/transitland-server/auth/authz"
-	"github.com/interline-io/transitland-server/auth/azcheck"
+	"github.com/interline-io/transitland-mw/auth/authz"
+	"github.com/interline-io/transitland-mw/auth/azcheck"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
