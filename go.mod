@@ -18,6 +18,7 @@ require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
+	github.com/interline-io/log v0.0.0-20231211003339-8bdc406adcd2
 	github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231202005632-a9ea742322f7
 	github.com/interline-io/transitland-mw v0.0.0-20231209020231-3660286a28cd
 	github.com/jellydator/ttlcache/v2 v2.11.1
@@ -79,7 +80,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.1 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/interline-io/log v0.0.0-20231211003339-8bdc406adcd2 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jlaffaye/ftp v0.1.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
