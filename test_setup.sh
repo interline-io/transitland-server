@@ -15,3 +15,4 @@ tlserver import -dburl="$TL_TEST_SERVER_DATABASE_URL" -storage="$TL_TEST_STORAGE
 tlserver sync -dburl="$TL_TEST_SERVER_DATABASE_URL" test/data/server/server-test.dmfr.json
 # supplemental data
 psql -f test_supplement.pgsql
+
