@@ -79,6 +79,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.1 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
+	github.com/interline-io/log v0.0.0-20231211003339-8bdc406adcd2 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jlaffaye/ftp v0.1.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect

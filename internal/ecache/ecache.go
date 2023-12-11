@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 )
 
 type Item[T any] struct {

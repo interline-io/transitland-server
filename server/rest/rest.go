@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/config"

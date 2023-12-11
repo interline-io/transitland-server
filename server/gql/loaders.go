@@ -7,7 +7,7 @@ import (
 	"time"
 
 	dataloader "github.com/graph-gophers/dataloader/v7"
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 )
 
 type jlog struct {

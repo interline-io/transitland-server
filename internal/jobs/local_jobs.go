@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 )
 
 var jobCounter = uint64(0)
