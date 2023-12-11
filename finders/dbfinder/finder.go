@@ -7,10 +7,10 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-server/auth/authz"
+	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/xy"

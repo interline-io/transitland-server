@@ -11,7 +11,7 @@ import (
 	workers "github.com/digitalocean/go-workers2"
 	"github.com/go-redis/redis/v8"
 
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 )
 
 // RedisJobs is a simple wrapper around go-workers

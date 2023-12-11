@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-server/model"
 )
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/interline-io/transitland-server/auth/authz"
-	"github.com/interline-io/transitland-server/meters"
+	"github.com/interline-io/transitland-mw/auth/authz"
+	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/model"
 )
 

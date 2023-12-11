@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/jmoiron/sqlx"
 )

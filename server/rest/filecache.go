@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/hypirion/go-filecache"
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 )
 
 // local file cache

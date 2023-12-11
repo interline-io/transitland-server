@@ -4,11 +4,11 @@ import (
 	"flag"
 	"os"
 
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
 	"github.com/interline-io/transitland-lib/dmfr/importer"
 	"github.com/interline-io/transitland-lib/dmfr/sync"
 	"github.com/interline-io/transitland-lib/dmfr/unimporter"
-	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/server"
 )

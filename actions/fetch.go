@@ -11,13 +11,13 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/dmfr/fetch"
-	"github.com/interline-io/transitland-lib/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-server/auth/authn"
-	"github.com/interline-io/transitland-server/auth/authz"
+	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/model"
@@ -25,7 +25,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, user authn.User, checker model.Checker) (*model.FeedVersionFetchResult, error) {
+func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, checker model.Checker) (*model.FeedVersionFetchResult, error) {
 	urlType := "static_current"
 	feed, err := fetchCheckFeed(ctx, dbf, checker, feedId, urlType, feedUrl)
 	if err != nil {
@@ -45,7 +45,8 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 		FetchedAt:     time.Now().In(time.UTC),
 		AllowFTPFetch: true,
 	}
-	if user != nil {
+
+	if user := authn.ForContext(ctx); user != nil {
 		fetchOpts.CreatedBy = tt.NewString(user.ID())
 	}
 

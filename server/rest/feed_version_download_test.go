@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-server/auth/ancheck"
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/ancheck"
+	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/internal/testutil"
 )
 

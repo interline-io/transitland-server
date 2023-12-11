@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/interline-io/transitland-server/auth/ancheck"
+	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"

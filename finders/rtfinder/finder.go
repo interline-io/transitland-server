@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
