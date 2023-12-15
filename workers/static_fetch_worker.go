@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/interline-io/transitland-server/actions"
-	"github.com/interline-io/transitland-server/internal/jobs"
+	"github.com/interline-io/transitland-server/jobs"
 )
 
 type StaticFetchWorker struct {

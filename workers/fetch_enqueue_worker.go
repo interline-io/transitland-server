@@ -6,7 +6,7 @@ import (
 
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-server/actions"
-	"github.com/interline-io/transitland-server/internal/jobs"
+	"github.com/interline-io/transitland-server/jobs"
 	"github.com/interline-io/transitland-server/model"
 )
 
