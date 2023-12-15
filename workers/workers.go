@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/internal/util"
+	"github.com/interline-io/transitland-server/jobs"
 )
 
 // GetWorker returns the correct worker type for this job.
