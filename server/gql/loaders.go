@@ -135,7 +135,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 	return loaders
 }
 
-func loaderMiddleware(frs model.Finders, next http.Handler) http.Handler {
+func loaderMiddleware(frs model.Config, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// This is per request scoped loaders/cache
 		// Is this OK to use as a long term cache?

@@ -162,8 +162,8 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
 
-	cfg := model.ForContext(r.Context())
-	serveFromStorage(w, r, cfg.Storage, fvsha1)
+	frs := model.ForContext(r.Context())
+	serveFromStorage(w, r, frs.Storage, fvsha1)
 }
 
 func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string) {

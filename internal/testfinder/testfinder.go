@@ -29,7 +29,7 @@ type TestFinderOptions struct {
 	FGAModelTuples []authz.TupleKey
 }
 
-func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders {
+func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Config {
 	if opts.Clock == nil {
 		opts.Clock = &clock.Real{}
 	}
@@ -71,7 +71,7 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 	// Setup GBFS
 	gbf := gbfsfinder.NewFinder(nil)
 
-	return model.Finders{
+	return model.Config{
 		Finder:     dbf,
 		RTFinder:   rtf,
 		GbfsFinder: gbf,
@@ -82,17 +82,17 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 	}
 }
 
-func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) model.Finders {
+func Finders(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile) model.Config {
 	db := testutil.MustOpenTestDB()
 	return newFinders(t, db, TestFinderOptions{Clock: cl, RTJsons: rtJsons})
 }
 
-func FindersWithOptions(t testing.TB, opts TestFinderOptions) model.Finders {
+func FindersWithOptions(t testing.TB, opts TestFinderOptions) model.Config {
 	db := testutil.MustOpenTestDB()
 	return newFinders(t, db, opts)
 }
 
-func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Finders) error) {
+func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Config) error) {
 	// Check open DB
 	db := testutil.MustOpenTestDB()
 	// Start Txn
@@ -110,8 +110,8 @@ func FindersTx(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model
 	}
 }
 
-func FindersTxRollback(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Finders)) {
-	FindersTx(t, cl, rtJsons, func(c model.Finders) error {
+func FindersTxRollback(t testing.TB, cl clock.Clock, rtJsons []RTJsonFile, cb func(model.Config)) {
+	FindersTx(t, cl, rtJsons, func(c model.Config) error {
 		cb(c)
 		return errors.New("rollback")
 	})

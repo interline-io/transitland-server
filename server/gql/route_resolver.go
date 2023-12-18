@@ -63,7 +63,7 @@ func (r *routeResolver) Headways(ctx context.Context, obj *model.Route, limit *i
 func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error) {
 	// TODO: remove n+1 (which is tricky, what if multiple radius specified in different parts of query)
 	p := model.RouteStopBufferParam{Radius: radius, EntityID: obj.ID}
-	ents, err := r.frs.Finder.RouteStopBuffer(ctx, &p)
+	ents, err := model.ForContext(ctx).Finder.RouteStopBuffer(ctx, &p)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, r
 }
 
 func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route, active *bool, limit *int) ([]*model.Alert, error) {
-	return r.frs.RTFinder.FindAlertsForRoute(obj, checkLimit(limit), active), nil
+	return model.ForContext(ctx).RTFinder.FindAlertsForRoute(obj, checkLimit(limit), active), nil
 }
 
 func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error) {
@@ -124,7 +124,7 @@ type routePatternResolver struct{ *Resolver }
 
 func (r *routePatternResolver) Trips(ctx context.Context, obj *model.RouteStopPattern, limit *int) ([]*model.Trip, error) {
 	// TODO: N+1 query
-	trips, err := r.frs.Finder.FindTrips(ctx, checkLimit(limit), nil, nil, &model.TripFilter{StopPatternID: &obj.StopPatternID, RouteIds: []int{obj.RouteID}})
+	trips, err := model.ForContext(ctx).Finder.FindTrips(ctx, checkLimit(limit), nil, nil, &model.TripFilter{StopPatternID: &obj.StopPatternID, RouteIds: []int{obj.RouteID}})
 	return trips, err
 }
 

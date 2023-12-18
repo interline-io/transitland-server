@@ -44,7 +44,7 @@ func (job *Job) HexKey() (string, error) {
 
 // JobOptions is configuration passed to worker.
 type JobOptions struct {
-	Finders  model.Finders
+	Finders  model.Config
 	JobQueue JobQueue
 	Logger   zerolog.Logger
 	Secrets  []tl.Secret

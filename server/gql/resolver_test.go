@@ -46,7 +46,7 @@ func TestMain(m *testing.M) {
 
 // Test helpers
 
-func newTestClient(t testing.TB) (*client.Client, model.Finders) {
+func newTestClient(t testing.TB) (*client.Client, model.Config) {
 	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
 	if err != nil {
 		t.Fatal(err)
@@ -54,7 +54,7 @@ func newTestClient(t testing.TB) (*client.Client, model.Finders) {
 	return newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
 }
 
-func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Finders) {
+func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Config) {
 	te := testfinder.Finders(t, cl, rtfiles)
 	srv, _ := NewServer(te)
 	srvMiddleware := ancheck.NewUserDefaultMiddleware(func() authn.User { return authn.NewCtxUser("testuser", "", "").WithRoles("testrole") })

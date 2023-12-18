@@ -2,60 +2,15 @@ package model
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
-	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/rs/zerolog"
 
 	"github.com/jmoiron/sqlx"
 )
-
-var finderCtxKey = &contextKey{"finderConfig"}
-
-type contextKey struct {
-	name string
-}
-
-func ForContext(ctx context.Context) Finders {
-	raw, ok := ctx.Value(finderCtxKey).(Finders)
-	if !ok {
-		return Finders{}
-	}
-	return raw
-}
-
-func WithFinders(ctx context.Context, fs Finders) context.Context {
-	r := context.WithValue(ctx, finderCtxKey, fs)
-	return r
-}
-
-func AddFinders(te Finders) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(WithFinders(r.Context(), te))
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-type Finders struct {
-	Finder             Finder
-	RTFinder           RTFinder
-	GbfsFinder         GbfsFinder
-	Checker            Checker
-	Clock              clock.Clock
-	Secrets            []tl.Secret
-	ValidateLargeFiles bool
-	Storage            string
-	RTStorage          string
-	Logger             zerolog.Logger
-}
 
 // Finder provides all necessary database methods
 type Finder interface {

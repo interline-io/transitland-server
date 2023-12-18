@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func testRestConfig(t testing.TB) (http.Handler, model.Finders) {
+func testRestConfig(t testing.TB) (http.Handler, model.Config) {
 	when, err := time.Parse("2006-01-02T15:04:05", "2018-06-01T00:00:00")
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +61,7 @@ type testRest struct {
 	f            func(*testing.T, string)
 }
 
-func testquery(t *testing.T, graphqlHandler http.Handler, te model.Finders, tc testRest) {
+func testquery(t *testing.T, graphqlHandler http.Handler, te model.Config, tc testRest) {
 	data, err := makeRequest(context.TODO(), Config{}, graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)

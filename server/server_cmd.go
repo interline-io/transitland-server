@@ -274,7 +274,7 @@ func (cmd *Command) Run() error {
 	}
 
 	// GraphQL API
-	te := model.Finders{
+	te := model.Config{
 		Finder:     dbFinder,
 		RTFinder:   rtFinder,
 		GbfsFinder: gbfsFinder,

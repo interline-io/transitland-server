@@ -53,7 +53,6 @@ func atoi(v string) int {
 
 // Resolver .
 type Resolver struct {
-	frs       model.Finders
 	fvslCache *fvslCache
 }
 

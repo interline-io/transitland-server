@@ -26,9 +26,9 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
+		testfinder.FindersTxRollback(t, nil, nil, func(te model.Config) {
 			srv, _ := NewServer(te)
-			srv = model.AddFinders(te)(srv)
+			srv = model.AddConfig(te)(srv)
 			srv = ancheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
 			// Run all requests as admin
 			c := client.New(srv)
@@ -165,7 +165,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
+			testfinder.FindersTxRollback(t, nil, nil, func(te model.Config) {
 				srv, _ := NewServer(te)
 				srv = ancheck.UserDefaultMiddleware("test")(srv) // Run all requests as user
 				c := client.New(srv)
@@ -174,7 +174,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
+		testfinder.FindersTxRollback(t, nil, nil, func(te model.Config) {
 			srv, _ := NewServer(te) // all requests run as anonymous context by default
 			c := client.New(srv)
 			resp := make(map[string]interface{})
