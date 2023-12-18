@@ -28,7 +28,6 @@ import (
 	"github.com/interline-io/transitland-mw/lmw"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-mw/metrics"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -63,7 +62,7 @@ type Command struct {
 	metricsConfig     metrics.Config
 	AuthConfig        ancheck.AuthConfig
 	CheckerConfig     azcheck.CheckerConfig
-	config.Config
+	model.Config
 }
 
 func (cmd *Command) Parse(args []string) error {
@@ -271,7 +270,14 @@ func (cmd *Command) Run() error {
 	}
 
 	// GraphQL API
-	graphqlServer, err := gql.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
+	te := model.Finders{
+		Config:     cfg,
+		Finder:     dbFinder,
+		RTFinder:   rtFinder,
+		GbfsFinder: gbfsFinder,
+		Checker:    checker,
+	}
+	graphqlServer, err := gql.NewServer(te)
 	if err != nil {
 		return err
 	}
@@ -321,12 +327,9 @@ func (cmd *Command) Run() error {
 		// Start workers/api
 		jobWorkers := 8
 		jobOptions := jobs.JobOptions{
-			Logger:     log.Logger,
-			JobQueue:   jobQueue,
-			Finder:     dbFinder,
-			RTFinder:   rtFinder,
-			GbfsFinder: gbfsFinder,
-			Config:     cfg,
+			Finders:  te,
+			Logger:   log.Logger,
+			JobQueue: jobQueue,
 		}
 		// Add metrics
 		// jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
@@ -340,7 +343,7 @@ func (cmd *Command) Run() error {
 		}
 		if cmd.EnableJobsApi {
 			log.Infof("Enabling job api")
-			jobServer, err := workers.NewServer(cfg, "", jobWorkers, jobOptions)
+			jobServer, err := workers.NewServer("", jobWorkers, jobOptions)
 			if err != nil {
 				return err
 			}

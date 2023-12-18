@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/testfinder"
 	"github.com/interline-io/transitland-server/internal/testutil"
@@ -36,14 +35,14 @@ func testRestConfig(t testing.TB) (http.Handler, model.Finders) {
 		t.Fatal(err)
 	}
 	te := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
-	srv, err := gql.NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
+	srv, err := gql.NewServer(te)
 	if err != nil {
 		panic(err)
 	}
 	return srv, te
 }
 
-func testRestServer(t testing.TB, cfg config.Config, srv http.Handler) (http.Handler, error) {
+func testRestServer(t testing.TB, cfg model.Config, srv http.Handler) (http.Handler, error) {
 	return NewServer(cfg, srv)
 }
 

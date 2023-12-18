@@ -20,9 +20,7 @@ func TestGbfsFetchWorker(t *testing.T) {
 
 	testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 		job := jobs.Job{}
-		job.Opts.Finder = te.Finder
-		job.Opts.RTFinder = te.RTFinder
-		job.Opts.GbfsFinder = te.GbfsFinder
+		job.Opts.Finders = te
 		w := GbfsFetchWorker{
 			Url:    ts.URL + "/gbfs.json",
 			FeedID: "test-gbfs",

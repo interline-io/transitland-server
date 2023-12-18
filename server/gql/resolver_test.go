@@ -56,7 +56,7 @@ func newTestClient(t testing.TB) (*client.Client, model.Finders) {
 
 func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Finders) {
 	te := testfinder.Finders(t, cl, rtfiles)
-	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
+	srv, _ := NewServer(te)
 	srvMiddleware := ancheck.NewUserDefaultMiddleware(func() authn.User { return authn.NewCtxUser("testuser", "", "").WithRoles("testrole") })
 	return client.New(srvMiddleware(srv)), te
 }

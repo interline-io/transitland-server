@@ -111,8 +111,9 @@ func TestStaticFetchWorker(t *testing.T) {
 			// Setup job
 			feedUrl := ts.URL + "/" + tc.serveFile
 			testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
+				ctx := model.WithFinders(context.Background(), te)
 				// Run job
-				if result, err := StaticFetch(context.Background(), te.Config, te.Finder, tc.feedId, nil, feedUrl, nil); err != nil && !tc.expectError {
+				if result, err := StaticFetch(ctx, tc.feedId, nil, feedUrl); err != nil && !tc.expectError {
 					_ = result
 					t.Fatal("unexpected error", err)
 				} else if err == nil && tc.expectError {

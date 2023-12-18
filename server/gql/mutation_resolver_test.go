@@ -27,7 +27,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 	}))
 	t.Run("found sha1", func(t *testing.T) {
 		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
-			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
+			srv, _ := NewServer(te)
 			srv = ancheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
 			// Run all requests as admin
 			c := client.New(srv)
@@ -165,7 +165,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
-				srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
+				srv, _ := NewServer(te)
 				srv = ancheck.UserDefaultMiddleware("test")(srv) // Run all requests as user
 				c := client.New(srv)
 				queryTestcase(t, c, tc)
@@ -174,7 +174,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 	}
 	t.Run("requires user access", func(t *testing.T) {
 		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
-			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil) // all requests run as anonymous context by default
+			srv, _ := NewServer(te) // all requests run as anonymous context by default
 			c := client.New(srv)
 			resp := make(map[string]interface{})
 			err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))

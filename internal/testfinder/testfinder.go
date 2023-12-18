@@ -10,7 +10,6 @@ import (
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/auth/azcheck"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -34,7 +33,7 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 	if opts.Clock == nil {
 		opts.Clock = &clock.Real{}
 	}
-	cfg := config.Config{
+	cfg := model.Config{
 		Clock:     opts.Clock,
 		Storage:   t.TempDir(),
 		RTStorage: t.TempDir(),

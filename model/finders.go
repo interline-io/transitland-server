@@ -5,20 +5,54 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-server/config"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/gbfs"
+	"github.com/rs/zerolog"
 
 	"github.com/jmoiron/sqlx"
 )
 
+var finderCtxKey = &contextKey{"finderConfig"}
+
+type contextKey struct {
+	name string
+}
+
+func ForContext(ctx context.Context) Finders {
+	raw, ok := ctx.Value(finderCtxKey).(Finders)
+	if !ok {
+		return Finders{}
+	}
+	return raw
+}
+
+func WithFinders(ctx context.Context, fs Finders) context.Context {
+	r := context.WithValue(ctx, finderCtxKey, fs)
+	return r
+}
+
+type Config struct {
+	Storage            string
+	RTStorage          string
+	ValidateLargeFiles bool
+	DisableImage       bool
+	RestPrefix         string
+	DBURL              string
+	RedisURL           string
+	Clock              clock.Clock
+	Secrets            []tl.Secret
+}
+
 type Finders struct {
-	Config     config.Config
+	Config     Config
 	Finder     Finder
 	RTFinder   RTFinder
 	GbfsFinder GbfsFinder
 	Checker    Checker
+	Logger     zerolog.Logger
 }
 
 // Finder provides all necessary database methods

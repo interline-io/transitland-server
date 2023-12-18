@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
 	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
@@ -54,7 +53,7 @@ func atoi(v string) int {
 
 // Resolver .
 type Resolver struct {
-	cfg          config.Config
+	cfg          model.Config
 	rtfinder     model.RTFinder
 	finder       model.Finder
 	gbfsFinder   model.GbfsFinder

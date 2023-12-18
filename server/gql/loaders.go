@@ -9,7 +9,6 @@ import (
 	dataloader "github.com/graph-gophers/dataloader/v7"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -136,7 +135,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 	return loaders
 }
 
-func loaderMiddleware(cfg config.Config, finder model.Finder, next http.Handler) http.Handler {
+func loaderMiddleware(cfg model.Config, finder model.Finder, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// This is per request scoped loaders/cache
 		// Is this OK to use as a long term cache?

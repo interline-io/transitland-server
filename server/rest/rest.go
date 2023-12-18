@@ -17,7 +17,6 @@ import (
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/meters"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -33,12 +32,12 @@ const MAXRADIUS = 100 * 1000.0
 
 // restConfig holds the base config and the graphql handler
 type restConfig struct {
-	config.Config
+	model.Config
 	srv http.Handler
 }
 
 // NewServer .
-func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
+func NewServer(cfg model.Config, srv http.Handler) (http.Handler, error) {
 	restcfg := restConfig{Config: cfg, srv: srv}
 	r := chi.NewRouter()
 

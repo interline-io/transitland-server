@@ -10,11 +10,14 @@ import (
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder, checker model.Checker, fvid int) (*model.FeedVersionImportResult, error) {
+func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
+	frs := model.ForContext(ctx)
+	checker := frs.Checker
+	cfg := frs.Config
+	dbf := frs.Finder
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}
@@ -38,7 +41,10 @@ func FeedVersionImport(ctx context.Context, cfg config.Config, dbf model.Finder,
 	return &mr, nil
 }
 
-func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finder, checker model.Checker, fvid int) (*model.FeedVersionUnimportResult, error) {
+func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
+	frs := model.ForContext(ctx)
+	checker := frs.Checker
+	dbf := frs.Finder
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}
@@ -59,7 +65,10 @@ func FeedVersionUnimport(ctx context.Context, cfg config.Config, dbf model.Finde
 	return &mr, nil
 }
 
-func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder, checker model.Checker, fvid int, values model.FeedVersionSetInput) error {
+func FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSetInput) error {
+	frs := model.ForContext(ctx)
+	checker := frs.Checker
+	dbf := frs.Finder
 	if checker == nil {
 		return authz.ErrUnauthorized
 	}
@@ -93,7 +102,9 @@ func FeedVersionUpdate(ctx context.Context, cfg config.Config, dbf model.Finder,
 	return nil
 }
 
-func FeedVersionDelete(ctx context.Context, cfg config.Config, dbf model.Finder, checker model.Checker, fvid int) (*model.FeedVersionDeleteResult, error) {
+func FeedVersionDelete(ctx context.Context, fvid int) (*model.FeedVersionDeleteResult, error) {
+	frs := model.ForContext(ctx)
+	checker := frs.Checker
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}

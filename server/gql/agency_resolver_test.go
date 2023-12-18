@@ -315,7 +315,7 @@ func TestAgencyResolver_Authz(t *testing.T) {
 		FGAModelTuples: fgaTestTuples,
 	}
 	te := testfinder.FindersWithOptions(t, teOpts)
-	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
+	srv, _ := NewServer(te)
 	testcases := []testcase{
 		{
 			name:         "basic",
