@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -32,6 +33,15 @@ func ForContext(ctx context.Context) Finders {
 func WithFinders(ctx context.Context, fs Finders) context.Context {
 	r := context.WithValue(ctx, finderCtxKey, fs)
 	return r
+}
+
+func AddFinders(te Finders) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r = r.WithContext(WithFinders(r.Context(), te))
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 type Config struct {

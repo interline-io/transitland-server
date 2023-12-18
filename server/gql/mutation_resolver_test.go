@@ -28,6 +28,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 	t.Run("found sha1", func(t *testing.T) {
 		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
 			srv, _ := NewServer(te)
+			srv = model.AddFinders(te)(srv)
 			srv = ancheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
 			// Run all requests as admin
 			c := client.New(srv)

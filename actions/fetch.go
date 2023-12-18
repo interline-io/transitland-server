@@ -257,6 +257,9 @@ func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
 
 func fetchCheckFeed(ctx context.Context, feedId string, urlType string, url string) (*model.Feed, error) {
 	frs := model.ForContext(ctx)
+	if frs.Finder == nil {
+		panic("no finder")
+	}
 	checker := frs.Checker
 
 	// Check feed exists
