@@ -53,12 +53,8 @@ func atoi(v string) int {
 
 // Resolver .
 type Resolver struct {
-	cfg          model.Config
-	rtfinder     model.RTFinder
-	finder       model.Finder
-	gbfsFinder   model.GbfsFinder
-	authzChecker model.Checker
-	fvslCache    *fvslCache
+	frs       model.Finders
+	fvslCache *fvslCache
 }
 
 // Query .

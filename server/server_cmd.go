@@ -62,6 +62,7 @@ type Command struct {
 	metricsConfig     metrics.Config
 	AuthConfig        ancheck.AuthConfig
 	CheckerConfig     azcheck.CheckerConfig
+	RestConfig        rest.Config
 	model.Config
 }
 
@@ -77,9 +78,9 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.RedisURL, "redisurl", "", "Redis URL (default: $TL_REDIS_URL)")
 	fl.StringVar(&cmd.Storage, "storage", "", "Static storage backend")
 	fl.StringVar(&cmd.RTStorage, "rt-storage", "", "RT storage backend")
-	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
 	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
-	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
+	fl.StringVar(&cmd.RestConfig.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
+	fl.BoolVar(&cmd.RestConfig.DisableImage, "disable-image", false, "Disable image generation")
 
 	// Server config
 	fl.StringVar(&cmd.Port, "port", "8080", "")
@@ -293,7 +294,7 @@ func (cmd *Command) Run() error {
 
 	// REST API
 	if !cmd.DisableRest {
-		restServer, err := rest.NewServer(cfg, graphqlServer)
+		restServer, err := rest.NewServer(cmd.RestConfig, graphqlServer)
 		if err != nil {
 			return err
 		}

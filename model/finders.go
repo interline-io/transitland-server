@@ -48,8 +48,6 @@ type Config struct {
 	Storage            string
 	RTStorage          string
 	ValidateLargeFiles bool
-	DisableImage       bool
-	RestPrefix         string
 	DBURL              string
 	RedisURL           string
 	Clock              clock.Clock

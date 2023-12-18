@@ -14,12 +14,8 @@ import (
 
 func NewServer(te model.Finders) (http.Handler, error) {
 	c := gqlout.Config{Resolvers: &Resolver{
-		cfg:          te.Config,
-		finder:       te.Finder,
-		rtfinder:     te.RTFinder,
-		gbfsFinder:   te.GbfsFinder,
-		fvslCache:    newFvslCache(te.Finder),
-		authzChecker: te.Checker,
+		frs:       te,
+		fvslCache: newFvslCache(te.Finder),
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := authn.ForContext(ctx)

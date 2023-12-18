@@ -42,7 +42,7 @@ func testRestConfig(t testing.TB) (http.Handler, model.Finders) {
 	return srv, te
 }
 
-func testRestServer(t testing.TB, cfg model.Config, srv http.Handler) (http.Handler, error) {
+func testRestServer(t testing.TB, cfg Config, srv http.Handler) (http.Handler, error) {
 	return NewServer(cfg, srv)
 }
 
@@ -61,8 +61,8 @@ type testRest struct {
 	f            func(*testing.T, string)
 }
 
-func testquery(t *testing.T, srv http.Handler, te model.Finders, tc testRest) {
-	data, err := makeRequest(context.TODO(), restConfig{srv: srv, Config: te.Config}, tc.h, tc.format, nil)
+func testquery(t *testing.T, graphqlHandler http.Handler, te model.Finders, tc testRest) {
+	data, err := makeRequest(context.TODO(), Config{Config: te.Config}, graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)
 		return

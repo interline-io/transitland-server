@@ -99,13 +99,13 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	if where != nil {
 		// Convert where.Next into departure date and time window
 		if where.Next != nil {
-			loc, ok := r.rtfinder.StopTimezone(obj.ID, obj.StopTimezone)
+			loc, ok := r.frs.RTFinder.StopTimezone(obj.ID, obj.StopTimezone)
 			if !ok {
 				return nil, errors.New("timezone not available for stop")
 			}
 			serviceDate := time.Now().In(loc)
-			if r.cfg.Clock != nil {
-				serviceDate = r.cfg.Clock.Now().In(loc)
+			if r.frs.Config.Clock != nil {
+				serviceDate = r.frs.Config.Clock.Now().In(loc)
 			}
 			st, et := 0, 0
 			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
@@ -163,13 +163,13 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	for _, st := range sts {
 		ft := model.Trip{}
 		ft.FeedVersionID = obj.FeedVersionID
-		ft.TripID, _ = r.rtfinder.GetGtfsTripID(atoi(st.TripID)) // TODO!
-		if ste, ok := r.rtfinder.FindStopTimeUpdate(&ft, st); ok {
+		ft.TripID, _ = r.frs.RTFinder.GetGtfsTripID(atoi(st.TripID)) // TODO!
+		if ste, ok := r.frs.RTFinder.FindStopTimeUpdate(&ft, st); ok {
 			st.RTStopTimeUpdate = ste
 		}
 	}
 	// Handle added trips; these must specify stop_id in StopTimeUpdates
-	for _, rtTrip := range r.rtfinder.GetAddedTripsForStop(obj) {
+	for _, rtTrip := range r.frs.RTFinder.GetAddedTripsForStop(obj) {
 		for _, stu := range rtTrip.StopTimeUpdate {
 			if stu.GetStopId() != obj.StopID {
 				continue
@@ -196,7 +196,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 }
 
 func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop, active *bool, limit *int) ([]*model.Alert, error) {
-	rtAlerts := r.rtfinder.FindAlertsForStop(obj, checkLimit(limit), active)
+	rtAlerts := r.frs.RTFinder.FindAlertsForStop(obj, checkLimit(limit), active)
 	return rtAlerts, nil
 }
 
@@ -223,7 +223,7 @@ func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *mo
 
 func (r *stopResolver) NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error) {
 	c := obj.Coordinates()
-	nearbyStops, err := r.finder.FindStops(ctx, checkLimit(limit), nil, nil, &model.StopFilter{Near: &model.PointRadius{Lon: c[0], Lat: c[1], Radius: checkFloat(radius, 0, MAX_RADIUS)}})
+	nearbyStops, err := r.frs.Finder.FindStops(ctx, checkLimit(limit), nil, nil, &model.StopFilter{Near: &model.PointRadius{Lon: c[0], Lat: c[1], Radius: checkFloat(radius, 0, MAX_RADIUS)}})
 	return nearbyStops, err
 }
 
