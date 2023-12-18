@@ -33,11 +33,6 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 	if opts.Clock == nil {
 		opts.Clock = &clock.Real{}
 	}
-	cfg := model.Config{
-		Clock:     opts.Clock,
-		Storage:   t.TempDir(),
-		RTStorage: t.TempDir(),
-	}
 
 	// Setup Checker
 	checkerCfg := azcheck.CheckerConfig{
@@ -77,11 +72,13 @@ func newFinders(t testing.TB, db sqlx.Ext, opts TestFinderOptions) model.Finders
 	gbf := gbfsfinder.NewFinder(nil)
 
 	return model.Finders{
-		Config:     cfg,
 		Finder:     dbf,
 		RTFinder:   rtf,
 		GbfsFinder: gbf,
 		Checker:    checker,
+		Clock:      opts.Clock,
+		Storage:    t.TempDir(),
+		RTStorage:  t.TempDir(),
 	}
 }
 

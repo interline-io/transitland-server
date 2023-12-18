@@ -44,23 +44,17 @@ func AddFinders(te Finders) func(http.Handler) http.Handler {
 	}
 }
 
-type Config struct {
-	Storage            string
-	RTStorage          string
-	ValidateLargeFiles bool
-	DBURL              string
-	RedisURL           string
+type Finders struct {
+	Finder             Finder
+	RTFinder           RTFinder
+	GbfsFinder         GbfsFinder
+	Checker            Checker
 	Clock              clock.Clock
 	Secrets            []tl.Secret
-}
-
-type Finders struct {
-	Config     Config
-	Finder     Finder
-	RTFinder   RTFinder
-	GbfsFinder GbfsFinder
-	Checker    Checker
-	Logger     zerolog.Logger
+	ValidateLargeFiles bool
+	Storage            string
+	RTStorage          string
+	Logger             zerolog.Logger
 }
 
 // Finder provides all necessary database methods

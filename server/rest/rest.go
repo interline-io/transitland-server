@@ -33,7 +33,6 @@ const MAXRADIUS = 100 * 1000.0
 type Config struct {
 	DisableImage bool
 	RestPrefix   string
-	model.Config
 }
 
 // NewServer .

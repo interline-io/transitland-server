@@ -22,7 +22,6 @@ type hasGeometries interface {
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
 func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls []string) (*model.ValidationResult, error) {
 	frs := model.ForContext(ctx)
-	cfg := frs.Config
 
 	// Check inputs
 	rturlsok := []string{}
@@ -88,7 +87,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		MaxRTMessageSize:         10_000_000,
 		ValidateRealtimeMessages: rturls,
 	}
-	if cfg.ValidateLargeFiles {
+	if frs.ValidateLargeFiles {
 		opts.CheckFileLimits = false
 	}
 

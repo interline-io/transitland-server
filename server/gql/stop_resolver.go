@@ -104,8 +104,8 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 				return nil, errors.New("timezone not available for stop")
 			}
 			serviceDate := time.Now().In(loc)
-			if r.frs.Config.Clock != nil {
-				serviceDate = r.frs.Config.Clock.Now().In(loc)
+			if r.frs.Clock != nil {
+				serviceDate = r.frs.Clock.Now().In(loc)
 			}
 			st, et := 0, 0
 			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()

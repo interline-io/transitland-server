@@ -43,27 +43,32 @@ import (
 )
 
 type Command struct {
-	Timeout           int
-	Port              string
-	LongQueryDuration int
-	DisableGraphql    bool
-	DisableRest       bool
-	EnablePlayground  bool
-	EnableAdminApi    bool
-	EnableJobsApi     bool
-	EnableWorkers     bool
-	EnableProfiler    bool
-	EnableRateLimits  bool
-	LoadAdmins        bool
-	QueuePrefix       string
-	SecretsFile       string
-	AuthMiddlewares   arrayFlags
-	metersConfig      meters.Config
-	metricsConfig     metrics.Config
-	AuthConfig        ancheck.AuthConfig
-	CheckerConfig     azcheck.CheckerConfig
-	RestConfig        rest.Config
-	model.Config
+	Timeout            int
+	Port               string
+	LongQueryDuration  int
+	DisableGraphql     bool
+	DisableRest        bool
+	EnablePlayground   bool
+	EnableAdminApi     bool
+	EnableJobsApi      bool
+	EnableWorkers      bool
+	EnableProfiler     bool
+	EnableRateLimits   bool
+	LoadAdmins         bool
+	QueuePrefix        string
+	SecretsFile        string
+	Storage            string
+	RTStorage          string
+	ValidateLargeFiles bool
+	DBURL              string
+	RedisURL           string
+	AuthMiddlewares    arrayFlags
+	metersConfig       meters.Config
+	metricsConfig      metrics.Config
+	AuthConfig         ancheck.AuthConfig
+	CheckerConfig      azcheck.CheckerConfig
+	RestConfig         rest.Config
+	secrets            []tl.Secret
 }
 
 func (cmd *Command) Parse(args []string) error {
@@ -161,16 +166,14 @@ func (cmd *Command) Parse(args []string) error {
 		}
 		secrets = rr.Secrets
 	}
-	cmd.Config.Secrets = secrets
+	cmd.secrets = secrets
 	return nil
 }
 
 func (cmd *Command) Run() error {
-	cfg := cmd.Config
-
 	// Open database
 	var db sqlx.Ext
-	dbx, err := dbutil.OpenDB(cfg.DBURL)
+	dbx, err := dbutil.OpenDB(cmd.DBURL)
 	if err != nil {
 		return err
 	}
@@ -182,7 +185,7 @@ func (cmd *Command) Run() error {
 	// Open redis
 	var redisClient *redis.Client
 	if cmd.RedisURL != "" {
-		rOpts, err := getRedisOpts(cfg.RedisURL)
+		rOpts, err := getRedisOpts(cmd.RedisURL)
 		if err != nil {
 			return err
 		}
@@ -272,11 +275,13 @@ func (cmd *Command) Run() error {
 
 	// GraphQL API
 	te := model.Finders{
-		Config:     cfg,
 		Finder:     dbFinder,
 		RTFinder:   rtFinder,
 		GbfsFinder: gbfsFinder,
 		Checker:    checker,
+		Secrets:    cmd.secrets,
+		Storage:    cmd.Storage,
+		RTStorage:  cmd.RTStorage,
 	}
 	graphqlServer, err := gql.NewServer(te)
 	if err != nil {

@@ -26,6 +26,6 @@ func NewServer(te model.Finders) (http.Handler, error) {
 	}
 	// Setup server
 	srv := handler.NewDefaultServer(gqlout.NewExecutableSchema(c))
-	graphqlServer := loaderMiddleware(te.Config, te.Finder, srv)
+	graphqlServer := loaderMiddleware(te, srv)
 	return graphqlServer, nil
 }

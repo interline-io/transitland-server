@@ -16,7 +16,6 @@ import (
 func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
 	frs := model.ForContext(ctx)
 	checker := frs.Checker
-	cfg := frs.Config
 	dbf := frs.Finder
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
@@ -28,7 +27,7 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 	}
 	opts := importer.Options{
 		FeedVersionID: fvid,
-		Storage:       cfg.Storage,
+		Storage:       frs.Storage,
 	}
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	fr, fe := importer.MainImportFeedVersion(db, opts)

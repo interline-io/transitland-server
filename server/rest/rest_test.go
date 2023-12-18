@@ -62,7 +62,7 @@ type testRest struct {
 }
 
 func testquery(t *testing.T, graphqlHandler http.Handler, te model.Finders, tc testRest) {
-	data, err := makeRequest(context.TODO(), Config{Config: te.Config}, graphqlHandler, tc.h, tc.format, nil)
+	data, err := makeRequest(context.TODO(), Config{}, graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)
 		return

@@ -17,8 +17,8 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 		return
 	}
 	srv, te := testRestConfig(t)
-	te.Config.Storage = g
-	restSrv, err := testRestServer(t, Config{Config: te.Config}, srv)
+	te.Storage = g
+	restSrv, err := testRestServer(t, Config{}, srv)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,8 +118,8 @@ func TestFeedDownloadLatestRequest(t *testing.T) {
 		return
 	}
 	srv, te := testRestConfig(t)
-	te.Config.Storage = g
-	restSrv, err := testRestServer(t, Config{Config: te.Config}, srv)
+	te.Storage = g
+	restSrv, err := testRestServer(t, Config{}, srv)
 	if err != nil {
 		t.Fatal(err)
 	}

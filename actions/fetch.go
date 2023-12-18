@@ -26,7 +26,6 @@ import (
 
 func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl string) (*model.FeedVersionFetchResult, error) {
 	frs := model.ForContext(ctx)
-	cfg := frs.Config
 	dbf := frs.Finder
 
 	urlType := "static_current"
@@ -43,8 +42,8 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 		FeedID:        feed.ID,
 		URLType:       urlType,
 		FeedURL:       feedUrl,
-		Storage:       cfg.Storage,
-		Secrets:       cfg.Secrets,
+		Storage:       frs.Storage,
+		Secrets:       frs.Secrets,
 		FetchedAt:     time.Now().In(time.UTC),
 		AllowFTPFetch: true,
 	}
@@ -105,8 +104,8 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 		FeedID:    feed.ID,
 		URLType:   urlType,
 		FeedURL:   feedUrl,
-		Storage:   frs.Config.RTStorage,
-		Secrets:   frs.Config.Secrets,
+		Storage:   frs.RTStorage,
+		Secrets:   frs.Secrets,
 		FetchedAt: time.Now().In(time.UTC),
 	}
 
