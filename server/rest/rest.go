@@ -17,7 +17,6 @@ import (
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/meters"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -31,38 +30,36 @@ var MAXLIMIT = 1_000
 // MAXRADIUS is the maximum point search radius
 const MAXRADIUS = 100 * 1000.0
 
-// restConfig holds the base config and the graphql handler
-type restConfig struct {
-	config.Config
-	srv http.Handler
+type Config struct {
+	DisableImage bool
+	RestPrefix   string
 }
 
 // NewServer .
-func NewServer(cfg config.Config, srv http.Handler) (http.Handler, error) {
-	restcfg := restConfig{Config: cfg, srv: srv}
+func NewServer(cfg Config, graphqlHandler http.Handler) (http.Handler, error) {
 	r := chi.NewRouter()
 
-	feedHandler := makeHandler(restcfg, "feeds", func() apiHandler { return &FeedRequest{} })
-	feedVersionHandler := makeHandler(restcfg, "feedVersions", func() apiHandler { return &FeedVersionRequest{} })
-	agencyHandler := makeHandler(restcfg, "agencies", func() apiHandler { return &AgencyRequest{} })
-	routeHandler := makeHandler(restcfg, "routes", func() apiHandler { return &RouteRequest{} })
-	tripHandler := makeHandler(restcfg, "trips", func() apiHandler { return &TripRequest{} })
-	stopHandler := makeHandler(restcfg, "stops", func() apiHandler { return &StopRequest{} })
-	stopDepartureHandler := makeHandler(restcfg, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
-	operatorHandler := makeHandler(restcfg, "operators", func() apiHandler { return &OperatorRequest{} })
+	feedHandler := makeHandler(cfg, graphqlHandler, "feeds", func() apiHandler { return &FeedRequest{} })
+	feedVersionHandler := makeHandler(cfg, graphqlHandler, "feedVersions", func() apiHandler { return &FeedVersionRequest{} })
+	agencyHandler := makeHandler(cfg, graphqlHandler, "agencies", func() apiHandler { return &AgencyRequest{} })
+	routeHandler := makeHandler(cfg, graphqlHandler, "routes", func() apiHandler { return &RouteRequest{} })
+	tripHandler := makeHandler(cfg, graphqlHandler, "trips", func() apiHandler { return &TripRequest{} })
+	stopHandler := makeHandler(cfg, graphqlHandler, "stops", func() apiHandler { return &StopRequest{} })
+	stopDepartureHandler := makeHandler(cfg, graphqlHandler, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
+	operatorHandler := makeHandler(cfg, graphqlHandler, "operators", func() apiHandler { return &OperatorRequest{} })
 
 	r.HandleFunc("/feeds.{format}", feedHandler)
 	r.HandleFunc("/feeds", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}.{format}", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}", feedHandler)
-	r.Handle("/feeds/{feed_key}/download_latest_feed_version", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(restcfg, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
+	r.Handle("/feeds/{feed_key}/download_latest_feed_version", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(graphqlHandler, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
 
 	r.HandleFunc("/feed_versions.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions", feedVersionHandler)
 	r.HandleFunc("/feed_versions/{feed_version_key}.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions/{feed_version_key}", feedVersionHandler)
 	r.HandleFunc("/feeds/{feed_key}/feed_versions", feedVersionHandler)
-	r.Handle("/feed_versions/{feed_version_key}/download", ancheck.RoleRequired("tl_download_fv_historic")(makeHandlerFunc(restcfg, "feedVersionDownload", feedVersionDownloadHandler)))
+	r.Handle("/feed_versions/{feed_version_key}/download", ancheck.RoleRequired("tl_download_fv_historic")(makeHandlerFunc(graphqlHandler, "feedVersionDownload", feedVersionDownloadHandler)))
 
 	r.HandleFunc("/agencies.{format}", agencyHandler)
 	r.HandleFunc("/agencies", agencyHandler)
@@ -186,7 +183,7 @@ func queryToMap(vars url.Values) map[string]string {
 }
 
 // makeHandler wraps an apiHandler into an HandlerFunc and performs common checks.
-func makeHandler(cfg restConfig, handlerName string, f func() apiHandler) http.HandlerFunc {
+func makeHandler(cfg Config, graphqlHandler http.Handler, handlerName string, f func() apiHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ent := f()
 		opts := queryToMap(r.URL.Query())
@@ -239,7 +236,7 @@ func makeHandler(cfg restConfig, handlerName string, f func() apiHandler) http.H
 		}
 
 		// Make the request
-		response, err := makeRequest(r.Context(), cfg, ent, format, r.URL)
+		response, err := makeRequest(r.Context(), cfg, graphqlHandler, ent, format, r.URL)
 		if err != nil {
 			http.Error(w, util.MakeJsonError(err.Error()), http.StatusInternalServerError)
 			return
@@ -298,9 +295,9 @@ func makeGraphQLRequest(ctx context.Context, srv http.Handler, query string, var
 }
 
 // makeRequest prepares an apiHandler and makes the request.
-func makeRequest(ctx context.Context, cfg restConfig, ent apiHandler, format string, u *url.URL) ([]byte, error) {
+func makeRequest(ctx context.Context, cfg Config, graphqlHandler http.Handler, ent apiHandler, format string, u *url.URL) ([]byte, error) {
 	query, vars := ent.Query()
-	response, err := makeGraphQLRequest(ctx, cfg.srv, query, vars)
+	response, err := makeGraphQLRequest(ctx, graphqlHandler, query, vars)
 	if err != nil {
 		vjson, _ := json.Marshal(vars)
 		log.Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msgf("graphql request failed")
@@ -375,12 +372,12 @@ func renderGeojsonl(response map[string]any) ([]byte, error) {
 	return ret, nil
 }
 
-func makeHandlerFunc(cfg restConfig, handlerName string, f func(restConfig, http.ResponseWriter, *http.Request)) http.HandlerFunc {
+func makeHandlerFunc(graphqlHandler http.Handler, handlerName string, f func(http.Handler, http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
 			apiMeter.AddDimension("rest", "handler", handlerName)
 		}
-		f(cfg, w, r)
+		f(graphqlHandler, w, r)
 	}
 }
 

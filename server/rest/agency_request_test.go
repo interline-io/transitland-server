@@ -5,14 +5,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/testconfig"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
 func TestAgencyRequest(t *testing.T) {
-	srv, te := testRestConfig(t)
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "basic",
 			h:            AgencyRequest{},
@@ -159,13 +160,13 @@ func TestAgencyRequest(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestAgencyRequest_Format(t *testing.T) {
-	tcs := []testRest{
+	tcs := []testCase{
 		{
 			name:   "agency geojson",
 			format: "geojson",
@@ -192,17 +193,16 @@ func TestAgencyRequest_Format(t *testing.T) {
 			},
 		},
 	}
-	srv, te := testRestConfig(t)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestAgencyRequest_Pagination(t *testing.T) {
-	srv, te := testRestConfig(t)
-	allEnts, err := te.Finder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
+	allEnts, err := cfg.Finder.FindAgencies(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,7 +210,7 @@ func TestAgencyRequest_Pagination(t *testing.T) {
 	for _, ent := range allEnts {
 		allIds = append(allIds, ent.AgencyID)
 	}
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "limit:1",
 			h:            AgencyRequest{WithCursor: WithCursor{Limit: 1}},
@@ -240,13 +240,13 @@ func TestAgencyRequest_Pagination(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
 		})
 	}
 }
 
 func TestAgencyRequest_License(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name: "license:share_alike_optional yes",
 			h:    AgencyRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}}, selector: "agencies.#.agency_id",
@@ -293,10 +293,9 @@ func TestAgencyRequest_License(t *testing.T) {
 			expectSelect: []string{"caltrain-ca-us", ""},
 		},
 	}
-	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }

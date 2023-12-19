@@ -7,8 +7,9 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-server/model"
 )
 
 func TestAgencyResolver(t *testing.T) {
@@ -242,8 +243,8 @@ func TestAgencyResolver(t *testing.T) {
 }
 
 func TestAgencyResolver_Cursor(t *testing.T) {
-	c, te := newTestClient(t)
-	allEnts, err := te.Finder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	c, cfg := newTestClient(t)
+	allEnts, err := cfg.Finder.FindAgencies(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -310,12 +311,12 @@ func TestAgencyResolver_Authz(t *testing.T) {
 		t.Skip(a)
 		return
 	}
-	teOpts := testfinder.TestFinderOptions{
+	cfg := testconfig.Config(t, testconfig.Options{
 		FGAModelFile:   testutil.RelPath("test/authz/tls.json"),
 		FGAModelTuples: fgaTestTuples,
-	}
-	te := testfinder.FindersWithOptions(t, teOpts)
-	srv, _ := NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
+	})
+	_ = cfg
+	srv, _ := NewServer()
 	testcases := []testcase{
 		{
 			name:         "basic",

@@ -2,10 +2,8 @@ package gql
 
 import (
 	"testing"
-	"time"
 
-	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 )
 
 func TestStopResolver_StopTimes(t *testing.T) {
@@ -363,11 +361,10 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// 2018-05-28 22:00:00 +0000 UTC
 			// 2018-05-28 15:00:00 -0700 PDT
-			when, err := time.Parse("2006-01-02T15:04:05", tc.when)
-			if err != nil {
-				t.Fatal(err)
-			}
-			c, _ := newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
+			c, _ := newTestClientWithOpts(t, testconfig.Options{
+				When:    tc.when,
+				RTJsons: testconfig.DefaultRTJson(),
+			})
 			queryTestcase(t, c, tc.testcase)
 		})
 	}

@@ -18,16 +18,18 @@ import (
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/proto"
 )
 
-func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedId string, feedSrc io.Reader, feedUrl string, checker model.Checker) (*model.FeedVersionFetchResult, error) {
+func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl string) (*model.FeedVersionFetchResult, error) {
+	cfg := model.ForContext(ctx)
+	dbf := cfg.Finder
+
 	urlType := "static_current"
-	feed, err := fetchCheckFeed(ctx, dbf, checker, feedId, urlType, feedUrl)
+	feed, err := fetchCheckFeed(ctx, feedId, urlType, feedUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +88,10 @@ func StaticFetch(ctx context.Context, cfg config.Config, dbf model.Finder, feedI
 	return &mr, nil
 }
 
-func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model.RTFinder, target string, feedId string, feedUrl string, urlType string, checker model.Checker) error {
-	feed, err := fetchCheckFeed(ctx, dbf, checker, feedId, urlType, feedUrl)
+func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, urlType string) error {
+	cfg := model.ForContext(ctx)
+
+	feed, err := fetchCheckFeed(ctx, feedId, urlType, feedUrl)
 	if err != nil {
 		return err
 	}
@@ -108,7 +112,7 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 	// Make request
 	var rtMsg *pb.FeedMessage
 	var fetchErr error
-	if err := tldb.NewPostgresAdapterFromDBX(dbf.DBX()).Tx(func(atx tldb.Adapter) error {
+	if err := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
 		m, fr, err := fetch.RTFetch(atx, fetchOpts)
 		if err != nil {
 			return err
@@ -129,7 +133,7 @@ func RTFetch(ctx context.Context, cfg config.Config, dbf model.Finder, rtf model
 		return errors.New("invalid rt data")
 	}
 	key := fmt.Sprintf("rtdata:%s:%s", target, urlType)
-	return rtf.AddData(key, rtdata)
+	return cfg.RTFinder.AddData(key, rtdata)
 }
 
 type CheckFetchWaitResult struct {
@@ -216,7 +220,7 @@ func CheckFetchWaitBatch(ctx context.Context, db sqlx.Ext, feedIds []int, urlTyp
 			return nil, err
 		}
 		for _, fetch := range lastFetches {
-			a, _ := checks[fetch.ID]
+			a := checks[fetch.ID]
 			a.CheckedAt = now
 			a.ID = fetch.ID
 			a.OnestopID = fetch.OnestopID
@@ -250,9 +254,12 @@ func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
 	return append(chunks, items)
 }
 
-func fetchCheckFeed(ctx context.Context, dbf model.Finder, checker model.Checker, feedId string, urlType string, url string) (*model.Feed, error) {
+func fetchCheckFeed(ctx context.Context, feedId string, urlType string, url string) (*model.Feed, error) {
+	cfg := model.ForContext(ctx)
+	checker := cfg.Checker
+
 	// Check feed exists
-	feeds, err := dbf.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return nil, err
 	}

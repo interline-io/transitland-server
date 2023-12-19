@@ -28,7 +28,6 @@ import (
 	"github.com/interline-io/transitland-mw/lmw"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-mw/metrics"
-	"github.com/interline-io/transitland-server/config"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -44,26 +43,32 @@ import (
 )
 
 type Command struct {
-	Timeout           int
-	Port              string
-	LongQueryDuration int
-	DisableGraphql    bool
-	DisableRest       bool
-	EnablePlayground  bool
-	EnableAdminApi    bool
-	EnableJobsApi     bool
-	EnableWorkers     bool
-	EnableProfiler    bool
-	EnableRateLimits  bool
-	LoadAdmins        bool
-	QueuePrefix       string
-	SecretsFile       string
-	AuthMiddlewares   arrayFlags
-	metersConfig      meters.Config
-	metricsConfig     metrics.Config
-	AuthConfig        ancheck.AuthConfig
-	CheckerConfig     azcheck.CheckerConfig
-	config.Config
+	Timeout            int
+	Port               string
+	LongQueryDuration  int
+	DisableGraphql     bool
+	DisableRest        bool
+	EnablePlayground   bool
+	EnableAdminApi     bool
+	EnableJobsApi      bool
+	EnableWorkers      bool
+	EnableProfiler     bool
+	EnableRateLimits   bool
+	LoadAdmins         bool
+	QueuePrefix        string
+	SecretsFile        string
+	Storage            string
+	RTStorage          string
+	ValidateLargeFiles bool
+	DBURL              string
+	RedisURL           string
+	AuthMiddlewares    arrayFlags
+	metersConfig       meters.Config
+	metricsConfig      metrics.Config
+	AuthConfig         ancheck.AuthConfig
+	CheckerConfig      azcheck.CheckerConfig
+	RestConfig         rest.Config
+	secrets            []tl.Secret
 }
 
 func (cmd *Command) Parse(args []string) error {
@@ -78,9 +83,9 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.RedisURL, "redisurl", "", "Redis URL (default: $TL_REDIS_URL)")
 	fl.StringVar(&cmd.Storage, "storage", "", "Static storage backend")
 	fl.StringVar(&cmd.RTStorage, "rt-storage", "", "RT storage backend")
-	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
 	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
-	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
+	fl.StringVar(&cmd.RestConfig.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
+	fl.BoolVar(&cmd.RestConfig.DisableImage, "disable-image", false, "Disable image generation")
 
 	// Server config
 	fl.StringVar(&cmd.Port, "port", "8080", "")
@@ -161,16 +166,14 @@ func (cmd *Command) Parse(args []string) error {
 		}
 		secrets = rr.Secrets
 	}
-	cmd.Config.Secrets = secrets
+	cmd.secrets = secrets
 	return nil
 }
 
 func (cmd *Command) Run() error {
-	cfg := cmd.Config
-
 	// Open database
 	var db sqlx.Ext
-	dbx, err := dbutil.OpenDB(cfg.DBURL)
+	dbx, err := dbutil.OpenDB(cmd.DBURL)
 	if err != nil {
 		return err
 	}
@@ -182,7 +185,7 @@ func (cmd *Command) Run() error {
 	// Open redis
 	var redisClient *redis.Client
 	if cmd.RedisURL != "" {
-		rOpts, err := getRedisOpts(cfg.RedisURL)
+		rOpts, err := getRedisOpts(cmd.RedisURL)
 		if err != nil {
 			return err
 		}
@@ -197,12 +200,10 @@ func (cmd *Command) Run() error {
 	}
 
 	// Create Finder
-	var dbFinder model.Finder
-	f := dbfinder.NewFinder(db, checker)
+	dbFinder := dbfinder.NewFinder(db, checker)
 	if cmd.LoadAdmins {
-		f.LoadAdmins()
+		dbFinder.LoadAdmins()
 	}
-	dbFinder = f
 
 	// Create RTFinder, GBFSFinder
 	var rtFinder model.RTFinder
@@ -218,6 +219,18 @@ func (cmd *Command) Run() error {
 		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 		gbfsFinder = gbfsfinder.NewFinder(nil)
 		jobQueue = jobs.NewLocalJobs()
+	}
+
+	// Setup config
+	cfg := model.Config{
+		Finder:             dbFinder,
+		RTFinder:           rtFinder,
+		GbfsFinder:         gbfsFinder,
+		Checker:            checker,
+		Secrets:            cmd.secrets,
+		Storage:            cmd.Storage,
+		RTStorage:          cmd.RTStorage,
+		ValidateLargeFiles: cmd.ValidateLargeFiles,
 	}
 
 	// Setup metrics
@@ -245,6 +258,9 @@ func (cmd *Command) Run() error {
 		AllowCredentials: true,
 	}))
 
+	// Finders config
+	root.Use(model.AddConfig(cfg))
+
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
 		if userMiddleware, err := ancheck.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
@@ -271,7 +287,8 @@ func (cmd *Command) Run() error {
 	}
 
 	// GraphQL API
-	graphqlServer, err := gql.NewServer(cfg, dbFinder, rtFinder, gbfsFinder, checker)
+
+	graphqlServer, err := gql.NewServer()
 	if err != nil {
 		return err
 	}
@@ -287,7 +304,7 @@ func (cmd *Command) Run() error {
 
 	// REST API
 	if !cmd.DisableRest {
-		restServer, err := rest.NewServer(cfg, graphqlServer)
+		restServer, err := rest.NewServer(cmd.RestConfig, graphqlServer)
 		if err != nil {
 			return err
 		}
@@ -321,12 +338,8 @@ func (cmd *Command) Run() error {
 		// Start workers/api
 		jobWorkers := 8
 		jobOptions := jobs.JobOptions{
-			Logger:     log.Logger,
-			JobQueue:   jobQueue,
-			Finder:     dbFinder,
-			RTFinder:   rtFinder,
-			GbfsFinder: gbfsFinder,
-			Config:     cfg,
+			Logger:   log.Logger,
+			JobQueue: jobQueue,
 		}
 		// Add metrics
 		// jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
@@ -340,7 +353,7 @@ func (cmd *Command) Run() error {
 		}
 		if cmd.EnableJobsApi {
 			log.Infof("Enabling job api")
-			jobServer, err := workers.NewServer(cfg, "", jobWorkers, jobOptions)
+			jobServer, err := workers.NewServer("", jobWorkers, jobOptions)
 			if err != nil {
 				return err
 			}

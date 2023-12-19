@@ -13,6 +13,7 @@ import (
 	"github.com/interline-io/transitland-lib/tl/request"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/util"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/tidwall/gjson"
 )
 
@@ -32,7 +33,7 @@ query($feed_onestop_id: String!, $ids: [Int!]) {
 
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
-func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
+func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
 	key := chi.URLParam(r, "feed_key")
 	gvars := hw{}
 	if key == "" {
@@ -45,7 +46,7 @@ func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *
 	}
 
 	// Check if we're allowed to redistribute feed and look up latest feed version
-	feedResponse, err := makeGraphQLRequest(r.Context(), cfg.srv, latestFeedVersionQuery, gvars)
+	feedResponse, err := makeGraphQLRequest(r.Context(), graphqlHandler, latestFeedVersionQuery, gvars)
 	if err != nil {
 		http.Error(w, util.MakeJsonError("server error"), http.StatusInternalServerError)
 		return
@@ -83,6 +84,8 @@ func feedVersionDownloadLatestHandler(cfg restConfig, w http.ResponseWriter, r *
 		}
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
+
+	cfg := model.ForContext(r.Context())
 	serveFromStorage(w, r, cfg.Storage, fvsha1)
 }
 
@@ -102,7 +105,7 @@ query($feed_version_sha1:String!, $ids: [Int!]) {
 
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
-func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
+func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
 	gvars := hw{}
 	key := chi.URLParam(r, "feed_version_key")
 	if key == "" {
@@ -114,7 +117,7 @@ func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.R
 		gvars["feed_version_sha1"] = key
 	}
 	// Check if we're allowed to redistribute feed
-	checkfv, err := makeGraphQLRequest(r.Context(), cfg.srv, feedVersionFileQuery, gvars)
+	checkfv, err := makeGraphQLRequest(r.Context(), graphqlHandler, feedVersionFileQuery, gvars)
 	if err != nil {
 		http.Error(w, util.MakeJsonError("server error"), http.StatusInternalServerError)
 		return
@@ -159,6 +162,7 @@ func feedVersionDownloadHandler(cfg restConfig, w http.ResponseWriter, r *http.R
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
 
+	cfg := model.ForContext(r.Context())
 	serveFromStorage(w, r, cfg.Storage, fvsha1)
 }
 

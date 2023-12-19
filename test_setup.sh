@@ -1,6 +1,6 @@
 #!/bin/bash
 # Remove import files
-TL_TEST_STORAGE="${TL_TEST_STORAGE:-tmp}"
+TL_TEST_STORAGE="${PWD}/tmp"
 mkdir -p "${TL_TEST_STORAGE}"; rm ${TL_TEST_STORAGE}/*.zip
 # export TL_LOG=debug
 (cd cmd/tlserver && go install .)
