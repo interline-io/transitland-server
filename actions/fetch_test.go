@@ -2,7 +2,6 @@ package actions
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -112,8 +111,7 @@ func TestStaticFetchWorker(t *testing.T) {
 			// Setup job
 			feedUrl := ts.URL + "/" + tc.serveFile
 			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
-				fmt.Printf("checker %#v\n", cfg.Checker)
-				cfg.Checker = nil
+				cfg.Checker = nil // disable checker for this test
 				ctx := model.WithConfig(context.Background(), cfg)
 				// Run job
 				if result, err := StaticFetch(ctx, tc.feedId, nil, feedUrl); err != nil && !tc.expectError {
