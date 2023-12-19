@@ -19,8 +19,9 @@ type GbfsFetchWorker struct {
 }
 
 func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
+	cfg := model.ForContext(ctx)
 	log := job.Opts.Logger.With().Str("feed_id", w.FeedID).Str("url", w.Url).Logger()
-	gfeeds, err := job.Opts.Finders.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &w.FeedID})
+	gfeeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &w.FeedID})
 	if err != nil {
 		log.Error().Err(err).Msg("gbfsfetch worker: error loading source feed")
 		return err
@@ -40,7 +41,7 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 		opts.FeedURL = w.Url
 	}
 	feeds, result, err := gbfs.Fetch(
-		tldb.NewPostgresAdapterFromDBX(job.Opts.Finders.Finder.DBX()),
+		tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()),
 		opts,
 	)
 	if err != nil {
@@ -54,7 +55,7 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	for _, feed := range feeds {
 		if feed.SystemInformation != nil {
 			key := fmt.Sprintf("%s:%s", w.FeedID, feed.SystemInformation.Language.Val)
-			job.Opts.Finders.GbfsFinder.AddData(ctx, key, feed)
+			cfg.GbfsFinder.AddData(ctx, key, feed)
 		}
 	}
 	log.Info().Msg("gbfs fetch worker: success")

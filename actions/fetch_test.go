@@ -125,7 +125,7 @@ func TestStaticFetchWorker(t *testing.T) {
 				// Check output
 				ff := dmfr.FeedFetch{}
 				if err := dbutil.Get(
-					context.Background(),
+					ctx,
 					cfg.Finder.DBX(),
 					sq.StatementBuilder.
 						Select("ff.*").

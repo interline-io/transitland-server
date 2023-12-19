@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -307,7 +308,7 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 
 func TestRouteResolver_Cursor(t *testing.T) {
 	c, cfg := newTestClient(t)
-	allEnts, err := cfg.Finder.FindRoutes(context.Background(), nil, nil, nil, nil)
+	allEnts, err := cfg.Finder.FindRoutes(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

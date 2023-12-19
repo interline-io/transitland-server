@@ -3,6 +3,8 @@ package gql
 import (
 	"context"
 	"testing"
+
+	"github.com/interline-io/transitland-server/model"
 )
 
 func TestFeedResolver(t *testing.T) {
@@ -250,7 +252,7 @@ func TestFeedResolver(t *testing.T) {
 
 func TestFeedResolver_Cursor(t *testing.T) {
 	c, cfg := newTestClient(t)
-	allEnts, err := cfg.Finder.FindFeeds(context.Background(), nil, nil, nil, nil)
+	allEnts, err := cfg.Finder.FindFeeds(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

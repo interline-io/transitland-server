@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-server/model"
 	"github.com/rs/zerolog"
 )
 
@@ -44,7 +43,6 @@ func (job *Job) HexKey() (string, error) {
 
 // JobOptions is configuration passed to worker.
 type JobOptions struct {
-	Finders  model.Config
 	JobQueue JobQueue
 	Logger   zerolog.Logger
 	Secrets  []tl.Secret

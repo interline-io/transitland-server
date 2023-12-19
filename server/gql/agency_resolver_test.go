@@ -9,6 +9,7 @@ import (
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-server/model"
 )
 
 func TestAgencyResolver(t *testing.T) {
@@ -243,7 +244,7 @@ func TestAgencyResolver(t *testing.T) {
 
 func TestAgencyResolver_Cursor(t *testing.T) {
 	c, cfg := newTestClient(t)
-	allEnts, err := cfg.Finder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	allEnts, err := cfg.Finder.FindAgencies(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

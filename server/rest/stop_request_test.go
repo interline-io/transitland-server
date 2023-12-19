@@ -241,7 +241,7 @@ func TestStopRequest_Format(t *testing.T) {
 
 func TestStopRequest_Pagination(t *testing.T) {
 	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
-	allEnts, err := cfg.Finder.FindStops(context.Background(), nil, nil, nil, nil)
+	allEnts, err := cfg.Finder.FindStops(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

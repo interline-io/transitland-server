@@ -338,7 +338,6 @@ func (cmd *Command) Run() error {
 		// Start workers/api
 		jobWorkers := 8
 		jobOptions := jobs.JobOptions{
-			Finders:  cfg,
 			Logger:   log.Logger,
 			JobQueue: jobQueue,
 		}

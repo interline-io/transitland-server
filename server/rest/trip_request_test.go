@@ -7,22 +7,24 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/testconfig"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
 func TestTripRequest(t *testing.T) {
-	graphqlHandler, restHandler, _ := testHandlersWithOptions(t, testconfig.Options{
+	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{
 		When:    "2018-06-01T00:00:00",
 		RTJsons: testconfig.DefaultRTJson(),
 	})
-	d, err := makeGraphQLRequest(context.Background(), graphqlHandler, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
+	ctx := model.WithConfig(context.Background(), cfg)
+	d, err := makeGraphQLRequest(ctx, graphqlHandler, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
 	}
 	routeId := int(gjson.Get(toJson(d), "routes.0.id").Int())
 	routeOnestopId := gjson.Get(toJson(d), "routes.0.onestop_id").String()
-	d2, err := makeGraphQLRequest(context.Background(), graphqlHandler, `query{trips(where:{trip_id:"5132248WKDY"}){id}}`, nil)
+	d2, err := makeGraphQLRequest(ctx, graphqlHandler, `query{trips(where:{trip_id:"5132248WKDY"}){id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
 	}

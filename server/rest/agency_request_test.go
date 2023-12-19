@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/testconfig"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -201,7 +202,7 @@ func TestAgencyRequest_Format(t *testing.T) {
 
 func TestAgencyRequest_Pagination(t *testing.T) {
 	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
-	allEnts, err := cfg.Finder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	allEnts, err := cfg.Finder.FindAgencies(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -20,18 +20,18 @@ func TestGbfsFetchWorker(t *testing.T) {
 
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		job := jobs.Job{}
-		job.Opts.Finders = cfg
 		w := GbfsFetchWorker{
 			Url:    ts.URL + "/gbfs.json",
 			FeedID: "test-gbfs",
 		}
-		err := w.Run(context.Background(), job)
+		ctx := model.WithConfig(context.Background(), cfg)
+		err := w.Run(ctx, job)
 		if err != nil {
 			t.Fatal(err)
 		}
 		// Test
 		bikes, err := cfg.GbfsFinder.FindBikes(
-			context.Background(),
+			ctx,
 			nil,
 			&model.GbfsBikeRequest{
 				Near: &model.PointRadius{

@@ -161,7 +161,7 @@ func TestRouteRequest_Format(t *testing.T) {
 
 func TestRouteRequest_Pagination(t *testing.T) {
 	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
-	allEnts, err := cfg.Finder.FindRoutes(context.Background(), nil, nil, nil, nil)
+	allEnts, err := cfg.Finder.FindRoutes(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
