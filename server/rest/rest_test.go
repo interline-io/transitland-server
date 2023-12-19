@@ -7,10 +7,8 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
-	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
@@ -30,11 +28,12 @@ func TestMain(m *testing.M) {
 }
 
 func testRestConfig(t testing.TB) (http.Handler, model.Config) {
-	when, err := time.Parse("2006-01-02T15:04:05", "2018-06-01T00:00:00")
-	if err != nil {
-		t.Fatal(err)
-	}
-	te := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
+	te := testconfig.Config(t,
+		testconfig.Options{
+			When:    "2018-06-01T00:00:00",
+			RTJsons: testconfig.DefaultRTJson(),
+		},
+	)
 	srv, err := gql.NewServer(te)
 	if err != nil {
 		panic(err)
@@ -61,7 +60,7 @@ type testRest struct {
 	f            func(*testing.T, string)
 }
 
-func testquery(t *testing.T, graphqlHandler http.Handler, te model.Config, tc testRest) {
+func testquery(t *testing.T, graphqlHandler http.Handler, cfg model.Config, tc testRest) {
 	data, err := makeRequest(context.TODO(), Config{}, graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)

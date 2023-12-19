@@ -7,7 +7,7 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
@@ -310,11 +310,10 @@ func TestAgencyResolver_Authz(t *testing.T) {
 		t.Skip(a)
 		return
 	}
-	teOpts := testfinder.TestFinderOptions{
+	te := testconfig.Config(t, testconfig.Options{
 		FGAModelFile:   testutil.RelPath("test/authz/tls.json"),
 		FGAModelTuples: fgaTestTuples,
-	}
-	te := testfinder.FindersWithOptions(t, teOpts)
+	})
 	srv, _ := NewServer(te)
 	testcases := []testcase{
 		{

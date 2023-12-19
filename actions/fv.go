@@ -14,9 +14,9 @@ import (
 )
 
 func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
-	frs := model.ForContext(ctx)
-	checker := frs.Checker
-	dbf := frs.Finder
+	cfg := model.ForContext(ctx)
+	checker := cfg.Checker
+	dbf := cfg.Finder
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}
@@ -27,7 +27,7 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 	}
 	opts := importer.Options{
 		FeedVersionID: fvid,
-		Storage:       frs.Storage,
+		Storage:       cfg.Storage,
 	}
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	fr, fe := importer.MainImportFeedVersion(db, opts)
@@ -41,9 +41,9 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 }
 
 func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
-	frs := model.ForContext(ctx)
-	checker := frs.Checker
-	dbf := frs.Finder
+	cfg := model.ForContext(ctx)
+	checker := cfg.Checker
+	dbf := cfg.Finder
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}
@@ -65,9 +65,9 @@ func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimp
 }
 
 func FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSetInput) error {
-	frs := model.ForContext(ctx)
-	checker := frs.Checker
-	dbf := frs.Finder
+	cfg := model.ForContext(ctx)
+	checker := cfg.Checker
+	dbf := cfg.Finder
 	if checker == nil {
 		return authz.ErrUnauthorized
 	}
@@ -102,8 +102,8 @@ func FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSe
 }
 
 func FeedVersionDelete(ctx context.Context, fvid int) (*model.FeedVersionDeleteResult, error) {
-	frs := model.ForContext(ctx)
-	checker := frs.Checker
+	cfg := model.ForContext(ctx)
+	checker := cfg.Checker
 	if checker == nil {
 		return nil, authz.ErrUnauthorized
 	}

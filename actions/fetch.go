@@ -25,8 +25,8 @@ import (
 )
 
 func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl string) (*model.FeedVersionFetchResult, error) {
-	frs := model.ForContext(ctx)
-	dbf := frs.Finder
+	cfg := model.ForContext(ctx)
+	dbf := cfg.Finder
 
 	urlType := "static_current"
 	feed, err := fetchCheckFeed(ctx, feedId, urlType, feedUrl)
@@ -42,8 +42,8 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 		FeedID:        feed.ID,
 		URLType:       urlType,
 		FeedURL:       feedUrl,
-		Storage:       frs.Storage,
-		Secrets:       frs.Secrets,
+		Storage:       cfg.Storage,
+		Secrets:       cfg.Secrets,
 		FetchedAt:     time.Now().In(time.UTC),
 		AllowFTPFetch: true,
 	}
@@ -89,7 +89,7 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 }
 
 func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, urlType string) error {
-	frs := model.ForContext(ctx)
+	cfg := model.ForContext(ctx)
 
 	feed, err := fetchCheckFeed(ctx, feedId, urlType, feedUrl)
 	if err != nil {
@@ -104,15 +104,15 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 		FeedID:    feed.ID,
 		URLType:   urlType,
 		FeedURL:   feedUrl,
-		Storage:   frs.RTStorage,
-		Secrets:   frs.Secrets,
+		Storage:   cfg.RTStorage,
+		Secrets:   cfg.Secrets,
 		FetchedAt: time.Now().In(time.UTC),
 	}
 
 	// Make request
 	var rtMsg *pb.FeedMessage
 	var fetchErr error
-	if err := tldb.NewPostgresAdapterFromDBX(frs.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
+	if err := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
 		m, fr, err := fetch.RTFetch(atx, fetchOpts)
 		if err != nil {
 			return err
@@ -133,7 +133,7 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 		return errors.New("invalid rt data")
 	}
 	key := fmt.Sprintf("rtdata:%s:%s", target, urlType)
-	return frs.RTFinder.AddData(key, rtdata)
+	return cfg.RTFinder.AddData(key, rtdata)
 }
 
 type CheckFetchWaitResult struct {
@@ -220,7 +220,7 @@ func CheckFetchWaitBatch(ctx context.Context, db sqlx.Ext, feedIds []int, urlTyp
 			return nil, err
 		}
 		for _, fetch := range lastFetches {
-			a, _ := checks[fetch.ID]
+			a := checks[fetch.ID]
 			a.CheckedAt = now
 			a.ID = fetch.ID
 			a.OnestopID = fetch.OnestopID
@@ -255,14 +255,14 @@ func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
 }
 
 func fetchCheckFeed(ctx context.Context, feedId string, urlType string, url string) (*model.Feed, error) {
-	frs := model.ForContext(ctx)
-	if frs.Finder == nil {
+	cfg := model.ForContext(ctx)
+	if cfg.Finder == nil {
 		panic("no finder")
 	}
-	checker := frs.Checker
+	checker := cfg.Checker
 
 	// Check feed exists
-	feeds, err := frs.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return nil, err
 	}

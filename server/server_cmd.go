@@ -223,6 +223,18 @@ func (cmd *Command) Run() error {
 		jobQueue = jobs.NewLocalJobs()
 	}
 
+	// Setup config
+	cfg := model.Config{
+		Finder:             dbFinder,
+		RTFinder:           rtFinder,
+		GbfsFinder:         gbfsFinder,
+		Checker:            checker,
+		Secrets:            cmd.secrets,
+		Storage:            cmd.Storage,
+		RTStorage:          cmd.RTStorage,
+		ValidateLargeFiles: cmd.ValidateLargeFiles,
+	}
+
 	// Setup metrics
 	metricProvider, err := metrics.GetProvider(cmd.metricsConfig)
 	if err != nil {
@@ -247,6 +259,7 @@ func (cmd *Command) Run() error {
 		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
 		AllowCredentials: true,
 	}))
+	root.Use(model.AddConfig(cfg))
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
@@ -274,16 +287,8 @@ func (cmd *Command) Run() error {
 	}
 
 	// GraphQL API
-	te := model.Config{
-		Finder:     dbFinder,
-		RTFinder:   rtFinder,
-		GbfsFinder: gbfsFinder,
-		Checker:    checker,
-		Secrets:    cmd.secrets,
-		Storage:    cmd.Storage,
-		RTStorage:  cmd.RTStorage,
-	}
-	graphqlServer, err := gql.NewServer(te)
+
+	graphqlServer, err := gql.NewServer(cfg)
 	if err != nil {
 		return err
 	}
@@ -333,7 +338,7 @@ func (cmd *Command) Run() error {
 		// Start workers/api
 		jobWorkers := 8
 		jobOptions := jobs.JobOptions{
-			Finders:  te,
+			Finders:  cfg,
 			Logger:   log.Logger,
 			JobQueue: jobQueue,
 		}

@@ -12,9 +12,9 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func NewServer(te model.Config) (http.Handler, error) {
+func NewServer(cfg model.Config) (http.Handler, error) {
 	c := gqlout.Config{Resolvers: &Resolver{
-		fvslCache: newFvslCache(te.Finder),
+		fvslCache: newFvslCache(cfg.Finder),
 	}}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (interface{}, error) {
 		user := authn.ForContext(ctx)
@@ -25,7 +25,7 @@ func NewServer(te model.Config) (http.Handler, error) {
 	}
 	// Setup server
 	srv := handler.NewDefaultServer(gqlout.NewExecutableSchema(c))
-	graphqlServer := loaderMiddleware(te, srv)
-	graphqlServer = model.AddConfig(te)(graphqlServer)
+	graphqlServer := loaderMiddleware(cfg, srv)
+	// graphqlServer = model.AddConfig(cfg)(graphqlServer)
 	return graphqlServer, nil
 }

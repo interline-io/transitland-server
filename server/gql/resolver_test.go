@@ -5,13 +5,11 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authn"
-	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -47,18 +45,20 @@ func TestMain(m *testing.M) {
 // Test helpers
 
 func newTestClient(t testing.TB) (*client.Client, model.Config) {
-	when, err := time.Parse("2006-01-02T15:04:05", "2022-09-01T00:00:00")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return newTestClientWithClock(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
+	return newTestClientWithOpts(t, testconfig.Options{
+		When:    "2022-09-01T00:00:00",
+		RTJsons: testconfig.DefaultRTJson(),
+	})
 }
 
-func newTestClientWithClock(t testing.TB, cl clock.Clock, rtfiles []testfinder.RTJsonFile) (*client.Client, model.Config) {
-	te := testfinder.Finders(t, cl, rtfiles)
+func newTestClientWithOpts(t testing.TB, opts testconfig.Options) (*client.Client, model.Config) {
+	te := testconfig.Config(t, opts)
 	srv, _ := NewServer(te)
-	srvMiddleware := ancheck.NewUserDefaultMiddleware(func() authn.User { return authn.NewCtxUser("testuser", "", "").WithRoles("testrole") })
-	return client.New(srvMiddleware(srv)), te
+	graphqlServer := model.AddConfig(te)(srv)
+	srvMiddleware := ancheck.NewUserDefaultMiddleware(func() authn.User {
+		return authn.NewCtxUser("testuser", "", "").WithRoles("testrole")
+	})
+	return client.New(srvMiddleware(graphqlServer)), te
 }
 
 func toJson(m map[string]interface{}) string {

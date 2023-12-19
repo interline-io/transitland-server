@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/jobs"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func TestGbfsFetchWorker(t *testing.T) {
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
 	defer ts.Close()
 
-	testfinder.FindersTxRollback(t, nil, nil, func(te model.Config) {
+	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
 		job := jobs.Job{}
 		job.Opts.Finders = te
 		w := GbfsFetchWorker{

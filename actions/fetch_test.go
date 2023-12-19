@@ -11,7 +11,7 @@ import (
 
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-server/internal/dbutil"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -110,7 +110,7 @@ func TestStaticFetchWorker(t *testing.T) {
 
 			// Setup job
 			feedUrl := ts.URL + "/" + tc.serveFile
-			testfinder.FindersTxRollback(t, nil, nil, func(te model.Config) {
+			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
 				ctx := model.WithConfig(context.Background(), te)
 				// Run job
 				if result, err := StaticFetch(ctx, tc.feedId, nil, feedUrl); err != nil && !tc.expectError {

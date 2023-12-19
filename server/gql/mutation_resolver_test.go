@@ -10,7 +10,7 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +26,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te model.Config) {
+		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
 			srv, _ := NewServer(te)
 			srv = model.AddConfig(te)(srv)
 			srv = ancheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
@@ -41,7 +41,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		})
 	})
 	// t.Run("requires admin access", func(t *testing.T) {
-	// 	testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+	// 	testconfig.ConfigTxRollback(t, nil, nil, func(te testconfig.TestEnv) {
 	// 		srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
 	// 		srv = authn.UserDefaultMiddleware("test")(srv) // Run all requests as regular user
 	// 		c := client.New(srv)
@@ -165,7 +165,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testfinder.FindersTxRollback(t, nil, nil, func(te model.Config) {
+			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
 				srv, _ := NewServer(te)
 				srv = ancheck.UserDefaultMiddleware("test")(srv) // Run all requests as user
 				c := client.New(srv)
@@ -174,7 +174,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te model.Config) {
+		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
 			srv, _ := NewServer(te) // all requests run as anonymous context by default
 			c := client.New(srv)
 			resp := make(map[string]interface{})

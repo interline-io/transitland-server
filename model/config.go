@@ -9,6 +9,19 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type Config struct {
+	Finder             Finder
+	RTFinder           RTFinder
+	GbfsFinder         GbfsFinder
+	Checker            Checker
+	Clock              clock.Clock
+	Secrets            []tl.Secret
+	ValidateLargeFiles bool
+	Storage            string
+	RTStorage          string
+	Logger             zerolog.Logger
+}
+
 var finderCtxKey = &contextKey{"finderConfig"}
 
 type contextKey struct {
@@ -23,29 +36,16 @@ func ForContext(ctx context.Context) Config {
 	return raw
 }
 
-func WithConfig(ctx context.Context, fs Config) context.Context {
-	r := context.WithValue(ctx, finderCtxKey, fs)
+func WithConfig(ctx context.Context, cfg Config) context.Context {
+	r := context.WithValue(ctx, finderCtxKey, cfg)
 	return r
 }
 
-func AddConfig(te Config) func(http.Handler) http.Handler {
+func AddConfig(cfg Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(WithConfig(r.Context(), te))
+			r = r.WithContext(WithConfig(r.Context(), cfg))
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-type Config struct {
-	Finder             Finder
-	RTFinder           RTFinder
-	GbfsFinder         GbfsFinder
-	Checker            Checker
-	Clock              clock.Clock
-	Secrets            []tl.Secret
-	ValidateLargeFiles bool
-	Storage            string
-	RTStorage          string
-	Logger             zerolog.Logger
 }
