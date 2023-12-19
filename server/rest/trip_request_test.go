@@ -12,7 +12,9 @@ import (
 )
 
 func TestTripRequest(t *testing.T) {
-	graphqlHandler, restHandler, _ := testHandlersWithOptions(t, testconfig.Options{})
+	graphqlHandler, restHandler, _ := testHandlersWithOptions(t, testconfig.Options{
+		When: "2018-06-01T00:00:00",
+	})
 	d, err := makeGraphQLRequest(context.Background(), graphqlHandler, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
