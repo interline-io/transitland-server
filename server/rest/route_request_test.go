@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -13,7 +14,7 @@ import (
 func TestRouteRequest(t *testing.T) {
 	routeIds := []string{"1", "12", "14", "15", "16", "17", "19", "20", "24", "25", "275", "30", "31", "32", "33", "34", "35", "36", "360", "37", "38", "39", "400", "42", "45", "46", "48", "5", "51", "6", "60", "7", "75", "8", "9", "96", "97", "570", "571", "572", "573", "574", "800", "PWT", "SKY", "01", "03", "05", "07", "11", "19", "Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"}
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "none",
 			h:            RouteRequest{WithCursor: WithCursor{Limit: 1000}},
@@ -116,16 +117,15 @@ func TestRouteRequest(t *testing.T) {
 			},
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestRouteRequest_Format(t *testing.T) {
-	tcs := []testRest{
+	tcs := []testCase{
 		{
 			name:   "route geojson",
 			format: "geojson",
@@ -152,16 +152,15 @@ func TestRouteRequest_Format(t *testing.T) {
 			},
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestRouteRequest_Pagination(t *testing.T) {
-	srv, cfg := testRestConfig(t)
+	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
 	allEnts, err := cfg.Finder.FindRoutes(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -170,7 +169,7 @@ func TestRouteRequest_Pagination(t *testing.T) {
 	for _, ent := range allEnts {
 		allIds = append(allIds, ent.RouteID)
 	}
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "limit:1",
 			h:            RouteRequest{WithCursor: WithCursor{Limit: 1}},
@@ -209,13 +208,13 @@ func TestRouteRequest_Pagination(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
 		})
 	}
 }
 
 func TestRouteRequest_License(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name: "license:share_alike_optional yes",
 			h:    RouteRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}}, selector: "routes.#.route_id",
@@ -262,10 +261,9 @@ func TestRouteRequest_License(t *testing.T) {
 			expectLength: 51,
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }

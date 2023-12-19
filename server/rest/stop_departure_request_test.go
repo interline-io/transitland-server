@@ -12,7 +12,7 @@ func TestStopDepartureRequest(t *testing.T) {
 		return &v
 	}
 	sid := "s-9q9nfsxn67-fruitvale"
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "basic",
 			h:            StopDepartureRequest{StopKey: sid},
@@ -144,10 +144,9 @@ func TestStopDepartureRequest(t *testing.T) {
 		// 	0,
 		// },
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }

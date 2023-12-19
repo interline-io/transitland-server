@@ -5,7 +5,7 @@ import (
 )
 
 func TestOperatorRequest(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "basic",
 			h:            OperatorRequest{},
@@ -107,16 +107,15 @@ func TestOperatorRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestOperatorRequest_Pagination(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "limit:1",
 			h:            OperatorRequest{WithCursor: WithCursor{Limit: 1}},
@@ -130,16 +129,15 @@ func TestOperatorRequest_Pagination(t *testing.T) {
 			expectLength: 4,
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestOperatorRequest_License(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "license:share_alike_optional yes",
 			h:            OperatorRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}},
@@ -195,10 +193,9 @@ func TestOperatorRequest_License(t *testing.T) {
 			expectSelect: []string{"o-9q9-caltrain", "o-dhv-hillsborougharearegionaltransit", "o-9qs-demotransitauthority"},
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }

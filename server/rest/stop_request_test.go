@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -18,7 +19,7 @@ func TestStopRequest(t *testing.T) {
 	caltrainBusStops := []string{"777402", "777403"}
 	_ = caltrainRailStops
 	_ = caltrainBusStops
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "basic",
 			h:            StopRequest{},
@@ -174,16 +175,15 @@ func TestStopRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestStopRequest_AdminCache(t *testing.T) {
-	tc := testRest{
+	tc := testCase{
 		name:         "place",
 		h:            StopRequest{StopKey: "BA:FTVL"},
 		selector:     "stops.#.place.adm1_name",
@@ -193,7 +193,7 @@ func TestStopRequest_AdminCache(t *testing.T) {
 	type canLoadAdmins interface {
 		LoadAdmins() error
 	}
-	srv, cfg := testRestConfig(t)
+	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
 	if v, ok := cfg.Finder.(canLoadAdmins); !ok {
 		t.Fatal("finder cant load admins")
 	} else {
@@ -201,11 +201,11 @@ func TestStopRequest_AdminCache(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	testquery(t, srv, tc)
+	checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
 }
 
 func TestStopRequest_Format(t *testing.T) {
-	tcs := []testRest{
+	tcs := []testCase{
 		{
 			name:   "stop geojson",
 			format: "geojson",
@@ -232,16 +232,15 @@ func TestStopRequest_Format(t *testing.T) {
 			},
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestStopRequest_Pagination(t *testing.T) {
-	srv, cfg := testRestConfig(t)
+	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
 	allEnts, err := cfg.Finder.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -250,7 +249,7 @@ func TestStopRequest_Pagination(t *testing.T) {
 	for _, ent := range allEnts {
 		allIds = append(allIds, ent.StopID)
 	}
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "pagination exists",
 			h:            StopRequest{},
@@ -276,13 +275,13 @@ func TestStopRequest_Pagination(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
 		})
 	}
 }
 
 func TestStopRequest_License(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "license:share_alike_optional yes",
 			h:            StopRequest{WithCursor: WithCursor{Limit: 10_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}},
@@ -363,10 +362,9 @@ func TestStopRequest_License(t *testing.T) {
 			},
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }

@@ -25,6 +25,8 @@ import (
 
 type Options struct {
 	When           string
+	Storage        string
+	RTStorage      string
 	RTJsons        []RTJsonFile
 	FGAModelFile   string
 	FGAModelTuples []authz.TupleKey
@@ -124,13 +126,19 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	// Setup GBFS
 	gbf := gbfsfinder.NewFinder(nil)
 
+	if opts.Storage == "" {
+		opts.Storage = t.TempDir()
+	}
+	if opts.RTStorage == "" {
+		opts.RTStorage = t.TempDir()
+	}
 	return model.Config{
 		Finder:     dbf,
 		RTFinder:   rtf,
 		GbfsFinder: gbf,
 		Checker:    checker,
 		Clock:      cl,
-		Storage:    t.TempDir(),
-		RTStorage:  t.TempDir(),
+		Storage:    opts.Storage,
+		RTStorage:  opts.RTStorage,
 	}
 }

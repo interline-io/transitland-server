@@ -86,6 +86,7 @@ func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.Respon
 	}
 
 	cfg := model.ForContext(r.Context())
+	fmt.Printf("storage: %#v\n", cfg)
 	serveFromStorage(w, r, cfg.Storage, fvsha1)
 }
 

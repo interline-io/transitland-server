@@ -27,31 +27,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func testRestConfig(t testing.TB) (http.Handler, model.Config) {
-	cfg := testconfig.Config(t,
-		testconfig.Options{
-			When:    "2018-06-01T00:00:00",
-			RTJsons: testconfig.DefaultRTJson(),
-		},
-	)
-	srv, err := gql.NewServer()
-	if err != nil {
-		panic(err)
-	}
-	srv = model.AddConfig(cfg)(srv)
-	return srv, cfg
-}
-
-func testRestServer(t testing.TB, cfg Config, srv http.Handler) (http.Handler, error) {
-	return NewServer(cfg, srv)
-}
-
-func toJson(m map[string]interface{}) string {
-	rr, _ := json.Marshal(&m)
-	return string(rr)
-}
-
-type testRest struct {
+type testCase struct {
 	name         string
 	h            apiHandler
 	format       string
@@ -61,7 +37,37 @@ type testRest struct {
 	f            func(*testing.T, string)
 }
 
-func testquery(t *testing.T, graphqlHandler http.Handler, tc testRest) {
+func testHandlersWithOptions(t testing.TB, opts testconfig.Options) (http.Handler, http.Handler, model.Config) {
+	cfg := testconfig.Config(t, opts)
+	graphqlHandler, err := gql.NewServer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	restHandler, err := NewServer(Config{}, graphqlHandler)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return model.AddConfig(cfg)(graphqlHandler), model.AddConfig(cfg)(restHandler), cfg
+}
+
+func checkTestCase(t *testing.T, tc testCase) {
+	opts := testconfig.Options{
+		When:    "2018-06-01T00:00:00",
+		RTJsons: testconfig.DefaultRTJson(),
+	}
+	cfg := testconfig.Config(t, opts)
+	graphqlHandler, err := gql.NewServer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	restHandler, err := NewServer(Config{}, graphqlHandler)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkTestCaseWithHandlers(t, tc, model.AddConfig(cfg)(graphqlHandler), restHandler)
+}
+
+func checkTestCaseWithHandlers(t *testing.T, tc testCase, graphqlHandler http.Handler, restHandler http.Handler) {
 	data, err := makeRequest(context.TODO(), Config{}, graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)
@@ -96,4 +102,9 @@ func testquery(t *testing.T, graphqlHandler http.Handler, tc testRest) {
 	if !tested {
 		t.Errorf("no test performed, check test case")
 	}
+}
+
+func toJson(m map[string]interface{}) string {
+	rr, _ := json.Marshal(&m)
+	return string(rr)
 }

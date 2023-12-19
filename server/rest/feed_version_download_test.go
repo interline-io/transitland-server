@@ -7,6 +7,7 @@ import (
 
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
@@ -16,12 +17,9 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 		t.Skip(a)
 		return
 	}
-	srv, cfg := testRestConfig(t)
-	cfg.Storage = g
-	restSrv, err := testRestServer(t, Config{}, srv)
-	if err != nil {
-		t.Fatal(err)
-	}
+	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
+		Storage: g,
+	})
 
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feed_versions/d2813c293bcfd7a97dde599527ae6c62c98e66c6/download", nil)
@@ -117,12 +115,9 @@ func TestFeedDownloadLatestRequest(t *testing.T) {
 		t.Skip(a)
 		return
 	}
-	srv, cfg := testRestConfig(t)
-	cfg.Storage = g
-	restSrv, err := testRestServer(t, Config{}, srv)
-	if err != nil {
-		t.Fatal(err)
-	}
+	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
+		Storage: g,
+	})
 
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feeds/CT/download_latest_feed_version", nil)

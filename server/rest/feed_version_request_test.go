@@ -8,7 +8,7 @@ import (
 
 func TestFeedVersionRequest(t *testing.T) {
 	fv := "d2813c293bcfd7a97dde599527ae6c62c98e66c6"
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "basic",
 			h:            FeedVersionRequest{},
@@ -127,10 +127,9 @@ func TestFeedVersionRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
