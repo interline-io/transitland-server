@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/interline-io/transitland-lib/tl"
@@ -45,7 +44,6 @@ func WithConfig(ctx context.Context, cfg Config) context.Context {
 func AddConfig(cfg Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("CONFIG 1")
 			r = r.WithContext(WithConfig(r.Context(), cfg))
 			next.ServeHTTP(w, r)
 		})
