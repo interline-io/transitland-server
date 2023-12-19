@@ -12,13 +12,8 @@ import (
 )
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
-	g, a, ok := testutil.CheckEnv("TL_TEST_STORAGE")
-	if !ok {
-		t.Skip(a)
-		return
-	}
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: g,
+		Storage: testutil.RelPath("tmp"),
 	})
 
 	t.Run("ok", func(t *testing.T) {
@@ -110,13 +105,8 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 }
 
 func TestFeedDownloadLatestRequest(t *testing.T) {
-	g, a, ok := testutil.CheckEnv("TL_TEST_STORAGE")
-	if !ok {
-		t.Skip(a)
-		return
-	}
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: g,
+		Storage: testutil.RelPath("tmp"),
 	})
 
 	t.Run("ok", func(t *testing.T) {
