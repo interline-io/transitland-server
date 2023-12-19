@@ -24,7 +24,6 @@ func TestTripRequest(t *testing.T) {
 		t.Error("failed to get route id for tests")
 	}
 	tripId := int(gjson.Get(toJson(d2), "trips.0.id").Int())
-
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
 	ctfv := "d2813c293bcfd7a97dde599527ae6c62c98e66c6"
 	testcases := []testCase{
