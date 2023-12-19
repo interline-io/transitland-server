@@ -200,12 +200,10 @@ func (cmd *Command) Run() error {
 	}
 
 	// Create Finder
-	var dbFinder model.Finder
-	f := dbfinder.NewFinder(db, checker)
+	dbFinder := dbfinder.NewFinder(db, checker)
 	if cmd.LoadAdmins {
-		f.LoadAdmins()
+		dbFinder.LoadAdmins()
 	}
-	dbFinder = f
 
 	// Create RTFinder, GBFSFinder
 	var rtFinder model.RTFinder
@@ -249,7 +247,6 @@ func (cmd *Command) Run() error {
 
 	// Setup router
 	root := chi.NewRouter()
-	root.Use(model.AddConfig(cfg))
 	root.Use(middleware.RequestID)
 	root.Use(middleware.RealIP)
 	root.Use(middleware.Recoverer)
@@ -260,6 +257,9 @@ func (cmd *Command) Run() error {
 		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
 		AllowCredentials: true,
 	}))
+
+	// Finders config
+	root.Use(model.AddConfig(cfg))
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {
@@ -288,7 +288,7 @@ func (cmd *Command) Run() error {
 
 	// GraphQL API
 
-	graphqlServer, err := gql.NewServer(cfg)
+	graphqlServer, err := gql.NewServer()
 	if err != nil {
 		return err
 	}

@@ -23,38 +23,38 @@ type fvslCache struct {
 	fvWindows map[int]fvslWindow
 }
 
-func newFvslCache(f model.Finder) *fvslCache {
+func newFvslCache() *fvslCache {
 	return &fvslCache{
-		Finder:    f,
 		fvWindows: map[int]fvslWindow{},
 	}
 }
 
-func (f *fvslCache) Get(fvid int) (fvslWindow, bool) {
+func (f *fvslCache) Get(ctx context.Context, fvid int) (fvslWindow, bool) {
 	f.lock.Lock()
 	a, ok := f.fvWindows[fvid]
 	f.lock.Unlock()
 	if ok {
 		return a, ok
 	}
-	a, err := f.query(fvid)
+	a, err := f.query(ctx, fvid)
 	if err != nil {
 		a.Valid = false
 	}
-	f.Set(fvid, a)
+	f.Set(ctx, fvid, a)
 	return a, a.Valid
 }
 
-func (f *fvslCache) Set(fvid int, w fvslWindow) {
+func (f *fvslCache) Set(ctx context.Context, fvid int, w fvslWindow) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	f.fvWindows[fvid] = w
 }
 
-func (f *fvslCache) query(fvid int) (fvslWindow, error) {
+func (f *fvslCache) query(ctx context.Context, fvid int) (fvslWindow, error) {
+	cfg := model.ForContext(ctx)
 	var err error
 	w := fvslWindow{}
-	w.StartDate, w.EndDate, w.BestWeek, err = f.Finder.FindFeedVersionServiceWindow(context.TODO(), fvid)
+	w.StartDate, w.EndDate, w.BestWeek, err = cfg.Finder.FindFeedVersionServiceWindow(context.TODO(), fvid)
 	log.Trace().
 		Str("start_date", w.StartDate.Format("2006-01-02")).
 		Str("end_date", w.EndDate.Format("2006-01-02")).

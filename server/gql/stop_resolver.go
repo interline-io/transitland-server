@@ -118,7 +118,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 		}
 		// Check if service date is outside the window for this feed version
 		if where.ServiceDate != nil && (where.UseServiceWindow != nil && *where.UseServiceWindow) {
-			sl, ok := r.fvslCache.Get(obj.FeedVersionID)
+			sl, ok := r.fvslCache.Get(ctx, obj.FeedVersionID)
 			if !ok {
 				return nil, errors.New("service level information not available for feed version")
 			}

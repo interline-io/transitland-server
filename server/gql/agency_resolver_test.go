@@ -242,8 +242,8 @@ func TestAgencyResolver(t *testing.T) {
 }
 
 func TestAgencyResolver_Cursor(t *testing.T) {
-	c, te := newTestClient(t)
-	allEnts, err := te.Finder.FindAgencies(context.Background(), nil, nil, nil, nil)
+	c, cfg := newTestClient(t)
+	allEnts, err := cfg.Finder.FindAgencies(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -314,7 +314,8 @@ func TestAgencyResolver_Authz(t *testing.T) {
 		FGAModelFile:   testutil.RelPath("test/authz/tls.json"),
 		FGAModelTuples: fgaTestTuples,
 	})
-	srv, _ := NewServer(cfg)
+	_ = cfg
+	srv, _ := NewServer()
 	testcases := []testcase{
 		{
 			name:         "basic",

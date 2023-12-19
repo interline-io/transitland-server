@@ -249,8 +249,8 @@ func TestFeedResolver(t *testing.T) {
 }
 
 func TestFeedResolver_Cursor(t *testing.T) {
-	c, te := newTestClient(t)
-	allEnts, err := te.Finder.FindFeeds(context.Background(), nil, nil, nil, nil)
+	c, cfg := newTestClient(t)
+	allEnts, err := cfg.Finder.FindFeeds(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

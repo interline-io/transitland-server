@@ -34,7 +34,7 @@ func testRestConfig(t testing.TB) (http.Handler, model.Config) {
 			RTJsons: testconfig.DefaultRTJson(),
 		},
 	)
-	srv, err := gql.NewServer(cfg)
+	srv, err := gql.NewServer()
 	if err != nil {
 		panic(err)
 	}

@@ -77,8 +77,8 @@ func TestGbfsBikeResolver(t *testing.T) {
 			selectExpect: []string{"0cbf9b08f8b71a6362e20c8173c071a6"},
 		},
 	}
-	c, te := newTestClient(t)
-	setupGbfs(te.GbfsFinder)
+	c, cfg := newTestClient(t)
+	setupGbfs(cfg.GbfsFinder)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)
@@ -210,8 +210,8 @@ func TestGbfsStationResolver(t *testing.T) {
 			selectExpect: []string{"27045384-791c-4519-8087-fce2f7c48a69"},
 		},
 	}
-	c, te := newTestClient(t)
-	setupGbfs(te.GbfsFinder)
+	c, cfg := newTestClient(t)
+	setupGbfs(cfg.GbfsFinder)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			queryTestcase(t, c, tc)

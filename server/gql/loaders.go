@@ -135,10 +135,11 @@ func NewLoaders(dbf model.Finder) *Loaders {
 	return loaders
 }
 
-func loaderMiddleware(cfg model.Config, next http.Handler) http.Handler {
+func loaderMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// This is per request scoped loaders/cache
 		// Is this OK to use as a long term cache?
+		cfg := model.ForContext(r.Context())
 		loaders := NewLoaders(cfg.Finder)
 		nextCtx := context.WithValue(r.Context(), loadersKey, loaders)
 		r = r.WithContext(nextCtx)

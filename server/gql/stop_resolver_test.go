@@ -10,31 +10,31 @@ import (
 )
 
 func TestStopResolver(t *testing.T) {
-	c, te := newTestClient(t)
-	queryTestcases(t, c, stopResolverTestcases(t, te))
+	c, cfg := newTestClient(t)
+	queryTestcases(t, c, stopResolverTestcases(t, cfg))
 }
 
 func TestStopResolver_Cursor(t *testing.T) {
-	c, te := newTestClient(t)
-	queryTestcases(t, c, stopResolverCursorTestcases(t, te))
+	c, cfg := newTestClient(t)
+	queryTestcases(t, c, stopResolverCursorTestcases(t, cfg))
 }
 
 func TestStopResolver_PreviousOnestopID(t *testing.T) {
-	c, te := newTestClient(t)
-	queryTestcases(t, c, stopResolverPreviousOnestopIDTestcases(t, te))
+	c, cfg := newTestClient(t)
+	queryTestcases(t, c, stopResolverPreviousOnestopIDTestcases(t, cfg))
 }
 
 func TestStopResolver_License(t *testing.T) {
-	c, te := newTestClient(t)
-	queryTestcases(t, c, stopResolverLicenseTestcases(t, te))
+	c, cfg := newTestClient(t)
+	queryTestcases(t, c, stopResolverLicenseTestcases(t, cfg))
 }
 
 func TestStopResolver_AdminCache(t *testing.T) {
 	type canLoadAdmins interface {
 		LoadAdmins() error
 	}
-	c, te := newTestClient(t)
-	if v, ok := te.Finder.(canLoadAdmins); !ok {
+	c, cfg := newTestClient(t)
+	if v, ok := cfg.Finder.(canLoadAdmins); !ok {
 		t.Fatal("finder cant load admins")
 	} else {
 		if err := v.LoadAdmins(); err != nil {
@@ -83,11 +83,11 @@ func TestStopResolver_AdminCache(t *testing.T) {
 }
 
 func BenchmarkStopResolver(b *testing.B) {
-	c, te := newTestClient(b)
-	benchmarkTestcases(b, c, stopResolverTestcases(b, te))
+	c, cfg := newTestClient(b)
+	benchmarkTestcases(b, c, stopResolverTestcases(b, cfg))
 }
 
-func stopResolverTestcases(t testing.TB, te model.Config) []testcase {
+func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 	bartStops := []string{"12TH", "16TH", "19TH", "19TH_N", "24TH", "ANTC", "ASHB", "BALB", "BAYF", "CAST", "CIVC", "COLS", "COLM", "CONC", "DALY", "DBRK", "DUBL", "DELN", "PLZA", "EMBR", "FRMT", "FTVL", "GLEN", "HAYW", "LAFY", "LAKE", "MCAR", "MCAR_S", "MLBR", "MONT", "NBRK", "NCON", "OAKL", "ORIN", "PITT", "PCTR", "PHIL", "POWL", "RICH", "ROCK", "SBRN", "SFIA", "SANL", "SHAY", "SSAN", "UCTY", "WCRK", "WARM", "WDUB", "WOAK"}
 	caltrainRailStops := []string{"70011", "70012", "70021", "70022", "70031", "70032", "70041", "70042", "70051", "70052", "70061", "70062", "70071", "70072", "70081", "70082", "70091", "70092", "70101", "70102", "70111", "70112", "70121", "70122", "70131", "70132", "70141", "70142", "70151", "70152", "70161", "70162", "70171", "70172", "70191", "70192", "70201", "70202", "70211", "70212", "70221", "70222", "70231", "70232", "70241", "70242", "70251", "70252", "70261", "70262", "70271", "70272", "70281", "70282", "70291", "70292", "70301", "70302", "70311", "70312", "70321", "70322"}
 	caltrainBusStops := []string{"777402", "777403"}
@@ -99,7 +99,7 @@ func stopResolverTestcases(t testing.TB, te model.Config) []testcase {
 	allStops = append(allStops, caltrainStops...)
 	vars := hw{"stop_id": "MCAR"}
 	stopObsFvid := 0
-	if err := te.Finder.DBX().QueryRowx("select feed_version_id from ext_performance_stop_observations limit 1").Scan(&stopObsFvid); err != nil {
+	if err := cfg.Finder.DBX().QueryRowx("select feed_version_id from ext_performance_stop_observations limit 1").Scan(&stopObsFvid); err != nil {
 		t.Errorf("could not get fvid for stop observation test: %s", err.Error())
 	}
 	testcases := []testcase{
@@ -510,9 +510,9 @@ func stopResolverTestcases(t testing.TB, te model.Config) []testcase {
 	return testcases
 }
 
-func stopResolverCursorTestcases(t *testing.T, te model.Config) []testcase {
+func stopResolverCursorTestcases(t *testing.T, cfg model.Config) []testcase {
 	// First 1000 stops...
-	dbf := te.Finder
+	dbf := cfg.Finder
 	allEnts, err := dbf.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -562,7 +562,7 @@ func stopResolverCursorTestcases(t *testing.T, te model.Config) []testcase {
 	return testcases
 }
 
-func stopResolverPreviousOnestopIDTestcases(t testing.TB, te model.Config) []testcase {
+func stopResolverPreviousOnestopIDTestcases(t testing.TB, cfg model.Config) []testcase {
 	testcases := []testcase{
 		{
 			name:         "default",
@@ -596,7 +596,7 @@ func stopResolverPreviousOnestopIDTestcases(t testing.TB, te model.Config) []tes
 	return testcases
 }
 
-func stopResolverLicenseTestcases(t testing.TB, te model.Config) []testcase {
+func stopResolverLicenseTestcases(t testing.TB, cfg model.Config) []testcase {
 	q := `
 	query ($lic: LicenseFilter) {
 		stops(limit: 10000, where: {license: $lic}) {
