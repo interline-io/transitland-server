@@ -2,9 +2,10 @@ package actions
 
 import (
 	"context"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	sq "github.com/Masterminds/squirrel"
@@ -99,7 +100,7 @@ func TestStaticFetchWorker(t *testing.T) {
 					return
 
 				}
-				buf, err := ioutil.ReadFile(testutil.RelPath(tc.serveFile))
+				buf, err := os.ReadFile(testutil.RelPath(tc.serveFile))
 				if err != nil {
 					http.Error(w, "404", 404)
 					return
@@ -110,8 +111,10 @@ func TestStaticFetchWorker(t *testing.T) {
 
 			// Setup job
 			feedUrl := ts.URL + "/" + tc.serveFile
-			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
-				ctx := model.WithConfig(context.Background(), te)
+			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+				fmt.Printf("checker %#v\n", cfg.Checker)
+				cfg.Checker = nil
+				ctx := model.WithConfig(context.Background(), cfg)
 				// Run job
 				if result, err := StaticFetch(ctx, tc.feedId, nil, feedUrl); err != nil && !tc.expectError {
 					_ = result
@@ -125,7 +128,7 @@ func TestStaticFetchWorker(t *testing.T) {
 				ff := dmfr.FeedFetch{}
 				if err := dbutil.Get(
 					context.Background(),
-					te.Finder.DBX(),
+					cfg.Finder.DBX(),
 					sq.StatementBuilder.
 						Select("ff.*").
 						From("feed_fetches ff").

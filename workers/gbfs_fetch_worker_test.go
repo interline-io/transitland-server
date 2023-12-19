@@ -18,9 +18,9 @@ func TestGbfsFetchWorker(t *testing.T) {
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
 	defer ts.Close()
 
-	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
+	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		job := jobs.Job{}
-		job.Opts.Finders = te
+		job.Opts.Finders = cfg
 		w := GbfsFetchWorker{
 			Url:    ts.URL + "/gbfs.json",
 			FeedID: "test-gbfs",
@@ -30,7 +30,7 @@ func TestGbfsFetchWorker(t *testing.T) {
 			t.Fatal(err)
 		}
 		// Test
-		bikes, err := te.GbfsFinder.FindBikes(
+		bikes, err := cfg.GbfsFinder.FindBikes(
 			context.Background(),
 			nil,
 			&model.GbfsBikeRequest{

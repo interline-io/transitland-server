@@ -28,17 +28,18 @@ func TestMain(m *testing.M) {
 }
 
 func testRestConfig(t testing.TB) (http.Handler, model.Config) {
-	te := testconfig.Config(t,
+	cfg := testconfig.Config(t,
 		testconfig.Options{
 			When:    "2018-06-01T00:00:00",
 			RTJsons: testconfig.DefaultRTJson(),
 		},
 	)
-	srv, err := gql.NewServer(te)
+	srv, err := gql.NewServer(cfg)
 	if err != nil {
 		panic(err)
 	}
-	return srv, te
+	srv = model.AddConfig(cfg)(srv)
+	return srv, cfg
 }
 
 func testRestServer(t testing.TB, cfg Config, srv http.Handler) (http.Handler, error) {
@@ -60,7 +61,7 @@ type testRest struct {
 	f            func(*testing.T, string)
 }
 
-func testquery(t *testing.T, graphqlHandler http.Handler, cfg model.Config, tc testRest) {
+func testquery(t *testing.T, graphqlHandler http.Handler, tc testRest) {
 	data, err := makeRequest(context.TODO(), Config{}, graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)

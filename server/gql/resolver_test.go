@@ -52,13 +52,13 @@ func newTestClient(t testing.TB) (*client.Client, model.Config) {
 }
 
 func newTestClientWithOpts(t testing.TB, opts testconfig.Options) (*client.Client, model.Config) {
-	te := testconfig.Config(t, opts)
-	srv, _ := NewServer(te)
-	graphqlServer := model.AddConfig(te)(srv)
+	cfg := testconfig.Config(t, opts)
+	srv, _ := NewServer(cfg)
+	graphqlServer := model.AddConfig(cfg)(srv)
 	srvMiddleware := ancheck.NewUserDefaultMiddleware(func() authn.User {
 		return authn.NewCtxUser("testuser", "", "").WithRoles("testrole")
 	})
-	return client.New(srvMiddleware(graphqlServer)), te
+	return client.New(srvMiddleware(graphqlServer)), cfg
 }
 
 func toJson(m map[string]interface{}) string {

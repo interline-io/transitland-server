@@ -26,6 +26,5 @@ func NewServer(cfg model.Config) (http.Handler, error) {
 	// Setup server
 	srv := handler.NewDefaultServer(gqlout.NewExecutableSchema(c))
 	graphqlServer := loaderMiddleware(cfg, srv)
-	// graphqlServer = model.AddConfig(cfg)(graphqlServer)
 	return graphqlServer, nil
 }

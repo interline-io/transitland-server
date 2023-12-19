@@ -7,7 +7,7 @@ import (
 )
 
 func TestFvslCache(t *testing.T) {
-	te := testconfig.Config(t, testconfig.Options{})
-	c := newFvslCache(te.Finder)
+	cfg := testconfig.Config(t, testconfig.Options{})
+	c := newFvslCache(cfg.Finder)
 	c.Get(1)
 }

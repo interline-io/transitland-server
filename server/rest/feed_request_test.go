@@ -156,10 +156,10 @@ func TestFeedRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
@@ -192,10 +192,10 @@ func TestFeedRequest_Format(t *testing.T) {
 			},
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
@@ -248,10 +248,10 @@ func TestFeedRequest_License(t *testing.T) {
 			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test", "EX"},
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 

@@ -174,10 +174,10 @@ func TestStopRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
@@ -193,15 +193,15 @@ func TestStopRequest_AdminCache(t *testing.T) {
 	type canLoadAdmins interface {
 		LoadAdmins() error
 	}
-	srv, te := testRestConfig(t)
-	if v, ok := te.Finder.(canLoadAdmins); !ok {
+	srv, cfg := testRestConfig(t)
+	if v, ok := cfg.Finder.(canLoadAdmins); !ok {
 		t.Fatal("finder cant load admins")
 	} else {
 		if err := v.LoadAdmins(); err != nil {
 			t.Fatal(err)
 		}
 	}
-	testquery(t, srv, te, tc)
+	testquery(t, srv, tc)
 }
 
 func TestStopRequest_Format(t *testing.T) {
@@ -232,17 +232,17 @@ func TestStopRequest_Format(t *testing.T) {
 			},
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
 
 func TestStopRequest_Pagination(t *testing.T) {
-	srv, te := testRestConfig(t)
-	allEnts, err := te.Finder.FindStops(context.Background(), nil, nil, nil, nil)
+	srv, cfg := testRestConfig(t)
+	allEnts, err := cfg.Finder.FindStops(context.Background(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -276,7 +276,7 @@ func TestStopRequest_Pagination(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
@@ -363,10 +363,10 @@ func TestStopRequest_License(t *testing.T) {
 			},
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }

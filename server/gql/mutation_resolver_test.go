@@ -26,9 +26,9 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
-			srv, _ := NewServer(te)
-			srv = model.AddConfig(te)(srv)
+		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+			srv, _ := NewServer(cfg)
+			srv = model.AddConfig(cfg)(srv)
 			srv = ancheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
 			// Run all requests as admin
 			c := client.New(srv)
@@ -165,8 +165,9 @@ func TestValidateGtfsResolver(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
-				srv, _ := NewServer(te)
+			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+				srv, _ := NewServer(cfg)
+				srv = model.AddConfig(cfg)(srv)
 				srv = ancheck.UserDefaultMiddleware("test")(srv) // Run all requests as user
 				c := client.New(srv)
 				queryTestcase(t, c, tc)
@@ -174,8 +175,9 @@ func TestValidateGtfsResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(te model.Config) {
-			srv, _ := NewServer(te) // all requests run as anonymous context by default
+		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+			srv, _ := NewServer(cfg) // all requests run as anonymous context by default
+			srv = model.AddConfig(cfg)(srv)
 			c := client.New(srv)
 			resp := make(map[string]interface{})
 			err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))

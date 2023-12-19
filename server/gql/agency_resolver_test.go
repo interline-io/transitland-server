@@ -310,11 +310,11 @@ func TestAgencyResolver_Authz(t *testing.T) {
 		t.Skip(a)
 		return
 	}
-	te := testconfig.Config(t, testconfig.Options{
+	cfg := testconfig.Config(t, testconfig.Options{
 		FGAModelFile:   testutil.RelPath("test/authz/tls.json"),
 		FGAModelTuples: fgaTestTuples,
 	})
-	srv, _ := NewServer(te)
+	srv, _ := NewServer(cfg)
 	testcases := []testcase{
 		{
 			name:         "basic",

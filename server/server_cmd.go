@@ -249,6 +249,7 @@ func (cmd *Command) Run() error {
 
 	// Setup router
 	root := chi.NewRouter()
+	root.Use(model.AddConfig(cfg))
 	root.Use(middleware.RequestID)
 	root.Use(middleware.RealIP)
 	root.Use(middleware.Recoverer)
@@ -259,7 +260,6 @@ func (cmd *Command) Run() error {
 		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
 		AllowCredentials: true,
 	}))
-	root.Use(model.AddConfig(cfg))
 
 	// Setup user middleware
 	for _, k := range cmd.AuthMiddlewares {

@@ -11,7 +11,7 @@ import (
 )
 
 func TestTripRequest(t *testing.T) {
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	d, err := makeGraphQLRequest(context.Background(), srv, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
@@ -179,7 +179,7 @@ func TestTripRequest(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
@@ -212,10 +212,10 @@ func TestTripRequest_Format(t *testing.T) {
 			},
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
@@ -251,10 +251,10 @@ func TestTripRequest_Pagination(t *testing.T) {
 			expectLength: 10_000,
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
@@ -307,10 +307,10 @@ func TestTripRequest_License(t *testing.T) {
 			expectLength: 14903,
 		},
 	}
-	srv, te := testRestConfig(t)
+	srv, _ := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			testquery(t, srv, tc)
 		})
 	}
 }
