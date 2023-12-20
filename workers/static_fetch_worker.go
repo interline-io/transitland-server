@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/actions"
-	"github.com/interline-io/transitland-server/jobs"
 )
 
 type StaticFetchWorker struct {

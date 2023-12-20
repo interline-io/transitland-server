@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/interline-io/transitland-server/jobs"
+	"github.com/interline-io/transitland-mw/jobs"
 )
 
 type testOkWorker struct{}

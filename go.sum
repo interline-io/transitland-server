@@ -134,8 +134,8 @@ github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cu
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48 h1:fRzb/w+pyskVMQ+UbP35JkH8yB7MYb4q/qhBarqZE6g=
 github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48/go.mod h1:if7Fbed8SFyPtHLHbg49SI7NAdJiC5WIA09pe59rfAA=
-github.com/digitalocean/go-workers2 v0.10.3 h1:qs7MELMMQybjSxmvFqvedXJAqkF7f5vC+QnVa1dmUwA=
-github.com/digitalocean/go-workers2 v0.10.3/go.mod h1:4F0tUdjgqV9ZOGCTmn5Cr58CVshMI5o0SmNx6e5T98o=
+github.com/digitalocean/go-workers2 v0.10.4 h1:3GTz14m2gaPPzUEEXBLLK0Y/jyWTYi5QKcSbrCbyIJQ=
+github.com/digitalocean/go-workers2 v0.10.4/go.mod h1:4F0tUdjgqV9ZOGCTmn5Cr58CVshMI5o0SmNx6e5T98o=
 github.com/dimchansky/utfbom v1.1.1 h1:vV6w1AhK4VMnhBno/TPVCoK9U/LP0PkLCS9tbxHdi/U=
 github.com/dimchansky/utfbom v1.1.1/go.mod h1:SxdoEBH5qIqFocHMyGOXVAybYJdr71b1Q/j0mACtrfE=
 github.com/dnaeon/go-vcr v1.1.0 h1:ReYa/UBrRyQdant9B4fNHGoCNKw6qh6P0fsdGmZpR7c=
@@ -272,8 +272,10 @@ github.com/interline-io/log v0.0.0-20231211003339-8bdc406adcd2 h1:ScRM8Kr6UwAvbl
 github.com/interline-io/log v0.0.0-20231211003339-8bdc406adcd2/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
 github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231202005632-a9ea742322f7 h1:rwkKzYzl05Q4TM++L9RIJbXPjIvURoMN5vEr8dvUV/Q=
 github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231202005632-a9ea742322f7/go.mod h1:UcfuCX6DyKt/yn5GECFn3jQ6NcZEjt5XyPjf8a3tXZ4=
-github.com/interline-io/transitland-mw v0.0.0-20231211012518-4cd4a8535e63 h1:ZaqjWLLHAUcg6giXwdnDvzqlQJxYavG5JRdfm+zvZ3c=
-github.com/interline-io/transitland-mw v0.0.0-20231211012518-4cd4a8535e63/go.mod h1:4rAXsCPb7miaAmLOoKjWZSBVCUBiTU5KdisG8orDyYQ=
+github.com/interline-io/transitland-mw v0.0.0-20231220044108-68bdd4c22c0c h1:orFgIOZXD989tkOBASbU/u2ksHLTYKMrOdKBk+U1wlY=
+github.com/interline-io/transitland-mw v0.0.0-20231220044108-68bdd4c22c0c/go.mod h1:QyssKyKXwbTWhFT9O08nVj+gScPntMvLh1qMGNr1Ksw=
+github.com/interline-io/transitland-mw v0.0.0-20231220044449-a6aac07a9d9e h1:MZnYbL21CKMWQkNBaG6xnWjU7J7uXErlBM4RwXjIfRQ=
+github.com/interline-io/transitland-mw v0.0.0-20231220044449-a6aac07a9d9e/go.mod h1:QyssKyKXwbTWhFT9O08nVj+gScPntMvLh1qMGNr1Ksw=
 github.com/jarcoal/httpmock v1.3.1 h1:iUx3whfZWVf3jT01hQTO/Eo5sAYtB2/rqaUuOtpInww=
 github.com/jarcoal/httpmock v1.3.1/go.mod h1:3yb8rc4BI7TCBhFY8ng0gjuLKJNquuDNiPaZjnENuYg=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 h1:IPJ3dvxmJ4uczJe5YQdrYB16oTJlGSC/OyZDqUk9xX4=
