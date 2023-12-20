@@ -5,10 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
-	"github.com/interline-io/transitland-server/jobs"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/interline-io/transitland-server/model"

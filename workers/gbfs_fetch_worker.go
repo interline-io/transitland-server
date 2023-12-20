@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/jobs"
 	"github.com/interline-io/transitland-server/model"
 )
 
