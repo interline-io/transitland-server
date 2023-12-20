@@ -3,8 +3,8 @@ package workers
 import (
 	"context"
 
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/actions"
-	"github.com/interline-io/transitland-server/jobs"
 )
 
 type RTFetchWorker struct {
@@ -16,7 +16,7 @@ type RTFetchWorker struct {
 }
 
 func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
-	log := job.Opts.Logger.With().Str("target", w.Target).Str("source_feed_id", w.SourceFeedID).Str("source_type", w.SourceType).Str("url", w.Url).Logger()
+	log := job.Logger.With().Str("target", w.Target).Str("source_feed_id", w.SourceFeedID).Str("source_type", w.SourceType).Str("url", w.Url).Logger()
 	err := actions.RTFetch(ctx, w.Target, w.SourceFeedID, w.Url, w.SourceType)
 	if err != nil {
 		log.Error().Err(err).Msg("rtfetch worker: request failed")

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/actions"
-	"github.com/interline-io/transitland-server/jobs"
 )
 
 type StaticFetchWorker struct {
@@ -15,7 +15,7 @@ type StaticFetchWorker struct {
 }
 
 func (w *StaticFetchWorker) Run(ctx context.Context, job jobs.Job) error {
-	log := job.Opts.Logger.With().Str("feed_id", w.FeedID).Str("feed_url", w.FeedUrl).Logger()
+	log := job.Logger.With().Str("feed_id", w.FeedID).Str("feed_url", w.FeedUrl).Logger()
 	if result, err := actions.StaticFetch(ctx, w.FeedID, nil, w.FeedUrl); err != nil {
 		log.Error().Err(err).Msg("staticfetch worker: request failed")
 		return err

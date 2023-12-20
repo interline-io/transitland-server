@@ -7,8 +7,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/util"
-	"github.com/interline-io/transitland-server/jobs"
+	"github.com/interline-io/transitland-server/model"
 )
 
 // GetWorker returns the correct worker type for this job.
@@ -43,16 +44,16 @@ func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
 }
 
 // NewServer creates a simple api for submitting and running jobs.
-func NewServer(queueName string, workers int, jo jobs.JobOptions) (http.Handler, error) {
+func NewServer(queueName string, workers int) (http.Handler, error) {
 	r := chi.NewRouter()
-	r.HandleFunc("/add", wrapHandler(addJobRequest, jo))
-	r.HandleFunc("/run", wrapHandler(runJobRequest, jo))
+	r.HandleFunc("/add", wrapHandler(addJobRequest))
+	r.HandleFunc("/run", wrapHandler(runJobRequest))
 	return r, nil
 }
 
-func wrapHandler(next func(http.ResponseWriter, *http.Request, jobs.JobOptions), jo jobs.JobOptions) http.HandlerFunc {
+func wrapHandler(next func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next(w, r, jo)
+		next(w, r)
 	})
 }
 
@@ -65,7 +66,7 @@ type jobResponse struct {
 }
 
 // addJobRequest adds the request to the appropriate queue
-func addJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions) {
+func addJobRequest(w http.ResponseWriter, req *http.Request) {
 	job, err := requestGetJob(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -75,8 +76,8 @@ func addJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions)
 		Job: job,
 	}
 	// add job to queue
-	jq := jo.JobQueue
-	if err := jq.AddJob(job); err != nil {
+	cfg := model.ForContext(req.Context())
+	if err := cfg.JobQueue.AddJob(job); err != nil {
 		ret.Error = err.Error()
 		ret.Status = "failed"
 		ret.Success = false
@@ -88,7 +89,7 @@ func addJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions)
 }
 
 // runJobRequest runs the job directly
-func runJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions) {
+func runJobRequest(w http.ResponseWriter, req *http.Request) {
 	job, err := requestGetJob(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -105,7 +106,6 @@ func runJobRequest(w http.ResponseWriter, req *http.Request, jo jobs.JobOptions)
 		ret.Status = "failed"
 		ret.Success = false
 	}
-	job.Opts = jo
 	if err := wk.Run(context.Background(), job); err != nil {
 		ret.Error = err.Error()
 		ret.Status = "failed"

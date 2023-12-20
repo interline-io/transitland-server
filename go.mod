@@ -11,7 +11,6 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.5
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/location v1.22.1
-	github.com/digitalocean/go-workers2 v0.10.3
 	github.com/flopp/go-staticmaps v0.0.0-20220221183018-c226716bec53
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.10
@@ -21,8 +20,8 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20231211003339-8bdc406adcd2
-	github.com/interline-io/transitland-lib v0.14.0-rc1.0.20231202005632-a9ea742322f7
-	github.com/interline-io/transitland-mw v0.0.0-20231211012518-4cd4a8535e63
+	github.com/interline-io/transitland-lib v0.14.0
+	github.com/interline-io/transitland-mw v0.0.0-20231220040358-e71272cbbbdb
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
@@ -69,6 +68,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/digitalocean/go-workers2 v0.10.4 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/flopp/go-coordsparser v0.0.0-20201115094714-8baaeb7062d5 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
@@ -125,3 +125,4 @@ require (
 )
 
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+// replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw

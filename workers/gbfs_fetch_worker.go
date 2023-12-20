@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/jobs"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -20,7 +20,7 @@ type GbfsFetchWorker struct {
 
 func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	cfg := model.ForContext(ctx)
-	log := job.Opts.Logger.With().Str("feed_id", w.FeedID).Str("url", w.Url).Logger()
+	log := job.Logger.With().Str("feed_id", w.FeedID).Str("url", w.Url).Logger()
 	gfeeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &w.FeedID})
 	if err != nil {
 		log.Error().Err(err).Msg("gbfsfetch worker: error loading source feed")

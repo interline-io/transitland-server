@@ -25,6 +25,7 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/azcheck"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-mw/lmw"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-mw/metrics"
@@ -32,7 +33,6 @@ import (
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/dbutil"
-	"github.com/interline-io/transitland-server/jobs"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/playground"
@@ -230,6 +230,7 @@ func (cmd *Command) Run() error {
 		Secrets:            cmd.secrets,
 		Storage:            cmd.Storage,
 		RTStorage:          cmd.RTStorage,
+		JobQueue:           jobQueue,
 		ValidateLargeFiles: cmd.ValidateLargeFiles,
 	}
 
@@ -337,23 +338,23 @@ func (cmd *Command) Run() error {
 	if cmd.EnableJobsApi || cmd.EnableWorkers {
 		// Start workers/api
 		jobWorkers := 8
-		jobOptions := jobs.JobOptions{
-			Logger:   log.Logger,
-			JobQueue: jobQueue,
-		}
+		// jobOptions := jobs.JobOptions{
+		// 	Logger:   log.Logger,
+		// 	JobQueue: jobQueue,
+		// }
 		// Add metrics
 		// jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
 		if cmd.EnableWorkers {
 			log.Infof("Enabling job workers")
-			jobQueue.AddWorker("default", workers.GetWorker, jobOptions, jobWorkers)
-			jobQueue.AddWorker("rt-fetch", workers.GetWorker, jobOptions, jobWorkers)
-			jobQueue.AddWorker("static-fetch", workers.GetWorker, jobOptions, jobWorkers)
-			jobQueue.AddWorker("gbfs-fetch", workers.GetWorker, jobOptions, jobWorkers)
+			jobQueue.AddWorker("default", workers.GetWorker, jobWorkers)
+			jobQueue.AddWorker("rt-fetch", workers.GetWorker, jobWorkers)
+			jobQueue.AddWorker("static-fetch", workers.GetWorker, jobWorkers)
+			jobQueue.AddWorker("gbfs-fetch", workers.GetWorker, jobWorkers)
 			go jobQueue.Run()
 		}
 		if cmd.EnableJobsApi {
 			log.Infof("Enabling job api")
-			jobServer, err := workers.NewServer("", jobWorkers, jobOptions)
+			jobServer, err := workers.NewServer("", jobWorkers)
 			if err != nil {
 				return err
 			}
