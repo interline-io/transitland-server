@@ -45,7 +45,7 @@ func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
 	msr := model.ScheduleRelationshipScheduled
-	if rtt := r.rtfinder.FindTrip(obj); rtt != nil {
+	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil {
 		sr := rtt.GetTrip().GetScheduleRelationship().String()
 		switch sr {
 		case "SCHEDULED":
@@ -64,7 +64,7 @@ func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip
 }
 
 func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error) {
-	if rtt := r.rtfinder.FindTrip(obj); rtt != nil {
+	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil {
 		t := time.Unix(int64(rtt.GetTimestamp()), 0).In(time.UTC)
 		return &t, nil
 	}
@@ -72,6 +72,6 @@ func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Ti
 }
 
 func (r *tripResolver) Alerts(ctx context.Context, obj *model.Trip, active *bool, limit *int) ([]*model.Alert, error) {
-	rtAlerts := r.rtfinder.FindAlertsForTrip(obj, checkLimit(limit), active)
+	rtAlerts := model.ForContext(ctx).RTFinder.FindAlertsForTrip(obj, checkLimit(limit), active)
 	return rtAlerts, nil
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Remove import files
-TL_TEST_STORAGE="${TL_TEST_STORAGE:-tmp}"
+TL_TEST_STORAGE="${PWD}/tmp"
 mkdir -p "${TL_TEST_STORAGE}"; rm ${TL_TEST_STORAGE}/*.zip
 # export TL_LOG=debug
 (cd cmd/tlserver && go install .)
@@ -15,3 +15,4 @@ tlserver import -dburl="$TL_TEST_SERVER_DATABASE_URL" -storage="$TL_TEST_STORAGE
 tlserver sync -dburl="$TL_TEST_SERVER_DATABASE_URL" test/data/server/server-test.dmfr.json
 # supplemental data
 psql -f test_supplement.pgsql
+

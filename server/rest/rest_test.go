@@ -7,11 +7,8 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
-	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
@@ -30,29 +27,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func testRestConfig(t testing.TB) (http.Handler, model.Finders) {
-	when, err := time.Parse("2006-01-02T15:04:05", "2018-06-01T00:00:00")
-	if err != nil {
-		t.Fatal(err)
-	}
-	te := testfinder.Finders(t, &clock.Mock{T: when}, testfinder.DefaultRTJson())
-	srv, err := gql.NewServer(te.Config, te.Finder, te.RTFinder, te.GbfsFinder, te.Checker)
-	if err != nil {
-		panic(err)
-	}
-	return srv, te
-}
-
-func testRestServer(t testing.TB, cfg config.Config, srv http.Handler) (http.Handler, error) {
-	return NewServer(cfg, srv)
-}
-
-func toJson(m map[string]interface{}) string {
-	rr, _ := json.Marshal(&m)
-	return string(rr)
-}
-
-type testRest struct {
+type testCase struct {
 	name         string
 	h            apiHandler
 	format       string
@@ -62,8 +37,38 @@ type testRest struct {
 	f            func(*testing.T, string)
 }
 
-func testquery(t *testing.T, srv http.Handler, te model.Finders, tc testRest) {
-	data, err := makeRequest(context.TODO(), restConfig{srv: srv, Config: te.Config}, tc.h, tc.format, nil)
+func testHandlersWithOptions(t testing.TB, opts testconfig.Options) (http.Handler, http.Handler, model.Config) {
+	cfg := testconfig.Config(t, opts)
+	graphqlHandler, err := gql.NewServer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	restHandler, err := NewServer(Config{}, graphqlHandler)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return model.AddConfig(cfg)(graphqlHandler), model.AddConfig(cfg)(restHandler), cfg
+}
+
+func checkTestCase(t *testing.T, tc testCase) {
+	opts := testconfig.Options{
+		When:    "2018-06-01T00:00:00",
+		RTJsons: testconfig.DefaultRTJson(),
+	}
+	cfg := testconfig.Config(t, opts)
+	graphqlHandler, err := gql.NewServer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	restHandler, err := NewServer(Config{}, graphqlHandler)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkTestCaseWithHandlers(t, tc, model.AddConfig(cfg)(graphqlHandler), restHandler)
+}
+
+func checkTestCaseWithHandlers(t *testing.T, tc testCase, graphqlHandler http.Handler, restHandler http.Handler) {
+	data, err := makeRequest(context.TODO(), Config{}, graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)
 		return
@@ -97,4 +102,9 @@ func testquery(t *testing.T, srv http.Handler, te model.Finders, tc testRest) {
 	if !tested {
 		t.Errorf("no test performed, check test case")
 	}
+}
+
+func toJson(m map[string]interface{}) string {
+	rr, _ := json.Marshal(&m)
+	return string(rr)
 }

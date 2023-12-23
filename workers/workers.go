@@ -7,8 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/interline-io/transitland-server/config"
-	"github.com/interline-io/transitland-server/internal/jobs"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/util"
 )
 
@@ -44,7 +43,7 @@ func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
 }
 
 // NewServer creates a simple api for submitting and running jobs.
-func NewServer(cfg config.Config, queueName string, workers int, jo jobs.JobOptions) (http.Handler, error) {
+func NewServer(queueName string, workers int, jo jobs.JobOptions) (http.Handler, error) {
 	r := chi.NewRouter()
 	r.HandleFunc("/add", wrapHandler(addJobRequest, jo))
 	r.HandleFunc("/run", wrapHandler(runJobRequest, jo))

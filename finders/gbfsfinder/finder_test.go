@@ -20,7 +20,7 @@ func TestGbfsFinder(t *testing.T) {
 	}
 	client := testutil.MustOpenTestRedisClient()
 	gbf := NewFinder(client)
-	setupGbfs(nil, gbf)
+	testSetupGbfs(gbf)
 
 	tcs := []struct {
 		p           xy.Point
@@ -58,7 +58,7 @@ func TestGbfsFinder(t *testing.T) {
 
 }
 
-func setupGbfs(dbf model.Finder, gbf model.GbfsFinder) error {
+func testSetupGbfs(gbf model.GbfsFinder) error {
 	// Setup
 	sourceFeedId := "gbfs-test"
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})

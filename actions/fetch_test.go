@@ -2,16 +2,16 @@ package actions
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-server/internal/dbutil"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -99,7 +99,7 @@ func TestStaticFetchWorker(t *testing.T) {
 					return
 
 				}
-				buf, err := ioutil.ReadFile(testutil.RelPath(tc.serveFile))
+				buf, err := os.ReadFile(testutil.RelPath(tc.serveFile))
 				if err != nil {
 					http.Error(w, "404", 404)
 					return
@@ -110,9 +110,11 @@ func TestStaticFetchWorker(t *testing.T) {
 
 			// Setup job
 			feedUrl := ts.URL + "/" + tc.serveFile
-			testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
+			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+				cfg.Checker = nil // disable checker for this test
+				ctx := model.WithConfig(context.Background(), cfg)
 				// Run job
-				if result, err := StaticFetch(context.Background(), te.Config, te.Finder, tc.feedId, nil, feedUrl, nil, nil); err != nil && !tc.expectError {
+				if result, err := StaticFetch(ctx, tc.feedId, nil, feedUrl); err != nil && !tc.expectError {
 					_ = result
 					t.Fatal("unexpected error", err)
 				} else if err == nil && tc.expectError {
@@ -123,8 +125,8 @@ func TestStaticFetchWorker(t *testing.T) {
 				// Check output
 				ff := dmfr.FeedFetch{}
 				if err := dbutil.Get(
-					context.Background(),
-					te.Finder.DBX(),
+					ctx,
+					cfg.Finder.DBX(),
 					sq.StatementBuilder.
 						Select("ff.*").
 						From("feed_fetches ff").

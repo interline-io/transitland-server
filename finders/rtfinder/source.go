@@ -1,7 +1,7 @@
 package rtfinder
 
 import (
-	"github.com/interline-io/transitland-lib/log"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"google.golang.org/protobuf/proto"
 )

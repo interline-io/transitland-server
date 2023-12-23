@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/internal/jobs"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/stretchr/testify/assert"
 
@@ -18,22 +18,20 @@ func TestGbfsFetchWorker(t *testing.T) {
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
 	defer ts.Close()
 
-	testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
+	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		job := jobs.Job{}
-		job.Opts.Finder = te.Finder
-		job.Opts.RTFinder = te.RTFinder
-		job.Opts.GbfsFinder = te.GbfsFinder
 		w := GbfsFetchWorker{
 			Url:    ts.URL + "/gbfs.json",
 			FeedID: "test-gbfs",
 		}
-		err := w.Run(context.Background(), job)
+		ctx := model.WithConfig(context.Background(), cfg)
+		err := w.Run(ctx, job)
 		if err != nil {
 			t.Fatal(err)
 		}
 		// Test
-		bikes, err := te.GbfsFinder.FindBikes(
-			context.Background(),
+		bikes, err := cfg.GbfsFinder.FindBikes(
+			ctx,
 			nil,
 			&model.GbfsBikeRequest{
 				Near: &model.PointRadius{

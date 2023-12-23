@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/interline-io/transitland-server/auth/authz"
-	"github.com/interline-io/transitland-server/meters"
+	"github.com/interline-io/transitland-mw/auth/authz"
+	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -16,7 +16,7 @@ const MAX_RADIUS = 100_000
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Me(ctx context.Context) (*model.Me, error) {
-	me, err := r.authzChecker.Me(ctx, &authz.MeRequest{})
+	me, err := model.ForContext(ctx).Checker.Me(ctx, &authz.MeRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (r *queryResolver) Agencies(ctx context.Context, limit *int, after *int, id
 			return nil, errors.New("bbox too large")
 		}
 	}
-	return r.finder.FindAgencies(ctx, checkLimit(limit), checkCursor(after), ids, where)
+	return model.ForContext(ctx).Finder.FindAgencies(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) Routes(ctx context.Context, limit *int, after *int, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
@@ -56,7 +56,7 @@ func (r *queryResolver) Routes(ctx context.Context, limit *int, after *int, ids 
 			return nil, errors.New("bbox too large")
 		}
 	}
-	return r.finder.FindRoutes(ctx, checkLimit(limit), checkCursor(after), ids, where)
+	return model.ForContext(ctx).Finder.FindRoutes(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) Stops(ctx context.Context, limit *int, after *int, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
@@ -69,12 +69,12 @@ func (r *queryResolver) Stops(ctx context.Context, limit *int, after *int, ids [
 			return nil, errors.New("bbox too large")
 		}
 	}
-	return r.finder.FindStops(ctx, checkLimit(limit), checkCursor(after), ids, where)
+	return model.ForContext(ctx).Finder.FindStops(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) Trips(ctx context.Context, limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
 	addMetric(ctx, "trips")
-	return r.finder.FindTrips(ctx, checkLimit(limit), checkCursor(after), ids, where)
+	return model.ForContext(ctx).Finder.FindTrips(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
@@ -87,7 +87,7 @@ func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int
 			return nil, errors.New("bbox too large")
 		}
 	}
-	return r.finder.FindFeedVersions(ctx, checkLimit(limit), checkCursor(after), ids, where)
+	return model.ForContext(ctx).Finder.FindFeedVersions(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
@@ -100,7 +100,7 @@ func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids [
 			return nil, errors.New("bbox too large")
 		}
 	}
-	return r.finder.FindFeeds(ctx, checkLimit(limit), checkCursor(after), ids, where)
+	return model.ForContext(ctx).Finder.FindFeeds(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
@@ -113,11 +113,11 @@ func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, i
 			return nil, errors.New("bbox too large")
 		}
 	}
-	return r.finder.FindOperators(ctx, checkLimit(limit), checkCursor(after), ids, where)
+	return model.ForContext(ctx).Finder.FindOperators(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) Places(ctx context.Context, limit *int, after *int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {
-	return r.finder.FindPlaces(ctx, checkLimit(limit), checkCursor(after), nil, level, where)
+	return model.ForContext(ctx).Finder.FindPlaces(ctx, checkLimit(limit), checkCursor(after), nil, level, where)
 }
 
 func addMetric(ctx context.Context, resolverName string) {

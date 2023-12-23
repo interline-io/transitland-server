@@ -5,23 +5,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-server/auth/ancheck"
-	"github.com/interline-io/transitland-server/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/ancheck"
+	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 )
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
-	g, a, ok := testutil.CheckEnv("TL_TEST_STORAGE")
-	if !ok {
-		t.Skip(a)
-		return
-	}
-	srv, te := testRestConfig(t)
-	te.Config.Storage = g
-	restSrv, err := testRestServer(t, te.Config, srv)
-	if err != nil {
-		t.Fatal(err)
-	}
+	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
+		Storage: testutil.RelPath("tmp"),
+	})
 
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feed_versions/d2813c293bcfd7a97dde599527ae6c62c98e66c6/download", nil)
@@ -112,17 +105,9 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 }
 
 func TestFeedDownloadLatestRequest(t *testing.T) {
-	g, a, ok := testutil.CheckEnv("TL_TEST_STORAGE")
-	if !ok {
-		t.Skip(a)
-		return
-	}
-	srv, te := testRestConfig(t)
-	te.Config.Storage = g
-	restSrv, err := testRestServer(t, te.Config, srv)
-	if err != nil {
-		t.Fatal(err)
-	}
+	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
+		Storage: testutil.RelPath("tmp"),
+	})
 
 	t.Run("ok", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feeds/CT/download_latest_feed_version", nil)

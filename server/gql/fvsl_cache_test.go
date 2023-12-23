@@ -1,13 +1,15 @@
 package gql
 
 import (
+	"context"
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-server/internal/testconfig"
+	"github.com/interline-io/transitland-server/model"
 )
 
 func TestFvslCache(t *testing.T) {
-	te := testfinder.Finders(t, nil, nil)
-	c := newFvslCache(te.Finder)
-	c.Get(1)
+	cfg := testconfig.Config(t, testconfig.Options{})
+	c := newFvslCache()
+	c.Get(model.WithConfig(context.Background(), cfg), 1)
 }

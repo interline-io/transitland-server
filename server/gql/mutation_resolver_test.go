@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/interline-io/transitland-server/auth/ancheck"
-	"github.com/interline-io/transitland-server/internal/testfinder"
+	"github.com/interline-io/transitland-mw/auth/ancheck"
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -26,8 +26,9 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		w.Write(buf)
 	}))
 	t.Run("found sha1", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
-			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
+		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+			srv, _ := NewServer()
+			srv = model.AddConfig(cfg)(srv)
 			srv = ancheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
 			// Run all requests as admin
 			c := client.New(srv)
@@ -40,7 +41,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		})
 	})
 	// t.Run("requires admin access", func(t *testing.T) {
-	// 	testfinder.FindersTxRollback(t, nil, nil, func(te testfinder.TestEnv) {
+	// 	testconfig.ConfigTxRollback(t, nil, nil, func(te testconfig.TestEnv) {
 	// 		srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
 	// 		srv = authn.UserDefaultMiddleware("test")(srv) // Run all requests as regular user
 	// 		c := client.New(srv)
@@ -164,8 +165,9 @@ func TestValidateGtfsResolver(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
-				srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
+			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+				srv, _ := NewServer()
+				srv = model.AddConfig(cfg)(srv)
 				srv = ancheck.UserDefaultMiddleware("test")(srv) // Run all requests as user
 				c := client.New(srv)
 				queryTestcase(t, c, tc)
@@ -173,8 +175,9 @@ func TestValidateGtfsResolver(t *testing.T) {
 		})
 	}
 	t.Run("requires user access", func(t *testing.T) {
-		testfinder.FindersTxRollback(t, nil, nil, func(te model.Finders) {
-			srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil) // all requests run as anonymous context by default
+		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+			srv, _ := NewServer() // all requests run as anonymous context by default
+			srv = model.AddConfig(cfg)(srv)
 			c := client.New(srv)
 			resp := make(map[string]interface{})
 			err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))

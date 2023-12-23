@@ -2,31 +2,19 @@ package dbfinder
 
 import (
 	"context"
-	"log"
-	"os"
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/testutil"
-	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 )
 
-var TestFinder model.Finder
-
-func TestMain(m *testing.M) {
-	if a, ok := testutil.CheckTestDB(); !ok {
-		log.Print(a)
-		return
-	}
+func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	db := testutil.MustOpenTestDB()
 	dbf := NewFinder(db, nil)
-	TestFinder = dbf
-	os.Exit(m.Run())
-}
+	testFinder := dbf
 
-func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	fvm := map[string]int{}
-	fvs, err := TestFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil)
+	fvs, err := testFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +52,7 @@ func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			start, end, best, err := TestFinder.FindFeedVersionServiceWindow(context.TODO(), tc.fvid)
+			start, end, best, err := testFinder.FindFeedVersionServiceWindow(context.TODO(), tc.fvid)
 			if err != nil {
 				t.Fatal(err)
 			}

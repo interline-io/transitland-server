@@ -6,27 +6,32 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/testconfig"
+	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
 func TestTripRequest(t *testing.T) {
-	srv, te := testRestConfig(t)
-	d, err := makeGraphQLRequest(context.Background(), srv, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
+	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{
+		When:    "2018-06-01T00:00:00",
+		RTJsons: testconfig.DefaultRTJson(),
+	})
+	ctx := model.WithConfig(context.Background(), cfg)
+	d, err := makeGraphQLRequest(ctx, graphqlHandler, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
 	}
 	routeId := int(gjson.Get(toJson(d), "routes.0.id").Int())
 	routeOnestopId := gjson.Get(toJson(d), "routes.0.onestop_id").String()
-	d2, err := makeGraphQLRequest(context.Background(), srv, `query{trips(where:{trip_id:"5132248WKDY"}){id}}`, nil)
+	d2, err := makeGraphQLRequest(ctx, graphqlHandler, `query{trips(where:{trip_id:"5132248WKDY"}){id}}`, nil)
 	if err != nil {
 		t.Error("failed to get route id for tests")
 	}
 	tripId := int(gjson.Get(toJson(d2), "trips.0.id").Int())
-
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
 	ctfv := "d2813c293bcfd7a97dde599527ae6c62c98e66c6"
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "none",
 			h:            TripRequest{},
@@ -179,13 +184,13 @@ func TestTripRequest(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
 		})
 	}
 }
 
 func TestTripRequest_Format(t *testing.T) {
-	tcs := []testRest{
+	tcs := []testCase{
 		{
 			name:   "trip geojson",
 			format: "geojson",
@@ -212,16 +217,15 @@ func TestTripRequest_Format(t *testing.T) {
 			},
 		},
 	}
-	srv, te := testRestConfig(t)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestTripRequest_Pagination(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "limit:1",
 			h:            TripRequest{WithCursor: WithCursor{Limit: 1}},
@@ -251,16 +255,15 @@ func TestTripRequest_Pagination(t *testing.T) {
 			expectLength: 10_000,
 		},
 	}
-	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestTripRequest_License(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name: "license:share_alike_optional yes",
 			h:    TripRequest{WithCursor: WithCursor{Limit: 100_000}, LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}}, selector: "trips.#.trip_id",
@@ -307,10 +310,9 @@ func TestTripRequest_License(t *testing.T) {
 			expectLength: 14903,
 		},
 	}
-	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/actions"
-	"github.com/interline-io/transitland-server/internal/jobs"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -16,10 +16,11 @@ type FetchEnqueueWorker struct {
 }
 
 func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
+	cfg := model.ForContext(ctx)
+	db := cfg.Finder.DBX()
 	opts := job.Opts
-	db := opts.Finder.DBX()
 	now := time.Now().In(time.UTC)
-	feeds, err := job.Opts.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{})
+	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{})
 	if err != nil {
 		return err
 	}

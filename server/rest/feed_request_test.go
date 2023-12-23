@@ -11,7 +11,7 @@ import (
 
 func TestFeedRequest(t *testing.T) {
 	// fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name:         "basic",
 			h:            &FeedRequest{},
@@ -156,16 +156,15 @@ func TestFeedRequest(t *testing.T) {
 			expectLength: 0,
 		},
 	}
-	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestFeedRequest_Format(t *testing.T) {
-	tcs := []testRest{
+	tcs := []testCase{
 		{
 			name:   "feed geojson",
 			format: "geojson",
@@ -192,16 +191,15 @@ func TestFeedRequest_Format(t *testing.T) {
 			},
 		},
 	}
-	srv, te := testRestConfig(t)
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 }
 
 func TestFeedRequest_License(t *testing.T) {
-	testcases := []testRest{
+	testcases := []testCase{
 		{
 			name: "license:share_alike_optional yes",
 			h:    FeedRequest{LicenseFilter: LicenseFilter{LicenseShareAlikeOptional: "yes"}}, selector: "feeds.#.onestop_id",
@@ -248,10 +246,9 @@ func TestFeedRequest_License(t *testing.T) {
 			expectSelect: []string{"CT", "test-gbfs", "HA", "BA~rt", "CT~rt", "test", "EX"},
 		},
 	}
-	srv, te := testRestConfig(t)
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			testquery(t, srv, te, tc)
+			checkTestCase(t, tc)
 		})
 	}
 
