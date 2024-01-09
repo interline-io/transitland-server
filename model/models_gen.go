@@ -12,46 +12,46 @@ import (
 )
 
 type AgencyFilter struct {
-	OnestopID       *string `json:"onestop_id"`
-	FeedVersionSha1 *string `json:"feed_version_sha1"`
-	FeedOnestopID   *string `json:"feed_onestop_id"`
-	AgencyID        *string `json:"agency_id"`
+	OnestopID       *string `json:"onestop_id,omitempty"`
+	FeedVersionSha1 *string `json:"feed_version_sha1,omitempty"`
+	FeedOnestopID   *string `json:"feed_onestop_id,omitempty"`
+	AgencyID        *string `json:"agency_id,omitempty"`
 	// Search for records with this GTFS agency_name
-	AgencyName *string      `json:"agency_name"`
-	Bbox       *BoundingBox `json:"bbox"`
-	Within     *tt.Polygon  `json:"within"`
+	AgencyName *string      `json:"agency_name,omitempty"`
+	Bbox       *BoundingBox `json:"bbox,omitempty"`
+	Within     *tt.Polygon  `json:"within,omitempty"`
 	// Search for agencies within a radius
-	Near *PointRadius `json:"near"`
+	Near *PointRadius `json:"near,omitempty"`
 	// Full text search
-	Search *string `json:"search"`
+	Search *string `json:"search,omitempty"`
 	// Search by city name (provided by Natural Earth)
-	CityName *string `json:"city_name"`
+	CityName *string `json:"city_name,omitempty"`
 	// Search by country name (provided by Natural Earth)
-	Adm0Name *string `json:"adm0_name"`
+	Adm0Name *string `json:"adm0_name,omitempty"`
 	// Search by state/province/division name (provided by Natural Earth)
-	Adm1Name *string `json:"adm1_name"`
+	Adm1Name *string `json:"adm1_name,omitempty"`
 	// Search by country 2 letter ISO 3166 code (provided by Natural Earth)
-	Adm0Iso *string `json:"adm0_iso"`
+	Adm0Iso *string `json:"adm0_iso,omitempty"`
 	// Search by state/province/division ISO 3166-2 code (provided by Natural Earth)
-	Adm1Iso *string        `json:"adm1_iso"`
-	License *LicenseFilter `json:"license"`
+	Adm1Iso *string        `json:"adm1_iso,omitempty"`
+	License *LicenseFilter `json:"license,omitempty"`
 }
 
 type AgencyPlaceFilter struct {
-	MinRank *float64 `json:"min_rank"`
+	MinRank *float64 `json:"min_rank,omitempty"`
 }
 
 // [Alert](https://gtfs.org/reference/realtime/v2/#message-alert) message, also called a service alert, provided by a source GTFS Realtime feed.
 type Alert struct {
-	ActivePeriod       []*RTTimeRange   `json:"active_period"`
-	Cause              *string          `json:"cause"`
-	Effect             *string          `json:"effect"`
+	ActivePeriod       []*RTTimeRange   `json:"active_period,omitempty"`
+	Cause              *string          `json:"cause,omitempty"`
+	Effect             *string          `json:"effect,omitempty"`
 	HeaderText         []*RTTranslation `json:"header_text"`
 	DescriptionText    []*RTTranslation `json:"description_text"`
-	TtsHeaderText      []*RTTranslation `json:"tts_header_text"`
-	TtsDescriptionText []*RTTranslation `json:"tts_description_text"`
-	URL                []*RTTranslation `json:"url"`
-	SeverityLevel      *string          `json:"severity_level"`
+	TtsHeaderText      []*RTTranslation `json:"tts_header_text,omitempty"`
+	TtsDescriptionText []*RTTranslation `json:"tts_description_text,omitempty"`
+	URL                []*RTTranslation `json:"url,omitempty"`
+	SeverityLevel      *string          `json:"severity_level,omitempty"`
 }
 
 type BoundingBox struct {
@@ -62,28 +62,28 @@ type BoundingBox struct {
 }
 
 type CalendarDateFilter struct {
-	Date          *tt.Date `json:"date"`
-	ExceptionType *int     `json:"exception_type"`
+	Date          *tt.Date `json:"date,omitempty"`
+	ExceptionType *int     `json:"exception_type,omitempty"`
 }
 
 type DirectionRequest struct {
 	To       *WaypointInput `json:"to"`
 	From     *WaypointInput `json:"from"`
 	Mode     StepMode       `json:"mode"`
-	DepartAt *time.Time     `json:"depart_at"`
+	DepartAt *time.Time     `json:"depart_at,omitempty"`
 }
 
 type Directions struct {
 	Success     bool         `json:"success"`
-	Exception   *string      `json:"exception"`
-	DataSource  *string      `json:"data_source"`
-	Origin      *Waypoint    `json:"origin"`
-	Destination *Waypoint    `json:"destination"`
-	Duration    *Duration    `json:"duration"`
-	Distance    *Distance    `json:"distance"`
-	StartTime   *time.Time   `json:"start_time"`
-	EndTime     *time.Time   `json:"end_time"`
-	Itineraries []*Itinerary `json:"itineraries"`
+	Exception   *string      `json:"exception,omitempty"`
+	DataSource  *string      `json:"data_source,omitempty"`
+	Origin      *Waypoint    `json:"origin,omitempty"`
+	Destination *Waypoint    `json:"destination,omitempty"`
+	Duration    *Duration    `json:"duration,omitempty"`
+	Distance    *Distance    `json:"distance,omitempty"`
+	StartTime   *time.Time   `json:"start_time,omitempty"`
+	EndTime     *time.Time   `json:"end_time,omitempty"`
+	Itineraries []*Itinerary `json:"itineraries,omitempty"`
 }
 
 type Distance struct {
@@ -97,34 +97,34 @@ type Duration struct {
 }
 
 type FeedFetchFilter struct {
-	Success *bool `json:"success"`
+	Success *bool `json:"success,omitempty"`
 }
 
 type FeedFilter struct {
 	// Search for feed with a specific Onestop ID
-	OnestopID *string `json:"onestop_id"`
+	OnestopID *string `json:"onestop_id,omitempty"`
 	// Search for feeds of certain data types
-	Spec []FeedSpecTypes `json:"spec"`
+	Spec []FeedSpecTypes `json:"spec,omitempty"`
 	// Search for feeds with or without a fetch error
-	FetchError *bool `json:"fetch_error"`
+	FetchError *bool `json:"fetch_error,omitempty"`
 	// Search for feeds by their import status
-	ImportStatus *ImportStatus `json:"import_status"`
+	ImportStatus *ImportStatus `json:"import_status,omitempty"`
 	// Full text search
-	Search *string `json:"search"`
+	Search *string `json:"search,omitempty"`
 	// Search for feeds with a tag
-	Tags *tt.Tags `json:"tags"`
+	Tags *tt.Tags `json:"tags,omitempty"`
 	// Search for feeds by their source URLs
-	SourceURL *FeedSourceURL `json:"source_url"`
-	License   *LicenseFilter `json:"license"`
-	Bbox      *BoundingBox   `json:"bbox"`
-	Within    *tt.Polygon    `json:"within"`
-	Near      *PointRadius   `json:"near"`
+	SourceURL *FeedSourceURL `json:"source_url,omitempty"`
+	License   *LicenseFilter `json:"license,omitempty"`
+	Bbox      *BoundingBox   `json:"bbox,omitempty"`
+	Within    *tt.Polygon    `json:"within,omitempty"`
+	Near      *PointRadius   `json:"near,omitempty"`
 }
 
 type FeedSourceURL struct {
-	URL           *string             `json:"url"`
-	Type          *FeedSourceURLTypes `json:"type"`
-	CaseSensitive *bool               `json:"case_sensitive"`
+	URL           *string             `json:"url,omitempty"`
+	Type          *FeedSourceURLTypes `json:"type,omitempty"`
+	CaseSensitive *bool               `json:"case_sensitive,omitempty"`
 }
 
 type FeedVersionDeleteResult struct {
@@ -132,25 +132,25 @@ type FeedVersionDeleteResult struct {
 }
 
 type FeedVersionFilter struct {
-	ImportStatus  *ImportStatus        `json:"import_status"`
-	FeedOnestopID *string              `json:"feed_onestop_id"`
-	Sha1          *string              `json:"sha1"`
-	File          *string              `json:"file"`
-	FeedIds       []int                `json:"feed_ids"`
-	Covers        *ServiceCoversFilter `json:"covers"`
-	Bbox          *BoundingBox         `json:"bbox"`
-	Within        *tt.Polygon          `json:"within"`
-	Near          *PointRadius         `json:"near"`
+	ImportStatus  *ImportStatus        `json:"import_status,omitempty"`
+	FeedOnestopID *string              `json:"feed_onestop_id,omitempty"`
+	Sha1          *string              `json:"sha1,omitempty"`
+	File          *string              `json:"file,omitempty"`
+	FeedIds       []int                `json:"feed_ids,omitempty"`
+	Covers        *ServiceCoversFilter `json:"covers,omitempty"`
+	Bbox          *BoundingBox         `json:"bbox,omitempty"`
+	Within        *tt.Polygon          `json:"within,omitempty"`
+	Near          *PointRadius         `json:"near,omitempty"`
 }
 
 type FeedVersionServiceLevelFilter struct {
-	StartDate *tt.Date `json:"start_date"`
-	EndDate   *tt.Date `json:"end_date"`
+	StartDate *tt.Date `json:"start_date,omitempty"`
+	EndDate   *tt.Date `json:"end_date,omitempty"`
 }
 
 type FeedVersionSetInput struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 type FeedVersionUnimportResult struct {
@@ -158,11 +158,11 @@ type FeedVersionUnimportResult struct {
 }
 
 type GbfsBikeRequest struct {
-	Near *PointRadius `json:"near"`
+	Near *PointRadius `json:"near,omitempty"`
 }
 
 type GbfsDockRequest struct {
-	Near *PointRadius `json:"near"`
+	Near *PointRadius `json:"near,omitempty"`
 }
 
 type Itinerary struct {
@@ -172,7 +172,7 @@ type Itinerary struct {
 	EndTime   time.Time `json:"end_time"`
 	From      *Waypoint `json:"from"`
 	To        *Waypoint `json:"to"`
-	Legs      []*Leg    `json:"legs"`
+	Legs      []*Leg    `json:"legs,omitempty"`
 }
 
 type Leg struct {
@@ -180,55 +180,58 @@ type Leg struct {
 	Distance  *Distance     `json:"distance"`
 	StartTime time.Time     `json:"start_time"`
 	EndTime   time.Time     `json:"end_time"`
-	From      *Waypoint     `json:"from"`
-	To        *Waypoint     `json:"to"`
-	Steps     []*Step       `json:"steps"`
+	From      *Waypoint     `json:"from,omitempty"`
+	To        *Waypoint     `json:"to,omitempty"`
+	Steps     []*Step       `json:"steps,omitempty"`
 	Geometry  tt.LineString `json:"geometry"`
 }
 
 type LicenseFilter struct {
-	ShareAlikeOptional    *LicenseValue `json:"share_alike_optional"`
-	CreateDerivedProduct  *LicenseValue `json:"create_derived_product"`
-	CommercialUseAllowed  *LicenseValue `json:"commercial_use_allowed"`
-	UseWithoutAttribution *LicenseValue `json:"use_without_attribution"`
-	RedistributionAllowed *LicenseValue `json:"redistribution_allowed"`
+	ShareAlikeOptional    *LicenseValue `json:"share_alike_optional,omitempty"`
+	CreateDerivedProduct  *LicenseValue `json:"create_derived_product,omitempty"`
+	CommercialUseAllowed  *LicenseValue `json:"commercial_use_allowed,omitempty"`
+	UseWithoutAttribution *LicenseValue `json:"use_without_attribution,omitempty"`
+	RedistributionAllowed *LicenseValue `json:"redistribution_allowed,omitempty"`
 }
 
 type Me struct {
 	ID           string                 `json:"id"`
-	Name         *string                `json:"name"`
-	Email        *string                `json:"email"`
-	Roles        []string               `json:"roles"`
-	ExternalData map[string]interface{} `json:"external_data"`
+	Name         *string                `json:"name,omitempty"`
+	Email        *string                `json:"email,omitempty"`
+	Roles        []string               `json:"roles,omitempty"`
+	ExternalData map[string]interface{} `json:"external_data,omitempty"`
+}
+
+type Mutation struct {
 }
 
 type OperatorFilter struct {
-	Merged        *bool          `json:"merged"`
-	OnestopID     *string        `json:"onestop_id"`
-	FeedOnestopID *string        `json:"feed_onestop_id"`
-	AgencyID      *string        `json:"agency_id"`
-	Search        *string        `json:"search"`
-	Tags          *tt.Tags       `json:"tags"`
-	CityName      *string        `json:"city_name"`
-	Adm0Name      *string        `json:"adm0_name"`
-	Adm1Name      *string        `json:"adm1_name"`
-	Adm0Iso       *string        `json:"adm0_iso"`
-	Adm1Iso       *string        `json:"adm1_iso"`
-	License       *LicenseFilter `json:"license"`
-	Bbox          *BoundingBox   `json:"bbox"`
-	Within        *tt.Polygon    `json:"within"`
-	Near          *PointRadius   `json:"near"`
+	Merged        *bool          `json:"merged,omitempty"`
+	OnestopID     *string        `json:"onestop_id,omitempty"`
+	FeedOnestopID *string        `json:"feed_onestop_id,omitempty"`
+	AgencyID      *string        `json:"agency_id,omitempty"`
+	Search        *string        `json:"search,omitempty"`
+	Tags          *tt.Tags       `json:"tags,omitempty"`
+	CityName      *string        `json:"city_name,omitempty"`
+	Adm0Name      *string        `json:"adm0_name,omitempty"`
+	Adm1Name      *string        `json:"adm1_name,omitempty"`
+	Adm0Iso       *string        `json:"adm0_iso,omitempty"`
+	Adm1Iso       *string        `json:"adm1_iso,omitempty"`
+	License       *LicenseFilter `json:"license,omitempty"`
+	Bbox          *BoundingBox   `json:"bbox,omitempty"`
+	Within        *tt.Polygon    `json:"within,omitempty"`
+	Near          *PointRadius   `json:"near,omitempty"`
 }
 
 type PathwayFilter struct {
-	PathwayMode *int `json:"pathway_mode"`
+	PathwayMode *int `json:"pathway_mode,omitempty"`
 }
 
 type PlaceFilter struct {
-	MinRank  *float64 `json:"min_rank"`
-	Adm0Name *string  `json:"adm0_name"`
-	Adm1Name *string  `json:"adm1_name"`
-	CityName *string  `json:"city_name"`
+	MinRank  *float64 `json:"min_rank,omitempty"`
+	Adm0Name *string  `json:"adm0_name,omitempty"`
+	Adm1Name *string  `json:"adm1_name,omitempty"`
+	CityName *string  `json:"city_name,omitempty"`
 }
 
 type PointRadius struct {
@@ -237,58 +240,61 @@ type PointRadius struct {
 	Radius float64 `json:"radius"`
 }
 
+type Query struct {
+}
+
 // See https://gtfs.org/reference/realtime/v2/#message-timerange
 type RTTimeRange struct {
-	Start *int `json:"start"`
-	End   *int `json:"end"`
+	Start *int `json:"start,omitempty"`
+	End   *int `json:"end,omitempty"`
 }
 
 // See https://gtfs.org/reference/realtime/v2/#message-translatedstring
 type RTTranslation struct {
 	Text     string  `json:"text"`
-	Language *string `json:"language"`
+	Language *string `json:"language,omitempty"`
 }
 
 // See https://gtfs.org/reference/realtime/v2/#message-tripdescriptor
 type RTTripDescriptor struct {
-	TripID               *string      `json:"trip_id"`
-	RouteID              *string      `json:"route_id"`
-	DirectionID          *int         `json:"direction_id"`
-	StartTime            *tt.WideTime `json:"start_time"`
-	StartDate            *tt.Date     `json:"start_date"`
-	ScheduleRelationship *string      `json:"schedule_relationship"`
+	TripID               *string      `json:"trip_id,omitempty"`
+	RouteID              *string      `json:"route_id,omitempty"`
+	DirectionID          *int         `json:"direction_id,omitempty"`
+	StartTime            *tt.WideTime `json:"start_time,omitempty"`
+	StartDate            *tt.Date     `json:"start_date,omitempty"`
+	ScheduleRelationship *string      `json:"schedule_relationship,omitempty"`
 }
 
 // See https://gtfs.org/reference/realtime/v2/#message-vehicledescriptor
 type RTVehicleDescriptor struct {
-	ID           *string `json:"id"`
-	Label        *string `json:"label"`
-	LicensePlate *string `json:"license_plate"`
+	ID           *string `json:"id,omitempty"`
+	Label        *string `json:"label,omitempty"`
+	LicensePlate *string `json:"license_plate,omitempty"`
 }
 
 type RouteFilter struct {
-	OnestopID               *string        `json:"onestop_id"`
-	OnestopIds              []string       `json:"onestop_ids"`
-	AllowPreviousOnestopIds *bool          `json:"allow_previous_onestop_ids"`
-	FeedVersionSha1         *string        `json:"feed_version_sha1"`
-	FeedOnestopID           *string        `json:"feed_onestop_id"`
-	RouteID                 *string        `json:"route_id"`
-	RouteType               *int           `json:"route_type"`
-	Serviced                *bool          `json:"serviced"`
-	Bbox                    *BoundingBox   `json:"bbox"`
-	Within                  *tt.Polygon    `json:"within"`
-	Near                    *PointRadius   `json:"near"`
-	Search                  *string        `json:"search"`
-	OperatorOnestopID       *string        `json:"operator_onestop_id"`
-	License                 *LicenseFilter `json:"license"`
-	AgencyIds               []int          `json:"agency_ids"`
+	OnestopID               *string        `json:"onestop_id,omitempty"`
+	OnestopIds              []string       `json:"onestop_ids,omitempty"`
+	AllowPreviousOnestopIds *bool          `json:"allow_previous_onestop_ids,omitempty"`
+	FeedVersionSha1         *string        `json:"feed_version_sha1,omitempty"`
+	FeedOnestopID           *string        `json:"feed_onestop_id,omitempty"`
+	RouteID                 *string        `json:"route_id,omitempty"`
+	RouteType               *int           `json:"route_type,omitempty"`
+	Serviced                *bool          `json:"serviced,omitempty"`
+	Bbox                    *BoundingBox   `json:"bbox,omitempty"`
+	Within                  *tt.Polygon    `json:"within,omitempty"`
+	Near                    *PointRadius   `json:"near,omitempty"`
+	Search                  *string        `json:"search,omitempty"`
+	OperatorOnestopID       *string        `json:"operator_onestop_id,omitempty"`
+	License                 *LicenseFilter `json:"license,omitempty"`
+	AgencyIds               []int          `json:"agency_ids,omitempty"`
 }
 
 type ServiceCoversFilter struct {
-	StartDate     *tt.Date   `json:"start_date"`
-	EndDate       *tt.Date   `json:"end_date"`
-	FetchedAfter  *time.Time `json:"fetched_after"`
-	FetchedBefore *time.Time `json:"fetched_before"`
+	StartDate     *tt.Date   `json:"start_date,omitempty"`
+	EndDate       *tt.Date   `json:"end_date,omitempty"`
+	FetchedAfter  *time.Time `json:"fetched_after,omitempty"`
+	FetchedBefore *time.Time `json:"fetched_before,omitempty"`
 }
 
 type Step struct {
@@ -296,47 +302,47 @@ type Step struct {
 	Distance       *Distance `json:"distance"`
 	StartTime      time.Time `json:"start_time"`
 	EndTime        time.Time `json:"end_time"`
-	To             *Waypoint `json:"to"`
+	To             *Waypoint `json:"to,omitempty"`
 	Mode           StepMode  `json:"mode"`
 	Instruction    string    `json:"instruction"`
 	GeometryOffset int       `json:"geometry_offset"`
 }
 
 type StopFilter struct {
-	OnestopID               *string        `json:"onestop_id"`
-	OnestopIds              []string       `json:"onestop_ids"`
-	AllowPreviousOnestopIds *bool          `json:"allow_previous_onestop_ids"`
-	FeedVersionSha1         *string        `json:"feed_version_sha1"`
-	FeedOnestopID           *string        `json:"feed_onestop_id"`
-	StopID                  *string        `json:"stop_id"`
-	StopCode                *string        `json:"stop_code"`
-	LocationType            *int           `json:"location_type"`
-	Serviced                *bool          `json:"serviced"`
-	Bbox                    *BoundingBox   `json:"bbox"`
-	Within                  *tt.Polygon    `json:"within"`
-	Near                    *PointRadius   `json:"near"`
-	Search                  *string        `json:"search"`
-	License                 *LicenseFilter `json:"license"`
-	ServedByOnestopIds      []string       `json:"served_by_onestop_ids"`
-	ServedByRouteType       *int           `json:"served_by_route_type"`
-	AgencyIds               []int          `json:"agency_ids"`
+	OnestopID               *string        `json:"onestop_id,omitempty"`
+	OnestopIds              []string       `json:"onestop_ids,omitempty"`
+	AllowPreviousOnestopIds *bool          `json:"allow_previous_onestop_ids,omitempty"`
+	FeedVersionSha1         *string        `json:"feed_version_sha1,omitempty"`
+	FeedOnestopID           *string        `json:"feed_onestop_id,omitempty"`
+	StopID                  *string        `json:"stop_id,omitempty"`
+	StopCode                *string        `json:"stop_code,omitempty"`
+	LocationType            *int           `json:"location_type,omitempty"`
+	Serviced                *bool          `json:"serviced,omitempty"`
+	Bbox                    *BoundingBox   `json:"bbox,omitempty"`
+	Within                  *tt.Polygon    `json:"within,omitempty"`
+	Near                    *PointRadius   `json:"near,omitempty"`
+	Search                  *string        `json:"search,omitempty"`
+	License                 *LicenseFilter `json:"license,omitempty"`
+	ServedByOnestopIds      []string       `json:"served_by_onestop_ids,omitempty"`
+	ServedByRouteType       *int           `json:"served_by_route_type,omitempty"`
+	AgencyIds               []int          `json:"agency_ids,omitempty"`
 }
 
 type StopObservation struct {
-	ScheduleRelationship   *string      `json:"schedule_relationship"`
-	TripStartDate          *tt.Date     `json:"trip_start_date"`
-	TripStartTime          *tt.WideTime `json:"trip_start_time"`
-	FromStopID             *string      `json:"from_stop_id"`
-	ToStopID               *string      `json:"to_stop_id"`
-	AgencyID               *string      `json:"agency_id"`
-	RouteID                *string      `json:"route_id"`
-	TripID                 *string      `json:"trip_id"`
-	StopSequence           *int         `json:"stop_sequence"`
-	Source                 *string      `json:"source"`
-	ScheduledArrivalTime   *tt.WideTime `json:"scheduled_arrival_time"`
-	ScheduledDepartureTime *tt.WideTime `json:"scheduled_departure_time"`
-	ObservedArrivalTime    *tt.WideTime `json:"observed_arrival_time"`
-	ObservedDepartureTime  *tt.WideTime `json:"observed_departure_time"`
+	ScheduleRelationship   *string      `json:"schedule_relationship,omitempty"`
+	TripStartDate          *tt.Date     `json:"trip_start_date,omitempty"`
+	TripStartTime          *tt.WideTime `json:"trip_start_time,omitempty"`
+	FromStopID             *string      `json:"from_stop_id,omitempty"`
+	ToStopID               *string      `json:"to_stop_id,omitempty"`
+	AgencyID               *string      `json:"agency_id,omitempty"`
+	RouteID                *string      `json:"route_id,omitempty"`
+	TripID                 *string      `json:"trip_id,omitempty"`
+	StopSequence           *int         `json:"stop_sequence,omitempty"`
+	Source                 *string      `json:"source,omitempty"`
+	ScheduledArrivalTime   *tt.WideTime `json:"scheduled_arrival_time,omitempty"`
+	ScheduledDepartureTime *tt.WideTime `json:"scheduled_departure_time,omitempty"`
+	ObservedArrivalTime    *tt.WideTime `json:"observed_arrival_time,omitempty"`
+	ObservedDepartureTime  *tt.WideTime `json:"observed_departure_time,omitempty"`
 }
 
 type StopObservationFilter struct {
@@ -346,40 +352,40 @@ type StopObservationFilter struct {
 }
 
 type StopPlace struct {
-	Adm1Name *string `json:"adm1_name"`
-	Adm0Name *string `json:"adm0_name"`
-	Adm0Iso  *string `json:"adm0_iso"`
-	Adm1Iso  *string `json:"adm1_iso"`
+	Adm1Name *string `json:"adm1_name,omitempty"`
+	Adm0Name *string `json:"adm0_name,omitempty"`
+	Adm0Iso  *string `json:"adm0_iso,omitempty"`
+	Adm1Iso  *string `json:"adm1_iso,omitempty"`
 }
 
 type StopTimeFilter struct {
-	ServiceDate                  *tt.Date     `json:"service_date"`
-	UseServiceWindow             *bool        `json:"use_service_window"`
-	StartTime                    *int         `json:"start_time"`
-	EndTime                      *int         `json:"end_time"`
-	Start                        *tt.WideTime `json:"start"`
-	End                          *tt.WideTime `json:"end"`
-	Next                         *int         `json:"next"`
-	RouteOnestopIds              []string     `json:"route_onestop_ids"`
-	AllowPreviousRouteOnestopIds *bool        `json:"allow_previous_route_onestop_ids"`
-	ExcludeFirst                 *bool        `json:"exclude_first"`
-	ExcludeLast                  *bool        `json:"exclude_last"`
+	ServiceDate                  *tt.Date     `json:"service_date,omitempty"`
+	UseServiceWindow             *bool        `json:"use_service_window,omitempty"`
+	StartTime                    *int         `json:"start_time,omitempty"`
+	EndTime                      *int         `json:"end_time,omitempty"`
+	Start                        *tt.WideTime `json:"start,omitempty"`
+	End                          *tt.WideTime `json:"end,omitempty"`
+	Next                         *int         `json:"next,omitempty"`
+	RouteOnestopIds              []string     `json:"route_onestop_ids,omitempty"`
+	AllowPreviousRouteOnestopIds *bool        `json:"allow_previous_route_onestop_ids,omitempty"`
+	ExcludeFirst                 *bool        `json:"exclude_first,omitempty"`
+	ExcludeLast                  *bool        `json:"exclude_last,omitempty"`
 }
 
 type TripFilter struct {
-	ServiceDate     *tt.Date       `json:"service_date"`
-	TripID          *string        `json:"trip_id"`
-	StopPatternID   *int           `json:"stop_pattern_id"`
-	License         *LicenseFilter `json:"license"`
-	RouteIds        []int          `json:"route_ids"`
-	RouteOnestopIds []string       `json:"route_onestop_ids"`
-	FeedVersionSha1 *string        `json:"feed_version_sha1"`
-	FeedOnestopID   *string        `json:"feed_onestop_id"`
+	ServiceDate     *tt.Date       `json:"service_date,omitempty"`
+	TripID          *string        `json:"trip_id,omitempty"`
+	StopPatternID   *int           `json:"stop_pattern_id,omitempty"`
+	License         *LicenseFilter `json:"license,omitempty"`
+	RouteIds        []int          `json:"route_ids,omitempty"`
+	RouteOnestopIds []string       `json:"route_onestop_ids,omitempty"`
+	FeedVersionSha1 *string        `json:"feed_version_sha1,omitempty"`
+	FeedOnestopID   *string        `json:"feed_onestop_id,omitempty"`
 }
 
 type TripStopTimeFilter struct {
-	Start *tt.WideTime `json:"start"`
-	End   *tt.WideTime `json:"end"`
+	Start *tt.WideTime `json:"start,omitempty"`
+	End   *tt.WideTime `json:"end,omitempty"`
 }
 
 type ValidationResultErrorGroup struct {
@@ -395,25 +401,25 @@ type ValidationResultErrorGroup struct {
 
 // [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
 type VehiclePosition struct {
-	Vehicle             *RTVehicleDescriptor `json:"vehicle"`
-	Position            *tt.Point            `json:"position"`
-	CurrentStopSequence *int                 `json:"current_stop_sequence"`
-	StopID              *Stop                `json:"stop_id"`
-	CurrentStatus       *string              `json:"current_status"`
-	Timestamp           *time.Time           `json:"timestamp"`
-	CongestionLevel     *string              `json:"congestion_level"`
+	Vehicle             *RTVehicleDescriptor `json:"vehicle,omitempty"`
+	Position            *tt.Point            `json:"position,omitempty"`
+	CurrentStopSequence *int                 `json:"current_stop_sequence,omitempty"`
+	StopID              *Stop                `json:"stop_id,omitempty"`
+	CurrentStatus       *string              `json:"current_status,omitempty"`
+	Timestamp           *time.Time           `json:"timestamp,omitempty"`
+	CongestionLevel     *string              `json:"congestion_level,omitempty"`
 }
 
 type Waypoint struct {
 	Lon  float64 `json:"lon"`
 	Lat  float64 `json:"lat"`
-	Name *string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 type WaypointInput struct {
 	Lon  float64 `json:"lon"`
 	Lat  float64 `json:"lat"`
-	Name *string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 type DistanceUnit string
