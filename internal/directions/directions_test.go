@@ -59,6 +59,9 @@ func testHandler(t *testing.T, h Handler, tc testCase) *model.Directions {
 			t.Fatal(err)
 		}
 		if !assert.JSONEq(t, string(a), string(resJson)) {
+			t.Log("expected json file:", tc.resJson)
+			t.Log("expected json was:")
+			t.Log(string(a))
 			t.Log("json response was:")
 			t.Log(string(resJson))
 		}
