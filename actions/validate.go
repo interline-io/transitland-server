@@ -8,16 +8,10 @@ import (
 	"os"
 
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/causes"
-	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlcsv"
 	"github.com/interline-io/transitland-lib/validator"
 	"github.com/interline-io/transitland-server/model"
 )
-
-type hasGeometries interface {
-	Geometries() []tt.Geometry
-}
 
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
 func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls []string) (*model.ValidationResult, error) {
@@ -124,21 +118,14 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		for _, err := range eg.Errors {
 			err2 := model.ValidationResultError{
 				Filename:  eg.Filename,
+				EntityID:  err.EntityID,
 				Message:   err.Error(),
 				ErrorType: eg.ErrorType,
 				ErrorCode: eg.ErrorCode,
 			}
-			if v, ok := err.(hasContext); ok {
-				c := v.Context()
-				err2.EntityID = c.EntityID
-				err2.ErrorCode = c.Code
-				err2.Field = c.Field
-			}
-			if v, ok := err.(hasGeometries); ok {
-				for _, g := range v.Geometries() {
-					g := g
-					err2.Geometries = append(err2.Geometries, &g)
-				}
+			for _, gg := range err.Geometries {
+				gg := gg
+				err2.Geometries = append(err2.Geometries, &gg)
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
 		}
@@ -161,20 +148,13 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		for _, err := range eg.Errors {
 			err2 := model.ValidationResultError{
 				Filename:  eg.Filename,
+				EntityID:  err.EntityID,
 				Message:   err.Error(),
 				ErrorType: eg.ErrorType,
 				ErrorCode: eg.ErrorCode,
 			}
-			if v, ok := err.(hasContext); ok {
-				c := v.Context()
-				err2.EntityID = c.EntityID
-				err2.Field = c.Field
-			}
-			if v, ok := err.(hasGeometries); ok {
-				for _, g := range v.Geometries() {
-					g := g
-					err2.Geometries = append(err2.Geometries, &g)
-				}
+			for _, gg := range err.Geometries {
+				err2.Geometries = append(err2.Geometries, &gg)
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
 		}
@@ -205,10 +185,6 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		})
 	}
 	return &result, nil
-}
-
-type hasContext interface {
-	Context() *causes.Context
 }
 
 func checkurl(address string) bool {
