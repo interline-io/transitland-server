@@ -1,16 +1,13 @@
 {
     "success": true,
-    "exception": null,
     "data_source": "LINE",
     "origin": {
         "lon": -122.401001,
-        "lat": 37.789001,
-        "name": null
+        "lat": 37.789001
     },
     "destination": {
         "lon": -122.446999,
-        "lat": 37.782001,
-        "name": null
+        "lat": 37.782001
     },
     "duration": {
         "duration": 4116.4971546787765,
@@ -48,8 +45,6 @@
                     },
                     "start_time": "2009-02-13T23:31:30Z",
                     "end_time": "2009-02-14T00:40:06Z",
-                    "from": null,
-                    "to": null,
                     "steps": [
                         {
                             "duration": {
@@ -62,7 +57,6 @@
                             },
                             "start_time": "2009-02-13T23:31:30Z",
                             "end_time": "2009-02-14T00:40:06Z",
-                            "to": null,
                             "mode": "",
                             "instruction": "",
                             "geometry_offset": 0
