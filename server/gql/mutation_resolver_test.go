@@ -154,12 +154,12 @@ func TestValidateGtfsResolver(t *testing.T) {
 		},
 		{
 			name:  "rt-bad-vp",
-			query: `mutation($url:String!, $realtime_urls:[String!]) {validate_gtfs(url:$url,realtime_urls:$realtime_urls){success errors{filename errors{filename field error_code message geometries}}}}`,
+			query: `mutation($url:String!, $realtime_urls:[String!]) {validate_gtfs(url:$url,realtime_urls:$realtime_urls){success errors{filename errors{filename field error_code message geometry}}}}`,
 			vars: hw{
 				"url":           ts200.URL + "/external/caltrain.zip",
 				"realtime_urls": []string{ts200.URL + "/rt/CT-bad-vp.json"},
 			},
-			selector:     "validate_gtfs.errors.0.errors.0.geometries.#.type",
+			selector:     "validate_gtfs.errors.0.errors.0.geometry.geometries.#.type",
 			selectExpect: []string{"Point", "LineString"},
 		},
 	}
