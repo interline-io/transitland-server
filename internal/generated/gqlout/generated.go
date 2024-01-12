@@ -952,14 +952,15 @@ type ComplexityRoot struct {
 	}
 
 	ValidationResultError struct {
-		EntityID   func(childComplexity int) int
-		ErrorCode  func(childComplexity int) int
-		ErrorType  func(childComplexity int) int
-		Field      func(childComplexity int) int
-		Filename   func(childComplexity int) int
-		Geometries func(childComplexity int) int
-		Message    func(childComplexity int) int
-		Value      func(childComplexity int) int
+		EntityID  func(childComplexity int) int
+		ErrorCode func(childComplexity int) int
+		ErrorType func(childComplexity int) int
+		Field     func(childComplexity int) int
+		Filename  func(childComplexity int) int
+		Geometry  func(childComplexity int) int
+		Line      func(childComplexity int) int
+		Message   func(childComplexity int) int
+		Value     func(childComplexity int) int
 	}
 
 	ValidationResultErrorGroup struct {
@@ -5978,12 +5979,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationResultError.Filename(childComplexity), true
 
-	case "ValidationResultError.geometries":
-		if e.complexity.ValidationResultError.Geometries == nil {
+	case "ValidationResultError.geometry":
+		if e.complexity.ValidationResultError.Geometry == nil {
 			break
 		}
 
-		return e.complexity.ValidationResultError.Geometries(childComplexity), true
+		return e.complexity.ValidationResultError.Geometry(childComplexity), true
+
+	case "ValidationResultError.line":
+		if e.complexity.ValidationResultError.Line == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultError.Line(childComplexity), true
 
 	case "ValidationResultError.message":
 		if e.complexity.ValidationResultError.Message == nil {
@@ -7634,9 +7642,10 @@ type ValidationResultError {
   error_code: String!
   entity_id: String!
   field: String!
+  line: Int!
   value: String!
   message: String!
-  geometries: [Geometry!]
+  geometry: Geometry
 }
 
 type FeedVersionFetchResult {
@@ -41588,6 +41597,50 @@ func (ec *executionContext) fieldContext_ValidationResultError_field(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationResultError_line(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultError_line(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Line, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationResultError_line(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationResultError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationResultError_value(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationResultError_value(ctx, field)
 	if err != nil {
@@ -41676,8 +41729,8 @@ func (ec *executionContext) fieldContext_ValidationResultError_message(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResultError_geometries(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResultError_geometries(ctx, field)
+func (ec *executionContext) _ValidationResultError_geometry(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultError_geometry(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41690,7 +41743,7 @@ func (ec *executionContext) _ValidationResultError_geometries(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Geometries, nil
+		return obj.Geometry, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41699,12 +41752,12 @@ func (ec *executionContext) _ValidationResultError_geometries(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*tt.Geometry)
+	res := resTmp.(tt.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometryᚄ(ctx, field.Selections, res)
+	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResultError_geometries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultError_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ValidationResultError",
 		Field:      field,
@@ -42074,12 +42127,14 @@ func (ec *executionContext) fieldContext_ValidationResultErrorGroup_errors(ctx c
 				return ec.fieldContext_ValidationResultError_entity_id(ctx, field)
 			case "field":
 				return ec.fieldContext_ValidationResultError_field(ctx, field)
+			case "line":
+				return ec.fieldContext_ValidationResultError_line(ctx, field)
 			case "value":
 				return ec.fieldContext_ValidationResultError_value(ctx, field)
 			case "message":
 				return ec.fieldContext_ValidationResultError_message(ctx, field)
-			case "geometries":
-				return ec.fieldContext_ValidationResultError_geometries(ctx, field)
+			case "geometry":
+				return ec.fieldContext_ValidationResultError_geometry(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ValidationResultError", field.Name)
 		},
@@ -54021,6 +54076,11 @@ func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "line":
+			out.Values[i] = ec._ValidationResultError_line(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "value":
 			out.Values[i] = ec._ValidationResultError_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -54031,8 +54091,8 @@ func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "geometries":
-			out.Values[i] = ec._ValidationResultError_geometries(ctx, field, obj)
+		case "geometry":
+			out.Values[i] = ec._ValidationResultError_geometry(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55593,22 +55653,6 @@ func (ec *executionContext) marshalNGbfsVehicleTypeAvailable2ᚖgithubᚗcomᚋi
 		return graphql.Null
 	}
 	return ec._GbfsVehicleTypeAvailable(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx context.Context, v interface{}) (*tt.Geometry, error) {
-	var res = new(tt.Geometry)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx context.Context, sel ast.SelectionSet, v *tt.Geometry) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -58305,44 +58349,6 @@ func (ec *executionContext) marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtra
 	return v
 }
 
-func (ec *executionContext) unmarshalOGeometry2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometryᚄ(ctx context.Context, v interface{}) ([]*tt.Geometry, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*tt.Geometry, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOGeometry2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometryᚄ(ctx context.Context, sel ast.SelectionSet, v []*tt.Geometry) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx context.Context, v interface{}) (*tt.Geometry, error) {
 	if v == nil {
 		return nil, nil
@@ -58584,7 +58590,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -58592,7 +58598,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

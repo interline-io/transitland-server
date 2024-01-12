@@ -761,9 +761,10 @@ type ValidationResultError {
   error_code: String!
   entity_id: String!
   field: String!
+  line: Int!
   value: String!
   message: String!
-  geometries: [Geometry!]
+  geometry: Geometry
 }
 
 type FeedVersionFetchResult {

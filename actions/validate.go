@@ -97,6 +97,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 	}
 
 	// Some mapping is necessary because most gql models have some extra fields not in the base tl models.
+	result.RawResult = r
 	result.Success = r.Success
 	result.FailureReason = r.FailureReason
 	result.Sha1 = r.SHA1
@@ -111,21 +112,19 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 			Field:     eg.Field,
 			ErrorCode: eg.ErrorCode,
 			ErrorType: eg.ErrorType,
-			Message:   eg.Message,
 			Count:     eg.Count,
 			Limit:     eg.Limit,
 		}
 		for _, err := range eg.Errors {
 			err2 := model.ValidationResultError{
 				Filename:  eg.Filename,
-				EntityID:  err.EntityID,
-				Message:   err.Error(),
+				Field:     eg.Field,
 				ErrorType: eg.ErrorType,
 				ErrorCode: eg.ErrorCode,
-			}
-			for _, gg := range err.Geometries {
-				gg := gg
-				err2.Geometries = append(err2.Geometries, &gg)
+				Line:      err.Line,
+				EntityID:  err.EntityID,
+				Message:   err.Error(),
+				Geometry:  err.Geometry,
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
 		}
@@ -140,21 +139,19 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 			Field:     eg.Field,
 			ErrorCode: eg.ErrorCode,
 			ErrorType: eg.ErrorType,
-			Message:   eg.Message,
 			Count:     eg.Count,
 			Limit:     eg.Limit,
 		}
-
 		for _, err := range eg.Errors {
 			err2 := model.ValidationResultError{
 				Filename:  eg.Filename,
-				EntityID:  err.EntityID,
-				Message:   err.Error(),
+				Field:     eg.Field,
 				ErrorType: eg.ErrorType,
 				ErrorCode: eg.ErrorCode,
-			}
-			for _, gg := range err.Geometries {
-				err2.Geometries = append(err2.Geometries, &gg)
+				Line:      err.Line,
+				EntityID:  err.EntityID,
+				Message:   err.Error(),
+				Geometry:  err.Geometry,
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
 		}

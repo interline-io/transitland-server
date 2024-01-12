@@ -9,6 +9,7 @@ import (
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/validator"
 )
 
 type Feed struct {
@@ -262,6 +263,7 @@ func (a *ValueMap) Scan(value interface{}) error {
 
 // ValidationResult .
 type ValidationResult struct {
+	RawResult            *validator.Result
 	Success              bool                         `json:"success"`
 	FailureReason        string                       `json:"failure_reason"`
 	Errors               []ValidationResultErrorGroup `json:"errors"`
@@ -284,14 +286,15 @@ type ValidationRealtimeResult struct {
 }
 
 type ValidationResultError struct {
-	Filename   string         `json:"filename"`
-	ErrorType  string         `json:"error_type"`
-	ErrorCode  string         `json:"error_code"`
-	EntityID   string         `json:"entity_id"`
-	Field      string         `json:"field"`
-	Value      string         `json:"value"`
-	Message    string         `json:"message"`
-	Geometries []*tt.Geometry `json:"geometries"`
+	Filename  string      `json:"filename"`
+	ErrorType string      `json:"error_type"`
+	ErrorCode string      `json:"error_code"`
+	EntityID  string      `json:"entity_id"`
+	Field     string      `json:"field"`
+	Value     string      `json:"value"`
+	Message   string      `json:"message"`
+	Line      int         `json:"line"`
+	Geometry  tt.Geometry `json:"geometry"`
 }
 
 ///////////////////// Fetch

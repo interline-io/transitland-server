@@ -3,11 +3,15 @@ package actions
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/validator"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/twpayne/go-geom"
 )
 
 func TestValidateUpload(t *testing.T) {
@@ -32,12 +36,12 @@ func TestValidateUpload(t *testing.T) {
 					return
 				}
 				g := result.Errors[0].Errors[0]
-				gg := g.Geometries
-				if len(gg) != 2 {
-					t.Fatal("expected 2 geometries")
+				if v, ok := g.Geometry.Geometry.(*geom.GeometryCollection); ok {
+					ggs := v.Geoms()
+					assert.Equal(t, len(ggs), 2)
+					assert.Equal(t, len(ggs[0].FlatCoords()), 1112)
+					assert.Equal(t, len(ggs[1].FlatCoords()), 2)
 				}
-				assert.Equal(t, len(gg[0].Geometry.FlatCoords()), 1112)
-				assert.Equal(t, len(gg[1].Geometry.FlatCoords()), 2)
 			},
 		},
 	}
@@ -48,7 +52,7 @@ func TestValidateUpload(t *testing.T) {
 			defer ts.Close()
 
 			// Setup job
-			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+			testconfig.ConfigTx(t, testconfig.Options{}, func(cfg model.Config) error {
 				cfg.Checker = nil // disable checker for this test
 				ctx := model.WithConfig(context.Background(), cfg)
 				// Run job
@@ -64,11 +68,18 @@ func TestValidateUpload(t *testing.T) {
 				} else if err == nil && tc.expectError {
 					t.Fatal("expected responseError")
 				} else if err != nil && tc.expectError {
-					return
+					return nil
 				}
 				if tc.f != nil {
 					tc.f(t, result)
 				}
+
+				atx := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+
+				if err := validator.SaveValidationReport(atx, result.RawResult, time.Now(), 1, ""); err != nil {
+					panic(err)
+				}
+				return nil
 				// jj, _ := json.MarshalIndent(result, "", "  ")
 				// fmt.Println(string(jj))
 			})
