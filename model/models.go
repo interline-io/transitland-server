@@ -263,21 +263,25 @@ func (a *ValueMap) Scan(value interface{}) error {
 
 // ValidationResult .
 type ValidationResult struct {
-	RawResult            *validator.Result
-	Success              bool                         `json:"success"`
-	FailureReason        string                       `json:"failure_reason"`
-	Errors               []ValidationResultErrorGroup `json:"errors"`
-	Warnings             []ValidationResultErrorGroup `json:"warnings"`
-	Sha1                 string                       `json:"sha1"`
-	EarliestCalendarDate tl.Date                      `json:"earliest_calendar_date"`
-	LatestCalendarDate   tl.Date                      `json:"latest_calendar_date"`
-	Files                []FeedVersionFileInfo        `json:"files"`
-	ServiceLevels        []FeedVersionServiceLevel    `json:"service_levels"`
-	Agencies             []Agency                     `json:"agencies"`
-	Routes               []Route                      `json:"routes"`
-	Stops                []Stop                       `json:"stops"`
-	FeedInfos            []FeedInfo                   `json:"feed_infos"`
-	Realtime             []ValidationRealtimeResult   `json:"realtime"`
+	RawResult     *validator.Result
+	Success       bool                         `json:"success"`
+	FailureReason string                       `json:"failure_reason"`
+	Errors        []ValidationResultErrorGroup `json:"errors"`
+	Warnings      []ValidationResultErrorGroup `json:"warnings"`
+	Details       ValidationResultDetails
+}
+
+type ValidationResultDetails struct {
+	Sha1                 string                     `json:"sha1"`
+	EarliestCalendarDate tl.Date                    `json:"earliest_calendar_date"`
+	LatestCalendarDate   tl.Date                    `json:"latest_calendar_date"`
+	Files                []FeedVersionFileInfo      `json:"files"`
+	ServiceLevels        []FeedVersionServiceLevel  `json:"service_levels"`
+	Agencies             []Agency                   `json:"agencies"`
+	Routes               []Route                    `json:"routes"`
+	Stops                []Stop                     `json:"stops"`
+	FeedInfos            []FeedInfo                 `json:"feed_infos"`
+	Realtime             []ValidationRealtimeResult `json:"realtime"`
 }
 
 type ValidationRealtimeResult struct {

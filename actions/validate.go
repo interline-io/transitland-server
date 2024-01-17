@@ -33,8 +33,6 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 	}
 	//////
 	result := model.ValidationResult{}
-	result.EarliestCalendarDate = tl.Date{}
-	result.LatestCalendarDate = tl.Date{}
 	var reader tl.Reader
 	if src != nil {
 		// Prepare reader
@@ -97,12 +95,13 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 	}
 
 	// Some mapping is necessary because most gql models have some extra fields not in the base tl models.
-	result.RawResult = r
+	// result.RawResult = r
 	result.Success = r.Success
 	result.FailureReason = r.FailureReason
-	result.Sha1 = r.SHA1
-	result.EarliestCalendarDate = r.EarliestCalendarDate
-	result.LatestCalendarDate = r.LatestCalendarDate
+	result.Details = model.ValidationResultDetails{}
+	result.Details.Sha1 = r.Details.SHA1
+	result.Details.EarliestCalendarDate = r.Details.EarliestCalendarDate
+	result.Details.LatestCalendarDate = r.Details.LatestCalendarDate
 	for _, eg := range r.Errors {
 		if eg == nil {
 			continue
@@ -157,26 +156,26 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		}
 		result.Warnings = append(result.Warnings, eg2)
 	}
-	for _, v := range r.FeedInfos {
-		result.FeedInfos = append(result.FeedInfos, model.FeedInfo{FeedInfo: v})
+	for _, v := range r.Details.FeedInfos {
+		result.Details.FeedInfos = append(result.Details.FeedInfos, model.FeedInfo{FeedInfo: v})
 	}
-	for _, v := range r.Files {
-		result.Files = append(result.Files, model.FeedVersionFileInfo{FeedVersionFileInfo: v})
+	for _, v := range r.Details.Files {
+		result.Details.Files = append(result.Details.Files, model.FeedVersionFileInfo{FeedVersionFileInfo: v})
 	}
-	for _, v := range r.ServiceLevels {
-		result.ServiceLevels = append(result.ServiceLevels, model.FeedVersionServiceLevel{FeedVersionServiceLevel: v})
+	for _, v := range r.Details.ServiceLevels {
+		result.Details.ServiceLevels = append(result.Details.ServiceLevels, model.FeedVersionServiceLevel{FeedVersionServiceLevel: v})
 	}
-	for _, v := range r.Agencies {
-		result.Agencies = append(result.Agencies, model.Agency{Agency: v})
+	for _, v := range r.Details.Agencies {
+		result.Details.Agencies = append(result.Details.Agencies, model.Agency{Agency: v})
 	}
-	for _, v := range r.Routes {
-		result.Routes = append(result.Routes, model.Route{Route: v})
+	for _, v := range r.Details.Routes {
+		result.Details.Routes = append(result.Details.Routes, model.Route{Route: v})
 	}
-	for _, v := range r.Stops {
-		result.Stops = append(result.Stops, model.Stop{Stop: v})
+	for _, v := range r.Details.Stops {
+		result.Details.Stops = append(result.Details.Stops, model.Stop{Stop: v})
 	}
-	for _, v := range r.Realtime {
-		result.Realtime = append(result.Realtime, model.ValidationRealtimeResult{
+	for _, v := range r.Details.Realtime {
+		result.Details.Realtime = append(result.Details.Realtime, model.ValidationRealtimeResult{
 			Url:  v.Url,
 			Json: v.Json,
 		})

@@ -26,6 +26,11 @@ input OperatorFilter {
   near: PointRadius
 }
 
+input ValidationReportFilter {
+  success: Boolean
+  validator: String
+}
+
 input FeedVersionFilter {
   import_status: ImportStatus
   feed_onestop_id: String
