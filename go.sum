@@ -271,6 +271,8 @@ github.com/interline-io/log v0.0.0-20231211003339-8bdc406adcd2 h1:ScRM8Kr6UwAvbl
 github.com/interline-io/log v0.0.0-20231211003339-8bdc406adcd2/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
 github.com/interline-io/transitland-lib v0.14.1-0.20240117011241-ffe744dd523c h1:R5GCmtVnFoE8idXJgCqAqiJVBKkMf0qxQdPjCH8I6/Y=
 github.com/interline-io/transitland-lib v0.14.1-0.20240117011241-ffe744dd523c/go.mod h1:TwGmZjX/iJRaYWKKosU/TIn8Dt4dywYCAXqmZwAA6qo=
+github.com/interline-io/transitland-lib v0.14.1-0.20240117030419-f426b6c2dc4d h1:br7dcT+hG1pgDo4wNq2rpmQdtawlU9Okakg1EOk+QMo=
+github.com/interline-io/transitland-lib v0.14.1-0.20240117030419-f426b6c2dc4d/go.mod h1:TwGmZjX/iJRaYWKKosU/TIn8Dt4dywYCAXqmZwAA6qo=
 github.com/interline-io/transitland-mw v0.0.0-20231220044449-a6aac07a9d9e h1:MZnYbL21CKMWQkNBaG6xnWjU7J7uXErlBM4RwXjIfRQ=
 github.com/interline-io/transitland-mw v0.0.0-20231220044449-a6aac07a9d9e/go.mod h1:QyssKyKXwbTWhFT9O08nVj+gScPntMvLh1qMGNr1Ksw=
 github.com/jarcoal/httpmock v1.3.1 h1:iUx3whfZWVf3jT01hQTO/Eo5sAYtB2/rqaUuOtpInww=

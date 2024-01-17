@@ -1,7 +1,6 @@
 package gql
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -124,10 +123,6 @@ func TestValidateGtfsResolver(t *testing.T) {
 			vars:         vars,
 			selector:     "validate_gtfs.warnings.#.filename",
 			selectExpect: []string{"routes.txt", "routes.txt", "trips.txt"}, // now includes an additional validation warning
-			f: func(t *testing.T, jj string) {
-				fmt.Println("JJ:", jj)
-
-			},
 		},
 		{
 			name:         "service_levels",

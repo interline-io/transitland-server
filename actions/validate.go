@@ -2,6 +2,8 @@ package actions
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/url"
@@ -93,6 +95,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		result.FailureReason = "Could not validate file"
 		return &result, nil
 	}
+	fmt.Println("WARN????", r.Warnings)
 
 	// Some mapping is necessary because most gql models have some extra fields not in the base tl models.
 	// result.RawResult = r
@@ -129,7 +132,10 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		}
 		result.Errors = append(result.Errors, eg2)
 	}
+	jj, _ := json.Marshal(r)
+	fmt.Println(string(jj))
 	for _, eg := range r.Warnings {
+		fmt.Println("WARN2:", eg)
 		if eg == nil {
 			continue
 		}
