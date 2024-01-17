@@ -192,6 +192,7 @@ type FeedVersion {
   stops(limit: Int, where: StopFilter): [Stop!]!
   trips(limit: Int, where: TripFilter): [Trip!]!
   feed_infos(limit: Int): [FeedInfo!]!
+  # validation_reports(limit: Int, where: ValidationReportFilter): [ValidationResult!]
 }
 
 type FeedVersionFileInfo {
@@ -726,7 +727,10 @@ type ValidationResult {
   failure_reason: String!
   errors: [ValidationResultErrorGroup!]!
   warnings: [ValidationResultErrorGroup!]!
-  # FeedVersion-like
+  details: ValidationResultDetails
+}
+
+type ValidationResultDetails {
   sha1: String!
   earliest_calendar_date: Date
   latest_calendar_date: Date
@@ -761,9 +765,10 @@ type ValidationResultError {
   error_code: String!
   entity_id: String!
   field: String!
+  line: Int!
   value: String!
   message: String!
-  geometries: [Geometry!]
+  geometry: Geometry
 }
 
 type FeedVersionFetchResult {

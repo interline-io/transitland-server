@@ -262,20 +262,24 @@ func (a *ValueMap) Scan(value interface{}) error {
 
 // ValidationResult .
 type ValidationResult struct {
-	Success              bool                         `json:"success"`
-	FailureReason        string                       `json:"failure_reason"`
-	Errors               []ValidationResultErrorGroup `json:"errors"`
-	Warnings             []ValidationResultErrorGroup `json:"warnings"`
-	Sha1                 string                       `json:"sha1"`
-	EarliestCalendarDate tl.Date                      `json:"earliest_calendar_date"`
-	LatestCalendarDate   tl.Date                      `json:"latest_calendar_date"`
-	Files                []FeedVersionFileInfo        `json:"files"`
-	ServiceLevels        []FeedVersionServiceLevel    `json:"service_levels"`
-	Agencies             []Agency                     `json:"agencies"`
-	Routes               []Route                      `json:"routes"`
-	Stops                []Stop                       `json:"stops"`
-	FeedInfos            []FeedInfo                   `json:"feed_infos"`
-	Realtime             []ValidationRealtimeResult   `json:"realtime"`
+	Success       bool                         `json:"success"`
+	FailureReason string                       `json:"failure_reason"`
+	Errors        []ValidationResultErrorGroup `json:"errors"`
+	Warnings      []ValidationResultErrorGroup `json:"warnings"`
+	Details       ValidationResultDetails
+}
+
+type ValidationResultDetails struct {
+	Sha1                 string                     `json:"sha1"`
+	EarliestCalendarDate tl.Date                    `json:"earliest_calendar_date"`
+	LatestCalendarDate   tl.Date                    `json:"latest_calendar_date"`
+	Files                []FeedVersionFileInfo      `json:"files"`
+	ServiceLevels        []FeedVersionServiceLevel  `json:"service_levels"`
+	Agencies             []Agency                   `json:"agencies"`
+	Routes               []Route                    `json:"routes"`
+	Stops                []Stop                     `json:"stops"`
+	FeedInfos            []FeedInfo                 `json:"feed_infos"`
+	Realtime             []ValidationRealtimeResult `json:"realtime"`
 }
 
 type ValidationRealtimeResult struct {
@@ -284,14 +288,15 @@ type ValidationRealtimeResult struct {
 }
 
 type ValidationResultError struct {
-	Filename   string         `json:"filename"`
-	ErrorType  string         `json:"error_type"`
-	ErrorCode  string         `json:"error_code"`
-	EntityID   string         `json:"entity_id"`
-	Field      string         `json:"field"`
-	Value      string         `json:"value"`
-	Message    string         `json:"message"`
-	Geometries []*tt.Geometry `json:"geometries"`
+	Filename  string      `json:"filename"`
+	ErrorType string      `json:"error_type"`
+	ErrorCode string      `json:"error_code"`
+	EntityID  string      `json:"entity_id"`
+	Field     string      `json:"field"`
+	Value     string      `json:"value"`
+	Message   string      `json:"message"`
+	Line      int         `json:"line"`
+	Geometry  tt.Geometry `json:"geometry"`
 }
 
 ///////////////////// Fetch

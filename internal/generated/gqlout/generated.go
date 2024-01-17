@@ -935,10 +935,16 @@ type ComplexityRoot struct {
 	}
 
 	ValidationResult struct {
+		Details       func(childComplexity int) int
+		Errors        func(childComplexity int) int
+		FailureReason func(childComplexity int) int
+		Success       func(childComplexity int) int
+		Warnings      func(childComplexity int) int
+	}
+
+	ValidationResultDetails struct {
 		Agencies             func(childComplexity int, limit *int) int
 		EarliestCalendarDate func(childComplexity int) int
-		Errors               func(childComplexity int) int
-		FailureReason        func(childComplexity int) int
 		FeedInfos            func(childComplexity int, limit *int) int
 		Files                func(childComplexity int) int
 		LatestCalendarDate   func(childComplexity int) int
@@ -947,19 +953,18 @@ type ComplexityRoot struct {
 		ServiceLevels        func(childComplexity int, limit *int, routeID *string) int
 		Sha1                 func(childComplexity int) int
 		Stops                func(childComplexity int, limit *int) int
-		Success              func(childComplexity int) int
-		Warnings             func(childComplexity int) int
 	}
 
 	ValidationResultError struct {
-		EntityID   func(childComplexity int) int
-		ErrorCode  func(childComplexity int) int
-		ErrorType  func(childComplexity int) int
-		Field      func(childComplexity int) int
-		Filename   func(childComplexity int) int
-		Geometries func(childComplexity int) int
-		Message    func(childComplexity int) int
-		Value      func(childComplexity int) int
+		EntityID  func(childComplexity int) int
+		ErrorCode func(childComplexity int) int
+		ErrorType func(childComplexity int) int
+		Field     func(childComplexity int) int
+		Filename  func(childComplexity int) int
+		Geometry  func(childComplexity int) int
+		Line      func(childComplexity int) int
+		Message   func(childComplexity int) int
+		Value     func(childComplexity int) int
 	}
 
 	ValidationResultErrorGroup struct {
@@ -5820,24 +5825,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationRealtimeResult.Url(childComplexity), true
 
-	case "ValidationResult.agencies":
-		if e.complexity.ValidationResult.Agencies == nil {
+	case "ValidationResult.details":
+		if e.complexity.ValidationResult.Details == nil {
 			break
 		}
 
-		args, err := ec.field_ValidationResult_agencies_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.ValidationResult.Agencies(childComplexity, args["limit"].(*int)), true
-
-	case "ValidationResult.earliest_calendar_date":
-		if e.complexity.ValidationResult.EarliestCalendarDate == nil {
-			break
-		}
-
-		return e.complexity.ValidationResult.EarliestCalendarDate(childComplexity), true
+		return e.complexity.ValidationResult.Details(childComplexity), true
 
 	case "ValidationResult.errors":
 		if e.complexity.ValidationResult.Errors == nil {
@@ -5853,82 +5846,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationResult.FailureReason(childComplexity), true
 
-	case "ValidationResult.feed_infos":
-		if e.complexity.ValidationResult.FeedInfos == nil {
-			break
-		}
-
-		args, err := ec.field_ValidationResult_feed_infos_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.ValidationResult.FeedInfos(childComplexity, args["limit"].(*int)), true
-
-	case "ValidationResult.files":
-		if e.complexity.ValidationResult.Files == nil {
-			break
-		}
-
-		return e.complexity.ValidationResult.Files(childComplexity), true
-
-	case "ValidationResult.latest_calendar_date":
-		if e.complexity.ValidationResult.LatestCalendarDate == nil {
-			break
-		}
-
-		return e.complexity.ValidationResult.LatestCalendarDate(childComplexity), true
-
-	case "ValidationResult.realtime":
-		if e.complexity.ValidationResult.Realtime == nil {
-			break
-		}
-
-		return e.complexity.ValidationResult.Realtime(childComplexity), true
-
-	case "ValidationResult.routes":
-		if e.complexity.ValidationResult.Routes == nil {
-			break
-		}
-
-		args, err := ec.field_ValidationResult_routes_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.ValidationResult.Routes(childComplexity, args["limit"].(*int)), true
-
-	case "ValidationResult.service_levels":
-		if e.complexity.ValidationResult.ServiceLevels == nil {
-			break
-		}
-
-		args, err := ec.field_ValidationResult_service_levels_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.ValidationResult.ServiceLevels(childComplexity, args["limit"].(*int), args["route_id"].(*string)), true
-
-	case "ValidationResult.sha1":
-		if e.complexity.ValidationResult.Sha1 == nil {
-			break
-		}
-
-		return e.complexity.ValidationResult.Sha1(childComplexity), true
-
-	case "ValidationResult.stops":
-		if e.complexity.ValidationResult.Stops == nil {
-			break
-		}
-
-		args, err := ec.field_ValidationResult_stops_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.ValidationResult.Stops(childComplexity, args["limit"].(*int)), true
-
 	case "ValidationResult.success":
 		if e.complexity.ValidationResult.Success == nil {
 			break
@@ -5942,6 +5859,101 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ValidationResult.Warnings(childComplexity), true
+
+	case "ValidationResultDetails.agencies":
+		if e.complexity.ValidationResultDetails.Agencies == nil {
+			break
+		}
+
+		args, err := ec.field_ValidationResultDetails_agencies_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ValidationResultDetails.Agencies(childComplexity, args["limit"].(*int)), true
+
+	case "ValidationResultDetails.earliest_calendar_date":
+		if e.complexity.ValidationResultDetails.EarliestCalendarDate == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultDetails.EarliestCalendarDate(childComplexity), true
+
+	case "ValidationResultDetails.feed_infos":
+		if e.complexity.ValidationResultDetails.FeedInfos == nil {
+			break
+		}
+
+		args, err := ec.field_ValidationResultDetails_feed_infos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ValidationResultDetails.FeedInfos(childComplexity, args["limit"].(*int)), true
+
+	case "ValidationResultDetails.files":
+		if e.complexity.ValidationResultDetails.Files == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultDetails.Files(childComplexity), true
+
+	case "ValidationResultDetails.latest_calendar_date":
+		if e.complexity.ValidationResultDetails.LatestCalendarDate == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultDetails.LatestCalendarDate(childComplexity), true
+
+	case "ValidationResultDetails.realtime":
+		if e.complexity.ValidationResultDetails.Realtime == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultDetails.Realtime(childComplexity), true
+
+	case "ValidationResultDetails.routes":
+		if e.complexity.ValidationResultDetails.Routes == nil {
+			break
+		}
+
+		args, err := ec.field_ValidationResultDetails_routes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ValidationResultDetails.Routes(childComplexity, args["limit"].(*int)), true
+
+	case "ValidationResultDetails.service_levels":
+		if e.complexity.ValidationResultDetails.ServiceLevels == nil {
+			break
+		}
+
+		args, err := ec.field_ValidationResultDetails_service_levels_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ValidationResultDetails.ServiceLevels(childComplexity, args["limit"].(*int), args["route_id"].(*string)), true
+
+	case "ValidationResultDetails.sha1":
+		if e.complexity.ValidationResultDetails.Sha1 == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultDetails.Sha1(childComplexity), true
+
+	case "ValidationResultDetails.stops":
+		if e.complexity.ValidationResultDetails.Stops == nil {
+			break
+		}
+
+		args, err := ec.field_ValidationResultDetails_stops_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ValidationResultDetails.Stops(childComplexity, args["limit"].(*int)), true
 
 	case "ValidationResultError.entity_id":
 		if e.complexity.ValidationResultError.EntityID == nil {
@@ -5978,12 +5990,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationResultError.Filename(childComplexity), true
 
-	case "ValidationResultError.geometries":
-		if e.complexity.ValidationResultError.Geometries == nil {
+	case "ValidationResultError.geometry":
+		if e.complexity.ValidationResultError.Geometry == nil {
 			break
 		}
 
-		return e.complexity.ValidationResultError.Geometries(childComplexity), true
+		return e.complexity.ValidationResultError.Geometry(childComplexity), true
+
+	case "ValidationResultError.line":
+		if e.complexity.ValidationResultError.Line == nil {
+			break
+		}
+
+		return e.complexity.ValidationResultError.Line(childComplexity), true
 
 	case "ValidationResultError.message":
 		if e.complexity.ValidationResultError.Message == nil {
@@ -6158,6 +6177,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputStopTimeFilter,
 		ec.unmarshalInputTripFilter,
 		ec.unmarshalInputTripStopTimeFilter,
+		ec.unmarshalInputValidationReportFilter,
 		ec.unmarshalInputWaypointInput,
 	)
 	first := true
@@ -6640,6 +6660,11 @@ input OperatorFilter {
   near: PointRadius
 }
 
+input ValidationReportFilter {
+  success: Boolean
+  validator: String
+}
+
 input FeedVersionFilter {
   import_status: ImportStatus
   feed_onestop_id: String
@@ -7065,6 +7090,7 @@ type FeedVersion {
   stops(limit: Int, where: StopFilter): [Stop!]!
   trips(limit: Int, where: TripFilter): [Trip!]!
   feed_infos(limit: Int): [FeedInfo!]!
+  # validation_reports(limit: Int, where: ValidationReportFilter): [ValidationResult!]
 }
 
 type FeedVersionFileInfo {
@@ -7599,7 +7625,10 @@ type ValidationResult {
   failure_reason: String!
   errors: [ValidationResultErrorGroup!]!
   warnings: [ValidationResultErrorGroup!]!
-  # FeedVersion-like
+  details: ValidationResultDetails
+}
+
+type ValidationResultDetails {
   sha1: String!
   earliest_calendar_date: Date
   latest_calendar_date: Date
@@ -7634,9 +7663,10 @@ type ValidationResultError {
   error_code: String!
   entity_id: String!
   field: String!
+  line: Int!
   value: String!
   message: String!
-  geometries: [Geometry!]
+  geometry: Geometry
 }
 
 type FeedVersionFetchResult {
@@ -9132,7 +9162,7 @@ func (ec *executionContext) field_Trip_stop_times_args(ctx context.Context, rawA
 	return args, nil
 }
 
-func (ec *executionContext) field_ValidationResult_agencies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_ValidationResultDetails_agencies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -9147,7 +9177,7 @@ func (ec *executionContext) field_ValidationResult_agencies_args(ctx context.Con
 	return args, nil
 }
 
-func (ec *executionContext) field_ValidationResult_feed_infos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_ValidationResultDetails_feed_infos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -9162,7 +9192,7 @@ func (ec *executionContext) field_ValidationResult_feed_infos_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_ValidationResult_routes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_ValidationResultDetails_routes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -9177,7 +9207,7 @@ func (ec *executionContext) field_ValidationResult_routes_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_ValidationResult_service_levels_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_ValidationResultDetails_service_levels_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -9201,7 +9231,7 @@ func (ec *executionContext) field_ValidationResult_service_levels_args(ctx conte
 	return args, nil
 }
 
-func (ec *executionContext) field_ValidationResult_stops_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_ValidationResultDetails_stops_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -27639,26 +27669,8 @@ func (ec *executionContext) fieldContext_Mutation_validate_gtfs(ctx context.Cont
 				return ec.fieldContext_ValidationResult_errors(ctx, field)
 			case "warnings":
 				return ec.fieldContext_ValidationResult_warnings(ctx, field)
-			case "sha1":
-				return ec.fieldContext_ValidationResult_sha1(ctx, field)
-			case "earliest_calendar_date":
-				return ec.fieldContext_ValidationResult_earliest_calendar_date(ctx, field)
-			case "latest_calendar_date":
-				return ec.fieldContext_ValidationResult_latest_calendar_date(ctx, field)
-			case "files":
-				return ec.fieldContext_ValidationResult_files(ctx, field)
-			case "service_levels":
-				return ec.fieldContext_ValidationResult_service_levels(ctx, field)
-			case "agencies":
-				return ec.fieldContext_ValidationResult_agencies(ctx, field)
-			case "routes":
-				return ec.fieldContext_ValidationResult_routes(ctx, field)
-			case "stops":
-				return ec.fieldContext_ValidationResult_stops(ctx, field)
-			case "feed_infos":
-				return ec.fieldContext_ValidationResult_feed_infos(ctx, field)
-			case "realtime":
-				return ec.fieldContext_ValidationResult_realtime(ctx, field)
+			case "details":
+				return ec.fieldContext_ValidationResult_details(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ValidationResult", field.Name)
 		},
@@ -40640,8 +40652,71 @@ func (ec *executionContext) fieldContext_ValidationResult_warnings(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_sha1(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_sha1(ctx, field)
+func (ec *executionContext) _ValidationResult_details(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResult_details(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Details, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(model.ValidationResultDetails)
+	fc.Result = res
+	return ec.marshalOValidationResultDetails2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResultDetails(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationResult_details(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "sha1":
+				return ec.fieldContext_ValidationResultDetails_sha1(ctx, field)
+			case "earliest_calendar_date":
+				return ec.fieldContext_ValidationResultDetails_earliest_calendar_date(ctx, field)
+			case "latest_calendar_date":
+				return ec.fieldContext_ValidationResultDetails_latest_calendar_date(ctx, field)
+			case "files":
+				return ec.fieldContext_ValidationResultDetails_files(ctx, field)
+			case "service_levels":
+				return ec.fieldContext_ValidationResultDetails_service_levels(ctx, field)
+			case "agencies":
+				return ec.fieldContext_ValidationResultDetails_agencies(ctx, field)
+			case "routes":
+				return ec.fieldContext_ValidationResultDetails_routes(ctx, field)
+			case "stops":
+				return ec.fieldContext_ValidationResultDetails_stops(ctx, field)
+			case "feed_infos":
+				return ec.fieldContext_ValidationResultDetails_feed_infos(ctx, field)
+			case "realtime":
+				return ec.fieldContext_ValidationResultDetails_realtime(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ValidationResultDetails", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationResultDetails_sha1(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_sha1(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -40671,9 +40746,9 @@ func (ec *executionContext) _ValidationResult_sha1(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_sha1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_sha1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -40684,8 +40759,8 @@ func (ec *executionContext) fieldContext_ValidationResult_sha1(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_earliest_calendar_date(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_earliest_calendar_date(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_earliest_calendar_date(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_earliest_calendar_date(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -40712,9 +40787,9 @@ func (ec *executionContext) _ValidationResult_earliest_calendar_date(ctx context
 	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_earliest_calendar_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_earliest_calendar_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -40725,8 +40800,8 @@ func (ec *executionContext) fieldContext_ValidationResult_earliest_calendar_date
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_latest_calendar_date(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_latest_calendar_date(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_latest_calendar_date(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_latest_calendar_date(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -40753,9 +40828,9 @@ func (ec *executionContext) _ValidationResult_latest_calendar_date(ctx context.C
 	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_latest_calendar_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_latest_calendar_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -40766,8 +40841,8 @@ func (ec *executionContext) fieldContext_ValidationResult_latest_calendar_date(c
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_files(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_files(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_files(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_files(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -40797,9 +40872,9 @@ func (ec *executionContext) _ValidationResult_files(ctx context.Context, field g
 	return ec.marshalNFeedVersionFileInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -40830,8 +40905,8 @@ func (ec *executionContext) fieldContext_ValidationResult_files(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_service_levels(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_service_levels(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_service_levels(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_service_levels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -40861,9 +40936,9 @@ func (ec *executionContext) _ValidationResult_service_levels(ctx context.Context
 	return ec.marshalNFeedVersionServiceLevel2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_service_levels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_service_levels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -40900,15 +40975,15 @@ func (ec *executionContext) fieldContext_ValidationResult_service_levels(ctx con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ValidationResult_service_levels_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_ValidationResultDetails_service_levels_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_agencies(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_agencies(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_agencies(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_agencies(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -40938,9 +41013,9 @@ func (ec *executionContext) _ValidationResult_agencies(ctx context.Context, fiel
 	return ec.marshalNAgency2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_agencies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_agencies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -40997,15 +41072,15 @@ func (ec *executionContext) fieldContext_ValidationResult_agencies(ctx context.C
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ValidationResult_agencies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_ValidationResultDetails_agencies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_routes(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_routes(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_routes(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_routes(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41035,9 +41110,9 @@ func (ec *executionContext) _ValidationResult_routes(ctx context.Context, field 
 	return ec.marshalNRoute2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_routes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_routes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -41112,15 +41187,15 @@ func (ec *executionContext) fieldContext_ValidationResult_routes(ctx context.Con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ValidationResult_routes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_ValidationResultDetails_routes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_stops(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_stops(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_stops(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_stops(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41150,9 +41225,9 @@ func (ec *executionContext) _ValidationResult_stops(ctx context.Context, field g
 	return ec.marshalNStop2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_stops(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_stops(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -41237,15 +41312,15 @@ func (ec *executionContext) fieldContext_ValidationResult_stops(ctx context.Cont
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ValidationResult_stops_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_ValidationResultDetails_stops_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_feed_infos(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_feed_infos(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_feed_infos(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_feed_infos(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41275,9 +41350,9 @@ func (ec *executionContext) _ValidationResult_feed_infos(ctx context.Context, fi
 	return ec.marshalNFeedInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_feed_infos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_feed_infos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -41314,15 +41389,15 @@ func (ec *executionContext) fieldContext_ValidationResult_feed_infos(ctx context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ValidationResult_feed_infos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_ValidationResultDetails_feed_infos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResult_realtime(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResult_realtime(ctx, field)
+func (ec *executionContext) _ValidationResultDetails_realtime(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultDetails_realtime(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41349,9 +41424,9 @@ func (ec *executionContext) _ValidationResult_realtime(ctx context.Context, fiel
 	return ec.marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResult_realtime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultDetails_realtime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ValidationResult",
+		Object:     "ValidationResultDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -41588,6 +41663,50 @@ func (ec *executionContext) fieldContext_ValidationResultError_field(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationResultError_line(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultError_line(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Line, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationResultError_line(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationResultError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationResultError_value(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationResultError_value(ctx, field)
 	if err != nil {
@@ -41676,8 +41795,8 @@ func (ec *executionContext) fieldContext_ValidationResultError_message(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationResultError_geometries(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationResultError_geometries(ctx, field)
+func (ec *executionContext) _ValidationResultError_geometry(ctx context.Context, field graphql.CollectedField, obj *model.ValidationResultError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationResultError_geometry(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41690,7 +41809,7 @@ func (ec *executionContext) _ValidationResultError_geometries(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Geometries, nil
+		return obj.Geometry, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41699,12 +41818,12 @@ func (ec *executionContext) _ValidationResultError_geometries(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*tt.Geometry)
+	res := resTmp.(tt.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometryᚄ(ctx, field.Selections, res)
+	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ValidationResultError_geometries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ValidationResultError_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ValidationResultError",
 		Field:      field,
@@ -42074,12 +42193,14 @@ func (ec *executionContext) fieldContext_ValidationResultErrorGroup_errors(ctx c
 				return ec.fieldContext_ValidationResultError_entity_id(ctx, field)
 			case "field":
 				return ec.fieldContext_ValidationResultError_field(ctx, field)
+			case "line":
+				return ec.fieldContext_ValidationResultError_line(ctx, field)
 			case "value":
 				return ec.fieldContext_ValidationResultError_value(ctx, field)
 			case "message":
 				return ec.fieldContext_ValidationResultError_message(ctx, field)
-			case "geometries":
-				return ec.fieldContext_ValidationResultError_geometries(ctx, field)
+			case "geometry":
+				return ec.fieldContext_ValidationResultError_geometry(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ValidationResultError", field.Name)
 		},
@@ -45856,6 +45977,40 @@ func (ec *executionContext) unmarshalInputTripStopTimeFilter(ctx context.Context
 				return it, err
 			}
 			it.End = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputValidationReportFilter(ctx context.Context, obj interface{}) (model.ValidationReportFilter, error) {
+	var it model.ValidationReportFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"success", "validator"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "success":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("success"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Success = data
+		case "validator":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("validator"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Validator = data
 		}
 	}
 
@@ -53921,47 +54076,83 @@ func (ec *executionContext) _ValidationResult(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "details":
+			out.Values[i] = ec._ValidationResult_details(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var validationResultDetailsImplementors = []string{"ValidationResultDetails"}
+
+func (ec *executionContext) _ValidationResultDetails(ctx context.Context, sel ast.SelectionSet, obj *model.ValidationResultDetails) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, validationResultDetailsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ValidationResultDetails")
 		case "sha1":
-			out.Values[i] = ec._ValidationResult_sha1(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_sha1(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "earliest_calendar_date":
-			out.Values[i] = ec._ValidationResult_earliest_calendar_date(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_earliest_calendar_date(ctx, field, obj)
 		case "latest_calendar_date":
-			out.Values[i] = ec._ValidationResult_latest_calendar_date(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_latest_calendar_date(ctx, field, obj)
 		case "files":
-			out.Values[i] = ec._ValidationResult_files(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_files(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "service_levels":
-			out.Values[i] = ec._ValidationResult_service_levels(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_service_levels(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "agencies":
-			out.Values[i] = ec._ValidationResult_agencies(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_agencies(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "routes":
-			out.Values[i] = ec._ValidationResult_routes(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_routes(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "stops":
-			out.Values[i] = ec._ValidationResult_stops(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_stops(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "feed_infos":
-			out.Values[i] = ec._ValidationResult_feed_infos(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_feed_infos(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "realtime":
-			out.Values[i] = ec._ValidationResult_realtime(ctx, field, obj)
+			out.Values[i] = ec._ValidationResultDetails_realtime(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -54021,6 +54212,11 @@ func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "line":
+			out.Values[i] = ec._ValidationResultError_line(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "value":
 			out.Values[i] = ec._ValidationResultError_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -54031,8 +54227,8 @@ func (ec *executionContext) _ValidationResultError(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "geometries":
-			out.Values[i] = ec._ValidationResultError_geometries(ctx, field, obj)
+		case "geometry":
+			out.Values[i] = ec._ValidationResultError_geometry(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55593,22 +55789,6 @@ func (ec *executionContext) marshalNGbfsVehicleTypeAvailable2ᚖgithubᚗcomᚋi
 		return graphql.Null
 	}
 	return ec._GbfsVehicleTypeAvailable(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx context.Context, v interface{}) (*tt.Geometry, error) {
-	var res = new(tt.Geometry)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx context.Context, sel ast.SelectionSet, v *tt.Geometry) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -58305,44 +58485,6 @@ func (ec *executionContext) marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtra
 	return v
 }
 
-func (ec *executionContext) unmarshalOGeometry2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometryᚄ(ctx context.Context, v interface{}) ([]*tt.Geometry, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*tt.Geometry, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOGeometry2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometryᚄ(ctx context.Context, sel ast.SelectionSet, v []*tt.Geometry) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx context.Context, v interface{}) (*tt.Geometry, error) {
 	if v == nil {
 		return nil, nil
@@ -58584,7 +58726,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -58592,7 +58734,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -59523,6 +59665,10 @@ func (ec *executionContext) marshalOValidationResult2ᚖgithubᚗcomᚋinterline
 		return graphql.Null
 	}
 	return ec._ValidationResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOValidationResultDetails2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResultDetails(ctx context.Context, sel ast.SelectionSet, v model.ValidationResultDetails) graphql.Marshaler {
+	return ec._ValidationResultDetails(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypoint(ctx context.Context, sel ast.SelectionSet, v *model.Waypoint) graphql.Marshaler {

@@ -388,6 +388,11 @@ type TripStopTimeFilter struct {
 	End   *tt.WideTime `json:"end,omitempty"`
 }
 
+type ValidationReportFilter struct {
+	Success   *bool   `json:"success,omitempty"`
+	Validator *string `json:"validator,omitempty"`
+}
+
 type ValidationResultErrorGroup struct {
 	Filename  string                   `json:"filename"`
 	ErrorType string                   `json:"error_type"`
