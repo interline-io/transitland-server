@@ -9,7 +9,6 @@ import (
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-lib/validator"
 )
 
 type Feed struct {
@@ -263,7 +262,6 @@ func (a *ValueMap) Scan(value interface{}) error {
 
 // ValidationResult .
 type ValidationResult struct {
-	RawResult     *validator.Result
 	Success       bool                         `json:"success"`
 	FailureReason string                       `json:"failure_reason"`
 	Errors        []ValidationResultErrorGroup `json:"errors"`

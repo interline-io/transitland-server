@@ -75,10 +75,7 @@ func TestValidateUpload(t *testing.T) {
 				// if err := validator.SaveValidationReport(atx, result.RawResult, time.Now(), 1, ""); err != nil {
 				// 	panic(err)
 				// }
-
 				return nil
-				// jj, _ := json.MarshalIndent(result, "", "  ")
-				// fmt.Println(string(jj))
 			})
 		})
 	}
