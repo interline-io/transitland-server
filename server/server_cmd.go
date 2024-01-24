@@ -6,13 +6,11 @@ import (
 	"flag"
 	"fmt"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
 	"net/http"
 	"net/http/pprof"
-	"net/url"
 	"os"
 
 	"github.com/go-chi/chi/middleware"
@@ -126,11 +124,10 @@ func (cmd *Command) Run() error {
 	// Open redis
 	var redisClient *redis.Client
 	if cmd.RedisURL != "" {
-		rOpts, err := getRedisOpts(cmd.RedisURL)
+		redisClient, err = dbutil.OpenRedis(cmd.RedisURL)
 		if err != nil {
 			return err
 		}
-		redisClient = redis.NewClient(rOpts)
 	}
 
 	// Create Finder
@@ -253,29 +250,4 @@ func (cmd *Command) Run() error {
 	gracefullCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelShutdown()
 	return srv.Shutdown(gracefullCtx)
-}
-
-func getRedisOpts(v string) (*redis.Options, error) {
-	a, err := url.Parse(v)
-	if err != nil {
-		return nil, err
-	}
-	if a.Scheme != "redis" {
-		return nil, errors.New("redis URL must begin with redis://")
-	}
-	port := a.Port()
-	if port == "" {
-		port = "6379"
-	}
-	addr := fmt.Sprintf("%s:%s", a.Hostname(), port)
-	dbNo := 0
-	if len(a.Path) > 0 {
-		var err error
-		f := a.Path[1:len(a.Path)]
-		dbNo, err = strconv.Atoi(f)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &redis.Options{Addr: addr, DB: dbNo}, nil
 }

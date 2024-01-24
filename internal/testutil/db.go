@@ -47,7 +47,10 @@ func MustOpenTestDB() *sqlx.DB {
 }
 
 func MustOpenTestRedisClient() *redis.Client {
-	redisUrl := os.Getenv("TL_TEST_REDIS_URL")
-	client := redis.NewClient(&redis.Options{Addr: redisUrl})
-	return client
+	redisClient, err := dbutil.OpenRedis(os.Getenv("TL_TEST_REDIS_URL"))
+	if err != nil {
+		log.Fatal().Err(err).Msgf("redis error")
+		return nil
+	}
+	return redisClient
 }
