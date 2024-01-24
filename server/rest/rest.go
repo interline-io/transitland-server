@@ -30,23 +30,18 @@ var MAXLIMIT = 1_000
 // MAXRADIUS is the maximum point search radius
 const MAXRADIUS = 100 * 1000.0
 
-type Config struct {
-	DisableImage bool
-	RestPrefix   string
-}
-
 // NewServer .
-func NewServer(cfg Config, graphqlHandler http.Handler) (http.Handler, error) {
+func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	r := chi.NewRouter()
 
-	feedHandler := makeHandler(cfg, graphqlHandler, "feeds", func() apiHandler { return &FeedRequest{} })
-	feedVersionHandler := makeHandler(cfg, graphqlHandler, "feedVersions", func() apiHandler { return &FeedVersionRequest{} })
-	agencyHandler := makeHandler(cfg, graphqlHandler, "agencies", func() apiHandler { return &AgencyRequest{} })
-	routeHandler := makeHandler(cfg, graphqlHandler, "routes", func() apiHandler { return &RouteRequest{} })
-	tripHandler := makeHandler(cfg, graphqlHandler, "trips", func() apiHandler { return &TripRequest{} })
-	stopHandler := makeHandler(cfg, graphqlHandler, "stops", func() apiHandler { return &StopRequest{} })
-	stopDepartureHandler := makeHandler(cfg, graphqlHandler, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
-	operatorHandler := makeHandler(cfg, graphqlHandler, "operators", func() apiHandler { return &OperatorRequest{} })
+	feedHandler := makeHandler(graphqlHandler, "feeds", func() apiHandler { return &FeedRequest{} })
+	feedVersionHandler := makeHandler(graphqlHandler, "feedVersions", func() apiHandler { return &FeedVersionRequest{} })
+	agencyHandler := makeHandler(graphqlHandler, "agencies", func() apiHandler { return &AgencyRequest{} })
+	routeHandler := makeHandler(graphqlHandler, "routes", func() apiHandler { return &RouteRequest{} })
+	tripHandler := makeHandler(graphqlHandler, "trips", func() apiHandler { return &TripRequest{} })
+	stopHandler := makeHandler(graphqlHandler, "stops", func() apiHandler { return &StopRequest{} })
+	stopDepartureHandler := makeHandler(graphqlHandler, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
+	operatorHandler := makeHandler(graphqlHandler, "operators", func() apiHandler { return &OperatorRequest{} })
 
 	r.HandleFunc("/feeds.{format}", feedHandler)
 	r.HandleFunc("/feeds", feedHandler)
@@ -183,9 +178,10 @@ func queryToMap(vars url.Values) map[string]string {
 }
 
 // makeHandler wraps an apiHandler into an HandlerFunc and performs common checks.
-func makeHandler(cfg Config, graphqlHandler http.Handler, handlerName string, f func() apiHandler) http.HandlerFunc {
+func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ent := f()
+		cfg := model.ForContext(r.Context())
+		handler := f()
 		opts := queryToMap(r.URL.Query())
 
 		// Extract URL params from request
@@ -203,6 +199,7 @@ func makeHandler(cfg Config, graphqlHandler http.Handler, handlerName string, f 
 			apiMeter.AddDimension("rest", "handler", handlerName)
 		}
 
+		// Handle format
 		format := opts["format"]
 		if format == "png" && cfg.DisableImage {
 			http.Error(w, util.MakeJsonError("image generation disabled"), http.StatusInternalServerError)
@@ -229,14 +226,14 @@ func makeHandler(cfg Config, graphqlHandler http.Handler, handlerName string, f 
 			http.Error(w, util.MakeJsonError("parameter error"), http.StatusInternalServerError)
 			return
 		}
-		if err := json.Unmarshal(s, ent); err != nil {
+		if err := json.Unmarshal(s, handler); err != nil {
 			log.Error().Err(err).Msg("failed to unmarshal request params")
 			http.Error(w, util.MakeJsonError("parameter error"), http.StatusInternalServerError)
 			return
 		}
 
 		// Make the request
-		response, err := makeRequest(r.Context(), cfg, graphqlHandler, ent, format, r.URL)
+		response, err := makeRequest(r.Context(), graphqlHandler, handler, format, r.URL)
 		if err != nil {
 			http.Error(w, util.MakeJsonError(err.Error()), http.StatusInternalServerError)
 			return
@@ -260,42 +257,9 @@ func makeHandler(cfg Config, graphqlHandler http.Handler, handlerName string, f 
 	}
 }
 
-// makeGraphQLRequest issues the graphql request and unpacks the response.
-func makeGraphQLRequest(ctx context.Context, srv http.Handler, query string, vars map[string]interface{}) (map[string]interface{}, error) {
-	gqlData := map[string]any{
-		"query":     query,
-		"variables": vars,
-	}
-	gqlBody, err := json.Marshal(gqlData)
-	if err != nil {
-		return nil, err
-	}
-	gqlRequest, err := http.NewRequestWithContext(ctx, "POST", "/", bytes.NewReader(gqlBody))
-	gqlRequest.Header.Set("Content-Type", "application/json")
-	if err != nil {
-		return nil, err
-	}
-	wr := httptest.NewRecorder()
-	srv.ServeHTTP(wr, gqlRequest)
-	response := map[string]any{}
-	if err := json.Unmarshal(wr.Body.Bytes(), &response); err != nil {
-		return nil, err
-	}
-	if e, ok := response["errors"].([]interface{}); ok && len(e) > 0 {
-		if emsg, ok := e[0].(map[string]interface{}); ok && emsg["message"] != nil {
-			return nil, errors.New(emsg["message"].(string))
-		}
-	}
-
-	data, ok := response["data"].(map[string]interface{})
-	if !ok {
-		return nil, err
-	}
-	return data, nil
-}
-
 // makeRequest prepares an apiHandler and makes the request.
-func makeRequest(ctx context.Context, cfg Config, graphqlHandler http.Handler, ent apiHandler, format string, u *url.URL) ([]byte, error) {
+func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandler, format string, u *url.URL) ([]byte, error) {
+	cfg := model.ForContext(ctx)
 	query, vars := ent.Query()
 	response, err := makeGraphQLRequest(ctx, graphqlHandler, query, vars)
 	if err != nil {
@@ -350,6 +314,40 @@ func makeRequest(ctx context.Context, cfg Config, graphqlHandler http.Handler, e
 		}
 	}
 	return json.Marshal(response)
+}
+
+// makeGraphQLRequest issues the graphql request and unpacks the response.
+func makeGraphQLRequest(ctx context.Context, srv http.Handler, query string, vars map[string]interface{}) (map[string]interface{}, error) {
+	gqlData := map[string]any{
+		"query":     query,
+		"variables": vars,
+	}
+	gqlBody, err := json.Marshal(gqlData)
+	if err != nil {
+		return nil, err
+	}
+	gqlRequest, err := http.NewRequestWithContext(ctx, "POST", "/", bytes.NewReader(gqlBody))
+	gqlRequest.Header.Set("Content-Type", "application/json")
+	if err != nil {
+		return nil, err
+	}
+	wr := httptest.NewRecorder()
+	srv.ServeHTTP(wr, gqlRequest)
+	response := map[string]any{}
+	if err := json.Unmarshal(wr.Body.Bytes(), &response); err != nil {
+		return nil, err
+	}
+	if e, ok := response["errors"].([]interface{}); ok && len(e) > 0 {
+		if emsg, ok := e[0].(map[string]interface{}); ok && emsg["message"] != nil {
+			return nil, errors.New(emsg["message"].(string))
+		}
+	}
+
+	data, ok := response["data"].(map[string]interface{})
+	if !ok {
+		return nil, err
+	}
+	return data, nil
 }
 
 func renderGeojsonl(response map[string]any) ([]byte, error) {

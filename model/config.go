@@ -17,6 +17,8 @@ type Config struct {
 	Clock              clock.Clock
 	Secrets            []tl.Secret
 	ValidateLargeFiles bool
+	DisableImage       bool
+	RestPrefix         string
 	Storage            string
 	RTStorage          string
 	Logger             zerolog.Logger

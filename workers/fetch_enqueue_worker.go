@@ -18,7 +18,6 @@ type FetchEnqueueWorker struct {
 func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	cfg := model.ForContext(ctx)
 	db := cfg.Finder.DBX()
-	opts := job.Opts
 	now := time.Now().In(time.UTC)
 	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{})
 	if err != nil {
@@ -149,7 +148,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	}
 
 	for _, j := range jj {
-		if err := opts.JobQueue.AddJob(j); err != nil {
+		if err := job.Opts.JobQueue.AddJob(j); err != nil {
 			return err
 		}
 	}

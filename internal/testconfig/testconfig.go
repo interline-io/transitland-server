@@ -101,7 +101,7 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	}
 
 	// Setup DB
-	dbf := dbfinder.NewFinder(db, checker)
+	dbf := dbfinder.NewFinder(db)
 	dbf.Clock = cl
 
 	// Setup RT

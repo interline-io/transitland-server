@@ -15,14 +15,6 @@ scalar Key
 scalar Bool
 scalar Strings
 
-# Roles
-directive @hasRole(role: Role!) on FIELD_DEFINITION
-enum Role {
-  ANON
-  ADMIN
-  USER
-}
-
 # Force resolver
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
@@ -44,12 +36,12 @@ type Query {
 }
 
 type Mutation {
-    validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationResult @hasRole(role: USER)
-    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion @hasRole(role: USER)
-    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult @hasRole(role: USER)
-    feed_version_import(id: Int!): FeedVersionImportResult! @hasRole(role: USER)
-    feed_version_unimport(id: Int!): FeedVersionUnimportResult! @hasRole(role: USER)
-    feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: USER)
+    validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationResult
+    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion
+    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
+    feed_version_import(id: Int!): FeedVersionImportResult!
+    feed_version_unimport(id: Int!): FeedVersionUnimportResult!
+    feed_version_delete(id: Int!): FeedVersionDeleteResult!
 }
 
 type Me {

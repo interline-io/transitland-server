@@ -255,10 +255,8 @@ func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
 }
 
 func fetchCheckFeed(ctx context.Context, feedId string, urlType string, url string) (*model.Feed, error) {
-	cfg := model.ForContext(ctx)
-	checker := cfg.Checker
-
 	// Check feed exists
+	cfg := model.ForContext(ctx)
 	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return nil, err
@@ -269,12 +267,12 @@ func fetchCheckFeed(ctx context.Context, feedId string, urlType string, url stri
 	feed := feeds[0]
 
 	// Check feed permissions
-	if checker != nil {
-		if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
-			return nil, err
-		} else if !check.Actions.CanCreateFeedVersion {
-			return nil, errors.New("unauthorized")
-		}
+	if checker := cfg.Checker; checker == nil {
+		// pass
+	} else if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
+		return nil, err
+	} else if !check.Actions.CanCreateFeedVersion {
+		return nil, errors.New("unauthorized")
 	}
 	return feed, nil
 }

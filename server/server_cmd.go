@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -23,12 +22,7 @@ import (
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-mw/auth/ancheck"
-	"github.com/interline-io/transitland-mw/auth/azcheck"
-	"github.com/interline-io/transitland-mw/jobs"
-	"github.com/interline-io/transitland-mw/lmw"
-	"github.com/interline-io/transitland-mw/meters"
-	"github.com/interline-io/transitland-mw/metrics"
+	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -37,15 +31,16 @@ import (
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/playground"
 	"github.com/interline-io/transitland-server/server/rest"
-	"github.com/interline-io/transitland-server/workers"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 )
 
 type Command struct {
 	Timeout            int
-	Port               string
 	LongQueryDuration  int
+	Port               string
+	RestPrefix         string
+	DisableImage       bool
 	DisableGraphql     bool
 	DisableRest        bool
 	EnablePlayground   bool
@@ -55,19 +50,13 @@ type Command struct {
 	EnableProfiler     bool
 	EnableRateLimits   bool
 	LoadAdmins         bool
+	ValidateLargeFiles bool
 	QueuePrefix        string
 	SecretsFile        string
 	Storage            string
 	RTStorage          string
-	ValidateLargeFiles bool
 	DBURL              string
 	RedisURL           string
-	AuthMiddlewares    arrayFlags
-	metersConfig       meters.Config
-	metricsConfig      metrics.Config
-	AuthConfig         ancheck.AuthConfig
-	CheckerConfig      azcheck.CheckerConfig
-	RestConfig         rest.Config
 	secrets            []tl.Secret
 }
 
@@ -84,8 +73,8 @@ func (cmd *Command) Parse(args []string) error {
 	fl.StringVar(&cmd.Storage, "storage", "", "Static storage backend")
 	fl.StringVar(&cmd.RTStorage, "rt-storage", "", "RT storage backend")
 	fl.BoolVar(&cmd.ValidateLargeFiles, "validate-large-files", false, "Allow validation of large files")
-	fl.StringVar(&cmd.RestConfig.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
-	fl.BoolVar(&cmd.RestConfig.DisableImage, "disable-image", false, "Disable image generation")
+	fl.StringVar(&cmd.RestPrefix, "rest-prefix", "", "REST prefix for generating pagination links")
+	fl.BoolVar(&cmd.DisableImage, "disable-image", false, "Disable image generation")
 
 	// Server config
 	fl.StringVar(&cmd.Port, "port", "8080", "")
@@ -99,55 +88,7 @@ func (cmd *Command) Parse(args []string) error {
 	fl.BoolVar(&cmd.EnableProfiler, "enable-profile", false, "Enable profiling")
 	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
 
-	// Auth config
-	fl.Var(&cmd.AuthMiddlewares, "auth", "Add one or more auth middlewares")
-	fl.StringVar(&cmd.AuthConfig.DefaultUsername, "default-username", "", "Default user name (for --auth=admin)")
-	fl.StringVar(&cmd.AuthConfig.JwtAudience, "jwt-audience", "", "JWT Audience (use with -auth=jwt)")
-	fl.StringVar(&cmd.AuthConfig.JwtIssuer, "jwt-issuer", "", "JWT Issuer (use with -auth=jwt)")
-	fl.StringVar(&cmd.AuthConfig.JwtPublicKeyFile, "jwt-public-key-file", "", "Path to JWT public key file (use with -auth=jwt)")
-	fl.BoolVar(&cmd.AuthConfig.JwtUseEmailAsId, "jwt-use-email-as-id", false, "JWT use claim email as user id")
-	fl.StringVar(&cmd.AuthConfig.GatekeeperEndpoint, "gatekeeper-endpoint", "", "Gatekeeper endpoint (use with -auth=gatekeeper)")
-	fl.StringVar(&cmd.AuthConfig.GatekeeperRoleSelector, "gatekeeper-selector", "", "Gatekeeper role selector (use with -auth=gatekeeper)")
-	fl.StringVar(&cmd.AuthConfig.GatekeeperExternalIDSelector, "gatekeeper-eid-selector", "", "Gatekeeper External ID selector (use with -auth=gatekeeper)")
-	fl.StringVar(&cmd.AuthConfig.GatekeeperParam, "gatekeeper-param", "", "Gatekeeper param (use with -auth=gatekeeper)")
-	fl.BoolVar(&cmd.AuthConfig.GatekeeperAllowError, "gatekeeper-allow-error", false, "Gatekeeper ignore errors (use with -auth=gatekeeper)")
-	fl.StringVar(&cmd.AuthConfig.UserHeader, "user-header", "", "Header to check for username (use with -auth=header)")
-
-	// Admin api
-	fl.StringVar(&cmd.CheckerConfig.GlobalAdmin, "global-admin", "", "Global admin user")
-	fl.StringVar(&cmd.CheckerConfig.Auth0ClientID, "auth0-client-id", "", "Auth0 client ID")
-	fl.StringVar(&cmd.CheckerConfig.Auth0ClientSecret, "auth0-client-secret", "", "Auth0 client secret")
-	fl.StringVar(&cmd.CheckerConfig.Auth0Domain, "auth0-domain", "", "Auth0 domain")
-	fl.StringVar(&cmd.CheckerConfig.Auth0Connection, "auth0-connection", "", "Auth0 Connection")
-	fl.StringVar(&cmd.CheckerConfig.FGAEndpoint, "fga-endpoint", "", "FGA endpoint")
-	fl.StringVar(&cmd.CheckerConfig.FGAStoreID, "fga-store-id", "", "FGA store")
-	fl.StringVar(&cmd.CheckerConfig.FGAModelID, "fga-model-id", "", "FGA model")
-	fl.StringVar(&cmd.CheckerConfig.FGALoadModelFile, "fga-load-model-file", "", "")
-
-	// Metrics
-	// fl.BoolVar(&cmd.EnableMetrics, "enable-metrics", false, "Enable metrics")
-	fl.StringVar(&cmd.metricsConfig.MetricsProvider, "metrics-provider", "", "Specify metrics provider")
-
-	// Metering
-	// fl.BoolVar(&cmd.EnableMetering, "enable-metering", false, "Enable metering")
-	fl.BoolVar(&cmd.EnableRateLimits, "enable-rate-limits", false, "Enable rate limits")
-	fl.StringVar(&cmd.metersConfig.MeteringProvider, "metering-provider", "", "Use metering provider")
-	fl.StringVar(&cmd.metersConfig.MeteringAmberfloConfig, "metering-amberflo-config", "", "Use provided config for Amberflo metering")
-
-	// Jobs
-	fl.BoolVar(&cmd.EnableJobsApi, "enable-jobs-api", false, "Enable job api")
-	fl.BoolVar(&cmd.EnableWorkers, "enable-workers", false, "Enable workers")
-
-	// Admin
-	fl.BoolVar(&cmd.EnableAdminApi, "enable-admin-api", false, "Enable admin api")
-
 	fl.Parse(args)
-	if cmd.metricsConfig.MetricsProvider != "" {
-		cmd.metricsConfig.EnableMetrics = true
-	}
-	if cmd.metersConfig.MeteringProvider != "" {
-		cmd.metersConfig.EnableMetering = true
-	}
 
 	// DB
 	if cmd.DBURL == "" {
@@ -192,15 +133,8 @@ func (cmd *Command) Run() error {
 		redisClient = redis.NewClient(rOpts)
 	}
 
-	// Setup authorization checker
-	var checker model.Checker
-	checker, err = azcheck.NewCheckerFromConfig(cmd.CheckerConfig, db)
-	if err != nil {
-		return err
-	}
-
 	// Create Finder
-	dbFinder := dbfinder.NewFinder(db, checker)
+	dbFinder := dbfinder.NewFinder(db)
 	if cmd.LoadAdmins {
 		dbFinder.LoadAdmins()
 	}
@@ -208,17 +142,14 @@ func (cmd *Command) Run() error {
 	// Create RTFinder, GBFSFinder
 	var rtFinder model.RTFinder
 	var gbfsFinder model.GbfsFinder
-	var jobQueue jobs.JobQueue
 	if redisClient != nil {
 		// Use redis backed finders
 		rtFinder = rtfinder.NewFinder(rtfinder.NewRedisCache(redisClient), db)
 		gbfsFinder = gbfsfinder.NewFinder(redisClient)
-		jobQueue = jobs.NewRedisJobs(redisClient, cmd.QueuePrefix)
 	} else {
 		// Default to in-memory cache
 		rtFinder = rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 		gbfsFinder = gbfsfinder.NewFinder(nil)
-		jobQueue = jobs.NewLocalJobs()
 	}
 
 	// Setup config
@@ -226,23 +157,12 @@ func (cmd *Command) Run() error {
 		Finder:             dbFinder,
 		RTFinder:           rtFinder,
 		GbfsFinder:         gbfsFinder,
-		Checker:            checker,
 		Secrets:            cmd.secrets,
 		Storage:            cmd.Storage,
 		RTStorage:          cmd.RTStorage,
 		ValidateLargeFiles: cmd.ValidateLargeFiles,
-	}
-
-	// Setup metrics
-	metricProvider, err := metrics.GetProvider(cmd.metricsConfig)
-	if err != nil {
-		return err
-	}
-
-	// Setup metering
-	meterProvider, err := meters.GetProvider(cmd.metersConfig)
-	if err != nil {
-		return err
+		DisableImage:       cmd.DisableImage,
+		RestPrefix:         cmd.RestPrefix,
 	}
 
 	// Setup router
@@ -261,17 +181,13 @@ func (cmd *Command) Run() error {
 	// Finders config
 	root.Use(model.AddConfig(cfg))
 
-	// Setup user middleware
-	for _, k := range cmd.AuthMiddlewares {
-		if userMiddleware, err := ancheck.GetUserMiddleware(k, cmd.AuthConfig, redisClient); err != nil {
-			return err
-		} else {
-			root.Use(userMiddleware)
-		}
-	}
-
 	// Add logging middleware - must be after auth
-	root.Use(lmw.LoggingMiddleware(cmd.LongQueryDuration))
+	root.Use(log.LoggingMiddleware(cmd.LongQueryDuration, func(ctx context.Context) string {
+		if user := authn.ForContext(ctx); user != nil {
+			return user.Name()
+		}
+		return ""
+	}))
 
 	// Profiling
 	if cmd.EnableProfiler {
@@ -281,13 +197,7 @@ func (cmd *Command) Run() error {
 		root.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
 
-	// Metrics
-	if cmd.metricsConfig.EnableMetrics {
-		root.Handle("/metrics", metricProvider.MetricsHandler())
-	}
-
 	// GraphQL API
-
 	graphqlServer, err := gql.NewServer()
 	if err != nil {
 		return err
@@ -295,23 +205,17 @@ func (cmd *Command) Run() error {
 	if !cmd.DisableGraphql {
 		// Mount with user permissions required
 		r := chi.NewRouter()
-		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("graphql")))
-		r.Use(meters.WithMeter(meterProvider, "graphql", 1.0, nil))
-		r.Use(ancheck.UserRequired)
 		r.Mount("/", graphqlServer)
 		root.Mount("/query", r)
 	}
 
 	// REST API
 	if !cmd.DisableRest {
-		restServer, err := rest.NewServer(cmd.RestConfig, graphqlServer)
+		restServer, err := rest.NewServer(graphqlServer)
 		if err != nil {
 			return err
 		}
 		r := chi.NewRouter()
-		r.Use(metrics.WithMetric(metricProvider.NewApiMetric("rest")))
-		r.Use(meters.WithMeter(meterProvider, "rest", 1.0, nil))
-		r.Use(ancheck.UserRequired)
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)
 	}
@@ -319,50 +223,6 @@ func (cmd *Command) Run() error {
 	// GraphQL Playground
 	if cmd.EnablePlayground && !cmd.DisableGraphql {
 		root.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	}
-
-	// Admin API
-	if cmd.EnableAdminApi {
-		adminServer, err := azcheck.NewServer(checker)
-		if err != nil {
-			return err
-		}
-		r := chi.NewRouter()
-		r.Use(ancheck.UserRequired)
-		r.Mount("/", adminServer)
-		root.Mount("/admin", r)
-	}
-
-	// Workers
-	if cmd.EnableJobsApi || cmd.EnableWorkers {
-		// Start workers/api
-		jobWorkers := 8
-		jobOptions := jobs.JobOptions{
-			Logger:   log.Logger,
-			JobQueue: jobQueue,
-		}
-		// Add metrics
-		// jobQueue.Use(metrics.NewJobMiddleware("", metricProvider.NewJobMetric("default")))
-		if cmd.EnableWorkers {
-			log.Infof("Enabling job workers")
-			jobQueue.AddWorker("default", workers.GetWorker, jobOptions, jobWorkers)
-			jobQueue.AddWorker("rt-fetch", workers.GetWorker, jobOptions, jobWorkers)
-			jobQueue.AddWorker("static-fetch", workers.GetWorker, jobOptions, jobWorkers)
-			jobQueue.AddWorker("gbfs-fetch", workers.GetWorker, jobOptions, jobWorkers)
-			go jobQueue.Run()
-		}
-		if cmd.EnableJobsApi {
-			log.Infof("Enabling job api")
-			jobServer, err := workers.NewServer("", jobWorkers, jobOptions)
-			if err != nil {
-				return err
-			}
-			// Mount with admin permissions required
-			r := chi.NewRouter()
-			r.Use(ancheck.AdminRequired)
-			r.Mount("/", jobServer)
-			root.Mount("/jobs", r)
-		}
 	}
 
 	// Start server
@@ -393,19 +253,6 @@ func (cmd *Command) Run() error {
 	gracefullCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelShutdown()
 	return srv.Shutdown(gracefullCtx)
-}
-
-// arrayFlags allow repeatable command line options.
-// https://stackoverflow.com/questions/28322997/how-to-get-a-list-of-values-into-a-flag-in-golang/28323276#28323276
-type arrayFlags []string
-
-func (i *arrayFlags) String() string {
-	return strings.Join(*i, ",")
-}
-
-func (i *arrayFlags) Set(value string) error {
-	*i = append(*i, value)
-	return nil
 }
 
 func getRedisOpts(v string) (*redis.Options, error) {

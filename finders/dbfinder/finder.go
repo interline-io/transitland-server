@@ -21,14 +21,13 @@ import (
 ////////
 
 type Finder struct {
-	Clock        clock.Clock
-	db           sqlx.Ext
-	adminCache   *adminCache
-	authzChecker model.Checker
+	Clock      clock.Clock
+	db         sqlx.Ext
+	adminCache *adminCache
 }
 
-func NewFinder(db sqlx.Ext, checker model.Checker) *Finder {
-	return &Finder{db: db, authzChecker: checker}
+func NewFinder(db sqlx.Ext) *Finder {
+	return &Finder{db: db}
 }
 
 func (f *Finder) DBX() sqlx.Ext {
@@ -46,7 +45,7 @@ func (f *Finder) LoadAdmins() error {
 }
 
 func (f *Finder) PermFilter(ctx context.Context) *model.PermFilter {
-	permFilter, _ := checkActive(ctx, f.authzChecker)
+	permFilter, _ := checkActive(ctx)
 	return permFilter
 }
 
@@ -1873,7 +1872,8 @@ type canCheckGlobalAdmin interface {
 	CheckGlobalAdmin(context.Context) (bool, error)
 }
 
-func checkActive(ctx context.Context, checker model.Checker) (*model.PermFilter, error) {
+func checkActive(ctx context.Context) (*model.PermFilter, error) {
+	checker := model.ForContext(ctx).Checker
 	active := &model.PermFilter{}
 	if checker == nil {
 		return active, nil

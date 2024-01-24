@@ -65,7 +65,6 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	HasRole func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -6913,14 +6912,6 @@ scalar Key
 scalar Bool
 scalar Strings
 
-# Roles
-directive @hasRole(role: Role!) on FIELD_DEFINITION
-enum Role {
-  ANON
-  ADMIN
-  USER
-}
-
 # Force resolver
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
@@ -6942,12 +6933,12 @@ type Query {
 }
 
 type Mutation {
-    validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationResult @hasRole(role: USER)
-    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion @hasRole(role: USER)
-    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult @hasRole(role: USER)
-    feed_version_import(id: Int!): FeedVersionImportResult! @hasRole(role: USER)
-    feed_version_unimport(id: Int!): FeedVersionUnimportResult! @hasRole(role: USER)
-    feed_version_delete(id: Int!): FeedVersionDeleteResult! @hasRole(role: USER)
+    validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationResult
+    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion
+    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
+    feed_version_import(id: Int!): FeedVersionImportResult!
+    feed_version_unimport(id: Int!): FeedVersionUnimportResult!
+    feed_version_delete(id: Int!): FeedVersionDeleteResult!
 }
 
 type Me {
@@ -7694,21 +7685,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.Role
-	if tmp, ok := rawArgs["role"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-		arg0, err = ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["role"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Agency_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -27614,32 +27590,8 @@ func (ec *executionContext) _Mutation_validate_gtfs(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().ValidateGtfs(rctx, fc.Args["file"].(*graphql.Upload), fc.Args["url"].(*string), fc.Args["realtime_urls"].([]string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, role)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.ValidationResult); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/interline-io/transitland-server/model.ValidationResult`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ValidateGtfs(rctx, fc.Args["file"].(*graphql.Upload), fc.Args["url"].(*string), fc.Args["realtime_urls"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27702,32 +27654,8 @@ func (ec *executionContext) _Mutation_feed_version_update(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().FeedVersionUpdate(rctx, fc.Args["id"].(int), fc.Args["set"].(model.FeedVersionSetInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, role)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.FeedVersion); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/interline-io/transitland-server/model.FeedVersion`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FeedVersionUpdate(rctx, fc.Args["id"].(int), fc.Args["set"].(model.FeedVersionSetInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27822,32 +27750,8 @@ func (ec *executionContext) _Mutation_feed_version_fetch(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().FeedVersionFetch(rctx, fc.Args["file"].(*graphql.Upload), fc.Args["url"].(*string), fc.Args["feed_onestop_id"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, role)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.FeedVersionFetchResult); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/interline-io/transitland-server/model.FeedVersionFetchResult`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FeedVersionFetch(rctx, fc.Args["file"].(*graphql.Upload), fc.Args["url"].(*string), fc.Args["feed_onestop_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27908,32 +27812,8 @@ func (ec *executionContext) _Mutation_feed_version_import(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().FeedVersionImport(rctx, fc.Args["id"].(int))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, role)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.FeedVersionImportResult); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/interline-io/transitland-server/model.FeedVersionImportResult`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FeedVersionImport(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27991,32 +27871,8 @@ func (ec *executionContext) _Mutation_feed_version_unimport(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().FeedVersionUnimport(rctx, fc.Args["id"].(int))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, role)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.FeedVersionUnimportResult); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/interline-io/transitland-server/model.FeedVersionUnimportResult`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FeedVersionUnimport(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28074,32 +27930,8 @@ func (ec *executionContext) _Mutation_feed_version_delete(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().FeedVersionDelete(rctx, fc.Args["id"].(int))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx, "USER")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, role)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.FeedVersionDeleteResult); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/interline-io/transitland-server/model.FeedVersionDeleteResult`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FeedVersionDelete(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -56067,16 +55899,6 @@ func (ec *executionContext) marshalNRTTranslation2ᚖgithubᚗcomᚋinterlineᚑ
 	return ec._RTTranslation(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
-	var res model.Role
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNRole2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v model.Role) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) marshalNRoute2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRoute(ctx context.Context, sel ast.SelectionSet, v model.Route) graphql.Marshaler {
 	return ec._Route(ctx, sel, &v)
 }
@@ -58726,7 +58548,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -58734,7 +58556,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
