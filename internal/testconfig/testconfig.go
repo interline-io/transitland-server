@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -28,6 +27,7 @@ type Options struct {
 	Storage        string
 	RTStorage      string
 	RTJsons        []RTJsonFile
+	FGAEndpoint    string
 	FGAModelFile   string
 	FGAModelTuples []authz.TupleKey
 }
@@ -90,14 +90,17 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	cl := &clock.Mock{T: when}
 
 	// Setup Checker
-	checkerCfg := azcheck.CheckerConfig{
-		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
-		FGALoadModelFile: opts.FGAModelFile,
-		FGALoadTestData:  opts.FGAModelTuples,
-	}
-	checker, err := azcheck.NewCheckerFromConfig(checkerCfg, db)
-	if err != nil {
-		t.Fatal(err)
+	var checker model.Checker
+	if opts.FGAEndpoint != "" {
+		checkerCfg := azcheck.CheckerConfig{
+			FGAEndpoint:      opts.FGAEndpoint,
+			FGALoadModelFile: opts.FGAModelFile,
+			FGALoadTestData:  opts.FGAModelTuples,
+		}
+		checker, err = azcheck.NewCheckerFromConfig(checkerCfg, db)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	// Setup DB

@@ -306,17 +306,22 @@ var fgaTestTuples = []authz.TupleKey{
 }
 
 func TestAgencyResolver_Authz(t *testing.T) {
-	_, a, ok := testutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
+	ep, a, ok := testutil.CheckEnv("TL_TEST_FGA_ENDPOINT")
 	if !ok {
 		t.Skip(a)
 		return
 	}
 	cfg := testconfig.Config(t, testconfig.Options{
+		FGAEndpoint:    ep,
 		FGAModelFile:   testutil.RelPath("test/authz/tls.json"),
 		FGAModelTuples: fgaTestTuples,
 	})
-	_ = cfg
-	srv, _ := NewServer()
+
+	srv, err := NewServer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv = model.AddConfig(cfg)(srv)
 	testcases := []testcase{
 		{
 			name:         "basic",
