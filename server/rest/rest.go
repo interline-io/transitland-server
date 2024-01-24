@@ -180,12 +180,13 @@ func queryToMap(vars url.Values) map[string]string {
 // makeHandler wraps an apiHandler into an HandlerFunc and performs common checks.
 func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cfg := model.ForContext(r.Context())
+		ctx := r.Context()
+		cfg := model.ForContext(ctx)
 		handler := f()
 		opts := queryToMap(r.URL.Query())
 
 		// Extract URL params from request
-		if rctx := chi.RouteContext(r.Context()); rctx != nil {
+		if rctx := chi.RouteContext(ctx); rctx != nil {
 			for _, k := range rctx.URLParams.Keys {
 				if k == "*" {
 					continue
@@ -195,7 +196,7 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 		}
 
 		// Metrics
-		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+		if apiMeter := meters.ForContext(ctx); apiMeter != nil {
 			apiMeter.AddDimension("rest", "handler", handlerName)
 		}
 
@@ -213,7 +214,7 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 				w.WriteHeader(http.StatusOK)
 				err := localFileCache.Get(w, urlkey)
 				if err != nil {
-					log.Error().Err(err).Msg("file cache error")
+					log.For(ctx).Error().Err(err).Msg("file cache error")
 				}
 				return
 			}
@@ -233,7 +234,7 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 		}
 
 		// Make the request
-		response, err := makeRequest(r.Context(), graphqlHandler, handler, format, r.URL)
+		response, err := makeRequest(ctx, graphqlHandler, handler, format, r.URL)
 		if err != nil {
 			http.Error(w, util.MakeJsonError(err.Error()), http.StatusInternalServerError)
 			return
