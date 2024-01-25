@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/testdata"
 )
 
 func TestAgencyResolver(t *testing.T) {
@@ -313,7 +314,7 @@ func TestAgencyResolver_Authz(t *testing.T) {
 	}
 	cfg := testconfig.Config(t, testconfig.Options{
 		FGAEndpoint:    ep,
-		FGAModelFile:   testutil.RelPath("test/authz/tls.json"),
+		FGAModelFile:   testdata.RelPath("test/authz/tls.json"),
 		FGAModelTuples: fgaTestTuples,
 	})
 

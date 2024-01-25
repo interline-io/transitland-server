@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
-	db := testutil.MustOpenTestDB()
+	db := testutil.MustOpenTestDB(t)
 	dbf := NewFinder(db)
 	testFinder := dbf
 

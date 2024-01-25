@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/auth/azcheck"
@@ -15,8 +16,8 @@ import (
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/testdata"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/proto"
 )
@@ -34,13 +35,13 @@ type Options struct {
 }
 
 func Config(t testing.TB, opts Options) model.Config {
-	db := testutil.MustOpenTestDB()
+	db := testutil.MustOpenTestDB(t)
 	return newTestConfig(t, db, opts)
 }
 
 func ConfigTx(t testing.TB, opts Options, cb func(model.Config) error) {
 	// Check open DB
-	db := testutil.MustOpenTestDB()
+	db := testutil.MustOpenTestDB(t)
 
 	// Start Txn
 	tx := db.MustBeginTx(context.Background(), nil)
@@ -112,7 +113,7 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
 	for _, rtj := range opts.RTJsons {
-		fn := testutil.RelPath("test", "data", "rt", rtj.Fname)
+		fn := testdata.RelPath("test", "data", "rt", rtj.Fname)
 		msg, err := rt.ReadFile(fn)
 		if err != nil {
 			t.Fatal(err)

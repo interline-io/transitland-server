@@ -18,6 +18,7 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240125004252-e943425b44f5
+	github.com/interline-io/transitland-dbutil v0.0.0-20240125032234-7bf5b1f4c980
 	github.com/interline-io/transitland-lib v0.14.1-0.20240123210840-0eb9c4e3986d
 	github.com/interline-io/transitland-mw v0.0.0-20240125004614-525fc3382ce6
 	github.com/jellydator/ttlcache/v2 v2.11.1
@@ -31,7 +32,6 @@ require (
 	github.com/twpayne/go-geom v1.5.1
 	github.com/vektah/gqlparser/v2 v2.5.10
 	google.golang.org/protobuf v1.31.0
-	gopkg.in/dnaeon/go-vcr.v2 v2.3.0
 )
 
 require (
@@ -79,7 +79,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.3 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/interline-io/transitland-dbutil v0.0.0-20240124232102-bc32a8c1db29 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -117,9 +116,11 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/grpc v1.59.0 // indirect
+	gopkg.in/dnaeon/go-vcr.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
+// replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil

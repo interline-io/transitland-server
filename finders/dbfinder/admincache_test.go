@@ -6,7 +6,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
-	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,7 +47,7 @@ func getTestCases() []testCase {
 }
 
 func TestAdminCache(t *testing.T) {
-	dbx := testutil.MustOpenTestDB()
+	dbx := testutil.MustOpenTestDB(t)
 	c := newAdminCache()
 	c.LoadAdmins(context.Background(), dbx)
 	tcs := getTestCases()
@@ -83,7 +83,7 @@ func TestAdminCache(t *testing.T) {
 }
 
 func BenchmarkTestAdminCache(b *testing.B) {
-	dbx := testutil.MustOpenTestDB()
+	dbx := testutil.MustOpenTestDB(b)
 	c := newAdminCache()
 	c.LoadAdmins(context.Background(), dbx)
 	b.ResetTimer()
@@ -100,7 +100,7 @@ func BenchmarkTestAdminCache(b *testing.B) {
 }
 
 func BenchmarkTestAdminCache_LoadAdmins(b *testing.B) {
-	dbx := testutil.MustOpenTestDB()
+	dbx := testutil.MustOpenTestDB(b)
 	c := newAdminCache()
 	for n := 0; n < b.N; n++ {
 		if err := c.LoadAdmins(context.Background(), dbx); err != nil {

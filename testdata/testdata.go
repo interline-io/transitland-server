@@ -1,4 +1,4 @@
-package testutil
+package testdata
 
 import (
 	"path/filepath"
@@ -10,9 +10,9 @@ var (
 	basepath   = filepath.Dir(b)
 )
 
-// RootPath returns the project root directory, e.g. two directories up from internal/testutil.
+// RootPath returns the project root directory
 func RootPath() string {
-	a, err := filepath.Abs(filepath.Join(basepath, "..", ".."))
+	a, err := filepath.Abs(filepath.Join(basepath, ".."))
 	if err != nil {
 		return ""
 	}

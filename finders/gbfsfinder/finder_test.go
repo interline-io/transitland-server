@@ -6,10 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestGbfsFinder(t *testing.T) {
 		t.Skip(a)
 		return
 	}
-	client := testutil.MustOpenTestRedisClient()
+	client := testutil.MustOpenTestRedisClient(t)
 	gbf := NewFinder(client)
 	testSetupGbfs(gbf)
 
@@ -61,7 +62,7 @@ func TestGbfsFinder(t *testing.T) {
 func testSetupGbfs(gbf model.GbfsFinder) error {
 	// Setup
 	sourceFeedId := "gbfs-test"
-	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
+	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.RelPath("test/data/gbfs")})
 	defer ts.Close()
 	opts := gbfs.Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")

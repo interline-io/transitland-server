@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-dbutil/testutil"
 )
 
 func TestMain(m *testing.M) {
