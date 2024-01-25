@@ -46,7 +46,7 @@ func TestValidateUpload(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setup http
-			ts := testutil.NewTestServer(testdata.DataPath())
+			ts := testutil.NewTestServer(testdata.Path())
 			defer ts.Close()
 
 			// Setup job

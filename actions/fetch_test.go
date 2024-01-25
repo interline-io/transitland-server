@@ -99,7 +99,7 @@ func TestStaticFetchWorker(t *testing.T) {
 					return
 
 				}
-				buf, err := os.ReadFile(testdata.DataPath(tc.serveFile))
+				buf, err := os.ReadFile(testdata.Path(tc.serveFile))
 				if err != nil {
 					http.Error(w, "404", 404)
 					return

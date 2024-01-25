@@ -5,31 +5,14 @@ import (
 	"runtime"
 )
 
-var (
-	_, b, _, _ = runtime.Caller(0)
-	basepath   = filepath.Dir(b)
-)
-
-// RootPath returns the project root directory
-func RootPath() string {
-	a, err := filepath.Abs(filepath.Join(basepath, ".."))
+// Path returns this directory plus provided path
+func Path(p ...string) string {
+	_, b, _, _ := runtime.Caller(0)
+	dataPath, err := filepath.Abs(filepath.Join(filepath.Dir(b)))
 	if err != nil {
 		return ""
 	}
-	return a
-}
-
-// RelPath returns the absolute path relative to the project root.
-func RelPath(p ...string) string {
-	var a []string
-	a = append(a, RootPath())
+	a := []string{dataPath}
 	a = append(a, p...)
 	return filepath.Join(a...)
-}
-
-func DataPath(p ...string) string {
-	var p2 []string
-	p2 = append(p2, "testdata")
-	p2 = append(p2, p...)
-	return RelPath(p2...)
 }

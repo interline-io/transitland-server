@@ -15,7 +15,7 @@ import (
 )
 
 func TestGbfsFetchWorker(t *testing.T) {
-	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.DataPath("gbfs")})
+	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("gbfs")})
 	defer ts.Close()
 
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {

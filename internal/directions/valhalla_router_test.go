@@ -12,9 +12,9 @@ import (
 )
 
 func Test_valhallaRouter(t *testing.T) {
-	fdir := testdata.DataPath("fixtures/valhalla")
+	fdir := testdata.Path("fixtures/valhalla")
 	tcs := []testCase{
-		{"ped", basicTests["ped"], true, 3130, 4.387, testdata.DataPath("fixtures/response/val_ped.json")},
+		{"ped", basicTests["ped"], true, 3130, 4.387, testdata.Path("fixtures/response/val_ped.json")},
 		{"bike", basicTests["bike"], true, 1132, 4.912, ""},
 		{"auto", basicTests["auto"], true, 1037, 5.133, ""},
 		{"transit", basicTests["transit"], false, 0, 0, ""}, // unsupported mode
