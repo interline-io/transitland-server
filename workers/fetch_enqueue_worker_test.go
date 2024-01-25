@@ -17,6 +17,9 @@ func TestFetchEnqueueWorker(t *testing.T) {
 		jobQueue := cfg.JobQueue
 		jobQueue.Use(newCfgMiddleware(cfg))
 		jobQueue.AddWorker("default", GetWorker, 1)
+		jobQueue.AddWorker("rt-fetch", GetWorker, 1)
+		jobQueue.AddWorker("static-fetch", GetWorker, 1)
+		jobQueue.AddWorker("gbfs-fetch", GetWorker, 1)
 		go func() {
 			jobQueue.Run()
 		}()
