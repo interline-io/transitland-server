@@ -31,7 +31,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "bart existing",
 			feedId:             "BA",
-			serveFile:          "test/data/external/bart.zip",
+			serveFile:          "external/bart.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 456139,
 			expectResponseSHA1: "e535eb2b3b9ac3ef15d82c56575e914575e732e0",
@@ -40,7 +40,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "bart existing old",
 			feedId:             "BA",
-			serveFile:          "test/data/external/bart-old.zip",
+			serveFile:          "external/bart-old.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 429721,
 			expectResponseSHA1: "dd7aca4a8e4c90908fd3603c097fabee75fea907",
@@ -49,7 +49,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "bart invalid",
 			feedId:             "BA",
-			serveFile:          "test/data/external/invalid.zip",
+			serveFile:          "external/invalid.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 12,
 			expectResponseSHA1: "88af471a23dfdc103e67752dd56128ae77b8debe",
@@ -59,7 +59,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "bart new",
 			feedId:             "BA",
-			serveFile:          "test/data/external/bart-new.zip",
+			serveFile:          "external/bart-new.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 1151609,
 			expectResponseSHA1: "b40aa01814bf92dba06dbccdebcc3aefa6208248",
@@ -69,7 +69,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "hart existing",
 			feedId:             "HA",
-			serveFile:          "test/data/external/hart.zip",
+			serveFile:          "external/hart.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 3543136,
 			expectResponseSHA1: "c969427f56d3a645195dd8365cde6d7feae7e99b",
@@ -78,7 +78,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "404",
 			feedId:             "BA",
-			serveFile:          "test/data/example.zip",
+			serveFile:          "example.zip",
 			expectError:        false,
 			expectResponseCode: 404,
 			expectSuccess:      false,
@@ -86,7 +86,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:        "invalid feed",
 			feedId:      "unknown",
-			serveFile:   "test/data/example.zip",
+			serveFile:   "example.zip",
 			expectError: true,
 		},
 	}
@@ -99,7 +99,7 @@ func TestStaticFetchWorker(t *testing.T) {
 					return
 
 				}
-				buf, err := os.ReadFile(testdata.RelPath(tc.serveFile))
+				buf, err := os.ReadFile(testdata.DataPath(tc.serveFile))
 				if err != nil {
 					http.Error(w, "404", 404)
 					return

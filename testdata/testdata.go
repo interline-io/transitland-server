@@ -26,3 +26,10 @@ func RelPath(p ...string) string {
 	a = append(a, p...)
 	return filepath.Join(a...)
 }
+
+func DataPath(p ...string) string {
+	var p2 []string
+	p2 = append(p2, "testdata")
+	p2 = append(p2, p...)
+	return RelPath(p2...)
+}

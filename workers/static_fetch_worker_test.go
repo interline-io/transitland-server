@@ -14,7 +14,7 @@ import (
 )
 
 func TestStaticFetchWorker(t *testing.T) {
-	ts := testutil.NewTestServer(testdata.RelPath("test/data/external"))
+	ts := testutil.NewTestServer(testdata.DataPath("external"))
 	defer ts.Close()
 
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {

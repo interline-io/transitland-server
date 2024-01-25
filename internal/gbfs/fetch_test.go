@@ -10,7 +10,7 @@ import (
 )
 
 func TestGbfsFetch(t *testing.T) {
-	ts := httptest.NewServer(&TestGbfsServer{Language: "en", Path: testdata.RelPath("test/data/gbfs")})
+	ts := httptest.NewServer(&TestGbfsServer{Language: "en", Path: testdata.DataPath("gbfs")})
 	defer ts.Close()
 	opts := Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")

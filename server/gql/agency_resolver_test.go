@@ -314,7 +314,7 @@ func TestAgencyResolver_Authz(t *testing.T) {
 	}
 	cfg := testconfig.Config(t, testconfig.Options{
 		FGAEndpoint:    ep,
-		FGAModelFile:   testdata.RelPath("test/authz/tls.json"),
+		FGAModelFile:   testdata.DataPath("authz/tls.json"),
 		FGAModelTuples: fgaTestTuples,
 	})
 
