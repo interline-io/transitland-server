@@ -19,7 +19,6 @@ func TestFetchEnqueueWorker(t *testing.T) {
 		jobQueue.AddWorker("default", GetWorker, 1)
 		go func() {
 			jobQueue.Run()
-			time.Sleep(1 * time.Second)
 		}()
 		jobQueue.AddJob(jobs.Job{
 			JobType: "fetch-enqueue",

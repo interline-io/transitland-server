@@ -22,14 +22,14 @@ type GbfsFetchWorker struct {
 func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	cfg := model.ForContext(ctx)
 	log := log.For(ctx)
-	log.Info().Str("feed_id", w.FeedID).Str("url", w.Url).Msg("gbfsfetch worker: started")
+	log.Info().Str("feed_id", w.FeedID).Str("url", w.Url).Msg("gbfs-fetch: started")
 	gfeeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &w.FeedID})
 	if err != nil {
-		log.Error().Err(err).Msg("gbfsfetch worker: error loading source feed")
+		log.Error().Err(err).Msg("gbfs-fetch: error loading source feed")
 		return err
 	}
 	if len(gfeeds) == 0 {
-		log.Error().Err(err).Msg("gbfsfetch worker: source feed not found")
+		log.Error().Err(err).Msg("gbfs-fetch: source feed not found")
 		return errors.New("feed not found")
 	}
 
@@ -60,6 +60,6 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 			cfg.GbfsFinder.AddData(ctx, key, feed)
 		}
 	}
-	log.Info().Msg("gbfs fetch worker: success")
+	log.Info().Msg("gbfs-fetch: success")
 	return nil
 }

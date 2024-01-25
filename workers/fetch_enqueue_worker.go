@@ -17,6 +17,9 @@ type FetchEnqueueWorker struct {
 }
 
 func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
+	log := log.For(ctx)
+	log.Info().Msg("fetch-enqueue: started")
+
 	cfg := model.ForContext(ctx)
 	db := cfg.Finder.DBX()
 	now := time.Now().In(time.UTC)
@@ -157,6 +160,8 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 			}
 		}
 	}
+
+	log.Info().Msg("fetch-enqueue: success")
 	return nil
 }
 

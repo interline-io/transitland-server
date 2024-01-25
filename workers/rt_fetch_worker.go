@@ -18,12 +18,12 @@ type RTFetchWorker struct {
 
 func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	log := log.For(ctx)
-	log.Info().Str("target", w.Target).Str("source_feed_id", w.SourceFeedID).Str("source_type", w.SourceType).Str("url", w.Url).Msg("rtfetch worker: started")
+	log.Info().Str("target", w.Target).Str("source_feed_id", w.SourceFeedID).Str("source_type", w.SourceType).Str("url", w.Url).Msg("rt-fetch: started")
 	err := actions.RTFetch(ctx, w.Target, w.SourceFeedID, w.Url, w.SourceType)
 	if err != nil {
-		log.Error().Err(err).Msg("rtfetch worker: request failed")
+		log.Error().Err(err).Msg("rt-fetch: request failed")
 		return err
 	}
-	log.Info().Msg("rtfetch worker: success")
+	log.Info().Msg("rt-fetch: success")
 	return err
 }
