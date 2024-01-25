@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 	"github.com/twpayne/go-geom"
 )
@@ -21,8 +22,8 @@ func TestValidateUpload(t *testing.T) {
 	}{
 		{
 			name:      "ct",
-			serveFile: "test/data/external/caltrain.zip",
-			rtUrls:    []string{"test/data/rt/CT-vp-error.json"},
+			serveFile: "external/caltrain.zip",
+			rtUrls:    []string{"rt/CT-vp-error.json"},
 			f: func(t *testing.T, result *model.ValidationResult) {
 				if len(result.Errors) != 1 {
 					t.Fatal("expected errors")
@@ -45,7 +46,7 @@ func TestValidateUpload(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setup http
-			ts := testutil.NewTestFileserver()
+			ts := testutil.NewTestServer(testdata.RelPath("test/data"))
 			defer ts.Close()
 
 			// Setup job

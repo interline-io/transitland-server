@@ -8,12 +8,12 @@ import (
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-server/testdata"
 )
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: testutil.RelPath("tmp"),
+		Storage: testdata.RelPath("tmp"),
 	})
 
 	t.Run("ok", func(t *testing.T) {
@@ -106,7 +106,7 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 
 func TestFeedDownloadLatestRequest(t *testing.T) {
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: testutil.RelPath("tmp"),
+		Storage: testdata.RelPath("tmp"),
 	})
 
 	t.Run("ok", func(t *testing.T) {

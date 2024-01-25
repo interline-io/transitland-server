@@ -8,8 +8,8 @@ import (
 	"github.com/twpayne/go-geom"
 	geomxy "github.com/twpayne/go-geom/xy"
 
+	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-server/internal/dbutil"
 	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/jmoiron/sqlx"
 	"github.com/tidwall/rtree"

@@ -5,15 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestStaticFetchWorker(t *testing.T) {
-	ts := testutil.NewTestServer(testutil.RelPath("test/data/external"))
+	ts := testutil.NewTestServer(testdata.RelPath("test/data/external"))
 	defer ts.Close()
 
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {

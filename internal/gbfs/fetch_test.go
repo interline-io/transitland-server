@@ -5,12 +5,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGbfsFetch(t *testing.T) {
-	ts := httptest.NewServer(&TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
+	ts := httptest.NewServer(&TestGbfsServer{Language: "en", Path: testdata.RelPath("test/data/gbfs")})
 	defer ts.Close()
 	opts := Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")

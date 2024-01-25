@@ -3,7 +3,7 @@ package rtfinder
 import (
 	"testing"
 
-	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-dbutil/testutil"
 )
 
 func TestRedisCache(t *testing.T) {
@@ -12,7 +12,7 @@ func TestRedisCache(t *testing.T) {
 		t.Skip(a)
 		return
 	}
-	client := testutil.MustOpenTestRedisClient()
+	client := testutil.MustOpenTestRedisClient(t)
 	rtCache := NewRedisCache(client)
 	testCache(t, rtCache)
 }

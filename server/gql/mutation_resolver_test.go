@@ -7,15 +7,16 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/internal/testutil"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFeedVersionFetchResolver(t *testing.T) {
-	expectFile := testutil.RelPath("test/data/external/bart.zip")
+	expectFile := testdata.RelPath("test/data/external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
 		if err != nil {
@@ -41,7 +42,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 }
 
 func TestValidateGtfsResolver(t *testing.T) {
-	ts200 := testutil.NewTestServer(testutil.RelPath("test/data"))
+	ts200 := testutil.NewTestServer(testdata.RelPath("test/data"))
 	defer ts200.Close()
 
 	vars := hw{

@@ -9,14 +9,13 @@ import (
 	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/internal/testutil"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/testdata"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGbfsFetchWorker(t *testing.T) {
-	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testutil.RelPath("test/data/gbfs")})
+	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.RelPath("test/data/gbfs")})
 	defer ts.Close()
 
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {

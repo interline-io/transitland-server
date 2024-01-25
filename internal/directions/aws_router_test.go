@@ -12,13 +12,14 @@ import (
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/location"
-	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/testdata"
 )
 
 func Test_awsRouter(t *testing.T) {
 	tcs := []testCase{
-		{"ped", basicTests["ped"], true, 4215, 4.100, testutil.RelPath("test/fixtures/response/aws_ped.json")},
+		{"ped", basicTests["ped"], true, 4215, 4.100, testdata.RelPath("test/fixtures/response/aws_ped.json")},
 		{"bike", basicTests["bike"], false, 0, 0, ""}, // unsupported mode
 		{"auto", basicTests["auto"], true, 671, 5.452, ""},
 		{"depart_now", model.DirectionRequest{Mode: model.StepModeAuto, From: &baseFrom, To: &baseTo, DepartAt: nil}, true, 671, 4.1, ""}, // at LEAST 671s
@@ -27,7 +28,7 @@ func Test_awsRouter(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			recorder := testutil.NewRecorder(filepath.Join(testutil.RelPath("test/fixtures/aws/location"), tc.name), "directions://aws")
+			recorder := testutil.NewRecorder(filepath.Join(testdata.RelPath("test/fixtures/aws/location"), tc.name), "directions://aws")
 			defer recorder.Stop()
 			h, err := makeTestMockRouter(recorder)
 			if err != nil {

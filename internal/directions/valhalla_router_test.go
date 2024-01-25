@@ -7,13 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-server/internal/testutil"
+	"github.com/interline-io/transitland-dbutil/testutil"
+	"github.com/interline-io/transitland-server/testdata"
 )
 
 func Test_valhallaRouter(t *testing.T) {
-	fdir := testutil.RelPath("test/fixtures/valhalla")
+	fdir := testdata.RelPath("test/fixtures/valhalla")
 	tcs := []testCase{
-		{"ped", basicTests["ped"], true, 3130, 4.387, testutil.RelPath("test/fixtures/response/val_ped.json")},
+		{"ped", basicTests["ped"], true, 3130, 4.387, testdata.RelPath("test/fixtures/response/val_ped.json")},
 		{"bike", basicTests["bike"], true, 1132, 4.912, ""},
 		{"auto", basicTests["auto"], true, 1037, 5.133, ""},
 		{"transit", basicTests["transit"], false, 0, 0, ""}, // unsupported mode
