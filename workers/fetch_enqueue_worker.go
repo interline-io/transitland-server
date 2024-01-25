@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/actions"
@@ -11,14 +12,17 @@ import (
 )
 
 type FetchEnqueueWorker struct {
-	URLTypes []string `json:"url_types"`
-	FeedIDs  []string `json:"feed_ids"`
+	IgnoreFetchWait bool     `json:"ignore_fetch_wait"`
+	URLTypes        []string `json:"url_types"`
+	FeedIDs         []string `json:"feed_ids"`
 }
 
 func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
+	log := log.For(ctx)
+	log.Info().Msg("fetch-enqueue: started")
+
 	cfg := model.ForContext(ctx)
 	db := cfg.Finder.DBX()
-	opts := job.Opts
 	now := time.Now().In(time.UTC)
 	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{})
 	if err != nil {
@@ -67,13 +71,14 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				feedIds = append(feedIds, feed.ID)
 			}
 		}
+
 		feedChecks, err := actions.CheckFetchWaitBatch(ctx, db, feedIds, urlType)
 		if err != nil {
 			return err
 		}
 		var feedsOk []actions.CheckFetchWaitResult
 		for _, check := range feedChecks {
-			if check.OK() {
+			if check.OK() || w.IgnoreFetchWait {
 				feedsOk = append(feedsOk, check)
 			}
 		}
@@ -148,11 +153,17 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		}
 	}
 
-	for _, j := range jj {
-		if err := opts.JobQueue.AddJob(j); err != nil {
-			return err
+	if jobQueue := cfg.JobQueue; jobQueue == nil {
+		log.Error().Msg("no job queue available")
+	} else {
+		for _, j := range jj {
+			if err := jobQueue.AddJob(j); err != nil {
+				return err
+			}
 		}
 	}
+
+	log.Info().Msg("fetch-enqueue: success")
 	return nil
 }
 

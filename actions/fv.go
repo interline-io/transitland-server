@@ -15,16 +15,11 @@ import (
 
 func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
 	cfg := model.ForContext(ctx)
-	checker := cfg.Checker
 	dbf := cfg.Finder
-	if checker == nil {
-		return nil, authz.ErrUnauthorized
-	}
-	if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return nil, err
-	} else if !check.Actions.CanEdit {
-		return nil, authz.ErrUnauthorized
 	}
+
 	opts := importer.Options{
 		FeedVersionID: fvid,
 		Storage:       cfg.Storage,
@@ -42,16 +37,11 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 
 func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
 	cfg := model.ForContext(ctx)
-	checker := cfg.Checker
 	dbf := cfg.Finder
-	if checker == nil {
-		return nil, authz.ErrUnauthorized
-	}
-	if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return nil, err
-	} else if !check.Actions.CanEdit {
-		return nil, authz.ErrUnauthorized
 	}
+
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
 		return unimporter.UnimportFeedVersion(atx, fvid, nil)
@@ -66,16 +56,11 @@ func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimp
 
 func FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSetInput) error {
 	cfg := model.ForContext(ctx)
-	checker := cfg.Checker
 	dbf := cfg.Finder
-	if checker == nil {
-		return authz.ErrUnauthorized
-	}
-	if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return err
-	} else if !check.Actions.CanEdit {
-		return authz.ErrUnauthorized
 	}
+
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	err := db.Tx(func(atx tldb.Adapter) error {
 		fv := tl.FeedVersion{}
@@ -102,15 +87,20 @@ func FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSe
 }
 
 func FeedVersionDelete(ctx context.Context, fvid int) (*model.FeedVersionDeleteResult, error) {
-	cfg := model.ForContext(ctx)
-	checker := cfg.Checker
-	if checker == nil {
-		return nil, authz.ErrUnauthorized
-	}
-	if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return nil, err
-	} else if !check.Actions.CanEdit {
-		return nil, authz.ErrUnauthorized
 	}
 	return nil, errors.New("temporarily unavailable")
+}
+
+func checkFeedEdit(ctx context.Context, fvid int) error {
+	cfg := model.ForContext(ctx)
+	if checker := cfg.Checker; checker == nil {
+		return nil
+	} else if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+		return err
+	} else if !check.Actions.CanEdit {
+		return authz.ErrUnauthorized
+	}
+	return nil
 }

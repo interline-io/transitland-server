@@ -43,7 +43,7 @@ func testHandlersWithOptions(t testing.TB, opts testconfig.Options) (http.Handle
 	if err != nil {
 		t.Fatal(err)
 	}
-	restHandler, err := NewServer(Config{}, graphqlHandler)
+	restHandler, err := NewServer(graphqlHandler)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func checkTestCase(t *testing.T, tc testCase) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	restHandler, err := NewServer(Config{}, graphqlHandler)
+	restHandler, err := NewServer(graphqlHandler)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func checkTestCase(t *testing.T, tc testCase) {
 }
 
 func checkTestCaseWithHandlers(t *testing.T, tc testCase, graphqlHandler http.Handler, restHandler http.Handler) {
-	data, err := makeRequest(context.TODO(), Config{}, graphqlHandler, tc.h, tc.format, nil)
+	data, err := makeRequest(context.TODO(), graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		t.Error(err)
 		return

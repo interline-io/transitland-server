@@ -83,12 +83,12 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		opts.CheckFileLimits = false
 	}
 
-	checker, err := validator.NewValidator(reader, opts)
+	vt, err := validator.NewValidator(reader, opts)
 	if err != nil {
 		result.FailureReason = "Could not validate file"
 		return &result, nil
 	}
-	r, err := checker.Validate()
+	r, err := vt.Validate()
 	if err != nil {
 		result.FailureReason = "Could not validate file"
 		return &result, nil

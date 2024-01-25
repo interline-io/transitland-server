@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/rs/zerolog"
 )
 
 type Config struct {
@@ -14,12 +14,14 @@ type Config struct {
 	RTFinder           RTFinder
 	GbfsFinder         GbfsFinder
 	Checker            Checker
+	JobQueue           jobs.JobQueue
 	Clock              clock.Clock
 	Secrets            []tl.Secret
 	ValidateLargeFiles bool
+	DisableImage       bool
+	RestPrefix         string
 	Storage            string
 	RTStorage          string
-	Logger             zerolog.Logger
 }
 
 var finderCtxKey = &contextKey{"finderConfig"}

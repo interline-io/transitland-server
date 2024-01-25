@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/gbfs"
@@ -19,17 +20,24 @@ func TestGbfsFetchWorker(t *testing.T) {
 	defer ts.Close()
 
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
-		job := jobs.Job{}
-		w := GbfsFetchWorker{
-			Url:    ts.URL + "/gbfs.json",
-			FeedID: "test-gbfs",
-		}
-		ctx := model.WithConfig(context.Background(), cfg)
-		err := w.Run(ctx, job)
-		if err != nil {
-			t.Fatal(err)
-		}
+		jobQueue := cfg.JobQueue
+		jobQueue.Use(newCfgMiddleware(cfg))
+		jobQueue.AddWorker("default", GetWorker, 1)
+		go func() {
+			jobQueue.Run()
+			time.Sleep(1 * time.Second)
+		}()
+		jobQueue.AddJob(jobs.Job{
+			JobType: "gbfs-fetch",
+			JobArgs: map[string]any{
+				"url":     ts.URL + "/gbfs.json",
+				"feed_id": "test-gbfs",
+			},
+		})
+		time.Sleep(1 * time.Second)
+
 		// Test
+		ctx := model.WithConfig(context.Background(), cfg)
 		bikes, err := cfg.GbfsFinder.FindBikes(
 			ctx,
 			nil,

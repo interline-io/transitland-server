@@ -4,19 +4,20 @@ import (
 	"context"
 	"errors"
 
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-mw/jobs"
 )
 
 type testOkWorker struct{}
 
 func (w *testOkWorker) Run(ctx context.Context, job jobs.Job) error {
-	job.Opts.Logger.Info().Msg("testOkWorker")
+	log.For(ctx).Info().Msg("testOkWorker")
 	return nil
 }
 
 type testFailWorker struct{}
 
 func (w *testFailWorker) Run(ctx context.Context, job jobs.Job) error {
-	job.Opts.Logger.Error().Msg("testFailWorker")
+	log.For(ctx).Error().Msg("testFailWorker")
 	return errors.New("testFailWorker")
 }

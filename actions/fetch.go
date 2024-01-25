@@ -29,7 +29,7 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 	dbf := cfg.Finder
 
 	urlType := "static_current"
-	feed, err := fetchCheckFeed(ctx, feedId, urlType, feedUrl)
+	feed, err := fetchCheckFeed(ctx, feedId)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, urlType string) error {
 	cfg := model.ForContext(ctx)
 
-	feed, err := fetchCheckFeed(ctx, feedId, urlType, feedUrl)
+	feed, err := fetchCheckFeed(ctx, feedId)
 	if err != nil {
 		return err
 	}
@@ -254,11 +254,9 @@ func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
 	return append(chunks, items)
 }
 
-func fetchCheckFeed(ctx context.Context, feedId string, urlType string, url string) (*model.Feed, error) {
-	cfg := model.ForContext(ctx)
-	checker := cfg.Checker
-
+func fetchCheckFeed(ctx context.Context, feedId string) (*model.Feed, error) {
 	// Check feed exists
+	cfg := model.ForContext(ctx)
 	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		return nil, err
@@ -269,12 +267,12 @@ func fetchCheckFeed(ctx context.Context, feedId string, urlType string, url stri
 	feed := feeds[0]
 
 	// Check feed permissions
-	if checker != nil {
-		if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
-			return nil, err
-		} else if !check.Actions.CanCreateFeedVersion {
-			return nil, errors.New("unauthorized")
-		}
+	if checker := cfg.Checker; checker == nil {
+		// pass
+	} else if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
+		return nil, err
+	} else if !check.Actions.CanCreateFeedVersion {
+		return nil, errors.New("unauthorized")
 	}
 	return feed, nil
 }

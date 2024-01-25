@@ -2,8 +2,10 @@ package gql
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
+	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
 	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
@@ -36,6 +38,23 @@ func checkCursor(after *int) *model.Cursor {
 		cursor = &c
 	}
 	return cursor
+}
+
+func addMetric(ctx context.Context, resolverName string) {
+	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
+		apiMeter.AddDimension("graphql", "resolver", resolverName)
+	}
+}
+
+func checkGeo(near *model.PointRadius, bbox *model.BoundingBox) error {
+	// We only want to enforce this check on top level resolvers
+	if near != nil && near.Radius > MAX_RADIUS {
+		return errors.New("radius too large")
+	}
+	if bbox != nil && !checkBbox(bbox, MAX_RADIUS*MAX_RADIUS) {
+		return errors.New("bbox too large")
+	}
+	return nil
 }
 
 func checkBbox(bbox *model.BoundingBox, maxAreaM2 float64) bool {

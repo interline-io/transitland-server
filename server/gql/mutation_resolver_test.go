@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
@@ -40,31 +38,12 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 			assert.JSONEq(t, `{"feed_version_fetch":{"found_sha1":true,"feed_version":{"sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0"}}}`, toJson(resp))
 		})
 	})
-	// t.Run("requires admin access", func(t *testing.T) {
-	// 	testconfig.ConfigTxRollback(t, nil, nil, func(te testconfig.TestEnv) {
-	// 		srv, _ := NewServer(te.Config, te.Finder, nil, nil, nil)
-	// 		srv = authn.UserDefaultMiddleware("test")(srv) // Run all requests as regular user
-	// 		c := client.New(srv)
-	// 		resp := make(map[string]interface{})
-	// 		err := c.Post(`mutation($url:String!) {feed_version_fetch(feed_onestop_id:"BA",url:$url){found_sha1}}`, &resp, client.Var("url", ts200.URL))
-	// 		if err == nil {
-	// 			t.Errorf("expected error")
-	// 		}
-	// 	})
-	// })
 }
 
 func TestValidateGtfsResolver(t *testing.T) {
-	baseDir := testutil.RelPath("test/data")
-	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		p := r.URL.Path
-		buf, err := os.ReadFile(filepath.Join(baseDir, p))
-		if err != nil {
-			http.Error(w, "not found", 404)
-			return
-		}
-		w.Write(buf)
-	}))
+	ts200 := testutil.NewTestServer(testutil.RelPath("test/data"))
+	defer ts200.Close()
+
 	vars := hw{
 		"url": ts200.URL + "/external/caltrain.zip",
 	}
@@ -174,16 +153,16 @@ func TestValidateGtfsResolver(t *testing.T) {
 			})
 		})
 	}
-	t.Run("requires user access", func(t *testing.T) {
-		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
-			srv, _ := NewServer() // all requests run as anonymous context by default
-			srv = model.AddConfig(cfg)(srv)
-			c := client.New(srv)
-			resp := make(map[string]interface{})
-			err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))
-			if err == nil {
-				t.Errorf("expected error")
-			}
-		})
-	})
+	// t.Run("requires user access", func(t *testing.T) {
+	// 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+	// 		srv, _ := NewServer() // all requests run as anonymous context by default
+	// 		srv = model.AddConfig(cfg)(srv)
+	// 		c := client.New(srv)
+	// 		resp := make(map[string]interface{})
+	// 		err := c.Post(`mutation($url:String!) {validate_gtfs(url:$url){success}}`, &resp, client.Var("url", ts200.URL))
+	// 		if err == nil {
+	// 			t.Errorf("expected error")
+	// 		}
+	// 	})
+	// })
 }

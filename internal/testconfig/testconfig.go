@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/auth/azcheck"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -28,6 +28,7 @@ type Options struct {
 	Storage        string
 	RTStorage      string
 	RTJsons        []RTJsonFile
+	FGAEndpoint    string
 	FGAModelFile   string
 	FGAModelTuples []authz.TupleKey
 }
@@ -90,18 +91,21 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	cl := &clock.Mock{T: when}
 
 	// Setup Checker
-	checkerCfg := azcheck.CheckerConfig{
-		FGAEndpoint:      os.Getenv("TL_TEST_FGA_ENDPOINT"),
-		FGALoadModelFile: opts.FGAModelFile,
-		FGALoadTestData:  opts.FGAModelTuples,
-	}
-	checker, err := azcheck.NewCheckerFromConfig(checkerCfg, db)
-	if err != nil {
-		t.Fatal(err)
+	var checker model.Checker
+	if opts.FGAEndpoint != "" {
+		checkerCfg := azcheck.CheckerConfig{
+			FGAEndpoint:      opts.FGAEndpoint,
+			FGALoadModelFile: opts.FGAModelFile,
+			FGALoadTestData:  opts.FGAModelTuples,
+		}
+		checker, err = azcheck.NewCheckerFromConfig(checkerCfg, db)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	// Setup DB
-	dbf := dbfinder.NewFinder(db, checker)
+	dbf := dbfinder.NewFinder(db)
 	dbf.Clock = cl
 
 	// Setup RT
@@ -132,11 +136,16 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	if opts.RTStorage == "" {
 		opts.RTStorage = t.TempDir()
 	}
+
+	// Initialize job queue - do not start
+	jobQueue := jobs.NewLocalJobs()
+
 	return model.Config{
 		Finder:     dbf,
 		RTFinder:   rtf,
 		GbfsFinder: gbf,
 		Checker:    checker,
+		JobQueue:   jobQueue,
 		Clock:      cl,
 		Storage:    opts.Storage,
 		RTStorage:  opts.RTStorage,
