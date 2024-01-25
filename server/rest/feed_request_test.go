@@ -103,7 +103,7 @@ func TestFeedRequest(t *testing.T) {
 		},
 		{
 			name:         "url source",
-			h:            &FeedRequest{URL: "file://test/data/external/caltrain.zip"},
+			h:            &FeedRequest{URL: "file://testdata/external/caltrain.zip"},
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT"},
@@ -111,7 +111,7 @@ func TestFeedRequest(t *testing.T) {
 		},
 		{
 			name:         "url source and type",
-			h:            &FeedRequest{URL: "file://test/data/external/caltrain.zip", URLType: "static_current"},
+			h:            &FeedRequest{URL: "file://testdata/external/caltrain.zip", URLType: "static_current"},
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT"},
@@ -119,7 +119,7 @@ func TestFeedRequest(t *testing.T) {
 		},
 		{
 			name:         "url source case insensitive",
-			h:            &FeedRequest{URL: "file://test/data/external/Caltrain.zip", URLCaseSensitive: false},
+			h:            &FeedRequest{URL: "file://testdata/external/Caltrain.zip", URLCaseSensitive: false},
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT"},
@@ -127,7 +127,7 @@ func TestFeedRequest(t *testing.T) {
 		},
 		{
 			name:         "url source case sensitive",
-			h:            &FeedRequest{URL: "file://test/data/external/Caltrain.zip", URLCaseSensitive: true},
+			h:            &FeedRequest{URL: "file://testdata/external/Caltrain.zip", URLCaseSensitive: true},
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{},
