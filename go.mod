@@ -19,9 +19,9 @@ require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/log v0.0.0-20240123235933-c768586b868c
+	github.com/interline-io/log v0.0.0-20240125004252-e943425b44f5
 	github.com/interline-io/transitland-lib v0.14.1-0.20240123210840-0eb9c4e3986d
-	github.com/interline-io/transitland-mw v0.0.0-20231220044449-a6aac07a9d9e
+	github.com/interline-io/transitland-mw v0.0.0-20240125004614-525fc3382ce6
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
