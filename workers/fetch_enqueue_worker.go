@@ -2,7 +2,6 @@ package workers
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/interline-io/log"
@@ -58,7 +57,6 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 			}
 		}
 	}
-	fmt.Printf("checkUrlTypes %#v\n", checkUrlTypes)
 
 	// Check for fetch wait times and error backoffs
 	// This is structured to avoid bad N+1 queries
@@ -73,7 +71,6 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 				feedIds = append(feedIds, feed.ID)
 			}
 		}
-		fmt.Printf("feedIds %#v\n", feedIds)
 
 		feedChecks, err := actions.CheckFetchWaitBatch(ctx, db, feedIds, urlType)
 		if err != nil {
@@ -81,17 +78,12 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		}
 		var feedsOk []actions.CheckFetchWaitResult
 		for _, check := range feedChecks {
-			fmt.Printf("check %#v\n", check)
-			fmt.Println("IgnoreFetchWait:", w.IgnoreFetchWait)
 			if check.OK() || w.IgnoreFetchWait {
-				fmt.Printf("ok\n")
 				feedsOk = append(feedsOk, check)
 			}
 		}
 		feedsByUrlType[urlType] = feedsOk
 	}
-
-	fmt.Printf("feedsByUrlType %#v\n", feedsByUrlType)
 
 	// Static fetch
 	var jj []jobs.Job
