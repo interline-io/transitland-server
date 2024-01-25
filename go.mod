@@ -1,8 +1,6 @@
 module github.com/interline-io/transitland-server
 
-go 1.21.1
-
-toolchain go1.21.5
+go 1.21.5
 
 require (
 	github.com/99designs/gqlgen v0.17.42
@@ -81,6 +79,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.3 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
+	github.com/interline-io/transitland-dbutil v0.0.0-20240124232102-bc32a8c1db29 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af // indirect
 	github.com/kr/pretty v0.3.1 // indirect
