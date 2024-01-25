@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
@@ -43,16 +41,9 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 }
 
 func TestValidateGtfsResolver(t *testing.T) {
-	baseDir := testutil.RelPath("test/data")
-	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		p := r.URL.Path
-		buf, err := os.ReadFile(filepath.Join(baseDir, p))
-		if err != nil {
-			http.Error(w, "not found", 404)
-			return
-		}
-		w.Write(buf)
-	}))
+	ts200 := testutil.NewTestServer(testutil.RelPath("test/data"))
+	defer ts200.Close()
+
 	vars := hw{
 		"url": ts200.URL + "/external/caltrain.zip",
 	}

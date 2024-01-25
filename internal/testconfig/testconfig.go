@@ -10,6 +10,7 @@ import (
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/auth/azcheck"
+	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -135,11 +136,16 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	if opts.RTStorage == "" {
 		opts.RTStorage = t.TempDir()
 	}
+
+	// Initialize job queue - do not start
+	jobQueue := jobs.NewLocalJobs()
+
 	return model.Config{
 		Finder:     dbf,
 		RTFinder:   rtf,
 		GbfsFinder: gbf,
 		Checker:    checker,
+		JobQueue:   jobQueue,
 		Clock:      cl,
 		Storage:    opts.Storage,
 		RTStorage:  opts.RTStorage,

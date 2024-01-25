@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/actions"
@@ -147,9 +148,13 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		}
 	}
 
-	for _, j := range jj {
-		if err := job.Opts.JobQueue.AddJob(j); err != nil {
-			return err
+	if jobQueue := cfg.JobQueue; jobQueue == nil {
+		log.Error().Msg("no job queue available")
+	} else {
+		for _, j := range jj {
+			if err := jobQueue.AddJob(j); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

@@ -20,6 +20,7 @@ import (
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
@@ -118,7 +119,7 @@ func (cmd *Command) Run() error {
 	}
 	db = dbx
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
-		db = dbutil.LogDB(dbx)
+		db = &tldb.QueryLogger{Ext: dbx}
 	}
 
 	// Open redis
