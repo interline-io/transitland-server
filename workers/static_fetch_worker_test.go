@@ -30,7 +30,7 @@ func TestStaticFetchWorker(t *testing.T) {
 			JobArgs: map[string]any{
 				"feed_id":           a,
 				"feed_url":          aurl,
-				"ignore_fetch_wait": true,
+				"ignore_fetch_wait": "true",
 			},
 		})
 		time.Sleep(2 * time.Second)
