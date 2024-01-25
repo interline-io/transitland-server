@@ -76,7 +76,6 @@ func (f *Finder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor
 }
 
 func (f *Finder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
-	log.For(ctx).Info().Msg("find stops")
 	var ents []*model.Stop
 	active := true
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {

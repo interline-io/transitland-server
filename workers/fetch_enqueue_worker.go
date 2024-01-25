@@ -12,8 +12,9 @@ import (
 )
 
 type FetchEnqueueWorker struct {
-	URLTypes []string `json:"url_types"`
-	FeedIDs  []string `json:"feed_ids"`
+	IgnoreFetchWait bool     `json:"ignore_fetch_wait"`
+	URLTypes        []string `json:"url_types"`
+	FeedIDs         []string `json:"feed_ids"`
 }
 
 func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
@@ -76,7 +77,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		}
 		var feedsOk []actions.CheckFetchWaitResult
 		for _, check := range feedChecks {
-			if check.OK() {
+			if check.OK() || w.IgnoreFetchWait {
 				feedsOk = append(feedsOk, check)
 			}
 		}
