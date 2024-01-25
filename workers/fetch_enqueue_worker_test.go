@@ -22,7 +22,7 @@ func TestFetchEnqueueWorker(t *testing.T) {
 		}()
 		jobQueue.AddJob(jobs.Job{
 			JobType: "fetch-enqueue",
-			JobArgs: map[string]any{"feed_ids": []string{a}},
+			JobArgs: map[string]any{"feed_ids": []string{a}, "ignore_fetch_wait": "true"},
 		})
 		time.Sleep(2 * time.Second)
 

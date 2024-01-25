@@ -82,6 +82,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		var feedsOk []actions.CheckFetchWaitResult
 		for _, check := range feedChecks {
 			fmt.Printf("check %#v\n", check)
+			fmt.Println("IgnoreFetchWait:", w.IgnoreFetchWait)
 			if check.OK() || w.IgnoreFetchWait {
 				fmt.Printf("ok\n")
 				feedsOk = append(feedsOk, check)

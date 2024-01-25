@@ -28,9 +28,8 @@ func TestStaticFetchWorker(t *testing.T) {
 		jobQueue.AddJob(jobs.Job{
 			JobType: "static-fetch",
 			JobArgs: map[string]any{
-				"feed_id":           a,
-				"feed_url":          aurl,
-				"ignore_fetch_wait": "true",
+				"feed_id":  a,
+				"feed_url": aurl,
 			},
 		})
 		time.Sleep(2 * time.Second)
