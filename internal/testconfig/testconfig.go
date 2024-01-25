@@ -113,7 +113,7 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
 	for _, rtj := range opts.RTJsons {
-		fn := testdata.RelPath("test", "data", "rt", rtj.Fname)
+		fn := testdata.Path("rt", rtj.Fname)
 		msg, err := rt.ReadFile(fn)
 		if err != nil {
 			t.Fatal(err)

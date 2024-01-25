@@ -16,7 +16,7 @@ import (
 )
 
 func TestFeedVersionFetchResolver(t *testing.T) {
-	expectFile := testdata.RelPath("test/data/external/bart.zip")
+	expectFile := testdata.Path("external/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadFile(expectFile)
 		if err != nil {
@@ -42,7 +42,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 }
 
 func TestValidateGtfsResolver(t *testing.T) {
-	ts200 := testutil.NewTestServer(testdata.RelPath("test/data"))
+	ts200 := testutil.NewTestServer(testdata.Path())
 	defer ts200.Close()
 
 	vars := hw{

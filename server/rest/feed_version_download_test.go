@@ -13,7 +13,7 @@ import (
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: testdata.RelPath("tmp"),
+		Storage: testdata.Path("..", "tmp"),
 	})
 
 	t.Run("ok", func(t *testing.T) {
@@ -106,7 +106,7 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 
 func TestFeedDownloadLatestRequest(t *testing.T) {
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: testdata.RelPath("tmp"),
+		Storage: testdata.Path("..", "tmp"),
 	})
 
 	t.Run("ok", func(t *testing.T) {
