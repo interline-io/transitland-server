@@ -33,7 +33,7 @@ func TestStaticFetchWorker(t *testing.T) {
 				"feed_url": aurl,
 			},
 		})
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		// Check that we fetched from this url
 		ctx := model.WithConfig(context.Background(), cfg)

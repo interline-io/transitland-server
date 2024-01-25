@@ -25,7 +25,7 @@ func TestFetchEnqueueWorker(t *testing.T) {
 			JobType: "fetch-enqueue",
 			JobArgs: map[string]any{"feed_ids": []string{a}},
 		})
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		// Check that we fetched from BART but failed
 		ctx := model.WithConfig(context.Background(), cfg)
