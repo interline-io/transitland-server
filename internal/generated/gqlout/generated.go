@@ -273,6 +273,7 @@ type ComplexityRoot struct {
 		Trips                 func(childComplexity int, limit *int, where *model.TripFilter) int
 		URL                   func(childComplexity int) int
 		UpdatedBy             func(childComplexity int) int
+		ValidationReports     func(childComplexity int, limit *int, where *model.ValidationReportFilter) int
 	}
 
 	FeedVersionDeleteResult struct {
@@ -1044,6 +1045,7 @@ type FeedVersionResolver interface {
 	Stops(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.StopFilter) ([]*model.Stop, error)
 	Trips(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.TripFilter) ([]*model.Trip, error)
 	FeedInfos(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedInfo, error)
+	ValidationReports(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.ValidationReportFilter) ([]*model.ValidationResult, error)
 }
 type FeedVersionGtfsImportResolver interface {
 	SkipEntityErrorCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
@@ -2330,6 +2332,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedVersion.UpdatedBy(childComplexity), true
+
+	case "FeedVersion.validation_reports":
+		if e.complexity.FeedVersion.ValidationReports == nil {
+			break
+		}
+
+		args, err := ec.field_FeedVersion_validation_reports_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.FeedVersion.ValidationReports(childComplexity, args["limit"].(*int), args["where"].(*model.ValidationReportFilter)), true
 
 	case "FeedVersionDeleteResult.success":
 		if e.complexity.FeedVersionDeleteResult.Success == nil {
@@ -7081,7 +7095,7 @@ type FeedVersion {
   stops(limit: Int, where: StopFilter): [Stop!]!
   trips(limit: Int, where: TripFilter): [Trip!]!
   feed_infos(limit: Int): [FeedInfo!]!
-  # validation_reports(limit: Int, where: ValidationReportFilter): [ValidationResult!]
+  validation_reports(limit: Int, where: ValidationReportFilter): [ValidationResult!]
 }
 
 type FeedVersionFileInfo {
@@ -7987,6 +8001,30 @@ func (ec *executionContext) field_FeedVersion_trips_args(ctx context.Context, ra
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
 		arg1, err = ec.unmarshalOTripFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_FeedVersion_validation_reports_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *model.ValidationReportFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOValidationReportFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationReportFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9863,6 +9901,8 @@ func (ec *executionContext) fieldContext_Agency_feed_version(ctx context.Context
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -13623,6 +13663,8 @@ func (ec *executionContext) fieldContext_Feed_feed_versions(ctx context.Context,
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -15088,6 +15130,8 @@ func (ec *executionContext) fieldContext_FeedState_feed_version(ctx context.Cont
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -16763,6 +16807,70 @@ func (ec *executionContext) fieldContext_FeedVersion_feed_infos(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _FeedVersion_validation_reports(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.FeedVersion().ValidationReports(rctx, obj, fc.Args["limit"].(*int), fc.Args["where"].(*model.ValidationReportFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ValidationResult)
+	fc.Result = res
+	return ec.marshalOValidationResult2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResultᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersion_validation_reports(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersion",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "success":
+				return ec.fieldContext_ValidationResult_success(ctx, field)
+			case "failure_reason":
+				return ec.fieldContext_ValidationResult_failure_reason(ctx, field)
+			case "errors":
+				return ec.fieldContext_ValidationResult_errors(ctx, field)
+			case "warnings":
+				return ec.fieldContext_ValidationResult_warnings(ctx, field)
+			case "details":
+				return ec.fieldContext_ValidationResult_details(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ValidationResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_FeedVersion_validation_reports_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FeedVersionDeleteResult_success(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionDeleteResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FeedVersionDeleteResult_success(ctx, field)
 	if err != nil {
@@ -16885,6 +16993,8 @@ func (ec *executionContext) fieldContext_FeedVersionFetchResult_feed_version(ctx
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -27719,6 +27829,8 @@ func (ec *executionContext) fieldContext_Mutation_feed_version_update(ctx contex
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -29543,6 +29655,8 @@ func (ec *executionContext) fieldContext_Query_feed_versions(ctx context.Context
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -31970,6 +32084,8 @@ func (ec *executionContext) fieldContext_Route_feed_version(ctx context.Context,
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -35721,6 +35837,8 @@ func (ec *executionContext) fieldContext_Stop_feed_version(ctx context.Context, 
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -39870,6 +39988,8 @@ func (ec *executionContext) fieldContext_Trip_feed_version(ctx context.Context, 
 				return ec.fieldContext_FeedVersion_trips(ctx, field)
 			case "feed_infos":
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
+			case "validation_reports":
+				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -48051,6 +48171,39 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "validation_reports":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._FeedVersion_validation_reports(ctx, field, obj)
 				return res
 			}
 
@@ -56596,6 +56749,16 @@ func (ec *executionContext) marshalNValidationRealtimeResult2githubᚗcomᚋinte
 	return ec._ValidationRealtimeResult(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNValidationResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResult(ctx context.Context, sel ast.SelectionSet, v *model.ValidationResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ValidationResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNValidationResultError2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResultErrorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidationResultError) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -58548,7 +58711,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -58556,7 +58719,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -59463,6 +59626,61 @@ func (ec *executionContext) marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋi
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNValidationRealtimeResult2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOValidationReportFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationReportFilter(ctx context.Context, v interface{}) (*model.ValidationReportFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputValidationReportFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOValidationResult2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResultᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidationResult) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNValidationResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationResult(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

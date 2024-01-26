@@ -184,7 +184,7 @@ type FeedVersion {
   stops(limit: Int, where: StopFilter): [Stop!]!
   trips(limit: Int, where: TripFilter): [Trip!]!
   feed_infos(limit: Int): [FeedInfo!]!
-  # validation_reports(limit: Int, where: ValidationReportFilter): [ValidationResult!]
+  validation_reports(limit: Int, where: ValidationReportFilter): [ValidationResult!]
 }
 
 type FeedVersionFileInfo {
