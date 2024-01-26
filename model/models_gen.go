@@ -393,17 +393,6 @@ type ValidationReportFilter struct {
 	Validator *string `json:"validator,omitempty"`
 }
 
-type ValidationResultErrorGroup struct {
-	Filename  string                   `json:"filename"`
-	ErrorType string                   `json:"error_type"`
-	ErrorCode string                   `json:"error_code"`
-	Message   string                   `json:"message"`
-	Field     string                   `json:"field"`
-	Count     int                      `json:"count"`
-	Limit     int                      `json:"limit"`
-	Errors    []*ValidationResultError `json:"errors"`
-}
-
 // [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.
 type VehiclePosition struct {
 	Vehicle             *RTVehicleDescriptor `json:"vehicle,omitempty"`

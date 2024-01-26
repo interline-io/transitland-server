@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -148,11 +147,6 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 }
 
 // Custom queries
-
-func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, fvids []int) ([]*model.ValidationResult, []error) {
-	fmt.Println("ValidationReportsByFeedVersionID", ctx, fvids)
-	return nil, nil
-}
 
 func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (time.Time, time.Time, time.Time, error) {
 	type fvslQuery struct {
@@ -1095,6 +1089,77 @@ func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVe
 		return nil, logExtendErr(ctx, len(params), err)
 	}
 	return groupBy(ids, qents, checkLimit(params[0].Limit), func(ent *model.FeedVersion) int { return ent.FeedID }), nil
+}
+
+func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, fvids []int) ([][]*model.ValidationReport, []error) {
+	params := fvids
+	ids := fvids
+	qents := []*model.ValidationReport{}
+	q := sq.StatementBuilder.Select("*").
+		From("tl_validation_reports").
+		Where(sq.Eq{"feed_version_id": fvids})
+	err := dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			q,
+			"feed_versions",
+			"id",
+			"tl_validation_reports",
+			"feed_version_id",
+			ids,
+		),
+		&qents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(params), err)
+	}
+	return groupBy(ids, qents, checkLimit(nil), func(ent *model.ValidationReport) int { return ent.FeedVersionID }), nil
+}
+
+func (f *Finder) ValidationReportErrorGroupsByValidationReportID(ctx context.Context, ids []int) ([][]*model.ValidationReportErrorGroup, []error) {
+	qents := []*model.ValidationReportErrorGroup{}
+	q := sq.StatementBuilder.Select("*").
+		From("tl_validation_report_error_groups").
+		Where(sq.Eq{"validation_report_id": ids})
+	err := dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			q,
+			"tl_validation_reports",
+			"id",
+			"tl_validation_report_error_groups",
+			"validation_report_id",
+			ids,
+		),
+		&qents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return groupBy(ids, qents, checkLimit(nil), func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID }), nil
+}
+
+func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupID(ctx context.Context, ids []int) ([][]*model.ValidationReportError, []error) {
+	qents := []*model.ValidationReportError{}
+	q := sq.StatementBuilder.Select("*").
+		From("tl_validation_report_error_exemplars").
+		Where(sq.Eq{"validation_report_id": ids})
+	err := dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			q,
+			"tl_validation_report_error_groups",
+			"id",
+			"tl_validation_report_error_exemplars",
+			"validation_report_error_group_id",
+			ids,
+		),
+		&qents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return groupBy(ids, qents, checkLimit(nil), func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID }), nil
 }
 
 func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {

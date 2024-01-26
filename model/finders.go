@@ -46,7 +46,6 @@ type EntityLoader interface {
 	CalendarsByID(context.Context, []int) ([]*Calendar, []error)
 	ShapesByID(context.Context, []int) ([]*Shape, []error)
 	FeedVersionsByID(context.Context, []int) ([]*FeedVersion, []error)
-	ValidationReportsByFeedVersionID(context.Context, []int) ([]*ValidationResult, []error)
 	FeedsByID(context.Context, []int) ([]*Feed, []error)
 	AgenciesByID(context.Context, []int) ([]*Agency, []error)
 	StopsByID(context.Context, []int) ([]*Stop, []error)
@@ -98,6 +97,11 @@ type EntityLoader interface {
 	CalendarDatesByServiceID(context.Context, []CalendarDateParam) ([][]*CalendarDate, []error)
 	CensusGeographiesByEntityID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
 	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
+
+	// Validation reports
+	ValidationReportsByFeedVersionID(context.Context, []int) ([][]*ValidationReport, []error)
+	ValidationReportErrorGroupsByValidationReportID(context.Context, []int) ([][]*ValidationReportErrorGroup, []error)
+	ValidationReportErrorExemplarsByValidationReportErrorGroupID(context.Context, []int) ([][]*ValidationReportError, []error)
 }
 
 // RTFinder manages and looks up RT data

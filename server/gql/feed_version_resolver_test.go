@@ -1,6 +1,7 @@
 package gql
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -282,6 +283,17 @@ func TestFeedVersionResolver(t *testing.T) {
 			selector:    "feed_versions.#.sha1",
 			expectError: true,
 			f: func(t *testing.T, jj string) {
+			},
+		},
+		// Saved validation reports
+		{
+			name:         "validation reports",
+			query:        `query($feed_version_sha1: String!) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports{success failure_reason errors { filename error_type error_code message field count limit } }} }`,
+			vars:         hw{"feed_version_sha1": "32506751d043b4f4675409ba7cb230f89f7114e4"},
+			selector:     "feed_versions.0.validation_reports.0.success",
+			selectExpect: []string{"true"},
+			f: func(t *testing.T, jj string) {
+				fmt.Println(jj)
 			},
 		},
 	}

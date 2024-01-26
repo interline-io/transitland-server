@@ -9,6 +9,7 @@ import (
 
 	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-lib/rt"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/auth/azcheck"
 	"github.com/interline-io/transitland-mw/jobs"
@@ -36,19 +37,17 @@ type Options struct {
 
 func Config(t testing.TB, opts Options) model.Config {
 	db := testutil.MustOpenTestDB(t)
-	return newTestConfig(t, db, opts)
+	return newTestConfig(t, &tldb.QueryLogger{Ext: db}, opts)
 }
 
 func ConfigTx(t testing.TB, opts Options, cb func(model.Config) error) {
-	// Check open DB
-	db := testutil.MustOpenTestDB(t)
-
 	// Start Txn
+	db := testutil.MustOpenTestDB(t)
 	tx := db.MustBeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
 	// Get finders
-	testEnv := newTestConfig(t, tx, opts)
+	testEnv := newTestConfig(t, &tldb.QueryLogger{Ext: tx}, opts)
 
 	// Commit or rollback
 	if err := cb(testEnv); err != nil {

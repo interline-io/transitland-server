@@ -14,7 +14,7 @@ import (
 )
 
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
-func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls []string) (*model.ValidationResult, error) {
+func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls []string) (*model.ValidationReport, error) {
 	cfg := model.ForContext(ctx)
 
 	// Check inputs
@@ -32,7 +32,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		feedURL = nil
 	}
 	//////
-	result := model.ValidationResult{}
+	result := model.ValidationReport{}
 	var reader tl.Reader
 	if src != nil {
 		// Prepare reader
@@ -97,7 +97,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 	// Some mapping is necessary because most gql models have some extra fields not in the base tl models.
 	result.Success = r.Success
 	result.FailureReason = r.FailureReason
-	result.Details = model.ValidationResultDetails{}
+	result.Details = model.ValidationReportDetails{}
 	result.Details.Sha1 = r.Details.SHA1
 	result.Details.EarliestCalendarDate = r.Details.EarliestCalendarDate
 	result.Details.LatestCalendarDate = r.Details.LatestCalendarDate
@@ -105,7 +105,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		if eg == nil {
 			continue
 		}
-		eg2 := model.ValidationResultErrorGroup{
+		eg2 := model.ValidationReportErrorGroup{
 			Filename:  eg.Filename,
 			Field:     eg.Field,
 			ErrorCode: eg.ErrorCode,
@@ -114,7 +114,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 			Limit:     eg.Limit,
 		}
 		for _, err := range eg.Errors {
-			err2 := model.ValidationResultError{
+			err2 := model.ValidationReportError{
 				Filename:  eg.Filename,
 				Field:     eg.Field,
 				ErrorType: eg.ErrorType,
@@ -132,7 +132,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		if eg == nil {
 			continue
 		}
-		eg2 := model.ValidationResultErrorGroup{
+		eg2 := model.ValidationReportErrorGroup{
 			Filename:  eg.Filename,
 			Field:     eg.Field,
 			ErrorCode: eg.ErrorCode,
@@ -141,7 +141,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 			Limit:     eg.Limit,
 		}
 		for _, err := range eg.Errors {
-			err2 := model.ValidationResultError{
+			err2 := model.ValidationReportError{
 				Filename:  eg.Filename,
 				Field:     eg.Field,
 				ErrorType: eg.ErrorType,
