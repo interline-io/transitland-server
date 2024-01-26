@@ -45,6 +45,7 @@ type Loaders struct {
 	AgenciesByOnestopID                     *dataloader.Loader[model.AgencyParam, []*model.Agency]
 	FeedVersionServiceLevelsByFeedVersionID *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
 	FeedVersionFileInfosByFeedVersionID     *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
+	ValidationReportsByFeedVersionID        *dataloader.Loader[*model.ValidationResult, []*model.ValidationResult]
 	AgenciesByFeedVersionID                 *dataloader.Loader[model.AgencyParam, []*model.Agency]
 	RoutesByFeedVersionID                   *dataloader.Loader[model.RouteParam, []*model.Route]
 	StopsByFeedVersionID                    *dataloader.Loader[model.StopParam, []*model.Stop]

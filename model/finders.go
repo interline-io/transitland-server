@@ -46,6 +46,7 @@ type EntityLoader interface {
 	CalendarsByID(context.Context, []int) ([]*Calendar, []error)
 	ShapesByID(context.Context, []int) ([]*Shape, []error)
 	FeedVersionsByID(context.Context, []int) ([]*FeedVersion, []error)
+	ValidationReportsByFeedVersionID(context.Context, []int) ([]*ValidationResult, []error)
 	FeedsByID(context.Context, []int) ([]*Feed, []error)
 	AgenciesByID(context.Context, []int) ([]*Agency, []error)
 	StopsByID(context.Context, []int) ([]*Stop, []error)

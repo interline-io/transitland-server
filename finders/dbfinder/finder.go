@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -147,6 +148,11 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 }
 
 // Custom queries
+
+func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, fvids []int) ([]*model.ValidationResult, []error) {
+	fmt.Println("ValidationReportsByFeedVersionID", ctx, fvids)
+	return nil, nil
+}
 
 func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (time.Time, time.Time, time.Time, error) {
 	type fvslQuery struct {
