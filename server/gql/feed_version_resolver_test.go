@@ -1,7 +1,6 @@
 package gql
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +14,7 @@ func TestFeedVersionResolver(t *testing.T) {
 			name:         "basic",
 			query:        `query {  feed_versions {sha1} }`,
 			selector:     "feed_versions.#.sha1",
-			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "c969427f56d3a645195dd8365cde6d7feae7e99b", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "43e2278aa272879c79460582152b04e7487f0493"},
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "c969427f56d3a645195dd8365cde6d7feae7e99b", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "43e2278aa272879c79460582152b04e7487f0493", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
 		{
 			name:   "basic fields",
@@ -199,7 +198,7 @@ func TestFeedVersionResolver(t *testing.T) {
 			name:         "covers fetched_before",
 			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{fetched_before:"2123-04-05T06:07:08.9Z"}}) {sha1} }`,
 			selector:     "feed_versions.#.sha1",
-			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
 		{
 			name:         "covers fetched_before 2",
@@ -212,7 +211,7 @@ func TestFeedVersionResolver(t *testing.T) {
 			name:         "covers fetched_after",
 			query:        `query{feed_versions(where:{feed_onestop_id:"BA", covers:{fetched_after:"2009-08-07T06:05:04.3Z"}}) {sha1} }`,
 			selector:     "feed_versions.#.sha1",
-			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+			selectExpect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
 		{
 			name:         "covers fetched_after 2",
@@ -240,7 +239,7 @@ func TestFeedVersionResolver(t *testing.T) {
 			query:        `query($near:PointRadius) {feed_versions(where: {near:$near}) {sha1}}`,
 			vars:         hw{"near": hw{"lon": -122.2698781543005, "lat": 37.80700393130445, "radius": 1000}},
 			selector:     "feed_versions.#.sha1",
-			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
 		{
 			name:         "radius 2",
@@ -260,14 +259,14 @@ func TestFeedVersionResolver(t *testing.T) {
 				{-122.39803791046143, 37.794626736533836},
 			}}}},
 			selector:     "feed_versions.#.sha1",
-			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
 		{
 			name:         "bbox 1",
 			query:        `query($bbox:BoundingBox) {feed_versions(where: {bbox:$bbox}) {sha1}}`,
 			vars:         hw{"bbox": hw{"min_lon": -122.2698781543005, "min_lat": 37.80700393130445, "max_lon": -122.2677640139239, "max_lat": 37.8088734037938}},
 			selector:     "feed_versions.#.sha1",
-			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
 		{
 			name:         "bbox 2",
@@ -283,17 +282,6 @@ func TestFeedVersionResolver(t *testing.T) {
 			selector:    "feed_versions.#.sha1",
 			expectError: true,
 			f: func(t *testing.T, jj string) {
-			},
-		},
-		// Saved validation reports
-		{
-			name:         "validation reports",
-			query:        `query($feed_version_sha1: String!) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports{success failure_reason errors { filename error_type error_code message field count limit } }} }`,
-			vars:         hw{"feed_version_sha1": "32506751d043b4f4675409ba7cb230f89f7114e4"},
-			selector:     "feed_versions.0.validation_reports.0.success",
-			selectExpect: []string{"true"},
-			f: func(t *testing.T, jj string) {
-				fmt.Println(jj)
 			},
 		},
 	}

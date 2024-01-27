@@ -6,7 +6,7 @@ import (
 )
 
 func TestValidationReportResolver(t *testing.T) {
-	vars := hw{"feed_version_sha1": "32506751d043b4f4675409ba7cb230f89f7114e4"}
+	vars := hw{"feed_version_sha1": "96b67c0934b689d9085c52967365d8c233ea321d"}
 	testcases := []testcase{
 		// Saved validation reports
 		{
