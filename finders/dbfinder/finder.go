@@ -1065,7 +1065,7 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 }
 
 func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
-	ret, _ := paramGroupQuery(
+	ret, errs := paramGroupQuery(
 		params,
 		func(p model.FeedVersionParam) (int, *model.FeedVersionFilter, *int) {
 			return p.FeedID, p.Where, p.Limit
@@ -1093,7 +1093,7 @@ func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVe
 			return ent.FeedID
 		},
 	)
-	return ret, nil
+	return ret, errs
 }
 
 func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, params []model.ValidationReportParam) ([][]*model.ValidationReport, []error) {
@@ -2006,6 +2006,7 @@ func paramGroupQuery[
 
 	// Process each param group
 	for _, pgroup := range paramGroups {
+		// Run query function
 		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
 
 		// Group using keyFunc and merge into output
@@ -2020,7 +2021,8 @@ func paramGroupQuery[
 			gi := bykey[key]
 			if err != nil {
 				errs[idx] = err
-			} else if uint64(len(gi)) <= limit {
+			}
+			if uint64(len(gi)) <= limit {
 				ret[idx] = gi
 			} else {
 				ret[idx] = gi[0:limit]

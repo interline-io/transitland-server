@@ -174,18 +174,22 @@ func unwrapResult[
 	cb func(context.Context, []ParamT) ([]T, []error),
 ) func(context.Context, []ParamT) []*dataloader.Result[T] {
 	x := func(ctx context.Context, ps []ParamT) []*dataloader.Result[T] {
-		a, err := cb(ctx, ps)
-		if len(err) > 0 {
-			log.Trace().Err(err[0]).Msg("error in dataloader")
-			return nil
-		}
+		a, errs := cb(ctx, ps)
 		if len(a) != len(ps) {
 			log.Trace().Msgf("error in dataloader, result len %d did not match param length %d", len(a), len(ps))
 			return nil
 		}
 		ret := make([]*dataloader.Result[T], len(ps))
 		for idx := range ps {
-			ret[idx] = &dataloader.Result[T]{Data: a[idx]}
+			var err error
+			if idx < len(errs) {
+				err = errs[idx]
+			}
+			var data T
+			if idx < len(a) {
+				data = a[idx]
+			}
+			ret[idx] = &dataloader.Result[T]{Data: data, Error: err}
 		}
 		return ret
 	}
