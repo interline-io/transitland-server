@@ -1089,10 +1089,14 @@ func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVe
 		if err != nil {
 			return nil, logExtendErr(ctx, len(params), err)
 		}
-		grouped := groupBy(pgroup.Keys, qents, checkLimit(params[0].Limit), func(ent *model.FeedVersion) int { return ent.FeedID })
-		for i, idx := range pgroup.Index {
-			ret[idx] = grouped[i]
-		}
+		groupSet(
+			ret,
+			pgroup.Index,
+			pgroup.Keys,
+			qents,
+			checkLimit(pgroup.Limit),
+			func(ent *model.FeedVersion) int { return ent.FeedID },
+		)
 	}
 	return ret, nil
 }
@@ -1110,7 +1114,7 @@ func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, params []
 		err := dbutil.Select(ctx,
 			f.db,
 			lateralWrap(
-				quickSelect("tl_validation_reports", nil, nil, nil),
+				quickSelect("tl_validation_reports", pgroup.Limit, nil, nil),
 				"feed_versions",
 				"id",
 				"tl_validation_reports",
@@ -1122,65 +1126,90 @@ func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, params []
 		if err != nil {
 			return nil, logExtendErr(ctx, len(params), err)
 		}
-		grouped := groupBy(
+		groupSet(
+			ret,
+			pgroup.Index,
 			pgroup.Keys,
 			ents,
 			checkLimit(pgroup.Limit),
 			func(ent *model.ValidationReport) int { return ent.FeedVersionID },
 		)
-		for i := 0; i < len(pgroup.Index); i++ {
-			ret[pgroup.Index[i]] = grouped[pgroup.Index[i]]
-		}
 	}
 	return ret, nil
 }
 
 func (f *Finder) ValidationReportErrorGroupsByValidationReportID(ctx context.Context, params []model.ValidationReportErrorGroupParam) ([][]*model.ValidationReportErrorGroup, []error) {
-	var ids []int
-	for _, p := range params {
-		ids = append(ids, p.ValidationReportID)
-	}
-	qents := []*model.ValidationReportErrorGroup{}
-	err := dbutil.Select(ctx,
-		f.db,
-		lateralWrap(
-			quickSelect("tl_validation_report_error_groups", nil, nil, nil),
-			"tl_validation_reports",
-			"id",
-			"tl_validation_report_error_groups",
-			"validation_report_id",
-			ids,
-		),
-		&qents,
+	ret := make([][]*model.ValidationReportErrorGroup, len(params))
+	pgroups, _ := makeParamGroups(
+		params,
+		func(p model.ValidationReportErrorGroupParam) (int, bool, *int) {
+			return p.ValidationReportID, false, p.Limit
+		},
 	)
-	if err != nil {
-		return nil, logExtendErr(ctx, len(ids), err)
+	for _, pgroup := range pgroups {
+		var ents []*model.ValidationReportErrorGroup
+		err := dbutil.Select(ctx,
+			f.db,
+			lateralWrap(
+				quickSelect("tl_validation_report_error_groups", pgroup.Limit, nil, nil),
+				"tl_validation_reports",
+				"id",
+				"tl_validation_report_error_groups",
+				"validation_report_id",
+				pgroup.Keys,
+			),
+			&ents,
+		)
+		if err != nil {
+			return nil, logExtendErr(ctx, len(params), err)
+		}
+		groupSet(
+			ret,
+			pgroup.Index,
+			pgroup.Keys,
+			ents,
+			checkLimit(pgroup.Limit),
+			func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID },
+		)
 	}
-	return groupBy(ids, qents, checkLimit(nil), func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID }), nil
+	return ret, nil
 }
 
 func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupID(ctx context.Context, params []model.ValidationReportErrorExemplarParam) ([][]*model.ValidationReportError, []error) {
-	var ids []int
-	for _, p := range params {
-		ids = append(ids, p.ValidationReportGroupID)
-	}
-	qents := []*model.ValidationReportError{}
-	err := dbutil.Select(ctx,
-		f.db,
-		lateralWrap(
-			quickSelect("tl_validation_report_error_exemplars", nil, nil, nil),
-			"tl_validation_report_error_groups",
-			"id",
-			"tl_validation_report_error_exemplars",
-			"validation_report_error_group_id",
-			ids,
-		),
-		&qents,
+	ret := make([][]*model.ValidationReportError, len(params))
+	pgroups, _ := makeParamGroups(
+		params,
+		func(p model.ValidationReportErrorExemplarParam) (int, bool, *int) {
+			return p.ValidationReportGroupID, false, p.Limit
+		},
 	)
-	if err != nil {
-		return nil, logExtendErr(ctx, len(ids), err)
+	for _, pgroup := range pgroups {
+		var ents []*model.ValidationReportError
+		err := dbutil.Select(ctx,
+			f.db,
+			lateralWrap(
+				quickSelect("tl_validation_report_error_exemplars", pgroup.Limit, nil, nil),
+				"tl_validation_report_error_groups",
+				"id",
+				"tl_validation_report_error_exemplars",
+				"validation_report_error_group_id",
+				pgroup.Keys,
+			),
+			&ents,
+		)
+		if err != nil {
+			return nil, logExtendErr(ctx, len(params), err)
+		}
+		groupSet(
+			ret,
+			pgroup.Index,
+			pgroup.Keys,
+			ents,
+			checkLimit(pgroup.Limit),
+			func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID },
+		)
 	}
-	return groupBy(ids, qents, checkLimit(nil), func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID }), nil
+	return ret, nil
 }
 
 func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
@@ -1874,6 +1903,23 @@ func marshalParam(param interface{}) string {
 func retEmpty[T any](size int) ([]T, []error) {
 	ret := make([]T, size)
 	return ret, nil
+}
+
+func groupSet[K comparable, T any](ret [][]T, idxs []int, keys []K, ents []T, limit uint64, cb func(T) K) {
+	bykey := map[K][]T{}
+	for _, ent := range ents {
+		key := cb(ent)
+		bykey[key] = append(bykey[key], ent)
+	}
+	for keyidx, key := range keys {
+		idx := idxs[keyidx]
+		gi := bykey[key]
+		if uint64(len(gi)) <= limit {
+			ret[idx] = gi
+		} else {
+			ret[idx] = gi[0:limit]
+		}
+	}
 }
 
 func groupBy[K comparable, T any](keys []K, ents []T, limit uint64, cb func(T) K) [][]T {
