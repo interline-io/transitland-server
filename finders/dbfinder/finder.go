@@ -1065,150 +1065,115 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 }
 
 func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
-	ret := make([][]*model.FeedVersion, len(params))
-	pgroups, _ := makeParamGroups(
+	ret, _ := paramGroupQuery(
 		params,
 		func(p model.FeedVersionParam) (int, *model.FeedVersionFilter, *int) {
 			return p.FeedID, p.Where, p.Limit
 		},
+		func(keys []int, where *model.FeedVersionFilter, limit *int) ([]*model.FeedVersion, error) {
+			var ents []*model.FeedVersion
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					FeedVersionSelect(limit, nil, nil, f.PermFilter(ctx), where),
+					"current_feeds",
+					"id",
+					"feed_versions",
+					"feed_id",
+					keys,
+				),
+				&ents,
+			)
+			if err != nil {
+				return nil, err
+			}
+			return ents, nil
+		},
+		func(ent *model.FeedVersion) int {
+			return ent.FeedID
+		},
 	)
-	for _, pgroup := range pgroups {
-		var qents []*model.FeedVersion
-		err := dbutil.Select(ctx,
-			f.db,
-			lateralWrap(
-				FeedVersionSelect(pgroup.Limit, nil, nil, f.PermFilter(ctx), pgroup.Where),
-				"current_feeds",
-				"id",
-				"feed_versions",
-				"feed_id",
-				pgroup.Keys,
-			),
-			&qents,
-		)
-		if err != nil {
-			return nil, logExtendErr(ctx, len(params), err)
-		}
-		groupSet(
-			ret,
-			pgroup.Index,
-			pgroup.Keys,
-			qents,
-			checkLimit(pgroup.Limit),
-			func(ent *model.FeedVersion) int { return ent.FeedID },
-		)
-	}
 	return ret, nil
 }
 
 func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, params []model.ValidationReportParam) ([][]*model.ValidationReport, []error) {
-	ret := make([][]*model.ValidationReport, len(params))
-	pgroups, _ := makeParamGroups(
+	ret, _ := paramGroupQuery(
 		params,
 		func(p model.ValidationReportParam) (int, *model.ValidationReportFilter, *int) {
 			return p.FeedVersionID, p.Where, p.Limit
 		},
+		func(keys []int, where *model.ValidationReportFilter, limit *int) ([]*model.ValidationReport, error) {
+			var ents []*model.ValidationReport
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_validation_reports", limit, nil, nil),
+					"feed_versions",
+					"id",
+					"tl_validation_reports",
+					"feed_version_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.ValidationReport) int { return ent.FeedVersionID },
 	)
-	for _, pgroup := range pgroups {
-		var ents []*model.ValidationReport
-		err := dbutil.Select(ctx,
-			f.db,
-			lateralWrap(
-				quickSelect("tl_validation_reports", pgroup.Limit, nil, nil),
-				"feed_versions",
-				"id",
-				"tl_validation_reports",
-				"feed_version_id",
-				pgroup.Keys,
-			),
-			&ents,
-		)
-		if err != nil {
-			return nil, logExtendErr(ctx, len(params), err)
-		}
-		groupSet(
-			ret,
-			pgroup.Index,
-			pgroup.Keys,
-			ents,
-			checkLimit(pgroup.Limit),
-			func(ent *model.ValidationReport) int { return ent.FeedVersionID },
-		)
-	}
 	return ret, nil
 }
 
 func (f *Finder) ValidationReportErrorGroupsByValidationReportID(ctx context.Context, params []model.ValidationReportErrorGroupParam) ([][]*model.ValidationReportErrorGroup, []error) {
-	ret := make([][]*model.ValidationReportErrorGroup, len(params))
-	pgroups, _ := makeParamGroups(
+	ret, _ := paramGroupQuery(
 		params,
 		func(p model.ValidationReportErrorGroupParam) (int, bool, *int) {
 			return p.ValidationReportID, false, p.Limit
 		},
+		func(keys []int, where bool, limit *int) ([]*model.ValidationReportErrorGroup, error) {
+			var ents []*model.ValidationReportErrorGroup
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_validation_report_error_groups", limit, nil, nil),
+					"tl_validation_reports",
+					"id",
+					"tl_validation_report_error_groups",
+					"validation_report_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID },
 	)
-	for _, pgroup := range pgroups {
-		var ents []*model.ValidationReportErrorGroup
-		err := dbutil.Select(ctx,
-			f.db,
-			lateralWrap(
-				quickSelect("tl_validation_report_error_groups", pgroup.Limit, nil, nil),
-				"tl_validation_reports",
-				"id",
-				"tl_validation_report_error_groups",
-				"validation_report_id",
-				pgroup.Keys,
-			),
-			&ents,
-		)
-		if err != nil {
-			return nil, logExtendErr(ctx, len(params), err)
-		}
-		groupSet(
-			ret,
-			pgroup.Index,
-			pgroup.Keys,
-			ents,
-			checkLimit(pgroup.Limit),
-			func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID },
-		)
-	}
 	return ret, nil
 }
 
 func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupID(ctx context.Context, params []model.ValidationReportErrorExemplarParam) ([][]*model.ValidationReportError, []error) {
-	ret := make([][]*model.ValidationReportError, len(params))
-	pgroups, _ := makeParamGroups(
+	ret, _ := paramGroupQuery(
 		params,
 		func(p model.ValidationReportErrorExemplarParam) (int, bool, *int) {
 			return p.ValidationReportGroupID, false, p.Limit
 		},
+		func(keys []int, where bool, limit *int) ([]*model.ValidationReportError, error) {
+			var ents []*model.ValidationReportError
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_validation_report_error_exemplars", limit, nil, nil),
+					"tl_validation_report_error_groups",
+					"id",
+					"tl_validation_report_error_exemplars",
+					"validation_report_error_group_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID },
 	)
-	for _, pgroup := range pgroups {
-		var ents []*model.ValidationReportError
-		err := dbutil.Select(ctx,
-			f.db,
-			lateralWrap(
-				quickSelect("tl_validation_report_error_exemplars", pgroup.Limit, nil, nil),
-				"tl_validation_report_error_groups",
-				"id",
-				"tl_validation_report_error_exemplars",
-				"validation_report_error_group_id",
-				pgroup.Keys,
-			),
-			&ents,
-		)
-		if err != nil {
-			return nil, logExtendErr(ctx, len(params), err)
-		}
-		groupSet(
-			ret,
-			pgroup.Index,
-			pgroup.Keys,
-			ents,
-			checkLimit(pgroup.Limit),
-			func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID },
-		)
-	}
 	return ret, nil
 }
 
@@ -1905,23 +1870,6 @@ func retEmpty[T any](size int) ([]T, []error) {
 	return ret, nil
 }
 
-func groupSet[K comparable, T any](ret [][]T, idxs []int, keys []K, ents []T, limit uint64, cb func(T) K) {
-	bykey := map[K][]T{}
-	for _, ent := range ents {
-		key := cb(ent)
-		bykey[key] = append(bykey[key], ent)
-	}
-	for keyidx, key := range keys {
-		idx := idxs[keyidx]
-		gi := bykey[key]
-		if uint64(len(gi)) <= limit {
-			ret[idx] = gi
-		} else {
-			ret[idx] = gi[0:limit]
-		}
-	}
-}
-
 func groupBy[K comparable, T any](keys []K, ents []T, limit uint64, cb func(T) K) [][]T {
 	bykey := map[K][]T{}
 	for _, ent := range ents {
@@ -1980,47 +1928,6 @@ type paramGroup[K comparable, M any] struct {
 	Where M
 }
 
-func makeParamGroups[P any, K comparable, W any](params []P, fn func(P) (K, W, *int)) ([]paramGroup[K, W], error) {
-	// Group by JSON representation
-	type paramGroupItem[K comparable, M any] struct {
-		Limit *int
-		Where M
-	}
-	paramGroups := map[string]paramGroup[K, W]{}
-	for i, param := range params {
-		// Get values from supplied func
-		key, where, limit := fn(param)
-
-		// Convert to paramGroupItem
-		item := paramGroupItem[K, W]{
-			Limit: limit,
-			Where: where,
-		}
-
-		// Use the JSON representation of Where and Limit as the key
-		j, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
-		if err != nil {
-			return nil, err
-		}
-		paramGroupKey := string(j)
-
-		// Add index and key
-		a, ok := paramGroups[paramGroupKey]
-		if !ok {
-			a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
-		}
-		a.Index = append(a.Index, i)
-		a.Keys = append(a.Keys, key)
-		paramGroups[paramGroupKey] = a
-	}
-	var ret []paramGroup[K, W]
-	for _, v := range paramGroups {
-		ret = append(ret, v)
-	}
-	return ret, nil
-
-}
-
 func paramsByGroup[K comparable, M any](items []paramItem[K, M]) ([]paramGroup[K, M], error) {
 	// JSON representation of paramItem.Where is used for grouping.
 	// This might not be the best way to do it, but it's convenient.
@@ -2043,6 +1950,80 @@ func paramsByGroup[K comparable, M any](items []paramItem[K, M]) ([]paramGroup[K
 	var ret []paramGroup[K, M]
 	for _, v := range groups {
 		ret = append(ret, v)
+	}
+	return ret, nil
+}
+
+func paramGroupQuery[
+	K comparable,
+	P any,
+	W any,
+	R any,
+](
+	params []P,
+	paramFunc func(P) (K, W, *int),
+	queryFunc func([]K, W, *int) ([]*R, error),
+	keyFunc func(*R) K,
+) ([][]*R, error) {
+	// Group params by JSON representation
+	type paramGroupItem[K comparable, M any] struct {
+		Limit *int
+		Where M
+	}
+	paramGroups := map[string]paramGroup[K, W]{}
+	for i, param := range params {
+		// Get values from supplied func
+		key, where, limit := paramFunc(param)
+
+		// Convert to paramGroupItem
+		item := paramGroupItem[K, W]{
+			Limit: limit,
+			Where: where,
+		}
+
+		// Use the JSON representation of Where and Limit as the key
+		jj, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
+		if err != nil {
+			return nil, err
+		}
+		paramGroupKey := string(jj)
+
+		// Add index and key
+		a, ok := paramGroups[paramGroupKey]
+		if !ok {
+			a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
+		}
+		a.Index = append(a.Index, i)
+		a.Keys = append(a.Keys, key)
+		paramGroups[paramGroupKey] = a
+	}
+
+	// Create return value
+	ret := make([][]*R, len(params))
+
+	// Process each param group
+	for _, pgroup := range paramGroups {
+		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
+		if err != nil {
+			panic(err)
+		}
+
+		// Group using keyFunc and merge into output
+		limit := checkLimit(pgroup.Limit)
+		bykey := map[K][]*R{}
+		for _, ent := range ents {
+			key := keyFunc(ent)
+			bykey[key] = append(bykey[key], ent)
+		}
+		for keyidx, key := range pgroup.Keys {
+			idx := pgroup.Index[keyidx]
+			gi := bykey[key]
+			if uint64(len(gi)) <= limit {
+				ret[idx] = gi
+			} else {
+				ret[idx] = gi[0:limit]
+			}
+		}
 	}
 	return ret, nil
 }
