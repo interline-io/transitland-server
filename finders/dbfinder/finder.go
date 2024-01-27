@@ -1065,30 +1065,116 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 }
 
 func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
-	if len(params) == 0 {
-		return nil, nil
-	}
-	ids := []int{}
-	for _, p := range params {
-		ids = append(ids, p.FeedID)
-	}
-	qents := []*model.FeedVersion{}
-	err := dbutil.Select(ctx,
-		f.db,
-		lateralWrap(
-			FeedVersionSelect(params[0].Limit, nil, nil, f.PermFilter(ctx), params[0].Where),
-			"current_feeds",
-			"id",
-			"feed_versions",
-			"feed_id",
-			ids,
-		),
-		&qents,
+	ret, errs := paramGroupQuery(
+		params,
+		func(p model.FeedVersionParam) (int, *model.FeedVersionFilter, *int) {
+			return p.FeedID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.FeedVersionFilter, limit *int) ([]*model.FeedVersion, error) {
+			var ents []*model.FeedVersion
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					FeedVersionSelect(limit, nil, nil, f.PermFilter(ctx), where),
+					"current_feeds",
+					"id",
+					"feed_versions",
+					"feed_id",
+					keys,
+				),
+				&ents,
+			)
+			if err != nil {
+				return nil, err
+			}
+			return ents, nil
+		},
+		func(ent *model.FeedVersion) int {
+			return ent.FeedID
+		},
 	)
-	if err != nil {
-		return nil, logExtendErr(ctx, len(params), err)
-	}
-	return groupBy(ids, qents, checkLimit(params[0].Limit), func(ent *model.FeedVersion) int { return ent.FeedID }), nil
+	return ret, errs
+}
+
+func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, params []model.ValidationReportParam) ([][]*model.ValidationReport, []error) {
+	ret, _ := paramGroupQuery(
+		params,
+		func(p model.ValidationReportParam) (int, *model.ValidationReportFilter, *int) {
+			return p.FeedVersionID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.ValidationReportFilter, limit *int) ([]*model.ValidationReport, error) {
+			var ents []*model.ValidationReport
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_validation_reports", limit, nil, nil),
+					"feed_versions",
+					"id",
+					"tl_validation_reports",
+					"feed_version_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.ValidationReport) int { return ent.FeedVersionID },
+	)
+	return ret, nil
+}
+
+func (f *Finder) ValidationReportErrorGroupsByValidationReportID(ctx context.Context, params []model.ValidationReportErrorGroupParam) ([][]*model.ValidationReportErrorGroup, []error) {
+	ret, _ := paramGroupQuery(
+		params,
+		func(p model.ValidationReportErrorGroupParam) (int, bool, *int) {
+			return p.ValidationReportID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) ([]*model.ValidationReportErrorGroup, error) {
+			var ents []*model.ValidationReportErrorGroup
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_validation_report_error_groups", limit, nil, nil),
+					"tl_validation_reports",
+					"id",
+					"tl_validation_report_error_groups",
+					"validation_report_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID },
+	)
+	return ret, nil
+}
+
+func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupID(ctx context.Context, params []model.ValidationReportErrorExemplarParam) ([][]*model.ValidationReportError, []error) {
+	ret, _ := paramGroupQuery(
+		params,
+		func(p model.ValidationReportErrorExemplarParam) (int, bool, *int) {
+			return p.ValidationReportGroupID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) ([]*model.ValidationReportError, error) {
+			var ents []*model.ValidationReportError
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_validation_report_error_exemplars", limit, nil, nil),
+					"tl_validation_report_error_groups",
+					"id",
+					"tl_validation_report_error_exemplars",
+					"validation_report_error_group_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID },
+	)
+	return ret, nil
 }
 
 func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
@@ -1866,6 +1952,84 @@ func paramsByGroup[K comparable, M any](items []paramItem[K, M]) ([]paramGroup[K
 		ret = append(ret, v)
 	}
 	return ret, nil
+}
+
+func paramGroupQuery[
+	K comparable,
+	P any,
+	W any,
+	R any,
+](
+	params []P,
+	paramFunc func(P) (K, W, *int),
+	queryFunc func([]K, W, *int) ([]*R, error),
+	keyFunc func(*R) K,
+) ([][]*R, []error) {
+	// Create return value
+	ret := make([][]*R, len(params))
+	errs := make([]error, len(params))
+
+	// Group params by JSON representation
+	type paramGroupItem[K comparable, M any] struct {
+		Limit *int
+		Where M
+	}
+	paramGroups := map[string]paramGroup[K, W]{}
+	for i, param := range params {
+		// Get values from supplied func
+		key, where, limit := paramFunc(param)
+
+		// Convert to paramGroupItem
+		item := paramGroupItem[K, W]{
+			Limit: limit,
+			Where: where,
+		}
+
+		// Use the JSON representation of Where and Limit as the key
+		jj, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
+		if err != nil {
+			// TODO: log and expand error
+			errs[i] = err
+			continue
+		}
+		paramGroupKey := string(jj)
+
+		// Add index and key
+		a, ok := paramGroups[paramGroupKey]
+		if !ok {
+			a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
+		}
+		a.Index = append(a.Index, i)
+		a.Keys = append(a.Keys, key)
+		paramGroups[paramGroupKey] = a
+	}
+
+	// Process each param group
+	for _, pgroup := range paramGroups {
+		// Run query function
+		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
+
+		// Group using keyFunc and merge into output
+		limit := checkLimit(pgroup.Limit)
+		bykey := map[K][]*R{}
+		for _, ent := range ents {
+			key := keyFunc(ent)
+			bykey[key] = append(bykey[key], ent)
+		}
+		for keyidx, key := range pgroup.Keys {
+			idx := pgroup.Index[keyidx]
+			gi := bykey[key]
+			if err != nil {
+				errs[idx] = err
+			}
+			if uint64(len(gi)) <= limit {
+				ret[idx] = gi
+			} else {
+				ret[idx] = gi[0:limit]
+			}
+		}
+	}
+	return ret, errs
 }
 
 type canCheckGlobalAdmin interface {

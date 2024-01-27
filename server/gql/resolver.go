@@ -162,3 +162,11 @@ func (r *Resolver) Directions(ctx context.Context, where model.DirectionRequest)
 func (r *Resolver) Place() gqlout.PlaceResolver {
 	return &placeResolver{r}
 }
+
+func (r *Resolver) ValidationReport() gqlout.ValidationReportResolver {
+	return &validationReportResolver{r}
+}
+
+func (r *Resolver) ValidationReportErrorGroup() gqlout.ValidationReportErrorGroupResolver {
+	return &validationReportErrorGroupResolver{r}
+}

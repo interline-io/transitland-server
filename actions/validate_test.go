@@ -18,13 +18,13 @@ func TestValidateUpload(t *testing.T) {
 		serveFile   string
 		rtUrls      []string
 		expectError bool
-		f           func(*testing.T, *model.ValidationResult)
+		f           func(*testing.T, *model.ValidationReport)
 	}{
 		{
 			name:      "ct",
 			serveFile: "external/caltrain.zip",
 			rtUrls:    []string{"rt/CT-vp-error.json"},
-			f: func(t *testing.T, result *model.ValidationResult) {
+			f: func(t *testing.T, result *model.ValidationReport) {
 				if len(result.Errors) != 1 {
 					t.Fatal("expected errors")
 					return

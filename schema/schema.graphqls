@@ -36,7 +36,7 @@ type Query {
 }
 
 type Mutation {
-    validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationResult
+    validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
     feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion
     feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
     feed_version_import(id: Int!): FeedVersionImportResult!
@@ -184,7 +184,7 @@ type FeedVersion {
   stops(limit: Int, where: StopFilter): [Stop!]!
   trips(limit: Int, where: TripFilter): [Trip!]!
   feed_infos(limit: Int): [FeedInfo!]!
-  # validation_reports(limit: Int, where: ValidationReportFilter): [ValidationResult!]
+  validation_reports(limit: Int, where: ValidationReportFilter): [ValidationReport!]
 }
 
 type FeedVersionFileInfo {
@@ -713,16 +713,17 @@ type RouteStopBuffer {
 
 # Validation tools
 
-type ValidationResult {
+type ValidationReport {
   # Validation output
+  id: Int!
   success: Boolean!
   failure_reason: String!
-  errors: [ValidationResultErrorGroup!]!
-  warnings: [ValidationResultErrorGroup!]!
-  details: ValidationResultDetails
+  errors(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
+  warnings(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
+  details: ValidationReportDetails @goField(forceResolver: true)
 }
 
-type ValidationResultDetails {
+type ValidationReportDetails {
   sha1: String!
   earliest_calendar_date: Date
   latest_calendar_date: Date
@@ -740,7 +741,7 @@ type ValidationRealtimeResult {
   json: Map
 }
 
-type ValidationResultErrorGroup {
+type ValidationReportErrorGroup {
   filename: String!
   error_type: String!
   error_code: String!
@@ -748,10 +749,10 @@ type ValidationResultErrorGroup {
   field: String!
   count: Int!
   limit: Int!
-  errors: [ValidationResultError!]!
+  errors(limit: Int): [ValidationReportError!]! @goField(forceResolver: true)
 }
 
-type ValidationResultError {
+type ValidationReportError {
   filename: String!
   error_type: String!
   error_code: String!

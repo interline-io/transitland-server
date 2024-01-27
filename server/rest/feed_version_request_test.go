@@ -14,7 +14,7 @@ func TestFeedVersionRequest(t *testing.T) {
 			h:            FeedVersionRequest{},
 			format:       "",
 			selector:     "feed_versions.#.sha1",
-			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "c969427f56d3a645195dd8365cde6d7feae7e99b", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "43e2278aa272879c79460582152b04e7487f0493"},
+			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "c969427f56d3a645195dd8365cde6d7feae7e99b", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "43e2278aa272879c79460582152b04e7487f0493", "96b67c0934b689d9085c52967365d8c233ea321d"},
 			expectLength: 0,
 		},
 		{
@@ -38,7 +38,7 @@ func TestFeedVersionRequest(t *testing.T) {
 			h:            FeedVersionRequest{WithCursor: WithCursor{Limit: 100}, FeedOnestopID: "BA"},
 			format:       "",
 			selector:     "feed_versions.#.sha1",
-			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"},
 			expectLength: 0,
 		},
 		{
@@ -46,7 +46,7 @@ func TestFeedVersionRequest(t *testing.T) {
 			h:            FeedVersionRequest{FetchedAfter: "2009-08-07T06:05:04.3Z", FeedOnestopID: "BA"},
 			format:       "",
 			selector:     "feed_versions.#.sha1",
-			expectSelect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+			expectSelect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
 		{
 			name:         "fetched_after 2",
@@ -60,7 +60,7 @@ func TestFeedVersionRequest(t *testing.T) {
 			h:            FeedVersionRequest{FetchedBefore: "2123-04-05T06:07:08.9Z", FeedOnestopID: "BA"},
 			format:       "",
 			selector:     "feed_versions.#.sha1",
-			expectSelect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0"},
+			expectSelect: []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907", "e535eb2b3b9ac3ef15d82c56575e914575e732e0", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
 		{
 			name:         "fetched_before 2",
@@ -78,7 +78,7 @@ func TestFeedVersionRequest(t *testing.T) {
 		},
 		{
 			name:         "covers_start_date 2",
-			h:            FeedVersionRequest{CoversStartDate: "2010-01-01", FeedOnestopID: "BA"},
+			h:            FeedVersionRequest{CoversStartDate: "2012-01-01", FeedOnestopID: "BA"},
 			format:       "",
 			selector:     "feed_versions.#.sha1",
 			expectSelect: []string{},
@@ -109,21 +109,21 @@ func TestFeedVersionRequest(t *testing.T) {
 			name:         "lat,lon,radius 100m",
 			h:            FeedVersionRequest{Lon: -122.407974, Lat: 37.784471, Radius: 100},
 			selector:     "feed_versions.#.sha1",
-			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"},
 			expectLength: 0,
 		},
 		{
 			name:         "lat,lon,radius 2000m",
 			h:            FeedVersionRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000},
 			selector:     "feed_versions.#.sha1",
-			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "d2813c293bcfd7a97dde599527ae6c62c98e66c6", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"},
 			expectLength: 0,
 		},
 		{
 			name:         "bbox",
 			h:            FeedVersionRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -122.2698781543005, MinLat: 37.80700393130445, MaxLon: -122.2677640139239, MaxLat: 37.8088734037938}}},
 			selector:     "feed_versions.#.sha1",
-			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907"},
+			expectSelect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"},
 			expectLength: 0,
 		},
 	}

@@ -97,6 +97,11 @@ type EntityLoader interface {
 	CalendarDatesByServiceID(context.Context, []CalendarDateParam) ([][]*CalendarDate, []error)
 	CensusGeographiesByEntityID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
 	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
+
+	// Validation reports
+	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
+	ValidationReportErrorGroupsByValidationReportID(context.Context, []ValidationReportErrorGroupParam) ([][]*ValidationReportErrorGroup, []error)
+	ValidationReportErrorExemplarsByValidationReportErrorGroupID(context.Context, []ValidationReportErrorExemplarParam) ([][]*ValidationReportError, []error)
 }
 
 // RTFinder manages and looks up RT data

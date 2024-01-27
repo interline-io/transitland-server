@@ -57,6 +57,12 @@ func (r *feedVersionResolver) FeedInfos(ctx context.Context, obj *model.FeedVers
 	return For(ctx).FeedInfosByFeedVersionID.Load(ctx, model.FeedInfoParam{FeedVersionID: obj.ID, Limit: checkLimit(limit)})()
 }
 
+// FEED VALIDATION REPORT
+
+func (r *feedVersionResolver) ValidationReports(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.ValidationReportFilter) ([]*model.ValidationReport, error) {
+	return For(ctx).ValidationReportsByFeedVersionID.Load(ctx, model.ValidationReportParam{FeedVersionID: obj.ID, Where: where})()
+}
+
 // FEED VERSION GTFS IMPORT
 
 type feedVersionGtfsImportResolver struct{ *Resolver }

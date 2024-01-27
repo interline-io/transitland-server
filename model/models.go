@@ -260,16 +260,17 @@ func (a *ValueMap) Scan(value interface{}) error {
 
 ///////////////// Validation
 
-// ValidationResult .
-type ValidationResult struct {
+type ValidationReport struct {
+	ID            int                          `json:"id"`
+	FeedVersionID int                          `json:"feed_version_id"`
 	Success       bool                         `json:"success"`
 	FailureReason string                       `json:"failure_reason"`
-	Errors        []ValidationResultErrorGroup `json:"errors"`
-	Warnings      []ValidationResultErrorGroup `json:"warnings"`
-	Details       ValidationResultDetails
+	Errors        []ValidationReportErrorGroup `json:"errors"`
+	Warnings      []ValidationReportErrorGroup `json:"warnings"`
+	Details       ValidationReportDetails
 }
 
-type ValidationResultDetails struct {
+type ValidationReportDetails struct {
 	Sha1                 string                     `json:"sha1"`
 	EarliestCalendarDate tl.Date                    `json:"earliest_calendar_date"`
 	LatestCalendarDate   tl.Date                    `json:"latest_calendar_date"`
@@ -287,16 +288,31 @@ type ValidationRealtimeResult struct {
 	Json map[string]any `json:"json"`
 }
 
-type ValidationResultError struct {
-	Filename  string      `json:"filename"`
-	ErrorType string      `json:"error_type"`
-	ErrorCode string      `json:"error_code"`
-	EntityID  string      `json:"entity_id"`
-	Field     string      `json:"field"`
-	Value     string      `json:"value"`
-	Message   string      `json:"message"`
-	Line      int         `json:"line"`
-	Geometry  tt.Geometry `json:"geometry"`
+type ValidationReportErrorGroup struct {
+	ID                 int                      `json:"id"`
+	ValidationReportID int                      `json:"validation_report_id"`
+	Filename           string                   `json:"filename"`
+	ErrorType          string                   `json:"error_type"`
+	ErrorCode          string                   `json:"error_code"`
+	Message            string                   `json:"message"`
+	Field              string                   `json:"field"`
+	Count              int                      `json:"count"`
+	Limit              int                      `json:"limit"`
+	Errors             []*ValidationReportError `json:"errors"`
+}
+
+type ValidationReportError struct {
+	ID                           int         `json:"id"`
+	ValidationReportErrorGroupID int         `json:"validation_report_error_group_id"`
+	Filename                     string      `json:"filename"`
+	ErrorType                    string      `json:"error_type"`
+	ErrorCode                    string      `json:"error_code"`
+	EntityID                     string      `json:"entity_id"`
+	Field                        string      `json:"field"`
+	Value                        string      `json:"value"`
+	Message                      string      `json:"message"`
+	Line                         int         `json:"line"`
+	Geometry                     tt.Geometry `json:"geometry"`
 }
 
 ///////////////////// Fetch

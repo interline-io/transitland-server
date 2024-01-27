@@ -15,7 +15,7 @@ import (
 
 type mutationResolver struct{ *Resolver }
 
-func (r *mutationResolver) ValidateGtfs(ctx context.Context, file *graphql.Upload, url *string, rturls []string) (*model.ValidationResult, error) {
+func (r *mutationResolver) ValidateGtfs(ctx context.Context, file *graphql.Upload, url *string, rturls []string) (*model.ValidationReport, error) {
 	var src io.Reader
 	if file != nil {
 		src = file.File

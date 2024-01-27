@@ -197,3 +197,11 @@ func Test_checkBbox(t *testing.T) {
 		})
 	}
 }
+
+func astr(a []gjson.Result) []string {
+	var ret []string
+	for _, b := range a {
+		ret = append(ret, b.String())
+	}
+	return ret
+}
