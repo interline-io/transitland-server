@@ -1964,7 +1964,11 @@ func paramGroupQuery[
 	paramFunc func(P) (K, W, *int),
 	queryFunc func([]K, W, *int) ([]*R, error),
 	keyFunc func(*R) K,
-) ([][]*R, error) {
+) ([][]*R, []error) {
+	// Create return value
+	ret := make([][]*R, len(params))
+	errs := make([]error, len(params))
+
 	// Group params by JSON representation
 	type paramGroupItem[K comparable, M any] struct {
 		Limit *int
@@ -1984,7 +1988,9 @@ func paramGroupQuery[
 		// Use the JSON representation of Where and Limit as the key
 		jj, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
 		if err != nil {
-			return nil, err
+			// TODO: log and expand error
+			errs[i] = err
+			continue
 		}
 		paramGroupKey := string(jj)
 
@@ -1998,15 +2004,9 @@ func paramGroupQuery[
 		paramGroups[paramGroupKey] = a
 	}
 
-	// Create return value
-	ret := make([][]*R, len(params))
-
 	// Process each param group
 	for _, pgroup := range paramGroups {
 		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
-		if err != nil {
-			panic(err)
-		}
 
 		// Group using keyFunc and merge into output
 		limit := checkLimit(pgroup.Limit)
@@ -2018,14 +2018,16 @@ func paramGroupQuery[
 		for keyidx, key := range pgroup.Keys {
 			idx := pgroup.Index[keyidx]
 			gi := bykey[key]
-			if uint64(len(gi)) <= limit {
+			if err != nil {
+				errs[idx] = err
+			} else if uint64(len(gi)) <= limit {
 				ret[idx] = gi
 			} else {
 				ret[idx] = gi[0:limit]
 			}
 		}
 	}
-	return ret, nil
+	return ret, errs
 }
 
 type canCheckGlobalAdmin interface {
