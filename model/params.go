@@ -172,3 +172,19 @@ type RouteStopBufferParam struct {
 type RouteStopPatternParam struct {
 	RouteID int
 }
+
+type ValidationReportParam struct {
+	FeedVersionID int
+	Limit         *int
+	Where         *ValidationReportFilter
+}
+
+type ValidationReportErrorExemplarParam struct {
+	ValidationReportGroupID int
+	Limit                   *int
+}
+
+type ValidationReportErrorGroupParam struct {
+	ValidationReportID int
+	Limit              *int
+}

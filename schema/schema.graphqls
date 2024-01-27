@@ -718,8 +718,8 @@ type ValidationReport {
   id: Int!
   success: Boolean!
   failure_reason: String!
-  errors: [ValidationReportErrorGroup!]! @goField(forceResolver: true)
-  warnings: [ValidationReportErrorGroup!]! @goField(forceResolver: true)
+  errors(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
+  warnings(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
   details: ValidationReportDetails @goField(forceResolver: true)
 }
 
@@ -749,7 +749,7 @@ type ValidationReportErrorGroup {
   field: String!
   count: Int!
   limit: Int!
-  errors: [ValidationReportError!]! @goField(forceResolver: true)
+  errors(limit: Int): [ValidationReportError!]! @goField(forceResolver: true)
 }
 
 type ValidationReportError {

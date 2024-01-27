@@ -1065,66 +1065,86 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 }
 
 func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
-	if len(params) == 0 {
-		return nil, nil
+	ret := make([][]*model.FeedVersion, len(params))
+	pgroups, _ := makeParamGroups(
+		params,
+		func(p model.FeedVersionParam) (int, *model.FeedVersionFilter, *int) {
+			return p.FeedID, p.Where, p.Limit
+		},
+	)
+	for _, pgroup := range pgroups {
+		var qents []*model.FeedVersion
+		err := dbutil.Select(ctx,
+			f.db,
+			lateralWrap(
+				FeedVersionSelect(pgroup.Limit, nil, nil, f.PermFilter(ctx), pgroup.Where),
+				"current_feeds",
+				"id",
+				"feed_versions",
+				"feed_id",
+				pgroup.Keys,
+			),
+			&qents,
+		)
+		if err != nil {
+			return nil, logExtendErr(ctx, len(params), err)
+		}
+		grouped := groupBy(pgroup.Keys, qents, checkLimit(params[0].Limit), func(ent *model.FeedVersion) int { return ent.FeedID })
+		for i, idx := range pgroup.Index {
+			ret[idx] = grouped[i]
+		}
 	}
-	ids := []int{}
+	return ret, nil
+}
+
+func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, params []model.ValidationReportParam) ([][]*model.ValidationReport, []error) {
+	ret := make([][]*model.ValidationReport, len(params))
+	pgroups, _ := makeParamGroups(
+		params,
+		func(p model.ValidationReportParam) (int, *model.ValidationReportFilter, *int) {
+			return p.FeedVersionID, p.Where, p.Limit
+		},
+	)
+	for _, pgroup := range pgroups {
+		var ents []*model.ValidationReport
+		err := dbutil.Select(ctx,
+			f.db,
+			lateralWrap(
+				quickSelect("tl_validation_reports", nil, nil, nil),
+				"feed_versions",
+				"id",
+				"tl_validation_reports",
+				"feed_version_id",
+				pgroup.Keys,
+			),
+			&ents,
+		)
+		if err != nil {
+			return nil, logExtendErr(ctx, len(params), err)
+		}
+		grouped := groupBy(
+			pgroup.Keys,
+			ents,
+			checkLimit(pgroup.Limit),
+			func(ent *model.ValidationReport) int { return ent.FeedVersionID },
+		)
+		for i := 0; i < len(pgroup.Index); i++ {
+			ret[pgroup.Index[i]] = grouped[pgroup.Index[i]]
+		}
+	}
+	return ret, nil
+}
+
+func (f *Finder) ValidationReportErrorGroupsByValidationReportID(ctx context.Context, params []model.ValidationReportErrorGroupParam) ([][]*model.ValidationReportErrorGroup, []error) {
+	var ids []int
 	for _, p := range params {
-		ids = append(ids, p.FeedID)
+		ids = append(ids, p.ValidationReportID)
 	}
-	qents := []*model.FeedVersion{}
-	err := dbutil.Select(ctx,
-		f.db,
-		lateralWrap(
-			FeedVersionSelect(params[0].Limit, nil, nil, f.PermFilter(ctx), params[0].Where),
-			"current_feeds",
-			"id",
-			"feed_versions",
-			"feed_id",
-			ids,
-		),
-		&qents,
-	)
-	if err != nil {
-		return nil, logExtendErr(ctx, len(params), err)
-	}
-	return groupBy(ids, qents, checkLimit(params[0].Limit), func(ent *model.FeedVersion) int { return ent.FeedID }), nil
-}
-
-func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, fvids []int) ([][]*model.ValidationReport, []error) {
-	params := fvids
-	ids := fvids
-	qents := []*model.ValidationReport{}
-	q := sq.StatementBuilder.Select("*").
-		From("tl_validation_reports").
-		Where(sq.Eq{"feed_version_id": fvids})
-	err := dbutil.Select(ctx,
-		f.db,
-		lateralWrap(
-			q,
-			"feed_versions",
-			"id",
-			"tl_validation_reports",
-			"feed_version_id",
-			ids,
-		),
-		&qents,
-	)
-	if err != nil {
-		return nil, logExtendErr(ctx, len(params), err)
-	}
-	return groupBy(ids, qents, checkLimit(nil), func(ent *model.ValidationReport) int { return ent.FeedVersionID }), nil
-}
-
-func (f *Finder) ValidationReportErrorGroupsByValidationReportID(ctx context.Context, ids []int) ([][]*model.ValidationReportErrorGroup, []error) {
 	qents := []*model.ValidationReportErrorGroup{}
-	q := sq.StatementBuilder.Select("*").
-		From("tl_validation_report_error_groups").
-		Where(sq.Eq{"validation_report_id": ids})
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			q,
+			quickSelect("tl_validation_report_error_groups", nil, nil, nil),
 			"tl_validation_reports",
 			"id",
 			"tl_validation_report_error_groups",
@@ -1139,15 +1159,16 @@ func (f *Finder) ValidationReportErrorGroupsByValidationReportID(ctx context.Con
 	return groupBy(ids, qents, checkLimit(nil), func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID }), nil
 }
 
-func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupID(ctx context.Context, ids []int) ([][]*model.ValidationReportError, []error) {
+func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupID(ctx context.Context, params []model.ValidationReportErrorExemplarParam) ([][]*model.ValidationReportError, []error) {
+	var ids []int
+	for _, p := range params {
+		ids = append(ids, p.ValidationReportGroupID)
+	}
 	qents := []*model.ValidationReportError{}
-	q := sq.StatementBuilder.Select("*").
-		From("tl_validation_report_error_exemplars").
-		Where(sq.Eq{"validation_report_id": ids})
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
-			q,
+			quickSelect("tl_validation_report_error_exemplars", nil, nil, nil),
 			"tl_validation_report_error_groups",
 			"id",
 			"tl_validation_report_error_exemplars",
@@ -1911,6 +1932,47 @@ type paramGroup[K comparable, M any] struct {
 	Keys  []K
 	Limit *int
 	Where M
+}
+
+func makeParamGroups[P any, K comparable, W any](params []P, fn func(P) (K, W, *int)) ([]paramGroup[K, W], error) {
+	// Group by JSON representation
+	type paramGroupItem[K comparable, M any] struct {
+		Limit *int
+		Where M
+	}
+	paramGroups := map[string]paramGroup[K, W]{}
+	for i, param := range params {
+		// Get values from supplied func
+		key, where, limit := fn(param)
+
+		// Convert to paramGroupItem
+		item := paramGroupItem[K, W]{
+			Limit: limit,
+			Where: where,
+		}
+
+		// Use the JSON representation of Where and Limit as the key
+		j, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
+		if err != nil {
+			return nil, err
+		}
+		paramGroupKey := string(j)
+
+		// Add index and key
+		a, ok := paramGroups[paramGroupKey]
+		if !ok {
+			a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
+		}
+		a.Index = append(a.Index, i)
+		a.Keys = append(a.Keys, key)
+		paramGroups[paramGroupKey] = a
+	}
+	var ret []paramGroup[K, W]
+	for _, v := range paramGroups {
+		ret = append(ret, v)
+	}
+	return ret, nil
+
 }
 
 func paramsByGroup[K comparable, M any](items []paramItem[K, M]) ([]paramGroup[K, M], error) {

@@ -938,11 +938,11 @@ type ComplexityRoot struct {
 
 	ValidationReport struct {
 		Details       func(childComplexity int) int
-		Errors        func(childComplexity int) int
+		Errors        func(childComplexity int, limit *int) int
 		FailureReason func(childComplexity int) int
 		ID            func(childComplexity int) int
 		Success       func(childComplexity int) int
-		Warnings      func(childComplexity int) int
+		Warnings      func(childComplexity int, limit *int) int
 	}
 
 	ValidationReportDetails struct {
@@ -974,7 +974,7 @@ type ComplexityRoot struct {
 		Count     func(childComplexity int) int
 		ErrorCode func(childComplexity int) int
 		ErrorType func(childComplexity int) int
-		Errors    func(childComplexity int) int
+		Errors    func(childComplexity int, limit *int) int
 		Field     func(childComplexity int) int
 		Filename  func(childComplexity int) int
 		Limit     func(childComplexity int) int
@@ -1166,12 +1166,12 @@ type TripResolver interface {
 	Alerts(ctx context.Context, obj *model.Trip, active *bool, limit *int) ([]*model.Alert, error)
 }
 type ValidationReportResolver interface {
-	Errors(ctx context.Context, obj *model.ValidationReport) ([]*model.ValidationReportErrorGroup, error)
-	Warnings(ctx context.Context, obj *model.ValidationReport) ([]*model.ValidationReportErrorGroup, error)
+	Errors(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error)
+	Warnings(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error)
 	Details(ctx context.Context, obj *model.ValidationReport) (*model.ValidationReportDetails, error)
 }
 type ValidationReportErrorGroupResolver interface {
-	Errors(ctx context.Context, obj *model.ValidationReportErrorGroup) ([]*model.ValidationReportError, error)
+	Errors(ctx context.Context, obj *model.ValidationReportErrorGroup, limit *int) ([]*model.ValidationReportError, error)
 }
 
 type executableSchema struct {
@@ -5861,7 +5861,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.ValidationReport.Errors(childComplexity), true
+		args, err := ec.field_ValidationReport_errors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ValidationReport.Errors(childComplexity, args["limit"].(*int)), true
 
 	case "ValidationReport.failure_reason":
 		if e.complexity.ValidationReport.FailureReason == nil {
@@ -5889,7 +5894,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.ValidationReport.Warnings(childComplexity), true
+		args, err := ec.field_ValidationReport_warnings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ValidationReport.Warnings(childComplexity, args["limit"].(*int)), true
 
 	case "ValidationReportDetails.agencies":
 		if e.complexity.ValidationReportDetails.Agencies == nil {
@@ -6075,7 +6085,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.ValidationReportErrorGroup.Errors(childComplexity), true
+		args, err := ec.field_ValidationReportErrorGroup_errors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ValidationReportErrorGroup.Errors(childComplexity, args["limit"].(*int)), true
 
 	case "ValidationReportErrorGroup.field":
 		if e.complexity.ValidationReportErrorGroup.Field == nil {
@@ -7647,8 +7662,8 @@ type ValidationReport {
   id: Int!
   success: Boolean!
   failure_reason: String!
-  errors: [ValidationReportErrorGroup!]! @goField(forceResolver: true)
-  warnings: [ValidationReportErrorGroup!]! @goField(forceResolver: true)
+  errors(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
+  warnings(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
   details: ValidationReportDetails @goField(forceResolver: true)
 }
 
@@ -7678,7 +7693,7 @@ type ValidationReportErrorGroup {
   field: String!
   count: Int!
   limit: Int!
-  errors: [ValidationReportError!]! @goField(forceResolver: true)
+  errors(limit: Int): [ValidationReportError!]! @goField(forceResolver: true)
 }
 
 type ValidationReportError {
@@ -9265,6 +9280,51 @@ func (ec *executionContext) field_ValidationReportDetails_service_levels_args(ct
 }
 
 func (ec *executionContext) field_ValidationReportDetails_stops_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_ValidationReportErrorGroup_errors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_ValidationReport_errors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_ValidationReport_warnings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -40561,7 +40621,7 @@ func (ec *executionContext) _ValidationReport_errors(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidationReport().Errors(rctx, obj)
+		return ec.resolvers.ValidationReport().Errors(rctx, obj, fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -40606,6 +40666,17 @@ func (ec *executionContext) fieldContext_ValidationReport_errors(ctx context.Con
 			return nil, fmt.Errorf("no field named %q was found under type ValidationReportErrorGroup", field.Name)
 		},
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ValidationReport_errors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
 	return fc, nil
 }
 
@@ -40623,7 +40694,7 @@ func (ec *executionContext) _ValidationReport_warnings(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidationReport().Warnings(rctx, obj)
+		return ec.resolvers.ValidationReport().Warnings(rctx, obj, fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -40667,6 +40738,17 @@ func (ec *executionContext) fieldContext_ValidationReport_warnings(ctx context.C
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ValidationReportErrorGroup", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ValidationReport_warnings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -42177,7 +42259,7 @@ func (ec *executionContext) _ValidationReportErrorGroup_errors(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidationReportErrorGroup().Errors(rctx, obj)
+		return ec.resolvers.ValidationReportErrorGroup().Errors(rctx, obj, fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -42223,6 +42305,17 @@ func (ec *executionContext) fieldContext_ValidationReportErrorGroup_errors(ctx c
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ValidationReportError", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ValidationReportErrorGroup_errors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }

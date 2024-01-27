@@ -99,9 +99,9 @@ type EntityLoader interface {
 	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
 
 	// Validation reports
-	ValidationReportsByFeedVersionID(context.Context, []int) ([][]*ValidationReport, []error)
-	ValidationReportErrorGroupsByValidationReportID(context.Context, []int) ([][]*ValidationReportErrorGroup, []error)
-	ValidationReportErrorExemplarsByValidationReportErrorGroupID(context.Context, []int) ([][]*ValidationReportError, []error)
+	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
+	ValidationReportErrorGroupsByValidationReportID(context.Context, []ValidationReportErrorGroupParam) ([][]*ValidationReportErrorGroup, []error)
+	ValidationReportErrorExemplarsByValidationReportErrorGroupID(context.Context, []ValidationReportErrorExemplarParam) ([][]*ValidationReportError, []error)
 }
 
 // RTFinder manages and looks up RT data

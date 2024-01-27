@@ -74,9 +74,9 @@ type Loaders struct {
 	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
 	StopObservationsByStopID                                     *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
 	StopsByLevelID                                               *dataloader.Loader[model.StopParam, []*model.Stop]
-	ValidationReportsByFeedVersionID                             *dataloader.Loader[int, []*model.ValidationReport]
-	ValidationReportErrorGroupsByValidationReportID              *dataloader.Loader[int, []*model.ValidationReportErrorGroup]
-	ValidationReportErrorExemplarsByValidationReportErrorGroupID *dataloader.Loader[int, []*model.ValidationReportError]
+	ValidationReportsByFeedVersionID                             *dataloader.Loader[model.ValidationReportParam, []*model.ValidationReport]
+	ValidationReportErrorGroupsByValidationReportID              *dataloader.Loader[model.ValidationReportErrorGroupParam, []*model.ValidationReportErrorGroup]
+	ValidationReportErrorExemplarsByValidationReportErrorGroupID *dataloader.Loader[model.ValidationReportErrorExemplarParam, []*model.ValidationReportError]
 }
 
 // NewLoaders instantiates data loaders for the middleware

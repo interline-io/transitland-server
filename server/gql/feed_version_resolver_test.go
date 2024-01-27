@@ -9,6 +9,13 @@ import (
 
 func TestFeedVersionResolver(t *testing.T) {
 	vars := hw{"feed_version_sha1": "d2813c293bcfd7a97dde599527ae6c62c98e66c6"}
+	within := hw{"within": hw{"type": "Polygon", "coordinates": [][][]float64{{
+		{-122.39803791046143, 37.794626736533836},
+		{-122.40106344223022, 37.792303711508595},
+		{-122.3965573310852, 37.789641468930114},
+		{-122.3938751220703, 37.792354581451946},
+		{-122.39803791046143, 37.794626736533836},
+	}}}}
 	testcases := []testcase{
 		{
 			name:         "basic",
@@ -110,6 +117,37 @@ func TestFeedVersionResolver(t *testing.T) {
 			query:        `query{feed_versions(where:{feed_onestop_id:"CT", import_status:SUCCESS}) {sha1} }`,
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
+		},
+		{
+			name: "multiple where values",
+			query: `query($within:Polygon) {
+				feeds(where:{onestop_id:"BA"}) {
+					all:    feed_versions {sha1} 
+					all1:   feed_versions(limit:1) {sha1} 
+					all2:   feed_versions(limit:2) {sha1} 
+					ok:     feed_versions(where:{import_status:SUCCESS}) {sha1} 
+					fail:   feed_versions(where:{import_status:ERROR}) {sha1} 	
+					ip:     feed_versions(where:{import_status:IN_PROGRESS}) {sha1} 	
+					within: feed_versions(where:{within:$within}) {sha1}
+					covers: feed_versions(where:{covers:{start_date:"2016-12-31"}}) {sha1}
+				}
+			}`,
+			vars: within,
+			// selector:     "ok.#.sha1",
+			// selectExpect: []string{"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},
+			f: func(t *testing.T, jj string) {
+
+				exp := []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"}
+				var empty []string
+				assert.Equal(t, exp, astr(gjson.Get(jj, "feeds.0.all.#.sha1").Array()))
+				assert.Equal(t, exp[0:1], astr(gjson.Get(jj, "feeds.0.all1.#.sha1").Array()))
+				assert.Equal(t, exp[0:2], astr(gjson.Get(jj, "feeds.0.all2.#.sha1").Array()))
+				assert.Equal(t, exp, astr(gjson.Get(jj, "feeds.0.ok.#.sha1").Array()))
+				assert.Equal(t, empty, astr(gjson.Get(jj, "feeds.0.fail.#.sha1").Array()))
+				assert.Equal(t, empty, astr(gjson.Get(jj, "feeds.0.ip.#.sha1").Array()))
+				assert.Equal(t, exp, astr(gjson.Get(jj, "feeds.0.within.#.sha1").Array()))
+				assert.Equal(t, []string{"dd7aca4a8e4c90908fd3603c097fabee75fea907"}, astr(gjson.Get(jj, "feeds.0.covers.#.sha1").Array()))
+			},
 		},
 		// feed version coverage
 		// start date - feed start date before start_date
@@ -249,15 +287,9 @@ func TestFeedVersionResolver(t *testing.T) {
 			selectExpect: []string{"c969427f56d3a645195dd8365cde6d7feae7e99b"},
 		},
 		{
-			name:  "within",
-			query: `query($within:Polygon) {feed_versions(where: {within:$within}) {sha1}}`,
-			vars: hw{"within": hw{"type": "Polygon", "coordinates": [][][]float64{{
-				{-122.39803791046143, 37.794626736533836},
-				{-122.40106344223022, 37.792303711508595},
-				{-122.3965573310852, 37.789641468930114},
-				{-122.3938751220703, 37.792354581451946},
-				{-122.39803791046143, 37.794626736533836},
-			}}}},
+			name:         "within",
+			query:        `query($within:Polygon) {feed_versions(where: {within:$within}) {sha1}}`,
+			vars:         within,
 			selector:     "feed_versions.#.sha1",
 			selectExpect: []string{"e535eb2b3b9ac3ef15d82c56575e914575e732e0", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "96b67c0934b689d9085c52967365d8c233ea321d"},
 		},
