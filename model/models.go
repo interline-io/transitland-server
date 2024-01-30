@@ -261,13 +261,17 @@ func (a *ValueMap) Scan(value interface{}) error {
 ///////////////// Validation
 
 type ValidationReport struct {
-	ID            int                          `json:"id"`
-	FeedVersionID int                          `json:"feed_version_id"`
-	Success       bool                         `json:"success"`
-	FailureReason string                       `json:"failure_reason"`
-	Errors        []ValidationReportErrorGroup `json:"errors"`
-	Warnings      []ValidationReportErrorGroup `json:"warnings"`
-	Details       ValidationReportDetails
+	ID               int                          `json:"id"`
+	FeedVersionID    int                          `json:"feed_version_id"`
+	Success          bool                         `json:"success"`
+	FailureReason    string                       `json:"failure_reason"`
+	IncludesStatic   bool                         `json:"includes_static"`
+	IncludesRT       bool                         `json:"includes_rt"`
+	Validator        string                       `json:"validator"`
+	ValidatorVersion string                       `json:"validator_version"`
+	Errors           []ValidationReportErrorGroup `json:"errors"`
+	Warnings         []ValidationReportErrorGroup `json:"warnings"`
+	Details          ValidationReportDetails
 }
 
 type ValidationReportDetails struct {

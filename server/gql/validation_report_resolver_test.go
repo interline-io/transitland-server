@@ -8,13 +8,14 @@ import (
 )
 
 func TestValidationReportResolver(t *testing.T) {
-	vars := hw{"feed_version_sha1": "96b67c0934b689d9085c52967365d8c233ea321d"}
+	fvsha1 := "96b67c0934b689d9085c52967365d8c233ea321d"
+	q := `query($feed_version_sha1: String!, $where: ValidationReportFilter) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports(where:$where) {success failure_reason includes_static includes_rt validator validator_version errors { filename error_type error_code message field count limit errors { filename error_type error_code entity_id field line value message geometry }} }} }`
 	testcases := []testcase{
 		// Saved validation reports
 		{
 			name:  "validation reports",
-			query: `query($feed_version_sha1: String!) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports{success failure_reason errors { filename error_type error_code message field count limit errors { filename error_type error_code entity_id field line value message geometry }} }} }`,
-			vars:  vars,
+			query: q,
+			vars:  hw{"feed_version_sha1": fvsha1},
 			f: func(t *testing.T, jj string) {
 				reports := gjson.Get(jj, "feed_versions.0.validation_reports")
 				assert.Equal(t, 1, len(reports.Array()))
@@ -32,6 +33,49 @@ func TestValidationReportResolver(t *testing.T) {
 				}
 				assert.ElementsMatch(t, expMessages, messages)
 			},
+		},
+		{
+			name:         "success=true",
+			query:        q,
+			vars:         hw{"feed_version_sha1": fvsha1, "where": hw{"success": true}},
+			selector:     "feed_versions.0.validation_reports.#.success",
+			selectExpect: []string{"true"},
+		},
+		{
+			name:         "success=false",
+			query:        q,
+			vars:         hw{"feed_version_sha1": fvsha1, "where": hw{"success": false}},
+			selector:     "feed_versions.0.validation_reports.#.success",
+			selectExpect: []string{},
+		},
+		{
+			name:         "includes_static=true",
+			query:        q,
+			vars:         hw{"feed_version_sha1": fvsha1, "where": hw{"includes_static": true}},
+			selector:     "feed_versions.0.validation_reports.#.includes_static",
+			selectExpect: []string{"true"},
+		},
+		{
+			name:         "includes_static=false",
+			query:        q,
+			vars:         hw{"feed_version_sha1": fvsha1, "where": hw{"includes_static": false}},
+			selector:     "feed_versions.0.validation_reports.#.includes_static",
+			selectExpect: []string{},
+		},
+
+		{
+			name:         "includes_rt=true",
+			query:        q,
+			vars:         hw{"feed_version_sha1": fvsha1, "where": hw{"includes_rt": true}},
+			selector:     "feed_versions.0.validation_reports.#.includes_rt",
+			selectExpect: []string{},
+		},
+		{
+			name:         "includes_rt=false",
+			query:        q,
+			vars:         hw{"feed_version_sha1": fvsha1, "where": hw{"includes_rt": false}},
+			selector:     "feed_versions.0.validation_reports.#.includes_rt",
+			selectExpect: []string{"false"},
 		},
 	}
 	c, _ := newTestClient(t)

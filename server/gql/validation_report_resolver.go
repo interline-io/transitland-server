@@ -44,12 +44,3 @@ func (r *validationReportErrorGroupResolver) Errors(ctx context.Context, obj *mo
 	}
 	return ret, nil
 }
-
-func sliceToPointerSlice[T any](a []T) []*T {
-	var ret []*T
-	for _, a := range a {
-		a := a
-		ret = append(ret, &a)
-	}
-	return ret
-}

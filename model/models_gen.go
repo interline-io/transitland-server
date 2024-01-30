@@ -389,8 +389,11 @@ type TripStopTimeFilter struct {
 }
 
 type ValidationReportFilter struct {
-	Success   *bool   `json:"success,omitempty"`
-	Validator *string `json:"validator,omitempty"`
+	Success          *bool   `json:"success,omitempty"`
+	Validator        *string `json:"validator,omitempty"`
+	ValidatorVersion *string `json:"validator_version,omitempty"`
+	IncludesRt       *bool   `json:"includes_rt,omitempty"`
+	IncludesStatic   *bool   `json:"includes_static,omitempty"`
 }
 
 // [Vehicle Position](https://gtfs.org/reference/realtime/v2/#message-vehicleposition) message provided by a source GTFS Realtime feed.

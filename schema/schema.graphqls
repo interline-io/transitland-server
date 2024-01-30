@@ -716,8 +716,12 @@ type RouteStopBuffer {
 type ValidationReport {
   # Validation output
   id: Int!
-  success: Boolean!
-  failure_reason: String!
+  success: Boolean
+  failure_reason: String
+  includes_static: Boolean
+  includes_rt: Boolean
+  validator: String
+  validator_version: String
   errors(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
   warnings(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
   details: ValidationReportDetails @goField(forceResolver: true)
@@ -814,6 +818,9 @@ input OperatorFilter {
 input ValidationReportFilter {
   success: Boolean
   validator: String
+  validator_version: String
+  includes_rt: Boolean
+  includes_static: Boolean
 }
 
 input FeedVersionFilter {
