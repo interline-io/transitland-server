@@ -937,12 +937,16 @@ type ComplexityRoot struct {
 	}
 
 	ValidationReport struct {
-		Details       func(childComplexity int) int
-		Errors        func(childComplexity int, limit *int) int
-		FailureReason func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Success       func(childComplexity int) int
-		Warnings      func(childComplexity int, limit *int) int
+		Details          func(childComplexity int) int
+		Errors           func(childComplexity int, limit *int) int
+		FailureReason    func(childComplexity int) int
+		ID               func(childComplexity int) int
+		IncludesRT       func(childComplexity int) int
+		IncludesStatic   func(childComplexity int) int
+		Success          func(childComplexity int) int
+		Validator        func(childComplexity int) int
+		ValidatorVersion func(childComplexity int) int
+		Warnings         func(childComplexity int, limit *int) int
 	}
 
 	ValidationReportDetails struct {
@@ -5882,12 +5886,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationReport.ID(childComplexity), true
 
+	case "ValidationReport.includes_rt":
+		if e.complexity.ValidationReport.IncludesRT == nil {
+			break
+		}
+
+		return e.complexity.ValidationReport.IncludesRT(childComplexity), true
+
+	case "ValidationReport.includes_static":
+		if e.complexity.ValidationReport.IncludesStatic == nil {
+			break
+		}
+
+		return e.complexity.ValidationReport.IncludesStatic(childComplexity), true
+
 	case "ValidationReport.success":
 		if e.complexity.ValidationReport.Success == nil {
 			break
 		}
 
 		return e.complexity.ValidationReport.Success(childComplexity), true
+
+	case "ValidationReport.validator":
+		if e.complexity.ValidationReport.Validator == nil {
+			break
+		}
+
+		return e.complexity.ValidationReport.Validator(childComplexity), true
+
+	case "ValidationReport.validator_version":
+		if e.complexity.ValidationReport.ValidatorVersion == nil {
+			break
+		}
+
+		return e.complexity.ValidationReport.ValidatorVersion(childComplexity), true
 
 	case "ValidationReport.warnings":
 		if e.complexity.ValidationReport.Warnings == nil {
@@ -6678,270 +6710,6 @@ input GbfsDockRequest {
 	near: PointRadius
 }
 `, BuiltIn: false},
-	{Name: "../../../schema/input.graphqls", Input: `
-# Update inputs
-
-input FeedVersionSetInput {
-  name: String
-  description: String
-}
-
-# Query filters
-
-input OperatorFilter {
-  merged: Boolean
-  onestop_id: String
-  feed_onestop_id: String
-  agency_id: String
-  search: String
-  tags: Tags
-  city_name: String
-  adm0_name: String
-  adm1_name: String
-  adm0_iso: String
-  adm1_iso: String
-  license: LicenseFilter
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-}
-
-input ValidationReportFilter {
-  success: Boolean
-  validator: String
-}
-
-input FeedVersionFilter {
-  import_status: ImportStatus
-  feed_onestop_id: String
-  sha1: String
-  file: String
-  feed_ids: [Int!]
-  covers: ServiceCoversFilter
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-}
-
-enum ImportStatus {
-  SUCCESS
-  ERROR
-  IN_PROGRESS
-}
-
-enum LicenseValue {
-  YES
-  NO
-  EXCLUDE_NO
-  UNKNOWN
-}
-
-input FeedFilter {
-  "Search for feed with a specific Onestop ID"
-  onestop_id: String
-  "Search for feeds of certain data types"
-  spec: [FeedSpecTypes!]
-  "Search for feeds with or without a fetch error"
-  fetch_error: Boolean
-  "Search for feeds by their import status"
-  import_status: ImportStatus
-  "Full text search"
-  search: String
-  "Search for feeds with a tag"
-  tags: Tags,
-  "Search for feeds by their source URLs"
-  source_url: FeedSourceUrl
-  license: LicenseFilter
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-}
-
-input FeedFetchFilter {
-  success: Boolean
-}
-
-input FeedSourceUrl {
-  url: String
-  type: FeedSourceUrlTypes
-  case_sensitive: Boolean
-}
-
-enum FeedSourceUrlTypes {
-  static_current
-  static_historic
-  static_planned
-  static_hypothetical
-  realtime_vehicle_positions
-  realtime_trip_updates
-  realtime_alerts
-  gbfs_auto_discovery
-  mds_provider
-}
-
-"""
-Type of data contained in a source feed
-"""
-enum FeedSpecTypes {
-  GTFS
-  GTFS_RT
-  GBFS
-  MDS
-}
-
-input AgencyFilter {
-  onestop_id: String
-  feed_version_sha1: String
-  feed_onestop_id: String
-  agency_id: String
-  "Search for records with this GTFS agency_name"
-  agency_name: String
-  bbox: BoundingBox
-  within: Polygon
-  "Search for agencies within a radius"
-  near: PointRadius
-  "Full text search"
-  search: String
-  "Search by city name (provided by Natural Earth)"
-  city_name: String
-  "Search by country name (provided by Natural Earth)"
-  adm0_name: String
-  "Search by state/province/division name (provided by Natural Earth)"
-  adm1_name: String
-  "Search by country 2 letter ISO 3166 code (provided by Natural Earth)"
-  adm0_iso: String
-  "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
-  adm1_iso: String
-  license: LicenseFilter
-}
-
-input RouteFilter {
-  onestop_id: String
-  onestop_ids: [String!]
-  allow_previous_onestop_ids: Boolean
-  feed_version_sha1: String
-  feed_onestop_id: String
-  route_id: String
-  route_type: Int
-  serviced: Boolean
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-  search: String
-  operator_onestop_id: String
-  license: LicenseFilter
-  agency_ids: [Int!] # keep?
-}
-
-input StopFilter {
-  onestop_id: String
-  onestop_ids: [String!]
-  allow_previous_onestop_ids: Boolean
-  feed_version_sha1: String
-  feed_onestop_id: String
-  stop_id: String
-  stop_code: String
-  location_type: Int
-  serviced: Boolean
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-  search: String
-  license: LicenseFilter
-  served_by_onestop_ids: [String!]
-  served_by_route_type: Int
-  agency_ids: [Int!] # keep?
-}
-
-input StopTimeFilter {
-  service_date: Date
-  use_service_window: Boolean
-  start_time: Int
-  end_time: Int
-  start: Seconds
-  end: Seconds
-  next: Int
-  route_onestop_ids: [String!] # keep?
-  allow_previous_route_onestop_ids: Boolean
-  exclude_first: Boolean
-  exclude_last: Boolean
-}
-
-input TripStopTimeFilter {
-  start: Seconds
-  end: Seconds
-}
-
-input StopObservationFilter {
-  source: String!
-  feed_version_id: Int!
-  trip_start_date: Date!
-}
-
-input PathwayFilter {
-  pathway_mode: Int
-}
-
-input TripFilter {
-  service_date: Date
-  trip_id: String
-  stop_pattern_id: Int
-  license: LicenseFilter
-  route_ids: [Int!] # keep?
-  route_onestop_ids: [String!] # keep?
-  feed_version_sha1: String
-  feed_onestop_id: String
-}
-
-
-input LicenseFilter {
-  share_alike_optional: LicenseValue
-  create_derived_product: LicenseValue
-  commercial_use_allowed: LicenseValue
-  use_without_attribution: LicenseValue
-  redistribution_allowed: LicenseValue
-}
-
-input FeedVersionServiceLevelFilter {
-  start_date: Date
-  end_date: Date
-}
-
-input ServiceCoversFilter {
-  start_date: Date
-  end_date: Date
-  fetched_after: Time
-  fetched_before: Time
-}
-
-input AgencyPlaceFilter {
-  min_rank: Float
-}
-
-input PlaceFilter {
-  min_rank: Float
-  adm0_name: String
-  adm1_name: String
-  city_name: String
-}
-
-input CalendarDateFilter {
-  date: Date
-  exception_type: Int
-}
-
-input PointRadius {
-  lat: Float!
-  lon: Float!
-  radius: Float!
-}
-
-input BoundingBox {
-  min_lon: Float!
-  min_lat: Float!
-  max_lon: Float!
-  max_lat: Float!
-}`, BuiltIn: false},
 	{Name: "../../../schema/schema.graphqls", Input: `# Scalar types
 scalar Counts
 scalar Tags
@@ -7660,8 +7428,12 @@ type RouteStopBuffer {
 type ValidationReport {
   # Validation output
   id: Int!
-  success: Boolean!
-  failure_reason: String!
+  success: Boolean
+  failure_reason: String
+  includes_static: Boolean
+  includes_rt: Boolean
+  validator: String
+  validator_version: String
   errors(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
   warnings(limit: Int): [ValidationReportErrorGroup!]! @goField(forceResolver: true)
   details: ValidationReportDetails @goField(forceResolver: true)
@@ -7726,7 +7498,274 @@ type FeedVersionUnimportResult {
 type FeedVersionDeleteResult {
   success: Boolean!
 }
-`, BuiltIn: false},
+
+
+# Update inputs
+
+input FeedVersionSetInput {
+  name: String
+  description: String
+}
+
+# Query filters
+
+input OperatorFilter {
+  merged: Boolean
+  onestop_id: String
+  feed_onestop_id: String
+  agency_id: String
+  search: String
+  tags: Tags
+  city_name: String
+  adm0_name: String
+  adm1_name: String
+  adm0_iso: String
+  adm1_iso: String
+  license: LicenseFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+}
+
+input ValidationReportFilter {
+  success: Boolean
+  validator: String
+  validator_version: String
+  includes_rt: Boolean
+  includes_static: Boolean
+}
+
+input FeedVersionFilter {
+  import_status: ImportStatus
+  feed_onestop_id: String
+  sha1: String
+  file: String
+  feed_ids: [Int!]
+  covers: ServiceCoversFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+}
+
+enum ImportStatus {
+  SUCCESS
+  ERROR
+  IN_PROGRESS
+}
+
+enum LicenseValue {
+  YES
+  NO
+  EXCLUDE_NO
+  UNKNOWN
+}
+
+input FeedFilter {
+  "Search for feed with a specific Onestop ID"
+  onestop_id: String
+  "Search for feeds of certain data types"
+  spec: [FeedSpecTypes!]
+  "Search for feeds with or without a fetch error"
+  fetch_error: Boolean
+  "Search for feeds by their import status"
+  import_status: ImportStatus
+  "Full text search"
+  search: String
+  "Search for feeds with a tag"
+  tags: Tags,
+  "Search for feeds by their source URLs"
+  source_url: FeedSourceUrl
+  license: LicenseFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+}
+
+input FeedFetchFilter {
+  success: Boolean
+}
+
+input FeedSourceUrl {
+  url: String
+  type: FeedSourceUrlTypes
+  case_sensitive: Boolean
+}
+
+enum FeedSourceUrlTypes {
+  static_current
+  static_historic
+  static_planned
+  static_hypothetical
+  realtime_vehicle_positions
+  realtime_trip_updates
+  realtime_alerts
+  gbfs_auto_discovery
+  mds_provider
+}
+
+"""
+Type of data contained in a source feed
+"""
+enum FeedSpecTypes {
+  GTFS
+  GTFS_RT
+  GBFS
+  MDS
+}
+
+input AgencyFilter {
+  onestop_id: String
+  feed_version_sha1: String
+  feed_onestop_id: String
+  agency_id: String
+  "Search for records with this GTFS agency_name"
+  agency_name: String
+  bbox: BoundingBox
+  within: Polygon
+  "Search for agencies within a radius"
+  near: PointRadius
+  "Full text search"
+  search: String
+  "Search by city name (provided by Natural Earth)"
+  city_name: String
+  "Search by country name (provided by Natural Earth)"
+  adm0_name: String
+  "Search by state/province/division name (provided by Natural Earth)"
+  adm1_name: String
+  "Search by country 2 letter ISO 3166 code (provided by Natural Earth)"
+  adm0_iso: String
+  "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
+  adm1_iso: String
+  license: LicenseFilter
+}
+
+input RouteFilter {
+  onestop_id: String
+  onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
+  feed_version_sha1: String
+  feed_onestop_id: String
+  route_id: String
+  route_type: Int
+  serviced: Boolean
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+  search: String
+  operator_onestop_id: String
+  license: LicenseFilter
+  agency_ids: [Int!] # keep?
+}
+
+input StopFilter {
+  onestop_id: String
+  onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
+  feed_version_sha1: String
+  feed_onestop_id: String
+  stop_id: String
+  stop_code: String
+  location_type: Int
+  serviced: Boolean
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+  search: String
+  license: LicenseFilter
+  served_by_onestop_ids: [String!]
+  served_by_route_type: Int
+  agency_ids: [Int!] # keep?
+}
+
+input StopTimeFilter {
+  service_date: Date
+  use_service_window: Boolean
+  start_time: Int
+  end_time: Int
+  start: Seconds
+  end: Seconds
+  next: Int
+  route_onestop_ids: [String!] # keep?
+  allow_previous_route_onestop_ids: Boolean
+  exclude_first: Boolean
+  exclude_last: Boolean
+}
+
+input TripStopTimeFilter {
+  start: Seconds
+  end: Seconds
+}
+
+input StopObservationFilter {
+  source: String!
+  feed_version_id: Int!
+  trip_start_date: Date!
+}
+
+input PathwayFilter {
+  pathway_mode: Int
+}
+
+input TripFilter {
+  service_date: Date
+  trip_id: String
+  stop_pattern_id: Int
+  license: LicenseFilter
+  route_ids: [Int!] # keep?
+  route_onestop_ids: [String!] # keep?
+  feed_version_sha1: String
+  feed_onestop_id: String
+}
+
+
+input LicenseFilter {
+  share_alike_optional: LicenseValue
+  create_derived_product: LicenseValue
+  commercial_use_allowed: LicenseValue
+  use_without_attribution: LicenseValue
+  redistribution_allowed: LicenseValue
+}
+
+input FeedVersionServiceLevelFilter {
+  start_date: Date
+  end_date: Date
+}
+
+input ServiceCoversFilter {
+  start_date: Date
+  end_date: Date
+  fetched_after: Time
+  fetched_before: Time
+}
+
+input AgencyPlaceFilter {
+  min_rank: Float
+}
+
+input PlaceFilter {
+  min_rank: Float
+  adm0_name: String
+  adm1_name: String
+  city_name: String
+}
+
+input CalendarDateFilter {
+  date: Date
+  exception_type: Int
+}
+
+input PointRadius {
+  lat: Float!
+  lon: Float!
+  radius: Float!
+}
+
+input BoundingBox {
+  min_lon: Float!
+  min_lat: Float!
+  max_lon: Float!
+  max_lat: Float!
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -16928,6 +16967,14 @@ func (ec *executionContext) fieldContext_FeedVersion_validation_reports(ctx cont
 				return ec.fieldContext_ValidationReport_success(ctx, field)
 			case "failure_reason":
 				return ec.fieldContext_ValidationReport_failure_reason(ctx, field)
+			case "includes_static":
+				return ec.fieldContext_ValidationReport_includes_static(ctx, field)
+			case "includes_rt":
+				return ec.fieldContext_ValidationReport_includes_rt(ctx, field)
+			case "validator":
+				return ec.fieldContext_ValidationReport_validator(ctx, field)
+			case "validator_version":
+				return ec.fieldContext_ValidationReport_validator_version(ctx, field)
 			case "errors":
 				return ec.fieldContext_ValidationReport_errors(ctx, field)
 			case "warnings":
@@ -27810,6 +27857,14 @@ func (ec *executionContext) fieldContext_Mutation_validate_gtfs(ctx context.Cont
 				return ec.fieldContext_ValidationReport_success(ctx, field)
 			case "failure_reason":
 				return ec.fieldContext_ValidationReport_failure_reason(ctx, field)
+			case "includes_static":
+				return ec.fieldContext_ValidationReport_includes_static(ctx, field)
+			case "includes_rt":
+				return ec.fieldContext_ValidationReport_includes_rt(ctx, field)
+			case "validator":
+				return ec.fieldContext_ValidationReport_validator(ctx, field)
+			case "validator_version":
+				return ec.fieldContext_ValidationReport_validator_version(ctx, field)
 			case "errors":
 				return ec.fieldContext_ValidationReport_errors(ctx, field)
 			case "warnings":
@@ -40540,14 +40595,11 @@ func (ec *executionContext) _ValidationReport_success(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_success(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40584,17 +40636,178 @@ func (ec *executionContext) _ValidationReport_failure_reason(ctx context.Context
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_failure_reason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationReport_includes_static(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReport_includes_static(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IncludesStatic, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReport_includes_static(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationReport_includes_rt(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReport_includes_rt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IncludesRT, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReport_includes_rt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationReport_validator(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReport_validator(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Validator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReport_validator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationReport_validator_version(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReport_validator_version(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValidatorVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReport_validator_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ValidationReport",
 		Field:      field,
@@ -46102,7 +46315,7 @@ func (ec *executionContext) unmarshalInputValidationReportFilter(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"success", "validator"}
+	fieldsInOrder := [...]string{"success", "validator", "validator_version", "includes_rt", "includes_static"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46123,6 +46336,27 @@ func (ec *executionContext) unmarshalInputValidationReportFilter(ctx context.Con
 				return it, err
 			}
 			it.Validator = data
+		case "validator_version":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("validator_version"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValidatorVersion = data
+		case "includes_rt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includes_rt"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludesRt = data
+		case "includes_static":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includes_static"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludesStatic = data
 		}
 	}
 
@@ -54208,14 +54442,16 @@ func (ec *executionContext) _ValidationReport(ctx context.Context, sel ast.Selec
 			}
 		case "success":
 			out.Values[i] = ec._ValidationReport_success(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "failure_reason":
 			out.Values[i] = ec._ValidationReport_failure_reason(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
+		case "includes_static":
+			out.Values[i] = ec._ValidationReport_includes_static(ctx, field, obj)
+		case "includes_rt":
+			out.Values[i] = ec._ValidationReport_includes_rt(ctx, field, obj)
+		case "validator":
+			out.Values[i] = ec._ValidationReport_validator(ctx, field, obj)
+		case "validator_version":
+			out.Values[i] = ec._ValidationReport_validator_version(ctx, field, obj)
 		case "errors":
 			field := field
 
