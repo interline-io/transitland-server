@@ -6678,270 +6678,6 @@ input GbfsDockRequest {
 	near: PointRadius
 }
 `, BuiltIn: false},
-	{Name: "../../../schema/input.graphqls", Input: `
-# Update inputs
-
-input FeedVersionSetInput {
-  name: String
-  description: String
-}
-
-# Query filters
-
-input OperatorFilter {
-  merged: Boolean
-  onestop_id: String
-  feed_onestop_id: String
-  agency_id: String
-  search: String
-  tags: Tags
-  city_name: String
-  adm0_name: String
-  adm1_name: String
-  adm0_iso: String
-  adm1_iso: String
-  license: LicenseFilter
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-}
-
-input ValidationReportFilter {
-  success: Boolean
-  validator: String
-}
-
-input FeedVersionFilter {
-  import_status: ImportStatus
-  feed_onestop_id: String
-  sha1: String
-  file: String
-  feed_ids: [Int!]
-  covers: ServiceCoversFilter
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-}
-
-enum ImportStatus {
-  SUCCESS
-  ERROR
-  IN_PROGRESS
-}
-
-enum LicenseValue {
-  YES
-  NO
-  EXCLUDE_NO
-  UNKNOWN
-}
-
-input FeedFilter {
-  "Search for feed with a specific Onestop ID"
-  onestop_id: String
-  "Search for feeds of certain data types"
-  spec: [FeedSpecTypes!]
-  "Search for feeds with or without a fetch error"
-  fetch_error: Boolean
-  "Search for feeds by their import status"
-  import_status: ImportStatus
-  "Full text search"
-  search: String
-  "Search for feeds with a tag"
-  tags: Tags,
-  "Search for feeds by their source URLs"
-  source_url: FeedSourceUrl
-  license: LicenseFilter
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-}
-
-input FeedFetchFilter {
-  success: Boolean
-}
-
-input FeedSourceUrl {
-  url: String
-  type: FeedSourceUrlTypes
-  case_sensitive: Boolean
-}
-
-enum FeedSourceUrlTypes {
-  static_current
-  static_historic
-  static_planned
-  static_hypothetical
-  realtime_vehicle_positions
-  realtime_trip_updates
-  realtime_alerts
-  gbfs_auto_discovery
-  mds_provider
-}
-
-"""
-Type of data contained in a source feed
-"""
-enum FeedSpecTypes {
-  GTFS
-  GTFS_RT
-  GBFS
-  MDS
-}
-
-input AgencyFilter {
-  onestop_id: String
-  feed_version_sha1: String
-  feed_onestop_id: String
-  agency_id: String
-  "Search for records with this GTFS agency_name"
-  agency_name: String
-  bbox: BoundingBox
-  within: Polygon
-  "Search for agencies within a radius"
-  near: PointRadius
-  "Full text search"
-  search: String
-  "Search by city name (provided by Natural Earth)"
-  city_name: String
-  "Search by country name (provided by Natural Earth)"
-  adm0_name: String
-  "Search by state/province/division name (provided by Natural Earth)"
-  adm1_name: String
-  "Search by country 2 letter ISO 3166 code (provided by Natural Earth)"
-  adm0_iso: String
-  "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
-  adm1_iso: String
-  license: LicenseFilter
-}
-
-input RouteFilter {
-  onestop_id: String
-  onestop_ids: [String!]
-  allow_previous_onestop_ids: Boolean
-  feed_version_sha1: String
-  feed_onestop_id: String
-  route_id: String
-  route_type: Int
-  serviced: Boolean
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-  search: String
-  operator_onestop_id: String
-  license: LicenseFilter
-  agency_ids: [Int!] # keep?
-}
-
-input StopFilter {
-  onestop_id: String
-  onestop_ids: [String!]
-  allow_previous_onestop_ids: Boolean
-  feed_version_sha1: String
-  feed_onestop_id: String
-  stop_id: String
-  stop_code: String
-  location_type: Int
-  serviced: Boolean
-  bbox: BoundingBox
-  within: Polygon
-  near: PointRadius
-  search: String
-  license: LicenseFilter
-  served_by_onestop_ids: [String!]
-  served_by_route_type: Int
-  agency_ids: [Int!] # keep?
-}
-
-input StopTimeFilter {
-  service_date: Date
-  use_service_window: Boolean
-  start_time: Int
-  end_time: Int
-  start: Seconds
-  end: Seconds
-  next: Int
-  route_onestop_ids: [String!] # keep?
-  allow_previous_route_onestop_ids: Boolean
-  exclude_first: Boolean
-  exclude_last: Boolean
-}
-
-input TripStopTimeFilter {
-  start: Seconds
-  end: Seconds
-}
-
-input StopObservationFilter {
-  source: String!
-  feed_version_id: Int!
-  trip_start_date: Date!
-}
-
-input PathwayFilter {
-  pathway_mode: Int
-}
-
-input TripFilter {
-  service_date: Date
-  trip_id: String
-  stop_pattern_id: Int
-  license: LicenseFilter
-  route_ids: [Int!] # keep?
-  route_onestop_ids: [String!] # keep?
-  feed_version_sha1: String
-  feed_onestop_id: String
-}
-
-
-input LicenseFilter {
-  share_alike_optional: LicenseValue
-  create_derived_product: LicenseValue
-  commercial_use_allowed: LicenseValue
-  use_without_attribution: LicenseValue
-  redistribution_allowed: LicenseValue
-}
-
-input FeedVersionServiceLevelFilter {
-  start_date: Date
-  end_date: Date
-}
-
-input ServiceCoversFilter {
-  start_date: Date
-  end_date: Date
-  fetched_after: Time
-  fetched_before: Time
-}
-
-input AgencyPlaceFilter {
-  min_rank: Float
-}
-
-input PlaceFilter {
-  min_rank: Float
-  adm0_name: String
-  adm1_name: String
-  city_name: String
-}
-
-input CalendarDateFilter {
-  date: Date
-  exception_type: Int
-}
-
-input PointRadius {
-  lat: Float!
-  lon: Float!
-  radius: Float!
-}
-
-input BoundingBox {
-  min_lon: Float!
-  min_lat: Float!
-  max_lon: Float!
-  max_lat: Float!
-}`, BuiltIn: false},
 	{Name: "../../../schema/schema.graphqls", Input: `# Scalar types
 scalar Counts
 scalar Tags
@@ -7726,7 +7462,271 @@ type FeedVersionUnimportResult {
 type FeedVersionDeleteResult {
   success: Boolean!
 }
-`, BuiltIn: false},
+
+
+# Update inputs
+
+input FeedVersionSetInput {
+  name: String
+  description: String
+}
+
+# Query filters
+
+input OperatorFilter {
+  merged: Boolean
+  onestop_id: String
+  feed_onestop_id: String
+  agency_id: String
+  search: String
+  tags: Tags
+  city_name: String
+  adm0_name: String
+  adm1_name: String
+  adm0_iso: String
+  adm1_iso: String
+  license: LicenseFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+}
+
+input ValidationReportFilter {
+  success: Boolean
+  validator: String
+}
+
+input FeedVersionFilter {
+  import_status: ImportStatus
+  feed_onestop_id: String
+  sha1: String
+  file: String
+  feed_ids: [Int!]
+  covers: ServiceCoversFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+}
+
+enum ImportStatus {
+  SUCCESS
+  ERROR
+  IN_PROGRESS
+}
+
+enum LicenseValue {
+  YES
+  NO
+  EXCLUDE_NO
+  UNKNOWN
+}
+
+input FeedFilter {
+  "Search for feed with a specific Onestop ID"
+  onestop_id: String
+  "Search for feeds of certain data types"
+  spec: [FeedSpecTypes!]
+  "Search for feeds with or without a fetch error"
+  fetch_error: Boolean
+  "Search for feeds by their import status"
+  import_status: ImportStatus
+  "Full text search"
+  search: String
+  "Search for feeds with a tag"
+  tags: Tags,
+  "Search for feeds by their source URLs"
+  source_url: FeedSourceUrl
+  license: LicenseFilter
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+}
+
+input FeedFetchFilter {
+  success: Boolean
+}
+
+input FeedSourceUrl {
+  url: String
+  type: FeedSourceUrlTypes
+  case_sensitive: Boolean
+}
+
+enum FeedSourceUrlTypes {
+  static_current
+  static_historic
+  static_planned
+  static_hypothetical
+  realtime_vehicle_positions
+  realtime_trip_updates
+  realtime_alerts
+  gbfs_auto_discovery
+  mds_provider
+}
+
+"""
+Type of data contained in a source feed
+"""
+enum FeedSpecTypes {
+  GTFS
+  GTFS_RT
+  GBFS
+  MDS
+}
+
+input AgencyFilter {
+  onestop_id: String
+  feed_version_sha1: String
+  feed_onestop_id: String
+  agency_id: String
+  "Search for records with this GTFS agency_name"
+  agency_name: String
+  bbox: BoundingBox
+  within: Polygon
+  "Search for agencies within a radius"
+  near: PointRadius
+  "Full text search"
+  search: String
+  "Search by city name (provided by Natural Earth)"
+  city_name: String
+  "Search by country name (provided by Natural Earth)"
+  adm0_name: String
+  "Search by state/province/division name (provided by Natural Earth)"
+  adm1_name: String
+  "Search by country 2 letter ISO 3166 code (provided by Natural Earth)"
+  adm0_iso: String
+  "Search by state/province/division ISO 3166-2 code (provided by Natural Earth)"
+  adm1_iso: String
+  license: LicenseFilter
+}
+
+input RouteFilter {
+  onestop_id: String
+  onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
+  feed_version_sha1: String
+  feed_onestop_id: String
+  route_id: String
+  route_type: Int
+  serviced: Boolean
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+  search: String
+  operator_onestop_id: String
+  license: LicenseFilter
+  agency_ids: [Int!] # keep?
+}
+
+input StopFilter {
+  onestop_id: String
+  onestop_ids: [String!]
+  allow_previous_onestop_ids: Boolean
+  feed_version_sha1: String
+  feed_onestop_id: String
+  stop_id: String
+  stop_code: String
+  location_type: Int
+  serviced: Boolean
+  bbox: BoundingBox
+  within: Polygon
+  near: PointRadius
+  search: String
+  license: LicenseFilter
+  served_by_onestop_ids: [String!]
+  served_by_route_type: Int
+  agency_ids: [Int!] # keep?
+}
+
+input StopTimeFilter {
+  service_date: Date
+  use_service_window: Boolean
+  start_time: Int
+  end_time: Int
+  start: Seconds
+  end: Seconds
+  next: Int
+  route_onestop_ids: [String!] # keep?
+  allow_previous_route_onestop_ids: Boolean
+  exclude_first: Boolean
+  exclude_last: Boolean
+}
+
+input TripStopTimeFilter {
+  start: Seconds
+  end: Seconds
+}
+
+input StopObservationFilter {
+  source: String!
+  feed_version_id: Int!
+  trip_start_date: Date!
+}
+
+input PathwayFilter {
+  pathway_mode: Int
+}
+
+input TripFilter {
+  service_date: Date
+  trip_id: String
+  stop_pattern_id: Int
+  license: LicenseFilter
+  route_ids: [Int!] # keep?
+  route_onestop_ids: [String!] # keep?
+  feed_version_sha1: String
+  feed_onestop_id: String
+}
+
+
+input LicenseFilter {
+  share_alike_optional: LicenseValue
+  create_derived_product: LicenseValue
+  commercial_use_allowed: LicenseValue
+  use_without_attribution: LicenseValue
+  redistribution_allowed: LicenseValue
+}
+
+input FeedVersionServiceLevelFilter {
+  start_date: Date
+  end_date: Date
+}
+
+input ServiceCoversFilter {
+  start_date: Date
+  end_date: Date
+  fetched_after: Time
+  fetched_before: Time
+}
+
+input AgencyPlaceFilter {
+  min_rank: Float
+}
+
+input PlaceFilter {
+  min_rank: Float
+  adm0_name: String
+  adm1_name: String
+  city_name: String
+}
+
+input CalendarDateFilter {
+  date: Date
+  exception_type: Int
+}
+
+input PointRadius {
+  lat: Float!
+  lon: Float!
+  radius: Float!
+}
+
+input BoundingBox {
+  min_lon: Float!
+  min_lat: Float!
+  max_lon: Float!
+  max_lat: Float!
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
