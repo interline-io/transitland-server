@@ -331,62 +331,41 @@ func (f *Finder) StopExternalReferencesByStopID(ctx context.Context, ids []int) 
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, []error{err}
 	}
-	byid := map[int]*model.StopExternalReference{}
-	for _, ent := range ents {
-		byid[ent.ID] = ent
-	}
-	ents2 := make([]*model.StopExternalReference, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.StopExternalReference) int { return ent.ID }), nil
 }
 
 func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.StopObservationParam) ([][]*model.StopObservation, []error) {
-	// TODO: Move to paramGroupQuery
-	type wrappedStopObservation struct {
+	type qent struct {
 		StopID int
 		model.StopObservation
 	}
-	var ents []*wrappedStopObservation
-	var ids []int
-	var where *model.StopObservationFilter
-	for _, p := range params {
-		if where == nil && p.Where != nil {
-			where = p.Where
-		}
-		ids = append(ids, p.StopID)
-	}
-	// Prepare output
-	// Currently Where must not be nil for this query
-	// This may not be required in the future.
-	if where == nil {
-		return retEmpty[[]*model.StopObservation](len(params))
-	}
-	q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
-		From("ext_performance_stop_observations obs").
-		Join("gtfs_stops on gtfs_stops.stop_id = obs.to_stop_id").
-		Where(sq.Eq{"gtfs_stops.id": ids}).
-		Limit(100000)
-	q = q.Where("obs.feed_version_id = ?", where.FeedVersionID)
-	q = q.Where("obs.trip_start_date = ?", where.TripStartDate)
-	q = q.Where("obs.source = ?", where.Source)
-	// q = q.Where("start_time >= ?", where.StartTime)
-	// q = q.Where("end_time <= ?", where.EndTime)
-	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
-		// return retError[[]*model.StopObservation](len(params))
-		return nil, logExtendErr(ctx, len(ids), err)
-	}
-	byid := map[int][]*model.StopObservation{}
-	for _, ent := range ents {
-		ent := ent
-		byid[ent.StopID] = append(byid[ent.StopID], &ent.StopObservation)
-	}
-	ret := make([][]*model.StopObservation, len(ids))
-	for i, id := range ids {
-		ret[i] = byid[id]
-	}
-	return ret, nil
+	qentGroups, err := paramGroupQuery(
+		params,
+		func(p model.StopObservationParam) (int, *model.StopObservationFilter, *int) {
+			return p.StopID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.StopObservationFilter, limit *int) (ents []*qent, err error) {
+			// Prepare output
+			q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
+				From("ext_performance_stop_observations obs").
+				Join("gtfs_stops on gtfs_stops.stop_id = obs.to_stop_id").
+				Where(sq.Eq{"gtfs_stops.id": keys}).
+				Limit(100000)
+			if where != nil {
+				q = q.Where("obs.feed_version_id = ?", where.FeedVersionID)
+				q = q.Where("obs.trip_start_date = ?", where.TripStartDate)
+				q = q.Where("obs.source = ?", where.Source)
+				// q = q.Where("start_time >= ?", where.StartTime)
+				// q = q.Where("end_time <= ?", where.EndTime)
+			}
+			err = dbutil.Select(ctx, f.db, q, &ents)
+			return ents, err
+		},
+		func(ent *qent) int {
+			return ent.StopID
+		},
+	)
+	return convertEnts(qentGroups, func(a *qent) *model.StopObservation { return &a.StopObservation }), err
 }
 
 func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*model.RouteAttribute, []error) {
@@ -395,15 +374,7 @@ func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*mo
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, []error{err}
 	}
-	byid := map[int]*model.RouteAttribute{}
-	for _, ent := range ents {
-		byid[ent.RouteID] = ent
-	}
-	ents2 := make([]*model.RouteAttribute, len(ids))
-	for i, id := range ids {
-		ents2[i] = byid[id]
-	}
-	return ents2, nil
+	return arrangeBy(ids, ents, func(ent *model.RouteAttribute) int { return ent.RouteID }), nil
 }
 
 func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
@@ -516,7 +487,7 @@ func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorP
 	return paramGroupQuery(
 		params,
 		func(p model.OperatorParam) (int, *model.OperatorFilter, *int) {
-			return p.FeedID, p.Where, nil
+			return p.FeedID, p.Where, p.Limit
 		},
 		func(keys []int, where *model.OperatorFilter, limit *int) (ents []*model.Operator, err error) {
 			err = dbutil.Select(ctx,
@@ -596,24 +567,14 @@ func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.Fe
 			return ent.OperatorOnestopID
 		},
 	)
-	// TODO: Fix limit
-	var ret [][]*model.Feed
-	for _, qentGroup := range qentGroups {
-		var a []*model.Feed
-		for _, qent := range qentGroup {
-			qent := qent
-			a = append(a, &qent.Feed)
-		}
-		ret = append(ret, a)
-	}
-	return ret, err
+	return convertEnts(qentGroups, func(a *qent) *model.Feed { return &a.Feed }), err
 }
 
 func (f *Finder) FrequenciesByTripID(ctx context.Context, params []model.FrequencyParam) ([][]*model.Frequency, []error) {
 	return paramGroupQuery(
 		params,
 		func(p model.FrequencyParam) (int, bool, *int) {
-			return p.TripID, false, nil
+			return p.TripID, false, p.Limit
 		},
 		func(keys []int, where bool, limit *int) (ents []*model.Frequency, err error) {
 			err = dbutil.Select(ctx,
@@ -637,121 +598,68 @@ func (f *Finder) FrequenciesByTripID(ctx context.Context, params []model.Frequen
 }
 
 func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopTimeParam) ([][]*model.StopTime, []error) {
-	// TODO: Move to paramsGroupQuery
-	if len(params) == 0 {
-		return nil, nil
-	}
-	var pitems []paramItem[FVPair, *model.TripStopTimeFilter]
-	for _, p := range params {
-		pitem := paramItem[FVPair, *model.TripStopTimeFilter]{
-			Key:   FVPair{EntityID: p.TripID, FeedVersionID: p.FeedVersionID},
-			Where: p.Where,
-			Limit: p.Limit,
-		}
-		pitems = append(pitems, pitem)
-	}
-	pitemGroups, err := paramsByGroup(pitems)
-	if err != nil {
-		return nil, logExtendErr(ctx, len(params), err)
-	}
-	ret := make([][]*model.StopTime, len(params))
-	for _, group := range pitemGroups {
-		qents := []*model.StopTime{}
-		if err := dbutil.Select(ctx,
-			f.db,
-			StopTimeSelect(group.Keys, nil, f.PermFilter(ctx), group.Where),
-			&qents,
-		); err != nil {
-			return nil, logExtendErr(ctx, len(params), err)
-		}
-		grouped := groupBy(group.Keys, qents, checkLimit(group.Limit), func(ent *model.StopTime) FVPair {
-			return FVPair{EntityID: atoi(ent.TripID), FeedVersionID: ent.FeedVersionID}
-		})
-		for i := 0; i < len(group.Keys); i++ {
-			ret[group.Index[i]] = grouped[i]
-		}
-	}
-	return ret, nil
+	return paramGroupQuery(
+		params,
+		func(p model.TripStopTimeParam) (FVPair, *model.TripStopTimeFilter, *int) {
+			a := FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}
+			return a, p.Where, p.Limit
+		},
+		func(keys []FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				StopTimeSelect(keys, nil, f.PermFilter(ctx), where),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.StopTime) FVPair {
+			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: atoi(ent.TripID)}
+		},
+	)
 }
 
 func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {
-	// TODO: Move to paramsGroupQuery
-	if len(params) == 0 {
-		return nil, nil
-	}
-	// Group each param into a query group
-	// only exported fields are included in key
-	type dGroup struct {
-		Where *model.StopTimeFilter
-		Limit *int
-		pairs []FVPair
-		idx   []int
-	}
-	dGroups := map[string]*dGroup{}
-	for i, p := range params {
-		// somewhat ugly, use json representation for grouping
-		dg := &dGroup{Where: p.Where, Limit: p.Limit}
-		key, err := json.Marshal(dg)
-		if err != nil {
-			return nil, logExtendErr(ctx, len(params), err)
-		}
-		if a, ok := dGroups[string(key)]; ok {
-			dg = a
-		} else {
-			dGroups[string(key)] = dg
-		}
-		dg.pairs = append(dg.pairs, FVPair{EntityID: p.StopID, FeedVersionID: p.FeedVersionID})
-		dg.idx = append(dg.idx, i) // original input position
-	}
-	ents := make([][]*model.StopTime, len(params))
-	for _, dg := range dGroups {
-		// group results by stop
-		group := map[int][]*model.StopTime{}
-		limit := checkLimit(dg.Limit)
-		qents := []*model.StopTime{}
-		p := dg.Where
-		if p != nil && p.ServiceDate != nil {
-			// Get stops on a specified day
-			err := dbutil.Select(ctx,
-				f.db,
-				StopDeparturesSelect(dg.pairs, f.PermFilter(ctx), p),
-				&qents,
-			)
-			if err != nil {
-				return nil, logExtendErr(ctx, len(params), err)
+	return paramGroupQuery(
+		params,
+		func(p model.StopTimeParam) (FVPair, *model.StopTimeFilter, *int) {
+			a := FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}
+			return a, p.Where, p.Limit
+		},
+		func(keys []FVPair, where *model.StopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
+			if where != nil && where.ServiceDate != nil {
+				// Get stops on a specified day
+				err := dbutil.Select(ctx,
+					f.db,
+					StopDeparturesSelect(keys, f.PermFilter(ctx), where),
+					&ents,
+				)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				// Otherwise get all stop_times for stop
+				err := dbutil.Select(ctx,
+					f.db,
+					StopTimeSelect(nil, keys, f.PermFilter(ctx), nil),
+					&ents,
+				)
+				if err != nil {
+					return nil, err
+				}
 			}
-		} else {
-			// Otherwise get all stop_times for stop
-			err := dbutil.Select(ctx,
-				f.db,
-				StopTimeSelect(nil, dg.pairs, f.PermFilter(ctx), nil),
-				&qents,
-			)
-			if err != nil {
-				return nil, logExtendErr(ctx, len(params), err)
-			}
-		}
-		for _, ent := range qents {
-			group[atoi(ent.StopID)] = append(group[atoi(ent.StopID)], ent)
-		}
-		for i := 0; i < len(dg.pairs); i++ {
-			pair := dg.pairs[i]
-			idx := dg.idx[i]
-			g := group[pair.EntityID]
-			if uint64(len(g)) > limit {
-				g = g[0:limit]
-			}
-			ents[idx] = g
-		}
-	}
-	return ents, nil
+			return ents, err
+		},
+		func(ent *model.StopTime) FVPair {
+			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: atoi(ent.StopID)}
+		},
+	)
 }
 
 func (f *Finder) RouteStopsByStopID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
 	return paramGroupQuery(
 		params,
 		func(p model.RouteStopParam) (int, bool, *int) {
-			return p.StopID, false, nil
+			return p.StopID, false, p.Limit
 		},
 		func(keys []int, where bool, limit *int) (ents []*model.RouteStop, err error) {
 			err = dbutil.Select(ctx,
@@ -782,7 +690,7 @@ func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) (
 	qentGroups, err := paramGroupQuery(
 		params,
 		func(p model.StopParam) (int, *model.StopFilter, *int) {
-			return p.RouteID, p.Where, nil
+			return p.RouteID, p.Where, p.Limit
 		},
 		func(keys []int, where *model.StopFilter, limit *int) (ents []*qent, err error) {
 			qso := StopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), where)
@@ -798,23 +706,14 @@ func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) (
 			return ent.RouteID
 		},
 	)
-	var ret [][]*model.Stop
-	for _, qentGroup := range qentGroups {
-		var a []*model.Stop
-		for _, qent := range qentGroup {
-			qent := qent
-			a = append(a, &qent.Stop)
-		}
-		ret = append(ret, a)
-	}
-	return ret, err
+	return convertEnts(qentGroups, func(a *qent) *model.Stop { return &a.Stop }), err
 }
 
 func (f *Finder) RouteStopsByRouteID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
 	return paramGroupQuery(
 		params,
 		func(p model.RouteStopParam) (int, bool, *int) {
-			return p.RouteID, false, nil
+			return p.RouteID, false, p.Limit
 		},
 		func(keys []int, where bool, limit *int) (ents []*model.RouteStop, err error) {
 			err = dbutil.Select(ctx,
@@ -841,7 +740,7 @@ func (f *Finder) RouteHeadwaysByRouteID(ctx context.Context, params []model.Rout
 	return paramGroupQuery(
 		params,
 		func(p model.RouteHeadwayParam) (int, bool, *int) {
-			return p.RouteID, false, nil
+			return p.RouteID, false, p.Limit
 		},
 		func(keys []int, where bool, limit *int) (ents []*model.RouteHeadway, err error) {
 			err = dbutil.Select(ctx,
@@ -1110,64 +1009,54 @@ func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupID(ct
 }
 
 func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
-	// TODO: Move to paramGroupQuery
-	if len(params) == 0 {
-		return nil, nil
-	}
-	ids := []int{}
-	minRank := 0.0
-	for _, p := range params {
-		ids = append(ids, p.AgencyID)
-		if p.Where != nil && p.Where.MinRank != nil {
-			minRank = *p.Where.MinRank
-		}
-	}
-	qents := []*model.AgencyPlace{}
+	return paramGroupQuery(
+		params,
+		func(p model.AgencyPlaceParam) (int, *model.AgencyPlaceFilter, *int) {
+			return p.AgencyID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.AgencyPlaceFilter, limit *int) (ents []*model.AgencyPlace, err error) {
+			q := sq.StatementBuilder.Select(
+				"tl_agency_places.agency_id",
+				"tl_agency_places.rank",
+				"tl_agency_places.name",
+				"tl_agency_places.adm0name",
+				"tl_agency_places.adm1name",
+				"ne_admin.iso_a2 as adm0iso",
+				"ne_admin.iso_3166_2 as adm1iso",
+			).
+				From("tl_agency_places").
+				Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tl_agency_places.adm1name and ne_admin.admin = tl_agency_places.adm0name")
 
-	q := sq.StatementBuilder.Select(
-		"tl_agency_places.agency_id",
-		"tl_agency_places.rank",
-		"tl_agency_places.name",
-		"tl_agency_places.adm0name",
-		"tl_agency_places.adm1name",
-		"ne_admin.iso_a2 as adm0iso",
-		"ne_admin.iso_3166_2 as adm1iso",
-	).
-		From("tl_agency_places").
-		Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tl_agency_places.adm1name and ne_admin.admin = tl_agency_places.adm0name").
-		Where(sq.GtOrEq{"rank": minRank})
-
-	err := dbutil.Select(ctx,
-		f.db,
-		lateralWrap(
-			q,
-			"gtfs_agencies",
-			"id",
-			"tl_agency_places",
-			"agency_id",
-			ids,
-		),
-		&qents,
+			if where != nil {
+				if where.MinRank != nil {
+					q = q.Where(sq.GtOrEq{"rank": where.MinRank})
+				}
+			}
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					q,
+					"gtfs_agencies",
+					"id",
+					"tl_agency_places",
+					"agency_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.AgencyPlace) int {
+			return ent.AgencyID
+		},
 	)
-	if err != nil {
-		return nil, logExtendErr(ctx, len(params), err)
-	}
-	group := map[int][]*model.AgencyPlace{}
-	for _, ent := range qents {
-		group[ent.AgencyID] = append(group[ent.AgencyID], ent)
-	}
-	var ents [][]*model.AgencyPlace
-	for _, id := range ids {
-		ents = append(ents, group[id])
-	}
-	return ents, nil
 }
 
 func (f *Finder) RouteGeometriesByRouteID(ctx context.Context, params []model.RouteGeometryParam) ([][]*model.RouteGeometry, []error) {
 	return paramGroupQuery(
 		params,
 		func(p model.RouteGeometryParam) (int, bool, *int) {
-			return p.RouteID, false, nil
+			return p.RouteID, false, p.Limit
 		},
 		func(keys []int, where bool, limit *int) (ents []*model.RouteGeometry, err error) {
 			err = dbutil.Select(ctx,
@@ -1195,7 +1084,7 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 	return paramGroupQuery(
 		params,
 		func(p model.TripParam) (int, *model.TripFilter, *int) {
-			return p.RouteID, p.Where, nil
+			return p.RouteID, p.Where, p.Limit
 		},
 		func(keys []int, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
 			err = dbutil.Select(ctx,
@@ -1222,7 +1111,7 @@ func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam
 	return paramGroupQuery(
 		params,
 		func(p model.RouteParam) (int, *model.RouteFilter, *int) {
-			return p.AgencyID, p.Where, nil
+			return p.AgencyID, p.Where, p.Limit
 		},
 		func(keys []int, where *model.RouteFilter, limit *int) (ents []*model.Route, err error) {
 			err = dbutil.Select(ctx,
@@ -1249,7 +1138,7 @@ func (f *Finder) AgenciesByFeedVersionID(ctx context.Context, params []model.Age
 	return paramGroupQuery(
 		params,
 		func(p model.AgencyParam) (int, *model.AgencyFilter, *int) {
-			return p.FeedVersionID, p.Where, nil
+			return p.FeedVersionID, p.Where, p.Limit
 		},
 		func(keys []int, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
 			err = dbutil.Select(ctx,
@@ -1281,7 +1170,7 @@ func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyP
 			if p.OnestopID != nil {
 				a = *p.OnestopID
 			}
-			return a, p.Where, nil
+			return a, p.Where, p.Limit
 		},
 		func(keys []string, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
 			err = dbutil.Select(ctx,
@@ -1698,29 +1587,6 @@ func logExtendErr(ctx context.Context, size int, err error) []error {
 	return errs
 }
 
-func retEmpty[T any](size int) ([]T, []error) {
-	ret := make([]T, size)
-	return ret, nil
-}
-
-func groupBy[K comparable, T any](keys []K, ents []T, limit uint64, cb func(T) K) [][]T {
-	bykey := map[K][]T{}
-	for _, ent := range ents {
-		key := cb(ent)
-		bykey[key] = append(bykey[key], ent)
-	}
-	ret := make([][]T, len(keys))
-	for idx, key := range keys {
-		gi := bykey[key]
-		if uint64(len(gi)) <= limit {
-			ret[idx] = gi
-		} else {
-			ret[idx] = gi[0:limit]
-		}
-	}
-	return ret
-}
-
 func arrangeBy[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
 	bykey := map[K]T{}
 	for _, ent := range ents {
@@ -1748,45 +1614,6 @@ func arrangeMap[K comparable, T any, O any](keys []K, ents []T, cb func(T) (K, O
 
 // Multiple param sets
 
-type paramItem[K comparable, M any] struct {
-	Limit *int
-	Key   K
-	Where M
-}
-
-type paramGroup[K comparable, M any] struct {
-	Index []int
-	Keys  []K
-	Limit *int
-	Where M
-}
-
-func paramsByGroup[K comparable, M any](items []paramItem[K, M]) ([]paramGroup[K, M], error) {
-	// JSON representation of paramItem.Where is used for grouping.
-	// This might not be the best way to do it, but it's convenient.
-	groups := map[string]paramGroup[K, M]{}
-	for i, item := range items {
-		// Include the limit in the string key representation
-		j, err := json.Marshal(paramItem[K, M]{Where: item.Where, Limit: item.Limit})
-		if err != nil {
-			return nil, err
-		}
-		jstr := string(j)
-		a, ok := groups[jstr]
-		if !ok {
-			a = paramGroup[K, M]{Where: item.Where, Limit: item.Limit}
-		}
-		a.Keys = append(a.Keys, item.Key)
-		a.Index = append(a.Index, i)
-		groups[jstr] = a
-	}
-	var ret []paramGroup[K, M]
-	for _, v := range groups {
-		ret = append(ret, v)
-	}
-	return ret, nil
-}
-
 func paramGroupQuery[
 	K comparable,
 	P any,
@@ -1804,6 +1631,12 @@ func paramGroupQuery[
 
 	// Group params by JSON representation
 	type paramGroupItem[K comparable, M any] struct {
+		Limit *int
+		Where M
+	}
+	type paramGroup[K comparable, M any] struct {
+		Index []int
+		Keys  []K
 		Limit *int
 		Where M
 	}
@@ -1863,6 +1696,17 @@ func paramGroupQuery[
 		}
 	}
 	return ret, errs
+}
+
+func convertEnts[A any, B any](vals [][]A, fn func(a A) B) [][]B {
+	ret := make([][]B, len(vals))
+	for i, x := range vals {
+		ret[i] = make([]B, len(x))
+		for j, y := range x {
+			ret[i][j] = fn(y)
+		}
+	}
+	return ret
 }
 
 type canCheckGlobalAdmin interface {
