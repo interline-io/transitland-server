@@ -52,6 +52,13 @@ func TestRouteResolver(t *testing.T) {
 			selectExpect: []string{"12TH", "19TH", "19TH_N", "ASHB", "BAYF", "COLS", "DBRK", "DELN", "PLZA", "FRMT", "FTVL", "HAYW", "LAKE", "MCAR", "MCAR_S", "NBRK", "RICH", "SANL", "SHAY", "UCTY", "WARM"},
 		},
 		{
+			name:         "stops",
+			query:        `query($route_id: String!) {  routes(where:{route_id:$route_id}) {stops{stop_id stop_name}} }`,
+			vars:         vars,
+			selector:     "routes.0.stops.#.stop_id",
+			selectExpect: []string{"12TH", "19TH", "19TH_N", "ASHB", "BAYF", "COLS", "DBRK", "DELN", "PLZA", "FRMT", "FTVL", "HAYW", "LAKE", "MCAR", "MCAR_S", "NBRK", "RICH", "SANL", "SHAY", "UCTY", "WARM"},
+		},
+		{
 			// computations are not stable so just check success
 			name:         "geometries",
 			query:        `query($route_id: String!) {  routes(where:{route_id:$route_id}) {geometries {generated}} }`,
