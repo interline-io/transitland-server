@@ -269,6 +269,7 @@ type ValidationReport struct {
 	IncludesRT       bool                         `json:"includes_rt"`
 	Validator        string                       `json:"validator"`
 	ValidatorVersion string                       `json:"validator_version"`
+	ReportedAt       tt.Time                      `json:"reported_at"`
 	Errors           []ValidationReportErrorGroup `json:"errors"`
 	Warnings         []ValidationReportErrorGroup `json:"warnings"`
 	Details          ValidationReportDetails

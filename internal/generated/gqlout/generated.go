@@ -943,6 +943,7 @@ type ComplexityRoot struct {
 		ID               func(childComplexity int) int
 		IncludesRT       func(childComplexity int) int
 		IncludesStatic   func(childComplexity int) int
+		ReportedAt       func(childComplexity int) int
 		Success          func(childComplexity int) int
 		Validator        func(childComplexity int) int
 		ValidatorVersion func(childComplexity int) int
@@ -5900,6 +5901,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationReport.IncludesStatic(childComplexity), true
 
+	case "ValidationReport.reported_at":
+		if e.complexity.ValidationReport.ReportedAt == nil {
+			break
+		}
+
+		return e.complexity.ValidationReport.ReportedAt(childComplexity), true
+
 	case "ValidationReport.success":
 		if e.complexity.ValidationReport.Success == nil {
 			break
@@ -7428,6 +7436,7 @@ type RouteStopBuffer {
 type ValidationReport {
   # Validation output
   id: Int!
+  reported_at: Time
   success: Boolean
   failure_reason: String
   includes_static: Boolean
@@ -16963,6 +16972,8 @@ func (ec *executionContext) fieldContext_FeedVersion_validation_reports(ctx cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_ValidationReport_id(ctx, field)
+			case "reported_at":
+				return ec.fieldContext_ValidationReport_reported_at(ctx, field)
 			case "success":
 				return ec.fieldContext_ValidationReport_success(ctx, field)
 			case "failure_reason":
@@ -27853,6 +27864,8 @@ func (ec *executionContext) fieldContext_Mutation_validate_gtfs(ctx context.Cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_ValidationReport_id(ctx, field)
+			case "reported_at":
+				return ec.fieldContext_ValidationReport_reported_at(ctx, field)
 			case "success":
 				return ec.fieldContext_ValidationReport_success(ctx, field)
 			case "failure_reason":
@@ -40569,6 +40582,47 @@ func (ec *executionContext) fieldContext_ValidationReport_id(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationReport_reported_at(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReport_reported_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReportedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tt.Time)
+	fc.Result = res
+	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReport_reported_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -54440,6 +54494,8 @@ func (ec *executionContext) _ValidationReport(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "reported_at":
+			out.Values[i] = ec._ValidationReport_reported_at(ctx, field, obj)
 		case "success":
 			out.Values[i] = ec._ValidationReport_success(ctx, field, obj)
 		case "failure_reason":

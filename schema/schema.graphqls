@@ -716,6 +716,7 @@ type RouteStopBuffer {
 type ValidationReport {
   # Validation output
   id: Int!
+  reported_at: Time
   success: Boolean
   failure_reason: String
   includes_static: Boolean
