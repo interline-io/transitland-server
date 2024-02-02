@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlcsv"
 	"github.com/interline-io/transitland-lib/validator"
 	"github.com/interline-io/transitland-server/model"
@@ -47,23 +48,23 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		defer os.Remove(tmpfile.Name())
 		reader, err = tlcsv.NewReader(tmpfile.Name())
 		if err != nil {
-			result.FailureReason = "Could not read file"
+			result.FailureReason = tt.NewString("Could not read file")
 			return &result, nil
 		}
 	} else if feedURL != nil {
 		var err error
 		reader, err = tlcsv.NewReader(*feedURL)
 		if err != nil {
-			result.FailureReason = "Could not load URL"
+			result.FailureReason = tt.NewString("Could not load URL")
 			return &result, nil
 		}
 	} else {
-		result.FailureReason = "No feed specified"
+		result.FailureReason = tt.NewString("No feed specified")
 		return &result, nil
 	}
 
 	if err := reader.Open(); err != nil {
-		result.FailureReason = "Could not read file"
+		result.FailureReason = tt.NewString("Could not read file")
 		return &result, nil
 	}
 
@@ -85,12 +86,12 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 
 	vt, err := validator.NewValidator(reader, opts)
 	if err != nil {
-		result.FailureReason = "Could not validate file"
+		result.FailureReason = tt.NewString("Could not validate file")
 		return &result, nil
 	}
 	r, err := vt.Validate()
 	if err != nil {
-		result.FailureReason = "Could not validate file"
+		result.FailureReason = tt.NewString("Could not validate file")
 		return &result, nil
 	}
 
@@ -111,7 +112,6 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 			ErrorCode: eg.ErrorCode,
 			ErrorType: eg.ErrorType,
 			Count:     eg.Count,
-			Limit:     eg.Limit,
 		}
 		for _, err := range eg.Errors {
 			err2 := model.ValidationReportError{
@@ -121,7 +121,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 				ErrorCode: eg.ErrorCode,
 				Line:      err.Line,
 				EntityID:  err.EntityID,
-				Message:   err.Error(),
+				Message:   err.Message,
 				Geometry:  err.Geometry,
 			}
 			eg2.Errors = append(eg2.Errors, &err2)
@@ -138,7 +138,6 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 			ErrorCode: eg.ErrorCode,
 			ErrorType: eg.ErrorType,
 			Count:     eg.Count,
-			Limit:     eg.Limit,
 		}
 		for _, err := range eg.Errors {
 			err2 := model.ValidationReportError{
@@ -148,7 +147,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 				ErrorCode: eg.ErrorCode,
 				Line:      err.Line,
 				EntityID:  err.EntityID,
-				Message:   err.Error(),
+				Message:   err.Message,
 				Geometry:  err.Geometry,
 			}
 			eg2.Errors = append(eg2.Errors, &err2)

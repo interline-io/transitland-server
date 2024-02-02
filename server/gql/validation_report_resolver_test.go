@@ -9,7 +9,7 @@ import (
 
 func TestValidationReportResolver(t *testing.T) {
 	fvsha1 := "96b67c0934b689d9085c52967365d8c233ea321d"
-	q := `query($feed_version_sha1: String!, $where: ValidationReportFilter) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports(where:$where) {success failure_reason includes_static includes_rt validator validator_version errors { filename error_type error_code message field count limit errors { filename error_type error_code entity_id field line value message geometry }} }} }`
+	q := `query($feed_version_sha1: String!, $where: ValidationReportFilter) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports(where:$where) {success failure_reason includes_static includes_rt validator validator_version errors { filename error_type error_code field count errors { filename error_type error_code entity_id field line value message geometry }} }} }`
 	testcases := []testcase{
 		// Saved validation reports
 		{
