@@ -717,6 +717,8 @@ type ValidationReport {
   # Validation output
   id: Int!
   reported_at: Time
+  reported_at_local: Time
+  reported_at_local_timezone: String
   success: Boolean
   failure_reason: String
   includes_static: Boolean
@@ -750,10 +752,8 @@ type ValidationReportErrorGroup {
   filename: String!
   error_type: String!
   error_code: String!
-  message: String!
   field: String!
   count: Int!
-  limit: Int!
   errors(limit: Int): [ValidationReportError!]! @goField(forceResolver: true)
 }
 

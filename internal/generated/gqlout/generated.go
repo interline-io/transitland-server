@@ -937,17 +937,19 @@ type ComplexityRoot struct {
 	}
 
 	ValidationReport struct {
-		Details          func(childComplexity int) int
-		Errors           func(childComplexity int, limit *int) int
-		FailureReason    func(childComplexity int) int
-		ID               func(childComplexity int) int
-		IncludesRT       func(childComplexity int) int
-		IncludesStatic   func(childComplexity int) int
-		ReportedAt       func(childComplexity int) int
-		Success          func(childComplexity int) int
-		Validator        func(childComplexity int) int
-		ValidatorVersion func(childComplexity int) int
-		Warnings         func(childComplexity int, limit *int) int
+		Details                 func(childComplexity int) int
+		Errors                  func(childComplexity int, limit *int) int
+		FailureReason           func(childComplexity int) int
+		ID                      func(childComplexity int) int
+		IncludesRT              func(childComplexity int) int
+		IncludesStatic          func(childComplexity int) int
+		ReportedAt              func(childComplexity int) int
+		ReportedAtLocal         func(childComplexity int) int
+		ReportedAtLocalTimezone func(childComplexity int) int
+		Success                 func(childComplexity int) int
+		Validator               func(childComplexity int) int
+		ValidatorVersion        func(childComplexity int) int
+		Warnings                func(childComplexity int, limit *int) int
 	}
 
 	ValidationReportDetails struct {
@@ -982,8 +984,6 @@ type ComplexityRoot struct {
 		Errors    func(childComplexity int, limit *int) int
 		Field     func(childComplexity int) int
 		Filename  func(childComplexity int) int
-		Limit     func(childComplexity int) int
-		Message   func(childComplexity int) int
 	}
 
 	VehiclePosition struct {
@@ -5908,6 +5908,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationReport.ReportedAt(childComplexity), true
 
+	case "ValidationReport.reported_at_local":
+		if e.complexity.ValidationReport.ReportedAtLocal == nil {
+			break
+		}
+
+		return e.complexity.ValidationReport.ReportedAtLocal(childComplexity), true
+
+	case "ValidationReport.reported_at_local_timezone":
+		if e.complexity.ValidationReport.ReportedAtLocalTimezone == nil {
+			break
+		}
+
+		return e.complexity.ValidationReport.ReportedAtLocalTimezone(childComplexity), true
+
 	case "ValidationReport.success":
 		if e.complexity.ValidationReport.Success == nil {
 			break
@@ -6145,20 +6159,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ValidationReportErrorGroup.Filename(childComplexity), true
-
-	case "ValidationReportErrorGroup.limit":
-		if e.complexity.ValidationReportErrorGroup.Limit == nil {
-			break
-		}
-
-		return e.complexity.ValidationReportErrorGroup.Limit(childComplexity), true
-
-	case "ValidationReportErrorGroup.message":
-		if e.complexity.ValidationReportErrorGroup.Message == nil {
-			break
-		}
-
-		return e.complexity.ValidationReportErrorGroup.Message(childComplexity), true
 
 	case "VehiclePosition.congestion_level":
 		if e.complexity.VehiclePosition.CongestionLevel == nil {
@@ -7437,6 +7437,8 @@ type ValidationReport {
   # Validation output
   id: Int!
   reported_at: Time
+  reported_at_local: Time
+  reported_at_local_timezone: String
   success: Boolean
   failure_reason: String
   includes_static: Boolean
@@ -7470,10 +7472,8 @@ type ValidationReportErrorGroup {
   filename: String!
   error_type: String!
   error_code: String!
-  message: String!
   field: String!
   count: Int!
-  limit: Int!
   errors(limit: Int): [ValidationReportError!]! @goField(forceResolver: true)
 }
 
@@ -16974,6 +16974,10 @@ func (ec *executionContext) fieldContext_FeedVersion_validation_reports(ctx cont
 				return ec.fieldContext_ValidationReport_id(ctx, field)
 			case "reported_at":
 				return ec.fieldContext_ValidationReport_reported_at(ctx, field)
+			case "reported_at_local":
+				return ec.fieldContext_ValidationReport_reported_at_local(ctx, field)
+			case "reported_at_local_timezone":
+				return ec.fieldContext_ValidationReport_reported_at_local_timezone(ctx, field)
 			case "success":
 				return ec.fieldContext_ValidationReport_success(ctx, field)
 			case "failure_reason":
@@ -27866,6 +27870,10 @@ func (ec *executionContext) fieldContext_Mutation_validate_gtfs(ctx context.Cont
 				return ec.fieldContext_ValidationReport_id(ctx, field)
 			case "reported_at":
 				return ec.fieldContext_ValidationReport_reported_at(ctx, field)
+			case "reported_at_local":
+				return ec.fieldContext_ValidationReport_reported_at_local(ctx, field)
+			case "reported_at_local_timezone":
+				return ec.fieldContext_ValidationReport_reported_at_local_timezone(ctx, field)
 			case "success":
 				return ec.fieldContext_ValidationReport_success(ctx, field)
 			case "failure_reason":
@@ -40628,6 +40636,88 @@ func (ec *executionContext) fieldContext_ValidationReport_reported_at(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationReport_reported_at_local(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReport_reported_at_local(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReportedAtLocal, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tt.Time)
+	fc.Result = res
+	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReport_reported_at_local(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidationReport_reported_at_local_timezone(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReport_reported_at_local_timezone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReportedAtLocalTimezone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tt.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReport_reported_at_local_timezone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationReport_success(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReport) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationReport_success(ctx, field)
 	if err != nil {
@@ -40919,14 +41009,10 @@ func (ec *executionContext) fieldContext_ValidationReport_errors(ctx context.Con
 				return ec.fieldContext_ValidationReportErrorGroup_error_type(ctx, field)
 			case "error_code":
 				return ec.fieldContext_ValidationReportErrorGroup_error_code(ctx, field)
-			case "message":
-				return ec.fieldContext_ValidationReportErrorGroup_message(ctx, field)
 			case "field":
 				return ec.fieldContext_ValidationReportErrorGroup_field(ctx, field)
 			case "count":
 				return ec.fieldContext_ValidationReportErrorGroup_count(ctx, field)
-			case "limit":
-				return ec.fieldContext_ValidationReportErrorGroup_limit(ctx, field)
 			case "errors":
 				return ec.fieldContext_ValidationReportErrorGroup_errors(ctx, field)
 			}
@@ -40992,14 +41078,10 @@ func (ec *executionContext) fieldContext_ValidationReport_warnings(ctx context.C
 				return ec.fieldContext_ValidationReportErrorGroup_error_type(ctx, field)
 			case "error_code":
 				return ec.fieldContext_ValidationReportErrorGroup_error_code(ctx, field)
-			case "message":
-				return ec.fieldContext_ValidationReportErrorGroup_message(ctx, field)
 			case "field":
 				return ec.fieldContext_ValidationReportErrorGroup_field(ctx, field)
 			case "count":
 				return ec.fieldContext_ValidationReportErrorGroup_count(ctx, field)
-			case "limit":
-				return ec.fieldContext_ValidationReportErrorGroup_limit(ctx, field)
 			case "errors":
 				return ec.fieldContext_ValidationReportErrorGroup_errors(ctx, field)
 			}
@@ -42336,50 +42418,6 @@ func (ec *executionContext) fieldContext_ValidationReportErrorGroup_error_code(c
 	return fc, nil
 }
 
-func (ec *executionContext) _ValidationReportErrorGroup_message(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportErrorGroup) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationReportErrorGroup_message(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Message, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ValidationReportErrorGroup_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ValidationReportErrorGroup",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ValidationReportErrorGroup_field(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportErrorGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationReportErrorGroup_field(ctx, field)
 	if err != nil {
@@ -42456,50 +42494,6 @@ func (ec *executionContext) _ValidationReportErrorGroup_count(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_ValidationReportErrorGroup_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ValidationReportErrorGroup",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ValidationReportErrorGroup_limit(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportErrorGroup) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ValidationReportErrorGroup_limit(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Limit, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ValidationReportErrorGroup_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ValidationReportErrorGroup",
 		Field:      field,
@@ -54496,6 +54490,10 @@ func (ec *executionContext) _ValidationReport(ctx context.Context, sel ast.Selec
 			}
 		case "reported_at":
 			out.Values[i] = ec._ValidationReport_reported_at(ctx, field, obj)
+		case "reported_at_local":
+			out.Values[i] = ec._ValidationReport_reported_at_local(ctx, field, obj)
+		case "reported_at_local_timezone":
+			out.Values[i] = ec._ValidationReport_reported_at_local_timezone(ctx, field, obj)
 		case "success":
 			out.Values[i] = ec._ValidationReport_success(ctx, field, obj)
 		case "failure_reason":
@@ -54813,11 +54811,6 @@ func (ec *executionContext) _ValidationReportErrorGroup(ctx context.Context, sel
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "message":
-			out.Values[i] = ec._ValidationReportErrorGroup_message(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "field":
 			out.Values[i] = ec._ValidationReportErrorGroup_field(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -54825,11 +54818,6 @@ func (ec *executionContext) _ValidationReportErrorGroup(ctx context.Context, sel
 			}
 		case "count":
 			out.Values[i] = ec._ValidationReportErrorGroup_count(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "limit":
-			out.Values[i] = ec._ValidationReportErrorGroup_limit(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
