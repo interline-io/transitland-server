@@ -919,7 +919,8 @@ func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, params []
 			q := sq.StatementBuilder.
 				Select("*").
 				From("tl_validation_reports").
-				Limit(checkLimit(limit))
+				Limit(checkLimit(limit)).
+				OrderBy("tl_validation_reports.created_at desc, tl_validation_reports.id desc")
 			if where != nil {
 				if where.Success != nil {
 					q = q.Where(sq.Eq{"success": where.Success})
