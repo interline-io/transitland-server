@@ -76,6 +76,10 @@ models:
   Key:
     model: 
       - "github.com/interline-io/transitland-lib/tl/tt.Key"
+  Boolean:
+    model:     
+      - "github.com/99designs/gqlgen/graphql.Boolean"
+      - "github.com/interline-io/transitland-lib/tl/tt.Bool"      
   Bool:
     model:     
       - "github.com/interline-io/transitland-lib/tl/tt.Bool"

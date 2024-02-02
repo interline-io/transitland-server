@@ -40651,9 +40651,9 @@ func (ec *executionContext) _ValidationReport_success(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(tt.Bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_success(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40692,9 +40692,9 @@ func (ec *executionContext) _ValidationReport_failure_reason(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_failure_reason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40733,9 +40733,9 @@ func (ec *executionContext) _ValidationReport_includes_static(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(tt.Bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_includes_static(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40774,9 +40774,9 @@ func (ec *executionContext) _ValidationReport_includes_rt(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(tt.Bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_includes_rt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40815,9 +40815,9 @@ func (ec *executionContext) _ValidationReport_validator(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_validator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40856,9 +40856,9 @@ func (ec *executionContext) _ValidationReport_validator_version(ctx context.Cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_validator_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41109,9 +41109,9 @@ func (ec *executionContext) _ValidationReportDetails_sha1(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_sha1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -57185,6 +57185,16 @@ func (ec *executionContext) marshalNStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑ
 	return ec._StopTimeEvent(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx context.Context, v interface{}) (tt.String, error) {
+	var res tt.String
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx context.Context, sel ast.SelectionSet, v tt.String) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -57907,6 +57917,16 @@ func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interf
 func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	res := graphql.MarshalBoolean(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx context.Context, v interface{}) (tt.Bool, error) {
+	var res tt.Bool
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx context.Context, sel ast.SelectionSet, v tt.Bool) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v interface{}) (*bool, error) {
@@ -59298,7 +59318,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -59306,7 +59326,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

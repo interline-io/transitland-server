@@ -53,7 +53,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 			name:   "basic",
 			query:  `mutation($url:String!) {validate_gtfs(url:$url){success failure_reason details{sha1 earliest_calendar_date latest_calendar_date}}}`,
 			vars:   vars,
-			expect: `{"validate_gtfs":{"details":{"earliest_calendar_date":"2017-10-02","latest_calendar_date":"2019-10-06","sha1":"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},"failure_reason":"","success":true}}`,
+			expect: `{"validate_gtfs":{"details":{"earliest_calendar_date":"2017-10-02","latest_calendar_date":"2019-10-06","sha1":"d2813c293bcfd7a97dde599527ae6c62c98e66c6"},"failure_reason":null,"success":true}}`,
 		},
 		{
 			name:         "files",

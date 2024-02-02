@@ -263,12 +263,12 @@ func (a *ValueMap) Scan(value interface{}) error {
 type ValidationReport struct {
 	ID               int                          `json:"id"`
 	FeedVersionID    int                          `json:"feed_version_id"`
-	Success          bool                         `json:"success"`
-	FailureReason    string                       `json:"failure_reason"`
-	IncludesStatic   bool                         `json:"includes_static"`
-	IncludesRT       bool                         `json:"includes_rt"`
-	Validator        string                       `json:"validator"`
-	ValidatorVersion string                       `json:"validator_version"`
+	Success          tt.Bool                      `json:"success"`
+	FailureReason    tt.String                    `json:"failure_reason"`
+	IncludesStatic   tt.Bool                      `json:"includes_static"`
+	IncludesRT       tt.Bool                      `json:"includes_rt"`
+	Validator        tt.String                    `json:"validator"`
+	ValidatorVersion tt.String                    `json:"validator_version"`
 	ReportedAt       tt.Time                      `json:"reported_at"`
 	Errors           []ValidationReportErrorGroup `json:"errors"`
 	Warnings         []ValidationReportErrorGroup `json:"warnings"`
@@ -276,7 +276,7 @@ type ValidationReport struct {
 }
 
 type ValidationReportDetails struct {
-	Sha1                 string                     `json:"sha1"`
+	Sha1                 tt.String                  `json:"sha1"`
 	EarliestCalendarDate tl.Date                    `json:"earliest_calendar_date"`
 	LatestCalendarDate   tl.Date                    `json:"latest_calendar_date"`
 	Files                []FeedVersionFileInfo      `json:"files"`
