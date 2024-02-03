@@ -69,13 +69,13 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 	mr := model.FeedVersionFetchResult{}
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
-		fv, fr, err := fetch.StaticFetch(atx, fetchOpts)
+		fr, err := fetch.StaticFetch(atx, fetchOpts)
 		if err != nil {
 			return err
 		}
 		mr.FoundSHA1 = fr.Found
-		if fr.FetchError == nil {
-			mr.FeedVersion = &model.FeedVersion{FeedVersion: fv}
+		if fr.FetchError == nil && fr.FeedVersion != nil {
+			mr.FeedVersion = &model.FeedVersion{FeedVersion: *fr.FeedVersion}
 			mr.FetchError = nil
 		} else {
 			a := fr.FetchError.Error()
@@ -113,11 +113,11 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 	var rtMsg *pb.FeedMessage
 	var fetchErr error
 	if err := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
-		m, fr, err := fetch.RTFetch(atx, fetchOpts)
+		fr, err := fetch.RTFetch(atx, fetchOpts)
 		if err != nil {
 			return err
 		}
-		rtMsg = m
+		rtMsg = fr.Message
 		fetchErr = fr.FetchError
 		return nil
 	}); err != nil {
