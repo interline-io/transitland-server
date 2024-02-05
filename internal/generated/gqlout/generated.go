@@ -7537,6 +7537,7 @@ input OperatorFilter {
 }
 
 input ValidationReportFilter {
+  report_ids: [Int!]
   success: Boolean
   validator: String
   validator_version: String
@@ -46363,13 +46364,20 @@ func (ec *executionContext) unmarshalInputValidationReportFilter(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"success", "validator", "validator_version", "includes_rt", "includes_static"}
+	fieldsInOrder := [...]string{"report_ids", "success", "validator", "validator_version", "includes_rt", "includes_static"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "report_ids":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("report_ids"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReportIds = data
 		case "success":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("success"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)

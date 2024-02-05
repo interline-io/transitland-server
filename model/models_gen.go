@@ -389,6 +389,7 @@ type TripStopTimeFilter struct {
 }
 
 type ValidationReportFilter struct {
+	ReportIds        []int   `json:"report_ids,omitempty"`
 	Success          *bool   `json:"success,omitempty"`
 	Validator        *string `json:"validator,omitempty"`
 	ValidatorVersion *string `json:"validator_version,omitempty"`
