@@ -1,6 +1,7 @@
 package gql
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,38 @@ import (
 
 func TestValidationReportResolver(t *testing.T) {
 	fvsha1 := "96b67c0934b689d9085c52967365d8c233ea321d"
-	q := `query($feed_version_sha1: String!, $where: ValidationReportFilter) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports(where:$where) {success failure_reason includes_static includes_rt validator validator_version errors { filename error_type error_code field count errors { filename error_type error_code entity_id field line value message geometry }} }} }`
+	q := `query ($feed_version_sha1: String!, $where: ValidationReportFilter) {
+		feed_versions(where: {sha1: $feed_version_sha1}) {
+		  validation_reports(where: $where) {
+			success
+			failure_reason
+			includes_static
+			includes_rt
+			validator
+			validator_version
+			errors {
+			  filename
+			  error_type
+			  error_code
+			  field
+			  count
+			  errors {
+				filename
+				error_type
+				error_code
+				entity_id
+				field
+				line
+				value
+				message
+				geometry
+				entity_json
+			  }
+			}
+		  }
+		}
+	  }
+	  `
 	testcases := []testcase{
 		// Saved validation reports
 		{
@@ -76,6 +108,15 @@ func TestValidationReportResolver(t *testing.T) {
 			vars:         hw{"feed_version_sha1": fvsha1, "where": hw{"includes_rt": false}},
 			selector:     "feed_versions.0.validation_reports.#.includes_rt",
 			selectExpect: []string{"false"},
+		},
+		{
+			name:  "entity_json",
+			query: q,
+			vars:  hw{"feed_version_sha1": fvsha1, "where": hw{"includes_rt": false}},
+			f: func(f *testing.T, jj string) {
+				fmt.Println("jj:", jj)
+
+			},
 		},
 	}
 	c, _ := newTestClient(t)

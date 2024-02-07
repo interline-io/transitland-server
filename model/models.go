@@ -320,6 +320,7 @@ type ValidationReportError struct {
 	Message                      string      `json:"message"`
 	Line                         int         `json:"line"`
 	Geometry                     tt.Geometry `json:"geometry"`
+	EntityJson                   tt.Map      `json:"entity_json"`
 }
 
 ///////////////////// Fetch

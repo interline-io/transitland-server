@@ -44,3 +44,9 @@ func (r *validationReportErrorGroupResolver) Errors(ctx context.Context, obj *mo
 	}
 	return ret, nil
 }
+
+type validationReportErrorResolver struct{ *Resolver }
+
+func (r *validationReportErrorResolver) EntityJSON(ctx context.Context, obj *model.ValidationReportError) (map[string]interface{}, error) {
+	return obj.EntityJson.Val, nil
+}
