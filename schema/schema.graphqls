@@ -818,6 +818,7 @@ input OperatorFilter {
 }
 
 input ValidationReportFilter {
+  report_ids: [Int!]
   success: Boolean
   validator: String
   validator_version: String
