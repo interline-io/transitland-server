@@ -767,6 +767,7 @@ type ValidationReportError {
   value: String!
   message: String!
   geometry: Geometry
+  entity_json: Map
 }
 
 type FeedVersionFetchResult {

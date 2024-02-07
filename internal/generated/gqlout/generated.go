@@ -63,6 +63,7 @@ type ResolverRoot interface {
 	StopTime() StopTimeResolver
 	Trip() TripResolver
 	ValidationReport() ValidationReportResolver
+	ValidationReportError() ValidationReportErrorResolver
 	ValidationReportErrorGroup() ValidationReportErrorGroupResolver
 }
 
@@ -966,15 +967,16 @@ type ComplexityRoot struct {
 	}
 
 	ValidationReportError struct {
-		EntityID  func(childComplexity int) int
-		ErrorCode func(childComplexity int) int
-		ErrorType func(childComplexity int) int
-		Field     func(childComplexity int) int
-		Filename  func(childComplexity int) int
-		Geometry  func(childComplexity int) int
-		Line      func(childComplexity int) int
-		Message   func(childComplexity int) int
-		Value     func(childComplexity int) int
+		EntityID   func(childComplexity int) int
+		EntityJSON func(childComplexity int) int
+		ErrorCode  func(childComplexity int) int
+		ErrorType  func(childComplexity int) int
+		Field      func(childComplexity int) int
+		Filename   func(childComplexity int) int
+		Geometry   func(childComplexity int) int
+		Line       func(childComplexity int) int
+		Message    func(childComplexity int) int
+		Value      func(childComplexity int) int
 	}
 
 	ValidationReportErrorGroup struct {
@@ -1174,6 +1176,9 @@ type ValidationReportResolver interface {
 	Errors(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error)
 	Warnings(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error)
 	Details(ctx context.Context, obj *model.ValidationReport) (*model.ValidationReportDetails, error)
+}
+type ValidationReportErrorResolver interface {
+	EntityJSON(ctx context.Context, obj *model.ValidationReportError) (map[string]interface{}, error)
 }
 type ValidationReportErrorGroupResolver interface {
 	Errors(ctx context.Context, obj *model.ValidationReportErrorGroup, limit *int) ([]*model.ValidationReportError, error)
@@ -6057,6 +6062,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationReportError.EntityID(childComplexity), true
 
+	case "ValidationReportError.entity_json":
+		if e.complexity.ValidationReportError.EntityJSON == nil {
+			break
+		}
+
+		return e.complexity.ValidationReportError.EntityJSON(childComplexity), true
+
 	case "ValidationReportError.error_code":
 		if e.complexity.ValidationReportError.ErrorCode == nil {
 			break
@@ -7487,6 +7499,7 @@ type ValidationReportError {
   value: String!
   message: String!
   geometry: Geometry
+  entity_json: Map
 }
 
 type FeedVersionFetchResult {
@@ -42287,6 +42300,47 @@ func (ec *executionContext) fieldContext_ValidationReportError_geometry(ctx cont
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationReportError_entity_json(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReportError_entity_json(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ValidationReportError().EntityJSON(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReportError_entity_json(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReportError",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationReportErrorGroup_filename(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportErrorGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationReportErrorGroup_filename(ctx, field)
 	if err != nil {
@@ -42564,6 +42618,8 @@ func (ec *executionContext) fieldContext_ValidationReportErrorGroup_errors(ctx c
 				return ec.fieldContext_ValidationReportError_message(ctx, field)
 			case "geometry":
 				return ec.fieldContext_ValidationReportError_geometry(ctx, field)
+			case "entity_json":
+				return ec.fieldContext_ValidationReportError_entity_json(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ValidationReportError", field.Name)
 		},
@@ -54731,45 +54787,78 @@ func (ec *executionContext) _ValidationReportError(ctx context.Context, sel ast.
 		case "filename":
 			out.Values[i] = ec._ValidationReportError_filename(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "error_type":
 			out.Values[i] = ec._ValidationReportError_error_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "error_code":
 			out.Values[i] = ec._ValidationReportError_error_code(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "entity_id":
 			out.Values[i] = ec._ValidationReportError_entity_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "field":
 			out.Values[i] = ec._ValidationReportError_field(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "line":
 			out.Values[i] = ec._ValidationReportError_line(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "value":
 			out.Values[i] = ec._ValidationReportError_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "message":
 			out.Values[i] = ec._ValidationReportError_message(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "geometry":
 			out.Values[i] = ec._ValidationReportError_geometry(ctx, field, obj)
+		case "entity_json":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ValidationReportError_entity_json(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -59314,7 +59403,7 @@ func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]any, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -59322,7 +59411,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

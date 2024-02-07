@@ -17,12 +17,12 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240126000327-05bb90e4de4f
 	github.com/interline-io/transitland-dbutil v0.0.0-20240126000951-f2dcc062261d
-	github.com/interline-io/transitland-lib v0.14.1-0.20240203022154-43b45c50e2b1
-	github.com/interline-io/transitland-mw v0.0.0-20240126001316-f41a91e24d87
+	github.com/interline-io/transitland-lib v0.14.1-0.20240207234642-f18c064a947a
+	github.com/interline-io/transitland-mw v0.0.0-20240207214751-5c95bfb089fb
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
-	github.com/rs/zerolog v1.31.0
+	github.com/rs/zerolog v1.32.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.17.0
 	github.com/tidwall/rtree v1.10.0
@@ -108,7 +108,7 @@ require (
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.16.1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

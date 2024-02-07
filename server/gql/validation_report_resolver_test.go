@@ -11,7 +11,7 @@ import (
 func TestValidationReportResolver(t *testing.T) {
 	c, cfg := newTestClient(t)
 	fvsha1 := "96b67c0934b689d9085c52967365d8c233ea321d"
-	q := `query($feed_version_sha1: String!, $where: ValidationReportFilter) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports(where:$where) {id success failure_reason includes_static includes_rt validator validator_version errors { filename error_type error_code field count errors { filename error_type error_code entity_id field line value message geometry }} }} }`
+	q := `query($feed_version_sha1: String!, $where: ValidationReportFilter) {  feed_versions(where:{sha1:$feed_version_sha1}) {validation_reports(where:$where) {id success failure_reason includes_static includes_rt validator validator_version errors { filename error_type error_code field count errors { filename error_type error_code entity_id field line value message geometry entity_json }} }} }`
 	var reportId int
 	if err := cfg.Finder.DBX().QueryRowx("select rp.id from tl_validation_reports rp join feed_versions fv on fv.id = rp.feed_version_id where fv.sha1 = $1 limit 1", fvsha1).Scan(&reportId); err != nil {
 		panic(err)
@@ -97,6 +97,15 @@ func TestValidationReportResolver(t *testing.T) {
 			selector:     "feed_versions.0.validation_reports.#.id",
 			selectExpect: []string{},
 		},
+		// TODO:
+		// {
+		// 	name:  "entity_json",
+		// 	query: q,
+		// 	vars:  hw{"feed_version_sha1": fvsha1},
+		// 	f: func(f *testing.T, jj string) {
+		// 		fmt.Println("jj:", jj)
+		// 	},
+		// },
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
