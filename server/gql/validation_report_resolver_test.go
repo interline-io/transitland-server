@@ -1,7 +1,6 @@
 package gql
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 
@@ -98,14 +97,15 @@ func TestValidationReportResolver(t *testing.T) {
 			selector:     "feed_versions.0.validation_reports.#.id",
 			selectExpect: []string{},
 		},
-		{
-			name:  "entity_json",
-			query: q,
-			vars:  hw{"feed_version_sha1": fvsha1},
-			f: func(f *testing.T, jj string) {
-				fmt.Println("jj:", jj)
-			},
-		},
+		// TODO:
+		// {
+		// 	name:  "entity_json",
+		// 	query: q,
+		// 	vars:  hw{"feed_version_sha1": fvsha1},
+		// 	f: func(f *testing.T, jj string) {
+		// 		fmt.Println("jj:", jj)
+		// 	},
+		// },
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
