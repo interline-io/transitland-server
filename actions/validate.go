@@ -83,6 +83,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 	if cfg.ValidateLargeFiles {
 		opts.CheckFileLimits = false
 	}
+	opts.ErrorLimit = 1_000
 
 	vt, err := validator.NewValidator(reader, opts)
 	if err != nil {
@@ -111,6 +112,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 			Field:     eg.Field,
 			ErrorCode: eg.ErrorCode,
 			ErrorType: eg.ErrorType,
+			GroupKey:  eg.GroupKey,
 			Count:     eg.Count,
 		}
 		for _, err := range eg.Errors {
@@ -119,6 +121,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 				Field:     eg.Field,
 				ErrorType: eg.ErrorType,
 				ErrorCode: eg.ErrorCode,
+				GroupKey:  eg.GroupKey,
 				Line:      err.Line,
 				EntityID:  err.EntityID,
 				Message:   err.Message,
@@ -137,6 +140,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 			Field:     eg.Field,
 			ErrorCode: eg.ErrorCode,
 			ErrorType: eg.ErrorType,
+			GroupKey:  eg.GroupKey,
 			Count:     eg.Count,
 		}
 		for _, err := range eg.Errors {
@@ -145,6 +149,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 				Field:     eg.Field,
 				ErrorType: eg.ErrorType,
 				ErrorCode: eg.ErrorCode,
+				GroupKey:  eg.GroupKey,
 				Line:      err.Line,
 				EntityID:  err.EntityID,
 				Message:   err.Message,

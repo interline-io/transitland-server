@@ -301,6 +301,7 @@ type ValidationReportErrorGroup struct {
 	Filename           string                   `json:"filename"`
 	ErrorType          string                   `json:"error_type"`
 	ErrorCode          string                   `json:"error_code"`
+	GroupKey           string                   `json:"group_key"`
 	Message            string                   `json:"message"`
 	Field              string                   `json:"field"`
 	Count              int                      `json:"count"`
@@ -314,6 +315,7 @@ type ValidationReportError struct {
 	Filename                     string      `json:"filename"`
 	ErrorType                    string      `json:"error_type"`
 	ErrorCode                    string      `json:"error_code"`
+	GroupKey                     string      `json:"group_key"`
 	EntityID                     string      `json:"entity_id"`
 	Field                        string      `json:"field"`
 	Value                        string      `json:"value"`

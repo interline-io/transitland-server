@@ -37,6 +37,7 @@ func (r *validationReportErrorGroupResolver) Errors(ctx context.Context, obj *mo
 		return nil, err
 	}
 	for _, r := range ret {
+		r.GroupKey = obj.GroupKey
 		r.ErrorCode = obj.ErrorCode
 		r.ErrorType = obj.ErrorType
 		r.Field = obj.Field
