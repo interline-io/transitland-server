@@ -752,6 +752,7 @@ type ValidationReportErrorGroup {
   filename: String!
   error_type: String!
   error_code: String!
+  group_key: String!
   field: String!
   count: Int!
   errors(limit: Int): [ValidationReportError!]! @goField(forceResolver: true)
@@ -761,6 +762,7 @@ type ValidationReportError {
   filename: String!
   error_type: String!
   error_code: String!
+  group_key: String!
   entity_id: String!
   field: String!
   line: Int!

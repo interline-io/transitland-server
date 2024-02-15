@@ -974,6 +974,7 @@ type ComplexityRoot struct {
 		Field      func(childComplexity int) int
 		Filename   func(childComplexity int) int
 		Geometry   func(childComplexity int) int
+		GroupKey   func(childComplexity int) int
 		Line       func(childComplexity int) int
 		Message    func(childComplexity int) int
 		Value      func(childComplexity int) int
@@ -986,6 +987,7 @@ type ComplexityRoot struct {
 		Errors    func(childComplexity int, limit *int) int
 		Field     func(childComplexity int) int
 		Filename  func(childComplexity int) int
+		GroupKey  func(childComplexity int) int
 	}
 
 	VehiclePosition struct {
@@ -6104,6 +6106,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ValidationReportError.Geometry(childComplexity), true
 
+	case "ValidationReportError.group_key":
+		if e.complexity.ValidationReportError.GroupKey == nil {
+			break
+		}
+
+		return e.complexity.ValidationReportError.GroupKey(childComplexity), true
+
 	case "ValidationReportError.line":
 		if e.complexity.ValidationReportError.Line == nil {
 			break
@@ -6171,6 +6180,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ValidationReportErrorGroup.Filename(childComplexity), true
+
+	case "ValidationReportErrorGroup.group_key":
+		if e.complexity.ValidationReportErrorGroup.GroupKey == nil {
+			break
+		}
+
+		return e.complexity.ValidationReportErrorGroup.GroupKey(childComplexity), true
 
 	case "VehiclePosition.congestion_level":
 		if e.complexity.VehiclePosition.CongestionLevel == nil {
@@ -7484,6 +7500,7 @@ type ValidationReportErrorGroup {
   filename: String!
   error_type: String!
   error_code: String!
+  group_key: String!
   field: String!
   count: Int!
   errors(limit: Int): [ValidationReportError!]! @goField(forceResolver: true)
@@ -7493,6 +7510,7 @@ type ValidationReportError {
   filename: String!
   error_type: String!
   error_code: String!
+  group_key: String!
   entity_id: String!
   field: String!
   line: Int!
@@ -41023,6 +41041,8 @@ func (ec *executionContext) fieldContext_ValidationReport_errors(ctx context.Con
 				return ec.fieldContext_ValidationReportErrorGroup_error_type(ctx, field)
 			case "error_code":
 				return ec.fieldContext_ValidationReportErrorGroup_error_code(ctx, field)
+			case "group_key":
+				return ec.fieldContext_ValidationReportErrorGroup_group_key(ctx, field)
 			case "field":
 				return ec.fieldContext_ValidationReportErrorGroup_field(ctx, field)
 			case "count":
@@ -41092,6 +41112,8 @@ func (ec *executionContext) fieldContext_ValidationReport_warnings(ctx context.C
 				return ec.fieldContext_ValidationReportErrorGroup_error_type(ctx, field)
 			case "error_code":
 				return ec.fieldContext_ValidationReportErrorGroup_error_code(ctx, field)
+			case "group_key":
+				return ec.fieldContext_ValidationReportErrorGroup_group_key(ctx, field)
 			case "field":
 				return ec.fieldContext_ValidationReportErrorGroup_field(ctx, field)
 			case "count":
@@ -42039,6 +42061,50 @@ func (ec *executionContext) fieldContext_ValidationReportError_error_code(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationReportError_group_key(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReportError_group_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GroupKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReportError_group_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReportError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationReportError_entity_id(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportError) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationReportError_entity_id(ctx, field)
 	if err != nil {
@@ -42473,6 +42539,50 @@ func (ec *executionContext) fieldContext_ValidationReportErrorGroup_error_code(c
 	return fc, nil
 }
 
+func (ec *executionContext) _ValidationReportErrorGroup_group_key(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ValidationReportErrorGroup_group_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GroupKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ValidationReportErrorGroup_group_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidationReportErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidationReportErrorGroup_field(ctx context.Context, field graphql.CollectedField, obj *model.ValidationReportErrorGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ValidationReportErrorGroup_field(ctx, field)
 	if err != nil {
@@ -42606,6 +42716,8 @@ func (ec *executionContext) fieldContext_ValidationReportErrorGroup_errors(ctx c
 				return ec.fieldContext_ValidationReportError_error_type(ctx, field)
 			case "error_code":
 				return ec.fieldContext_ValidationReportError_error_code(ctx, field)
+			case "group_key":
+				return ec.fieldContext_ValidationReportError_group_key(ctx, field)
 			case "entity_id":
 				return ec.fieldContext_ValidationReportError_entity_id(ctx, field)
 			case "field":
@@ -54799,6 +54911,11 @@ func (ec *executionContext) _ValidationReportError(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "group_key":
+			out.Values[i] = ec._ValidationReportError_group_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "entity_id":
 			out.Values[i] = ec._ValidationReportError_entity_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -54905,6 +55022,11 @@ func (ec *executionContext) _ValidationReportErrorGroup(ctx context.Context, sel
 			}
 		case "error_code":
 			out.Values[i] = ec._ValidationReportErrorGroup_error_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "group_key":
+			out.Values[i] = ec._ValidationReportErrorGroup_group_key(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
