@@ -144,15 +144,14 @@ func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, p
 		Limit(checkLimit(limit)).
 		OrderBy("feed_version_service_levels.id")
 
-	if where == nil {
-		where = &model.FeedVersionServiceLevelFilter{}
-	}
 	q = q.Where(sq.Eq{"route_id": nil})
-	if where.StartDate != nil {
-		q = q.Where(sq.GtOrEq{"start_date": where.StartDate})
-	}
-	if where.EndDate != nil {
-		q = q.Where(sq.LtOrEq{"end_date": where.EndDate})
+	if where != nil {
+		if where.StartDate != nil {
+			q = q.Where(sq.LtOrEq{"start_date": where.StartDate})
+		}
+		if where.EndDate != nil {
+			q = q.Where(sq.GtOrEq{"end_date": where.EndDate})
+		}
 	}
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"feed_version_service_levels.id": ids})
