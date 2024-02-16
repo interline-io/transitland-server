@@ -291,10 +291,12 @@ type RouteFilter struct {
 }
 
 type ServiceCoversFilter struct {
-	StartDate     *tt.Date   `json:"start_date,omitempty"`
-	EndDate       *tt.Date   `json:"end_date,omitempty"`
-	FetchedAfter  *time.Time `json:"fetched_after,omitempty"`
-	FetchedBefore *time.Time `json:"fetched_before,omitempty"`
+	StartDate            *tt.Date   `json:"start_date,omitempty"`
+	EndDate              *tt.Date   `json:"end_date,omitempty"`
+	EarliestCalendarDate *tt.Date   `json:"earliest_calendar_date,omitempty"`
+	LatestCalendarDate   *tt.Date   `json:"latest_calendar_date,omitempty"`
+	FetchedAfter         *time.Time `json:"fetched_after,omitempty"`
+	FetchedBefore        *time.Time `json:"fetched_before,omitempty"`
 }
 
 type Step struct {

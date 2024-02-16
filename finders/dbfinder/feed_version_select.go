@@ -72,6 +72,12 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 					Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.EndDate.Val}).
 					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
 			}
+			if covers.EarliestCalendarDate != nil && covers.EarliestCalendarDate.Valid {
+				q = q.Where(sq.LtOrEq{"feed_versions.earliest_calendar_date": covers.EarliestCalendarDate.Val})
+			}
+			if covers.LatestCalendarDate != nil && covers.LatestCalendarDate.Valid {
+				q = q.Where(sq.GtOrEq{"feed_versions.latest_calendar_date": covers.LatestCalendarDate.Val})
+			}
 			if joinFvsw {
 				q = q.Join("feed_version_service_windows fvsw on fvsw.feed_version_id = feed_versions.id")
 			}

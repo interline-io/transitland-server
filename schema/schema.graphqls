@@ -1027,6 +1027,8 @@ input FeedVersionServiceLevelFilter {
 input ServiceCoversFilter {
   start_date: Date
   end_date: Date
+  earliest_calendar_date: Date
+  latest_calendar_date: Date
   fetched_after: Time
   fetched_before: Time
 }
