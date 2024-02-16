@@ -59,6 +59,15 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 
 		// Coverage
 		if covers := where.Covers; covers != nil {
+			// Handle fetched at
+			if covers.FetchedBefore != nil {
+				q = q.Where(sq.Lt{"feed_versions.fetched_at": covers.FetchedBefore})
+			}
+			if covers.FetchedAfter != nil {
+				q = q.Where(sq.Gt{"feed_versions.fetched_at": covers.FetchedAfter})
+			}
+
+			// Handle flexible service extent
 			joinFvsw := false
 			if covers.StartDate != nil && covers.StartDate.Valid {
 				joinFvsw = true
@@ -72,20 +81,36 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 					Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.EndDate.Val}).
 					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
 			}
+
+			// Handle feed_info.txt extent
+			if covers.FeedStartDate != nil && covers.FeedStartDate.Valid {
+				joinFvsw = true
+				q = q.
+					Where(sq.LtOrEq{"fvsw.feed_start_date": covers.FeedStartDate.Val}).
+					Where(sq.GtOrEq{"fvsw.feed_end_date": covers.FeedStartDate.Val})
+			}
+			if covers.FeedEndDate != nil && covers.FeedEndDate.Valid {
+				joinFvsw = true
+				q = q.
+					Where(sq.LtOrEq{"fvsw.feed_start_date": covers.FeedEndDate.Val}).
+					Where(sq.GtOrEq{"fvsw.feed_end_date": covers.FeedEndDate.Val})
+			}
+
+			// Handle service extent
 			if covers.EarliestCalendarDate != nil && covers.EarliestCalendarDate.Valid {
-				q = q.Where(sq.LtOrEq{"feed_versions.earliest_calendar_date": covers.EarliestCalendarDate.Val})
+				q = q.
+					Where(sq.LtOrEq{"feed_versions.earliest_calendar_date": covers.EarliestCalendarDate.Val}).
+					Where(sq.GtOrEq{"feed_versions.latest_calendar_date": covers.EarliestCalendarDate.Val})
 			}
 			if covers.LatestCalendarDate != nil && covers.LatestCalendarDate.Valid {
-				q = q.Where(sq.GtOrEq{"feed_versions.latest_calendar_date": covers.LatestCalendarDate.Val})
+				q = q.
+					Where(sq.LtOrEq{"feed_versions.earliest_calendar_date": covers.LatestCalendarDate.Val}).
+					Where(sq.GtOrEq{"feed_versions.latest_calendar_date": covers.LatestCalendarDate.Val})
 			}
+
+			// Add feed version service windows
 			if joinFvsw {
 				q = q.Join("feed_version_service_windows fvsw on fvsw.feed_version_id = feed_versions.id")
-			}
-			if covers.FetchedBefore != nil {
-				q = q.Where(sq.Lt{"feed_versions.fetched_at": covers.FetchedBefore})
-			}
-			if covers.FetchedAfter != nil {
-				q = q.Where(sq.Gt{"feed_versions.fetched_at": covers.FetchedAfter})
 			}
 		}
 

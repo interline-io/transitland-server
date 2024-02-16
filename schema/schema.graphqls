@@ -1025,12 +1025,20 @@ input FeedVersionServiceLevelFilter {
 }
 
 input ServiceCoversFilter {
-  start_date: Date
-  end_date: Date
-  earliest_calendar_date: Date
-  latest_calendar_date: Date
   fetched_after: Time
   fetched_before: Time
+  "Search using only feed_info.txt values"
+  feed_start_date: Date
+  "Search using only feed_info.txt values"
+  feed_end_date: Date
+  "Search using feed_info.txt values or calendar maximum service extent"
+  start_date: Date
+  "Search using feed_info.txt values or calendar maximum service extent"
+  end_date: Date
+  "Search using calendar maximum service extent"
+  earliest_calendar_date: Date
+  "Search using calendar maximum service extent"
+  latest_calendar_date: Date
 }
 
 input AgencyPlaceFilter {
