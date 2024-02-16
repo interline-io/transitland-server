@@ -291,10 +291,20 @@ type RouteFilter struct {
 }
 
 type ServiceCoversFilter struct {
-	StartDate     *tt.Date   `json:"start_date,omitempty"`
-	EndDate       *tt.Date   `json:"end_date,omitempty"`
 	FetchedAfter  *time.Time `json:"fetched_after,omitempty"`
 	FetchedBefore *time.Time `json:"fetched_before,omitempty"`
+	// Search using only feed_info.txt values
+	FeedStartDate *tt.Date `json:"feed_start_date,omitempty"`
+	// Search using only feed_info.txt values
+	FeedEndDate *tt.Date `json:"feed_end_date,omitempty"`
+	// Search using feed_info.txt values or calendar maximum service extent
+	StartDate *tt.Date `json:"start_date,omitempty"`
+	// Search using feed_info.txt values or calendar maximum service extent
+	EndDate *tt.Date `json:"end_date,omitempty"`
+	// Search using calendar maximum service extent
+	EarliestCalendarDate *tt.Date `json:"earliest_calendar_date,omitempty"`
+	// Search using calendar maximum service extent
+	LatestCalendarDate *tt.Date `json:"latest_calendar_date,omitempty"`
 }
 
 type Step struct {

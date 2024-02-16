@@ -7773,10 +7773,20 @@ input FeedVersionServiceLevelFilter {
 }
 
 input ServiceCoversFilter {
-  start_date: Date
-  end_date: Date
   fetched_after: Time
   fetched_before: Time
+  "Search using only feed_info.txt values"
+  feed_start_date: Date
+  "Search using only feed_info.txt values"
+  feed_end_date: Date
+  "Search using feed_info.txt values or calendar maximum service extent"
+  start_date: Date
+  "Search using feed_info.txt values or calendar maximum service extent"
+  end_date: Date
+  "Search using calendar maximum service extent"
+  earliest_calendar_date: Date
+  "Search using calendar maximum service extent"
+  latest_calendar_date: Date
 }
 
 input AgencyPlaceFilter {
@@ -46097,27 +46107,13 @@ func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"start_date", "end_date", "fetched_after", "fetched_before"}
+	fieldsInOrder := [...]string{"fetched_after", "fetched_before", "feed_start_date", "feed_end_date", "start_date", "end_date", "earliest_calendar_date", "latest_calendar_date"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "start_date":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.StartDate = data
-		case "end_date":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.EndDate = data
 		case "fetched_after":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetched_after"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
@@ -46132,6 +46128,48 @@ func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Contex
 				return it, err
 			}
 			it.FetchedBefore = data
+		case "feed_start_date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_start_date"))
+			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeedStartDate = data
+		case "feed_end_date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_end_date"))
+			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeedEndDate = data
+		case "start_date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
+			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StartDate = data
+		case "end_date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
+			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EndDate = data
+		case "earliest_calendar_date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("earliest_calendar_date"))
+			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EarliestCalendarDate = data
+		case "latest_calendar_date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latest_calendar_date"))
+			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LatestCalendarDate = data
 		}
 	}
 
