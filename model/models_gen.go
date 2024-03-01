@@ -186,6 +186,15 @@ type Leg struct {
 	Geometry  tt.LineString `json:"geometry"`
 }
 
+type LevelInput struct {
+	ID            *int        `json:"id,omitempty"`
+	FeedVersionID *int        `json:"feed_version_id,omitempty"`
+	LevelID       *string     `json:"level_id,omitempty"`
+	LevelName     *string     `json:"level_name,omitempty"`
+	LevelIndex    *float64    `json:"level_index,omitempty"`
+	Geometry      *tt.Polygon `json:"geometry,omitempty"`
+}
+
 type LicenseFilter struct {
 	ShareAlikeOptional    *LicenseValue `json:"share_alike_optional,omitempty"`
 	CreateDerivedProduct  *LicenseValue `json:"create_derived_product,omitempty"`
@@ -225,6 +234,22 @@ type OperatorFilter struct {
 
 type PathwayFilter struct {
 	PathwayMode *int `json:"pathway_mode,omitempty"`
+}
+
+type PathwayInput struct {
+	ID                  *int       `json:"id,omitempty"`
+	PathwayID           *string    `json:"pathway_id,omitempty"`
+	PathwayMode         *int       `json:"pathway_mode,omitempty"`
+	IsBidirectional     *int       `json:"is_bidirectional,omitempty"`
+	Length              *float64   `json:"length,omitempty"`
+	TraversalTime       *int       `json:"traversal_time,omitempty"`
+	StairCount          *int       `json:"stair_count,omitempty"`
+	MaxSlope            *float64   `json:"max_slope,omitempty"`
+	MinWidth            *float64   `json:"min_width,omitempty"`
+	SignpostedAs        *string    `json:"signposted_as,omitempty"`
+	ReverseSignpostedAs *string    `json:"reverse_signposted_as,omitempty"`
+	FromStop            *StopInput `json:"from_stop,omitempty"`
+	ToStop              *StopInput `json:"to_stop,omitempty"`
 }
 
 type PlaceFilter struct {
@@ -336,6 +361,23 @@ type StopFilter struct {
 	ServedByOnestopIds      []string       `json:"served_by_onestop_ids,omitempty"`
 	ServedByRouteType       *int           `json:"served_by_route_type,omitempty"`
 	AgencyIds               []int          `json:"agency_ids,omitempty"`
+}
+
+type StopInput struct {
+	ID                 *int      `json:"id,omitempty"`
+	FeedVersionID      *int      `json:"feed_version_id,omitempty"`
+	LocationType       *int      `json:"location_type,omitempty"`
+	StopCode           *string   `json:"stop_code,omitempty"`
+	StopDesc           *string   `json:"stop_desc,omitempty"`
+	StopID             *string   `json:"stop_id,omitempty"`
+	StopName           *string   `json:"stop_name,omitempty"`
+	StopTimezone       *string   `json:"stop_timezone,omitempty"`
+	StopURL            *string   `json:"stop_url,omitempty"`
+	WheelchairBoarding *int      `json:"wheelchair_boarding,omitempty"`
+	ZoneID             *string   `json:"zone_id,omitempty"`
+	PlatformCode       *string   `json:"platform_code,omitempty"`
+	TtsStopName        *string   `json:"tts_stop_name,omitempty"`
+	Geometry           *tt.Point `json:"geometry,omitempty"`
 }
 
 type StopObservation struct {

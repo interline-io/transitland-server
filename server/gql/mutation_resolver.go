@@ -51,3 +51,36 @@ func (r *mutationResolver) FeedVersionUpdate(ctx context.Context, fvid int, valu
 func (r *mutationResolver) FeedVersionDelete(ctx context.Context, id int) (*model.FeedVersionDeleteResult, error) {
 	return nil, errors.New("temporarily unavailable")
 }
+
+// Entity editing
+func (r *mutationResolver) CreateLevel(ctx context.Context, obj model.LevelInput) (*model.Level, error) {
+	return nil, nil
+}
+
+func (r *mutationResolver) UpdateLevel(ctx context.Context, obj model.LevelInput) (*model.Level, error) {
+	return nil, nil
+}
+
+func (r *mutationResolver) CreatePathway(ctx context.Context, obj model.PathwayInput) (*model.Pathway, error) {
+	return nil, nil
+}
+
+func (r *mutationResolver) UpdatePathway(ctx context.Context, obj model.PathwayInput) (*model.Pathway, error) {
+	return nil, nil
+}
+
+func (r *mutationResolver) CreateStop(ctx context.Context, obj model.StopInput) (*model.Stop, error) {
+	entId, err := actions.CreateStop(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	foundStops, err := r.Resolver.Query().Stops(ctx, nil, nil, []int{entId}, nil)
+	if len(foundStops) == 0 {
+		return nil, errors.New("not found")
+	}
+	return foundStops[0], err
+}
+
+func (r *mutationResolver) UpdateStop(ctx context.Context, obj model.StopInput) (*model.Stop, error) {
+	return nil, nil
+}

@@ -42,6 +42,62 @@ type Mutation {
     feed_version_import(id: Int!): FeedVersionImportResult!
     feed_version_unimport(id: Int!): FeedVersionUnimportResult!
     feed_version_delete(id: Int!): FeedVersionDeleteResult!
+    
+    # Entity editing
+    # stops
+    create_stop(stop: StopInput!): Stop!
+    update_stop(stop: StopInput!): Stop!
+    # delete_stop(id: Int!): DeleteResult!
+    # level
+    create_level(level: LevelInput!): Level!
+    update_level(level: LevelInput!): Level!
+    # delete_level(id: Int!): DeleteResult!
+    # pathway
+    create_pathway(pathway: PathwayInput!): Pathway!
+    update_pathway(pathway: PathwayInput!): Pathway!
+    # delete_pathway(id: Int!): DeleteResult!
+}
+
+input StopInput {
+  id: Int
+  feed_version_id: Int
+  location_type: Int
+  stop_code: String
+  stop_desc: String
+  stop_id: String
+  stop_name: String
+  stop_timezone: String
+  stop_url: String
+  wheelchair_boarding: Int
+  zone_id: String
+  platform_code: String
+  tts_stop_name: String
+  geometry: Point
+}
+
+input LevelInput {
+  id: Int
+  feed_version_id: Int
+  level_id: String
+  level_name: String
+  level_index: Float
+  geometry: Polygon
+}
+
+input PathwayInput {
+  id: Int
+  pathway_id: String
+  pathway_mode: Int
+  is_bidirectional: Int
+  length: Float
+  traversal_time: Int
+  stair_count: Int
+  max_slope: Float
+  min_width: Float
+  signposted_as: String
+  reverse_signposted_as: String
+  from_stop: StopInput
+  to_stop: StopInput
 }
 
 type Me {
