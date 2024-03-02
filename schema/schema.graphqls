@@ -105,7 +105,7 @@ type Me {
   name: String
   email: String
   roles: [String!]
-  external_data: Map
+  external_data: Map!
 }
 
 """
@@ -775,7 +775,7 @@ type ValidationReport {
   reported_at: Time
   reported_at_local: Time
   reported_at_local_timezone: String
-  success: Boolean
+  success: Boolean!
   failure_reason: String
   includes_static: Boolean
   includes_rt: Boolean
@@ -801,7 +801,7 @@ type ValidationReportDetails {
 
 type ValidationRealtimeResult {
   url: String!
-  json: Map
+  json: Map!
 }
 
 type ValidationReportErrorGroup {
@@ -825,7 +825,7 @@ type ValidationReportError {
   value: String!
   message: String!
   geometry: Geometry
-  entity_json: Map
+  entity_json: Map!
 }
 
 type FeedVersionFetchResult {

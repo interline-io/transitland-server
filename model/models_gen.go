@@ -160,6 +160,13 @@ type FeedVersionDeleteResult struct {
 	Success bool `json:"success"`
 }
 
+type FeedVersionFetchResult struct {
+	FeedVersion  *FeedVersion `json:"feed_version,omitempty"`
+	FetchError   *string      `json:"fetch_error,omitempty"`
+	FoundSha1    bool         `json:"found_sha1"`
+	FoundDirSha1 bool         `json:"found_dir_sha1"`
+}
+
 type FeedVersionFilter struct {
 	ImportStatus  *ImportStatus        `json:"import_status,omitempty"`
 	FeedOnestopID *string              `json:"feed_onestop_id,omitempty"`
@@ -237,11 +244,11 @@ type LicenseFilter struct {
 }
 
 type Me struct {
-	ID           string                 `json:"id"`
-	Name         *string                `json:"name,omitempty"`
-	Email        *string                `json:"email,omitempty"`
-	Roles        []string               `json:"roles,omitempty"`
-	ExternalData map[string]interface{} `json:"external_data,omitempty"`
+	ID           string   `json:"id"`
+	Name         *string  `json:"name,omitempty"`
+	Email        *string  `json:"email,omitempty"`
+	Roles        []string `json:"roles,omitempty"`
+	ExternalData tt.Map   `json:"external_data"`
 }
 
 type Mutation struct {
@@ -283,6 +290,15 @@ type PathwayInput struct {
 	ReverseSignpostedAs *string    `json:"reverse_signposted_as,omitempty"`
 	FromStop            *StopInput `json:"from_stop,omitempty"`
 	ToStop              *StopInput `json:"to_stop,omitempty"`
+}
+
+type Place struct {
+	Adm0Name  *string     `json:"adm0_name,omitempty"`
+	Adm1Name  *string     `json:"adm1_name,omitempty"`
+	CityName  *string     `json:"city_name,omitempty"`
+	Count     int         `json:"count"`
+	Operators []*Operator `json:"operators,omitempty"`
+	AgencyIDs tt.Ints     `db:"agency_ids"`
 }
 
 type PlaceFilter struct {
@@ -432,6 +448,14 @@ type Step struct {
 	GeometryOffset int       `json:"geometry_offset"`
 }
 
+type StopExternalReference struct {
+	ID                  int     `json:"id"`
+	TargetFeedOnestopID *string `json:"target_feed_onestop_id,omitempty"`
+	TargetStopID        *string `json:"target_stop_id,omitempty"`
+	Inactive            *bool   `json:"inactive,omitempty"`
+	TargetActiveStop    *Stop   `json:"target_active_stop,omitempty"`
+}
+
 type StopFilter struct {
 	OnestopID               *string        `json:"onestop_id,omitempty"`
 	OnestopIds              []string       `json:"onestop_ids,omitempty"`
@@ -527,6 +551,69 @@ type TripFilter struct {
 type TripStopTimeFilter struct {
 	Start *tt.WideTime `json:"start,omitempty"`
 	End   *tt.WideTime `json:"end,omitempty"`
+}
+
+type ValidationRealtimeResult struct {
+	URL  string `json:"url"`
+	JSON tt.Map `json:"json"`
+}
+
+type ValidationReport struct {
+	ID                      int                           `json:"id"`
+	ReportedAt              *time.Time                    `json:"reported_at,omitempty"`
+	ReportedAtLocal         *time.Time                    `json:"reported_at_local,omitempty"`
+	ReportedAtLocalTimezone *string                       `json:"reported_at_local_timezone,omitempty"`
+	Success                 bool                          `json:"success"`
+	FailureReason           *string                       `json:"failure_reason,omitempty"`
+	IncludesStatic          *bool                         `json:"includes_static,omitempty"`
+	IncludesRt              *bool                         `json:"includes_rt,omitempty"`
+	Validator               *string                       `json:"validator,omitempty"`
+	ValidatorVersion        *string                       `json:"validator_version,omitempty"`
+	Errors                  []*ValidationReportErrorGroup `json:"errors"`
+	Warnings                []*ValidationReportErrorGroup `json:"warnings"`
+	Details                 *ValidationReportDetails      `json:"details,omitempty"`
+	FeedVersionID           int                           `json:"-"`
+}
+
+type ValidationReportDetails struct {
+	Sha1                 string                      `json:"sha1"`
+	EarliestCalendarDate *tt.Date                    `json:"earliest_calendar_date,omitempty"`
+	LatestCalendarDate   *tt.Date                    `json:"latest_calendar_date,omitempty"`
+	Files                []*FeedVersionFileInfo      `json:"files"`
+	ServiceLevels        []*FeedVersionServiceLevel  `json:"service_levels"`
+	Agencies             []*Agency                   `json:"agencies"`
+	Routes               []*Route                    `json:"routes"`
+	Stops                []*Stop                     `json:"stops"`
+	FeedInfos            []*FeedInfo                 `json:"feed_infos"`
+	Realtime             []*ValidationRealtimeResult `json:"realtime,omitempty"`
+}
+
+type ValidationReportError struct {
+	Filename                     string       `json:"filename"`
+	ErrorType                    string       `json:"error_type"`
+	ErrorCode                    string       `json:"error_code"`
+	GroupKey                     string       `json:"group_key"`
+	EntityID                     string       `json:"entity_id"`
+	Field                        string       `json:"field"`
+	Line                         int          `json:"line"`
+	Value                        string       `json:"value"`
+	Message                      string       `json:"message"`
+	Geometry                     *tt.Geometry `json:"geometry,omitempty"`
+	EntityJSON                   tt.Map       `json:"entity_json"`
+	ID                           int          `json:"-"`
+	ValidationReportErrorGroupID int          `json:"-"`
+}
+
+type ValidationReportErrorGroup struct {
+	Filename           string                   `json:"filename"`
+	ErrorType          string                   `json:"error_type"`
+	ErrorCode          string                   `json:"error_code"`
+	GroupKey           string                   `json:"group_key"`
+	Field              string                   `json:"field"`
+	Count              int                      `json:"count"`
+	Errors             []*ValidationReportError `json:"errors"`
+	ID                 int                      `json:"-"`
+	ValidationReportID int                      `json:"-"`
 }
 
 type ValidationReportFilter struct {

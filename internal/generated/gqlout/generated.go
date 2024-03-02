@@ -63,7 +63,6 @@ type ResolverRoot interface {
 	StopTime() StopTimeResolver
 	Trip() TripResolver
 	ValidationReport() ValidationReportResolver
-	ValidationReportError() ValidationReportErrorResolver
 	ValidationReportErrorGroup() ValidationReportErrorGroupResolver
 }
 
@@ -286,8 +285,8 @@ type ComplexityRoot struct {
 	FeedVersionFetchResult struct {
 		FeedVersion  func(childComplexity int) int
 		FetchError   func(childComplexity int) int
-		FoundDirSHA1 func(childComplexity int) int
-		FoundSHA1    func(childComplexity int) int
+		FoundDirSha1 func(childComplexity int) int
+		FoundSha1    func(childComplexity int) int
 	}
 
 	FeedVersionFileInfo struct {
@@ -939,8 +938,8 @@ type ComplexityRoot struct {
 	}
 
 	ValidationRealtimeResult struct {
-		Json func(childComplexity int) int
-		Url  func(childComplexity int) int
+		JSON func(childComplexity int) int
+		URL  func(childComplexity int) int
 	}
 
 	ValidationReport struct {
@@ -948,7 +947,7 @@ type ComplexityRoot struct {
 		Errors                  func(childComplexity int, limit *int) int
 		FailureReason           func(childComplexity int) int
 		ID                      func(childComplexity int) int
-		IncludesRT              func(childComplexity int) int
+		IncludesRt              func(childComplexity int) int
 		IncludesStatic          func(childComplexity int) int
 		ReportedAt              func(childComplexity int) int
 		ReportedAtLocal         func(childComplexity int) int
@@ -1190,9 +1189,6 @@ type ValidationReportResolver interface {
 	Errors(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error)
 	Warnings(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error)
 	Details(ctx context.Context, obj *model.ValidationReport) (*model.ValidationReportDetails, error)
-}
-type ValidationReportErrorResolver interface {
-	EntityJSON(ctx context.Context, obj *model.ValidationReportError) (map[string]interface{}, error)
 }
 type ValidationReportErrorGroupResolver interface {
 	Errors(ctx context.Context, obj *model.ValidationReportErrorGroup, limit *int) ([]*model.ValidationReportError, error)
@@ -2402,18 +2398,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.FeedVersionFetchResult.FetchError(childComplexity), true
 
 	case "FeedVersionFetchResult.found_dir_sha1":
-		if e.complexity.FeedVersionFetchResult.FoundDirSHA1 == nil {
+		if e.complexity.FeedVersionFetchResult.FoundDirSha1 == nil {
 			break
 		}
 
-		return e.complexity.FeedVersionFetchResult.FoundDirSHA1(childComplexity), true
+		return e.complexity.FeedVersionFetchResult.FoundDirSha1(childComplexity), true
 
 	case "FeedVersionFetchResult.found_sha1":
-		if e.complexity.FeedVersionFetchResult.FoundSHA1 == nil {
+		if e.complexity.FeedVersionFetchResult.FoundSha1 == nil {
 			break
 		}
 
-		return e.complexity.FeedVersionFetchResult.FoundSHA1(childComplexity), true
+		return e.complexity.FeedVersionFetchResult.FoundSha1(childComplexity), true
 
 	case "FeedVersionFileInfo.csv_like":
 		if e.complexity.FeedVersionFileInfo.CSVLike == nil {
@@ -5932,18 +5928,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Trip.WheelchairAccessible(childComplexity), true
 
 	case "ValidationRealtimeResult.json":
-		if e.complexity.ValidationRealtimeResult.Json == nil {
+		if e.complexity.ValidationRealtimeResult.JSON == nil {
 			break
 		}
 
-		return e.complexity.ValidationRealtimeResult.Json(childComplexity), true
+		return e.complexity.ValidationRealtimeResult.JSON(childComplexity), true
 
 	case "ValidationRealtimeResult.url":
-		if e.complexity.ValidationRealtimeResult.Url == nil {
+		if e.complexity.ValidationRealtimeResult.URL == nil {
 			break
 		}
 
-		return e.complexity.ValidationRealtimeResult.Url(childComplexity), true
+		return e.complexity.ValidationRealtimeResult.URL(childComplexity), true
 
 	case "ValidationReport.details":
 		if e.complexity.ValidationReport.Details == nil {
@@ -5979,11 +5975,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.ValidationReport.ID(childComplexity), true
 
 	case "ValidationReport.includes_rt":
-		if e.complexity.ValidationReport.IncludesRT == nil {
+		if e.complexity.ValidationReport.IncludesRt == nil {
 			break
 		}
 
-		return e.complexity.ValidationReport.IncludesRT(childComplexity), true
+		return e.complexity.ValidationReport.IncludesRt(childComplexity), true
 
 	case "ValidationReport.includes_static":
 		if e.complexity.ValidationReport.IncludesStatic == nil {
@@ -6940,7 +6936,7 @@ type Me {
   name: String
   email: String
   roles: [String!]
-  external_data: Map
+  external_data: Map!
 }
 
 """
@@ -7610,7 +7606,7 @@ type ValidationReport {
   reported_at: Time
   reported_at_local: Time
   reported_at_local_timezone: String
-  success: Boolean
+  success: Boolean!
   failure_reason: String
   includes_static: Boolean
   includes_rt: Boolean
@@ -7636,7 +7632,7 @@ type ValidationReportDetails {
 
 type ValidationRealtimeResult {
   url: String!
-  json: Map
+  json: Map!
 }
 
 type ValidationReportErrorGroup {
@@ -7660,7 +7656,7 @@ type ValidationReportError {
   value: String!
   message: String!
   geometry: Geometry
-  entity_json: Map
+  entity_json: Map!
 }
 
 type FeedVersionFetchResult {
@@ -17475,7 +17471,7 @@ func (ec *executionContext) _FeedVersionFetchResult_found_sha1(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FoundSHA1, nil
+		return obj.FoundSha1, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17519,7 +17515,7 @@ func (ec *executionContext) _FeedVersionFetchResult_found_dir_sha1(ctx context.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FoundDirSHA1, nil
+		return obj.FoundDirSha1, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28085,11 +28081,14 @@ func (ec *executionContext) _Me_external_data(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]interface{})
+	res := resTmp.(tt.Map)
 	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
+	return ec.marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Me_external_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41309,7 +41308,7 @@ func (ec *executionContext) _ValidationRealtimeResult_url(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Url, nil
+		return obj.URL, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41353,18 +41352,21 @@ func (ec *executionContext) _ValidationRealtimeResult_json(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Json, nil
+		return obj.JSON, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]any)
+	res := resTmp.(tt.Map)
 	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
+	return ec.marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationRealtimeResult_json(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41447,9 +41449,9 @@ func (ec *executionContext) _ValidationReport_reported_at(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_reported_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41488,9 +41490,9 @@ func (ec *executionContext) _ValidationReport_reported_at_local(ctx context.Cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_reported_at_local(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41529,9 +41531,9 @@ func (ec *executionContext) _ValidationReport_reported_at_local_timezone(ctx con
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_reported_at_local_timezone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41568,11 +41570,14 @@ func (ec *executionContext) _ValidationReport_success(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.Bool)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_success(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41611,9 +41616,9 @@ func (ec *executionContext) _ValidationReport_failure_reason(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_failure_reason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41652,9 +41657,9 @@ func (ec *executionContext) _ValidationReport_includes_static(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_includes_static(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41684,7 +41689,7 @@ func (ec *executionContext) _ValidationReport_includes_rt(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IncludesRT, nil
+		return obj.IncludesRt, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41693,9 +41698,9 @@ func (ec *executionContext) _ValidationReport_includes_rt(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_includes_rt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41734,9 +41739,9 @@ func (ec *executionContext) _ValidationReport_validator(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_validator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41775,9 +41780,9 @@ func (ec *executionContext) _ValidationReport_validator_version(ctx context.Cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_validator_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42024,9 +42029,9 @@ func (ec *executionContext) _ValidationReportDetails_sha1(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_sha1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42065,9 +42070,9 @@ func (ec *executionContext) _ValidationReportDetails_earliest_calendar_date(ctx 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Date)
+	res := resTmp.(*tt.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_earliest_calendar_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42106,9 +42111,9 @@ func (ec *executionContext) _ValidationReportDetails_latest_calendar_date(ctx co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Date)
+	res := resTmp.(*tt.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_latest_calendar_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42150,9 +42155,9 @@ func (ec *executionContext) _ValidationReportDetails_files(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.FeedVersionFileInfo)
+	res := resTmp.([]*model.FeedVersionFileInfo)
 	fc.Result = res
-	return ec.marshalNFeedVersionFileInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx, field.Selections, res)
+	return ec.marshalNFeedVersionFileInfo2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42214,9 +42219,9 @@ func (ec *executionContext) _ValidationReportDetails_service_levels(ctx context.
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.FeedVersionServiceLevel)
+	res := resTmp.([]*model.FeedVersionServiceLevel)
 	fc.Result = res
-	return ec.marshalNFeedVersionServiceLevel2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx, field.Selections, res)
+	return ec.marshalNFeedVersionServiceLevel2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_service_levels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42291,9 +42296,9 @@ func (ec *executionContext) _ValidationReportDetails_agencies(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Agency)
+	res := resTmp.([]*model.Agency)
 	fc.Result = res
-	return ec.marshalNAgency2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx, field.Selections, res)
+	return ec.marshalNAgency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_agencies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42388,9 +42393,9 @@ func (ec *executionContext) _ValidationReportDetails_routes(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Route)
+	res := resTmp.([]*model.Route)
 	fc.Result = res
-	return ec.marshalNRoute2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx, field.Selections, res)
+	return ec.marshalNRoute2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_routes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42503,9 +42508,9 @@ func (ec *executionContext) _ValidationReportDetails_stops(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Stop)
+	res := resTmp.([]*model.Stop)
 	fc.Result = res
-	return ec.marshalNStop2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx, field.Selections, res)
+	return ec.marshalNStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_stops(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42628,9 +42633,9 @@ func (ec *executionContext) _ValidationReportDetails_feed_infos(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.FeedInfo)
+	res := resTmp.([]*model.FeedInfo)
 	fc.Result = res
-	return ec.marshalNFeedInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx, field.Selections, res)
+	return ec.marshalNFeedInfo2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_feed_infos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42702,9 +42707,9 @@ func (ec *executionContext) _ValidationReportDetails_realtime(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]model.ValidationRealtimeResult)
+	res := resTmp.([]*model.ValidationRealtimeResult)
 	fc.Result = res
-	return ec.marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx, field.Selections, res)
+	return ec.marshalOValidationRealtimeResult2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_realtime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43145,9 +43150,9 @@ func (ec *executionContext) _ValidationReportError_geometry(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Geometry)
+	res := resTmp.(*tt.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
+	return ec.marshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportError_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43177,26 +43182,29 @@ func (ec *executionContext) _ValidationReportError_entity_json(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidationReportError().EntityJSON(rctx, obj)
+		return obj.EntityJSON, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]interface{})
+	res := resTmp.(tt.Map)
 	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
+	return ec.marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportError_entity_json(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ValidationReportError",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Map does not have child fields")
 		},
@@ -52067,6 +52075,9 @@ func (ec *executionContext) _Me(ctx context.Context, sel ast.SelectionSet, obj *
 			out.Values[i] = ec._Me_roles(ctx, field, obj)
 		case "external_data":
 			out.Values[i] = ec._Me_external_data(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55783,6 +55794,9 @@ func (ec *executionContext) _ValidationRealtimeResult(ctx context.Context, sel a
 			}
 		case "json":
 			out.Values[i] = ec._ValidationRealtimeResult_json(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55830,6 +55844,9 @@ func (ec *executionContext) _ValidationReport(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._ValidationReport_reported_at_local_timezone(ctx, field, obj)
 		case "success":
 			out.Values[i] = ec._ValidationReport_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "failure_reason":
 			out.Values[i] = ec._ValidationReport_failure_reason(ctx, field, obj)
 		case "includes_static":
@@ -56057,83 +56074,55 @@ func (ec *executionContext) _ValidationReportError(ctx context.Context, sel ast.
 		case "filename":
 			out.Values[i] = ec._ValidationReportError_filename(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "error_type":
 			out.Values[i] = ec._ValidationReportError_error_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "error_code":
 			out.Values[i] = ec._ValidationReportError_error_code(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "group_key":
 			out.Values[i] = ec._ValidationReportError_group_key(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "entity_id":
 			out.Values[i] = ec._ValidationReportError_entity_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "field":
 			out.Values[i] = ec._ValidationReportError_field(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "line":
 			out.Values[i] = ec._ValidationReportError_line(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "value":
 			out.Values[i] = ec._ValidationReportError_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "message":
 			out.Values[i] = ec._ValidationReportError_message(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "geometry":
 			out.Values[i] = ec._ValidationReportError_geometry(ctx, field, obj)
 		case "entity_json":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ValidationReportError_entity_json(ctx, field, obj)
-				return res
+			out.Values[i] = ec._ValidationReportError_entity_json(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -56681,50 +56670,6 @@ func (ec *executionContext) marshalNAgency2githubᚗcomᚋinterlineᚑioᚋtrans
 	return ec._Agency(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAgency2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Agency) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNAgency2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgency(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNAgency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Agency) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -57112,54 +57057,6 @@ func (ec *executionContext) marshalNFeedFetch2ᚖgithubᚗcomᚋinterlineᚑio�
 	return ec._FeedFetch(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFeedInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfo(ctx context.Context, sel ast.SelectionSet, v model.FeedInfo) graphql.Marshaler {
-	return ec._FeedInfo(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFeedInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FeedInfo) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFeedInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfo(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNFeedInfo2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FeedInfo) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -57296,54 +57193,6 @@ func (ec *executionContext) marshalNFeedVersionDeleteResult2ᚖgithubᚗcomᚋin
 	return ec._FeedVersionDeleteResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFeedVersionFileInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfo(ctx context.Context, sel ast.SelectionSet, v model.FeedVersionFileInfo) graphql.Marshaler {
-	return ec._FeedVersionFileInfo(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFeedVersionFileInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FeedVersionFileInfo) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFeedVersionFileInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfo(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNFeedVersionFileInfo2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FeedVersionFileInfo) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -57410,54 +57259,6 @@ func (ec *executionContext) marshalNFeedVersionImportResult2ᚖgithubᚗcomᚋin
 		return graphql.Null
 	}
 	return ec._FeedVersionImportResult(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNFeedVersionServiceLevel2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevel(ctx context.Context, sel ast.SelectionSet, v model.FeedVersionServiceLevel) graphql.Marshaler {
-	return ec._FeedVersionServiceLevel(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFeedVersionServiceLevel2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FeedVersionServiceLevel) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFeedVersionServiceLevel2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevel(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNFeedVersionServiceLevel2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FeedVersionServiceLevel) graphql.Marshaler {
@@ -57801,6 +57602,16 @@ func (ec *executionContext) marshalNLineString2githubᚗcomᚋinterlineᚑioᚋt
 	return v
 }
 
+func (ec *executionContext) unmarshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx context.Context, v interface{}) (tt.Map, error) {
+	var res tt.Map
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx context.Context, sel ast.SelectionSet, v tt.Map) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNMe2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐMe(ctx context.Context, sel ast.SelectionSet, v model.Me) graphql.Marshaler {
 	return ec._Me(ctx, sel, &v)
 }
@@ -58028,50 +57839,6 @@ func (ec *executionContext) marshalNRTTranslation2ᚖgithubᚗcomᚋinterlineᚑ
 
 func (ec *executionContext) marshalNRoute2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRoute(ctx context.Context, sel ast.SelectionSet, v model.Route) graphql.Marshaler {
 	return ec._Route(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNRoute2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Route) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNRoute2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRoute(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNRoute2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Route) graphql.Marshaler {
@@ -58364,50 +58131,6 @@ func (ec *executionContext) marshalNStop2githubᚗcomᚋinterlineᚑioᚋtransit
 	return ec._Stop(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNStop2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Stop) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNStop2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Stop) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -58583,16 +58306,6 @@ func (ec *executionContext) marshalNStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑ
 	return ec._StopTimeEvent(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx context.Context, v interface{}) (tt.String, error) {
-	var res tt.String
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx context.Context, sel ast.SelectionSet, v tt.String) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -58734,8 +58447,14 @@ func (ec *executionContext) marshalNTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 	return ec._Trip(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNValidationRealtimeResult2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx context.Context, sel ast.SelectionSet, v model.ValidationRealtimeResult) graphql.Marshaler {
-	return ec._ValidationRealtimeResult(ctx, sel, &v)
+func (ec *executionContext) marshalNValidationRealtimeResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx context.Context, sel ast.SelectionSet, v *model.ValidationRealtimeResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ValidationRealtimeResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNValidationReport2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationReport(ctx context.Context, sel ast.SelectionSet, v *model.ValidationReport) graphql.Marshaler {
@@ -59315,16 +59034,6 @@ func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interf
 func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	res := graphql.MarshalBoolean(v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx context.Context, v interface{}) (tt.Bool, error) {
-	var res tt.Bool
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx context.Context, sel ast.SelectionSet, v tt.Bool) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v interface{}) (*bool, error) {
@@ -60722,22 +60431,6 @@ func (ec *executionContext) marshalOLineString2ᚖgithubᚗcomᚋinterlineᚑio�
 	return v
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalMap(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalMap(v)
-	return res
-}
-
 func (ec *executionContext) marshalOOperator2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐOperatorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Operator) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -61617,7 +61310,7 @@ func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	return res
 }
 
-func (ec *executionContext) marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ValidationRealtimeResult) graphql.Marshaler {
+func (ec *executionContext) marshalOValidationRealtimeResult2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidationRealtimeResult) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -61644,7 +61337,7 @@ func (ec *executionContext) marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNValidationRealtimeResult2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx, sel, v[i])
+			ret[i] = ec.marshalNValidationRealtimeResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

@@ -87,6 +87,8 @@ models:
     model: "github.com/interline-io/transitland-lib/tl/tt.Geometry"    
   Date:
     model: "github.com/interline-io/transitland-lib/tl/tt.Date"
+  Map:
+    model: "github.com/interline-io/transitland-lib/tl/tt.Map"
   # Force resolvers
   RouteStop:
     fields:
@@ -130,6 +132,36 @@ models:
     extraFields:
       RouteID:
         type: int
+  Place:
+    fields:
+      count:
+        resolver: true
+      operators:
+        resolver: true
+    extraFields:
+      AgencyIDs:
+        type: "github.com/interline-io/transitland-lib/tl/tt.Ints"
+        overrideTags: db:"agency_ids"
+  StopExternalReference:
+    fields:
+      target_active_stop:
+        resolver: true
+  ValidationReport:
+    extraFields:
+      FeedVersionID:
+        type: int
+  ValidationReportErrorGroup:        
+    extraFields:
+      ID:
+        type: int
+      ValidationReportID:
+        type: int
+  ValidationReportError:
+    extraFields:
+      ID:
+        type: int
+      ValidationReportErrorGroupID:
+        type: int
   CensusGeography:
     fields:
       values:
@@ -137,6 +169,16 @@ models:
     extraFields:
       MatchEntityID:
         type: int
+      
+  # CensusValue:
+  #   fields:
+  #     TableValues:
+  #       model: "github.com/interline-io/transitland-server/models.ValueMap"
+  #   extraFields:
+  #     GeographyID:
+  #       type: int
+  #     TableID:
+  #       type: int
   
   # Trip:
   #   model: "github.com/interline-io/transitland-lib/tl.Trip"

@@ -8,7 +8,6 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/tt"
 )
 
 type Feed struct {
@@ -156,13 +155,6 @@ type FeedVersionServiceLevel struct {
 
 // Census models
 
-// type CensusTable struct {
-// 	ID         int
-// 	TableName  string
-// 	TableTitle string
-// 	TableGroup string
-// }
-
 type CensusValue struct {
 	GeographyID int
 	TableID     int
@@ -184,98 +176,4 @@ func (a *ValueMap) Scan(value interface{}) error {
 		return errors.New("type assertion to []byte failed")
 	}
 	return json.Unmarshal(b, &a)
-}
-
-///////////////// Validation
-
-type ValidationReport struct {
-	ID                      int                          `json:"id"`
-	FeedVersionID           int                          `json:"feed_version_id"`
-	Success                 tt.Bool                      `json:"success"`
-	FailureReason           tt.String                    `json:"failure_reason"`
-	IncludesStatic          tt.Bool                      `json:"includes_static"`
-	IncludesRT              tt.Bool                      `json:"includes_rt"`
-	Validator               tt.String                    `json:"validator"`
-	ValidatorVersion        tt.String                    `json:"validator_version"`
-	ReportedAt              tt.Time                      `json:"reported_at"`
-	ReportedAtLocal         tt.Time                      `json:"reported_at_local"`
-	ReportedAtLocalTimezone tt.String                    `json:"reported_at_local_timezone"`
-	Errors                  []ValidationReportErrorGroup `json:"errors"`
-	Warnings                []ValidationReportErrorGroup `json:"warnings"`
-	Details                 ValidationReportDetails
-}
-
-type ValidationReportDetails struct {
-	Sha1                 tt.String                  `json:"sha1"`
-	EarliestCalendarDate tl.Date                    `json:"earliest_calendar_date"`
-	LatestCalendarDate   tl.Date                    `json:"latest_calendar_date"`
-	Files                []FeedVersionFileInfo      `json:"files"`
-	ServiceLevels        []FeedVersionServiceLevel  `json:"service_levels"`
-	Agencies             []Agency                   `json:"agencies"`
-	Routes               []Route                    `json:"routes"`
-	Stops                []Stop                     `json:"stops"`
-	FeedInfos            []FeedInfo                 `json:"feed_infos"`
-	Realtime             []ValidationRealtimeResult `json:"realtime"`
-}
-
-type ValidationRealtimeResult struct {
-	Url  string         `json:"url"`
-	Json map[string]any `json:"json"`
-}
-
-type ValidationReportErrorGroup struct {
-	ID                 int                      `json:"id"`
-	ValidationReportID int                      `json:"validation_report_id"`
-	Filename           string                   `json:"filename"`
-	ErrorType          string                   `json:"error_type"`
-	ErrorCode          string                   `json:"error_code"`
-	GroupKey           string                   `json:"group_key"`
-	Message            string                   `json:"message"`
-	Field              string                   `json:"field"`
-	Count              int                      `json:"count"`
-	Limit              int                      `json:"limit"`
-	Errors             []*ValidationReportError `json:"errors"`
-}
-
-type ValidationReportError struct {
-	ID                           int         `json:"id"`
-	ValidationReportErrorGroupID int         `json:"validation_report_error_group_id"`
-	Filename                     string      `json:"filename"`
-	ErrorType                    string      `json:"error_type"`
-	ErrorCode                    string      `json:"error_code"`
-	GroupKey                     string      `json:"group_key"`
-	EntityID                     string      `json:"entity_id"`
-	Field                        string      `json:"field"`
-	Value                        string      `json:"value"`
-	Message                      string      `json:"message"`
-	Line                         int         `json:"line"`
-	Geometry                     tt.Geometry `json:"geometry"`
-	EntityJson                   tt.Map      `json:"entity_json"`
-}
-
-///////////////////// Fetch
-
-type FeedVersionFetchResult struct {
-	FeedVersion  *FeedVersion
-	FetchError   *string
-	FoundSHA1    bool
-	FoundDirSHA1 bool
-}
-
-///////////////////// Analyst
-
-type StopExternalReference struct {
-	ID                  int     `json:"id"`
-	TargetFeedOnestopID *string `json:"target_feed_onestop_id"`
-	TargetStopID        *string `json:"target_stop_id"`
-	Inactive            *bool   `json:"inactive"`
-}
-
-// Places - needs custom database tags
-
-type Place struct {
-	Adm0Name  *string `json:"adm0_name" db:"adm0name"`
-	Adm1Name  *string `json:"adm1_name" db:"adm1name"`
-	CityName  *string `json:"city_name" db:"name"`
-	AgencyIDs tt.Ints `json:"-" db:"agency_ids"` // internal
 }
