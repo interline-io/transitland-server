@@ -23,7 +23,7 @@ func (r *censusValueResolver) Table(ctx context.Context, obj *model.CensusValue)
 }
 
 func (r *censusValueResolver) Values(ctx context.Context, obj *model.CensusValue) (interface{}, error) {
-	return obj.TableValues, nil
+	return obj.Values, nil
 }
 
 // add geography resolvers to agency, route, stop

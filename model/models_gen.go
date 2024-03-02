@@ -95,6 +95,13 @@ type CensusTable struct {
 	TableGroup string `json:"table_group"`
 }
 
+type CensusValue struct {
+	Table       *CensusTable `json:"table"`
+	Values      tt.Map       `json:"values"`
+	GeographyID int          `json:"-"`
+	TableID     int          `json:"-"`
+}
+
 type DirectionRequest struct {
 	To       *WaypointInput `json:"to"`
 	From     *WaypointInput `json:"from"`

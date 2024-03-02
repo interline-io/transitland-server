@@ -89,6 +89,10 @@ models:
     model: "github.com/interline-io/transitland-lib/tl/tt.Date"
   Map:
     model: "github.com/interline-io/transitland-lib/tl/tt.Map"
+  Feed:
+    fields:
+      onestop_id:
+        fieldName: FeedID
   # Force resolvers
   RouteStop:
     fields:
@@ -170,18 +174,10 @@ models:
       MatchEntityID:
         type: int
       
-  # CensusValue:
-  #   fields:
-  #     TableValues:
-  #       model: "github.com/interline-io/transitland-server/models.ValueMap"
-  #   extraFields:
-  #     GeographyID:
-  #       type: int
-  #     TableID:
-  #       type: int
+  CensusValue:
+    extraFields:
+      GeographyID:
+        type: int
+      TableID:
+        type: int
   
-  # Trip:
-  #   model: "github.com/interline-io/transitland-lib/tl.Trip"
-  #   extraFields:
-  #     test:
-  #       type: string

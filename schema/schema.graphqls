@@ -665,7 +665,7 @@ type CensusGeography {
 
 type CensusValue {
   table: CensusTable!
-  values: Any! # json blob
+  values: Map!
 }
 
 type CensusTable {

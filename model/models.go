@@ -1,9 +1,7 @@
 package model
 
 import (
-	"database/sql/driver"
 	"encoding/json"
-	"errors"
 
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -13,11 +11,6 @@ import (
 type Feed struct {
 	SearchRank *string
 	tl.Feed
-}
-
-// OnestopID is called FeedID in transitland-lib.
-func (f *Feed) OnestopID() (string, error) {
-	return f.FeedID, nil
 }
 
 type FeedLicense struct {
@@ -149,31 +142,4 @@ type FeedVersionGtfsImport struct {
 
 type FeedVersionServiceLevel struct {
 	dmfr.FeedVersionServiceLevel
-}
-
-// Support models that don't exist in transitland-lib
-
-// Census models
-
-type CensusValue struct {
-	GeographyID int
-	TableID     int
-	TableValues ValueMap
-}
-
-// ValueMap is just a JSONB map[string]interface{}
-type ValueMap map[string]interface{}
-
-// Value dump
-func (a ValueMap) Value() (driver.Value, error) {
-	return json.Marshal(a)
-}
-
-// Scan load
-func (a *ValueMap) Scan(value interface{}) error {
-	b, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
-	}
-	return json.Unmarshal(b, &a)
 }
