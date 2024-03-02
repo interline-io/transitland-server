@@ -81,15 +81,15 @@ type Route struct {
 }
 
 type Trip struct {
-	tl.Trip
 	RTTripID string // internal: for ADDED trips
+	tl.Trip
 }
 
 type StopTime struct {
-	tl.StopTime
 	ServiceDate      tl.Date
 	RTTripID         string                        // internal: for ADDED trips
 	RTStopTimeUpdate *pb.TripUpdate_StopTimeUpdate // internal
+	tl.StopTime
 }
 
 type StopTimeEvent struct {
@@ -154,86 +154,14 @@ type FeedVersionServiceLevel struct {
 
 // Support models that don't exist in transitland-lib
 
-type RouteStop struct {
-	ID       int `json:"id"`
-	RouteID  int
-	StopID   int
-	AgencyID int
-}
-
-type RouteHeadway struct {
-	ID             int     `json:"id"`
-	RouteID        int     `json:"route_id"`
-	SelectedStopID int     `json:"selected_stop_id"`
-	DirectionID    int     `json:"direction_id"`
-	HeadwaySecs    *int    `json:"headway_secs"`
-	DowCategory    *int    `json:"dow_category"`
-	ServiceDate    tl.Date `json:"service_date"`
-	ServiceSeconds *int    `json:"service_seconds"`
-	StopTripCount  *int    `json:"stop_trip_count"`
-	Departures     tl.Ints
-}
-
-type RouteStopPattern struct {
-	RouteID       int `json:"id"`
-	StopPatternID int `json:"stop_pattern_id"`
-	DirectionID   int `json:"direction_id"`
-	Count         int `json:"count"`
-}
-
-type RouteStopBuffer struct {
-	StopPoints     *tl.Geometry `json:"stop_points"`
-	StopBuffer     *tl.Geometry `json:"stop_buffer"`
-	StopConvexhull *tl.Polygon  `json:"stop_convexhull"`
-}
-
-type RouteGeometry struct {
-	RouteID               int           `json:"route_id"`
-	Generated             bool          `json:"generated"`
-	Geometry              tl.LineString `json:"geometry"`
-	CombinedGeometry      tl.Geometry   `json:"combined_geometry"`
-	Length                tl.Float      `json:"length"`
-	MaxSegmentLength      tl.Float      `json:"max_segment_length"`
-	FirstPointMaxDistance tl.Float      `json:"first_point_max_distance"`
-}
-
-// MTC GTFS+ Extension: route_attributes.txt
-type RouteAttribute struct {
-	RouteID     int
-	Category    tt.Int `json:"Category"`
-	Subcategory tt.Int `json:"Subcategory"`
-	RunningWay  tt.Int `json:"RunningWay"`
-}
-
-type AgencyPlace struct {
-	AgencyID int      `json:"agency_id"`
-	CityName *string  `json:"city_name" db:"name" `
-	Adm0Name *string  `json:"adm0_name" db:"adm0name" `
-	Adm1Name *string  `json:"adm1_name" db:"adm1name" `
-	Adm0Iso  *string  `json:"adm0_iso" db:"adm0iso" `
-	Adm1Iso  *string  `json:"adm1_iso" db:"adm1iso" `
-	Rank     *float64 `json:"rank"`
-}
-
 // Census models
 
-type CensusGeography struct {
-	ID            int         `json:"id"`
-	LayerName     string      `json:"layer_name"`
-	Geoid         *string     `json:"geoid"`
-	Name          *string     `json:"name"`
-	Aland         *float64    `json:"aland"`
-	Awater        *float64    `json:"awater"`
-	Geometry      *tl.Polygon `json:"geometry"`
-	MatchEntityID int         // for matching to a stop, route, agency in query
-}
-
-type CensusTable struct {
-	ID         int
-	TableName  string
-	TableTitle string
-	TableGroup string
-}
+// type CensusTable struct {
+// 	ID         int
+// 	TableName  string
+// 	TableTitle string
+// 	TableGroup string
+// }
 
 type CensusValue struct {
 	GeographyID int
@@ -334,12 +262,6 @@ type FeedVersionFetchResult struct {
 	FoundDirSHA1 bool
 }
 
-///////////////////// Import
-
-type FeedVersionImportResult struct {
-	Success bool
-}
-
 ///////////////////// Analyst
 
 type StopExternalReference struct {
@@ -349,7 +271,7 @@ type StopExternalReference struct {
 	Inactive            *bool   `json:"inactive"`
 }
 
-// Places
+// Places - needs custom database tags
 
 type Place struct {
 	Adm0Name  *string `json:"adm0_name" db:"adm0name"`

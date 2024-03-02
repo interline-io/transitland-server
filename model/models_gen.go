@@ -37,6 +37,16 @@ type AgencyFilter struct {
 	License *LicenseFilter `json:"license,omitempty"`
 }
 
+type AgencyPlace struct {
+	CityName *string  `json:"city_name,omitempty"`
+	Adm0Name *string  `json:"adm0_name,omitempty"`
+	Adm1Name *string  `json:"adm1_name,omitempty"`
+	Adm0Iso  *string  `json:"adm0_iso,omitempty"`
+	Adm1Iso  *string  `json:"adm1_iso,omitempty"`
+	Rank     *float64 `json:"rank,omitempty"`
+	AgencyID int      `json:"-"`
+}
+
 type AgencyPlaceFilter struct {
 	MinRank *float64 `json:"min_rank,omitempty"`
 }
@@ -64,6 +74,25 @@ type BoundingBox struct {
 type CalendarDateFilter struct {
 	Date          *tt.Date `json:"date,omitempty"`
 	ExceptionType *int     `json:"exception_type,omitempty"`
+}
+
+type CensusGeography struct {
+	ID            int            `json:"id"`
+	LayerName     string         `json:"layer_name"`
+	Geoid         *string        `json:"geoid,omitempty"`
+	Name          *string        `json:"name,omitempty"`
+	Aland         *float64       `json:"aland,omitempty"`
+	Awater        *float64       `json:"awater,omitempty"`
+	Geometry      *tt.Polygon    `json:"geometry,omitempty"`
+	Values        []*CensusValue `json:"values"`
+	MatchEntityID int            `json:"-"`
+}
+
+type CensusTable struct {
+	ID         int    `json:"id"`
+	TableName  string `json:"table_name"`
+	TableTitle string `json:"table_title"`
+	TableGroup string `json:"table_group"`
 }
 
 type DirectionRequest struct {
@@ -141,6 +170,10 @@ type FeedVersionFilter struct {
 	Bbox          *BoundingBox         `json:"bbox,omitempty"`
 	Within        *tt.Polygon          `json:"within,omitempty"`
 	Near          *PointRadius         `json:"near,omitempty"`
+}
+
+type FeedVersionImportResult struct {
+	Success bool `json:"success"`
 }
 
 type FeedVersionServiceLevelFilter struct {
@@ -297,6 +330,14 @@ type RTVehicleDescriptor struct {
 	LicensePlate *string `json:"license_plate,omitempty"`
 }
 
+// MTC GTFS+ Extension: route_attributes.txt
+type RouteAttribute struct {
+	Category    *int `json:"category,omitempty"`
+	Subcategory *int `json:"subcategory,omitempty"`
+	RunningWay  *int `json:"running_way,omitempty"`
+	RouteID     int  `json:"-"`
+}
+
 type RouteFilter struct {
 	OnestopID               *string        `json:"onestop_id,omitempty"`
 	OnestopIds              []string       `json:"onestop_ids,omitempty"`
@@ -313,6 +354,54 @@ type RouteFilter struct {
 	OperatorOnestopID       *string        `json:"operator_onestop_id,omitempty"`
 	License                 *LicenseFilter `json:"license,omitempty"`
 	AgencyIds               []int          `json:"agency_ids,omitempty"`
+}
+
+type RouteGeometry struct {
+	// If true, the source GTFS feed provides no shapes. This route geometry is based on straight lines between stop points.
+	Generated             bool           `json:"generated"`
+	Geometry              *tt.LineString `json:"geometry,omitempty"`
+	CombinedGeometry      *tt.Geometry   `json:"combined_geometry,omitempty"`
+	Length                *float64       `json:"length,omitempty"`
+	MaxSegmentLength      *float64       `json:"max_segment_length,omitempty"`
+	FirstPointMaxDistance *float64       `json:"first_point_max_distance,omitempty"`
+	RouteID               int            `json:"-"`
+}
+
+type RouteHeadway struct {
+	Stop             *Stop          `json:"stop"`
+	DowCategory      *int           `json:"dow_category,omitempty"`
+	DirectionID      *int           `json:"direction_id,omitempty"`
+	HeadwaySecs      *int           `json:"headway_secs,omitempty"`
+	ServiceDate      *tt.Date       `json:"service_date,omitempty"`
+	StopTripCount    *int           `json:"stop_trip_count,omitempty"`
+	DeparturesUnused []*tt.WideTime `json:"departures,omitempty"`
+	DepartureInts    tt.Ints        `db:"departures"`
+	RouteID          int            `json:"-"`
+	SelectedStopID   int            `json:"-"`
+}
+
+type RouteStop struct {
+	ID       int     `json:"id"`
+	StopID   int     `json:"stop_id"`
+	RouteID  int     `json:"route_id"`
+	AgencyID int     `json:"agency_id"`
+	Route    *Route  `json:"route"`
+	Stop     *Stop   `json:"stop"`
+	Agency   *Agency `json:"agency"`
+}
+
+type RouteStopBuffer struct {
+	StopPoints     *tt.Geometry `json:"stop_points,omitempty"`
+	StopBuffer     *tt.Geometry `json:"stop_buffer,omitempty"`
+	StopConvexhull *tt.Polygon  `json:"stop_convexhull,omitempty"`
+}
+
+type RouteStopPattern struct {
+	StopPatternID int     `json:"stop_pattern_id"`
+	DirectionID   int     `json:"direction_id"`
+	Count         int     `json:"count"`
+	Trips         []*Trip `json:"trips,omitempty"`
+	RouteID       int     `json:"-"`
 }
 
 type ServiceCoversFilter struct {

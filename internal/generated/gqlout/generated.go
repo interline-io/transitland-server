@@ -33967,9 +33967,9 @@ func (ec *executionContext) _RouteAttribute_category(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteAttribute_category(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34008,9 +34008,9 @@ func (ec *executionContext) _RouteAttribute_subcategory(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteAttribute_subcategory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34049,9 +34049,9 @@ func (ec *executionContext) _RouteAttribute_running_way(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteAttribute_running_way(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34134,9 +34134,9 @@ func (ec *executionContext) _RouteGeometry_geometry(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.LineString)
+	res := resTmp.(*tt.LineString)
 	fc.Result = res
-	return ec.marshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx, field.Selections, res)
+	return ec.marshalOLineString2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34175,9 +34175,9 @@ func (ec *executionContext) _RouteGeometry_combined_geometry(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Geometry)
+	res := resTmp.(*tt.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
+	return ec.marshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_combined_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34216,9 +34216,9 @@ func (ec *executionContext) _RouteGeometry_length(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Float)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_length(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34257,9 +34257,9 @@ func (ec *executionContext) _RouteGeometry_max_segment_length(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Float)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_max_segment_length(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34298,9 +34298,9 @@ func (ec *executionContext) _RouteGeometry_first_point_max_distance(ctx context.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Float)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_first_point_max_distance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34494,9 +34494,9 @@ func (ec *executionContext) _RouteHeadway_direction_id(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteHeadway_direction_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34576,9 +34576,9 @@ func (ec *executionContext) _RouteHeadway_service_date(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Date)
+	res := resTmp.(*tt.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteHeadway_service_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -60706,13 +60706,19 @@ func (ec *executionContext) marshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑi
 	return v
 }
 
-func (ec *executionContext) unmarshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, v interface{}) (tt.LineString, error) {
-	var res tt.LineString
+func (ec *executionContext) unmarshalOLineString2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, v interface{}) (*tt.LineString, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(tt.LineString)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, sel ast.SelectionSet, v tt.LineString) graphql.Marshaler {
+func (ec *executionContext) marshalOLineString2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, sel ast.SelectionSet, v *tt.LineString) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
 	return v
 }
 

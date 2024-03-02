@@ -27,7 +27,7 @@ func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tl.Geo
 		return nil, err
 	}
 	if len(geoms) > 0 {
-		return &geoms[0].CombinedGeometry, nil
+		return geoms[0].CombinedGeometry, nil
 	}
 	return nil, nil
 }
@@ -95,7 +95,7 @@ func (r *routeHeadwayResolver) Stop(ctx context.Context, obj *model.RouteHeadway
 
 func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tl.WideTime, error) {
 	var ret []*tl.WideTime
-	for _, v := range obj.Departures.Val {
+	for _, v := range obj.DepartureInts.Val {
 		w := tt.NewWideTimeFromSeconds(v)
 		ret = append(ret, &w)
 	}

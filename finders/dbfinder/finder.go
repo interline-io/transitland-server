@@ -1022,11 +1022,11 @@ func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.Agen
 			q := sq.StatementBuilder.Select(
 				"tl_agency_places.agency_id",
 				"tl_agency_places.rank",
-				"tl_agency_places.name",
-				"tl_agency_places.adm0name",
-				"tl_agency_places.adm1name",
-				"ne_admin.iso_a2 as adm0iso",
-				"ne_admin.iso_3166_2 as adm1iso",
+				"tl_agency_places.name as city_name",
+				"tl_agency_places.adm0name as adm0_name",
+				"tl_agency_places.adm1name as adm1_name",
+				"ne_admin.iso_a2 as adm0_iso",
+				"ne_admin.iso_3166_2 as adm1_iso",
 			).
 				From("tl_agency_places").
 				Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tl_agency_places.adm1name and ne_admin.admin = tl_agency_places.adm0name")
