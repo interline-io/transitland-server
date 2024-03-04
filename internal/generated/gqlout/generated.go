@@ -6899,6 +6899,8 @@ input StopInput {
   platform_code: String
   tts_stop_name: String
   geometry: Point
+  parent: StopInput
+  level: LevelInput
 }
 
 input LevelInput {
@@ -6912,6 +6914,7 @@ input LevelInput {
 
 input PathwayInput {
   id: Int
+  feed_version_id: Int
   pathway_id: String
   pathway_mode: Int
   is_bidirectional: Int
@@ -40084,9 +40087,9 @@ func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.WideTime)
+	res := resTmp.(*tt.WideTime)
 	fc.Result = res
-	return ec.marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTimeEvent_scheduled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40125,9 +40128,9 @@ func (ec *executionContext) _StopTimeEvent_estimated(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.WideTime)
+	res := resTmp.(*tt.WideTime)
 	fc.Result = res
-	return ec.marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTimeEvent_estimated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40166,9 +40169,9 @@ func (ec *executionContext) _StopTimeEvent_estimated_utc(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTimeEvent_estimated_utc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46745,7 +46748,7 @@ func (ec *executionContext) unmarshalInputPathwayInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "pathway_id", "pathway_mode", "is_bidirectional", "length", "traversal_time", "stair_count", "max_slope", "min_width", "signposted_as", "reverse_signposted_as", "from_stop", "to_stop"}
+	fieldsInOrder := [...]string{"id", "feed_version_id", "pathway_id", "pathway_mode", "is_bidirectional", "length", "traversal_time", "stair_count", "max_slope", "min_width", "signposted_as", "reverse_signposted_as", "from_stop", "to_stop"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46759,6 +46762,13 @@ func (ec *executionContext) unmarshalInputPathwayInput(ctx context.Context, obj 
 				return it, err
 			}
 			it.ID = data
+		case "feed_version_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_version_id"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeedVersionID = data
 		case "pathway_id":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pathway_id"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -47285,7 +47295,7 @@ func (ec *executionContext) unmarshalInputStopInput(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "feed_version_id", "location_type", "stop_code", "stop_desc", "stop_id", "stop_name", "stop_timezone", "stop_url", "wheelchair_boarding", "zone_id", "platform_code", "tts_stop_name", "geometry"}
+	fieldsInOrder := [...]string{"id", "feed_version_id", "location_type", "stop_code", "stop_desc", "stop_id", "stop_name", "stop_timezone", "stop_url", "wheelchair_boarding", "zone_id", "platform_code", "tts_stop_name", "geometry", "parent", "level"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47390,6 +47400,20 @@ func (ec *executionContext) unmarshalInputStopInput(ctx context.Context, obj int
 				return it, err
 			}
 			it.Geometry = data
+		case "parent":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent"))
+			data, err := ec.unmarshalOStopInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Parent = data
+		case "level":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
+			data, err := ec.unmarshalOLevelInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Level = data
 		}
 	}
 
@@ -60299,6 +60323,14 @@ func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtra
 	return ec._Level(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOLevelInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelInput(ctx context.Context, v interface{}) (*model.LevelInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLevelInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx context.Context, v interface{}) (*model.LicenseFilter, error) {
 	if v == nil {
 		return nil, nil
@@ -60688,16 +60720,6 @@ func (ec *executionContext) marshalOScheduleRelationship2ᚖgithubᚗcomᚋinter
 	if v == nil {
 		return graphql.Null
 	}
-	return v
-}
-
-func (ec *executionContext) unmarshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, v interface{}) (tt.WideTime, error) {
-	var res tt.WideTime
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, sel ast.SelectionSet, v tt.WideTime) graphql.Marshaler {
 	return v
 }
 

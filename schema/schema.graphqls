@@ -73,6 +73,8 @@ input StopInput {
   platform_code: String
   tts_stop_name: String
   geometry: Point
+  parent: StopInput
+  level: LevelInput
 }
 
 input LevelInput {
@@ -86,6 +88,7 @@ input LevelInput {
 
 input PathwayInput {
   id: Int
+  feed_version_id: Int
   pathway_id: String
   pathway_mode: Int
   is_bidirectional: Int

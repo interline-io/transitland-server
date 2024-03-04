@@ -53,34 +53,62 @@ func (r *mutationResolver) FeedVersionDelete(ctx context.Context, id int) (*mode
 }
 
 // Entity editing
-func (r *mutationResolver) CreateLevel(ctx context.Context, obj model.LevelInput) (*model.Level, error) {
-	return nil, nil
-}
-
-func (r *mutationResolver) UpdateLevel(ctx context.Context, obj model.LevelInput) (*model.Level, error) {
-	return nil, nil
-}
-
-func (r *mutationResolver) CreatePathway(ctx context.Context, obj model.PathwayInput) (*model.Pathway, error) {
-	return nil, nil
-}
-
-func (r *mutationResolver) UpdatePathway(ctx context.Context, obj model.PathwayInput) (*model.Pathway, error) {
-	return nil, nil
-}
-
 func (r *mutationResolver) CreateStop(ctx context.Context, obj model.StopInput) (*model.Stop, error) {
 	entId, err := actions.CreateStop(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
-	foundStops, err := r.Resolver.Query().Stops(ctx, nil, nil, []int{entId}, nil)
-	if len(foundStops) == 0 {
+	found, err := r.Resolver.Query().Stops(ctx, nil, nil, []int{entId}, nil)
+	if len(found) == 0 {
 		return nil, errors.New("not found")
 	}
-	return foundStops[0], err
+	return found[0], err
 }
 
 func (r *mutationResolver) UpdateStop(ctx context.Context, obj model.StopInput) (*model.Stop, error) {
+	entId, err := actions.UpdateStop(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	found, err := r.Resolver.Query().Stops(ctx, nil, nil, []int{entId}, nil)
+	if len(found) == 0 {
+		return nil, errors.New("not found")
+	}
+	return found[0], err
+}
+
+func (r *mutationResolver) CreateLevel(ctx context.Context, obj model.LevelInput) (*model.Level, error) {
+	entId, err := actions.CreateLevel(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	_ = entId
+	return nil, nil
+}
+
+func (r *mutationResolver) UpdateLevel(ctx context.Context, obj model.LevelInput) (*model.Level, error) {
+	entId, err := actions.UpdateLevel(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	_ = entId
+	return nil, nil
+}
+
+func (r *mutationResolver) CreatePathway(ctx context.Context, obj model.PathwayInput) (*model.Pathway, error) {
+	entId, err := actions.CreatePathway(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	_ = entId
+	return nil, nil
+}
+
+func (r *mutationResolver) UpdatePathway(ctx context.Context, obj model.PathwayInput) (*model.Pathway, error) {
+	entId, err := actions.UpdatePathway(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	_ = entId
 	return nil, nil
 }
