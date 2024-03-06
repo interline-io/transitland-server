@@ -43,6 +43,7 @@ type EntityLoader interface {
 	// Simple ID loaders
 	TripsByID(context.Context, []int) ([]*Trip, []error)
 	LevelsByID(context.Context, []int) ([]*Level, []error)
+	PathwaysByID(context.Context, []int) ([]*Pathway, []error)
 	CalendarsByID(context.Context, []int) ([]*Calendar, []error)
 	ShapesByID(context.Context, []int) ([]*Shape, []error)
 	FeedVersionsByID(context.Context, []int) ([]*FeedVersion, []error)

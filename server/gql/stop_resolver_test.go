@@ -563,6 +563,8 @@ func stopResolverCursorTestcases(t *testing.T, cfg model.Config) []testcase {
 }
 
 func stopResolverPreviousOnestopIDTestcases(t testing.TB, cfg model.Config) []testcase {
+	_ = t
+	_ = cfg
 	testcases := []testcase{
 		{
 			name:         "default",
@@ -597,6 +599,8 @@ func stopResolverPreviousOnestopIDTestcases(t testing.TB, cfg model.Config) []te
 }
 
 func stopResolverLicenseTestcases(t testing.TB, cfg model.Config) []testcase {
+	_ = t
+	_ = cfg
 	q := `
 	query ($lic: LicenseFilter) {
 		stops(limit: 10000, where: {license: $lic}) {

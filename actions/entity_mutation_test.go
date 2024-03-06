@@ -8,6 +8,7 @@ import (
 
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -16,23 +17,25 @@ import (
 func TestCreateStop(t *testing.T) {
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		ctx := model.WithConfig(context.Background(), cfg)
+		fv := model.FeedVersionInput{ID: toPtr(1)}
 		stopInput := model.StopInput{
-			FeedVersionID: toPtr(1),
-			StopID:        toPtr(fmt.Sprintf("%d", time.Now().UnixNano())),
-			StopName:      toPtr("hello"),
-			Geometry:      toPtr(tt.NewPoint(-122.271604, 37.803664)),
+			FeedVersion: &fv,
+			StopID:      toPtr(fmt.Sprintf("%d", time.Now().UnixNano())),
+			StopName:    toPtr("hello"),
+			Geometry:    toPtr(tt.NewPoint(-122.271604, 37.803664)),
 		}
 		eid, err := CreateStop(ctx, stopInput)
 		if err != nil {
 			t.Fatal(err)
 		}
 		checkEnt := tl.Stop{}
-		if err := getEnt(ctx, cfg.Finder.DBX(), "gtfs_stops", eid, &checkEnt); err != nil {
+		checkEnt.ID = eid
+		atx := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+		if err := atx.Find(&checkEnt); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, stopInput.StopID, &checkEnt.StopID)
 		assert.Equal(t, stopInput.StopName, &checkEnt.StopName)
-		assert.Equal(t, stopInput.FeedVersionID, &checkEnt.FeedVersionID)
 		assert.Equal(t, stopInput.Geometry.Coords(), checkEnt.Geometry.Coords())
 	})
 }
@@ -40,11 +43,12 @@ func TestCreateStop(t *testing.T) {
 func TestUpdateStop(t *testing.T) {
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		ctx := model.WithConfig(context.Background(), cfg)
+		fv := model.FeedVersionInput{ID: toPtr(1)}
 		stopInput := model.StopInput{
-			FeedVersionID: toPtr(1),
-			StopID:        toPtr(fmt.Sprintf("%d", time.Now().UnixNano())),
-			StopName:      toPtr("hello"),
-			Geometry:      toPtr(tt.NewPoint(-122.271604, 37.803664)),
+			FeedVersion: &fv,
+			StopID:      toPtr(fmt.Sprintf("%d", time.Now().UnixNano())),
+			StopName:    toPtr("hello"),
+			Geometry:    toPtr(tt.NewPoint(-122.271604, 37.803664)),
 		}
 		eid, err := CreateStop(ctx, stopInput)
 		if err != nil {
@@ -59,7 +63,9 @@ func TestUpdateStop(t *testing.T) {
 			t.Fatal(err)
 		}
 		checkEnt := tl.Stop{}
-		if err := getEnt(ctx, cfg.Finder.DBX(), "gtfs_stops", eid, &checkEnt); err != nil {
+		checkEnt.ID = eid
+		atx := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+		if err := atx.Find(&checkEnt); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, stopUpdate.StopID, &checkEnt.StopID)

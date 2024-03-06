@@ -31,6 +31,7 @@ type Loaders struct {
 	StopsByID                                                    *dataloader.Loader[int, *model.Stop]
 	FeedVersionsByID                                             *dataloader.Loader[int, *model.FeedVersion]
 	LevelsByID                                                   *dataloader.Loader[int, *model.Level]
+	PathwaysByID                                                 *dataloader.Loader[int, *model.Pathway]
 	TripsByID                                                    *dataloader.Loader[int, *model.Trip]
 	OperatorsByCOIF                                              *dataloader.Loader[int, *model.Operator]
 	OperatorsByOnestopID                                         *dataloader.Loader[string, *model.Operator]
@@ -91,6 +92,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		StopsByID:                               withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByID),
 		FeedVersionsByID:                        withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionsByID),
 		LevelsByID:                              withWaitAndCapacity(waitTime, maxBatch, dbf.LevelsByID),
+		PathwaysByID:                            withWaitAndCapacity(waitTime, maxBatch, dbf.PathwaysByID),
 		TripsByID:                               withWaitAndCapacity(waitTime, maxBatch, dbf.TripsByID),
 		OperatorsByCOIF:                         withWaitAndCapacity(waitTime, maxBatch, dbf.OperatorsByCOIF),
 		OperatorsByOnestopID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.OperatorsByOnestopID),

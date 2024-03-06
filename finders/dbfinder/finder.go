@@ -283,6 +283,19 @@ func (f *Finder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []e
 	return arrangeBy(ids, ents, func(ent *model.Level) int { return ent.ID }), nil
 }
 
+func (f *Finder) PathwaysByID(ctx context.Context, ids []int) ([]*model.Pathway, []error) {
+	var ents []*model.Pathway
+	err := dbutil.Select(ctx,
+		f.db,
+		PathwaySelect(nil, nil, ids, nil, nil),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Pathway) int { return ent.ID }), nil
+}
+
 func (f *Finder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
 	var ents []*model.Calendar
 	err := dbutil.Select(ctx,

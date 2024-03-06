@@ -155,6 +155,8 @@ github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-chi/chi/v5 v5.0.10 h1:rLz5avzKpjqxrYwXNfmjkrYYXOyLJd37pz53UFHC6vk=
 github.com/go-chi/chi/v5 v5.0.10/go.mod h1:DslCQbL2OYiznFReuXYUmQ2hGd1aDpCnlMNITLSKoi8=
+github.com/go-chi/cors v1.2.1 h1:xEC8UT3Rlp2QuWNEr4Fs/c2EAGVKBwy/1vHx3bppil4=
+github.com/go-chi/cors v1.2.1/go.mod h1:sSbTewc+6wYHBBCW7ytsFSn836hqM7JxpglAy2Vzc58=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=
@@ -265,8 +267,6 @@ github.com/interline-io/log v0.0.0-20240126000327-05bb90e4de4f h1:yZuyLK/XJqVOHx
 github.com/interline-io/log v0.0.0-20240126000327-05bb90e4de4f/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
 github.com/interline-io/transitland-dbutil v0.0.0-20240216015446-254b5557e812 h1:rS+CGmVMoWoc0C4nma9lsQ44vw47DjPz1aQWKmT3Vbg=
 github.com/interline-io/transitland-dbutil v0.0.0-20240216015446-254b5557e812/go.mod h1:grGMCBwSF26E/cREWJ9NZlG9FHnCXxEiEPhf7iYUCf0=
-github.com/interline-io/transitland-lib v0.14.1-0.20240216015229-b41efc995b17 h1:Jswg5pwWQQi09TSzwe7RmGmeCVAab2NssNJOJuqZBvQ=
-github.com/interline-io/transitland-lib v0.14.1-0.20240216015229-b41efc995b17/go.mod h1:/S9DwO7ULvHwnnFEQ7BNl6QohuUpiabhcZR/Ot/rcjY=
 github.com/interline-io/transitland-mw v0.0.0-20240216015633-22e60f2f4601 h1:3p+MeodGCTCSOR2vvQmMUERQKxe0zhdP7gXakYs1qaI=
 github.com/interline-io/transitland-mw v0.0.0-20240216015633-22e60f2f4601/go.mod h1:HNmvjDjjDsonOBdQJBAymDW39DRlsOqUBEG9JZE+elc=
 github.com/jarcoal/httpmock v1.3.1 h1:iUx3whfZWVf3jT01hQTO/Eo5sAYtB2/rqaUuOtpInww=

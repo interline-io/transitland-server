@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
@@ -139,6 +140,12 @@ func (cmd *Command) Run() error {
 
 	// Setup router
 	root := chi.NewRouter()
+	root.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"content-type", "apikey", "authorization"},
+		AllowCredentials: true,
+	}))
 
 	// Finders config
 	root.Use(model.AddConfig(cfg))

@@ -47,20 +47,28 @@ type Mutation {
     # stops
     create_stop(stop: StopInput!): Stop!
     update_stop(stop: StopInput!): Stop!
-    # delete_stop(id: Int!): DeleteResult!
+    delete_stop(id: Int!): DeleteResult!
     # level
     create_level(level: LevelInput!): Level!
     update_level(level: LevelInput!): Level!
-    # delete_level(id: Int!): DeleteResult!
+    delete_level(id: Int!): DeleteResult!
     # pathway
     create_pathway(pathway: PathwayInput!): Pathway!
     update_pathway(pathway: PathwayInput!): Pathway!
-    # delete_pathway(id: Int!): DeleteResult!
+    delete_pathway(id: Int!): DeleteResult!
+}
+
+type DeleteResult {
+  id: Int!
+}
+
+input FeedVersionInput {
+  id: Int
 }
 
 input StopInput {
   id: Int
-  feed_version_id: Int
+  feed_version: FeedVersionInput
   location_type: Int
   stop_code: String
   stop_desc: String
@@ -79,7 +87,7 @@ input StopInput {
 
 input LevelInput {
   id: Int
-  feed_version_id: Int
+  feed_version: FeedVersionInput
   level_id: String
   level_name: String
   level_index: Float
@@ -88,7 +96,7 @@ input LevelInput {
 
 input PathwayInput {
   id: Int
-  feed_version_id: Int
+  feed_version: FeedVersionInput
   pathway_id: String
   pathway_mode: Int
   is_bidirectional: Int
