@@ -248,6 +248,7 @@ type LevelInput struct {
 	LevelName   *string           `json:"level_name,omitempty"`
 	LevelIndex  *float64          `json:"level_index,omitempty"`
 	Geometry    *tt.Polygon       `json:"geometry,omitempty"`
+	Parent      *StopInput        `json:"parent,omitempty"`
 }
 
 type LicenseFilter struct {

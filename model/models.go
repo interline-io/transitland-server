@@ -6,6 +6,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tl/tt"
 )
 
 type Feed struct {
@@ -105,7 +106,8 @@ type Shape struct {
 }
 
 type Level struct {
-	Geometry tl.Polygon
+	Geometry      tl.Polygon
+	ParentStation tt.Key
 	tl.Level
 }
 

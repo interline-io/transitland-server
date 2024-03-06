@@ -6972,6 +6972,7 @@ input LevelInput {
   level_name: String
   level_index: Float
   geometry: Polygon
+  parent: StopInput
 }
 
 input PathwayInput {
@@ -46834,7 +46835,7 @@ func (ec *executionContext) unmarshalInputLevelInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "feed_version", "level_id", "level_name", "level_index", "geometry"}
+	fieldsInOrder := [...]string{"id", "feed_version", "level_id", "level_name", "level_index", "geometry", "parent"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46883,6 +46884,13 @@ func (ec *executionContext) unmarshalInputLevelInput(ctx context.Context, obj in
 				return it, err
 			}
 			it.Geometry = data
+		case "parent":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent"))
+			data, err := ec.unmarshalOStopInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Parent = data
 		}
 	}
 

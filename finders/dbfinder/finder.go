@@ -1584,6 +1584,10 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 	)
 }
 
+// MUTATIONS
+
+// Helpers
+
 func logErr(ctx context.Context, err error) error {
 	if ctx.Err() == context.Canceled {
 		return nil

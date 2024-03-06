@@ -1,4 +1,4 @@
-package actions
+package dbfinder
 
 import (
 	"context"
@@ -9,24 +9,25 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
 )
 
-func CreateStop(ctx context.Context, input model.StopInput) (int, error) {
+func (f *Finder) CreateStop(ctx context.Context, input model.StopInput) (int, error) {
 	if input.FeedVersion == nil || input.FeedVersion.ID == nil {
 		return 0, errors.New("feed_version_id required")
 	}
 	return createUpdateStop(ctx, input)
 }
 
-func UpdateStop(ctx context.Context, input model.StopInput) (int, error) {
+func (f *Finder) UpdateStop(ctx context.Context, input model.StopInput) (int, error) {
 	if input.ID == nil {
 		return 0, errors.New("id required")
 	}
 	return createUpdateStop(ctx, input)
 }
 
-func DeleteStop(ctx context.Context, id int) error {
+func (f *Finder) DeleteStop(ctx context.Context, id int) error {
 	ent := tl.Stop{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
@@ -80,21 +81,21 @@ func createUpdateStop(ctx context.Context, input model.StopInput) (int, error) {
 
 ///////////
 
-func CreatePathway(ctx context.Context, input model.PathwayInput) (int, error) {
+func (f *Finder) CreatePathway(ctx context.Context, input model.PathwayInput) (int, error) {
 	if input.FeedVersion == nil || input.FeedVersion.ID == nil {
 		return 0, errors.New("feed_version_id required")
 	}
 	return createUpdatePathway(ctx, input)
 }
 
-func UpdatePathway(ctx context.Context, input model.PathwayInput) (int, error) {
+func (f *Finder) UpdatePathway(ctx context.Context, input model.PathwayInput) (int, error) {
 	if input.ID == nil {
 		return 0, errors.New("id required")
 	}
 	return createUpdatePathway(ctx, input)
 }
 
-func DeletePathway(ctx context.Context, id int) error {
+func (f *Finder) DeletePathway(ctx context.Context, id int) error {
 	ent := tl.Pathway{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
@@ -144,21 +145,21 @@ func createUpdatePathway(ctx context.Context, input model.PathwayInput) (int, er
 
 ///////////
 
-func CreateLevel(ctx context.Context, input model.LevelInput) (int, error) {
+func (f *Finder) CreateLevel(ctx context.Context, input model.LevelInput) (int, error) {
 	if input.FeedVersion == nil || input.FeedVersion.ID == nil {
 		return 0, errors.New("feed_version_id required")
 	}
 	return createUpdateLevel(ctx, input)
 }
 
-func UpdateLevel(ctx context.Context, input model.LevelInput) (int, error) {
+func (f *Finder) UpdateLevel(ctx context.Context, input model.LevelInput) (int, error) {
 	if input.ID == nil {
 		return 0, errors.New("id required")
 	}
 	return createUpdateLevel(ctx, input)
 }
 
-func DeleteLevel(ctx context.Context, id int) error {
+func (f *Finder) DeleteLevel(ctx context.Context, id int) error {
 	ent := tl.Level{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
@@ -176,6 +177,16 @@ func createUpdateLevel(ctx context.Context, input model.LevelInput) (int, error)
 			cols = checkCol(&ent.LevelName, input.LevelName, "level_name", cols)
 			cols = checkCol(&ent.LevelIndex, input.LevelIndex, "level_index", cols)
 			cols = checkCol(&ent.Geometry, input.Geometry, "geometry", cols)
+			if v := input.Parent; v != nil {
+				checkParent := tl.Stop{}
+				checkParent.ID = *v.ID
+				if v.ID == nil {
+					ent.ParentStation.Valid = false
+				} else {
+					ent.ParentStation = tt.NewKey(strconv.Itoa(checkParent.ID))
+					cols = append(cols, "parent_station")
+				}
+			}
 			return cols, nil
 		})
 }
@@ -291,4 +302,16 @@ func deleteEnt(ctx context.Context, ent hasTableName) error {
 	}
 	_, err := atx.Sqrl().Delete(ent.TableName()).Where(sq.Eq{"id": ent.GetID()}).Query()
 	return err
+}
+
+func checkFeedEdit(ctx context.Context, fvid int) error {
+	cfg := model.ForContext(ctx)
+	if checker := cfg.Checker; checker == nil {
+		return nil
+	} else if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+		return err
+	} else if !check.Actions.CanEdit {
+		return authz.ErrUnauthorized
+	}
+	return nil
 }

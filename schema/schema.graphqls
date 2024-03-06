@@ -92,6 +92,7 @@ input LevelInput {
   level_name: String
   level_index: Float
   geometry: Polygon
+  parent: StopInput
 }
 
 input PathwayInput {

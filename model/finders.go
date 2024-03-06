@@ -17,6 +17,7 @@ type Finder interface {
 	PermFinder
 	EntityFinder
 	EntityLoader
+	EntityMutator
 }
 
 type PermFinder interface {
@@ -36,6 +37,18 @@ type EntityFinder interface {
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (time.Time, time.Time, time.Time, error)
 	DBX() sqlx.Ext // escape hatch, for now
+}
+
+type EntityMutator interface {
+	CreateStop(ctx context.Context, input StopInput) (int, error)
+	UpdateStop(ctx context.Context, input StopInput) (int, error)
+	DeleteStop(ctx context.Context, id int) error
+	CreatePathway(ctx context.Context, input PathwayInput) (int, error)
+	UpdatePathway(ctx context.Context, input PathwayInput) (int, error)
+	DeletePathway(ctx context.Context, id int) error
+	CreateLevel(ctx context.Context, input LevelInput) (int, error)
+	UpdateLevel(ctx context.Context, input LevelInput) (int, error)
+	DeleteLevel(ctx context.Context, id int) error
 }
 
 // EntityLoader methods must return items in the same order as the input parameters
