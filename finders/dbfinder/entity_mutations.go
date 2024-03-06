@@ -3,6 +3,7 @@ package dbfinder
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
@@ -56,24 +57,25 @@ func createUpdateStop(ctx context.Context, input model.StopInput) (int, error) {
 				cols = checkCol(&ent.Geometry, input.Geometry, "geometry", cols)
 			}
 			if v := input.Parent; v != nil {
-				checkParent := tl.Stop{}
-				checkParent.ID = *v.ID
+				cols = append(cols, "parent_station")
 				if v.ID == nil {
 					ent.ParentStation.Valid = false
 				} else {
+					fmt.Println("setting to", *v.ID)
+					checkParent := tl.Stop{}
+					checkParent.ID = *v.ID
 					ent.ParentStation = tt.NewKey(strconv.Itoa(checkParent.ID))
-					cols = append(cols, "parent_station")
 				}
 			}
 			if v := input.Level; v != nil {
-				checkLevel := tl.Level{}
-				checkLevel.ID = *v.ID
+				cols = append(cols, "level_id")
 				if v.ID == nil {
 					ent.LevelID.Valid = false
 				} else {
+					checkLevel := tl.Level{}
+					checkLevel.ID = *v.ID
 					ent.LevelID = tt.NewKey(strconv.Itoa(checkLevel.ID))
 				}
-				cols = append(cols, "level_id")
 			}
 			return cols, nil
 		})
@@ -120,23 +122,23 @@ func createUpdatePathway(ctx context.Context, input model.PathwayInput) (int, er
 			cols = checkCol(&ent.SignpostedAs, input.SignpostedAs, "signposted_as", cols)
 			cols = checkCol(&ent.ReverseSignpostedAs, input.ReverseSignpostedAs, "reverse_signposted_as", cols)
 			if v := input.FromStop; v != nil {
-				checkStop := tl.Stop{}
-				checkStop.ID = *v.ID
+				cols = append(cols, "from_stop_id")
 				if v.ID == nil {
 					ent.FromStopID = ""
 				} else {
+					checkStop := tl.Stop{}
+					checkStop.ID = *v.ID
 					ent.FromStopID = strconv.Itoa(checkStop.ID)
-					cols = append(cols, "from_stop_id")
 				}
 			}
 			if v := input.ToStop; v != nil {
-				checkStop := tl.Stop{}
-				checkStop.ID = *v.ID
+				cols = append(cols, "to_stop_id")
 				if v.ID == nil {
 					ent.ToStopID = ""
 				} else {
+					checkStop := tl.Stop{}
+					checkStop.ID = *v.ID
 					ent.ToStopID = strconv.Itoa(checkStop.ID)
-					cols = append(cols, "to_stop_id")
 				}
 			}
 			return cols, nil
@@ -178,13 +180,13 @@ func createUpdateLevel(ctx context.Context, input model.LevelInput) (int, error)
 			cols = checkCol(&ent.LevelIndex, input.LevelIndex, "level_index", cols)
 			cols = checkCol(&ent.Geometry, input.Geometry, "geometry", cols)
 			if v := input.Parent; v != nil {
-				checkParent := tl.Stop{}
-				checkParent.ID = *v.ID
+				cols = append(cols, "parent_station")
 				if v.ID == nil {
 					ent.ParentStation.Valid = false
 				} else {
+					checkParent := tl.Stop{}
+					checkParent.ID = *v.ID
 					ent.ParentStation = tt.NewKey(strconv.Itoa(checkParent.ID))
-					cols = append(cols, "parent_station")
 				}
 			}
 			return cols, nil
