@@ -109,6 +109,11 @@ type StopParam struct {
 	RouteID       int
 }
 
+type LevelParam struct {
+	ParentStationID int
+	Limit           *int
+}
+
 type FeedParam struct {
 	OperatorOnestopID string
 	Limit             *int

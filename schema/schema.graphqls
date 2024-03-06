@@ -36,6 +36,7 @@ type Query {
 }
 
 type Mutation {
+    # Feed versions
     validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
     feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion
     feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
@@ -44,15 +45,18 @@ type Mutation {
     feed_version_delete(id: Int!): FeedVersionDeleteResult!
     
     # Entity editing
+
     # stops
     create_stop(stop: StopInput!): Stop!
     update_stop(stop: StopInput!): Stop!
     delete_stop(id: Int!): DeleteResult!
-    # level
+    
+    # levels
     create_level(level: LevelInput!): Level!
     update_level(level: LevelInput!): Level!
     delete_level(id: Int!): DeleteResult!
-    # pathway
+    
+    # pathways
     create_pathway(pathway: PathwayInput!): Pathway!
     update_pathway(pathway: PathwayInput!): Pathway!
     delete_pathway(id: Int!): DeleteResult!
@@ -407,6 +411,7 @@ type Stop {
   observations(limit: Int, where: StopObservationFilter): [StopObservation!]
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
+  child_levels(limit: Int): [Level!]!
   pathways_from_stop(limit: Int): [Pathway!]!
   pathways_to_stop(limit: Int): [Pathway!]!
   stop_times(limit: Int, where: StopTimeFilter): [StopTime!]!

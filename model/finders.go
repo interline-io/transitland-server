@@ -64,6 +64,7 @@ type EntityLoader interface {
 	AgenciesByID(context.Context, []int) ([]*Agency, []error)
 	StopsByID(context.Context, []int) ([]*Stop, []error)
 	RoutesByID(context.Context, []int) ([]*Route, []error)
+	LevelsByParentStationID(context.Context, []LevelParam) ([][]*Level, []error)
 	StopExternalReferencesByStopID(context.Context, []int) ([]*StopExternalReference, []error)
 	StopObservationsByStopID(context.Context, []StopObservationParam) ([][]*StopObservation, []error)
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)

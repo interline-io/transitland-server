@@ -829,6 +829,7 @@ type ComplexityRoot struct {
 		Alerts             func(childComplexity int, active *bool, limit *int) int
 		Arrivals           func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		CensusGeographies  func(childComplexity int, layer string, radius *float64, limit *int) int
+		ChildLevels        func(childComplexity int, limit *int) int
 		Children           func(childComplexity int, limit *int) int
 		Departures         func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		Directions         func(childComplexity int, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) int
@@ -1158,6 +1159,7 @@ type StopResolver interface {
 	Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error)
 	Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error)
 	RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error)
+	ChildLevels(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Level, error)
 	PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
 	PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
 	StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
@@ -5257,6 +5259,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.CensusGeographies(childComplexity, args["layer"].(string), args["radius"].(*float64), args["limit"].(*int)), true
 
+	case "Stop.child_levels":
+		if e.complexity.Stop.ChildLevels == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_child_levels_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.ChildLevels(childComplexity, args["limit"].(*int)), true
+
 	case "Stop.children":
 		if e.complexity.Stop.Children == nil {
 			break
@@ -6916,6 +6930,7 @@ type Query {
 }
 
 type Mutation {
+    # Feed versions
     validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
     feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion
     feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
@@ -6924,15 +6939,18 @@ type Mutation {
     feed_version_delete(id: Int!): FeedVersionDeleteResult!
     
     # Entity editing
+
     # stops
     create_stop(stop: StopInput!): Stop!
     update_stop(stop: StopInput!): Stop!
     delete_stop(id: Int!): DeleteResult!
-    # level
+    
+    # levels
     create_level(level: LevelInput!): Level!
     update_level(level: LevelInput!): Level!
     delete_level(id: Int!): DeleteResult!
-    # pathway
+    
+    # pathways
     create_pathway(pathway: PathwayInput!): Pathway!
     update_pathway(pathway: PathwayInput!): Pathway!
     delete_pathway(id: Int!): DeleteResult!
@@ -7287,6 +7305,7 @@ type Stop {
   observations(limit: Int, where: StopObservationFilter): [StopObservation!]
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
+  child_levels(limit: Int): [Level!]!
   pathways_from_stop(limit: Int): [Pathway!]!
   pathways_to_stop(limit: Int): [Pathway!]!
   stop_times(limit: Int, where: StopTimeFilter): [StopTime!]!
@@ -9371,6 +9390,21 @@ func (ec *executionContext) field_Stop_census_geographies_args(ctx context.Conte
 		}
 	}
 	args["limit"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Stop_child_levels_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
 	return args, nil
 }
 
@@ -17145,6 +17179,8 @@ func (ec *executionContext) fieldContext_FeedVersion_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -28014,6 +28050,8 @@ func (ec *executionContext) fieldContext_Level_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -28756,6 +28794,8 @@ func (ec *executionContext) fieldContext_Mutation_create_stop(ctx context.Contex
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -28881,6 +28921,8 @@ func (ec *executionContext) fieldContext_Mutation_update_stop(ctx context.Contex
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -30513,6 +30555,8 @@ func (ec *executionContext) fieldContext_Pathway_from_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -30627,6 +30671,8 @@ func (ec *executionContext) fieldContext_Pathway_to_stop(ctx context.Context, fi
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -31373,6 +31419,8 @@ func (ec *executionContext) fieldContext_Query_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -33763,6 +33811,8 @@ func (ec *executionContext) fieldContext_Route_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -34727,6 +34777,8 @@ func (ec *executionContext) fieldContext_RouteHeadway_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -35367,6 +35419,8 @@ func (ec *executionContext) fieldContext_RouteStop_stop(ctx context.Context, fie
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -37297,6 +37351,8 @@ func (ec *executionContext) fieldContext_Stop_parent(ctx context.Context, field 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -37543,6 +37599,8 @@ func (ec *executionContext) fieldContext_Stop_children(ctx context.Context, fiel
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -37648,6 +37706,75 @@ func (ec *executionContext) fieldContext_Stop_route_stops(ctx context.Context, f
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Stop_route_stops_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Stop_child_levels(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stop_child_levels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().ChildLevels(rctx, obj, fc.Args["limit"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Level)
+	fc.Result = res
+	return ec.marshalNLevel2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stop_child_levels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Level_id(ctx, field)
+			case "level_id":
+				return ec.fieldContext_Level_level_id(ctx, field)
+			case "level_name":
+				return ec.fieldContext_Level_level_name(ctx, field)
+			case "level_index":
+				return ec.fieldContext_Level_level_index(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Level_geometry(ctx, field)
+			case "stops":
+				return ec.fieldContext_Level_stops(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Level", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Stop_child_levels_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -38408,6 +38535,8 @@ func (ec *executionContext) fieldContext_Stop_nearby_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -38769,6 +38898,8 @@ func (ec *executionContext) fieldContext_StopExternalReference_target_active_sto
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -39958,6 +40089,8 @@ func (ec *executionContext) fieldContext_StopTime_stop(ctx context.Context, fiel
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -42894,6 +43027,8 @@ func (ec *executionContext) fieldContext_ValidationReportDetails_stops(ctx conte
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -44095,6 +44230,8 @@ func (ec *executionContext) fieldContext_VehiclePosition_stop_id(ctx context.Con
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -54950,6 +55087,42 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "child_levels":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_child_levels(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "pathways_from_stop":
 			field := field
 
@@ -57944,6 +58117,50 @@ func (ec *executionContext) marshalNLeg2ᚖgithubᚗcomᚋinterlineᚑioᚋtrans
 
 func (ec *executionContext) marshalNLevel2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx context.Context, sel ast.SelectionSet, v model.Level) graphql.Marshaler {
 	return ec._Level(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLevel2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Level) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx context.Context, sel ast.SelectionSet, v *model.Level) graphql.Marshaler {

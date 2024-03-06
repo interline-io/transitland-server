@@ -496,6 +496,46 @@ func (f *Finder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.O
 
 // Param loaders
 
+func (f *Finder) LevelsByParentStationID(ctx context.Context, params []model.LevelParam) ([][]*model.Level, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.LevelParam) (int, bool, *int) {
+			return p.ParentStationID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.Level, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("gtfs_levels", limit, nil, nil),
+					"gtfs_stops",
+					"id",
+					"gtfs_levels",
+					"parent_station",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+			// err = dbutil.Select(ctx,
+			// 	f.db,
+			// 	lateralWrap(
+			// 		OperatorSelect(limit, nil, nil, keys, f.PermFilter(ctx), nil),
+			// 		"current_feeds",
+			// 		"id",
+			// 		"t",
+			// 		"feed_id",
+			// 		keys,
+			// 	),
+			// 	&ents,
+			// )
+			// return ents, err
+		},
+		func(ent *model.Level) int {
+			return ent.ParentStation.Int()
+		},
+	)
+}
+
 func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorParam) ([][]*model.Operator, []error) {
 	return paramGroupQuery(
 		params,
@@ -1252,7 +1292,7 @@ func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) (
 			return ents, err
 		},
 		func(ent *model.Stop) int {
-			return atoi(ent.LevelID.Val)
+			return ent.LevelID.Int()
 		},
 	)
 }
