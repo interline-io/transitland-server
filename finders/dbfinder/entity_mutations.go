@@ -199,11 +199,6 @@ func toAtx(ctx context.Context) tldb.Adapter {
 	return tldb.NewPostgresAdapterFromDBX(model.ForContext(ctx).Finder.DBX())
 }
 
-func toPtr[T any, P *T](v T) P {
-	vcopy := v
-	return &vcopy
-}
-
 func checkCol[T any, P *T](val P, inval P, colname string, cols []string) []string {
 	if inval != nil {
 		*val = *inval
