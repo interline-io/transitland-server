@@ -516,19 +516,6 @@ func (f *Finder) LevelsByParentStationID(ctx context.Context, params []model.Lev
 				&ents,
 			)
 			return ents, err
-			// err = dbutil.Select(ctx,
-			// 	f.db,
-			// 	lateralWrap(
-			// 		OperatorSelect(limit, nil, nil, keys, f.PermFilter(ctx), nil),
-			// 		"current_feeds",
-			// 		"id",
-			// 		"t",
-			// 		"feed_id",
-			// 		keys,
-			// 	),
-			// 	&ents,
-			// )
-			// return ents, err
 		},
 		func(ent *model.Level) int {
 			return ent.ParentStation.Int()

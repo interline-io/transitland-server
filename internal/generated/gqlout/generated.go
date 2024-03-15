@@ -6960,56 +6960,6 @@ type DeleteResult {
   id: Int!
 }
 
-input FeedVersionInput {
-  id: Int
-}
-
-input StopInput {
-  id: Int
-  feed_version: FeedVersionInput
-  location_type: Int
-  stop_code: String
-  stop_desc: String
-  stop_id: String
-  stop_name: String
-  stop_timezone: String
-  stop_url: String
-  wheelchair_boarding: Int
-  zone_id: String
-  platform_code: String
-  tts_stop_name: String
-  geometry: Point
-  parent: StopInput
-  level: LevelInput
-}
-
-input LevelInput {
-  id: Int
-  feed_version: FeedVersionInput
-  level_id: String
-  level_name: String
-  level_index: Float
-  geometry: Polygon
-  parent: StopInput
-}
-
-input PathwayInput {
-  id: Int
-  feed_version: FeedVersionInput
-  pathway_id: String
-  pathway_mode: Int
-  is_bidirectional: Int
-  length: Float
-  traversal_time: Int
-  stair_count: Int
-  max_slope: Float
-  min_width: Float
-  signposted_as: String
-  reverse_signposted_as: String
-  from_stop: StopInput
-  to_stop: StopInput
-}
-
 type Me {
   id: String!
   name: String
@@ -8035,7 +7985,60 @@ input BoundingBox {
   min_lat: Float!
   max_lon: Float!
   max_lat: Float!
-}`, BuiltIn: false},
+}
+
+# entity mutations
+
+input FeedVersionInput {
+  id: Int
+}
+
+input StopInput {
+  id: Int
+  feed_version: FeedVersionInput
+  location_type: Int
+  stop_code: String
+  stop_desc: String
+  stop_id: String
+  stop_name: String
+  stop_timezone: String
+  stop_url: String
+  wheelchair_boarding: Int
+  zone_id: String
+  platform_code: String
+  tts_stop_name: String
+  geometry: Point
+  parent: StopInput
+  level: LevelInput
+}
+
+input LevelInput {
+  id: Int
+  feed_version: FeedVersionInput
+  level_id: String
+  level_name: String
+  level_index: Float
+  geometry: Polygon
+  parent: StopInput
+}
+
+input PathwayInput {
+  id: Int
+  feed_version: FeedVersionInput
+  pathway_id: String
+  pathway_mode: Int
+  is_bidirectional: Int
+  length: Float
+  traversal_time: Int
+  stair_count: Int
+  max_slope: Float
+  min_width: Float
+  signposted_as: String
+  reverse_signposted_as: String
+  from_stop: StopInput
+  to_stop: StopInput
+}
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 

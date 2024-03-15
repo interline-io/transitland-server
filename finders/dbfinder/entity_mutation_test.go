@@ -1,21 +1,9 @@
 package dbfinder
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"testing"
-// 	"time"
-
-// 	"github.com/interline-io/transitland-lib/tl"
-// 	"github.com/interline-io/transitland-lib/tl/tt"
-// 	"github.com/interline-io/transitland-lib/tldb"
-// 	"github.com/interline-io/transitland-server/internal/testconfig"
-// 	"github.com/interline-io/transitland-server/model"
-// 	"github.com/stretchr/testify/assert"
-// )
-
+// TODO: testconfig is an import cycle.
 // func TestCreateStop(t *testing.T) {
 // 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+// 		finder := cfg.Finder
 // 		ctx := model.WithConfig(context.Background(), cfg)
 // 		fv := model.FeedVersionInput{ID: toPtr(1)}
 // 		stopInput := model.StopInput{
@@ -24,7 +12,7 @@ package dbfinder
 // 			StopName:    toPtr("hello"),
 // 			Geometry:    toPtr(tt.NewPoint(-122.271604, 37.803664)),
 // 		}
-// 		eid, err := CreateStop(ctx, stopInput)
+// 		eid, err := finder.CreateStop(ctx, stopInput)
 // 		if err != nil {
 // 			t.Fatal(err)
 // 		}
@@ -42,6 +30,7 @@ package dbfinder
 
 // func TestUpdateStop(t *testing.T) {
 // 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+// 		finder := cfg.Finder
 // 		ctx := model.WithConfig(context.Background(), cfg)
 // 		fv := model.FeedVersionInput{ID: toPtr(1)}
 // 		stopInput := model.StopInput{
@@ -50,7 +39,7 @@ package dbfinder
 // 			StopName:    toPtr("hello"),
 // 			Geometry:    toPtr(tt.NewPoint(-122.271604, 37.803664)),
 // 		}
-// 		eid, err := CreateStop(ctx, stopInput)
+// 		eid, err := finder.CreateStop(ctx, stopInput)
 // 		if err != nil {
 // 			t.Fatal(err)
 // 		}
@@ -59,7 +48,7 @@ package dbfinder
 // 			StopID:   toPtr(fmt.Sprintf("update-%d", time.Now().UnixNano())),
 // 			Geometry: toPtr(tt.NewPoint(-122.0, 38.0)),
 // 		}
-// 		if _, err := UpdateStop(ctx, stopUpdate); err != nil {
+// 		if _, err := finder.UpdateStop(ctx, stopUpdate); err != nil {
 // 			t.Fatal(err)
 // 		}
 // 		checkEnt := tl.Stop{}
