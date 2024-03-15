@@ -48,7 +48,8 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 		}
 	}
 	a.StopTimezone = loc.String()
-	a.Scheduled = obj.ArrivalTime
+	tt := obj.ArrivalTime
+	a.Scheduled = &tt
 	return &a, nil
 }
 
@@ -68,7 +69,8 @@ func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (
 		}
 	}
 	a.StopTimezone = loc.String()
-	a.Scheduled = obj.ArrivalTime
+	tt := obj.ArrivalTime
+	a.Scheduled = &tt
 	return &a, nil
 }
 
@@ -82,12 +84,15 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, sched tl.WideTime, loc *time.Loca
 	if ste.Time != nil {
 		t := time.Unix(ste.GetTime(), 0).UTC()
 		lt := t.In(loc)
-		a.Estimated = tt.NewWideTimeFromSeconds(lt.Hour()*3600 + lt.Minute()*60 + lt.Second())
-		a.EstimatedUtc = tt.NewTime(t)
+		et := tt.NewWideTimeFromSeconds(lt.Hour()*3600 + lt.Minute()*60 + lt.Second())
+		ett := t
+		a.Estimated = &et
+		a.EstimatedUtc = &ett
 	} else if ste.Delay != nil && sched.Valid {
 		// Create a local adjusted time
 		// Note: can't create an EstimatedUtc value because we'd have to guess the local date
-		a.Estimated = tt.NewWideTimeFromSeconds(sched.Seconds + int(*ste.Delay))
+		et := tt.NewWideTimeFromSeconds(sched.Seconds + int(*ste.Delay))
+		a.Estimated = &et
 	}
 	if ste.Delay != nil {
 		v := int(ste.GetDelay())

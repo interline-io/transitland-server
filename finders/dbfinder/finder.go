@@ -283,6 +283,19 @@ func (f *Finder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []e
 	return arrangeBy(ids, ents, func(ent *model.Level) int { return ent.ID }), nil
 }
 
+func (f *Finder) PathwaysByID(ctx context.Context, ids []int) ([]*model.Pathway, []error) {
+	var ents []*model.Pathway
+	err := dbutil.Select(ctx,
+		f.db,
+		PathwaySelect(nil, nil, ids, nil, nil),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Pathway) int { return ent.ID }), nil
+}
+
 func (f *Finder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
 	var ents []*model.Calendar
 	err := dbutil.Select(ctx,
@@ -482,6 +495,33 @@ func (f *Finder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.O
 }
 
 // Param loaders
+
+func (f *Finder) LevelsByParentStationID(ctx context.Context, params []model.LevelParam) ([][]*model.Level, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.LevelParam) (int, bool, *int) {
+			return p.ParentStationID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.Level, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("gtfs_levels", limit, nil, nil),
+					"gtfs_stops",
+					"id",
+					"gtfs_levels",
+					"parent_station",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.Level) int {
+			return ent.ParentStation.Int()
+		},
+	)
+}
 
 func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorParam) ([][]*model.Operator, []error) {
 	return paramGroupQuery(
@@ -1022,11 +1062,11 @@ func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.Agen
 			q := sq.StatementBuilder.Select(
 				"tl_agency_places.agency_id",
 				"tl_agency_places.rank",
-				"tl_agency_places.name",
-				"tl_agency_places.adm0name",
-				"tl_agency_places.adm1name",
-				"ne_admin.iso_a2 as adm0iso",
-				"ne_admin.iso_3166_2 as adm1iso",
+				"tl_agency_places.name as city_name",
+				"tl_agency_places.adm0name as adm0_name",
+				"tl_agency_places.adm1name as adm1_name",
+				"ne_admin.iso_a2 as adm0_iso",
+				"ne_admin.iso_3166_2 as adm1_iso",
 			).
 				From("tl_agency_places").
 				Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tl_agency_places.adm1name and ne_admin.admin = tl_agency_places.adm0name")
@@ -1239,7 +1279,7 @@ func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) (
 			return ents, err
 		},
 		func(ent *model.Stop) int {
-			return atoi(ent.LevelID.Val)
+			return ent.LevelID.Int()
 		},
 	)
 }
@@ -1570,6 +1610,10 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 		},
 	)
 }
+
+// MUTATIONS
+
+// Helpers
 
 func logErr(ctx context.Context, err error) error {
 	if ctx.Err() == context.Canceled {

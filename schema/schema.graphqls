@@ -36,12 +36,34 @@ type Query {
 }
 
 type Mutation {
+    # Feed versions
     validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
     feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion
     feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
     feed_version_import(id: Int!): FeedVersionImportResult!
     feed_version_unimport(id: Int!): FeedVersionUnimportResult!
     feed_version_delete(id: Int!): FeedVersionDeleteResult!
+    
+    # Entity editing
+
+    # stops
+    create_stop(stop: StopInput!): Stop!
+    update_stop(stop: StopInput!): Stop!
+    delete_stop(id: Int!): DeleteResult!
+    
+    # levels
+    create_level(level: LevelInput!): Level!
+    update_level(level: LevelInput!): Level!
+    delete_level(id: Int!): DeleteResult!
+    
+    # pathways
+    create_pathway(pathway: PathwayInput!): Pathway!
+    update_pathway(pathway: PathwayInput!): Pathway!
+    delete_pathway(id: Int!): DeleteResult!
+}
+
+type DeleteResult {
+  id: Int!
 }
 
 type Me {
@@ -49,7 +71,7 @@ type Me {
   name: String
   email: String
   roles: [String!]
-  external_data: Map
+  external_data: Map!
 }
 
 """
@@ -339,6 +361,7 @@ type Stop {
   observations(limit: Int, where: StopObservationFilter): [StopObservation!]
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
+  child_levels(limit: Int): [Level!]!
   pathways_from_stop(limit: Int): [Pathway!]!
   pathways_to_stop(limit: Int): [Pathway!]!
   stop_times(limit: Int, where: StopTimeFilter): [StopTime!]!
@@ -609,7 +632,7 @@ type CensusGeography {
 
 type CensusValue {
   table: CensusTable!
-  values: Any! # json blob
+  values: Map!
 }
 
 type CensusTable {
@@ -719,7 +742,7 @@ type ValidationReport {
   reported_at: Time
   reported_at_local: Time
   reported_at_local_timezone: String
-  success: Boolean
+  success: Boolean!
   failure_reason: String
   includes_static: Boolean
   includes_rt: Boolean
@@ -745,7 +768,7 @@ type ValidationReportDetails {
 
 type ValidationRealtimeResult {
   url: String!
-  json: Map
+  json: Map!
 }
 
 type ValidationReportErrorGroup {
@@ -769,7 +792,7 @@ type ValidationReportError {
   value: String!
   message: String!
   geometry: Geometry
-  entity_json: Map
+  entity_json: Map!
 }
 
 type FeedVersionFetchResult {
@@ -1068,4 +1091,56 @@ input BoundingBox {
   min_lat: Float!
   max_lon: Float!
   max_lat: Float!
+}
+
+# entity mutations
+
+input FeedVersionInput {
+  id: Int
+}
+
+input StopInput {
+  id: Int
+  feed_version: FeedVersionInput
+  location_type: Int
+  stop_code: String
+  stop_desc: String
+  stop_id: String
+  stop_name: String
+  stop_timezone: String
+  stop_url: String
+  wheelchair_boarding: Int
+  zone_id: String
+  platform_code: String
+  tts_stop_name: String
+  geometry: Point
+  parent: StopInput
+  level: LevelInput
+}
+
+input LevelInput {
+  id: Int
+  feed_version: FeedVersionInput
+  level_id: String
+  level_name: String
+  level_index: Float
+  geometry: Polygon
+  parent: StopInput
+}
+
+input PathwayInput {
+  id: Int
+  feed_version: FeedVersionInput
+  pathway_id: String
+  pathway_mode: Int
+  is_bidirectional: Int
+  length: Float
+  traversal_time: Int
+  stair_count: Int
+  max_slope: Float
+  min_width: Float
+  signposted_as: String
+  reverse_signposted_as: String
+  from_stop: StopInput
+  to_stop: StopInput
 }

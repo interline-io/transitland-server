@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
@@ -18,7 +19,7 @@ type queryResolver struct{ *Resolver }
 func (r *queryResolver) Me(ctx context.Context) (*model.Me, error) {
 	cfg := model.ForContext(ctx)
 	me := model.Me{}
-	me.ExternalData = map[string]any{}
+	me.ExternalData = tt.NewMap(map[string]any{})
 	if checker := cfg.Checker; checker != nil {
 		// Use checker if available
 		cm, err := checker.Me(ctx, &authz.MeRequest{})
@@ -30,7 +31,7 @@ func (r *queryResolver) Me(ctx context.Context) (*model.Me, error) {
 		me.Name = &cm.User.Name
 		me.Roles = cm.Roles
 		for k, v := range cm.ExternalData {
-			me.ExternalData[k] = v
+			me.ExternalData.Val[k] = v
 		}
 	} else if user := authn.ForContext(ctx); user != nil {
 		// Fallback to user context

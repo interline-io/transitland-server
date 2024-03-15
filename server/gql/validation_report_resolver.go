@@ -10,20 +10,20 @@ type validationReportResolver struct{ *Resolver }
 
 func (r *validationReportResolver) Errors(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error) {
 	if len(obj.Errors) > 0 {
-		return sliceToPointerSlice(obj.Errors), nil
+		return obj.Errors, nil
 	}
 	return For(ctx).ValidationReportErrorGroupsByValidationReportID.Load(ctx, model.ValidationReportErrorGroupParam{ValidationReportID: obj.ID, Limit: limit})()
 }
 
 func (r *validationReportResolver) Warnings(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error) {
 	if len(obj.Warnings) > 0 {
-		return sliceToPointerSlice(obj.Warnings), nil
+		return obj.Warnings, nil
 	}
 	return nil, nil
 }
 
 func (r *validationReportResolver) Details(ctx context.Context, obj *model.ValidationReport) (*model.ValidationReportDetails, error) {
-	return &obj.Details, nil
+	return obj.Details, nil
 }
 
 type validationReportErrorGroupResolver struct{ *Resolver }
@@ -49,5 +49,5 @@ func (r *validationReportErrorGroupResolver) Errors(ctx context.Context, obj *mo
 type validationReportErrorResolver struct{ *Resolver }
 
 func (r *validationReportErrorResolver) EntityJSON(ctx context.Context, obj *model.ValidationReportError) (map[string]interface{}, error) {
-	return obj.EntityJson.Val, nil
+	return obj.EntityJSON.Val, nil
 }

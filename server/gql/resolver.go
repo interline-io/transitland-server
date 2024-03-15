@@ -147,11 +147,6 @@ func (r *Resolver) CensusGeography() gqlout.CensusGeographyResolver {
 	return &censusGeographyResolver{r}
 }
 
-// CensusValue .
-func (r *Resolver) CensusValue() gqlout.CensusValueResolver {
-	return &censusValueResolver{r}
-}
-
 // Pathway .
 func (r *Resolver) Pathway() gqlout.PathwayResolver {
 	return &pathwayResolver{r}
@@ -178,8 +173,4 @@ func (r *Resolver) ValidationReport() gqlout.ValidationReportResolver {
 
 func (r *Resolver) ValidationReportErrorGroup() gqlout.ValidationReportErrorGroupResolver {
 	return &validationReportErrorGroupResolver{r}
-}
-
-func (r *Resolver) ValidationReportError() gqlout.ValidationReportErrorResolver {
-	return &validationReportErrorResolver{r}
 }

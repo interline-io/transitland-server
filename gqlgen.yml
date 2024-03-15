@@ -18,24 +18,52 @@ resolver:
   package: resolvers
   filename_template: "{name}.gql.go"
 
-# Optional: turn on to use []Thing instead of []*Thing
+
+
+# struct_fields_always_pointers: false
+# resolvers_always_return_pointers: false
 # omit_slice_element_pointers: false
 
-# gqlgen will search for any type names in the schema in these go packages
-# if they match it will use them, otherwise it will generate them.
 autobind:
   - "github.com/interline-io/transitland-server/model"
 
-# This section declares type mapping between the GraphQL and go type systems
-#
-# The first line in each type will be used as defaults for resolver arguments and
-# modelgen, the others will be allowed when binding to fields. Configure them to
-# your liking
 models:
   String:
     model:
       - "github.com/99designs/gqlgen/graphql.String"
       - "github.com/interline-io/transitland-lib/tl/tt.String"
+  Time:
+    model:
+      - "github.com/99designs/gqlgen/graphql.Time"
+      - "github.com/interline-io/transitland-lib/tl/tt.Time"
+  Int:
+    model:
+      - "github.com/99designs/gqlgen/graphql.Int"
+      - "github.com/99designs/gqlgen/graphql.Int64"
+      - "github.com/99designs/gqlgen/graphql.Int32"
+      - "github.com/interline-io/transitland-lib/tl/tt.Int"
+  Float:
+    model:
+      - "github.com/99designs/gqlgen/graphql.Float"
+      - "github.com/interline-io/transitland-lib/tl/tt.Float"
+  Boolean:
+    model:     
+      - "github.com/99designs/gqlgen/graphql.Boolean"
+      - "github.com/interline-io/transitland-lib/tl/tt.Bool"      
+  TimeInput:
+    model: "github.com/interline-io/transitland-lib/tl/tt.Time"
+  StringInput:
+    model: "github.com/interline-io/transitland-lib/tl/tt.String"      
+  IntInput:
+    model: "github.com/interline-io/transitland-lib/tl/tt.Input"
+  FloatInput:
+    model: "github.com/interline-io/transitland-lib/tl/tt.Float"
+  Bool:
+    model: "github.com/interline-io/transitland-lib/tl/tt.Bool"
+  Key:
+    model: "github.com/interline-io/transitland-lib/tl/tt.Key"
+  Strings:
+    model: "github.com/interline-io/transitland-lib/tl/tt.Strings"
   Counts:
     model: "github.com/interline-io/transitland-lib/tl/tt.Counts"
   Tags:
@@ -51,40 +79,98 @@ models:
   Geometry:
     model: "github.com/interline-io/transitland-lib/tl/tt.Geometry"    
   Date:
-    model: 
-      - "github.com/interline-io/transitland-lib/tl/tt.Date"      
-  Time:
-    model:
-      - "github.com/99designs/gqlgen/graphql.Time"
-      - "github.com/interline-io/transitland-lib/tl/tt.Time"
-  ID:
-    model:
-      - "github.com/99designs/gqlgen/graphql.ID"
-      - "github.com/99designs/gqlgen/graphql.Int"
-      - "github.com/99designs/gqlgen/graphql.Int64"
-      - "github.com/99designs/gqlgen/graphql.Int32"
-  Int:
-    model:
-      - "github.com/99designs/gqlgen/graphql.Int"
-      - "github.com/99designs/gqlgen/graphql.Int64"
-      - "github.com/99designs/gqlgen/graphql.Int32"
-      - "github.com/interline-io/transitland-lib/tl/tt.Int"
-  Float:
-    model:
-      - "github.com/99designs/gqlgen/graphql.Float"
-      - "github.com/interline-io/transitland-lib/tl/tt.Float"
-  Key:
-    model: 
-      - "github.com/interline-io/transitland-lib/tl/tt.Key"
-  Boolean:
-    model:     
-      - "github.com/99designs/gqlgen/graphql.Boolean"
-      - "github.com/interline-io/transitland-lib/tl/tt.Bool"      
-  Bool:
-    model:     
-      - "github.com/interline-io/transitland-lib/tl/tt.Bool"
-  Strings:
-    model:     
-      - "github.com/interline-io/transitland-lib/tl/tt.Strings"
-
-
+    model: "github.com/interline-io/transitland-lib/tl/tt.Date"
+  Map:
+    model: "github.com/interline-io/transitland-lib/tl/tt.Map"
+  Feed:
+    fields:
+      onestop_id:
+        fieldName: FeedID
+  # Force resolvers
+  RouteStop:
+    fields:
+      route:
+        resolver: true
+      stop:
+        resolver: true
+      agency:
+        resolver: true
+  RouteHeadway:
+    fields:
+      stop:
+        resolver: true
+      departures:
+        resolver: true
+        fieldName: DeparturesUnused
+    extraFields:
+      DepartureInts:
+        type: "github.com/interline-io/transitland-lib/tl/tt.Ints"
+        overrideTags: db:"departures"
+      RouteID:
+        type: int
+      SelectedStopID:
+        type: int
+  RouteStopPattern:
+    fields:
+      trips:
+        resolver: true
+    extraFields:
+      RouteID:
+        type: int
+  RouteGeometry:
+    extraFields:
+      RouteID:
+        type: int
+  AgencyPlace:
+    extraFields:
+      AgencyID:
+        type: int
+  RouteAttribute:
+    extraFields:
+      RouteID:
+        type: int
+  Place:
+    fields:
+      count:
+        resolver: true
+      operators:
+        resolver: true
+    extraFields:
+      AgencyIDs:
+        type: "github.com/interline-io/transitland-lib/tl/tt.Ints"
+        overrideTags: db:"agency_ids"
+  StopExternalReference:
+    fields:
+      target_active_stop:
+        resolver: true
+  ValidationReport:
+    extraFields:
+      FeedVersionID:
+        type: int
+  ValidationReportErrorGroup:        
+    extraFields:
+      ID:
+        type: int
+      ValidationReportID:
+        type: int
+  ValidationReportError:
+    extraFields:
+      ID:
+        type: int
+      ValidationReportErrorGroupID:
+        type: int
+  CensusGeography:
+    fields:
+      values:
+        resolver: true
+    extraFields:
+      MatchEntityID:
+        type: int
+      
+  CensusValue:
+    extraFields:
+      GeographyID:
+        type: int
+      TableID:
+        type: int
+  

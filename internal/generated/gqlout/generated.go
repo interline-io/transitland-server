@@ -43,7 +43,6 @@ type ResolverRoot interface {
 	Agency() AgencyResolver
 	Calendar() CalendarResolver
 	CensusGeography() CensusGeographyResolver
-	CensusValue() CensusValueResolver
 	Feed() FeedResolver
 	FeedState() FeedStateResolver
 	FeedVersion() FeedVersionResolver
@@ -63,7 +62,6 @@ type ResolverRoot interface {
 	StopTime() StopTimeResolver
 	Trip() TripResolver
 	ValidationReport() ValidationReportResolver
-	ValidationReportError() ValidationReportErrorResolver
 	ValidationReportErrorGroup() ValidationReportErrorGroupResolver
 }
 
@@ -154,6 +152,10 @@ type ComplexityRoot struct {
 		Values func(childComplexity int) int
 	}
 
+	DeleteResult struct {
+		ID func(childComplexity int) int
+	}
+
 	Directions struct {
 		DataSource  func(childComplexity int) int
 		Destination func(childComplexity int) int
@@ -181,6 +183,7 @@ type ComplexityRoot struct {
 		AssociatedOperators func(childComplexity int) int
 		Authorization       func(childComplexity int) int
 		FeedFetches         func(childComplexity int, limit *int, where *model.FeedFetchFilter) int
+		FeedID              func(childComplexity int) int
 		FeedState           func(childComplexity int) int
 		FeedVersions        func(childComplexity int, limit *int, where *model.FeedVersionFilter) int
 		File                func(childComplexity int) int
@@ -188,7 +191,6 @@ type ComplexityRoot struct {
 		Languages           func(childComplexity int) int
 		License             func(childComplexity int) int
 		Name                func(childComplexity int) int
-		OnestopID           func(childComplexity int) int
 		SearchRank          func(childComplexity int) int
 		Spec                func(childComplexity int) int
 		Tags                func(childComplexity int) int
@@ -286,8 +288,8 @@ type ComplexityRoot struct {
 	FeedVersionFetchResult struct {
 		FeedVersion  func(childComplexity int) int
 		FetchError   func(childComplexity int) int
-		FoundDirSHA1 func(childComplexity int) int
-		FoundSHA1    func(childComplexity int) int
+		FoundDirSha1 func(childComplexity int) int
+		FoundSha1    func(childComplexity int) int
 	}
 
 	FeedVersionFileInfo struct {
@@ -630,11 +632,20 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateLevel         func(childComplexity int, level model.LevelInput) int
+		CreatePathway       func(childComplexity int, pathway model.PathwayInput) int
+		CreateStop          func(childComplexity int, stop model.StopInput) int
+		DeleteLevel         func(childComplexity int, id int) int
+		DeletePathway       func(childComplexity int, id int) int
+		DeleteStop          func(childComplexity int, id int) int
 		FeedVersionDelete   func(childComplexity int, id int) int
 		FeedVersionFetch    func(childComplexity int, file *graphql.Upload, url *string, feedOnestopID string) int
 		FeedVersionImport   func(childComplexity int, id int) int
 		FeedVersionUnimport func(childComplexity int, id int) int
 		FeedVersionUpdate   func(childComplexity int, id int, set model.FeedVersionSetInput) int
+		UpdateLevel         func(childComplexity int, level model.LevelInput) int
+		UpdatePathway       func(childComplexity int, pathway model.PathwayInput) int
+		UpdateStop          func(childComplexity int, stop model.StopInput) int
 		ValidateGtfs        func(childComplexity int, file *graphql.Upload, url *string, realtimeUrls []string) int
 	}
 
@@ -818,6 +829,7 @@ type ComplexityRoot struct {
 		Alerts             func(childComplexity int, active *bool, limit *int) int
 		Arrivals           func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		CensusGeographies  func(childComplexity int, layer string, radius *float64, limit *int) int
+		ChildLevels        func(childComplexity int, limit *int) int
 		Children           func(childComplexity int, limit *int) int
 		Departures         func(childComplexity int, limit *int, where *model.StopTimeFilter) int
 		Directions         func(childComplexity int, to *model.WaypointInput, from *model.WaypointInput, mode *model.StepMode, departAt *time.Time) int
@@ -933,8 +945,8 @@ type ComplexityRoot struct {
 	}
 
 	ValidationRealtimeResult struct {
-		Json func(childComplexity int) int
-		Url  func(childComplexity int) int
+		JSON func(childComplexity int) int
+		URL  func(childComplexity int) int
 	}
 
 	ValidationReport struct {
@@ -942,7 +954,7 @@ type ComplexityRoot struct {
 		Errors                  func(childComplexity int, limit *int) int
 		FailureReason           func(childComplexity int) int
 		ID                      func(childComplexity int) int
-		IncludesRT              func(childComplexity int) int
+		IncludesRt              func(childComplexity int) int
 		IncludesStatic          func(childComplexity int) int
 		ReportedAt              func(childComplexity int) int
 		ReportedAtLocal         func(childComplexity int) int
@@ -1026,10 +1038,6 @@ type CalendarResolver interface {
 type CensusGeographyResolver interface {
 	Values(ctx context.Context, obj *model.CensusGeography, tableNames []string, limit *int) ([]*model.CensusValue, error)
 }
-type CensusValueResolver interface {
-	Table(ctx context.Context, obj *model.CensusValue) (*model.CensusTable, error)
-	Values(ctx context.Context, obj *model.CensusValue) (interface{}, error)
-}
 type FeedResolver interface {
 	Spec(ctx context.Context, obj *model.Feed) (*model.FeedSpecTypes, error)
 	Languages(ctx context.Context, obj *model.Feed) ([]string, error)
@@ -1078,6 +1086,15 @@ type MutationResolver interface {
 	FeedVersionImport(ctx context.Context, id int) (*model.FeedVersionImportResult, error)
 	FeedVersionUnimport(ctx context.Context, id int) (*model.FeedVersionUnimportResult, error)
 	FeedVersionDelete(ctx context.Context, id int) (*model.FeedVersionDeleteResult, error)
+	CreateStop(ctx context.Context, stop model.StopInput) (*model.Stop, error)
+	UpdateStop(ctx context.Context, stop model.StopInput) (*model.Stop, error)
+	DeleteStop(ctx context.Context, id int) (*model.DeleteResult, error)
+	CreateLevel(ctx context.Context, level model.LevelInput) (*model.Level, error)
+	UpdateLevel(ctx context.Context, level model.LevelInput) (*model.Level, error)
+	DeleteLevel(ctx context.Context, id int) (*model.DeleteResult, error)
+	CreatePathway(ctx context.Context, pathway model.PathwayInput) (*model.Pathway, error)
+	UpdatePathway(ctx context.Context, pathway model.PathwayInput) (*model.Pathway, error)
+	DeletePathway(ctx context.Context, id int) (*model.DeleteResult, error)
 }
 type OperatorResolver interface {
 	Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error)
@@ -1142,6 +1159,7 @@ type StopResolver interface {
 	Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error)
 	Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error)
 	RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error)
+	ChildLevels(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Level, error)
 	PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
 	PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error)
 	StopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error)
@@ -1178,9 +1196,6 @@ type ValidationReportResolver interface {
 	Errors(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error)
 	Warnings(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error)
 	Details(ctx context.Context, obj *model.ValidationReport) (*model.ValidationReportDetails, error)
-}
-type ValidationReportErrorResolver interface {
-	EntityJSON(ctx context.Context, obj *model.ValidationReportError) (map[string]interface{}, error)
 }
 type ValidationReportErrorGroupResolver interface {
 	Errors(ctx context.Context, obj *model.ValidationReportErrorGroup, limit *int) ([]*model.ValidationReportError, error)
@@ -1674,6 +1689,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CensusValue.Values(childComplexity), true
 
+	case "DeleteResult.id":
+		if e.complexity.DeleteResult.ID == nil {
+			break
+		}
+
+		return e.complexity.DeleteResult.ID(childComplexity), true
+
 	case "Directions.data_source":
 		if e.complexity.Directions.DataSource == nil {
 			break
@@ -1798,6 +1820,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Feed.FeedFetches(childComplexity, args["limit"].(*int), args["where"].(*model.FeedFetchFilter)), true
 
+	case "Feed.onestop_id":
+		if e.complexity.Feed.FeedID == nil {
+			break
+		}
+
+		return e.complexity.Feed.FeedID(childComplexity), true
+
 	case "Feed.feed_state":
 		if e.complexity.Feed.FeedState == nil {
 			break
@@ -1851,13 +1880,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Feed.Name(childComplexity), true
-
-	case "Feed.onestop_id":
-		if e.complexity.Feed.OnestopID == nil {
-			break
-		}
-
-		return e.complexity.Feed.OnestopID(childComplexity), true
 
 	case "Feed.search_rank":
 		if e.complexity.Feed.SearchRank == nil {
@@ -2390,18 +2412,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.FeedVersionFetchResult.FetchError(childComplexity), true
 
 	case "FeedVersionFetchResult.found_dir_sha1":
-		if e.complexity.FeedVersionFetchResult.FoundDirSHA1 == nil {
+		if e.complexity.FeedVersionFetchResult.FoundDirSha1 == nil {
 			break
 		}
 
-		return e.complexity.FeedVersionFetchResult.FoundDirSHA1(childComplexity), true
+		return e.complexity.FeedVersionFetchResult.FoundDirSha1(childComplexity), true
 
 	case "FeedVersionFetchResult.found_sha1":
-		if e.complexity.FeedVersionFetchResult.FoundSHA1 == nil {
+		if e.complexity.FeedVersionFetchResult.FoundSha1 == nil {
 			break
 		}
 
-		return e.complexity.FeedVersionFetchResult.FoundSHA1(childComplexity), true
+		return e.complexity.FeedVersionFetchResult.FoundSha1(childComplexity), true
 
 	case "FeedVersionFileInfo.csv_like":
 		if e.complexity.FeedVersionFileInfo.CSVLike == nil {
@@ -4041,6 +4063,78 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Me.Roles(childComplexity), true
 
+	case "Mutation.create_level":
+		if e.complexity.Mutation.CreateLevel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_create_level_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateLevel(childComplexity, args["level"].(model.LevelInput)), true
+
+	case "Mutation.create_pathway":
+		if e.complexity.Mutation.CreatePathway == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_create_pathway_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreatePathway(childComplexity, args["pathway"].(model.PathwayInput)), true
+
+	case "Mutation.create_stop":
+		if e.complexity.Mutation.CreateStop == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_create_stop_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateStop(childComplexity, args["stop"].(model.StopInput)), true
+
+	case "Mutation.delete_level":
+		if e.complexity.Mutation.DeleteLevel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_delete_level_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteLevel(childComplexity, args["id"].(int)), true
+
+	case "Mutation.delete_pathway":
+		if e.complexity.Mutation.DeletePathway == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_delete_pathway_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeletePathway(childComplexity, args["id"].(int)), true
+
+	case "Mutation.delete_stop":
+		if e.complexity.Mutation.DeleteStop == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_delete_stop_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteStop(childComplexity, args["id"].(int)), true
+
 	case "Mutation.feed_version_delete":
 		if e.complexity.Mutation.FeedVersionDelete == nil {
 			break
@@ -4100,6 +4194,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.FeedVersionUpdate(childComplexity, args["id"].(int), args["set"].(model.FeedVersionSetInput)), true
+
+	case "Mutation.update_level":
+		if e.complexity.Mutation.UpdateLevel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_update_level_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateLevel(childComplexity, args["level"].(model.LevelInput)), true
+
+	case "Mutation.update_pathway":
+		if e.complexity.Mutation.UpdatePathway == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_update_pathway_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdatePathway(childComplexity, args["pathway"].(model.PathwayInput)), true
+
+	case "Mutation.update_stop":
+		if e.complexity.Mutation.UpdateStop == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_update_stop_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateStop(childComplexity, args["stop"].(model.StopInput)), true
 
 	case "Mutation.validate_gtfs":
 		if e.complexity.Mutation.ValidateGtfs == nil {
@@ -5129,6 +5259,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stop.CensusGeographies(childComplexity, args["layer"].(string), args["radius"].(*float64), args["limit"].(*int)), true
 
+	case "Stop.child_levels":
+		if e.complexity.Stop.ChildLevels == nil {
+			break
+		}
+
+		args, err := ec.field_Stop_child_levels_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Stop.ChildLevels(childComplexity, args["limit"].(*int)), true
+
 	case "Stop.children":
 		if e.complexity.Stop.Children == nil {
 			break
@@ -5848,18 +5990,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Trip.WheelchairAccessible(childComplexity), true
 
 	case "ValidationRealtimeResult.json":
-		if e.complexity.ValidationRealtimeResult.Json == nil {
+		if e.complexity.ValidationRealtimeResult.JSON == nil {
 			break
 		}
 
-		return e.complexity.ValidationRealtimeResult.Json(childComplexity), true
+		return e.complexity.ValidationRealtimeResult.JSON(childComplexity), true
 
 	case "ValidationRealtimeResult.url":
-		if e.complexity.ValidationRealtimeResult.Url == nil {
+		if e.complexity.ValidationRealtimeResult.URL == nil {
 			break
 		}
 
-		return e.complexity.ValidationRealtimeResult.Url(childComplexity), true
+		return e.complexity.ValidationRealtimeResult.URL(childComplexity), true
 
 	case "ValidationReport.details":
 		if e.complexity.ValidationReport.Details == nil {
@@ -5895,11 +6037,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.ValidationReport.ID(childComplexity), true
 
 	case "ValidationReport.includes_rt":
-		if e.complexity.ValidationReport.IncludesRT == nil {
+		if e.complexity.ValidationReport.IncludesRt == nil {
 			break
 		}
 
-		return e.complexity.ValidationReport.IncludesRT(childComplexity), true
+		return e.complexity.ValidationReport.IncludesRt(childComplexity), true
 
 	case "ValidationReport.includes_static":
 		if e.complexity.ValidationReport.IncludesStatic == nil {
@@ -6275,18 +6417,22 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFeedFilter,
 		ec.unmarshalInputFeedSourceUrl,
 		ec.unmarshalInputFeedVersionFilter,
+		ec.unmarshalInputFeedVersionInput,
 		ec.unmarshalInputFeedVersionServiceLevelFilter,
 		ec.unmarshalInputFeedVersionSetInput,
 		ec.unmarshalInputGbfsBikeRequest,
 		ec.unmarshalInputGbfsDockRequest,
+		ec.unmarshalInputLevelInput,
 		ec.unmarshalInputLicenseFilter,
 		ec.unmarshalInputOperatorFilter,
 		ec.unmarshalInputPathwayFilter,
+		ec.unmarshalInputPathwayInput,
 		ec.unmarshalInputPlaceFilter,
 		ec.unmarshalInputPointRadius,
 		ec.unmarshalInputRouteFilter,
 		ec.unmarshalInputServiceCoversFilter,
 		ec.unmarshalInputStopFilter,
+		ec.unmarshalInputStopInput,
 		ec.unmarshalInputStopObservationFilter,
 		ec.unmarshalInputStopTimeFilter,
 		ec.unmarshalInputTripFilter,
@@ -6784,12 +6930,34 @@ type Query {
 }
 
 type Mutation {
+    # Feed versions
     validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
     feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion
     feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
     feed_version_import(id: Int!): FeedVersionImportResult!
     feed_version_unimport(id: Int!): FeedVersionUnimportResult!
     feed_version_delete(id: Int!): FeedVersionDeleteResult!
+    
+    # Entity editing
+
+    # stops
+    create_stop(stop: StopInput!): Stop!
+    update_stop(stop: StopInput!): Stop!
+    delete_stop(id: Int!): DeleteResult!
+    
+    # levels
+    create_level(level: LevelInput!): Level!
+    update_level(level: LevelInput!): Level!
+    delete_level(id: Int!): DeleteResult!
+    
+    # pathways
+    create_pathway(pathway: PathwayInput!): Pathway!
+    update_pathway(pathway: PathwayInput!): Pathway!
+    delete_pathway(id: Int!): DeleteResult!
+}
+
+type DeleteResult {
+  id: Int!
 }
 
 type Me {
@@ -6797,7 +6965,7 @@ type Me {
   name: String
   email: String
   roles: [String!]
-  external_data: Map
+  external_data: Map!
 }
 
 """
@@ -7087,6 +7255,7 @@ type Stop {
   observations(limit: Int, where: StopObservationFilter): [StopObservation!]
   children(limit: Int): [Stop!]
   route_stops(limit: Int): [RouteStop!]!
+  child_levels(limit: Int): [Level!]!
   pathways_from_stop(limit: Int): [Pathway!]!
   pathways_to_stop(limit: Int): [Pathway!]!
   stop_times(limit: Int, where: StopTimeFilter): [StopTime!]!
@@ -7357,7 +7526,7 @@ type CensusGeography {
 
 type CensusValue {
   table: CensusTable!
-  values: Any! # json blob
+  values: Map!
 }
 
 type CensusTable {
@@ -7467,7 +7636,7 @@ type ValidationReport {
   reported_at: Time
   reported_at_local: Time
   reported_at_local_timezone: String
-  success: Boolean
+  success: Boolean!
   failure_reason: String
   includes_static: Boolean
   includes_rt: Boolean
@@ -7493,7 +7662,7 @@ type ValidationReportDetails {
 
 type ValidationRealtimeResult {
   url: String!
-  json: Map
+  json: Map!
 }
 
 type ValidationReportErrorGroup {
@@ -7517,7 +7686,7 @@ type ValidationReportError {
   value: String!
   message: String!
   geometry: Geometry
-  entity_json: Map
+  entity_json: Map!
 }
 
 type FeedVersionFetchResult {
@@ -7816,7 +7985,60 @@ input BoundingBox {
   min_lat: Float!
   max_lon: Float!
   max_lat: Float!
-}`, BuiltIn: false},
+}
+
+# entity mutations
+
+input FeedVersionInput {
+  id: Int
+}
+
+input StopInput {
+  id: Int
+  feed_version: FeedVersionInput
+  location_type: Int
+  stop_code: String
+  stop_desc: String
+  stop_id: String
+  stop_name: String
+  stop_timezone: String
+  stop_url: String
+  wheelchair_boarding: Int
+  zone_id: String
+  platform_code: String
+  tts_stop_name: String
+  geometry: Point
+  parent: StopInput
+  level: LevelInput
+}
+
+input LevelInput {
+  id: Int
+  feed_version: FeedVersionInput
+  level_id: String
+  level_name: String
+  level_index: Float
+  geometry: Polygon
+  parent: StopInput
+}
+
+input PathwayInput {
+  id: Int
+  feed_version: FeedVersionInput
+  pathway_id: String
+  pathway_mode: Int
+  is_bidirectional: Int
+  length: Float
+  traversal_time: Int
+  stair_count: Int
+  max_slope: Float
+  min_width: Float
+  signposted_as: String
+  reverse_signposted_as: String
+  from_stop: StopInput
+  to_stop: StopInput
+}
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -8205,6 +8427,96 @@ func (ec *executionContext) field_Feed_feed_versions_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_create_level_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.LevelInput
+	if tmp, ok := rawArgs["level"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
+		arg0, err = ec.unmarshalNLevelInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["level"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_create_pathway_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PathwayInput
+	if tmp, ok := rawArgs["pathway"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pathway"))
+		arg0, err = ec.unmarshalNPathwayInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPathwayInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pathway"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_create_stop_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.StopInput
+	if tmp, ok := rawArgs["stop"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop"))
+		arg0, err = ec.unmarshalNStopInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["stop"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_delete_level_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_delete_pathway_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_delete_stop_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_feed_version_delete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -8304,6 +8616,51 @@ func (ec *executionContext) field_Mutation_feed_version_update_args(ctx context.
 		}
 	}
 	args["set"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_update_level_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.LevelInput
+	if tmp, ok := rawArgs["level"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
+		arg0, err = ec.unmarshalNLevelInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["level"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_update_pathway_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PathwayInput
+	if tmp, ok := rawArgs["pathway"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pathway"))
+		arg0, err = ec.unmarshalNPathwayInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPathwayInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pathway"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_update_stop_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.StopInput
+	if tmp, ok := rawArgs["stop"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop"))
+		arg0, err = ec.unmarshalNStopInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["stop"] = arg0
 	return args, nil
 }
 
@@ -9036,6 +9393,21 @@ func (ec *executionContext) field_Stop_census_geographies_args(ctx context.Conte
 		}
 	}
 	args["limit"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Stop_child_levels_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
 	return args, nil
 }
 
@@ -12344,7 +12716,7 @@ func (ec *executionContext) _CensusValue_table(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CensusValue().Table(rctx, obj)
+		return obj.Table, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12365,8 +12737,8 @@ func (ec *executionContext) fieldContext_CensusValue_table(ctx context.Context, 
 	fc = &graphql.FieldContext{
 		Object:     "CensusValue",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -12398,7 +12770,7 @@ func (ec *executionContext) _CensusValue_values(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CensusValue().Values(rctx, obj)
+		return obj.Values, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12410,19 +12782,63 @@ func (ec *executionContext) _CensusValue_values(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(tt.Map)
 	fc.Result = res
-	return ec.marshalNAny2interface(ctx, field.Selections, res)
+	return ec.marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CensusValue_values(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CensusValue",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Any does not have child fields")
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteResult_id(ctx context.Context, field graphql.CollectedField, obj *model.DeleteResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteResult_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteResult_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13119,7 +13535,7 @@ func (ec *executionContext) _Feed_onestop_id(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OnestopID()
+		return obj.FeedID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13140,7 +13556,7 @@ func (ec *executionContext) fieldContext_Feed_onestop_id(ctx context.Context, fi
 	fc = &graphql.FieldContext{
 		Object:     "Feed",
 		Field:      field,
-		IsMethod:   true,
+		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
@@ -16766,6 +17182,8 @@ func (ec *executionContext) fieldContext_FeedVersion_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -17242,7 +17660,7 @@ func (ec *executionContext) _FeedVersionFetchResult_found_sha1(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FoundSHA1, nil
+		return obj.FoundSha1, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17286,7 +17704,7 @@ func (ec *executionContext) _FeedVersionFetchResult_found_dir_sha1(ctx context.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FoundDirSHA1, nil
+		return obj.FoundDirSha1, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27635,6 +28053,8 @@ func (ec *executionContext) fieldContext_Level_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -27852,11 +28272,14 @@ func (ec *executionContext) _Me_external_data(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]interface{})
+	res := resTmp.(tt.Map)
 	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
+	return ec.marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Me_external_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -28283,6 +28706,741 @@ func (ec *executionContext) fieldContext_Mutation_feed_version_delete(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_feed_version_delete_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_create_stop(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_create_stop(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateStop(rctx, fc.Args["stop"].(model.StopInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Stop)
+	fc.Result = res
+	return ec.marshalNStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_create_stop(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Stop_id(ctx, field)
+			case "onestop_id":
+				return ec.fieldContext_Stop_onestop_id(ctx, field)
+			case "location_type":
+				return ec.fieldContext_Stop_location_type(ctx, field)
+			case "stop_code":
+				return ec.fieldContext_Stop_stop_code(ctx, field)
+			case "stop_desc":
+				return ec.fieldContext_Stop_stop_desc(ctx, field)
+			case "stop_id":
+				return ec.fieldContext_Stop_stop_id(ctx, field)
+			case "stop_name":
+				return ec.fieldContext_Stop_stop_name(ctx, field)
+			case "stop_timezone":
+				return ec.fieldContext_Stop_stop_timezone(ctx, field)
+			case "stop_url":
+				return ec.fieldContext_Stop_stop_url(ctx, field)
+			case "wheelchair_boarding":
+				return ec.fieldContext_Stop_wheelchair_boarding(ctx, field)
+			case "zone_id":
+				return ec.fieldContext_Stop_zone_id(ctx, field)
+			case "platform_code":
+				return ec.fieldContext_Stop_platform_code(ctx, field)
+			case "tts_stop_name":
+				return ec.fieldContext_Stop_tts_stop_name(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Stop_geometry(ctx, field)
+			case "feed_version_sha1":
+				return ec.fieldContext_Stop_feed_version_sha1(ctx, field)
+			case "feed_onestop_id":
+				return ec.fieldContext_Stop_feed_onestop_id(ctx, field)
+			case "feed_version":
+				return ec.fieldContext_Stop_feed_version(ctx, field)
+			case "level":
+				return ec.fieldContext_Stop_level(ctx, field)
+			case "parent":
+				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
+			case "children":
+				return ec.fieldContext_Stop_children(ctx, field)
+			case "route_stops":
+				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
+			case "pathways_from_stop":
+				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
+			case "pathways_to_stop":
+				return ec.fieldContext_Stop_pathways_to_stop(ctx, field)
+			case "stop_times":
+				return ec.fieldContext_Stop_stop_times(ctx, field)
+			case "departures":
+				return ec.fieldContext_Stop_departures(ctx, field)
+			case "arrivals":
+				return ec.fieldContext_Stop_arrivals(ctx, field)
+			case "search_rank":
+				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
+			case "census_geographies":
+				return ec.fieldContext_Stop_census_geographies(ctx, field)
+			case "directions":
+				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
+			case "alerts":
+				return ec.fieldContext_Stop_alerts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_create_stop_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_update_stop(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_update_stop(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateStop(rctx, fc.Args["stop"].(model.StopInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Stop)
+	fc.Result = res
+	return ec.marshalNStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_update_stop(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Stop_id(ctx, field)
+			case "onestop_id":
+				return ec.fieldContext_Stop_onestop_id(ctx, field)
+			case "location_type":
+				return ec.fieldContext_Stop_location_type(ctx, field)
+			case "stop_code":
+				return ec.fieldContext_Stop_stop_code(ctx, field)
+			case "stop_desc":
+				return ec.fieldContext_Stop_stop_desc(ctx, field)
+			case "stop_id":
+				return ec.fieldContext_Stop_stop_id(ctx, field)
+			case "stop_name":
+				return ec.fieldContext_Stop_stop_name(ctx, field)
+			case "stop_timezone":
+				return ec.fieldContext_Stop_stop_timezone(ctx, field)
+			case "stop_url":
+				return ec.fieldContext_Stop_stop_url(ctx, field)
+			case "wheelchair_boarding":
+				return ec.fieldContext_Stop_wheelchair_boarding(ctx, field)
+			case "zone_id":
+				return ec.fieldContext_Stop_zone_id(ctx, field)
+			case "platform_code":
+				return ec.fieldContext_Stop_platform_code(ctx, field)
+			case "tts_stop_name":
+				return ec.fieldContext_Stop_tts_stop_name(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Stop_geometry(ctx, field)
+			case "feed_version_sha1":
+				return ec.fieldContext_Stop_feed_version_sha1(ctx, field)
+			case "feed_onestop_id":
+				return ec.fieldContext_Stop_feed_onestop_id(ctx, field)
+			case "feed_version":
+				return ec.fieldContext_Stop_feed_version(ctx, field)
+			case "level":
+				return ec.fieldContext_Stop_level(ctx, field)
+			case "parent":
+				return ec.fieldContext_Stop_parent(ctx, field)
+			case "external_reference":
+				return ec.fieldContext_Stop_external_reference(ctx, field)
+			case "observations":
+				return ec.fieldContext_Stop_observations(ctx, field)
+			case "children":
+				return ec.fieldContext_Stop_children(ctx, field)
+			case "route_stops":
+				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
+			case "pathways_from_stop":
+				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
+			case "pathways_to_stop":
+				return ec.fieldContext_Stop_pathways_to_stop(ctx, field)
+			case "stop_times":
+				return ec.fieldContext_Stop_stop_times(ctx, field)
+			case "departures":
+				return ec.fieldContext_Stop_departures(ctx, field)
+			case "arrivals":
+				return ec.fieldContext_Stop_arrivals(ctx, field)
+			case "search_rank":
+				return ec.fieldContext_Stop_search_rank(ctx, field)
+			case "place":
+				return ec.fieldContext_Stop_place(ctx, field)
+			case "census_geographies":
+				return ec.fieldContext_Stop_census_geographies(ctx, field)
+			case "directions":
+				return ec.fieldContext_Stop_directions(ctx, field)
+			case "nearby_stops":
+				return ec.fieldContext_Stop_nearby_stops(ctx, field)
+			case "alerts":
+				return ec.fieldContext_Stop_alerts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_update_stop_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_delete_stop(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_delete_stop(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteStop(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DeleteResult)
+	fc.Result = res
+	return ec.marshalNDeleteResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDeleteResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_delete_stop(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DeleteResult_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeleteResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_delete_stop_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_create_level(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_create_level(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateLevel(rctx, fc.Args["level"].(model.LevelInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Level)
+	fc.Result = res
+	return ec.marshalNLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_create_level(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Level_id(ctx, field)
+			case "level_id":
+				return ec.fieldContext_Level_level_id(ctx, field)
+			case "level_name":
+				return ec.fieldContext_Level_level_name(ctx, field)
+			case "level_index":
+				return ec.fieldContext_Level_level_index(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Level_geometry(ctx, field)
+			case "stops":
+				return ec.fieldContext_Level_stops(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Level", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_create_level_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_update_level(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_update_level(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateLevel(rctx, fc.Args["level"].(model.LevelInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Level)
+	fc.Result = res
+	return ec.marshalNLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_update_level(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Level_id(ctx, field)
+			case "level_id":
+				return ec.fieldContext_Level_level_id(ctx, field)
+			case "level_name":
+				return ec.fieldContext_Level_level_name(ctx, field)
+			case "level_index":
+				return ec.fieldContext_Level_level_index(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Level_geometry(ctx, field)
+			case "stops":
+				return ec.fieldContext_Level_stops(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Level", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_update_level_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_delete_level(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_delete_level(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteLevel(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DeleteResult)
+	fc.Result = res
+	return ec.marshalNDeleteResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDeleteResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_delete_level(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DeleteResult_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeleteResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_delete_level_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_create_pathway(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_create_pathway(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreatePathway(rctx, fc.Args["pathway"].(model.PathwayInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pathway)
+	fc.Result = res
+	return ec.marshalNPathway2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPathway(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_create_pathway(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Pathway_id(ctx, field)
+			case "pathway_id":
+				return ec.fieldContext_Pathway_pathway_id(ctx, field)
+			case "pathway_mode":
+				return ec.fieldContext_Pathway_pathway_mode(ctx, field)
+			case "is_bidirectional":
+				return ec.fieldContext_Pathway_is_bidirectional(ctx, field)
+			case "length":
+				return ec.fieldContext_Pathway_length(ctx, field)
+			case "traversal_time":
+				return ec.fieldContext_Pathway_traversal_time(ctx, field)
+			case "stair_count":
+				return ec.fieldContext_Pathway_stair_count(ctx, field)
+			case "max_slope":
+				return ec.fieldContext_Pathway_max_slope(ctx, field)
+			case "min_width":
+				return ec.fieldContext_Pathway_min_width(ctx, field)
+			case "signposted_as":
+				return ec.fieldContext_Pathway_signposted_as(ctx, field)
+			case "reverse_signposted_as":
+				return ec.fieldContext_Pathway_reverse_signposted_as(ctx, field)
+			case "from_stop":
+				return ec.fieldContext_Pathway_from_stop(ctx, field)
+			case "to_stop":
+				return ec.fieldContext_Pathway_to_stop(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pathway", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_create_pathway_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_update_pathway(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_update_pathway(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdatePathway(rctx, fc.Args["pathway"].(model.PathwayInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pathway)
+	fc.Result = res
+	return ec.marshalNPathway2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPathway(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_update_pathway(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Pathway_id(ctx, field)
+			case "pathway_id":
+				return ec.fieldContext_Pathway_pathway_id(ctx, field)
+			case "pathway_mode":
+				return ec.fieldContext_Pathway_pathway_mode(ctx, field)
+			case "is_bidirectional":
+				return ec.fieldContext_Pathway_is_bidirectional(ctx, field)
+			case "length":
+				return ec.fieldContext_Pathway_length(ctx, field)
+			case "traversal_time":
+				return ec.fieldContext_Pathway_traversal_time(ctx, field)
+			case "stair_count":
+				return ec.fieldContext_Pathway_stair_count(ctx, field)
+			case "max_slope":
+				return ec.fieldContext_Pathway_max_slope(ctx, field)
+			case "min_width":
+				return ec.fieldContext_Pathway_min_width(ctx, field)
+			case "signposted_as":
+				return ec.fieldContext_Pathway_signposted_as(ctx, field)
+			case "reverse_signposted_as":
+				return ec.fieldContext_Pathway_reverse_signposted_as(ctx, field)
+			case "from_stop":
+				return ec.fieldContext_Pathway_from_stop(ctx, field)
+			case "to_stop":
+				return ec.fieldContext_Pathway_to_stop(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pathway", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_update_pathway_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_delete_pathway(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_delete_pathway(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeletePathway(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DeleteResult)
+	fc.Result = res
+	return ec.marshalNDeleteResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDeleteResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_delete_pathway(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DeleteResult_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeleteResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_delete_pathway_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -29400,6 +30558,8 @@ func (ec *executionContext) fieldContext_Pathway_from_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -29514,6 +30674,8 @@ func (ec *executionContext) fieldContext_Pathway_to_stop(ctx context.Context, fi
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -30260,6 +31422,8 @@ func (ec *executionContext) fieldContext_Query_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -32650,6 +33814,8 @@ func (ec *executionContext) fieldContext_Route_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -33180,9 +34346,9 @@ func (ec *executionContext) _RouteAttribute_category(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteAttribute_category(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33221,9 +34387,9 @@ func (ec *executionContext) _RouteAttribute_subcategory(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteAttribute_subcategory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33262,9 +34428,9 @@ func (ec *executionContext) _RouteAttribute_running_way(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteAttribute_running_way(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33347,9 +34513,9 @@ func (ec *executionContext) _RouteGeometry_geometry(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.LineString)
+	res := resTmp.(*tt.LineString)
 	fc.Result = res
-	return ec.marshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx, field.Selections, res)
+	return ec.marshalOLineString2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33388,9 +34554,9 @@ func (ec *executionContext) _RouteGeometry_combined_geometry(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Geometry)
+	res := resTmp.(*tt.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
+	return ec.marshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_combined_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33429,9 +34595,9 @@ func (ec *executionContext) _RouteGeometry_length(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Float)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_length(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33470,9 +34636,9 @@ func (ec *executionContext) _RouteGeometry_max_segment_length(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Float)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_max_segment_length(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33511,9 +34677,9 @@ func (ec *executionContext) _RouteGeometry_first_point_max_distance(ctx context.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Float)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteGeometry_first_point_max_distance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33614,6 +34780,8 @@ func (ec *executionContext) fieldContext_RouteHeadway_stop(ctx context.Context, 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -33707,9 +34875,9 @@ func (ec *executionContext) _RouteHeadway_direction_id(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteHeadway_direction_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33789,9 +34957,9 @@ func (ec *executionContext) _RouteHeadway_service_date(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Date)
+	res := resTmp.(*tt.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteHeadway_service_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34254,6 +35422,8 @@ func (ec *executionContext) fieldContext_RouteStop_stop(ctx context.Context, fie
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -36184,6 +37354,8 @@ func (ec *executionContext) fieldContext_Stop_parent(ctx context.Context, field 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -36430,6 +37602,8 @@ func (ec *executionContext) fieldContext_Stop_children(ctx context.Context, fiel
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -36535,6 +37709,75 @@ func (ec *executionContext) fieldContext_Stop_route_stops(ctx context.Context, f
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Stop_route_stops_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Stop_child_levels(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stop_child_levels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Stop().ChildLevels(rctx, obj, fc.Args["limit"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Level)
+	fc.Result = res
+	return ec.marshalNLevel2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stop_child_levels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Level_id(ctx, field)
+			case "level_id":
+				return ec.fieldContext_Level_level_id(ctx, field)
+			case "level_name":
+				return ec.fieldContext_Level_level_name(ctx, field)
+			case "level_index":
+				return ec.fieldContext_Level_level_index(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Level_geometry(ctx, field)
+			case "stops":
+				return ec.fieldContext_Level_stops(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Level", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Stop_child_levels_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -37295,6 +38538,8 @@ func (ec *executionContext) fieldContext_Stop_nearby_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -37656,6 +38901,8 @@ func (ec *executionContext) fieldContext_StopExternalReference_target_active_sto
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -38845,6 +40092,8 @@ func (ec *executionContext) fieldContext_StopTime_stop(ctx context.Context, fiel
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -39303,9 +40552,9 @@ func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.WideTime)
+	res := resTmp.(*tt.WideTime)
 	fc.Result = res
-	return ec.marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTimeEvent_scheduled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -39344,9 +40593,9 @@ func (ec *executionContext) _StopTimeEvent_estimated(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.WideTime)
+	res := resTmp.(*tt.WideTime)
 	fc.Result = res
-	return ec.marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTimeEvent_estimated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -39385,9 +40634,9 @@ func (ec *executionContext) _StopTimeEvent_estimated_utc(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTimeEvent_estimated_utc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40522,7 +41771,7 @@ func (ec *executionContext) _ValidationRealtimeResult_url(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Url, nil
+		return obj.URL, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -40566,18 +41815,21 @@ func (ec *executionContext) _ValidationRealtimeResult_json(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Json, nil
+		return obj.JSON, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]any)
+	res := resTmp.(tt.Map)
 	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
+	return ec.marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationRealtimeResult_json(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40660,9 +41912,9 @@ func (ec *executionContext) _ValidationReport_reported_at(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_reported_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40701,9 +41953,9 @@ func (ec *executionContext) _ValidationReport_reported_at_local(ctx context.Cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_reported_at_local(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40742,9 +41994,9 @@ func (ec *executionContext) _ValidationReport_reported_at_local_timezone(ctx con
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_reported_at_local_timezone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40781,11 +42033,14 @@ func (ec *executionContext) _ValidationReport_success(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.Bool)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_success(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40824,9 +42079,9 @@ func (ec *executionContext) _ValidationReport_failure_reason(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_failure_reason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40865,9 +42120,9 @@ func (ec *executionContext) _ValidationReport_includes_static(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_includes_static(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40897,7 +42152,7 @@ func (ec *executionContext) _ValidationReport_includes_rt(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IncludesRT, nil
+		return obj.IncludesRt, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -40906,9 +42161,9 @@ func (ec *executionContext) _ValidationReport_includes_rt(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_includes_rt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40947,9 +42202,9 @@ func (ec *executionContext) _ValidationReport_validator(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_validator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40988,9 +42243,9 @@ func (ec *executionContext) _ValidationReport_validator_version(ctx context.Cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReport_validator_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41237,9 +42492,9 @@ func (ec *executionContext) _ValidationReportDetails_sha1(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_sha1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41278,9 +42533,9 @@ func (ec *executionContext) _ValidationReportDetails_earliest_calendar_date(ctx 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Date)
+	res := resTmp.(*tt.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_earliest_calendar_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41319,9 +42574,9 @@ func (ec *executionContext) _ValidationReportDetails_latest_calendar_date(ctx co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Date)
+	res := resTmp.(*tt.Date)
 	fc.Result = res
-	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_latest_calendar_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41363,9 +42618,9 @@ func (ec *executionContext) _ValidationReportDetails_files(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.FeedVersionFileInfo)
+	res := resTmp.([]*model.FeedVersionFileInfo)
 	fc.Result = res
-	return ec.marshalNFeedVersionFileInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx, field.Selections, res)
+	return ec.marshalNFeedVersionFileInfo2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41427,9 +42682,9 @@ func (ec *executionContext) _ValidationReportDetails_service_levels(ctx context.
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.FeedVersionServiceLevel)
+	res := resTmp.([]*model.FeedVersionServiceLevel)
 	fc.Result = res
-	return ec.marshalNFeedVersionServiceLevel2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx, field.Selections, res)
+	return ec.marshalNFeedVersionServiceLevel2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_service_levels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41504,9 +42759,9 @@ func (ec *executionContext) _ValidationReportDetails_agencies(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Agency)
+	res := resTmp.([]*model.Agency)
 	fc.Result = res
-	return ec.marshalNAgency2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx, field.Selections, res)
+	return ec.marshalNAgency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_agencies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41601,9 +42856,9 @@ func (ec *executionContext) _ValidationReportDetails_routes(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Route)
+	res := resTmp.([]*model.Route)
 	fc.Result = res
-	return ec.marshalNRoute2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx, field.Selections, res)
+	return ec.marshalNRoute2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_routes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41716,9 +42971,9 @@ func (ec *executionContext) _ValidationReportDetails_stops(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Stop)
+	res := resTmp.([]*model.Stop)
 	fc.Result = res
-	return ec.marshalNStop2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx, field.Selections, res)
+	return ec.marshalNStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_stops(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41775,6 +43030,8 @@ func (ec *executionContext) fieldContext_ValidationReportDetails_stops(ctx conte
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -41841,9 +43098,9 @@ func (ec *executionContext) _ValidationReportDetails_feed_infos(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.FeedInfo)
+	res := resTmp.([]*model.FeedInfo)
 	fc.Result = res
-	return ec.marshalNFeedInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx, field.Selections, res)
+	return ec.marshalNFeedInfo2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_feed_infos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41915,9 +43172,9 @@ func (ec *executionContext) _ValidationReportDetails_realtime(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]model.ValidationRealtimeResult)
+	res := resTmp.([]*model.ValidationRealtimeResult)
 	fc.Result = res
-	return ec.marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx, field.Selections, res)
+	return ec.marshalOValidationRealtimeResult2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportDetails_realtime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42358,9 +43615,9 @@ func (ec *executionContext) _ValidationReportError_geometry(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Geometry)
+	res := resTmp.(*tt.Geometry)
 	fc.Result = res
-	return ec.marshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
+	return ec.marshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐGeometry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportError_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42390,26 +43647,29 @@ func (ec *executionContext) _ValidationReportError_entity_json(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidationReportError().EntityJSON(rctx, obj)
+		return obj.EntityJSON, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]interface{})
+	res := resTmp.(tt.Map)
 	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
+	return ec.marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ValidationReportError_entity_json(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ValidationReportError",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Map does not have child fields")
 		},
@@ -42973,6 +44233,8 @@ func (ec *executionContext) fieldContext_VehiclePosition_stop_id(ctx context.Con
 				return ec.fieldContext_Stop_children(ctx, field)
 			case "route_stops":
 				return ec.fieldContext_Stop_route_stops(ctx, field)
+			case "child_levels":
+				return ec.fieldContext_Stop_child_levels(ctx, field)
 			case "pathways_from_stop":
 				return ec.fieldContext_Stop_pathways_from_stop(ctx, field)
 			case "pathways_to_stop":
@@ -45557,6 +46819,33 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFeedVersionInput(ctx context.Context, obj interface{}) (model.FeedVersionInput, error) {
+	var it model.FeedVersionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFeedVersionServiceLevelFilter(ctx context.Context, obj interface{}) (model.FeedVersionServiceLevelFilter, error) {
 	var it model.FeedVersionServiceLevelFilter
 	asMap := map[string]interface{}{}
@@ -45673,6 +46962,75 @@ func (ec *executionContext) unmarshalInputGbfsDockRequest(ctx context.Context, o
 				return it, err
 			}
 			it.Near = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputLevelInput(ctx context.Context, obj interface{}) (model.LevelInput, error) {
+	var it model.LevelInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "feed_version", "level_id", "level_name", "level_index", "geometry", "parent"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "feed_version":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_version"))
+			data, err := ec.unmarshalOFeedVersionInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeedVersion = data
+		case "level_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level_id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LevelID = data
+		case "level_name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level_name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LevelName = data
+		case "level_index":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level_index"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LevelIndex = data
+		case "geometry":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geometry"))
+			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Geometry = data
+		case "parent":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent"))
+			data, err := ec.unmarshalOStopInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Parent = data
 		}
 	}
 
@@ -45880,6 +47238,124 @@ func (ec *executionContext) unmarshalInputPathwayFilter(ctx context.Context, obj
 				return it, err
 			}
 			it.PathwayMode = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPathwayInput(ctx context.Context, obj interface{}) (model.PathwayInput, error) {
+	var it model.PathwayInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "feed_version", "pathway_id", "pathway_mode", "is_bidirectional", "length", "traversal_time", "stair_count", "max_slope", "min_width", "signposted_as", "reverse_signposted_as", "from_stop", "to_stop"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "feed_version":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_version"))
+			data, err := ec.unmarshalOFeedVersionInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeedVersion = data
+		case "pathway_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pathway_id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PathwayID = data
+		case "pathway_mode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pathway_mode"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PathwayMode = data
+		case "is_bidirectional":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_bidirectional"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsBidirectional = data
+		case "length":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("length"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Length = data
+		case "traversal_time":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("traversal_time"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TraversalTime = data
+		case "stair_count":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stair_count"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StairCount = data
+		case "max_slope":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_slope"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxSlope = data
+		case "min_width":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_width"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MinWidth = data
+		case "signposted_as":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("signposted_as"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SignpostedAs = data
+		case "reverse_signposted_as":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reverse_signposted_as"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReverseSignpostedAs = data
+		case "from_stop":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from_stop"))
+			data, err := ec.unmarshalOStopInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FromStop = data
+		case "to_stop":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to_stop"))
+			data, err := ec.unmarshalOStopInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ToStop = data
 		}
 	}
 
@@ -46309,6 +47785,138 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 				return it, err
 			}
 			it.AgencyIds = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStopInput(ctx context.Context, obj interface{}) (model.StopInput, error) {
+	var it model.StopInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "feed_version", "location_type", "stop_code", "stop_desc", "stop_id", "stop_name", "stop_timezone", "stop_url", "wheelchair_boarding", "zone_id", "platform_code", "tts_stop_name", "geometry", "parent", "level"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "feed_version":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feed_version"))
+			data, err := ec.unmarshalOFeedVersionInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeedVersion = data
+		case "location_type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location_type"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LocationType = data
+		case "stop_code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_code"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopCode = data
+		case "stop_desc":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_desc"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopDesc = data
+		case "stop_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopID = data
+		case "stop_name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopName = data
+		case "stop_timezone":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_timezone"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopTimezone = data
+		case "stop_url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_url"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopURL = data
+		case "wheelchair_boarding":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("wheelchair_boarding"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WheelchairBoarding = data
+		case "zone_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("zone_id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ZoneID = data
+		case "platform_code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("platform_code"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlatformCode = data
+		case "tts_stop_name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tts_stop_name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TtsStopName = data
+		case "geometry":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geometry"))
+			data, err := ec.unmarshalOPoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐPoint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Geometry = data
+		case "parent":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent"))
+			data, err := ec.unmarshalOStopInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Parent = data
+		case "level":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
+			data, err := ec.unmarshalOLevelInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Level = data
 		}
 	}
 
@@ -47453,77 +49061,54 @@ func (ec *executionContext) _CensusValue(ctx context.Context, sel ast.SelectionS
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CensusValue")
 		case "table":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._CensusValue_table(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._CensusValue_table(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "values":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._CensusValue_values(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._CensusValue_values(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
 
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var deleteResultImplementors = []string{"DeleteResult"}
+
+func (ec *executionContext) _DeleteResult(ctx context.Context, sel ast.SelectionSet, obj *model.DeleteResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteResult")
+		case "id":
+			out.Values[i] = ec._DeleteResult_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -50989,6 +52574,9 @@ func (ec *executionContext) _Me(ctx context.Context, sel ast.SelectionSet, obj *
 			out.Values[i] = ec._Me_roles(ctx, field, obj)
 		case "external_data":
 			out.Values[i] = ec._Me_external_data(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -51060,6 +52648,69 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "feed_version_delete":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_feed_version_delete(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "create_stop":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_create_stop(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "update_stop":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_update_stop(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "delete_stop":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_delete_stop(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "create_level":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_create_level(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "update_level":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_update_level(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "delete_level":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_delete_level(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "create_pathway":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_create_pathway(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "update_pathway":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_update_pathway(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "delete_pathway":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_delete_pathway(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -53439,6 +55090,42 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "child_levels":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Stop_child_levels(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "pathways_from_stop":
 			field := field
 
@@ -54663,6 +56350,9 @@ func (ec *executionContext) _ValidationRealtimeResult(ctx context.Context, sel a
 			}
 		case "json":
 			out.Values[i] = ec._ValidationRealtimeResult_json(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -54710,6 +56400,9 @@ func (ec *executionContext) _ValidationReport(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._ValidationReport_reported_at_local_timezone(ctx, field, obj)
 		case "success":
 			out.Values[i] = ec._ValidationReport_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "failure_reason":
 			out.Values[i] = ec._ValidationReport_failure_reason(ctx, field, obj)
 		case "includes_static":
@@ -54937,83 +56630,55 @@ func (ec *executionContext) _ValidationReportError(ctx context.Context, sel ast.
 		case "filename":
 			out.Values[i] = ec._ValidationReportError_filename(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "error_type":
 			out.Values[i] = ec._ValidationReportError_error_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "error_code":
 			out.Values[i] = ec._ValidationReportError_error_code(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "group_key":
 			out.Values[i] = ec._ValidationReportError_group_key(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "entity_id":
 			out.Values[i] = ec._ValidationReportError_entity_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "field":
 			out.Values[i] = ec._ValidationReportError_field(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "line":
 			out.Values[i] = ec._ValidationReportError_line(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "value":
 			out.Values[i] = ec._ValidationReportError_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "message":
 			out.Values[i] = ec._ValidationReportError_message(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "geometry":
 			out.Values[i] = ec._ValidationReportError_geometry(ctx, field, obj)
 		case "entity_json":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ValidationReportError_entity_json(ctx, field, obj)
-				return res
+			out.Values[i] = ec._ValidationReportError_entity_json(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55561,50 +57226,6 @@ func (ec *executionContext) marshalNAgency2githubᚗcomᚋinterlineᚑioᚋtrans
 	return ec._Agency(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAgency2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Agency) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNAgency2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgency(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNAgency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐAgencyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Agency) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -55679,27 +57300,6 @@ func (ec *executionContext) marshalNAlert2ᚖgithubᚗcomᚋinterlineᚑioᚋtra
 	return ec._Alert(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
-	res, err := graphql.UnmarshalAny(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	res := graphql.MarshalAny(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -55737,10 +57337,6 @@ func (ec *executionContext) marshalNCensusGeography2ᚖgithubᚗcomᚋinterline�
 		return graphql.Null
 	}
 	return ec._CensusGeography(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNCensusTable2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusTable(ctx context.Context, sel ast.SelectionSet, v model.CensusTable) graphql.Marshaler {
-	return ec._CensusTable(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNCensusTable2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusTable(ctx context.Context, sel ast.SelectionSet, v *model.CensusTable) graphql.Marshaler {
@@ -55863,6 +57459,20 @@ func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalNDeleteResult2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDeleteResult(ctx context.Context, sel ast.SelectionSet, v model.DeleteResult) graphql.Marshaler {
+	return ec._DeleteResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDeleteResult(ctx context.Context, sel ast.SelectionSet, v *model.DeleteResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNDirectionRequest2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirectionRequest(ctx context.Context, v interface{}) (model.DirectionRequest, error) {
@@ -55990,54 +57600,6 @@ func (ec *executionContext) marshalNFeedFetch2ᚖgithubᚗcomᚋinterlineᚑio�
 		return graphql.Null
 	}
 	return ec._FeedFetch(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNFeedInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfo(ctx context.Context, sel ast.SelectionSet, v model.FeedInfo) graphql.Marshaler {
-	return ec._FeedInfo(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFeedInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FeedInfo) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFeedInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfo(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNFeedInfo2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FeedInfo) graphql.Marshaler {
@@ -56176,54 +57738,6 @@ func (ec *executionContext) marshalNFeedVersionDeleteResult2ᚖgithubᚗcomᚋin
 	return ec._FeedVersionDeleteResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFeedVersionFileInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfo(ctx context.Context, sel ast.SelectionSet, v model.FeedVersionFileInfo) graphql.Marshaler {
-	return ec._FeedVersionFileInfo(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFeedVersionFileInfo2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FeedVersionFileInfo) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFeedVersionFileInfo2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfo(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNFeedVersionFileInfo2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionFileInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FeedVersionFileInfo) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -56290,54 +57804,6 @@ func (ec *executionContext) marshalNFeedVersionImportResult2ᚖgithubᚗcomᚋin
 		return graphql.Null
 	}
 	return ec._FeedVersionImportResult(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNFeedVersionServiceLevel2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevel(ctx context.Context, sel ast.SelectionSet, v model.FeedVersionServiceLevel) graphql.Marshaler {
-	return ec._FeedVersionServiceLevel(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFeedVersionServiceLevel2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FeedVersionServiceLevel) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFeedVersionServiceLevel2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevel(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNFeedVersionServiceLevel2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FeedVersionServiceLevel) graphql.Marshaler {
@@ -56652,6 +58118,69 @@ func (ec *executionContext) marshalNLeg2ᚖgithubᚗcomᚋinterlineᚑioᚋtrans
 	return ec._Leg(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNLevel2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx context.Context, sel ast.SelectionSet, v model.Level) graphql.Marshaler {
+	return ec._Level(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLevel2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Level) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx context.Context, sel ast.SelectionSet, v *model.Level) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Level(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLevelInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelInput(ctx context.Context, v interface{}) (model.LevelInput, error) {
+	res, err := ec.unmarshalInputLevelInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, v interface{}) (tt.LineString, error) {
 	var res tt.LineString
 	err := res.UnmarshalGQL(v)
@@ -56659,6 +58188,16 @@ func (ec *executionContext) unmarshalNLineString2githubᚗcomᚋinterlineᚑio�
 }
 
 func (ec *executionContext) marshalNLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, sel ast.SelectionSet, v tt.LineString) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx context.Context, v interface{}) (tt.Map, error) {
+	var res tt.Map
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx context.Context, sel ast.SelectionSet, v tt.Map) graphql.Marshaler {
 	return v
 }
 
@@ -56730,6 +58269,10 @@ func (ec *executionContext) marshalNOperator2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 	return ec._Operator(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPathway2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPathway(ctx context.Context, sel ast.SelectionSet, v model.Pathway) graphql.Marshaler {
+	return ec._Pathway(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNPathway2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPathwayᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Pathway) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -56782,6 +58325,11 @@ func (ec *executionContext) marshalNPathway2ᚖgithubᚗcomᚋinterlineᚑioᚋt
 		return graphql.Null
 	}
 	return ec._Pathway(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPathwayInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPathwayInput(ctx context.Context, v interface{}) (model.PathwayInput, error) {
+	res, err := ec.unmarshalInputPathwayInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNPlace2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {
@@ -56880,50 +58428,6 @@ func (ec *executionContext) marshalNRTTranslation2ᚖgithubᚗcomᚋinterlineᚑ
 
 func (ec *executionContext) marshalNRoute2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRoute(ctx context.Context, sel ast.SelectionSet, v model.Route) graphql.Marshaler {
 	return ec._Route(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNRoute2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Route) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNRoute2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRoute(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNRoute2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Route) graphql.Marshaler {
@@ -57216,50 +58720,6 @@ func (ec *executionContext) marshalNStop2githubᚗcomᚋinterlineᚑioᚋtransit
 	return ec._Stop(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNStop2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Stop) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNStop2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStop(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Stop) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -57312,6 +58772,11 @@ func (ec *executionContext) marshalNStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		return graphql.Null
 	}
 	return ec._Stop(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNStopInput2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx context.Context, v interface{}) (model.StopInput, error) {
+	res, err := ec.unmarshalInputStopInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNStopObservation2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopObservation(ctx context.Context, sel ast.SelectionSet, v *model.StopObservation) graphql.Marshaler {
@@ -57428,16 +58893,6 @@ func (ec *executionContext) marshalNStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑ
 		return graphql.Null
 	}
 	return ec._StopTimeEvent(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx context.Context, v interface{}) (tt.String, error) {
-	var res tt.String
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx context.Context, sel ast.SelectionSet, v tt.String) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -57581,8 +59036,14 @@ func (ec *executionContext) marshalNTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 	return ec._Trip(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNValidationRealtimeResult2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx context.Context, sel ast.SelectionSet, v model.ValidationRealtimeResult) graphql.Marshaler {
-	return ec._ValidationRealtimeResult(ctx, sel, &v)
+func (ec *executionContext) marshalNValidationRealtimeResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx context.Context, sel ast.SelectionSet, v *model.ValidationRealtimeResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ValidationRealtimeResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNValidationReport2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationReport(ctx context.Context, sel ast.SelectionSet, v *model.ValidationReport) graphql.Marshaler {
@@ -58164,16 +59625,6 @@ func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx context.Context, v interface{}) (tt.Bool, error) {
-	var res tt.Bool
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx context.Context, sel ast.SelectionSet, v tt.Bool) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v interface{}) (*bool, error) {
 	if v == nil {
 		return nil, nil
@@ -58564,6 +60015,14 @@ func (ec *executionContext) marshalOFeedVersionGtfsImport2ᚖgithubᚗcomᚋinte
 		return graphql.Null
 	}
 	return ec._FeedVersionGtfsImport(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFeedVersionInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionInput(ctx context.Context, v interface{}) (*model.FeedVersionInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFeedVersionInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOFeedVersionServiceLevelFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceLevelFilter(ctx context.Context, v interface{}) (*model.FeedVersionServiceLevelFilter, error) {
@@ -59529,6 +60988,14 @@ func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtra
 	return ec._Level(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOLevelInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevelInput(ctx context.Context, v interface{}) (*model.LevelInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLevelInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOLicenseFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLicenseFilter(ctx context.Context, v interface{}) (*model.LicenseFilter, error) {
 	if v == nil {
 		return nil, nil
@@ -59553,30 +61020,20 @@ func (ec *executionContext) marshalOLicenseValue2ᚖgithubᚗcomᚋinterlineᚑi
 	return v
 }
 
-func (ec *executionContext) unmarshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, v interface{}) (tt.LineString, error) {
-	var res tt.LineString
+func (ec *executionContext) unmarshalOLineString2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, v interface{}) (*tt.LineString, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(tt.LineString)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, sel ast.SelectionSet, v tt.LineString) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalMap(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalOLineString2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx context.Context, sel ast.SelectionSet, v *tt.LineString) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	res := graphql.MarshalMap(v)
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalOOperator2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐOperatorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Operator) graphql.Marshaler {
@@ -59931,16 +61388,6 @@ func (ec *executionContext) marshalOScheduleRelationship2ᚖgithubᚗcomᚋinter
 	return v
 }
 
-func (ec *executionContext) unmarshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, v interface{}) (tt.WideTime, error) {
-	var res tt.WideTime
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, sel ast.SelectionSet, v tt.WideTime) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTimeᚄ(ctx context.Context, v interface{}) ([]*tt.WideTime, error) {
 	if v == nil {
 		return nil, nil
@@ -60139,6 +61586,14 @@ func (ec *executionContext) unmarshalOStopFilter2ᚖgithubᚗcomᚋinterlineᚑi
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputStopFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOStopInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopInput(ctx context.Context, v interface{}) (*model.StopInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStopInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -60450,7 +61905,7 @@ func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	return res
 }
 
-func (ec *executionContext) marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ValidationRealtimeResult) graphql.Marshaler {
+func (ec *executionContext) marshalOValidationRealtimeResult2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidationRealtimeResult) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -60477,7 +61932,7 @@ func (ec *executionContext) marshalOValidationRealtimeResult2ᚕgithubᚗcomᚋi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNValidationRealtimeResult2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx, sel, v[i])
+			ret[i] = ec.marshalNValidationRealtimeResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
