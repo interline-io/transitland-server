@@ -54,7 +54,7 @@ func TestStopUpdate(t *testing.T) {
 			StopName:    toPtr("hello"),
 			Geometry:    toPtr(tt.NewPoint(-122.271604, 37.803664)),
 		}
-		eid, err := finder.StopUpdate(ctx, stopInput)
+		eid, err := finder.StopCreate(ctx, stopInput)
 		if err != nil {
 			t.Fatal(err)
 		}
