@@ -1,4 +1,4 @@
-package actions
+package dbfinder
 
 import (
 	"context"
@@ -9,13 +9,11 @@ import (
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
+func (f *Finder) FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
 	cfg := model.ForContext(ctx)
-	dbf := cfg.Finder
 	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return nil, err
 	}
@@ -24,7 +22,7 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 		FeedVersionID: fvid,
 		Storage:       cfg.Storage,
 	}
-	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+	db := tldb.NewPostgresAdapterFromDBX(f.DBX())
 	fr, fe := importer.MainImportFeedVersion(db, opts)
 	if fe != nil {
 		return nil, fe
@@ -35,14 +33,12 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 	return &mr, nil
 }
 
-func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
-	cfg := model.ForContext(ctx)
-	dbf := cfg.Finder
+func (f *Finder) FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
 	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return nil, err
 	}
 
-	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+	db := tldb.NewPostgresAdapterFromDBX(f.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
 		return unimporter.UnimportFeedVersion(atx, fvid, nil)
 	}); err != nil {
@@ -54,14 +50,16 @@ func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimp
 	return &mr, nil
 }
 
-func FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSetInput) error {
-	cfg := model.ForContext(ctx)
-	dbf := cfg.Finder
+func (f *Finder) FeedVersionUpdate(ctx context.Context, values model.FeedVersionSetInput) (int, error) {
+	if values.ID == nil {
+		return 0, errors.New("id required")
+	}
+	fvid := *values.ID
 	if err := checkFeedEdit(ctx, fvid); err != nil {
-		return err
+		return 0, err
 	}
 
-	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+	db := tldb.NewPostgresAdapterFromDBX(f.DBX())
 	err := db.Tx(func(atx tldb.Adapter) error {
 		fv := tl.FeedVersion{}
 		fv.ID = fvid
@@ -81,26 +79,14 @@ func FeedVersionUpdate(ctx context.Context, fvid int, values model.FeedVersionSe
 		return atx.Update(&fv, cols...)
 	})
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return fvid, nil
 }
 
-func FeedVersionDelete(ctx context.Context, fvid int) (*model.FeedVersionDeleteResult, error) {
+func (f *Finder) FeedVersionDelete(ctx context.Context, fvid int) (*model.FeedVersionDeleteResult, error) {
 	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return nil, err
 	}
 	return nil, errors.New("temporarily unavailable")
-}
-
-func checkFeedEdit(ctx context.Context, fvid int) error {
-	cfg := model.ForContext(ctx)
-	if checker := cfg.Checker; checker == nil {
-		return nil
-	} else if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
-		return err
-	} else if !check.Actions.CanEdit {
-		return authz.ErrUnauthorized
-	}
-	return nil
 }

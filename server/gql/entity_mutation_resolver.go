@@ -8,9 +8,9 @@ import (
 )
 
 // Entity editing
-func (r *mutationResolver) CreateStop(ctx context.Context, obj model.StopInput) (*model.Stop, error) {
+func (r *mutationResolver) StopCreate(ctx context.Context, obj model.StopSetInput) (*model.Stop, error) {
 	finder := model.ForContext(ctx).Finder
-	entId, err := finder.CreateStop(ctx, obj)
+	entId, err := finder.StopCreate(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -18,9 +18,9 @@ func (r *mutationResolver) CreateStop(ctx context.Context, obj model.StopInput) 
 	return first(errs, ents)
 }
 
-func (r *mutationResolver) UpdateStop(ctx context.Context, obj model.StopInput) (*model.Stop, error) {
+func (r *mutationResolver) StopUpdate(ctx context.Context, obj model.StopSetInput) (*model.Stop, error) {
 	finder := model.ForContext(ctx).Finder
-	entId, err := finder.UpdateStop(ctx, obj)
+	entId, err := finder.StopUpdate(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -28,17 +28,17 @@ func (r *mutationResolver) UpdateStop(ctx context.Context, obj model.StopInput) 
 	return first(errs, ents)
 }
 
-func (r *mutationResolver) DeleteStop(ctx context.Context, id int) (*model.DeleteResult, error) {
+func (r *mutationResolver) StopDelete(ctx context.Context, id int) (*model.EntityDeleteResult, error) {
 	finder := model.ForContext(ctx).Finder
-	if err := finder.DeleteStop(ctx, id); err != nil {
+	if err := finder.StopDelete(ctx, id); err != nil {
 		return nil, err
 	}
-	return &model.DeleteResult{ID: id}, nil
+	return &model.EntityDeleteResult{ID: id}, nil
 }
 
-func (r *mutationResolver) CreateLevel(ctx context.Context, obj model.LevelInput) (*model.Level, error) {
+func (r *mutationResolver) LevelCreate(ctx context.Context, obj model.LevelSetInput) (*model.Level, error) {
 	finder := model.ForContext(ctx).Finder
-	entId, err := finder.CreateLevel(ctx, obj)
+	entId, err := finder.LevelCreate(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -46,9 +46,9 @@ func (r *mutationResolver) CreateLevel(ctx context.Context, obj model.LevelInput
 	return first(errs, ents)
 }
 
-func (r *mutationResolver) UpdateLevel(ctx context.Context, obj model.LevelInput) (*model.Level, error) {
+func (r *mutationResolver) LevelUpdate(ctx context.Context, obj model.LevelSetInput) (*model.Level, error) {
 	finder := model.ForContext(ctx).Finder
-	entId, err := finder.UpdateLevel(ctx, obj)
+	entId, err := finder.LevelUpdate(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -56,17 +56,17 @@ func (r *mutationResolver) UpdateLevel(ctx context.Context, obj model.LevelInput
 	return first(errs, ents)
 }
 
-func (r *mutationResolver) DeleteLevel(ctx context.Context, id int) (*model.DeleteResult, error) {
+func (r *mutationResolver) LevelDelete(ctx context.Context, id int) (*model.EntityDeleteResult, error) {
 	finder := model.ForContext(ctx).Finder
-	if err := finder.DeleteLevel(ctx, id); err != nil {
+	if err := finder.LevelDelete(ctx, id); err != nil {
 		return nil, err
 	}
-	return &model.DeleteResult{ID: id}, nil
+	return &model.EntityDeleteResult{ID: id}, nil
 }
 
-func (r *mutationResolver) CreatePathway(ctx context.Context, obj model.PathwayInput) (*model.Pathway, error) {
+func (r *mutationResolver) PathwayCreate(ctx context.Context, obj model.PathwaySetInput) (*model.Pathway, error) {
 	finder := model.ForContext(ctx).Finder
-	entId, err := finder.CreatePathway(ctx, obj)
+	entId, err := finder.PathwayCreate(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +74,9 @@ func (r *mutationResolver) CreatePathway(ctx context.Context, obj model.PathwayI
 	return first(errs, ents)
 }
 
-func (r *mutationResolver) UpdatePathway(ctx context.Context, obj model.PathwayInput) (*model.Pathway, error) {
+func (r *mutationResolver) PathwayUpdate(ctx context.Context, obj model.PathwaySetInput) (*model.Pathway, error) {
 	finder := model.ForContext(ctx).Finder
-	entId, err := finder.UpdatePathway(ctx, obj)
+	entId, err := finder.PathwayUpdate(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -84,12 +84,12 @@ func (r *mutationResolver) UpdatePathway(ctx context.Context, obj model.PathwayI
 	return first(errs, ents)
 }
 
-func (r *mutationResolver) DeletePathway(ctx context.Context, id int) (*model.DeleteResult, error) {
+func (r *mutationResolver) PathwayDelete(ctx context.Context, id int) (*model.EntityDeleteResult, error) {
 	finder := model.ForContext(ctx).Finder
-	if err := finder.DeletePathway(ctx, id); err != nil {
+	if err := finder.PathwayDelete(ctx, id); err != nil {
 		return nil, err
 	}
-	return &model.DeleteResult{ID: id}, nil
+	return &model.EntityDeleteResult{ID: id}, nil
 }
 
 func first[T any](errs []error, v []T) (T, error) {

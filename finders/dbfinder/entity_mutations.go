@@ -14,27 +14,27 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) CreateStop(ctx context.Context, input model.StopInput) (int, error) {
+func (f *Finder) StopCreate(ctx context.Context, input model.StopSetInput) (int, error) {
 	if input.FeedVersion == nil || input.FeedVersion.ID == nil {
 		return 0, errors.New("feed_version_id required")
 	}
 	return createUpdateStop(ctx, input)
 }
 
-func (f *Finder) UpdateStop(ctx context.Context, input model.StopInput) (int, error) {
+func (f *Finder) StopUpdate(ctx context.Context, input model.StopSetInput) (int, error) {
 	if input.ID == nil {
 		return 0, errors.New("id required")
 	}
 	return createUpdateStop(ctx, input)
 }
 
-func (f *Finder) DeleteStop(ctx context.Context, id int) error {
+func (f *Finder) StopDelete(ctx context.Context, id int) error {
 	ent := tl.Stop{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
 }
 
-func createUpdateStop(ctx context.Context, input model.StopInput) (int, error) {
+func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error) {
 	return createUpdateEnt(
 		ctx,
 		input.ID,
@@ -83,27 +83,27 @@ func createUpdateStop(ctx context.Context, input model.StopInput) (int, error) {
 
 ///////////
 
-func (f *Finder) CreatePathway(ctx context.Context, input model.PathwayInput) (int, error) {
+func (f *Finder) PathwayCreate(ctx context.Context, input model.PathwaySetInput) (int, error) {
 	if input.FeedVersion == nil || input.FeedVersion.ID == nil {
 		return 0, errors.New("feed_version_id required")
 	}
 	return createUpdatePathway(ctx, input)
 }
 
-func (f *Finder) UpdatePathway(ctx context.Context, input model.PathwayInput) (int, error) {
+func (f *Finder) PathwayUpdate(ctx context.Context, input model.PathwaySetInput) (int, error) {
 	if input.ID == nil {
 		return 0, errors.New("id required")
 	}
 	return createUpdatePathway(ctx, input)
 }
 
-func (f *Finder) DeletePathway(ctx context.Context, id int) error {
+func (f *Finder) PathwayDelete(ctx context.Context, id int) error {
 	ent := tl.Pathway{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
 }
 
-func createUpdatePathway(ctx context.Context, input model.PathwayInput) (int, error) {
+func createUpdatePathway(ctx context.Context, input model.PathwaySetInput) (int, error) {
 	return createUpdateEnt(
 		ctx,
 		input.ID,
@@ -147,27 +147,27 @@ func createUpdatePathway(ctx context.Context, input model.PathwayInput) (int, er
 
 ///////////
 
-func (f *Finder) CreateLevel(ctx context.Context, input model.LevelInput) (int, error) {
+func (f *Finder) LevelCreate(ctx context.Context, input model.LevelSetInput) (int, error) {
 	if input.FeedVersion == nil || input.FeedVersion.ID == nil {
 		return 0, errors.New("feed_version_id required")
 	}
 	return createUpdateLevel(ctx, input)
 }
 
-func (f *Finder) UpdateLevel(ctx context.Context, input model.LevelInput) (int, error) {
+func (f *Finder) LevelUpdate(ctx context.Context, input model.LevelSetInput) (int, error) {
 	if input.ID == nil {
 		return 0, errors.New("id required")
 	}
 	return createUpdateLevel(ctx, input)
 }
 
-func (f *Finder) DeleteLevel(ctx context.Context, id int) error {
+func (f *Finder) LevelDelete(ctx context.Context, id int) error {
 	ent := tl.Level{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
 }
 
-func createUpdateLevel(ctx context.Context, input model.LevelInput) (int, error) {
+func createUpdateLevel(ctx context.Context, input model.LevelSetInput) (int, error) {
 	return createUpdateEnt(
 		ctx,
 		input.ID,
