@@ -16,18 +16,18 @@ import (
 
 // Entity mutation tests
 
-func TestCreateStop(t *testing.T) {
+func TestStopCreate(t *testing.T) {
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		finder := cfg.Finder
 		ctx := model.WithConfig(context.Background(), cfg)
 		fv := model.FeedVersionInput{ID: toPtr(1)}
-		stopInput := model.StopInput{
+		stopInput := model.StopSetInput{
 			FeedVersion: &fv,
 			StopID:      toPtr(fmt.Sprintf("%d", time.Now().UnixNano())),
 			StopName:    toPtr("hello"),
 			Geometry:    toPtr(tt.NewPoint(-122.271604, 37.803664)),
 		}
-		eid, err := finder.CreateStop(ctx, stopInput)
+		eid, err := finder.StopCreate(ctx, stopInput)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -43,27 +43,27 @@ func TestCreateStop(t *testing.T) {
 	})
 }
 
-func TestUpdateStop(t *testing.T) {
+func TestStopUpdate(t *testing.T) {
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		finder := cfg.Finder
 		ctx := model.WithConfig(context.Background(), cfg)
 		fv := model.FeedVersionInput{ID: toPtr(1)}
-		stopInput := model.StopInput{
+		stopInput := model.StopSetInput{
 			FeedVersion: &fv,
 			StopID:      toPtr(fmt.Sprintf("%d", time.Now().UnixNano())),
 			StopName:    toPtr("hello"),
 			Geometry:    toPtr(tt.NewPoint(-122.271604, 37.803664)),
 		}
-		eid, err := finder.CreateStop(ctx, stopInput)
+		eid, err := finder.StopCreate(ctx, stopInput)
 		if err != nil {
 			t.Fatal(err)
 		}
-		stopUpdate := model.StopInput{
+		stopUpdate := model.StopSetInput{
 			ID:       toPtr(eid),
 			StopID:   toPtr(fmt.Sprintf("update-%d", time.Now().UnixNano())),
 			Geometry: toPtr(tt.NewPoint(-122.0, 38.0)),
 		}
-		if _, err := finder.UpdateStop(ctx, stopUpdate); err != nil {
+		if _, err := finder.StopUpdate(ctx, stopUpdate); err != nil {
 			t.Fatal(err)
 		}
 		checkEnt := tl.Stop{}

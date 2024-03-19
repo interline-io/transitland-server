@@ -40,15 +40,19 @@ type EntityFinder interface {
 }
 
 type EntityMutator interface {
-	CreateStop(ctx context.Context, input StopInput) (int, error)
-	UpdateStop(ctx context.Context, input StopInput) (int, error)
-	DeleteStop(ctx context.Context, id int) error
-	CreatePathway(ctx context.Context, input PathwayInput) (int, error)
-	UpdatePathway(ctx context.Context, input PathwayInput) (int, error)
-	DeletePathway(ctx context.Context, id int) error
-	CreateLevel(ctx context.Context, input LevelInput) (int, error)
-	UpdateLevel(ctx context.Context, input LevelInput) (int, error)
-	DeleteLevel(ctx context.Context, id int) error
+	FeedVersionUnimport(ctx context.Context, fvid int) (*FeedVersionUnimportResult, error)
+	FeedVersionImport(ctx context.Context, fvid int) (*FeedVersionImportResult, error)
+	FeedVersionUpdate(ctx context.Context, values FeedVersionSetInput) (int, error)
+	FeedVersionDelete(ctx context.Context, fvid int) (*FeedVersionDeleteResult, error)
+	StopCreate(ctx context.Context, input StopSetInput) (int, error)
+	StopUpdate(ctx context.Context, input StopSetInput) (int, error)
+	StopDelete(ctx context.Context, id int) error
+	PathwayCreate(ctx context.Context, input PathwaySetInput) (int, error)
+	PathwayUpdate(ctx context.Context, input PathwaySetInput) (int, error)
+	PathwayDelete(ctx context.Context, id int) error
+	LevelCreate(ctx context.Context, input LevelSetInput) (int, error)
+	LevelUpdate(ctx context.Context, input LevelSetInput) (int, error)
+	LevelDelete(ctx context.Context, id int) error
 }
 
 // EntityLoader methods must return items in the same order as the input parameters

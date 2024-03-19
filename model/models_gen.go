@@ -102,10 +102,6 @@ type CensusValue struct {
 	TableID     int          `json:"-"`
 }
 
-type DeleteResult struct {
-	ID int `json:"id"`
-}
-
 type DirectionRequest struct {
 	To       *WaypointInput `json:"to"`
 	From     *WaypointInput `json:"from"`
@@ -134,6 +130,10 @@ type Distance struct {
 type Duration struct {
 	Duration float64      `json:"duration"`
 	Units    DurationUnit `json:"units"`
+}
+
+type EntityDeleteResult struct {
+	ID int `json:"id"`
 }
 
 type FeedFetchFilter struct {
@@ -204,6 +204,7 @@ type FeedVersionServiceLevelFilter struct {
 }
 
 type FeedVersionSetInput struct {
+	ID          *int    `json:"id,omitempty"`
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
 }
@@ -241,14 +242,14 @@ type Leg struct {
 	Geometry  tt.LineString `json:"geometry"`
 }
 
-type LevelInput struct {
+type LevelSetInput struct {
 	ID          *int              `json:"id,omitempty"`
 	FeedVersion *FeedVersionInput `json:"feed_version,omitempty"`
 	LevelID     *string           `json:"level_id,omitempty"`
 	LevelName   *string           `json:"level_name,omitempty"`
 	LevelIndex  *float64          `json:"level_index,omitempty"`
 	Geometry    *tt.Polygon       `json:"geometry,omitempty"`
-	Parent      *StopInput        `json:"parent,omitempty"`
+	Parent      *StopSetInput     `json:"parent,omitempty"`
 }
 
 type LicenseFilter struct {
@@ -292,7 +293,7 @@ type PathwayFilter struct {
 	PathwayMode *int `json:"pathway_mode,omitempty"`
 }
 
-type PathwayInput struct {
+type PathwaySetInput struct {
 	ID                  *int              `json:"id,omitempty"`
 	FeedVersion         *FeedVersionInput `json:"feed_version,omitempty"`
 	PathwayID           *string           `json:"pathway_id,omitempty"`
@@ -305,8 +306,8 @@ type PathwayInput struct {
 	MinWidth            *float64          `json:"min_width,omitempty"`
 	SignpostedAs        *string           `json:"signposted_as,omitempty"`
 	ReverseSignpostedAs *string           `json:"reverse_signposted_as,omitempty"`
-	FromStop            *StopInput        `json:"from_stop,omitempty"`
-	ToStop              *StopInput        `json:"to_stop,omitempty"`
+	FromStop            *StopSetInput     `json:"from_stop,omitempty"`
+	ToStop              *StopSetInput     `json:"to_stop,omitempty"`
 }
 
 type Place struct {
@@ -493,25 +494,6 @@ type StopFilter struct {
 	AgencyIds               []int          `json:"agency_ids,omitempty"`
 }
 
-type StopInput struct {
-	ID                 *int              `json:"id,omitempty"`
-	FeedVersion        *FeedVersionInput `json:"feed_version,omitempty"`
-	LocationType       *int              `json:"location_type,omitempty"`
-	StopCode           *string           `json:"stop_code,omitempty"`
-	StopDesc           *string           `json:"stop_desc,omitempty"`
-	StopID             *string           `json:"stop_id,omitempty"`
-	StopName           *string           `json:"stop_name,omitempty"`
-	StopTimezone       *string           `json:"stop_timezone,omitempty"`
-	StopURL            *string           `json:"stop_url,omitempty"`
-	WheelchairBoarding *int              `json:"wheelchair_boarding,omitempty"`
-	ZoneID             *string           `json:"zone_id,omitempty"`
-	PlatformCode       *string           `json:"platform_code,omitempty"`
-	TtsStopName        *string           `json:"tts_stop_name,omitempty"`
-	Geometry           *tt.Point         `json:"geometry,omitempty"`
-	Parent             *StopInput        `json:"parent,omitempty"`
-	Level              *LevelInput       `json:"level,omitempty"`
-}
-
 type StopObservation struct {
 	ScheduleRelationship   *string      `json:"schedule_relationship,omitempty"`
 	TripStartDate          *tt.Date     `json:"trip_start_date,omitempty"`
@@ -540,6 +522,25 @@ type StopPlace struct {
 	Adm0Name *string `json:"adm0_name,omitempty"`
 	Adm0Iso  *string `json:"adm0_iso,omitempty"`
 	Adm1Iso  *string `json:"adm1_iso,omitempty"`
+}
+
+type StopSetInput struct {
+	ID                 *int              `json:"id,omitempty"`
+	FeedVersion        *FeedVersionInput `json:"feed_version,omitempty"`
+	LocationType       *int              `json:"location_type,omitempty"`
+	StopCode           *string           `json:"stop_code,omitempty"`
+	StopDesc           *string           `json:"stop_desc,omitempty"`
+	StopID             *string           `json:"stop_id,omitempty"`
+	StopName           *string           `json:"stop_name,omitempty"`
+	StopTimezone       *string           `json:"stop_timezone,omitempty"`
+	StopURL            *string           `json:"stop_url,omitempty"`
+	WheelchairBoarding *int              `json:"wheelchair_boarding,omitempty"`
+	ZoneID             *string           `json:"zone_id,omitempty"`
+	PlatformCode       *string           `json:"platform_code,omitempty"`
+	TtsStopName        *string           `json:"tts_stop_name,omitempty"`
+	Geometry           *tt.Point         `json:"geometry,omitempty"`
+	Parent             *StopSetInput     `json:"parent,omitempty"`
+	Level              *LevelSetInput    `json:"level,omitempty"`
 }
 
 type StopTimeEvent struct {

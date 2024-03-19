@@ -38,31 +38,30 @@ type Query {
 type Mutation {
     # Feed versions
     validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
-    feed_version_update(id: Int!, set: FeedVersionSetInput!): FeedVersion
+    feed_version_update(set: FeedVersionSetInput!): FeedVersion
     feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
     feed_version_import(id: Int!): FeedVersionImportResult!
     feed_version_unimport(id: Int!): FeedVersionUnimportResult!
     feed_version_delete(id: Int!): FeedVersionDeleteResult!
     
     # Entity editing
-
     # stops
-    create_stop(stop: StopInput!): Stop!
-    update_stop(stop: StopInput!): Stop!
-    delete_stop(id: Int!): DeleteResult!
+    stop_create(set: StopSetInput!): Stop!
+    stop_update(set: StopSetInput!): Stop!
+    stop_delete(id: Int!): EntityDeleteResult!
     
     # levels
-    create_level(level: LevelInput!): Level!
-    update_level(level: LevelInput!): Level!
-    delete_level(id: Int!): DeleteResult!
+    level_create(set: LevelSetInput!): Level!
+    level_update(set: LevelSetInput!): Level!
+    level_delete(id: Int!): EntityDeleteResult!
     
     # pathways
-    create_pathway(pathway: PathwayInput!): Pathway!
-    update_pathway(pathway: PathwayInput!): Pathway!
-    delete_pathway(id: Int!): DeleteResult!
+    pathway_create(set: PathwaySetInput!): Pathway!
+    pathway_update(set: PathwaySetInput!): Pathway!
+    pathway_delete(id: Int!): EntityDeleteResult!
 }
 
-type DeleteResult {
+type EntityDeleteResult {
   id: Int!
 }
 
@@ -818,6 +817,7 @@ type FeedVersionDeleteResult {
 # Update inputs
 
 input FeedVersionSetInput {
+  id: Int
   name: String
   description: String
 }
@@ -1099,7 +1099,7 @@ input FeedVersionInput {
   id: Int
 }
 
-input StopInput {
+input StopSetInput {
   id: Int
   feed_version: FeedVersionInput
   location_type: Int
@@ -1114,21 +1114,21 @@ input StopInput {
   platform_code: String
   tts_stop_name: String
   geometry: Point
-  parent: StopInput
-  level: LevelInput
+  parent: StopSetInput
+  level: LevelSetInput
 }
 
-input LevelInput {
+input LevelSetInput {
   id: Int
   feed_version: FeedVersionInput
   level_id: String
   level_name: String
   level_index: Float
   geometry: Polygon
-  parent: StopInput
+  parent: StopSetInput
 }
 
-input PathwayInput {
+input PathwaySetInput {
   id: Int
   feed_version: FeedVersionInput
   pathway_id: String
@@ -1141,6 +1141,6 @@ input PathwayInput {
   min_width: Float
   signposted_as: String
   reverse_signposted_as: String
-  from_stop: StopInput
-  to_stop: StopInput
+  from_stop: StopSetInput
+  to_stop: StopSetInput
 }
