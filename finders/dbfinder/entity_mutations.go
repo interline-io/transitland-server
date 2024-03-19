@@ -294,7 +294,11 @@ func createUpdateEnt[T hasTableName](
 // ensure we have edit rights to fvid
 func deleteEnt(ctx context.Context, ent hasTableName) error {
 	atx := toAtx(ctx)
-	if err := checkFeedEdit(ctx, ent.GetFeedVersionID()); err != nil {
+	fvid := ent.GetFeedVersionID()
+	if err := atx.Sqrl().Select("feed_version_id").From(ent.TableName()).Where(sq.Eq{"id": ent.GetID()}).Scan(&fvid); err != nil {
+		return err
+	}
+	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return err
 	}
 	_, err := atx.Sqrl().Delete(ent.TableName()).Where(sq.Eq{"id": ent.GetID()}).Query()
@@ -302,6 +306,9 @@ func deleteEnt(ctx context.Context, ent hasTableName) error {
 }
 
 func checkFeedEdit(ctx context.Context, fvid int) error {
+	if fvid <= 0 {
+		return errors.New("invalid feed version id")
+	}
 	cfg := model.ForContext(ctx)
 	if checker := cfg.Checker; checker == nil {
 		return nil
