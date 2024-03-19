@@ -19,6 +19,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
@@ -149,6 +150,9 @@ func (cmd *Command) Run() error {
 
 	// Finders config
 	root.Use(model.AddConfig(cfg))
+
+	// This server only supports admin access
+	root.Use(ancheck.AdminDefaultMiddleware("admin"))
 
 	// Add logging middleware - must be after auth
 	root.Use(log.LoggingMiddleware(cmd.LongQueryDuration, func(ctx context.Context) string {
