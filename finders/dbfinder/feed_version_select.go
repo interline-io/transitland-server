@@ -199,5 +199,8 @@ type FeedVersionGeometry struct {
 }
 
 func FeedVersionGeometrySelect(ids []int) sq.SelectBuilder {
-	return sq.StatementBuilder.Select("feed_version_id", "geometry").From("tl_feed_version_geometries").Where(sq.Eq{"feed_version_id": ids})
+	return sq.StatementBuilder.
+		Select("feed_version_id", "geometry").
+		From("tl_feed_version_geometries").
+		Where(sq.Eq{"feed_version_id": ids})
 }

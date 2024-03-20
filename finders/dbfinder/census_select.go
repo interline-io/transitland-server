@@ -20,7 +20,9 @@ func CensusGeographySelect(param *model.CensusGeographyParam, eids []int) sq.Sel
 		s = "tl_route_stops.agency_id as match_entity_id, t.*"
 	}
 	// A normal query..
-	q := sq.StatementBuilder.Select(s).From("tl_census_geographies t").
+	q := sq.StatementBuilder.
+		Select(s).
+		From("tl_census_geographies t").
 		InnerJoin("gtfs_stops ON ST_DWithin(t.geometry, gtfs_stops.geometry, ?)", r).
 		Where(sq.Eq{"t.layer_name": param.LayerName}).
 		Limit(checkLimit(param.Limit))

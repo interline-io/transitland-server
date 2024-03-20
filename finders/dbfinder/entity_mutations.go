@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
@@ -195,10 +196,6 @@ func createUpdateLevel(ctx context.Context, input model.LevelSetInput) (int, err
 
 ///////////
 
-func toAtx(ctx context.Context) tldb.Adapter {
-	return tldb.NewPostgresAdapterFromDBX(model.ForContext(ctx).Finder.DBX())
-}
-
 func checkCol[T any, P *T](val P, inval P, colname string, cols []string) []string {
 	if inval != nil {
 		*val = *inval
@@ -235,6 +232,10 @@ func fvint(fvi *model.FeedVersionInput) *int {
 		return nil
 	}
 	return fvi.ID
+}
+
+func toAtx(ctx context.Context) tldb.Adapter {
+	return tldb.NewPostgresAdapterFromDBX(model.ForContext(ctx).Finder.DBX())
 }
 
 // ensure we have edit rights to fvid
@@ -293,15 +294,38 @@ func createUpdateEnt[T hasTableName](
 
 // ensure we have edit rights to fvid
 func deleteEnt(ctx context.Context, ent hasTableName) error {
-	atx := toAtx(ctx)
-	if err := checkFeedEdit(ctx, ent.GetFeedVersionID()); err != nil {
+	// Get fvid
+	entId := ent.GetID()
+	fvid := ent.GetFeedVersionID()
+	db := model.ForContext(ctx).Finder.DBX()
+	if err := dbutil.Get(
+		ctx,
+		db,
+		sq.StatementBuilder.
+			Select("feed_version_id").
+			From(ent.TableName()).
+			Where(sq.Eq{"id": entId}),
+		&fvid,
+	); err != nil {
 		return err
 	}
-	_, err := atx.Sqrl().Delete(ent.TableName()).Where(sq.Eq{"id": ent.GetID()}).Query()
+
+	// // Check if we can edit fv
+	if err := checkFeedEdit(ctx, fvid); err != nil {
+		return err
+	}
+
+	// Perform deletion
+	// TODO: use dbutil.Delete
+	atx := toAtx(ctx)
+	_, err := atx.Sqrl().Delete(ent.TableName()).Where(sq.Eq{"id": entId}).Exec()
 	return err
 }
 
 func checkFeedEdit(ctx context.Context, fvid int) error {
+	if fvid <= 0 {
+		return errors.New("invalid feed version id")
+	}
 	cfg := model.ForContext(ctx)
 	if checker := cfg.Checker; checker == nil {
 		return nil
