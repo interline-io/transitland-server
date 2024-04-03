@@ -18,7 +18,7 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240126000327-05bb90e4de4f
 	github.com/interline-io/transitland-dbutil v0.0.0-20240319031016-f79801f9da4d
-	github.com/interline-io/transitland-lib v0.14.1-0.20240319031104-1e735a3c2847
+	github.com/interline-io/transitland-lib v0.14.1-0.20240403234740-082f34244ca5
 	github.com/interline-io/transitland-mw v0.0.0-20240319031113-73aa9b79a745
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.3.5
@@ -63,6 +63,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/digitalocean/go-workers2 v0.10.4 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect

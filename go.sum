@@ -123,8 +123,8 @@ github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ3
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/deckarep/golang-set/v2 v2.3.1 h1:vjmkvJt/IV27WXPyYQpAh4bRyWJc5Y435D17XQ9QU5A=
-github.com/deckarep/golang-set/v2 v2.3.1/go.mod h1:VAky9rY/yGXJOLEDv3OMci+7wtDpOF4IN+y82NBOac4=
+github.com/deckarep/golang-set/v2 v2.6.0 h1:XfcQbWM1LlMB8BsJ8N9vW5ehnnPVIw0je80NsVHagjM=
+github.com/deckarep/golang-set/v2 v2.6.0/go.mod h1:VAky9rY/yGXJOLEDv3OMci+7wtDpOF4IN+y82NBOac4=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
@@ -267,8 +267,8 @@ github.com/interline-io/log v0.0.0-20240126000327-05bb90e4de4f h1:yZuyLK/XJqVOHx
 github.com/interline-io/log v0.0.0-20240126000327-05bb90e4de4f/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
 github.com/interline-io/transitland-dbutil v0.0.0-20240319031016-f79801f9da4d h1:UKY2GoTDwbWtsXZz9G7O6oBxtLu+UikAW8hQOtSSYCo=
 github.com/interline-io/transitland-dbutil v0.0.0-20240319031016-f79801f9da4d/go.mod h1:yo5Qv+8uM880d1ow/tfeElMOahfUnSH3/o+5LcfSz8I=
-github.com/interline-io/transitland-lib v0.14.1-0.20240319031104-1e735a3c2847 h1:ntIakkFuXf0mD0ztt8F/Yuh4l8QvFh8BS+I8TaMa6Uk=
-github.com/interline-io/transitland-lib v0.14.1-0.20240319031104-1e735a3c2847/go.mod h1:MQoyWGNKcq5Y72QOzalmIzVWOCHD3PUJ7i1nqXaJCho=
+github.com/interline-io/transitland-lib v0.14.1-0.20240403234740-082f34244ca5 h1:qGmfeummW80Z35Z3R1Aw0pYiNKKQo/suDXg1YG0xg5E=
+github.com/interline-io/transitland-lib v0.14.1-0.20240403234740-082f34244ca5/go.mod h1:G8u8Gp5OovnBt1rhNYejuAAmc/b7Lwx1UWIyI+3AFqw=
 github.com/interline-io/transitland-mw v0.0.0-20240319031113-73aa9b79a745 h1:8epY1860Y6m3TOhH6qptpE1zqcHrhMJuwkad+OM7VoE=
 github.com/interline-io/transitland-mw v0.0.0-20240319031113-73aa9b79a745/go.mod h1:A9gLEQD6BAzap6d3Y/HP+M2A65dn74ghgO2Ux2ihKIE=
 github.com/jarcoal/httpmock v1.3.1 h1:iUx3whfZWVf3jT01hQTO/Eo5sAYtB2/rqaUuOtpInww=
