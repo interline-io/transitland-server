@@ -390,6 +390,33 @@ func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*mo
 	return arrangeBy(ids, ents, func(ent *model.RouteAttribute) int { return ent.RouteID }), nil
 }
 
+func (f *Finder) RouteSegmentsByRouteID(ctx context.Context, params []model.RouteSegmentParam) ([][]*model.RouteSegment, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.RouteSegmentParam) (int, string, *int) {
+			return p.RouteID, p.Layer, p.Limit
+		},
+		func(keys []int, layer string, limit *int) (ents []*model.RouteSegment, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_route_segments", limit, nil, nil),
+					"gtfs_routes",
+					"id",
+					"tl_route_segments",
+					"route_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.RouteSegment) int {
+			return ent.RouteID
+		},
+	)
+}
+
 func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
 	var ents []*model.Agency
 	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil)

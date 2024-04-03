@@ -129,6 +129,10 @@ models:
     extraFields:
       RouteID:
         type: int
+  RouteSegment:
+    extraFields:
+      RouteID:
+        type: int
   Place:
     fields:
       count:

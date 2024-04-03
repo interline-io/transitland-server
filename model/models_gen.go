@@ -414,6 +414,13 @@ type RouteHeadway struct {
 	SelectedStopID   int            `json:"-"`
 }
 
+type RouteSegment struct {
+	SegmentID   int           `json:"segment_id"`
+	DirectionID int           `json:"direction_id"`
+	Geometry    tt.LineString `json:"geometry"`
+	RouteID     int           `json:"-"`
+}
+
 type RouteStop struct {
 	ID       int     `json:"id"`
 	StopID   int     `json:"stop_id"`
