@@ -81,7 +81,6 @@ type EntityLoader interface {
 	FeedStatesByFeedID(context.Context, []int) ([]*FeedState, []error)
 	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
 	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
-	OperatorsByOnestopID(context.Context, []string) ([]*Operator, []error)
 	OperatorsByAgencyID(context.Context, []int) ([]*Operator, []error)
 	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 
