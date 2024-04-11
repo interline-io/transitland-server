@@ -119,7 +119,7 @@ func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor,
 
 func (f *Finder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
-	if err := dbutil.Select(ctx, f.db, OperatorSelect(limit, after, ids, nil, f.PermFilter(ctx), where), &ents); err != nil {
+	if err := dbutil.Select(ctx, f.db, OperatorSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
@@ -459,7 +459,7 @@ func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Opera
 	var ents []*model.Operator
 	err := dbutil.Select(ctx,
 		f.db,
-		OperatorSelect(nil, nil, ids, nil, f.PermFilter(ctx), nil),
+		OperatorSelect(nil, nil, ids, f.PermFilter(ctx), nil),
 		&ents,
 	)
 	if err != nil {
@@ -468,24 +468,11 @@ func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Opera
 	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.ID }), nil
 }
 
-func (f *Finder) OperatorsByOnestopID(ctx context.Context, ids []string) ([]*model.Operator, []error) {
-	var ents []*model.Operator
-	err := dbutil.Select(ctx,
-		f.db,
-		OperatorsByAgencyID(nil, nil, nil, ids),
-		&ents,
-	)
-	if err != nil {
-		return nil, logExtendErr(ctx, len(ids), err)
-	}
-	return arrangeBy(ids, ents, func(ent *model.Operator) string { return ent.OnestopID.Val }), nil
-}
-
 func (f *Finder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.Operator, []error) {
 	var ents []*model.Operator
 	err := dbutil.Select(ctx,
 		f.db,
-		OperatorsByAgencyID(nil, nil, ids, nil),
+		OperatorsByAgencyID(nil, nil, ids),
 		&ents,
 	)
 	if err != nil {
@@ -533,10 +520,10 @@ func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorP
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					OperatorSelect(limit, nil, nil, keys, f.PermFilter(ctx), where),
+					OperatorSelectBase(true, nil),
 					"current_feeds",
 					"id",
-					"t",
+					"coif",
 					"feed_id",
 					keys,
 				),

@@ -5,8 +5,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, permFilter *model.PermFilter, where *model.OperatorFilter) sq.SelectBuilder {
-	distinct := true
+func OperatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select(
 			"coif.id as id",
@@ -112,11 +111,23 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 	if distinct {
 		q = q.Distinct().Options("on (coif.resolved_onestop_id)")
 	}
+	return q
+}
+
+func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int) sq.SelectBuilder {
+	q := OperatorSelectBase(false, nil)
+	q = q.
+		Column("a.id as agency_id").
+		Join("feed_states fs on fs.feed_id = current_feeds.id").
+		Join("gtfs_agencies a on a.feed_version_id = fs.feed_version_id and a.agency_id = coif.resolved_gtfs_agency_id").
+		Where(sq.Eq{"a.id": agencyIds})
+	return q
+}
+
+func OperatorSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) sq.SelectBuilder {
+	q := OperatorSelectBase(true, where)
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"coif.id": ids})
-	}
-	if len(feedIds) > 0 {
-		q = q.Where(sq.Eq{"coif.feed_id": feedIds})
 	}
 
 	// Handle permissions
@@ -127,45 +138,10 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, feedIds []int, p
 			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 		})
 
-	// Outer query
+	// Outer query - support pagination
 	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").OrderBy("id").Limit(checkLimit(limit))
 	if after != nil && after.Valid && after.ID > 0 {
 		qView = qView.Where(sq.Gt{"t.id": after.ID})
 	}
 	return qView
-}
-
-func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int, onestopIds []string) sq.SelectBuilder {
-	q := sq.StatementBuilder.
-		Select(
-			"coif.id as id",
-			"coif.feed_id as feed_id",
-			"coif.resolved_name as name",
-			"coif.resolved_short_name as short_name",
-			"coif.resolved_onestop_id as onestop_id",
-			"coif.textsearch as textsearch",
-			"current_feeds.onestop_id as feed_onestop_id",
-			"co.file as file",
-			"co.id as operator_id",
-			"co.website as website",
-			"co.operator_tags as operator_tags",
-			"a.id as agency_id",
-		).
-		From("current_operators_in_feed coif").
-		Join("current_feeds on current_feeds.id = coif.feed_id").
-		LeftJoin("current_operators co on co.id = coif.operator_id").
-		Where(sq.Eq{"current_feeds.deleted_at": nil}).
-		Where(sq.Eq{"co.deleted_at": nil}). // not present, or present but not deleted
-		OrderBy("coif.resolved_onestop_id, coif.operator_id")
-
-	if len(agencyIds) > 0 {
-		q = q.
-			Join("feed_states fs on fs.feed_id = current_feeds.id").
-			Join("gtfs_agencies a on a.feed_version_id = fs.feed_version_id and a.agency_id = coif.resolved_gtfs_agency_id").
-			Where(sq.Eq{"a.id": agencyIds})
-	}
-	if len(onestopIds) > 0 {
-		q = q.Where(sq.Eq{"coif.resolved_onestop_id": onestopIds})
-	}
-	return q
 }
