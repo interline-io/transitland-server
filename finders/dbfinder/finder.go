@@ -634,7 +634,7 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 		func(keys []FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
 			err = dbutil.Select(ctx,
 				f.db,
-				StopTimeSelect(keys, nil, f.PermFilter(ctx), where),
+				StopTimeSelect(keys, nil, where),
 				&ents,
 			)
 			return ents, err
@@ -657,7 +657,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				// Get stops on a specified day
 				err := dbutil.Select(ctx,
 					f.db,
-					StopDeparturesSelect(keys, f.PermFilter(ctx), where),
+					StopDeparturesSelect(keys, where),
 					&ents,
 				)
 				if err != nil {
@@ -667,7 +667,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				// Otherwise get all stop_times for stop
 				err := dbutil.Select(ctx,
 					f.db,
-					StopTimeSelect(nil, keys, f.PermFilter(ctx), nil),
+					StopTimeSelect(nil, keys, nil),
 					&ents,
 				)
 				if err != nil {
