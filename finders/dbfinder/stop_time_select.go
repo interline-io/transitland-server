@@ -13,7 +13,7 @@ type FVPair struct {
 	FeedVersionID int
 }
 
-func StopTimeSelect(tpairs []FVPair, spairs []FVPair, permFilter *model.PermFilter, where *model.TripStopTimeFilter) sq.SelectBuilder {
+func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
@@ -55,20 +55,10 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, permFilter *model.PermFilt
 		eids, fvids := pairKeys(spairs)
 		q = q.Where(sq.Eq{"sts.stop_id": eids, "sts.feed_version_id": fvids})
 	}
-
-	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
-		})
-
 	return q
 }
 
-func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *model.StopTimeFilter) sq.SelectBuilder {
+func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
 	// Where must already be set for local service date and timezone
 	serviceDate := time.Now()
 	if where != nil && where.ServiceDate != nil {
@@ -199,16 +189,6 @@ func StopDeparturesSelect(spairs []FVPair, permFilter *model.PermFilter, where *
 			q = q.Where(sq.LtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": *where.EndTime})
 		}
 	}
-
-	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
-		})
-
 	return q
 }
 
