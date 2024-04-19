@@ -73,6 +73,7 @@ type EntityLoader interface {
 	StopObservationsByStopID(context.Context, []StopObservationParam) ([][]*StopObservation, []error)
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
 	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
+	RouteSegmentsByRouteID(context.Context, []RouteSegmentParam) ([][]*RouteSegment, []error)
 	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 	FeedVersionGeometryByID(context.Context, []int) ([]*tt.Polygon, []error)
 

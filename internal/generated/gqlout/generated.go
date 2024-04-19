@@ -755,6 +755,7 @@ type ComplexityRoot struct {
 		RouteType         func(childComplexity int) int
 		RouteURL          func(childComplexity int) int
 		SearchRank        func(childComplexity int) int
+		Segments          func(childComplexity int, layer string, limit *int) int
 		Stops             func(childComplexity int, limit *int, where *model.StopFilter) int
 		Trips             func(childComplexity int, limit *int, where *model.TripFilter) int
 	}
@@ -782,6 +783,12 @@ type ComplexityRoot struct {
 		ServiceDate   func(childComplexity int) int
 		Stop          func(childComplexity int) int
 		StopTripCount func(childComplexity int) int
+	}
+
+	RouteSegment struct {
+		DirectionID func(childComplexity int) int
+		Geometry    func(childComplexity int) int
+		SegmentID   func(childComplexity int) int
 	}
 
 	RouteStop struct {
@@ -1137,6 +1144,7 @@ type RouteResolver interface {
 	RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error)
 	Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error)
 	Alerts(ctx context.Context, obj *model.Route, active *bool, limit *int) ([]*model.Alert, error)
+	Segments(ctx context.Context, obj *model.Route, layer string, limit *int) ([]*model.RouteSegment, error)
 }
 type RouteHeadwayResolver interface {
 	Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error)
@@ -4900,6 +4908,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Route.SearchRank(childComplexity), true
 
+	case "Route.segments":
+		if e.complexity.Route.Segments == nil {
+			break
+		}
+
+		args, err := ec.field_Route_segments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Route.Segments(childComplexity, args["layer"].(string), args["limit"].(*int)), true
+
 	case "Route.stops":
 		if e.complexity.Route.Stops == nil {
 			break
@@ -5035,6 +5055,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RouteHeadway.StopTripCount(childComplexity), true
+
+	case "RouteSegment.direction_id":
+		if e.complexity.RouteSegment.DirectionID == nil {
+			break
+		}
+
+		return e.complexity.RouteSegment.DirectionID(childComplexity), true
+
+	case "RouteSegment.geometry":
+		if e.complexity.RouteSegment.Geometry == nil {
+			break
+		}
+
+		return e.complexity.RouteSegment.Geometry(childComplexity), true
+
+	case "RouteSegment.segment_id":
+		if e.complexity.RouteSegment.SegmentID == nil {
+			break
+		}
+
+		return e.complexity.RouteSegment.SegmentID(childComplexity), true
 
 	case "RouteStop.agency":
 		if e.complexity.RouteStop.Agency == nil {
@@ -7225,6 +7266,7 @@ type Route {
   route_stop_buffer(radius: Float): RouteStopBuffer!
   patterns: [RouteStopPattern!]
   alerts(active: Boolean, limit: Int): [Alert!]
+  segments(layer: String!, limit: Int): [RouteSegment!]
 }
 
 """
@@ -7499,6 +7541,12 @@ type RouteHeadway {
   service_date: Date
   stop_trip_count: Int
   departures: [Seconds!]
+}
+
+type RouteSegment {
+  segment_id: Int!
+  direction_id: Int!
+  geometry: LineString! 
 }
 
 """
@@ -9258,6 +9306,30 @@ func (ec *executionContext) field_Route_route_stops_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Route_segments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["layer"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("layer"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["layer"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Route_stops_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10752,6 +10824,8 @@ func (ec *executionContext) fieldContext_Agency_routes(ctx context.Context, fiel
 				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
+			case "segments":
+				return ec.fieldContext_Route_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Route", field.Name)
 		},
@@ -17070,6 +17144,8 @@ func (ec *executionContext) fieldContext_FeedVersion_routes(ctx context.Context,
 				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
+			case "segments":
+				return ec.fieldContext_Route_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Route", field.Name)
 		},
@@ -31310,6 +31386,8 @@ func (ec *executionContext) fieldContext_Query_routes(ctx context.Context, field
 				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
+			case "segments":
+				return ec.fieldContext_Route_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Route", field.Name)
 		},
@@ -34314,6 +34392,66 @@ func (ec *executionContext) fieldContext_Route_alerts(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Route_segments(ctx context.Context, field graphql.CollectedField, obj *model.Route) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Route_segments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Route().Segments(rctx, obj, fc.Args["layer"].(string), fc.Args["limit"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RouteSegment)
+	fc.Result = res
+	return ec.marshalORouteSegment2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteSegmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Route_segments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Route",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "segment_id":
+				return ec.fieldContext_RouteSegment_segment_id(ctx, field)
+			case "direction_id":
+				return ec.fieldContext_RouteSegment_direction_id(ctx, field)
+			case "geometry":
+				return ec.fieldContext_RouteSegment_geometry(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RouteSegment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Route_segments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RouteAttribute_category(ctx context.Context, field graphql.CollectedField, obj *model.RouteAttribute) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RouteAttribute_category(ctx, field)
 	if err != nil {
@@ -35048,6 +35186,138 @@ func (ec *executionContext) fieldContext_RouteHeadway_departures(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _RouteSegment_segment_id(ctx context.Context, field graphql.CollectedField, obj *model.RouteSegment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RouteSegment_segment_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SegmentID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RouteSegment_segment_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RouteSegment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RouteSegment_direction_id(ctx context.Context, field graphql.CollectedField, obj *model.RouteSegment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RouteSegment_direction_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DirectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RouteSegment_direction_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RouteSegment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RouteSegment_geometry(ctx context.Context, field graphql.CollectedField, obj *model.RouteSegment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RouteSegment_geometry(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Geometry, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(tt.LineString)
+	fc.Result = res
+	return ec.marshalNLineString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐLineString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RouteSegment_geometry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RouteSegment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type LineString does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RouteStop_id(ctx context.Context, field graphql.CollectedField, obj *model.RouteStop) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RouteStop_id(ctx, field)
 	if err != nil {
@@ -35321,6 +35591,8 @@ func (ec *executionContext) fieldContext_RouteStop_route(ctx context.Context, fi
 				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
+			case "segments":
+				return ec.fieldContext_Route_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Route", field.Name)
 		},
@@ -41290,6 +41562,8 @@ func (ec *executionContext) fieldContext_Trip_route(ctx context.Context, field g
 				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
+			case "segments":
+				return ec.fieldContext_Route_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Route", field.Name)
 		},
@@ -42918,6 +43192,8 @@ func (ec *executionContext) fieldContext_ValidationReportDetails_routes(ctx cont
 				return ec.fieldContext_Route_patterns(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Route_alerts(ctx, field)
+			case "segments":
+				return ec.fieldContext_Route_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Route", field.Name)
 		},
@@ -54132,6 +54408,39 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "segments":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Route_segments(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -54334,6 +54643,55 @@ func (ec *executionContext) _RouteHeadway(ctx context.Context, sel ast.Selection
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var routeSegmentImplementors = []string{"RouteSegment"}
+
+func (ec *executionContext) _RouteSegment(ctx context.Context, sel ast.SelectionSet, obj *model.RouteSegment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, routeSegmentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RouteSegment")
+		case "segment_id":
+			out.Values[i] = ec._RouteSegment_segment_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "direction_id":
+			out.Values[i] = ec._RouteSegment_direction_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "geometry":
+			out.Values[i] = ec._RouteSegment_geometry(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -58590,6 +58948,16 @@ func (ec *executionContext) marshalNRouteHeadway2ᚖgithubᚗcomᚋinterlineᚑi
 	return ec._RouteHeadway(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNRouteSegment2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteSegment(ctx context.Context, sel ast.SelectionSet, v *model.RouteSegment) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RouteSegment(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNRouteStop2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RouteStop) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -61321,6 +61689,53 @@ func (ec *executionContext) unmarshalORouteFilter2ᚖgithubᚗcomᚋinterlineᚑ
 	}
 	res, err := ec.unmarshalInputRouteFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORouteSegment2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteSegmentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RouteSegment) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRouteSegment2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteSegment(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalORouteStopPattern2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteStopPatternᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RouteStopPattern) graphql.Marshaler {

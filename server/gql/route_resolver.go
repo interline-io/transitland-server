@@ -85,6 +85,10 @@ func (r *routeResolver) RouteAttribute(ctx context.Context, obj *model.Route) (*
 	return For(ctx).RouteAttributesByRouteID.Load(ctx, obj.ID)()
 }
 
+func (r *routeResolver) Segments(ctx context.Context, obj *model.Route, layer string, limit *int) ([]*model.RouteSegment, error) {
+	return For(ctx).RouteSegmentsByRouteID.Load(ctx, model.RouteSegmentParam{RouteID: obj.ID, Layer: layer, Limit: limit})()
+}
+
 // ROUTE HEADWAYS
 
 type routeHeadwayResolver struct{ *Resolver }

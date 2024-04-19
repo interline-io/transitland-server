@@ -41,6 +41,7 @@ type Loaders struct {
 	StopExternalReferencesByStopID                               *dataloader.Loader[int, *model.StopExternalReference]
 	TargetStopsByStopID                                          *dataloader.Loader[int, *model.Stop]
 	RouteAttributesByRouteID                                     *dataloader.Loader[int, *model.RouteAttribute]
+	RouteSegmentsByRouteID                                       *dataloader.Loader[model.RouteSegmentParam, []*model.RouteSegment]
 	StopPlacesByStopID                                           *dataloader.Loader[model.StopPlaceParam, *model.StopPlace]
 	FeedVersionsByFeedID                                         *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
 	FeedFetchesByFeedID                                          *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
@@ -135,6 +136,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		StopsByLevelID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByLevelID),
 		TargetStopsByStopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.TargetStopsByStopID),
 		RouteAttributesByRouteID:                withWaitAndCapacity(waitTime, maxBatch, dbf.RouteAttributesByRouteID),
+		RouteSegmentsByRouteID:                  withWaitAndCapacity(waitTime, maxBatch, dbf.RouteSegmentsByRouteID),
 		StopPlacesByStopID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.StopPlacesByStopID),
 		ValidationReportsByFeedVersionID:        withWaitAndCapacity(waitTime, maxBatch, dbf.ValidationReportsByFeedVersionID),
 		ValidationReportErrorGroupsByValidationReportID:              withWaitAndCapacity(waitTime, maxBatch, dbf.ValidationReportErrorGroupsByValidationReportID),
