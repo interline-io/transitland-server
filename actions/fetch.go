@@ -169,6 +169,7 @@ func (check *CheckFetchWaitResult) OK() bool {
 		Str("onestop_id", check.OnestopID.Val).
 		Str("url_type", check.URLType).
 		Float64("failure_backoff", failureBackoff.Seconds()).
+		Time("last_fetched_at_plus_backoff", lastFetchedAt.Add(failureBackoff)).
 		Int("failures", check.Failures).
 		Str("last_fetched_at", lastFetchedAt.String()).
 		Float64("last_fetch_ago", lastFetchAgo.Seconds()).
