@@ -74,12 +74,12 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 			return err
 		}
 		mr.FoundSha1 = fr.Found
-		if fr.FetchError == nil && fr.FeedVersion != nil {
-			mr.FeedVersion = &model.FeedVersion{FeedVersion: *fr.FeedVersion}
-			mr.FetchError = nil
-		} else {
+		if fr.FetchError != nil {
 			a := fr.FetchError.Error()
 			mr.FetchError = &a
+		} else if fr.FeedVersion != nil {
+			mr.FeedVersion = &model.FeedVersion{FeedVersion: *fr.FeedVersion}
+			mr.FetchError = nil
 		}
 		return nil
 	}); err != nil {

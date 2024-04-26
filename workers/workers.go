@@ -101,7 +101,7 @@ func runJobRequest(w http.ResponseWriter, req *http.Request) {
 		ret.Error = err.Error()
 		ret.Status = "failed"
 		ret.Success = false
-	} else if err := wk.Run(context.Background(), job); err != nil {
+	} else if err := wk.Run(req.Context(), job); err != nil {
 		ret.Error = err.Error()
 		ret.Status = "failed"
 		ret.Success = false
