@@ -100,13 +100,14 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
-		})
-
+	if permFilter != nil {
+		q = q.
+			Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+			Where(sq.Or{
+				sq.Expr("fsp.public = true"),
+				sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
+				sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+			})
+	}
 	return q
 }
