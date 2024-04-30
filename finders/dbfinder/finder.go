@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -1850,11 +1849,9 @@ type canCheckGlobalAdmin interface {
 
 func checkActive(ctx context.Context) (*model.PermFilter, error) {
 	checker := model.ForContext(ctx).Checker
-	fmt.Println("checker:", checker)
 	active := &model.PermFilter{}
 	if checker == nil {
-		fmt.Println("admin")
-		return nil, nil
+		return active, nil
 	}
 
 	// TODO: Make this part of actual checker interface
