@@ -129,9 +129,18 @@ models:
     extraFields:
       RouteID:
         type: int
-  RouteSegment:
+  Segment:
+    fields:
+      segment_patterns:
+        resolver: true
+  SegmentPattern:
+    fields:
+      segment:
+        resolver: true
     extraFields:
       RouteID:
+        type: int
+      SegmentID:
         type: int
   Place:
     fields:

@@ -106,7 +106,7 @@ func (r *Cursor) decode(value string) error {
 	if err != nil {
 		return errors.New("invalid cursor")
 	}
-	r.ID, _ = strconv.Atoi(rawSplit[1])
+	r.ID, err = strconv.Atoi(rawSplit[1])
 	if err != nil {
 		return errors.New("invalid cursor")
 	}

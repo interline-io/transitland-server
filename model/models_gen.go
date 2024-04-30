@@ -414,13 +414,6 @@ type RouteHeadway struct {
 	SelectedStopID   int            `json:"-"`
 }
 
-type RouteSegment struct {
-	SegmentID   int           `json:"segment_id"`
-	DirectionID int           `json:"direction_id"`
-	Geometry    tt.LineString `json:"geometry"`
-	RouteID     int           `json:"-"`
-}
-
 type RouteStop struct {
 	ID       int     `json:"id"`
 	StopID   int     `json:"stop_id"`
@@ -443,6 +436,21 @@ type RouteStopPattern struct {
 	Count         int     `json:"count"`
 	Trips         []*Trip `json:"trips,omitempty"`
 	RouteID       int     `json:"-"`
+}
+
+type Segment struct {
+	ID              int               `json:"id"`
+	WayID           int               `json:"way_id"`
+	Geometry        tt.LineString     `json:"geometry"`
+	SegmentPatterns []*SegmentPattern `json:"segment_patterns,omitempty"`
+}
+
+type SegmentPattern struct {
+	ID            int      `json:"id"`
+	StopPatternID int      `json:"stop_pattern_id"`
+	Segment       *Segment `json:"segment"`
+	RouteID       int      `json:"-"`
+	SegmentID     int      `json:"-"`
 }
 
 type ServiceCoversFilter struct {

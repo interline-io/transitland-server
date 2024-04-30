@@ -70,15 +70,6 @@ func atoi(v string) int {
 	return a
 }
 
-func sliceToPointerSlice[T any](a []T) []*T {
-	var ret []*T
-	for _, a := range a {
-		a := a
-		ret = append(ret, &a)
-	}
-	return ret
-}
-
 // Resolver .
 type Resolver struct {
 	fvslCache *fvslCache
@@ -115,6 +106,12 @@ func (r *Resolver) RouteHeadway() gqlout.RouteHeadwayResolver { return &routeHea
 func (r *Resolver) RouteStopPattern() gqlout.RouteStopPatternResolver {
 	return &routePatternResolver{r}
 }
+
+// Segment .
+func (r *Resolver) Segment() gqlout.SegmentResolver { return &segmentResolver{r} }
+
+// SegmentPattern .
+func (r *Resolver) SegmentPattern() gqlout.SegmentPatternResolver { return &segmentPatternResolver{r} }
 
 // Stop .
 func (r *Resolver) Stop() gqlout.StopResolver { return &stopResolver{r} }

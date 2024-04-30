@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -390,20 +391,65 @@ func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*mo
 	return arrangeBy(ids, ents, func(ent *model.RouteAttribute) int { return ent.RouteID }), nil
 }
 
-func (f *Finder) RouteSegmentsByRouteID(ctx context.Context, params []model.RouteSegmentParam) ([][]*model.RouteSegment, []error) {
+func (f *Finder) SegmentsByID(ctx context.Context, ids []int) ([]*model.Segment, []error) {
+	var ents []*model.Segment
+	err := dbutil.Select(ctx,
+		f.db,
+		quickSelect("tl_segments", nil, nil, ids),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Segment) int { return ent.ID }), nil
+}
+
+func (f *Finder) SegmentsByRouteID(ctx context.Context, params []model.SegmentPatternParam) ([][]*model.Segment, []error) {
+	type qent struct {
+		RouteID int
+		model.Segment
+	}
+	qentGroups, err := paramGroupQuery(
+		params,
+		func(p model.SegmentPatternParam) (int, bool, *int) {
+			return p.RouteID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*qent, err error) {
+			q := sq.Select("s.id", "s.way_id", "s.geometry", "s.route_id").
+				From("gtfs_routes").
+				JoinClause(
+					`join lateral (select distinct on (tl_segments.id, tl_segment_patterns.route_id) tl_segments.id, tl_segments.way_id, tl_segments.geometry, tl_segment_patterns.route_id from tl_segments join tl_segment_patterns on tl_segment_patterns.segment_id = tl_segments.id where tl_segment_patterns.route_id = gtfs_routes.id limit ?) s on true`,
+					checkLimit(limit),
+				).
+				Where(sq.Eq{"gtfs_routes.id": keys})
+			err = dbutil.Select(ctx,
+				f.db,
+				q,
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *qent) int {
+			return ent.RouteID
+		},
+	)
+	return convertEnts(qentGroups, func(a *qent) *model.Segment { return &a.Segment }), err
+}
+
+func (f *Finder) SegmentPatternsByRouteID(ctx context.Context, params []model.SegmentPatternParam) ([][]*model.SegmentPattern, []error) {
 	return paramGroupQuery(
 		params,
-		func(p model.RouteSegmentParam) (int, string, *int) {
+		func(p model.SegmentPatternParam) (int, string, *int) {
 			return p.RouteID, p.Layer, p.Limit
 		},
-		func(keys []int, layer string, limit *int) (ents []*model.RouteSegment, err error) {
+		func(keys []int, layer string, limit *int) (ents []*model.SegmentPattern, err error) {
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					quickSelect("tl_route_segments", limit, nil, nil),
+					quickSelect("tl_segment_patterns", limit, nil, nil),
 					"gtfs_routes",
 					"id",
-					"tl_route_segments",
+					"tl_segment_patterns",
 					"route_id",
 					keys,
 				),
@@ -411,8 +457,35 @@ func (f *Finder) RouteSegmentsByRouteID(ctx context.Context, params []model.Rout
 			)
 			return ents, err
 		},
-		func(ent *model.RouteSegment) int {
+		func(ent *model.SegmentPattern) int {
 			return ent.RouteID
+		},
+	)
+}
+
+func (f *Finder) SegmentPatternsBySegmentID(ctx context.Context, params []model.SegmentPatternParam) ([][]*model.SegmentPattern, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.SegmentPatternParam) (int, string, *int) {
+			return p.SegmentID, p.Layer, p.Limit
+		},
+		func(keys []int, layer string, limit *int) (ents []*model.SegmentPattern, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_segment_patterns", limit, nil, nil),
+					"tl_segments",
+					"id",
+					"tl_segment_patterns",
+					"segment_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.SegmentPattern) int {
+			return ent.SegmentID
 		},
 	)
 }
@@ -1777,9 +1850,11 @@ type canCheckGlobalAdmin interface {
 
 func checkActive(ctx context.Context) (*model.PermFilter, error) {
 	checker := model.ForContext(ctx).Checker
+	fmt.Println("checker:", checker)
 	active := &model.PermFilter{}
 	if checker == nil {
-		return active, nil
+		fmt.Println("admin")
+		return nil, nil
 	}
 
 	// TODO: Make this part of actual checker interface
