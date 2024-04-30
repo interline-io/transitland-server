@@ -178,10 +178,11 @@ type RouteStopPatternParam struct {
 	RouteID int
 }
 
-type RouteSegmentParam struct {
-	RouteID int
-	Layer   string
-	Limit   *int
+type SegmentPatternParam struct {
+	SegmentID int
+	RouteID   int
+	Layer     string
+	Limit     *int
 }
 
 type ValidationReportParam struct {

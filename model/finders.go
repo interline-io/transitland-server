@@ -73,9 +73,14 @@ type EntityLoader interface {
 	StopObservationsByStopID(context.Context, []StopObservationParam) ([][]*StopObservation, []error)
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
 	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
-	RouteSegmentsByRouteID(context.Context, []RouteSegmentParam) ([][]*RouteSegment, []error)
 	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 	FeedVersionGeometryByID(context.Context, []int) ([]*tt.Polygon, []error)
+
+	// Segments
+	SegmentPatternsByRouteID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
+	SegmentPatternsBySegmentID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
+	SegmentsByID(context.Context, []int) ([]*Segment, []error)
+	SegmentsByRouteID(context.Context, []SegmentPatternParam) ([][]*Segment, []error)
 
 	// Other loaders
 	FeedVersionGtfsImportsByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)

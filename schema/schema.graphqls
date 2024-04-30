@@ -331,7 +331,8 @@ type Route {
   route_stop_buffer(radius: Float): RouteStopBuffer!
   patterns: [RouteStopPattern!]
   alerts(active: Boolean, limit: Int): [Alert!]
-  segments(layer: String!, limit: Int): [RouteSegment!]
+  segments(limit: Int): [Segment!]
+  segment_patterns(limit: Int): [SegmentPattern!]
 }
 
 """
@@ -608,10 +609,17 @@ type RouteHeadway {
   departures: [Seconds!]
 }
 
-type RouteSegment {
-  segment_id: Int!
-  direction_id: Int!
+type SegmentPattern {
+  id: Int!
+  stop_pattern_id: Int!
+  segment: Segment!
+}
+
+type Segment {
+  id: Int!
+  way_id: Int!
   geometry: LineString! 
+  segment_patterns: [SegmentPattern!]
 }
 
 """

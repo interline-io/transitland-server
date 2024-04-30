@@ -22,125 +22,131 @@ const (
 
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	FeedStatesByFeedID                                           *dataloader.Loader[int, *model.FeedState]
-	AgenciesByID                                                 *dataloader.Loader[int, *model.Agency]
-	CalendarsByID                                                *dataloader.Loader[int, *model.Calendar]
-	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
-	RoutesByID                                                   *dataloader.Loader[int, *model.Route]
-	ShapesByID                                                   *dataloader.Loader[int, *model.Shape]
-	StopsByID                                                    *dataloader.Loader[int, *model.Stop]
-	FeedVersionsByID                                             *dataloader.Loader[int, *model.FeedVersion]
-	LevelsByID                                                   *dataloader.Loader[int, *model.Level]
-	PathwaysByID                                                 *dataloader.Loader[int, *model.Pathway]
-	TripsByID                                                    *dataloader.Loader[int, *model.Trip]
-	OperatorsByCOIF                                              *dataloader.Loader[int, *model.Operator]
-	OperatorsByAgencyID                                          *dataloader.Loader[int, *model.Operator]
-	FeedVersionGtfsImportsByFeedVersionID                        *dataloader.Loader[int, *model.FeedVersionGtfsImport]
-	CensusTableByID                                              *dataloader.Loader[int, *model.CensusTable]
-	FeedVersionGeometryByID                                      *dataloader.Loader[int, *tt.Polygon]
-	StopExternalReferencesByStopID                               *dataloader.Loader[int, *model.StopExternalReference]
-	TargetStopsByStopID                                          *dataloader.Loader[int, *model.Stop]
-	RouteAttributesByRouteID                                     *dataloader.Loader[int, *model.RouteAttribute]
-	RouteSegmentsByRouteID                                       *dataloader.Loader[model.RouteSegmentParam, []*model.RouteSegment]
-	StopPlacesByStopID                                           *dataloader.Loader[model.StopPlaceParam, *model.StopPlace]
-	FeedVersionsByFeedID                                         *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
-	FeedFetchesByFeedID                                          *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
-	OperatorsByFeedID                                            *dataloader.Loader[model.OperatorParam, []*model.Operator]
-	AgenciesByOnestopID                                          *dataloader.Loader[model.AgencyParam, []*model.Agency]
-	LevelsByParentStationID                                      *dataloader.Loader[model.LevelParam, []*model.Level]
-	FeedVersionServiceLevelsByFeedVersionID                      *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
-	FeedVersionFileInfosByFeedVersionID                          *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
 	AgenciesByFeedVersionID                                      *dataloader.Loader[model.AgencyParam, []*model.Agency]
-	RoutesByFeedVersionID                                        *dataloader.Loader[model.RouteParam, []*model.Route]
-	StopsByFeedVersionID                                         *dataloader.Loader[model.StopParam, []*model.Stop]
-	TripsByFeedVersionID                                         *dataloader.Loader[model.TripParam, []*model.Trip]
-	FeedInfosByFeedVersionID                                     *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
-	FeedsByOperatorOnestopID                                     *dataloader.Loader[model.FeedParam, []*model.Feed]
-	StopsByRouteID                                               *dataloader.Loader[model.StopParam, []*model.Stop]
-	StopsByParentStopID                                          *dataloader.Loader[model.StopParam, []*model.Stop]
+	AgenciesByID                                                 *dataloader.Loader[int, *model.Agency]
+	AgenciesByOnestopID                                          *dataloader.Loader[model.AgencyParam, []*model.Agency]
 	AgencyPlacesByAgencyID                                       *dataloader.Loader[model.AgencyPlaceParam, []*model.AgencyPlace]
-	RouteGeometriesByRouteID                                     *dataloader.Loader[model.RouteGeometryParam, []*model.RouteGeometry]
-	TripsByRouteID                                               *dataloader.Loader[model.TripParam, []*model.Trip]
+	CalendarDatesByServiceID                                     *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
+	CalendarsByID                                                *dataloader.Loader[int, *model.Calendar]
+	CensusGeographiesByEntityID                                  *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
+	CensusTableByID                                              *dataloader.Loader[int, *model.CensusTable]
+	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
+	FeedFetchesByFeedID                                          *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
+	FeedInfosByFeedVersionID                                     *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
+	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
+	FeedsByOperatorOnestopID                                     *dataloader.Loader[model.FeedParam, []*model.Feed]
+	FeedStatesByFeedID                                           *dataloader.Loader[int, *model.FeedState]
+	FeedVersionFileInfosByFeedVersionID                          *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
+	FeedVersionGeometryByID                                      *dataloader.Loader[int, *tt.Polygon]
+	FeedVersionGtfsImportsByFeedVersionID                        *dataloader.Loader[int, *model.FeedVersionGtfsImport]
+	FeedVersionsByFeedID                                         *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
+	FeedVersionsByID                                             *dataloader.Loader[int, *model.FeedVersion]
+	FeedVersionServiceLevelsByFeedVersionID                      *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
 	FrequenciesByTripID                                          *dataloader.Loader[model.FrequencyParam, []*model.Frequency]
-	StopTimesByTripID                                            *dataloader.Loader[model.TripStopTimeParam, []*model.StopTime]
-	StopTimesByStopID                                            *dataloader.Loader[model.StopTimeParam, []*model.StopTime]
-	RouteStopsByRouteID                                          *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
-	RouteStopPatternsByRouteID                                   *dataloader.Loader[model.RouteStopPatternParam, []*model.RouteStopPattern]
-	RouteStopsByStopID                                           *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
+	LevelsByID                                                   *dataloader.Loader[int, *model.Level]
+	LevelsByParentStationID                                      *dataloader.Loader[model.LevelParam, []*model.Level]
+	OperatorsByAgencyID                                          *dataloader.Loader[int, *model.Operator]
+	OperatorsByCOIF                                              *dataloader.Loader[int, *model.Operator]
+	OperatorsByFeedID                                            *dataloader.Loader[model.OperatorParam, []*model.Operator]
+	PathwaysByFromStopID                                         *dataloader.Loader[model.PathwayParam, []*model.Pathway]
+	PathwaysByID                                                 *dataloader.Loader[int, *model.Pathway]
+	PathwaysByToStopID                                           *dataloader.Loader[model.PathwayParam, []*model.Pathway]
+	RouteAttributesByRouteID                                     *dataloader.Loader[int, *model.RouteAttribute]
+	RouteGeometriesByRouteID                                     *dataloader.Loader[model.RouteGeometryParam, []*model.RouteGeometry]
 	RouteHeadwaysByRouteID                                       *dataloader.Loader[model.RouteHeadwayParam, []*model.RouteHeadway]
 	RoutesByAgencyID                                             *dataloader.Loader[model.RouteParam, []*model.Route]
-	PathwaysByFromStopID                                         *dataloader.Loader[model.PathwayParam, []*model.Pathway]
-	PathwaysByToStopID                                           *dataloader.Loader[model.PathwayParam, []*model.Pathway]
-	CalendarDatesByServiceID                                     *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
-	CensusGeographiesByEntityID                                  *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
-	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
+	RoutesByFeedVersionID                                        *dataloader.Loader[model.RouteParam, []*model.Route]
+	RoutesByID                                                   *dataloader.Loader[int, *model.Route]
+	RouteStopPatternsByRouteID                                   *dataloader.Loader[model.RouteStopPatternParam, []*model.RouteStopPattern]
+	RouteStopsByRouteID                                          *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
+	RouteStopsByStopID                                           *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
+	SegmentPatternsByRouteID                                     *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
+	SegmentPatternsBySegmentID                                   *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
+	SegmentsByID                                                 *dataloader.Loader[int, *model.Segment]
+	SegmentsByRouteID                                            *dataloader.Loader[model.SegmentPatternParam, []*model.Segment]
+	ShapesByID                                                   *dataloader.Loader[int, *model.Shape]
+	StopExternalReferencesByStopID                               *dataloader.Loader[int, *model.StopExternalReference]
 	StopObservationsByStopID                                     *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
+	StopPlacesByStopID                                           *dataloader.Loader[model.StopPlaceParam, *model.StopPlace]
+	StopsByFeedVersionID                                         *dataloader.Loader[model.StopParam, []*model.Stop]
+	StopsByID                                                    *dataloader.Loader[int, *model.Stop]
 	StopsByLevelID                                               *dataloader.Loader[model.StopParam, []*model.Stop]
-	ValidationReportsByFeedVersionID                             *dataloader.Loader[model.ValidationReportParam, []*model.ValidationReport]
-	ValidationReportErrorGroupsByValidationReportID              *dataloader.Loader[model.ValidationReportErrorGroupParam, []*model.ValidationReportErrorGroup]
+	StopsByParentStopID                                          *dataloader.Loader[model.StopParam, []*model.Stop]
+	StopsByRouteID                                               *dataloader.Loader[model.StopParam, []*model.Stop]
+	StopTimesByStopID                                            *dataloader.Loader[model.StopTimeParam, []*model.StopTime]
+	StopTimesByTripID                                            *dataloader.Loader[model.TripStopTimeParam, []*model.StopTime]
+	TargetStopsByStopID                                          *dataloader.Loader[int, *model.Stop]
+	TripsByFeedVersionID                                         *dataloader.Loader[model.TripParam, []*model.Trip]
+	TripsByID                                                    *dataloader.Loader[int, *model.Trip]
+	TripsByRouteID                                               *dataloader.Loader[model.TripParam, []*model.Trip]
 	ValidationReportErrorExemplarsByValidationReportErrorGroupID *dataloader.Loader[model.ValidationReportErrorExemplarParam, []*model.ValidationReportError]
+	ValidationReportErrorGroupsByValidationReportID              *dataloader.Loader[model.ValidationReportErrorGroupParam, []*model.ValidationReportErrorGroup]
+	ValidationReportsByFeedVersionID                             *dataloader.Loader[model.ValidationReportParam, []*model.ValidationReport]
 }
 
 // NewLoaders instantiates data loaders for the middleware
 func NewLoaders(dbf model.Finder) *Loaders {
 	loaders := &Loaders{
-		FeedStatesByFeedID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.FeedStatesByFeedID),
+		AgenciesByFeedVersionID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByFeedVersionID),
 		AgenciesByID:                            withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByID),
+		AgenciesByOnestopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByOnestopID),
+		AgencyPlacesByAgencyID:                  withWaitAndCapacity(waitTime, maxBatch, dbf.AgencyPlacesByAgencyID),
+		CalendarDatesByServiceID:                withWaitAndCapacity(waitTime, maxBatch, dbf.CalendarDatesByServiceID),
 		CalendarsByID:                           withWaitAndCapacity(waitTime, maxBatch, dbf.CalendarsByID),
+		CensusGeographiesByEntityID:             withWaitAndCapacity(waitTime, maxBatch, dbf.CensusGeographiesByEntityID),
+		CensusTableByID:                         withWaitAndCapacity(waitTime, maxBatch, dbf.CensusTableByID),
+		CensusValuesByGeographyID:               withWaitAndCapacity(waitTime, maxBatch, dbf.CensusValuesByGeographyID),
+		FeedFetchesByFeedID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.FeedFetchesByFeedID),
+		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, maxBatch, dbf.FeedInfosByFeedVersionID),
 		FeedsByID:                               withWaitAndCapacity(waitTime, maxBatch, dbf.FeedsByID),
-		RoutesByID:                              withWaitAndCapacity(waitTime, maxBatch, dbf.RoutesByID),
-		ShapesByID:                              withWaitAndCapacity(waitTime, maxBatch, dbf.ShapesByID),
-		StopsByID:                               withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByID),
-		FeedVersionsByID:                        withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionsByID),
-		LevelsByID:                              withWaitAndCapacity(waitTime, maxBatch, dbf.LevelsByID),
-		LevelsByParentStationID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.LevelsByParentStationID),
-		PathwaysByID:                            withWaitAndCapacity(waitTime, maxBatch, dbf.PathwaysByID),
-		TripsByID:                               withWaitAndCapacity(waitTime, maxBatch, dbf.TripsByID),
-		OperatorsByCOIF:                         withWaitAndCapacity(waitTime, maxBatch, dbf.OperatorsByCOIF),
-		OperatorsByAgencyID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.OperatorsByAgencyID),
+		FeedsByOperatorOnestopID:                withWaitAndCapacity(waitTime, maxBatch, dbf.FeedsByOperatorOnestopID),
+		FeedStatesByFeedID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.FeedStatesByFeedID),
+		FeedVersionFileInfosByFeedVersionID:     withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionFileInfosByFeedVersionID),
+		FeedVersionGeometryByID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGeometryByID),
 		FeedVersionGtfsImportsByFeedVersionID:   withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGtfsImportsByFeedVersionID),
 		FeedVersionsByFeedID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionsByFeedID),
-		FeedFetchesByFeedID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.FeedFetchesByFeedID),
-		OperatorsByFeedID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.OperatorsByFeedID),
-		AgenciesByOnestopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByOnestopID),
+		FeedVersionsByID:                        withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionsByID),
 		FeedVersionServiceLevelsByFeedVersionID: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceLevelsByFeedVersionID),
-		FeedVersionFileInfosByFeedVersionID:     withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionFileInfosByFeedVersionID),
-		AgenciesByFeedVersionID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByFeedVersionID),
-		RoutesByFeedVersionID:                   withWaitAndCapacity(waitTime, maxBatch, dbf.RoutesByFeedVersionID),
-		StopsByFeedVersionID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByFeedVersionID),
-		TripsByFeedVersionID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.TripsByFeedVersionID),
-		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, maxBatch, dbf.FeedInfosByFeedVersionID),
-		FeedsByOperatorOnestopID:                withWaitAndCapacity(waitTime, maxBatch, dbf.FeedsByOperatorOnestopID),
-		StopsByRouteID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByRouteID),
-		StopsByParentStopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByParentStopID),
-		AgencyPlacesByAgencyID:                  withWaitAndCapacity(waitTime, maxBatch, dbf.AgencyPlacesByAgencyID),
-		RouteGeometriesByRouteID:                withWaitAndCapacity(waitTime, maxBatch, dbf.RouteGeometriesByRouteID),
-		TripsByRouteID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.TripsByRouteID),
 		FrequenciesByTripID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.FrequenciesByTripID),
-		StopTimesByTripID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.StopTimesByTripID),
-		StopTimesByStopID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.StopTimesByStopID),
-		RouteStopsByRouteID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.RouteStopsByRouteID),
-		RouteStopPatternsByRouteID:              withWaitAndCapacity(waitTime, maxBatch, dbf.RouteStopPatternsByRouteID),
-		RouteStopsByStopID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.RouteStopsByStopID),
+		LevelsByID:                              withWaitAndCapacity(waitTime, maxBatch, dbf.LevelsByID),
+		LevelsByParentStationID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.LevelsByParentStationID),
+		OperatorsByAgencyID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.OperatorsByAgencyID),
+		OperatorsByCOIF:                         withWaitAndCapacity(waitTime, maxBatch, dbf.OperatorsByCOIF),
+		OperatorsByFeedID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.OperatorsByFeedID),
+		PathwaysByFromStopID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.PathwaysByFromStopID),
+		PathwaysByID:                            withWaitAndCapacity(waitTime, maxBatch, dbf.PathwaysByID),
+		PathwaysByToStopID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.PathwaysByToStopID),
+		RouteAttributesByRouteID:                withWaitAndCapacity(waitTime, maxBatch, dbf.RouteAttributesByRouteID),
+		RouteGeometriesByRouteID:                withWaitAndCapacity(waitTime, maxBatch, dbf.RouteGeometriesByRouteID),
 		RouteHeadwaysByRouteID:                  withWaitAndCapacity(waitTime, maxBatch, dbf.RouteHeadwaysByRouteID),
 		RoutesByAgencyID:                        withWaitAndCapacity(waitTime, maxBatch, dbf.RoutesByAgencyID),
-		PathwaysByFromStopID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.PathwaysByFromStopID),
-		PathwaysByToStopID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.PathwaysByToStopID),
-		CalendarDatesByServiceID:                withWaitAndCapacity(waitTime, maxBatch, dbf.CalendarDatesByServiceID),
-		FeedVersionGeometryByID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGeometryByID),
-		CensusTableByID:                         withWaitAndCapacity(waitTime, maxBatch, dbf.CensusTableByID),
-		CensusGeographiesByEntityID:             withWaitAndCapacity(waitTime, maxBatch, dbf.CensusGeographiesByEntityID),
-		CensusValuesByGeographyID:               withWaitAndCapacity(waitTime, maxBatch, dbf.CensusValuesByGeographyID),
-		StopObservationsByStopID:                withWaitAndCapacity(waitTime, maxBatch, dbf.StopObservationsByStopID),
+		RoutesByFeedVersionID:                   withWaitAndCapacity(waitTime, maxBatch, dbf.RoutesByFeedVersionID),
+		RoutesByID:                              withWaitAndCapacity(waitTime, maxBatch, dbf.RoutesByID),
+		RouteStopPatternsByRouteID:              withWaitAndCapacity(waitTime, maxBatch, dbf.RouteStopPatternsByRouteID),
+		RouteStopsByRouteID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.RouteStopsByRouteID),
+		RouteStopsByStopID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.RouteStopsByStopID),
+		SegmentPatternsByRouteID:                withWaitAndCapacity(waitTime, maxBatch, dbf.SegmentPatternsByRouteID),
+		SegmentPatternsBySegmentID:              withWaitAndCapacity(waitTime, maxBatch, dbf.SegmentPatternsBySegmentID),
+		SegmentsByID:                            withWaitAndCapacity(waitTime, maxBatch, dbf.SegmentsByID),
+		SegmentsByRouteID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.SegmentsByRouteID),
+		ShapesByID:                              withWaitAndCapacity(waitTime, maxBatch, dbf.ShapesByID),
 		StopExternalReferencesByStopID:          withWaitAndCapacity(waitTime, maxBatch, dbf.StopExternalReferencesByStopID),
-		StopsByLevelID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByLevelID),
-		TargetStopsByStopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.TargetStopsByStopID),
-		RouteAttributesByRouteID:                withWaitAndCapacity(waitTime, maxBatch, dbf.RouteAttributesByRouteID),
-		RouteSegmentsByRouteID:                  withWaitAndCapacity(waitTime, maxBatch, dbf.RouteSegmentsByRouteID),
+		StopObservationsByStopID:                withWaitAndCapacity(waitTime, maxBatch, dbf.StopObservationsByStopID),
 		StopPlacesByStopID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.StopPlacesByStopID),
-		ValidationReportsByFeedVersionID:        withWaitAndCapacity(waitTime, maxBatch, dbf.ValidationReportsByFeedVersionID),
-		ValidationReportErrorGroupsByValidationReportID:              withWaitAndCapacity(waitTime, maxBatch, dbf.ValidationReportErrorGroupsByValidationReportID),
+		StopsByFeedVersionID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByFeedVersionID),
+		StopsByID:                               withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByID),
+		StopsByLevelID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByLevelID),
+		StopsByParentStopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByParentStopID),
+		StopsByRouteID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByRouteID),
+		StopTimesByStopID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.StopTimesByStopID),
+		StopTimesByTripID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.StopTimesByTripID),
+		TargetStopsByStopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.TargetStopsByStopID),
+		TripsByFeedVersionID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.TripsByFeedVersionID),
+		TripsByID:                               withWaitAndCapacity(waitTime, maxBatch, dbf.TripsByID),
+		TripsByRouteID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.TripsByRouteID),
 		ValidationReportErrorExemplarsByValidationReportErrorGroupID: withWaitAndCapacity(waitTime, maxBatch, dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupID),
+		ValidationReportErrorGroupsByValidationReportID:              withWaitAndCapacity(waitTime, maxBatch, dbf.ValidationReportErrorGroupsByValidationReportID),
+		ValidationReportsByFeedVersionID:                             withWaitAndCapacity(waitTime, maxBatch, dbf.ValidationReportsByFeedVersionID),
 	}
 	return loaders
 }

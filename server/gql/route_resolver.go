@@ -85,8 +85,12 @@ func (r *routeResolver) RouteAttribute(ctx context.Context, obj *model.Route) (*
 	return For(ctx).RouteAttributesByRouteID.Load(ctx, obj.ID)()
 }
 
-func (r *routeResolver) Segments(ctx context.Context, obj *model.Route, layer string, limit *int) ([]*model.RouteSegment, error) {
-	return For(ctx).RouteSegmentsByRouteID.Load(ctx, model.RouteSegmentParam{RouteID: obj.ID, Layer: layer, Limit: limit})()
+func (r *routeResolver) SegmentPatterns(ctx context.Context, obj *model.Route, limit *int) ([]*model.SegmentPattern, error) {
+	return For(ctx).SegmentPatternsByRouteID.Load(ctx, model.SegmentPatternParam{RouteID: obj.ID, Layer: "", Limit: limit})()
+}
+
+func (r *routeResolver) Segments(ctx context.Context, obj *model.Route, limit *int) ([]*model.Segment, error) {
+	return For(ctx).SegmentsByRouteID.Load(ctx, model.SegmentPatternParam{RouteID: obj.ID, Layer: "", Limit: limit})()
 }
 
 // ROUTE HEADWAYS
