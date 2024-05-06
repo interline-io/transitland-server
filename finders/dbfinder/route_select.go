@@ -26,7 +26,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
-		"tl_route_onestop_ids.onestop_id",
+		"coalesce(feed_version_route_onestop_ids.onestop_id, '') as onestop_id",
 	).
 		From("gtfs_routes").
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
@@ -41,26 +41,25 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
 		}
 		if len(where.OnestopIds) > 0 {
-			q = q.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds})
+			q = q.Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": where.OnestopIds})
 		}
 		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
 			sub := sq.StatementBuilder.
-				Select("tl_route_onestop_ids.onestop_id", "gtfs_routes.route_id", "feed_versions.feed_id").
-				Distinct().Options("on (tl_route_onestop_ids.onestop_id, gtfs_routes.route_id)").
-				From("tl_route_onestop_ids").
-				Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id").
-				Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
-				Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.OnestopIds}).
-				OrderBy("tl_route_onestop_ids.onestop_id, gtfs_routes.route_id, feed_versions.id DESC")
+				Select("feed_version_route_onestop_ids.onestop_id", "feed_version_route_onestop_ids.entity_id", "feed_versions.feed_id").
+				Distinct().Options("on (feed_version_route_onestop_ids.onestop_id, feed_version_route_onestop_ids.entity_id, feed_versions.feed_id)").
+				From("feed_version_route_onestop_ids").
+				Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
+				Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": where.OnestopIds}).
+				OrderBy("feed_version_route_onestop_ids.onestop_id, feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC")
 			subClause := sub.
 				Prefix("LEFT JOIN (").
-				Suffix(") tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_routes.route_id and tl_route_onestop_ids.feed_id = feed_versions.feed_id")
+				Suffix(") feed_version_route_onestop_ids on feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_id = feed_versions.feed_id")
 			q = q.JoinClause(subClause)
 		} else {
-			q = q.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id and tl_route_onestop_ids.feed_version_id = gtfs_routes.feed_version_id`)
+			q = q.JoinClause(`LEFT JOIN feed_version_route_onestop_ids ON feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_version_id = gtfs_routes.feed_version_id`)
 		}
 	} else {
-		q = q.JoinClause(`LEFT JOIN tl_route_onestop_ids ON tl_route_onestop_ids.route_id = gtfs_routes.id and tl_route_onestop_ids.feed_version_id = gtfs_routes.feed_version_id`)
+		q = q.JoinClause(`LEFT JOIN feed_version_route_onestop_ids ON feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_version_id = gtfs_routes.feed_version_id`)
 	}
 
 	if where != nil {
