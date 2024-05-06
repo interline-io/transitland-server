@@ -155,24 +155,24 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			if where.AllowPreviousRouteOnestopIds != nil && *where.AllowPreviousRouteOnestopIds {
 				// Find a way to make this simpler, perhaps handle elsewhere
 				sub := sq.StatementBuilder.
-					Select("gtfs_routes.route_id", "feed_versions.feed_id").
-					Distinct().Options("on (gtfs_routes.route_id, feed_versions.feed_id)").
-					From("tl_route_onestop_ids").
-					Join("gtfs_routes on gtfs_routes.id = tl_route_onestop_ids.route_id and gtfs_routes.feed_version_id = tl_route_onestop_ids.feed_version_id").
-					Join("feed_versions on feed_versions.id = gtfs_routes.feed_version_id").
-					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds}).
-					OrderBy("gtfs_routes.route_id, feed_versions.feed_id, feed_versions.id DESC")
+					Select("feed_version_route_onestop_ids.entity_id", "feed_versions.feed_id").
+					Distinct().Options("on (feed_version_route_onestop_ids.entity_id, feed_versions.feed_id)").
+					From("feed_version_route_onestop_ids").
+					Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
+					Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": where.RouteOnestopIds}).
+					OrderBy("feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC")
 				// note: string join on route_id
 				subClause := sub.
 					Prefix("JOIN (").
-					Suffix(") tlros on tlros.route_id = gtfs_routes.route_id and tlros.feed_id = feed_versions.feed_id")
+					Suffix(") tlros on tlros.entity_id = gtfs_routes.route_id and tlros.feed_id = feed_versions.feed_id")
 				q = q.
 					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id and gtfs_routes.feed_version_id = gtfs_trips.feed_version_id").
 					JoinClause(subClause)
 			} else {
 				q = q.
-					Join("tl_route_onestop_ids on tl_route_onestop_ids.route_id = gtfs_trips.route_id and tl_route_onestop_ids.feed_version_id = gtfs_trips.feed_version_id").
-					Where(sq.Eq{"tl_route_onestop_ids.onestop_id": where.RouteOnestopIds})
+					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
+					Join("feed_version_route_onestop_ids on feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_version_id = gtfs_trips.feed_version_id").
+					Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 
 			}
 		}

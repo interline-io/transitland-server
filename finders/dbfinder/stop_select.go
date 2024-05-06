@@ -27,7 +27,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		"current_feeds.id AS feed_id",
 		"current_feeds.onestop_id AS feed_onestop_id",
 		"feed_versions.sha1 AS feed_version_sha1",
-		"coalesce(tl_stop_onestop_ids.onestop_id, '') as onestop_id",
+		"coalesce(feed_version_stop_onestop_ids.onestop_id, '') as onestop_id",
 	).
 		From("gtfs_stops").
 		Join("feed_versions ON feed_versions.id = gtfs_stops.feed_version_id").
@@ -44,26 +44,25 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
 		}
 		if len(where.OnestopIds) > 0 {
-			q = q.Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds})
+			q = q.Where(sq.Eq{"feed_version_stop_onestop_ids.onestop_id": where.OnestopIds})
 		}
 		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
 			sub := sq.StatementBuilder.
-				Select("tl_stop_onestop_ids.onestop_id", "gtfs_stops.stop_id", "feed_versions.feed_id").
-				Distinct().Options("on (tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id, feed_versions.feed_id)").
-				From("tl_stop_onestop_ids").
-				Join("gtfs_stops on gtfs_stops.id = tl_stop_onestop_ids.stop_id").
-				Join("feed_versions on feed_versions.id = gtfs_stops.feed_version_id").
-				Where(sq.Eq{"tl_stop_onestop_ids.onestop_id": where.OnestopIds}).
-				OrderBy("tl_stop_onestop_ids.onestop_id, gtfs_stops.stop_id, feed_versions.feed_id, feed_versions.id DESC")
+				Select("feed_version_stop_onestop_ids.onestop_id", "feed_version_stop_onestop_ids.entity_id", "feed_versions.feed_id").
+				Distinct().Options("on (feed_version_stop_onestop_ids.onestop_id, feed_version_stop_onestop_ids.entity_id, feed_versions.feed_id)").
+				From("feed_version_stop_onestop_ids").
+				Join("feed_versions on feed_versions.id = feed_version_stop_onestop_ids.feed_version_id").
+				Where(sq.Eq{"feed_version_stop_onestop_ids.onestop_id": where.OnestopIds}).
+				OrderBy("feed_version_stop_onestop_ids.onestop_id, feed_version_stop_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC")
 			subClause := sub.
 				Prefix("LEFT JOIN (").
-				Suffix(") tl_stop_onestop_ids on tl_stop_onestop_ids.stop_id = gtfs_stops.stop_id and tl_stop_onestop_ids.feed_id = feed_versions.feed_id")
+				Suffix(") feed_version_stop_onestop_ids on feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_id = feed_versions.feed_id")
 			q = q.JoinClause(subClause)
 		} else {
-			q = q.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id and tl_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
+			q = q.JoinClause(`LEFT JOIN feed_version_stop_onestop_ids ON feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
 		}
 	} else {
-		q = q.JoinClause(`LEFT JOIN tl_stop_onestop_ids ON tl_stop_onestop_ids.stop_id = gtfs_stops.id and tl_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
+		q = q.JoinClause(`LEFT JOIN feed_version_stop_onestop_ids ON feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
 	}
 
 	// Handle other clauses
@@ -126,9 +125,11 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 					routes = append(routes, osid)
 				}
 			}
-			q = q.Join("tl_route_stops tlrs_routes on tlrs_routes.stop_id = gtfs_stops.id")
+			q = q.
+				Join("tl_route_stops tlrs_routes on tlrs_routes.stop_id = gtfs_stops.id").
+				Join("gtfs_routes on gtfs_routes.id = tlrs_routes.route_id")
 			if len(routes) > 0 {
-				q = q.Join("tl_route_onestop_ids on tlrs_routes.route_id = tl_route_onestop_ids.route_id")
+				q = q.Join("feed_version_route_onestop_ids on gtfs_routes.route_id = feed_version_route_onestop_ids.entity_id and gtfs_stops.feed_version_id = feed_version_route_onestop_ids.feed_version_id")
 			}
 			if len(agencies) > 0 {
 				q = q.
@@ -136,9 +137,9 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 					Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id")
 			}
 			if len(routes) > 0 && len(agencies) > 0 {
-				q = q.Where(sq.Or{sq.Eq{"tl_route_onestop_ids.onestop_id": routes}, sq.Eq{"coif.resolved_onestop_id": agencies}})
+				q = q.Where(sq.Or{sq.Eq{"feed_version_route_onestop_ids.onestop_id": routes}, sq.Eq{"coif.resolved_onestop_id": agencies}})
 			} else if len(routes) > 0 {
-				q = q.Where(sq.Eq{"tl_route_onestop_ids.onestop_id": routes})
+				q = q.Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": routes})
 			} else if len(agencies) > 0 {
 				q = q.Where(sq.Eq{"coif.resolved_onestop_id": agencies})
 			}
@@ -158,10 +159,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		q = q.Distinct().Options("on (gtfs_stops.feed_version_id,gtfs_stops.id)")
 	}
 	if active {
-		// in (select feed_version_id) from feed_states -- helps the query planner skip fv's that dont contribute to result
-		q = q.
-			Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id").
-			Where(sq.Expr("feed_versions.id in (select feed_version_id from feed_states)"))
+		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
 	}
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"gtfs_stops.id": ids})

@@ -37,8 +37,10 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			q = q.Where(sq.Eq{"stop_pattern_id": where.StopPatternID})
 		}
 		if len(where.RouteOnestopIds) > 0 {
-			q = q.Join("tl_route_onestop_ids tlros on tlros.route_id = gtfs_trips.route_id and tlros.feed_version_id = gtfs_trips.feed_version_id")
-			q = q.Where(sq.Eq{"tlros.onestop_id": where.RouteOnestopIds})
+			q = q.
+				Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
+				Join("feed_version_route_onestop_ids on feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_version_id = gtfs_trips.feed_version_id")
+			q = q.Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": where.RouteOnestopIds})
 		}
 		if where.FeedVersionSha1 != nil {
 			q = q.Where("feed_versions.id = (select id from feed_versions where sha1 = ? limit 1)", *where.FeedVersionSha1)
