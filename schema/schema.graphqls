@@ -206,6 +206,7 @@ type FeedVersion {
   trips(limit: Int, where: TripFilter): [Trip!]!
   feed_infos(limit: Int): [FeedInfo!]!
   validation_reports(limit: Int, where: ValidationReportFilter): [ValidationReport!]
+  segments(limit: Int): [Segment!]
 }
 
 type FeedVersionFileInfo {
@@ -331,8 +332,8 @@ type Route {
   route_stop_buffer(radius: Float): RouteStopBuffer!
   patterns: [RouteStopPattern!]
   alerts(active: Boolean, limit: Int): [Alert!]
-  segments(limit: Int): [Segment!]
-  segment_patterns(limit: Int): [SegmentPattern!]
+  segments(limit: Int, where: SegmentFilter): [Segment!]
+  segment_patterns(limit: Int, where: SegmentPatternFilter): [SegmentPattern!]
 }
 
 """
@@ -1048,6 +1049,13 @@ input TripFilter {
   feed_onestop_id: String
 }
 
+input SegmentFilter {
+  layer: String
+}
+
+input SegmentPatternFilter {
+  layer: String
+}
 
 input LicenseFilter {
   share_alike_optional: LicenseValue

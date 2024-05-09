@@ -275,6 +275,7 @@ type ComplexityRoot struct {
 		Name                  func(childComplexity int) int
 		Routes                func(childComplexity int, limit *int, where *model.RouteFilter) int
 		SHA1                  func(childComplexity int) int
+		Segments              func(childComplexity int, limit *int) int
 		ServiceLevels         func(childComplexity int, limit *int, where *model.FeedVersionServiceLevelFilter) int
 		Stops                 func(childComplexity int, limit *int, where *model.StopFilter) int
 		Trips                 func(childComplexity int, limit *int, where *model.TripFilter) int
@@ -757,8 +758,8 @@ type ComplexityRoot struct {
 		RouteType         func(childComplexity int) int
 		RouteURL          func(childComplexity int) int
 		SearchRank        func(childComplexity int) int
-		SegmentPatterns   func(childComplexity int, limit *int) int
-		Segments          func(childComplexity int, limit *int) int
+		SegmentPatterns   func(childComplexity int, limit *int, where *model.SegmentPatternFilter) int
+		Segments          func(childComplexity int, limit *int, where *model.SegmentFilter) int
 		Stops             func(childComplexity int, limit *int, where *model.StopFilter) int
 		Trips             func(childComplexity int, limit *int, where *model.TripFilter) int
 	}
@@ -1083,6 +1084,7 @@ type FeedVersionResolver interface {
 	Trips(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.TripFilter) ([]*model.Trip, error)
 	FeedInfos(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedInfo, error)
 	ValidationReports(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.ValidationReportFilter) ([]*model.ValidationReport, error)
+	Segments(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.Segment, error)
 }
 type FeedVersionGtfsImportResolver interface {
 	SkipEntityErrorCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
@@ -1154,8 +1156,8 @@ type RouteResolver interface {
 	RouteStopBuffer(ctx context.Context, obj *model.Route, radius *float64) (*model.RouteStopBuffer, error)
 	Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error)
 	Alerts(ctx context.Context, obj *model.Route, active *bool, limit *int) ([]*model.Alert, error)
-	Segments(ctx context.Context, obj *model.Route, limit *int) ([]*model.Segment, error)
-	SegmentPatterns(ctx context.Context, obj *model.Route, limit *int) ([]*model.SegmentPattern, error)
+	Segments(ctx context.Context, obj *model.Route, limit *int, where *model.SegmentFilter) ([]*model.Segment, error)
+	SegmentPatterns(ctx context.Context, obj *model.Route, limit *int, where *model.SegmentPatternFilter) ([]*model.SegmentPattern, error)
 }
 type RouteHeadwayResolver interface {
 	Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error)
@@ -2352,6 +2354,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedVersion.SHA1(childComplexity), true
+
+	case "FeedVersion.segments":
+		if e.complexity.FeedVersion.Segments == nil {
+			break
+		}
+
+		args, err := ec.field_FeedVersion_segments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.FeedVersion.Segments(childComplexity, args["limit"].(*int)), true
 
 	case "FeedVersion.service_levels":
 		if e.complexity.FeedVersion.ServiceLevels == nil {
@@ -4935,7 +4949,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Route.SegmentPatterns(childComplexity, args["limit"].(*int)), true
+		return e.complexity.Route.SegmentPatterns(childComplexity, args["limit"].(*int), args["where"].(*model.SegmentPatternFilter)), true
 
 	case "Route.segments":
 		if e.complexity.Route.Segments == nil {
@@ -4947,7 +4961,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Route.Segments(childComplexity, args["limit"].(*int)), true
+		return e.complexity.Route.Segments(childComplexity, args["limit"].(*int), args["where"].(*model.SegmentFilter)), true
 
 	case "Route.stops":
 		if e.complexity.Route.Stops == nil {
@@ -6528,6 +6542,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPlaceFilter,
 		ec.unmarshalInputPointRadius,
 		ec.unmarshalInputRouteFilter,
+		ec.unmarshalInputSegmentFilter,
+		ec.unmarshalInputSegmentPatternFilter,
 		ec.unmarshalInputServiceCoversFilter,
 		ec.unmarshalInputStopFilter,
 		ec.unmarshalInputStopObservationFilter,
@@ -7198,6 +7214,7 @@ type FeedVersion {
   trips(limit: Int, where: TripFilter): [Trip!]!
   feed_infos(limit: Int): [FeedInfo!]!
   validation_reports(limit: Int, where: ValidationReportFilter): [ValidationReport!]
+  segments(limit: Int): [Segment!]
 }
 
 type FeedVersionFileInfo {
@@ -7323,8 +7340,8 @@ type Route {
   route_stop_buffer(radius: Float): RouteStopBuffer!
   patterns: [RouteStopPattern!]
   alerts(active: Boolean, limit: Int): [Alert!]
-  segments(limit: Int): [Segment!]
-  segment_patterns(limit: Int): [SegmentPattern!]
+  segments(limit: Int, where: SegmentFilter): [Segment!]
+  segment_patterns(limit: Int, where: SegmentPatternFilter): [SegmentPattern!]
 }
 
 """
@@ -8040,6 +8057,13 @@ input TripFilter {
   feed_onestop_id: String
 }
 
+input SegmentFilter {
+  layer: String
+}
+
+input SegmentPatternFilter {
+  layer: String
+}
 
 input LicenseFilter {
   share_alike_optional: LicenseValue
@@ -8393,6 +8417,21 @@ func (ec *executionContext) field_FeedVersion_routes_args(ctx context.Context, r
 		}
 	}
 	args["where"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_FeedVersion_segments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
 	return args, nil
 }
 
@@ -9383,6 +9422,15 @@ func (ec *executionContext) field_Route_segment_patterns_args(ctx context.Contex
 		}
 	}
 	args["limit"] = arg0
+	var arg1 *model.SegmentPatternFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOSegmentPatternFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐSegmentPatternFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -9398,6 +9446,15 @@ func (ec *executionContext) field_Route_segments_args(ctx context.Context, rawAr
 		}
 	}
 	args["limit"] = arg0
+	var arg1 *model.SegmentFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg1, err = ec.unmarshalOSegmentFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐSegmentFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg1
 	return args, nil
 }
 
@@ -10578,6 +10635,8 @@ func (ec *executionContext) fieldContext_Agency_feed_version(ctx context.Context
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -14388,6 +14447,8 @@ func (ec *executionContext) fieldContext_Feed_feed_versions(ctx context.Context,
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -15855,6 +15916,8 @@ func (ec *executionContext) fieldContext_FeedState_feed_version(ctx context.Cont
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -17616,6 +17679,68 @@ func (ec *executionContext) fieldContext_FeedVersion_validation_reports(ctx cont
 	return fc, nil
 }
 
+func (ec *executionContext) _FeedVersion_segments(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersion_segments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.FeedVersion().Segments(rctx, obj, fc.Args["limit"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Segment)
+	fc.Result = res
+	return ec.marshalOSegment2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐSegmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersion_segments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersion",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Segment_id(ctx, field)
+			case "way_id":
+				return ec.fieldContext_Segment_way_id(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Segment_geometry(ctx, field)
+			case "segment_patterns":
+				return ec.fieldContext_Segment_segment_patterns(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Segment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_FeedVersion_segments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FeedVersionDeleteResult_success(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionDeleteResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FeedVersionDeleteResult_success(ctx, field)
 	if err != nil {
@@ -17740,6 +17865,8 @@ func (ec *executionContext) fieldContext_FeedVersionFetchResult_feed_version(ctx
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -28597,6 +28724,8 @@ func (ec *executionContext) fieldContext_Mutation_feed_version_update(ctx contex
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -31162,6 +31291,8 @@ func (ec *executionContext) fieldContext_Query_feed_versions(ctx context.Context
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -33597,6 +33728,8 @@ func (ec *executionContext) fieldContext_Route_feed_version(ctx context.Context,
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -34483,7 +34616,7 @@ func (ec *executionContext) _Route_segments(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Route().Segments(rctx, obj, fc.Args["limit"].(*int))
+		return ec.resolvers.Route().Segments(rctx, obj, fc.Args["limit"].(*int), fc.Args["where"].(*model.SegmentFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -34545,7 +34678,7 @@ func (ec *executionContext) _Route_segment_patterns(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Route().SegmentPatterns(rctx, obj, fc.Args["limit"].(*int))
+		return ec.resolvers.Route().SegmentPatterns(rctx, obj, fc.Args["limit"].(*int), fc.Args["where"].(*model.SegmentPatternFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37805,6 +37938,8 @@ func (ec *executionContext) fieldContext_Stop_feed_version(ctx context.Context, 
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -42039,6 +42174,8 @@ func (ec *executionContext) fieldContext_Trip_feed_version(ctx context.Context, 
 				return ec.fieldContext_FeedVersion_feed_infos(ctx, field)
 			case "validation_reports":
 				return ec.fieldContext_FeedVersion_validation_reports(ctx, field)
+			case "segments":
+				return ec.fieldContext_FeedVersion_segments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FeedVersion", field.Name)
 		},
@@ -48186,6 +48323,60 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSegmentFilter(ctx context.Context, obj interface{}) (model.SegmentFilter, error) {
+	var it model.SegmentFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"layer"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "layer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("layer"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Layer = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSegmentPatternFilter(ctx context.Context, obj interface{}) (model.SegmentPatternFilter, error) {
+	var it model.SegmentPatternFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"layer"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "layer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("layer"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Layer = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Context, obj interface{}) (model.ServiceCoversFilter, error) {
 	var it model.ServiceCoversFilter
 	asMap := map[string]interface{}{}
@@ -51055,6 +51246,39 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 					}
 				}()
 				res = ec._FeedVersion_validation_reports(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "segments":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._FeedVersion_segments(ctx, field, obj)
 				return res
 			}
 
@@ -62351,6 +62575,14 @@ func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋinterlineᚑio�
 	return ret
 }
 
+func (ec *executionContext) unmarshalOSegmentFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐSegmentFilter(ctx context.Context, v interface{}) (*model.SegmentFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSegmentFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOSegmentPattern2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐSegmentPatternᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SegmentPattern) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -62396,6 +62628,14 @@ func (ec *executionContext) marshalOSegmentPattern2ᚕᚖgithubᚗcomᚋinterlin
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOSegmentPatternFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐSegmentPatternFilter(ctx context.Context, v interface{}) (*model.SegmentPatternFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSegmentPatternFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOServiceCoversFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐServiceCoversFilter(ctx context.Context, v interface{}) (*model.ServiceCoversFilter, error) {

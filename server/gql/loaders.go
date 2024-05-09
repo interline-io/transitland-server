@@ -63,7 +63,8 @@ type Loaders struct {
 	SegmentPatternsByRouteID                                     *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentPatternsBySegmentID                                   *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentsByID                                                 *dataloader.Loader[int, *model.Segment]
-	SegmentsByRouteID                                            *dataloader.Loader[model.SegmentPatternParam, []*model.Segment]
+	SegmentsByRouteID                                            *dataloader.Loader[model.SegmentParam, []*model.Segment]
+	SegmentsByFeedVersionID                                      *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	ShapesByID                                                   *dataloader.Loader[int, *model.Shape]
 	StopExternalReferencesByStopID                               *dataloader.Loader[int, *model.StopExternalReference]
 	StopObservationsByStopID                                     *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
@@ -129,6 +130,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		SegmentPatternsBySegmentID:              withWaitAndCapacity(waitTime, maxBatch, dbf.SegmentPatternsBySegmentID),
 		SegmentsByID:                            withWaitAndCapacity(waitTime, maxBatch, dbf.SegmentsByID),
 		SegmentsByRouteID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.SegmentsByRouteID),
+		SegmentsByFeedVersionID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.SegmentsByFeedVersionID),
 		ShapesByID:                              withWaitAndCapacity(waitTime, maxBatch, dbf.ShapesByID),
 		StopExternalReferencesByStopID:          withWaitAndCapacity(waitTime, maxBatch, dbf.StopExternalReferencesByStopID),
 		StopObservationsByStopID:                withWaitAndCapacity(waitTime, maxBatch, dbf.StopObservationsByStopID),

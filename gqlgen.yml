@@ -133,6 +133,9 @@ models:
     fields:
       segment_patterns:
         resolver: true
+    extraFields:
+      FeedVersionID:
+        type: int
   SegmentPattern:
     fields:
       segment:

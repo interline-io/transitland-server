@@ -181,8 +181,16 @@ type RouteStopPatternParam struct {
 type SegmentPatternParam struct {
 	SegmentID int
 	RouteID   int
-	Layer     string
 	Limit     *int
+	Where     *SegmentPatternFilter
+}
+
+type SegmentParam struct {
+	FeedVersionID int
+	RouteID       int
+	Layer         string
+	Limit         *int
+	Where         *SegmentFilter
 }
 
 type ValidationReportParam struct {

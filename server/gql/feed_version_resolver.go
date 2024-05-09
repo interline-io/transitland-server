@@ -63,6 +63,12 @@ func (r *feedVersionResolver) ValidationReports(ctx context.Context, obj *model.
 	return For(ctx).ValidationReportsByFeedVersionID.Load(ctx, model.ValidationReportParam{FeedVersionID: obj.ID, Where: where, Limit: limit})()
 }
 
+// SEGMENTS
+
+func (r *feedVersionResolver) Segments(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.Segment, error) {
+	return For(ctx).SegmentsByFeedVersionID.Load(ctx, model.SegmentParam{FeedVersionID: obj.ID, Limit: limit})()
+}
+
 // FEED VERSION GTFS IMPORT
 
 type feedVersionGtfsImportResolver struct{ *Resolver }
