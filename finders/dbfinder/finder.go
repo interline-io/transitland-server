@@ -390,6 +390,33 @@ func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*mo
 	return arrangeBy(ids, ents, func(ent *model.RouteAttribute) int { return ent.RouteID }), nil
 }
 
+func (f *Finder) SegmentsByFeedVersionID(ctx context.Context, params []model.SegmentParam) ([][]*model.Segment, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.SegmentParam) (int, string, *int) {
+			return p.FeedVersionID, p.Layer, p.Limit
+		},
+		func(keys []int, layer string, limit *int) (ents []*model.Segment, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelect("tl_segments", limit, nil, nil),
+					"feed_versions",
+					"id",
+					"tl_segments",
+					"feed_version_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.Segment) int {
+			return ent.FeedVersionID
+		},
+	)
+}
+
 func (f *Finder) SegmentsByID(ctx context.Context, ids []int) ([]*model.Segment, []error) {
 	var ents []*model.Segment
 	err := dbutil.Select(ctx,
@@ -403,17 +430,17 @@ func (f *Finder) SegmentsByID(ctx context.Context, ids []int) ([]*model.Segment,
 	return arrangeBy(ids, ents, func(ent *model.Segment) int { return ent.ID }), nil
 }
 
-func (f *Finder) SegmentsByRouteID(ctx context.Context, params []model.SegmentPatternParam) ([][]*model.Segment, []error) {
+func (f *Finder) SegmentsByRouteID(ctx context.Context, params []model.SegmentParam) ([][]*model.Segment, []error) {
 	type qent struct {
 		RouteID int
 		model.Segment
 	}
 	qentGroups, err := paramGroupQuery(
 		params,
-		func(p model.SegmentPatternParam) (int, bool, *int) {
-			return p.RouteID, false, p.Limit
+		func(p model.SegmentParam) (int, *model.SegmentFilter, *int) {
+			return p.RouteID, p.Where, p.Limit
 		},
-		func(keys []int, where bool, limit *int) (ents []*qent, err error) {
+		func(keys []int, where *model.SegmentFilter, limit *int) (ents []*qent, err error) {
 			q := sq.Select("s.id", "s.way_id", "s.geometry", "s.route_id").
 				From("gtfs_routes").
 				JoinClause(
@@ -438,10 +465,10 @@ func (f *Finder) SegmentsByRouteID(ctx context.Context, params []model.SegmentPa
 func (f *Finder) SegmentPatternsByRouteID(ctx context.Context, params []model.SegmentPatternParam) ([][]*model.SegmentPattern, []error) {
 	return paramGroupQuery(
 		params,
-		func(p model.SegmentPatternParam) (int, string, *int) {
-			return p.RouteID, p.Layer, p.Limit
+		func(p model.SegmentPatternParam) (int, *model.SegmentPatternFilter, *int) {
+			return p.RouteID, p.Where, p.Limit
 		},
-		func(keys []int, layer string, limit *int) (ents []*model.SegmentPattern, err error) {
+		func(keys []int, where *model.SegmentPatternFilter, limit *int) (ents []*model.SegmentPattern, err error) {
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
@@ -465,10 +492,10 @@ func (f *Finder) SegmentPatternsByRouteID(ctx context.Context, params []model.Se
 func (f *Finder) SegmentPatternsBySegmentID(ctx context.Context, params []model.SegmentPatternParam) ([][]*model.SegmentPattern, []error) {
 	return paramGroupQuery(
 		params,
-		func(p model.SegmentPatternParam) (int, string, *int) {
-			return p.SegmentID, p.Layer, p.Limit
+		func(p model.SegmentPatternParam) (int, *model.SegmentPatternFilter, *int) {
+			return p.SegmentID, p.Where, p.Limit
 		},
-		func(keys []int, layer string, limit *int) (ents []*model.SegmentPattern, err error) {
+		func(keys []int, where *model.SegmentPatternFilter, limit *int) (ents []*model.SegmentPattern, err error) {
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(

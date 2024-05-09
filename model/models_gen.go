@@ -443,14 +443,24 @@ type Segment struct {
 	WayID           int               `json:"way_id"`
 	Geometry        tt.LineString     `json:"geometry"`
 	SegmentPatterns []*SegmentPattern `json:"segment_patterns,omitempty"`
+	FeedVersionID   int               `json:"-"`
+}
+
+type SegmentFilter struct {
+	Layer *string `json:"layer,omitempty"`
 }
 
 type SegmentPattern struct {
 	ID            int      `json:"id"`
+	Route         *Route   `json:"route"`
 	StopPatternID int      `json:"stop_pattern_id"`
 	Segment       *Segment `json:"segment"`
 	RouteID       int      `json:"-"`
 	SegmentID     int      `json:"-"`
+}
+
+type SegmentPatternFilter struct {
+	Layer *string `json:"layer,omitempty"`
 }
 
 type ServiceCoversFilter struct {

@@ -313,6 +313,55 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 	}
 }
 
+func TestRouteResolver_Segments(t *testing.T) {
+	testcases := []testcase{
+		{
+			name:         "two segments",
+			query:        `query($fsid:String!, $route_id:String!) { routes(where:{route_id:$route_id, feed_onestop_id:$fsid}) { route_id segments { id way_id } }}`,
+			vars:         hw{"fsid": "HA", "route_id": "12"},
+			selector:     "routes.0.segments.#.way_id",
+			selectExpect: []string{"645693994", "90865590"},
+		},
+		{
+			name:         "single segment",
+			query:        `query($fsid:String!, $route_id:String!) { routes(where:{route_id:$route_id, feed_onestop_id:$fsid}) { route_id segments { id way_id } }}`,
+			vars:         hw{"fsid": "HA", "route_id": "19"},
+			selector:     "routes.0.segments.#.way_id",
+			selectExpect: []string{"645693994"},
+		},
+		{
+			name:     "geometry",
+			query:    `query($fsid:String!, $route_id:String!) { routes(where:{route_id:$route_id, feed_onestop_id:$fsid}) { route_id segments { id way_id geometry } }}`,
+			vars:     hw{"fsid": "HA", "route_id": "12"},
+			selector: "routes.0.segments.#.geometry",
+			selectExpect: []string{
+				`{"coordinates":[[-82.458062,27.954493],[-82.458044,27.954442]],"type":"LineString"}`,
+				`{"coordinates":[[-82.437785,28.058093],[-82.438163,28.058095],[-82.438219,28.058091],[-82.438277,28.058079],[-82.43833,28.058061],[-82.438375,28.058036],[-82.438415,28.058002],[-82.438449,28.057959],[-82.438476,28.057911],[-82.438493,28.05786],[-82.438501,28.057806],[-82.438504,28.057755],[-82.438504,28.057713],[-82.438504,28.057535]],"type":"LineString"}`,
+			},
+		},
+		{
+			name:         "segments to patterns multiple",
+			query:        `query($fsid:String!, $route_id:String!) { routes(where:{route_id:$route_id, feed_onestop_id:$fsid}) { route_id segments { id way_id segment_patterns { stop_pattern_id }} }}`,
+			vars:         hw{"fsid": "HA", "route_id": "12"},
+			selector:     "routes.0.segments.#.segment_patterns.#.stop_pattern_id",
+			selectExpect: []string{"[42,40]", "[42]"}, // multiple lookup results look like this
+		},
+		{
+			name:         "segments to patterns single",
+			query:        `query($fsid:String!, $route_id:String!) { routes(where:{route_id:$route_id, feed_onestop_id:$fsid}) { route_id segments { id way_id segment_patterns { stop_pattern_id }} }}`,
+			vars:         hw{"fsid": "HA", "route_id": "19"},
+			selector:     "routes.0.segments.#.segment_patterns.#.stop_pattern_id",
+			selectExpect: []string{"[42,40]"},
+		},
+	}
+	c, _ := newTestClient(t)
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			queryTestcase(t, c, tc)
+		})
+	}
+}
+
 func TestRouteResolver_Cursor(t *testing.T) {
 	c, cfg := newTestClient(t)
 	allEnts, err := cfg.Finder.FindRoutes(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)

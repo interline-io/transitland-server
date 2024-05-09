@@ -16,15 +16,15 @@ func (r *censusGeographyResolver) Values(ctx context.Context, obj *model.CensusG
 	return For(ctx).CensusValuesByGeographyID.Load(ctx, model.CensusValueParam{TableNames: strings.Join(tableNames, ","), Limit: limit, GeographyID: obj.ID})()
 }
 
-type censusValueResolver struct{ *Resolver }
+// type censusValueResolver struct{ *Resolver }
 
-func (r *censusValueResolver) Table(ctx context.Context, obj *model.CensusValue) (*model.CensusTable, error) {
-	return For(ctx).CensusTableByID.Load(ctx, obj.TableID)()
-}
+// func (r *censusValueResolver) Table(ctx context.Context, obj *model.CensusValue) (*model.CensusTable, error) {
+// 	return For(ctx).CensusTableByID.Load(ctx, obj.TableID)()
+// }
 
-func (r *censusValueResolver) Values(ctx context.Context, obj *model.CensusValue) (interface{}, error) {
-	return obj.Values, nil
-}
+// func (r *censusValueResolver) Values(ctx context.Context, obj *model.CensusValue) (interface{}, error) {
+// 	return obj.Values, nil
+// }
 
 // add geography resolvers to agency, route, stop
 

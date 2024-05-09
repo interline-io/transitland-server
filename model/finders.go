@@ -80,7 +80,8 @@ type EntityLoader interface {
 	SegmentPatternsByRouteID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
 	SegmentPatternsBySegmentID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
 	SegmentsByID(context.Context, []int) ([]*Segment, []error)
-	SegmentsByRouteID(context.Context, []SegmentPatternParam) ([][]*Segment, []error)
+	SegmentsByRouteID(context.Context, []SegmentParam) ([][]*Segment, []error)
+	SegmentsByFeedVersionID(context.Context, []SegmentParam) ([][]*Segment, []error)
 
 	// Other loaders
 	FeedVersionGtfsImportsByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
