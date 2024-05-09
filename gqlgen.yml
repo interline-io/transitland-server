@@ -140,6 +140,8 @@ models:
     fields:
       segment:
         resolver: true
+      route:
+        resolver: true
     extraFields:
       RouteID:
         type: int

@@ -612,6 +612,7 @@ type RouteHeadway {
 
 type SegmentPattern {
   id: Int!
+  route: Route!
   stop_pattern_id: Int!
   segment: Segment!
 }

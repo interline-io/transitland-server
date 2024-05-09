@@ -452,6 +452,7 @@ type SegmentFilter struct {
 
 type SegmentPattern struct {
 	ID            int      `json:"id"`
+	Route         *Route   `json:"route"`
 	StopPatternID int      `json:"stop_pattern_id"`
 	Segment       *Segment `json:"segment"`
 	RouteID       int      `json:"-"`

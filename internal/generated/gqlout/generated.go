@@ -821,6 +821,7 @@ type ComplexityRoot struct {
 
 	SegmentPattern struct {
 		ID            func(childComplexity int) int
+		Route         func(childComplexity int) int
 		Segment       func(childComplexity int) int
 		StopPatternID func(childComplexity int) int
 	}
@@ -1176,6 +1177,8 @@ type SegmentResolver interface {
 	SegmentPatterns(ctx context.Context, obj *model.Segment) ([]*model.SegmentPattern, error)
 }
 type SegmentPatternResolver interface {
+	Route(ctx context.Context, obj *model.SegmentPattern) (*model.Route, error)
+
 	Segment(ctx context.Context, obj *model.SegmentPattern) (*model.Segment, error)
 }
 type StopResolver interface {
@@ -5237,6 +5240,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SegmentPattern.ID(childComplexity), true
 
+	case "SegmentPattern.route":
+		if e.complexity.SegmentPattern.Route == nil {
+			break
+		}
+
+		return e.complexity.SegmentPattern.Route(childComplexity), true
+
 	case "SegmentPattern.segment":
 		if e.complexity.SegmentPattern.Segment == nil {
 			break
@@ -7620,6 +7630,7 @@ type RouteHeadway {
 
 type SegmentPattern {
   id: Int!
+  route: Route!
   stop_pattern_id: Int!
   segment: Segment!
 }
@@ -34702,6 +34713,8 @@ func (ec *executionContext) fieldContext_Route_segment_patterns(ctx context.Cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_SegmentPattern_id(ctx, field)
+			case "route":
+				return ec.fieldContext_SegmentPattern_route(ctx, field)
 			case "stop_pattern_id":
 				return ec.fieldContext_SegmentPattern_stop_pattern_id(ctx, field)
 			case "segment":
@@ -36459,6 +36472,8 @@ func (ec *executionContext) fieldContext_Segment_segment_patterns(ctx context.Co
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_SegmentPattern_id(ctx, field)
+			case "route":
+				return ec.fieldContext_SegmentPattern_route(ctx, field)
 			case "stop_pattern_id":
 				return ec.fieldContext_SegmentPattern_stop_pattern_id(ctx, field)
 			case "segment":
@@ -36509,6 +36524,114 @@ func (ec *executionContext) fieldContext_SegmentPattern_id(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SegmentPattern_route(ctx context.Context, field graphql.CollectedField, obj *model.SegmentPattern) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SegmentPattern_route(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SegmentPattern().Route(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Route)
+	fc.Result = res
+	return ec.marshalNRoute2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRoute(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SegmentPattern_route(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SegmentPattern",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Route_id(ctx, field)
+			case "onestop_id":
+				return ec.fieldContext_Route_onestop_id(ctx, field)
+			case "route_id":
+				return ec.fieldContext_Route_route_id(ctx, field)
+			case "route_short_name":
+				return ec.fieldContext_Route_route_short_name(ctx, field)
+			case "route_long_name":
+				return ec.fieldContext_Route_route_long_name(ctx, field)
+			case "route_type":
+				return ec.fieldContext_Route_route_type(ctx, field)
+			case "route_color":
+				return ec.fieldContext_Route_route_color(ctx, field)
+			case "route_text_color":
+				return ec.fieldContext_Route_route_text_color(ctx, field)
+			case "route_sort_order":
+				return ec.fieldContext_Route_route_sort_order(ctx, field)
+			case "route_url":
+				return ec.fieldContext_Route_route_url(ctx, field)
+			case "route_desc":
+				return ec.fieldContext_Route_route_desc(ctx, field)
+			case "continuous_pickup":
+				return ec.fieldContext_Route_continuous_pickup(ctx, field)
+			case "continuous_drop_off":
+				return ec.fieldContext_Route_continuous_drop_off(ctx, field)
+			case "geometry":
+				return ec.fieldContext_Route_geometry(ctx, field)
+			case "agency":
+				return ec.fieldContext_Route_agency(ctx, field)
+			case "feed_version":
+				return ec.fieldContext_Route_feed_version(ctx, field)
+			case "feed_version_sha1":
+				return ec.fieldContext_Route_feed_version_sha1(ctx, field)
+			case "feed_onestop_id":
+				return ec.fieldContext_Route_feed_onestop_id(ctx, field)
+			case "search_rank":
+				return ec.fieldContext_Route_search_rank(ctx, field)
+			case "route_attribute":
+				return ec.fieldContext_Route_route_attribute(ctx, field)
+			case "trips":
+				return ec.fieldContext_Route_trips(ctx, field)
+			case "stops":
+				return ec.fieldContext_Route_stops(ctx, field)
+			case "route_stops":
+				return ec.fieldContext_Route_route_stops(ctx, field)
+			case "headways":
+				return ec.fieldContext_Route_headways(ctx, field)
+			case "geometries":
+				return ec.fieldContext_Route_geometries(ctx, field)
+			case "census_geographies":
+				return ec.fieldContext_Route_census_geographies(ctx, field)
+			case "route_stop_buffer":
+				return ec.fieldContext_Route_route_stop_buffer(ctx, field)
+			case "patterns":
+				return ec.fieldContext_Route_patterns(ctx, field)
+			case "alerts":
+				return ec.fieldContext_Route_alerts(ctx, field)
+			case "segments":
+				return ec.fieldContext_Route_segments(ctx, field)
+			case "segment_patterns":
+				return ec.fieldContext_Route_segment_patterns(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Route", field.Name)
 		},
 	}
 	return fc, nil
@@ -55641,6 +55764,42 @@ func (ec *executionContext) _SegmentPattern(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "route":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SegmentPattern_route(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "stop_pattern_id":
 			out.Values[i] = ec._SegmentPattern_stop_pattern_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

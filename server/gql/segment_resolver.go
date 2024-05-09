@@ -21,3 +21,7 @@ type segmentPatternResolver struct{ *Resolver }
 func (r *segmentPatternResolver) Segment(ctx context.Context, obj *model.SegmentPattern) (*model.Segment, error) {
 	return For(ctx).SegmentsByID.Load(ctx, obj.SegmentID)()
 }
+
+func (r *segmentPatternResolver) Route(ctx context.Context, obj *model.SegmentPattern) (*model.Route, error) {
+	return For(ctx).RoutesByID.Load(ctx, obj.RouteID)()
+}
