@@ -92,16 +92,21 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 
 	// Setup Checker
 	var checker model.Checker
+	var whoami model.Whoami
 	if opts.FGAEndpoint != "" {
 		checkerCfg := azcheck.CheckerConfig{
 			FGAEndpoint:      opts.FGAEndpoint,
 			FGALoadModelFile: opts.FGAModelFile,
 			FGALoadTestData:  opts.FGAModelTuples,
 		}
-		checker, err = azcheck.NewCheckerFromConfig(checkerCfg, db)
+		ch, err := azcheck.NewCheckerFromConfig(checkerCfg, db)
 		if err != nil {
 			t.Fatal(err)
 		}
+		checker = ch
+		whoami = ch
+	} else {
+		whoami = &azcheck.Whoami{}
 	}
 
 	// Setup DB
@@ -144,6 +149,7 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 		Finder:     dbf,
 		RTFinder:   rtf,
 		GbfsFinder: gbf,
+		Whoami:     whoami,
 		Checker:    checker,
 		JobQueue:   jobQueue,
 		Clock:      cl,

@@ -327,12 +327,26 @@ func checkFeedEdit(ctx context.Context, fvid int) error {
 		return errors.New("invalid feed version id")
 	}
 	cfg := model.ForContext(ctx)
-	if checker := cfg.Checker; checker == nil {
+
+	// Check feed permissions
+	if whoami := cfg.Whoami; whoami == nil {
+		// Not ok
+	} else if me, err := whoami.Me(ctx, &authz.MeRequest{}); err != nil {
+		// Not ok
+	} else if me.IsGlobalAdmin {
+		// OK
 		return nil
-	} else if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
-		return err
-	} else if !check.Actions.CanEdit {
-		return authz.ErrUnauthorized
 	}
-	return nil
+
+	if checker := cfg.Checker; checker == nil {
+		// Not ok
+	} else if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+		// Not ok
+	} else if check.Actions.CanEdit {
+		// OK
+		return nil
+	}
+
+	// Failed
+	return authz.ErrUnauthorized
 }

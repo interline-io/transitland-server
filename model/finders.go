@@ -154,3 +154,7 @@ type GbfsFinder interface {
 type Checker interface {
 	authz.CheckerServer
 }
+
+type Whoami interface {
+	authz.WhoamiServer
+}

@@ -135,6 +135,7 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, permFilter *mode
 		Join("feed_states fsp on fsp.feed_id = coif.feed_id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
+			sq.Eq{"true": permFilter.IsGlobalAdmin()},
 			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 		})
 

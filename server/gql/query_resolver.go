@@ -20,9 +20,9 @@ func (r *queryResolver) Me(ctx context.Context) (*model.Me, error) {
 	cfg := model.ForContext(ctx)
 	me := model.Me{}
 	me.ExternalData = tt.NewMap(map[string]any{})
-	if checker := cfg.Checker; checker != nil {
-		// Use checker if available
-		cm, err := checker.Me(ctx, &authz.MeRequest{})
+	if whoami := cfg.Whoami; whoami != nil {
+		// Use whoami checker if available
+		cm, err := whoami.Me(ctx, &authz.MeRequest{})
 		if err != nil {
 			return nil, err
 		}

@@ -13,6 +13,7 @@ type Config struct {
 	Finder             Finder
 	RTFinder           RTFinder
 	GbfsFinder         GbfsFinder
+	Whoami             Whoami
 	Checker            Checker
 	JobQueue           jobs.JobQueue
 	Clock              clock.Clock

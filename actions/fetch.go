@@ -268,12 +268,24 @@ func fetchCheckFeed(ctx context.Context, feedId string) (*model.Feed, error) {
 	feed := feeds[0]
 
 	// Check feed permissions
-	if checker := cfg.Checker; checker == nil {
-		// pass
-	} else if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
-		return nil, err
-	} else if !check.Actions.CanCreateFeedVersion {
-		return nil, errors.New("unauthorized")
+	if whoami := cfg.Whoami; whoami == nil {
+		// Not ok
+	} else if me, err := whoami.Me(ctx, &authz.MeRequest{}); err != nil {
+		// Not ok
+	} else if me.IsGlobalAdmin {
+		// OK
+		return feed, nil
 	}
-	return feed, nil
+
+	if checker := cfg.Checker; checker == nil {
+		// Not ok
+	} else if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
+		// Not ok
+	} else if check.Actions.CanCreateFeedVersion {
+		// OK
+		return feed, nil
+	}
+
+	// Failed
+	return nil, authz.ErrUnauthorized
 }

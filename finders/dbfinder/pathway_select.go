@@ -46,6 +46,7 @@ func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
+			sq.Eq{"true": permFilter.IsGlobalAdmin()},
 			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
 			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
 		})

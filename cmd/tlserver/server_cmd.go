@@ -21,6 +21,7 @@ import (
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/azcheck"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -127,11 +128,15 @@ func (cmd *Command) Run() error {
 		gbfsFinder = gbfsfinder.NewFinder(nil)
 	}
 
+	// Create default Whoami checker
+	whoami := &azcheck.Whoami{}
+
 	// Setup config
 	cfg := model.Config{
 		Finder:             dbFinder,
 		RTFinder:           rtFinder,
 		GbfsFinder:         gbfsFinder,
+		Whoami:             whoami,
 		Secrets:            cmd.secrets,
 		Storage:            cmd.Storage,
 		RTStorage:          cmd.RTStorage,
@@ -152,7 +157,7 @@ func (cmd *Command) Run() error {
 	root.Use(model.AddConfig(cfg))
 
 	// This server only supports admin access
-	root.Use(ancheck.AdminDefaultMiddleware("admin"))
+	root.Use(ancheck.AdminDefaultMiddleware(azcheck.GLOBALADMIN_ROLE))
 
 	// Add logging middleware - must be after auth
 	root.Use(log.LoggingMiddleware(cmd.LongQueryDuration, func(ctx context.Context) string {

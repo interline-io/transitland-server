@@ -45,7 +45,10 @@ func (f *Finder) LoadAdmins() error {
 }
 
 func (f *Finder) PermFilter(ctx context.Context) *model.PermFilter {
-	permFilter, _ := checkActive(ctx)
+	permFilter, err := checkActive(ctx)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to get permissions filter for context")
+	}
 	return permFilter
 }
 
@@ -1843,36 +1846,35 @@ func convertEnts[A any, B any](vals [][]A, fn func(a A) B) [][]B {
 	return ret
 }
 
-type canCheckGlobalAdmin interface {
-	CheckGlobalAdmin(context.Context) (bool, error)
-}
-
 func checkActive(ctx context.Context) (*model.PermFilter, error) {
-	checker := model.ForContext(ctx).Checker
 	active := &model.PermFilter{}
+
+	// Check if we are a global admin
+	whoami := model.ForContext(ctx).Whoami
+	if whoami == nil {
+		return active, nil
+	}
+	me, err := whoami.Me(ctx, &authz.MeRequest{})
+	if err != nil {
+		return active, err
+	}
+	active.GlobalAdmin = me.IsGlobalAdmin
+
+	// Check for additional permissions
+	checker := model.ForContext(ctx).Checker
 	if checker == nil {
 		return active, nil
 	}
-
-	// TODO: Make this part of actual checker interface
-	if c, ok := checker.(canCheckGlobalAdmin); ok {
-		if a, err := c.CheckGlobalAdmin(ctx); err != nil {
-			return nil, err
-		} else if a {
-			return nil, nil
-		}
-	}
-
 	okFeeds, err := checker.FeedList(ctx, &authz.FeedListRequest{})
 	if err != nil {
-		return nil, err
+		return active, err
 	}
 	for _, feed := range okFeeds.Feeds {
 		active.AllowedFeeds = append(active.AllowedFeeds, int(feed.Id))
 	}
 	okFvids, err := checker.FeedVersionList(ctx, &authz.FeedVersionListRequest{})
 	if err != nil {
-		return nil, err
+		return active, err
 	}
 	for _, fv := range okFvids.FeedVersions {
 		active.AllowedFeedVersions = append(active.AllowedFeedVersions, int(fv.Id))

@@ -13,6 +13,7 @@ import (
 type PermFilter struct {
 	AllowedFeeds        []int
 	AllowedFeedVersions []int
+	GlobalAdmin         bool
 }
 
 func (pf *PermFilter) GetAllowedFeeds() []int {
@@ -27,6 +28,13 @@ func (pf *PermFilter) GetAllowedFeedVersions() []int {
 		return nil
 	}
 	return pf.AllowedFeedVersions
+}
+
+func (pf *PermFilter) IsGlobalAdmin() bool {
+	if pf == nil {
+		return false
+	}
+	return pf.GlobalAdmin
 }
 
 type Cursor struct {

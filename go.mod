@@ -121,6 +121,6 @@ require (
 )
 
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
-// replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
+replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
