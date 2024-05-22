@@ -46,7 +46,10 @@ func (f *Finder) LoadAdmins() error {
 }
 
 func (f *Finder) PermFilter(ctx context.Context) *model.PermFilter {
-	permFilter, _ := checkActive(ctx)
+	permFilter, err := checkActive(ctx)
+	if err != nil {
+		log.Error().Err(err).Msg("error checking perm filter")
+	}
 	return permFilter
 }
 
