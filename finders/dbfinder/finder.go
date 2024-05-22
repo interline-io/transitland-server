@@ -566,7 +566,7 @@ func (f *Finder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids 
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.FeedVersionGtfsImport) int { return ent.FeedVersionID }), nil
+	return arrangeBy(ids, ents, func(ent *model.FeedVersionGtfsImport) int { return ent.FeedVersionID }), nil
 }
 
 func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
