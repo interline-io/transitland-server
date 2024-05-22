@@ -323,11 +323,18 @@ func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []e
 }
 
 func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
+	log.Trace().Ints("ids", ids).Msg("FeedVersionsByID: start")
 	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeBy(ids, ents, func(ent *model.FeedVersion) int { return ent.ID }), nil
+	ret := arrangeBy(ids, ents, func(ent *model.FeedVersion) int { return ent.ID })
+	var retIds []int
+	for _, v := range ret {
+		retIds = append(retIds, v.ID)
+	}
+	log.Trace().Ints("ids", retIds).Msg("FeedVersionsByID: return")
+	return ret, nil
 }
 
 func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
