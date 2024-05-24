@@ -50,6 +50,7 @@ func (f *Finder) PermFilter(ctx context.Context) *model.PermFilter {
 	if err != nil {
 		log.Error().Err(err).Msg("error checking perm filter")
 	}
+	log.Trace().Any("perm", permFilter).Msg("perm filter result")
 	return permFilter
 }
 
