@@ -97,7 +97,7 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 		q = q.Distinct().Options("on (gtfs_agencies.feed_version_id,gtfs_agencies.id)")
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"gtfs_agencies.id": ids})
+		q = q.Where(In("gtfs_agencies.id", ids))
 	}
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
@@ -122,8 +122,8 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+			In("fsp.feed_id", permFilter.GetAllowedFeeds()),
+			In("feed_versions.id", permFilter.GetAllowedFeedVersions()),
 		})
 
 	return q

@@ -9,6 +9,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/lib/pq"
 )
 
 // Maximum query result limit
@@ -77,6 +78,13 @@ func escapeWordsWithSuffix(v string, sfx string) []string {
 	return ret
 }
 
+func In[T any](col string, val []T) sq.Sqlizer {
+	return sq.Expr(
+		fmt.Sprintf("%s = ANY(?)", az09(col)),
+		pq.Array(val),
+	)
+}
+
 func tsTableQuery(table string, s string) (rank sq.Sqlizer, wc sq.Sqlizer) {
 	s = strings.TrimSpace(s)
 	words := append([]string{}, escapeWordsWithSuffix(s, ":*")...)
@@ -121,7 +129,7 @@ func quickSelectOrder(table string, limit *int, after *model.Cursor, ids []int, 
 		q = q.OrderBy(order)
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"id": ids})
+		q = q.Where(In("id", ids))
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"id": after.ID})

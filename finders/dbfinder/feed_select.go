@@ -36,7 +36,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 			for _, s := range where.Spec {
 				specs = append(specs, s.ToDBString())
 			}
-			q = q.Where(sq.Eq{"spec": specs})
+			q = q.Where(In("spec", specs))
 		}
 
 		// Spatial
@@ -127,7 +127,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 		}
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"current_feeds.id": ids})
+		q = q.Where(In("current_feeds.id", ids))
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"current_feeds.id": after.ID})
@@ -138,7 +138,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
+			In("fsp.feed_id", permFilter.GetAllowedFeeds()),
 		})
 
 	return q

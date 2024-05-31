@@ -35,7 +35,7 @@ func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model
 		}
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"gtfs_pathways.id": ids})
+		q = q.Where(In("gtfs_pathways.id", ids))
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"gtfs_pathways.id": after.ID})
@@ -46,8 +46,8 @@ func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+			In("fsp.feed_id", permFilter.GetAllowedFeeds()),
+			In("feed_versions.id", permFilter.GetAllowedFeedVersions()),
 		})
 
 	return q

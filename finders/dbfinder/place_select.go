@@ -56,8 +56,8 @@ func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceA
 	q = q.
 		Where(sq.Or{
 			sq.Expr("feed_states.public = true"),
-			sq.Eq{"feed_states.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_states.feed_version_id": permFilter.GetAllowedFeedVersions()},
+			In("feed_states.feed_id", permFilter.GetAllowedFeeds()),
+			In("feed_states.feed_version_id", permFilter.GetAllowedFeedVersions()),
 		})
 
 	return q

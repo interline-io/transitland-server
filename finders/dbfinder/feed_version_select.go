@@ -138,7 +138,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 		}
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"feed_versions.id": ids})
+		q = q.Where(In("feed_versions.id", ids))
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Expr("(feed_versions.fetched_at,feed_versions.id) < (select fetched_at,id from feed_versions where id = ?)", after.ID))
@@ -149,8 +149,8 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
 		Where(sq.Or{
 			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
+			In("fsp.feed_id", permFilter.GetAllowedFeeds()),
+			In("feed_versions.id", permFilter.GetAllowedFeedVersions()),
 		})
 	return q
 }
@@ -185,7 +185,7 @@ func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, p
 		}
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"feed_version_service_levels.id": ids})
+		q = q.Where(In("feed_version_service_levels.id", ids))
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"feed_version_service_levels.id": after.ID})
@@ -202,5 +202,5 @@ func FeedVersionGeometrySelect(ids []int) sq.SelectBuilder {
 	return sq.StatementBuilder.
 		Select("feed_version_id", "geometry").
 		From("tl_feed_version_geometries").
-		Where(sq.Eq{"feed_version_id": ids})
+		Where(In("feed_version_id", ids))
 }
