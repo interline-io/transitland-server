@@ -1,6 +1,8 @@
 package dbfinder
 
 import (
+	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -105,7 +107,10 @@ func OperatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBui
 		// Text search
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsTableQuery("coif", *where.Search)
-			q = q.Column(rank).Where(wc)
+			q = q.Column(rank).Where(sq.Or{
+				wc,
+				sq.Expr("coif.resolved_onestop_id ilike ?", fmt.Sprintf("%%%s%%", *where.Search)),
+			})
 		}
 	}
 	if distinct {

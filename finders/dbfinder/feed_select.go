@@ -1,6 +1,8 @@
 package dbfinder
 
 import (
+	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-server/model"
@@ -123,8 +125,12 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 		// Text search
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsTableQuery("current_feeds", *where.Search)
-			q = q.Column(rank).Where(wc)
+			q = q.Column(rank).Where(sq.Or{
+				wc,
+				sq.Expr("onestop_id ilike ?", fmt.Sprintf("%%%s%%", *where.Search)),
+			})
 		}
+
 	}
 	if len(ids) > 0 {
 		q = q.Where(sq.Eq{"current_feeds.id": ids})

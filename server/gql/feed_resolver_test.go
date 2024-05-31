@@ -139,6 +139,12 @@ func TestFeedResolver(t *testing.T) {
 			selectExpect: []string{"BA", "BA~rt"},
 		},
 		{
+			name:         "where search on ilike onestop_id",
+			query:        `query { feeds(where:{search:"~r"}) {onestop_id}}`,
+			selector:     "feeds.#.onestop_id",
+			selectExpect: []string{"CT~rt", "BA~rt"},
+		},
+		{
 			name:         "where tags test=ok",
 			query:        `query { feeds(where:{tags:{test:"ok"}}) {onestop_id}}`,
 			selector:     "feeds.#.onestop_id",
