@@ -12,7 +12,6 @@ import (
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
@@ -46,12 +45,7 @@ func (f *Finder) LoadAdmins() error {
 }
 
 func (f *Finder) PermFilter(ctx context.Context) *model.PermFilter {
-	permFilter, err := checkActive(ctx)
-	if err != nil {
-		log.Error().Err(err).Msg("error checking perm filter")
-	}
-	log.Trace().Any("perm", permFilter).Msg("perm filter result")
-	return permFilter
+	return model.PermsForContext(ctx)
 }
 
 func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
@@ -1891,42 +1885,4 @@ func convertEnts[A any, B any](vals [][]A, fn func(a A) B) [][]B {
 		}
 	}
 	return ret
-}
-
-type canCheckGlobalAdmin interface {
-	CheckGlobalAdmin(context.Context) (bool, error)
-}
-
-func checkActive(ctx context.Context) (*model.PermFilter, error) {
-	checker := model.ForContext(ctx).Checker
-	active := &model.PermFilter{}
-	if checker == nil {
-		return active, nil
-	}
-
-	// TODO: Make this part of actual checker interface
-	if c, ok := checker.(canCheckGlobalAdmin); ok {
-		if a, err := c.CheckGlobalAdmin(ctx); err != nil {
-			return nil, err
-		} else if a {
-			return nil, nil
-		}
-	}
-
-	okFeeds, err := checker.FeedList(ctx, &authz.FeedListRequest{})
-	if err != nil {
-		return nil, err
-	}
-	for _, feed := range okFeeds.Feeds {
-		active.AllowedFeeds = append(active.AllowedFeeds, int(feed.Id))
-	}
-	okFvids, err := checker.FeedVersionList(ctx, &authz.FeedVersionListRequest{})
-	if err != nil {
-		return nil, err
-	}
-	for _, fv := range okFvids.FeedVersions {
-		active.AllowedFeedVersions = append(active.AllowedFeedVersions, int(fv.Id))
-	}
-	// fmt.Println("active allowed feeds:", active.AllowedFeeds, "fvs:", active.AllowedFeedVersions)
-	return active, nil
 }
