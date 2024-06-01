@@ -78,12 +78,15 @@ func escapeWordsWithSuffix(v string, sfx string) []string {
 	return ret
 }
 
-func pfCheck(permFilter *model.PermFilter) sq.Sqlizer {
-	return sq.Or{
-		sq.Expr("fsp.public = true"),
-		In("fsp.feed_id", permFilter.GetAllowedFeeds()),
-		In("feed_versions.id", permFilter.GetAllowedFeedVersions()),
+func pfJoinCheck(q sq.SelectBuilder, feedCol string, fvCol string, permFilter *model.PermFilter) sq.SelectBuilder {
+	sqOr := sq.Or{}
+	q = q.Join(fmt.Sprintf("feed_states fsp on fsp.feed_id = %s", az09(feedCol)))
+	sqOr = append(sqOr, sq.Expr("fsp.public = true"))
+	sqOr = append(sqOr, In("fsp.feed_id", permFilter.GetAllowedFeeds()))
+	if fvCol != "" {
+		sqOr = append(sqOr, In(az09(fvCol), permFilter.GetAllowedFeedVersions()))
 	}
+	return q.Where(sqOr)
 }
 
 func In[T any](col string, val []T) sq.Sqlizer {

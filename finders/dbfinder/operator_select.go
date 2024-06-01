@@ -131,12 +131,7 @@ func OperatorSelect(limit *int, after *model.Cursor, ids []int, permFilter *mode
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = coif.feed_id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			In("fsp.feed_id", permFilter.GetAllowedFeeds()),
-		})
+	q = pfJoinCheck(q, "coif.feed_id", "", permFilter)
 
 	// Outer query - support pagination
 	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").OrderBy("id").Limit(checkLimit(limit))

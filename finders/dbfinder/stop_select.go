@@ -183,9 +183,6 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(pfCheck(permFilter))
-
+	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
 	return q
 }

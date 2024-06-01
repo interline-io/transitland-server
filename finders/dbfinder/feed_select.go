@@ -134,12 +134,6 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			In("fsp.feed_id", permFilter.GetAllowedFeeds()),
-		})
-
+	q = pfJoinCheck(q, "current_feeds.id", "", permFilter)
 	return q
 }

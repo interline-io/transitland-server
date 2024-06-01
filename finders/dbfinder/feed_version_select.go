@@ -146,9 +146,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(pfCheck(permFilter))
+	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
 	return q
 }
 

@@ -36,8 +36,8 @@ func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceA
 	q := sq.StatementBuilder.
 		Select(selKeys...).
 		Columns("json_agg(distinct tlap.agency_id) as agency_ids").
-		From("feed_states fsp").
-		Join("tl_agency_places tlap on tlap.feed_version_id = fsp.feed_version_id").
+		From("feed_states").
+		Join("tl_agency_places tlap on tlap.feed_version_id = feed_states.feed_version_id").
 		GroupBy(groupKeys...)
 
 	if where != nil {
@@ -53,7 +53,6 @@ func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceA
 	}
 
 	// Handle permissions
-	q = q.Where(pfCheck(permFilter))
-
+	q = pfJoinCheck(q, "feed_states.feed_id", "feed_states.feed_version_id", permFilter)
 	return q
 }
