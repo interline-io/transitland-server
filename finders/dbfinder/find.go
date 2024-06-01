@@ -111,6 +111,7 @@ func tsTableQuery(table string, s string) (rank sq.Sqlizer, wc sq.Sqlizer) {
 		fmt.Sprintf(`"%s".textsearch @@ to_tsquery('tl',?)`, az09(table)),
 		wordstsq,
 	)
+
 	return rank, wc
 }
 
