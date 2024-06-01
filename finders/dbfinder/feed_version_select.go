@@ -24,7 +24,8 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 			"feed_versions.file",
 		).
 		From("feed_versions").
-		Join("current_feeds on current_feeds.id = feed_versions.feed_id").Where(sq.Eq{"current_feeds.deleted_at": nil}).
+		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
+		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Limit(checkLimit(limit)).
 		OrderBy("feed_versions.fetched_at desc, feed_versions.id desc")
 
@@ -134,7 +135,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 				log.Error().Str("value", v.String()).Msg("unknown import status enum")
 			}
 			q = q.Join(`feed_version_gtfs_imports fvgi on fvgi.feed_version_id = feed_versions.id`).
-				Where(sq.Eq{"fvgi.success": checkSuccess, "fvgi.in_progress": checkInProgress})
+				Where(sq.Eq{"fvgi.success": checkSuccess}, sq.Eq{"fvgi.in_progress": checkInProgress})
 		}
 	}
 	if len(ids) > 0 {
@@ -147,11 +148,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 	// Handle permissions
 	q = q.
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			In("fsp.feed_id", permFilter.GetAllowedFeeds()),
-			In("feed_versions.id", permFilter.GetAllowedFeedVersions()),
-		})
+		Where(pfCheck(permFilter))
 	return q
 }
 

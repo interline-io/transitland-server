@@ -99,7 +99,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 			// Check the import status of the most recently fetched feed version
 			q = q.
 				JoinClause("join (select distinct on(fv.feed_id) fv.feed_id, fvgi.in_progress, fvgi.success from feed_version_gtfs_imports fvgi join feed_versions fv on fv.id = fvgi.feed_version_id order by fv.feed_id,fv.fetched_at desc) fvicheck on fvicheck.feed_id = current_feeds.id").
-				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
+				Where(sq.Eq{"fvicheck.success": checkSuccess}, sq.Eq{"fvicheck.in_progress": checkInProgress})
 		}
 
 		// Source URL

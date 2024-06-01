@@ -137,7 +137,10 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 					Join("current_operators_in_feed coif ON coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id AND coif.feed_id = current_feeds.id")
 			}
 			if len(routes) > 0 && len(agencies) > 0 {
-				q = q.Where(sq.Or{sq.Eq{"feed_version_route_onestop_ids.onestop_id": routes}, sq.Eq{"coif.resolved_onestop_id": agencies}})
+				q = q.Where(sq.Or{
+					In("feed_version_route_onestop_ids.onestop_id", routes),
+					In("coif.resolved_onestop_id", agencies),
+				})
 			} else if len(routes) > 0 {
 				q = q.Where(In("feed_version_route_onestop_ids.onestop_id", routes))
 			} else if len(agencies) > 0 {
@@ -182,11 +185,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	// Handle permissions
 	q = q.
 		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			In("fsp.feed_id", permFilter.GetAllowedFeeds()),
-			In("feed_versions.id", permFilter.GetAllowedFeedVersions()),
-		})
+		Where(pfCheck(permFilter))
 
 	return q
 }

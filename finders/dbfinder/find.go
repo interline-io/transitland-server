@@ -78,7 +78,18 @@ func escapeWordsWithSuffix(v string, sfx string) []string {
 	return ret
 }
 
+func pfCheck(permFilter *model.PermFilter) sq.Sqlizer {
+	return sq.Or{
+		sq.Expr("fsp.public = true"),
+		In("fsp.feed_id", permFilter.GetAllowedFeeds()),
+		In("feed_versions.id", permFilter.GetAllowedFeedVersions()),
+	}
+}
+
 func In[T any](col string, val []T) sq.Sqlizer {
+	if len(val) == 0 {
+		return sq.Eq{col: val}
+	}
 	return sq.Expr(
 		fmt.Sprintf("%s = ANY(?)", az09(col)),
 		pq.Array(val),
@@ -110,7 +121,7 @@ func lateralWrap(q sq.SelectBuilder, outerTable string, outerKey string, innerTa
 		Select("t.*").
 		From(outerTable + " out").
 		JoinClause(qInner.Prefix("JOIN LATERAL (").Suffix(") t on true")).
-		Where(sq.Eq{"out." + outerKey: outerIds})
+		Where(In("out."+outerKey, outerIds))
 	return q2
 }
 

@@ -49,11 +49,18 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeF
 	}
 	if len(tpairs) > 0 {
 		eids, fvids := pairKeys(tpairs)
-		q = q.Where(sq.Eq{"gtfs_trips.id": eids, "sts.feed_version_id": fvids, "gtfs_trips.feed_version_id": fvids})
+		q = q.Where(
+			In("gtfs_trips.id", eids),
+			In("sts.feed_version_id", fvids),
+			In("gtfs_trips.feed_version_id", fvids),
+		)
 	}
 	if len(spairs) > 0 {
 		eids, fvids := pairKeys(spairs)
-		q = q.Where(sq.Eq{"sts.stop_id": eids, "sts.feed_version_id": fvids})
+		q = q.Where(
+			In("sts.stop_id", eids),
+			In("sts.feed_version_id", fvids),
+		)
 	}
 	return q
 }
@@ -141,7 +148,10 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			pqfvids,
 			serviceDate,
 			pqfvids).
-		Where(sq.Eq{"sts.stop_id": sids, "sts.feed_version_id": fvids}).
+		Where(
+			In("sts.stop_id", sids),
+			In("sts.feed_version_id", fvids),
+		).
 		OrderBy("sts.departure_time + gtfs_trips.journey_pattern_offset", "sts.trip_id") // base + offset
 
 	if where != nil {
