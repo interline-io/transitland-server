@@ -109,7 +109,7 @@ func OperatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBui
 			rank, wc := tsTableQuery("coif", *where.Search)
 			q = q.Column(rank).Where(sq.Or{
 				wc,
-				sq.Expr("coif.resolved_onestop_id ilike ?", fmt.Sprintf("%%%s%%", *where.Search)),
+				sq.ILike{"coif.resolved_onestop_id": fmt.Sprintf("%%%s%%", *where.Search)},
 			})
 		}
 	}

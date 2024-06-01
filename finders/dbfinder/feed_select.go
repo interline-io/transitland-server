@@ -127,7 +127,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 			rank, wc := tsTableQuery("current_feeds", *where.Search)
 			q = q.Column(rank).Where(sq.Or{
 				wc,
-				sq.Expr("onestop_id ilike ?", fmt.Sprintf("%%%s%%", *where.Search)),
+				sq.ILike{"onestop_id": fmt.Sprintf("%%%s%%", *where.Search)},
 			})
 		}
 
