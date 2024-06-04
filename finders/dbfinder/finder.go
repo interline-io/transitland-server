@@ -11,7 +11,6 @@ import (
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
@@ -45,8 +44,7 @@ func (f *Finder) LoadAdmins() error {
 }
 
 func (f *Finder) PermFilter(ctx context.Context) *model.PermFilter {
-	permFilter, _ := checkActive(ctx)
-	return permFilter
+	return model.PermsForContext(ctx)
 }
 
 func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
@@ -1760,6 +1758,24 @@ func arrangeBy[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
 	return ret
 }
 
+// func arrangeByDebug[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
+// 	bykey := map[K]T{}
+// 	for _, ent := range ents {
+// 		bykey[cb(ent)] = ent
+// 	}
+// 	ret := make([]T, len(keys))
+// 	for idx, key := range keys {
+// 		a, ok := bykey[key]
+// 		if ok {
+// 			ret[idx] = a
+// 		} else {
+// 			log.Error().Any("keys", keys).Any("key", key).Int("idx", idx).Any("ents", ents).Msg("no value for key")
+// 			debug.PrintStack()
+// 		}
+// 	}
+// 	return ret
+// }
+
 func arrangeMap[K comparable, T any, O any](keys []K, ents []T, cb func(T) (K, O)) []O {
 	bykey := map[K]O{}
 	for _, ent := range ents {
@@ -1868,42 +1884,4 @@ func convertEnts[A any, B any](vals [][]A, fn func(a A) B) [][]B {
 		}
 	}
 	return ret
-}
-
-type canCheckGlobalAdmin interface {
-	CheckGlobalAdmin(context.Context) (bool, error)
-}
-
-func checkActive(ctx context.Context) (*model.PermFilter, error) {
-	checker := model.ForContext(ctx).Checker
-	active := &model.PermFilter{}
-	if checker == nil {
-		return active, nil
-	}
-
-	// TODO: Make this part of actual checker interface
-	if c, ok := checker.(canCheckGlobalAdmin); ok {
-		if a, err := c.CheckGlobalAdmin(ctx); err != nil {
-			return nil, err
-		} else if a {
-			return nil, nil
-		}
-	}
-
-	okFeeds, err := checker.FeedList(ctx, &authz.FeedListRequest{})
-	if err != nil {
-		return nil, err
-	}
-	for _, feed := range okFeeds.Feeds {
-		active.AllowedFeeds = append(active.AllowedFeeds, int(feed.Id))
-	}
-	okFvids, err := checker.FeedVersionList(ctx, &authz.FeedVersionListRequest{})
-	if err != nil {
-		return nil, err
-	}
-	for _, fv := range okFvids.FeedVersions {
-		active.AllowedFeedVersions = append(active.AllowedFeedVersions, int(fv.Id))
-	}
-	// fmt.Println("active allowed feeds:", active.AllowedFeeds, "fvs:", active.AllowedFeedVersions)
-	return active, nil
 }

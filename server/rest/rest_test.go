@@ -47,7 +47,9 @@ func testHandlersWithOptions(t testing.TB, opts testconfig.Options) (http.Handle
 	if err != nil {
 		t.Fatal(err)
 	}
-	return model.AddConfig(cfg)(graphqlHandler), model.AddConfig(cfg)(restHandler), cfg
+	return model.AddConfigAndPerms(cfg, graphqlHandler),
+		model.AddConfigAndPerms(cfg, restHandler),
+		cfg
 }
 
 func checkTestCase(t *testing.T, tc testCase) {
@@ -64,7 +66,12 @@ func checkTestCase(t *testing.T, tc testCase) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkTestCaseWithHandlers(t, tc, model.AddConfig(cfg)(graphqlHandler), restHandler)
+	checkTestCaseWithHandlers(
+		t,
+		tc,
+		model.AddConfigAndPerms(cfg, graphqlHandler),
+		model.AddConfigAndPerms(cfg, restHandler),
+	)
 }
 
 func checkTestCaseWithHandlers(t *testing.T, tc testCase, graphqlHandler http.Handler, restHandler http.Handler) {

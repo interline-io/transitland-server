@@ -162,6 +162,9 @@ func (cmd *Command) Run() error {
 		return ""
 	}))
 
+	// PermFilter context
+	root.Use(model.AddPerms(cfg.Checker))
+
 	// Profiling
 	root.HandleFunc("/debug/pprof/", pprof.Index)
 	root.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
