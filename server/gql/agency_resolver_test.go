@@ -322,7 +322,10 @@ func TestAgencyResolver_Authz(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv = model.AddConfig(cfg)(srv)
+
+	// Add config and perms middleware
+	srv = model.AddConfigAndPerms(cfg, srv)
+
 	testcases := []testcase{
 		{
 			name:         "basic",

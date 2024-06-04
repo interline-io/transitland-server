@@ -54,7 +54,8 @@ func newTestClient(t testing.TB) (*client.Client, model.Config) {
 func newTestClientWithOpts(t testing.TB, opts testconfig.Options) (*client.Client, model.Config) {
 	cfg := testconfig.Config(t, opts)
 	srv, _ := NewServer()
-	graphqlServer := model.AddConfig(cfg)(srv)
+	graphqlServer := model.AddConfigAndPerms(cfg, srv)
+
 	srvMiddleware := ancheck.NewUserDefaultMiddleware(func() authn.User {
 		return authn.NewCtxUser("testuser", "", "").WithRoles("testrole")
 	})

@@ -38,8 +38,8 @@ func PermsForContext(ctx context.Context) *PermFilter {
 	return raw
 }
 
-func WithPerms(ctx context.Context) context.Context {
-	pf, err := checkActive(ctx)
+func WithPerms(ctx context.Context, checker Checker) context.Context {
+	pf, err := checkActive(ctx, checker)
 	if err != nil {
 		panic(err)
 	}
@@ -48,10 +48,10 @@ func WithPerms(ctx context.Context) context.Context {
 	return r
 }
 
-func AddPerms(cfg Config) func(http.Handler) http.Handler {
+func AddPerms(checker Checker) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(WithPerms(r.Context()))
+			r = r.WithContext(WithPerms(r.Context(), checker))
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -61,8 +61,7 @@ type canCheckGlobalAdmin interface {
 	CheckGlobalAdmin(context.Context) (bool, error)
 }
 
-func checkActive(ctx context.Context) (*PermFilter, error) {
-	checker := ForContext(ctx).Checker
+func checkActive(ctx context.Context, checker Checker) (*PermFilter, error) {
 	active := &PermFilter{}
 	if checker == nil {
 		log.Trace().Msg("checkActive: no checker")

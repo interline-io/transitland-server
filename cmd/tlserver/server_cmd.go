@@ -163,7 +163,7 @@ func (cmd *Command) Run() error {
 	}))
 
 	// PermFilter context
-	root.Use(model.AddPerms(cfg))
+	root.Use(model.AddPerms(cfg.Checker))
 
 	// Profiling
 	root.HandleFunc("/debug/pprof/", pprof.Index)
