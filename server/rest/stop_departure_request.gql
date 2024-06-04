@@ -79,6 +79,41 @@ fragment departure on StopTime {
   }
 }
 
+fragment departures on StopTime {
+  ...departure
+  trip {
+    ...trip
+    route {
+      ...route
+      alerts @include(if: $include_alerts) {
+        ...alert
+      }
+      agency {
+        ...agency
+        alerts @include(if: $include_alerts) {
+          ...alert
+        }
+      }
+    }
+    shape {
+      id
+      shape_id
+      geometry @include(if: $include_geometry)
+      generated
+    }
+    frequencies {
+      id
+      start_time
+      end_time
+      headway_secs
+      exact_times
+    }
+    alerts @include(if: $include_alerts) {
+      ...alert
+    }
+  }
+}
+
 fragment alert on Alert {
   cause
   effect
@@ -109,6 +144,7 @@ fragment alert on Alert {
   }
 }
 
+
 query ($include_geometry: Boolean!, $include_alerts: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
   stops(limit: 100, ids: $ids, after: $after, where: $where) {
     ...stop
@@ -122,41 +158,19 @@ query ($include_geometry: Boolean!, $include_alerts: Boolean!, $limit: Int, $ids
       }
     }
     departures(limit: $limit, where: $stop_time_where) {
-      ...departure
-      trip {
-        ...trip
-        route {
-          ...route
-          alerts @include(if: $include_alerts) {
-            ...alert
-          }
-          agency {
-            ...agency
-            alerts @include(if: $include_alerts) {
-              ...alert
-            }
-          }
-        }
-        shape {
-          id
-          shape_id
-          geometry @include(if: $include_geometry)
-          generated
-        }
-        frequencies {
-          id
-          start_time
-          end_time
-          headway_secs
-          exact_times
-        }
-        alerts @include(if: $include_alerts) {
-          ...alert
-        }
-      }
+      ...departures
     }
     parent {
       ...stop
+      children {
+        ...stop
+        departures(limit: $limit, where: $stop_time_where) {
+          ...departures
+        }      
+        alerts @include(if: $include_alerts) {
+          ...alert
+        }        
+      }
       alerts @include(if: $include_alerts) {
         ...alert
       }
