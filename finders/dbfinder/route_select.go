@@ -41,7 +41,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
 		}
 		if len(where.OnestopIds) > 0 {
-			q = q.Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": where.OnestopIds})
+			q = q.Where(In("feed_version_route_onestop_ids.onestop_id", where.OnestopIds))
 		}
 		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
 			sub := sq.StatementBuilder.
@@ -49,7 +49,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 				Distinct().Options("on (feed_version_route_onestop_ids.onestop_id, feed_version_route_onestop_ids.entity_id, feed_versions.feed_id)").
 				From("feed_version_route_onestop_ids").
 				Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
-				Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": where.OnestopIds}).
+				Where(In("feed_version_route_onestop_ids.onestop_id", where.OnestopIds)).
 				OrderBy("feed_version_route_onestop_ids.onestop_id, feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC")
 			subClause := sub.
 				Prefix("LEFT JOIN (").
@@ -64,7 +64,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 
 	if where != nil {
 		if len(where.AgencyIds) > 0 {
-			q = q.Where(sq.Eq{"gtfs_routes.agency_id": where.AgencyIds})
+			q = q.Where(In("gtfs_routes.agency_id", where.AgencyIds))
 		}
 		if where.RouteID != nil {
 			q = q.Where(sq.Eq{"gtfs_routes.route_id": *where.RouteID})
@@ -127,7 +127,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_routes.feed_version_id")
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"gtfs_routes.id": ids})
+		q = q.Where(In("gtfs_routes.id", ids))
 	}
 
 	// Handle cursor
@@ -145,14 +145,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
-		})
-
+	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
 	return q
 }
 

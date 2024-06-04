@@ -125,23 +125,18 @@ func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int) sq.Se
 		Column("a.id as agency_id").
 		Join("feed_states fs on fs.feed_id = current_feeds.id").
 		Join("gtfs_agencies a on a.feed_version_id = fs.feed_version_id and a.agency_id = coif.resolved_gtfs_agency_id").
-		Where(sq.Eq{"a.id": agencyIds})
+		Where(In("a.id", agencyIds))
 	return q
 }
 
 func OperatorSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) sq.SelectBuilder {
 	q := OperatorSelectBase(true, where)
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"coif.id": ids})
+		q = q.Where(In("coif.id", ids))
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = coif.feed_id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-		})
+	q = pfJoinCheck(q, "coif.feed_id", "", permFilter)
 
 	// Outer query - support pagination
 	qView := sq.StatementBuilder.Select("t.*").FromSelect(q, "t").OrderBy("id").Limit(checkLimit(limit))

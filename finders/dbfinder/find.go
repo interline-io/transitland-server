@@ -9,6 +9,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/lib/pq"
 )
 
 // Maximum query result limit
@@ -77,6 +78,27 @@ func escapeWordsWithSuffix(v string, sfx string) []string {
 	return ret
 }
 
+func pfJoinCheck(q sq.SelectBuilder, feedCol string, fvCol string, permFilter *model.PermFilter) sq.SelectBuilder {
+	sqOr := sq.Or{}
+	q = q.Join(fmt.Sprintf("feed_states fsp on fsp.feed_id = %s", az09(feedCol)))
+	sqOr = append(sqOr, sq.Expr("fsp.public = true"))
+	sqOr = append(sqOr, In("fsp.feed_id", permFilter.GetAllowedFeeds()))
+	if fvCol != "" {
+		sqOr = append(sqOr, In(az09(fvCol), permFilter.GetAllowedFeedVersions()))
+	}
+	return q.Where(sqOr)
+}
+
+func In[T any](col string, val []T) sq.Sqlizer {
+	if len(val) == 0 {
+		return sq.Eq{col: val}
+	}
+	return sq.Expr(
+		fmt.Sprintf("%s = ANY(?)", az09(col)),
+		pq.Array(val),
+	)
+}
+
 func tsTableQuery(table string, s string) (rank sq.Sqlizer, wc sq.Sqlizer) {
 	s = strings.TrimSpace(s)
 	words := append([]string{}, escapeWordsWithSuffix(s, ":*")...)
@@ -103,7 +125,7 @@ func lateralWrap(q sq.SelectBuilder, outerTable string, outerKey string, innerTa
 		Select("t.*").
 		From(outerTable + " out").
 		JoinClause(qInner.Prefix("JOIN LATERAL (").Suffix(") t on true")).
-		Where(sq.Eq{"out." + outerKey: outerIds})
+		Where(In("out."+outerKey, outerIds))
 	return q2
 }
 
@@ -122,7 +144,7 @@ func quickSelectOrder(table string, limit *int, after *model.Cursor, ids []int, 
 		q = q.OrderBy(order)
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"id": ids})
+		q = q.Where(In("id", ids))
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"id": after.ID})

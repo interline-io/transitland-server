@@ -40,7 +40,7 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			q = q.
 				Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id").
 				Join("feed_version_route_onestop_ids on feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_version_id = gtfs_trips.feed_version_id")
-			q = q.Where(sq.Eq{"feed_version_route_onestop_ids.onestop_id": where.RouteOnestopIds})
+			q = q.Where(In("feed_version_route_onestop_ids.onestop_id", where.RouteOnestopIds))
 		}
 		if where.FeedVersionSha1 != nil {
 			q = q.Where("feed_versions.id = (select id from feed_versions where sha1 = ? limit 1)", *where.FeedVersionSha1)
@@ -52,7 +52,7 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			q = q.Where(sq.Eq{"gtfs_trips.trip_id": *where.TripID})
 		}
 		if len(where.RouteIds) > 0 {
-			q = q.Where(sq.Eq{"gtfs_trips.route_id": where.RouteIds})
+			q = q.Where(In("gtfs_trips.route_id", where.RouteIds))
 		}
 
 		if where.ServiceDate != nil {
@@ -89,7 +89,7 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_trips.feed_version_id")
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"gtfs_trips.id": ids})
+		q = q.Where(In("gtfs_trips.id", ids))
 	}
 
 	// Handle cursor
@@ -102,13 +102,6 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-			sq.Eq{"feed_versions.id": permFilter.GetAllowedFeedVersions()},
-		})
-
+	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
 	return q
 }

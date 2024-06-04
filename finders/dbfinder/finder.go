@@ -340,7 +340,7 @@ func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []err
 
 func (f *Finder) StopExternalReferencesByStopID(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
 	var ents []*model.StopExternalReference
-	q := sq.StatementBuilder.Select("*").From("tl_stop_external_references").Where(sq.Eq{"id": ids})
+	q := sq.StatementBuilder.Select("*").From("tl_stop_external_references").Where(In("id", ids))
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, []error{err}
 	}
@@ -362,7 +362,7 @@ func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.St
 			q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
 				From("ext_performance_stop_observations obs").
 				Join("gtfs_stops on gtfs_stops.stop_id = obs.to_stop_id").
-				Where(sq.Eq{"gtfs_stops.id": keys}).
+				Where(In("gtfs_stops.id", keys)).
 				Limit(100000)
 			if where != nil {
 				q = q.Where("obs.feed_version_id = ?", where.FeedVersionID)
@@ -383,7 +383,7 @@ func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.St
 
 func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*model.RouteAttribute, []error) {
 	var ents []*model.RouteAttribute
-	q := sq.StatementBuilder.Select("*").From("ext_plus_route_attributes").Where(sq.Eq{"route_id": ids})
+	q := sq.StatementBuilder.Select("*").From("ext_plus_route_attributes").Where(In("route_id", ids))
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, []error{err}
 	}
@@ -447,7 +447,7 @@ func (f *Finder) SegmentsByRouteID(ctx context.Context, params []model.SegmentPa
 					`join lateral (select distinct on (tl_segments.id, tl_segment_patterns.route_id) tl_segments.id, tl_segments.way_id, tl_segments.geometry, tl_segment_patterns.route_id from tl_segments join tl_segment_patterns on tl_segment_patterns.segment_id = tl_segments.id where tl_segment_patterns.route_id = gtfs_routes.id limit ?) s on true`,
 					checkLimit(limit),
 				).
-				Where(sq.Eq{"gtfs_routes.id": keys})
+				Where(In("gtfs_routes.id", keys))
 			err = dbutil.Select(ctx,
 				f.db,
 				q,
@@ -559,7 +559,7 @@ func (f *Finder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids 
 	var ents []*model.FeedVersionGtfsImport
 	err := dbutil.Select(ctx,
 		f.db,
-		quickSelect("feed_version_gtfs_imports", nil, nil, nil).Where(sq.Eq{"feed_version_id": ids}),
+		quickSelect("feed_version_gtfs_imports", nil, nil, nil).Where(In("feed_version_id", ids)),
 		&ents,
 	)
 	if err != nil {
@@ -572,7 +572,7 @@ func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.Fe
 	var ents []*model.FeedState
 	err := dbutil.Select(ctx,
 		f.db,
-		quickSelect("feed_states", nil, nil, nil).Where(sq.Eq{"feed_id": ids}),
+		quickSelect("feed_states", nil, nil, nil).Where(In("feed_id", ids)),
 		&ents,
 	)
 	if err != nil {
@@ -708,7 +708,7 @@ func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.Fe
 				Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
 				Column("coif.resolved_onestop_id as operator_onestop_id").
 				Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
-				Where(sq.Eq{"coif.resolved_onestop_id": keys})
+				Where(In("coif.resolved_onestop_id", keys))
 			err = dbutil.Select(ctx,
 				f.db,
 				q,
@@ -847,7 +847,7 @@ func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) (
 		},
 		func(keys []int, where *model.StopFilter, limit *int) (ents []*qent, err error) {
 			qso := StopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), where)
-			qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(sq.Eq{"route_id": keys}).Column("route_id")
+			qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(In("route_id", keys)).Column("route_id")
 			err = dbutil.Select(ctx,
 				f.db,
 				qso,
@@ -927,7 +927,7 @@ func (f *Finder) RouteStopPatternsByRouteID(ctx context.Context, params []model.
 			q := sq.StatementBuilder.
 				Select("route_id", "direction_id", "stop_pattern_id", "count(*) as count").
 				From("gtfs_trips").
-				Where(sq.Eq{"route_id": keys}).
+				Where(In("route_id", keys)).
 				GroupBy("route_id,direction_id,stop_pattern_id").
 				OrderBy("route_id,count desc").
 				Limit(1000)
@@ -1012,7 +1012,7 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 		Select("t.*", "tlse.id as source_id").
 		FromSelect(StopSelect(nil, nil, nil, true, f.PermFilter(ctx), nil), "t").
 		Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id").
-		Where(sq.Eq{"tlse.id": ids})
+		Where(In("tlse.id", ids))
 	if err := dbutil.Select(ctx,
 		f.db,
 		q,
@@ -1076,7 +1076,7 @@ func (f *Finder) ValidationReportsByFeedVersionID(ctx context.Context, params []
 				OrderBy("tl_validation_reports.created_at desc, tl_validation_reports.id desc")
 			if where != nil {
 				if len(where.ReportIds) > 0 {
-					q = q.Where(sq.Eq{"tl_validation_reports.id": where.ReportIds})
+					q = q.Where(In("tl_validation_reports.id", where.ReportIds))
 				}
 				if where.Success != nil {
 					q = q.Where(sq.Eq{"success": where.Success})
@@ -1332,7 +1332,7 @@ func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyP
 		func(keys []string, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
 			err = dbutil.Select(ctx,
 				f.db,
-				AgencySelect(limit, nil, nil, true, f.PermFilter(ctx), nil).Where(sq.Eq{"coif.resolved_onestop_id": keys}),
+				AgencySelect(limit, nil, nil, true, f.PermFilter(ctx), nil).Where(In("coif.resolved_onestop_id", keys)),
 				&ents,
 			)
 			return ents, err
@@ -1569,7 +1569,7 @@ func (f *Finder) CalendarDatesByServiceID(ctx context.Context, params []model.Ca
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					quickSelectOrder("gtfs_calendar_dates", limit, nil, nil, "date").Where(sq.Eq{"service_id": keys}),
+					quickSelectOrder("gtfs_calendar_dates", limit, nil, nil, "date").Where(In("service_id", keys)),
 					"gtfs_calendars",
 					"id",
 					"gtfs_calendar_dates",
@@ -1671,7 +1671,7 @@ func (f *Finder) stopPlacesByStopIdFallback(ctx context.Context, params []model.
 	detailedQuery := sq.Select("gtfs_stops.id as stop_id", "ne.name as adm1_name", "ne.admin as adm0_name").
 		From("ne_10m_admin_1_states_provinces ne").
 		Join("gtfs_stops on ST_Intersects(gtfs_stops.geometry, ne.geometry)").
-		Where(sq.Eq{"gtfs_stops.id": ids})
+		Where(In("gtfs_stops.id", ids))
 	if err := dbutil.Select(ctx, f.db, detailedQuery, &ents); err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
