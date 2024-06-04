@@ -53,7 +53,7 @@ func (f *RedisCache) GetSource(topic string) (*Source, bool) {
 		return nil, false
 	}
 	f.listeners[topic] = a
-	return a.source, false
+	return a.source, true
 }
 
 func (f *RedisCache) AddFeedMessage(topic string, rtmsg *pb.FeedMessage) error {
