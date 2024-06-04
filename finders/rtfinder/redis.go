@@ -53,7 +53,7 @@ func (f *RedisCache) GetSource(topic string) (*Source, bool) {
 		return nil, false
 	}
 	f.listeners[topic] = a
-	return a.source, false
+	return a.source, true
 }
 
 func (f *RedisCache) AddFeedMessage(topic string, rtmsg *pb.FeedMessage) error {
@@ -78,10 +78,10 @@ func (f *RedisCache) AddData(topic string, data []byte) error {
 func (f *RedisCache) Close() error {
 	f.lock.Lock()
 	defer f.lock.Unlock()
-	for k, ls := range f.listeners {
-		ls.cancel()
-		delete(f.listeners, k)
-	}
+	// for k, ls := range f.listeners {
+	// 	ls.cancel()
+	// 	delete(f.listeners, k)
+	// }
 	return nil
 }
 
