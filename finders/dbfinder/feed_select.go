@@ -1,6 +1,8 @@
 package dbfinder
 
 import (
+	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-server/model"
@@ -36,7 +38,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 			for _, s := range where.Spec {
 				specs = append(specs, s.ToDBString())
 			}
-			q = q.Where(sq.Eq{"spec": specs})
+			q = q.Where(In("spec", specs))
 		}
 
 		// Spatial
@@ -99,7 +101,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 			// Check the import status of the most recently fetched feed version
 			q = q.
 				JoinClause("join (select distinct on(fv.feed_id) fv.feed_id, fvgi.in_progress, fvgi.success from feed_version_gtfs_imports fvgi join feed_versions fv on fv.id = fvgi.feed_version_id order by fv.feed_id,fv.fetched_at desc) fvicheck on fvicheck.feed_id = current_feeds.id").
-				Where(sq.Eq{"fvicheck.success": checkSuccess, "fvicheck.in_progress": checkInProgress})
+				Where(sq.Eq{"fvicheck.success": checkSuccess}, sq.Eq{"fvicheck.in_progress": checkInProgress})
 		}
 
 		// Source URL
@@ -123,23 +125,21 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 		// Text search
 		if where.Search != nil && len(*where.Search) > 1 {
 			rank, wc := tsTableQuery("current_feeds", *where.Search)
-			q = q.Column(rank).Where(wc)
+			q = q.Column(rank).Where(sq.Or{
+				wc,
+				sq.ILike{"onestop_id": fmt.Sprintf("%%%s%%", *where.Search)},
+			})
 		}
+
 	}
 	if len(ids) > 0 {
-		q = q.Where(sq.Eq{"current_feeds.id": ids})
+		q = q.Where(In("current_feeds.id", ids))
 	}
 	if after != nil && after.Valid && after.ID > 0 {
 		q = q.Where(sq.Gt{"current_feeds.id": after.ID})
 	}
 
 	// Handle permissions
-	q = q.
-		Join("feed_states fsp on fsp.feed_id = current_feeds.id").
-		Where(sq.Or{
-			sq.Expr("fsp.public = true"),
-			sq.Eq{"fsp.feed_id": permFilter.GetAllowedFeeds()},
-		})
-
+	q = pfJoinCheck(q, "current_feeds.id", "", permFilter)
 	return q
 }

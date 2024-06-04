@@ -96,7 +96,25 @@ func TestOperatorResolver(t *testing.T) {
 			selector:     "operators.#.onestop_id",
 			selectExpect: []string{"o-9q9-bayarearapidtransit"},
 		},
-
+		// search
+		{
+			name:         "search by onestop id",
+			query:        `query { operators(where:{search: "o-9q9-bayarearapidtransit"}) {onestop_id}}`,
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{"o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "search by name",
+			query:        `query { operators(where:{search: "bay area"}) {onestop_id}}`,
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{"o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "search not found",
+			query:        `query { operators(where:{search: "new york"}) {onestop_id}}`,
+			selector:     "operators.#.onestop_id",
+			selectExpect: []string{},
+		},
 		// spatial
 		{
 			name:         "near 100m",

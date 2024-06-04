@@ -29,12 +29,12 @@ func CensusGeographySelect(param *model.CensusGeographyParam, eids []int) sq.Sel
 	// Handle aggregation by entity type
 	if param.EntityType == "route" {
 		q = q.InnerJoin("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
-		q = q.Distinct().Options("on (tl_route_stops.route_id,t.id)").Where(sq.Eq{"tl_route_stops.route_id": eids}).OrderBy("tl_route_stops.route_id,t.id")
+		q = q.Distinct().Options("on (tl_route_stops.route_id,t.id)").Where(In("tl_route_stops.route_id", eids)).OrderBy("tl_route_stops.route_id,t.id")
 	} else if param.EntityType == "agency" {
 		q = q.InnerJoin("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
-		q = q.Distinct().Options("on (tl_route_stops.stop_id,t.id)").Where(sq.Eq{"tl_route_stops.agency_id": eids}).OrderBy("tl_route_stops.stop_id,t.id")
+		q = q.Distinct().Options("on (tl_route_stops.stop_id,t.id)").Where(In("tl_route_stops.agency_id", eids)).OrderBy("tl_route_stops.stop_id,t.id")
 	} else if param.EntityType == "stop" {
-		q = q.Where(sq.Eq{"gtfs_stops.id": eids}).OrderBy("id")
+		q = q.Where(In("gtfs_stops.id", eids)).OrderBy("id")
 	}
 	return q
 }
@@ -49,8 +49,8 @@ func CensusValueSelect(param *model.CensusValueParam, eids []int) sq.SelectBuild
 		From("tl_census_values t").
 		Limit(checkLimit(param.Limit)).
 		InnerJoin("tl_census_tables ON tl_census_tables.id = t.table_id").
-		Where(sq.Eq{"t.geography_id": eids}).
-		Where(sq.Eq{"tl_census_tables.table_name": tnames}).
+		Where(In("t.geography_id", eids)).
+		Where(In("tl_census_tables.table_name", tnames)).
 		OrderBy("t.id")
 	return q
 }
