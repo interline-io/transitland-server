@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"runtime/debug"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -266,7 +265,7 @@ func (f *Finder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip, 
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Trip) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Trip) int { return ent.ID }), nil
 }
 
 func (f *Finder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []error) {
@@ -279,7 +278,7 @@ func (f *Finder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []e
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Level) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Level) int { return ent.ID }), nil
 }
 
 func (f *Finder) PathwaysByID(ctx context.Context, ids []int) ([]*model.Pathway, []error) {
@@ -292,7 +291,7 @@ func (f *Finder) PathwaysByID(ctx context.Context, ids []int) ([]*model.Pathway,
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Pathway) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Pathway) int { return ent.ID }), nil
 }
 
 func (f *Finder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
@@ -305,7 +304,7 @@ func (f *Finder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calenda
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Calendar) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Calendar) int { return ent.ID }), nil
 }
 
 func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []error) {
@@ -318,7 +317,7 @@ func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []e
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Shape) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Shape) int { return ent.ID }), nil
 }
 
 func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
@@ -334,7 +333,7 @@ func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []err
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Feed) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Feed) int { return ent.ID }), nil
 }
 
 func (f *Finder) StopExternalReferencesByStopID(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
@@ -426,7 +425,7 @@ func (f *Finder) SegmentsByID(ctx context.Context, ids []int) ([]*model.Segment,
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Segment) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Segment) int { return ent.ID }), nil
 }
 
 func (f *Finder) SegmentsByRouteID(ctx context.Context, params []model.SegmentParam) ([][]*model.Segment, []error) {
@@ -521,7 +520,7 @@ func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, 
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Agency) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Agency) int { return ent.ID }), nil
 
 }
 
@@ -530,7 +529,7 @@ func (f *Finder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []err
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Stop) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Stop) int { return ent.ID }), nil
 }
 
 func (f *Finder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
@@ -538,7 +537,7 @@ func (f *Finder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []e
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.Route) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.Route) int { return ent.ID }), nil
 }
 
 func (f *Finder) CensusTableByID(ctx context.Context, ids []int) ([]*model.CensusTable, []error) {
@@ -551,7 +550,7 @@ func (f *Finder) CensusTableByID(ctx context.Context, ids []int) ([]*model.Censu
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.CensusTable) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.CensusTable) int { return ent.ID }), nil
 }
 
 func (f *Finder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
@@ -577,7 +576,7 @@ func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.Fe
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
-	return arrangeByDebug(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
+	return arrangeBy(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
 }
 
 func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Operator, []error) {
@@ -1759,23 +1758,23 @@ func arrangeBy[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
 	return ret
 }
 
-func arrangeByDebug[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
-	bykey := map[K]T{}
-	for _, ent := range ents {
-		bykey[cb(ent)] = ent
-	}
-	ret := make([]T, len(keys))
-	for idx, key := range keys {
-		a, ok := bykey[key]
-		if ok {
-			ret[idx] = a
-		} else {
-			log.Error().Any("keys", keys).Any("key", key).Int("idx", idx).Any("ents", ents).Msg("no value for key")
-			debug.PrintStack()
-		}
-	}
-	return ret
-}
+// func arrangeByDebug[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
+// 	bykey := map[K]T{}
+// 	for _, ent := range ents {
+// 		bykey[cb(ent)] = ent
+// 	}
+// 	ret := make([]T, len(keys))
+// 	for idx, key := range keys {
+// 		a, ok := bykey[key]
+// 		if ok {
+// 			ret[idx] = a
+// 		} else {
+// 			log.Error().Any("keys", keys).Any("key", key).Int("idx", idx).Any("ents", ents).Msg("no value for key")
+// 			debug.PrintStack()
+// 		}
+// 	}
+// 	return ret
+// }
 
 func arrangeMap[K comparable, T any, O any](keys []K, ents []T, cb func(T) (K, O)) []O {
 	bykey := map[K]O{}
