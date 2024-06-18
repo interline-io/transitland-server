@@ -84,9 +84,9 @@ func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.Respon
 		}
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
-
+	downloadKey := fmt.Sprintf("%s-%s.zip", fid, fvsha1)
 	cfg := model.ForContext(r.Context())
-	serveFromStorage(w, r, cfg.Storage, fvsha1)
+	serveFromStorage(w, r, cfg.Storage, fvsha1, downloadKey)
 }
 
 const feedVersionFileQuery = `
@@ -161,12 +161,12 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 		}
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
-
+	downloadKey := fmt.Sprintf("%s-%s.zip", fid, fvsha1)
 	cfg := model.ForContext(r.Context())
-	serveFromStorage(w, r, cfg.Storage, fvsha1)
+	serveFromStorage(w, r, cfg.Storage, fvsha1, downloadKey)
 }
 
-func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string) {
+func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string, downloadKey string) {
 	store, err := store.GetStore(storage)
 	if err != nil {
 		http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
@@ -174,7 +174,7 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 	}
 	fvkey := fmt.Sprintf("%s.zip", fvsha1)
 	if v, ok := store.(request.Presigner); ok {
-		signedUrl, err := v.CreateSignedUrl(r.Context(), fvkey, tl.Secret{})
+		signedUrl, err := v.CreateSignedUrl(r.Context(), fvkey, downloadKey, tl.Secret{})
 		if err != nil {
 			http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
 			return
