@@ -10,7 +10,7 @@ import (
 
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-server/internal/xy"
+	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/jmoiron/sqlx"
 	"github.com/tidwall/rtree"
 )
@@ -26,12 +26,12 @@ type adminCacheItem struct {
 type adminCache struct {
 	lock  sync.Mutex
 	index rtree.Generic[*adminCacheItem]
-	cache map[xy.Point]*adminCacheItem
+	cache map[tlxy.Point]*adminCacheItem
 }
 
 func newAdminCache() *adminCache {
 	return &adminCache{
-		cache: map[xy.Point]*adminCacheItem{},
+		cache: map[tlxy.Point]*adminCacheItem{},
 	}
 }
 
@@ -78,7 +78,7 @@ func (c *adminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 	return nil
 }
 
-func (c *adminCache) Check(pt xy.Point) (adminCacheItem, bool) {
+func (c *adminCache) Check(pt tlxy.Point) (adminCacheItem, bool) {
 	ret, count := c.CheckPolygon(pt)
 	if count >= 1 {
 		return ret, count == 1
@@ -89,7 +89,7 @@ func (c *adminCache) Check(pt xy.Point) (adminCacheItem, bool) {
 	return nearestAdmin, count >= 1
 }
 
-func (c *adminCache) CheckPolygon(p xy.Point) (adminCacheItem, int) {
+func (c *adminCache) CheckPolygon(p tlxy.Point) (adminCacheItem, int) {
 	// Checking just the index can be much faster, but can be invalid in open water, e.g. 0,0 = Kiribati
 	// However, in practice, most land area on Earth falls into more than 1 admin bbox
 	// No, we are not being fancy with projections.
@@ -114,7 +114,7 @@ func (c *adminCache) CheckPolygon(p xy.Point) (adminCacheItem, int) {
 	return ret, count
 }
 
-func (c *adminCache) NearestPolygon(p xy.Point, tolerance float64) (adminCacheItem, float64, int) {
+func (c *adminCache) NearestPolygon(p tlxy.Point, tolerance float64) (adminCacheItem, float64, int) {
 	ret := adminCacheItem{}
 	minDist := -1.0
 	gp := geom.NewPointFlat(geom.XY, []float64{p.Lon, p.Lat})

@@ -11,8 +11,8 @@ import (
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -1625,9 +1625,9 @@ func (f *Finder) StopPlacesByStopID(ctx context.Context, params []model.StopPlac
 		if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 			return nil, logExtendErr(ctx, len(params), err)
 		}
-		lk := map[int]xy.Point{}
+		lk := map[int]tlxy.Point{}
 		for _, ent := range ents {
-			lk[ent.ID] = xy.Point{Lon: ent.Geometry.X(), Lat: ent.Geometry.Y()}
+			lk[ent.ID] = tlxy.Point{Lon: ent.Geometry.X(), Lat: ent.Geometry.Y()}
 		}
 		for i := 0; i < len(params); i++ {
 			if pt, ok := lk[params[i].ID]; ok {
