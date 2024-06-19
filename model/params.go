@@ -1,13 +1,13 @@
 package model
 
-import "github.com/interline-io/transitland-server/internal/xy"
+import "github.com/interline-io/transitland-lib/tlxy"
 
 // This file contains parameters that can be passed to methods for finding/selecting/grouping entities
 // These are distinct from WHERE graphql input filters, which are available to users.
 
 type StopPlaceParam struct {
 	ID    int
-	Point xy.Point
+	Point tlxy.Point
 }
 
 type FrequencyParam struct {

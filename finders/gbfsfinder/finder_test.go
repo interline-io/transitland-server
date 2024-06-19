@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-dbutil/testutil"
+	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
@@ -24,15 +24,15 @@ func TestGbfsFinder(t *testing.T) {
 	testSetupGbfs(gbf)
 
 	tcs := []struct {
-		p           xy.Point
+		p           tlxy.Point
 		r           float64
 		expectBikes int
 		expectDocks int
 	}{
-		{xy.Point{Lon: -122.396185, Lat: 37.793412}, 1000, 60, 30},
-		{xy.Point{Lon: -122.396185, Lat: 37.793412}, 500, 20, 10},
-		{xy.Point{Lon: -122.41926403193607, Lat: 37.77508791392819}, 1000, 34, 27},
-		{xy.Point{Lon: -120.99515, Lat: 37.640}, 1000, 0, 0},
+		{tlxy.Point{Lon: -122.396185, Lat: 37.793412}, 1000, 60, 30},
+		{tlxy.Point{Lon: -122.396185, Lat: 37.793412}, 500, 20, 10},
+		{tlxy.Point{Lon: -122.41926403193607, Lat: 37.77508791392819}, 1000, 34, 27},
+		{tlxy.Point{Lon: -120.99515, Lat: 37.640}, 1000, 0, 0},
 	}
 
 	for _, tc := range tcs {

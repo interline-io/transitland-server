@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-server/internal/ecache"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/twpayne/go-geom"
 )
@@ -88,7 +88,7 @@ func (c *Finder) FindBikes(ctx context.Context, limit *int, where *model.GbfsBik
 			continue
 		}
 		for _, ent := range sf.Bikes {
-			if d := xy.DistanceHaversine(pt.Lon, pt.Lat, ent.Lon.Val, ent.Lat.Val); d > pt.Radius {
+			if d := tlxy.DistanceHaversine(pt.Lon, pt.Lat, ent.Lon.Val, ent.Lat.Val); d > pt.Radius {
 				continue
 			}
 			b := model.GbfsFreeBikeStatus{
@@ -124,7 +124,7 @@ func (c *Finder) FindDocks(ctx context.Context, limit *int, where *model.GbfsDoc
 			continue
 		}
 		for _, ent := range sf.StationInformation {
-			if d := xy.DistanceHaversine(pt.Lon, pt.Lat, ent.Lon.Val, ent.Lat.Val); d > pt.Radius {
+			if d := tlxy.DistanceHaversine(pt.Lon, pt.Lat, ent.Lon.Val, ent.Lat.Val); d > pt.Radius {
 				continue
 			}
 			b := model.GbfsStationInformation{

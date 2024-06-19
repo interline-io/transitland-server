@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
-	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -58,7 +58,7 @@ func checkGeo(near *model.PointRadius, bbox *model.BoundingBox) error {
 }
 
 func checkBbox(bbox *model.BoundingBox, maxAreaM2 float64) bool {
-	approxDiag := xy.DistanceHaversine(bbox.MinLon, bbox.MinLat, bbox.MaxLon, bbox.MaxLat)
+	approxDiag := tlxy.DistanceHaversine(bbox.MinLon, bbox.MinLat, bbox.MaxLon, bbox.MaxLat)
 	// fmt.Println("approxDiag:", approxDiag)
 	approxArea := 0.5 * (approxDiag * approxDiag)
 	// fmt.Println("approxArea:", approxArea, "maxAreaM2:", maxAreaM2)

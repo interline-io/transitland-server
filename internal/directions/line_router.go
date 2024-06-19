@@ -5,8 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/xy"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -49,7 +49,7 @@ func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, err
 	// Ensure we are in UTC
 	departAt = departAt.In(time.UTC)
 
-	distance := xy.DistanceHaversine(req.From.Lon, req.From.Lat, req.To.Lon, req.To.Lat) / 1000.0
+	distance := tlxy.DistanceHaversine(req.From.Lon, req.From.Lat, req.To.Lon, req.To.Lat) / 1000.0
 	speed := 1.0 // m/s
 	switch req.Mode {
 	case model.StepModeAuto:
