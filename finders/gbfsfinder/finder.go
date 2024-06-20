@@ -77,6 +77,7 @@ func (c *Finder) FindBikes(ctx context.Context, limit *int, where *model.GbfsBik
 	}
 	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 1_000_000)
 	pt := *where.Near
+	ptxy := tlxy.Point{Lon: pt.Lon, Lat: pt.Lat}
 	topicKeys, err := c.geosearch(ctx, c.bikeSearchKey, pt)
 	if err != nil {
 		return nil, err
@@ -88,7 +89,7 @@ func (c *Finder) FindBikes(ctx context.Context, limit *int, where *model.GbfsBik
 			continue
 		}
 		for _, ent := range sf.Bikes {
-			if d := tlxy.DistanceHaversine(pt.Lon, pt.Lat, ent.Lon.Val, ent.Lat.Val); d > pt.Radius {
+			if d := tlxy.DistanceHaversine(ptxy, tlxy.Point{Lon: ent.Lon.Val, Lat: ent.Lat.Val}); d > pt.Radius {
 				continue
 			}
 			b := model.GbfsFreeBikeStatus{
@@ -113,6 +114,7 @@ func (c *Finder) FindDocks(ctx context.Context, limit *int, where *model.GbfsDoc
 	}
 	where.Near.Radius = checkFloat(&where.Near.Radius, 0, 1_000_000)
 	pt := *where.Near
+	ptxy := tlxy.Point{Lon: pt.Lon, Lat: pt.Lat}
 	topicKeys, err := c.geosearch(ctx, c.stationSearchKey, pt)
 	if err != nil {
 		return nil, err
@@ -124,7 +126,7 @@ func (c *Finder) FindDocks(ctx context.Context, limit *int, where *model.GbfsDoc
 			continue
 		}
 		for _, ent := range sf.StationInformation {
-			if d := tlxy.DistanceHaversine(pt.Lon, pt.Lat, ent.Lon.Val, ent.Lat.Val); d > pt.Radius {
+			if d := tlxy.DistanceHaversine(ptxy, tlxy.Point{Lon: ent.Lon.Val, Lat: ent.Lat.Val}); d > pt.Radius {
 				continue
 			}
 			b := model.GbfsStationInformation{
