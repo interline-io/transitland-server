@@ -6,7 +6,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/twpayne/go-geom"
-	geomxy "github.com/twpayne/go-geom/xy"
+	"github.com/twpayne/go-geom/xy"
 
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tl/tt"
@@ -139,11 +139,11 @@ func (c *adminCache) NearestPolygon(p tlxy.Point, tolerance float64) (adminCache
 }
 
 func pointInPolygon(pg *geom.Polygon, p *geom.Point) bool {
-	if !geomxy.IsPointInRing(geom.XY, p.Coords(), pg.LinearRing(0).FlatCoords()) {
+	if !xy.IsPointInRing(geom.XY, p.Coords(), pg.LinearRing(0).FlatCoords()) {
 		return false
 	}
 	for i := 1; i < pg.NumLinearRings(); i++ {
-		if geomxy.IsPointInRing(geom.XY, p.Coords(), pg.LinearRing(i).FlatCoords()) {
+		if xy.IsPointInRing(geom.XY, p.Coords(), pg.LinearRing(i).FlatCoords()) {
 			return false
 		}
 	}
@@ -154,7 +154,7 @@ func pointPolygonDistance(pg *geom.Polygon, p *geom.Point) float64 {
 	minDist := -1.0
 	c := geom.Coord{p.X(), p.Y()}
 	for i := 0; i < pg.NumLinearRings(); i++ {
-		d := geomxy.DistanceFromPointToLineString(p.Layout(), c, pg.LinearRing(i).FlatCoords())
+		d := xy.DistanceFromPointToLineString(p.Layout(), c, pg.LinearRing(i).FlatCoords())
 		if d < minDist || minDist < 0 {
 			minDist = d
 		}

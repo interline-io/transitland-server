@@ -58,7 +58,7 @@ func checkGeo(near *model.PointRadius, bbox *model.BoundingBox) error {
 }
 
 func checkBbox(bbox *model.BoundingBox, maxAreaM2 float64) bool {
-	approxDiag := tlxy.DistanceHaversine(bbox.MinLon, bbox.MinLat, bbox.MaxLon, bbox.MaxLat)
+	approxDiag := tlxy.DistanceHaversine(tlxy.Point{Lon: bbox.MinLon, Lat: bbox.MinLat}, tlxy.Point{Lon: bbox.MaxLon, Lat: bbox.MaxLat})
 	// fmt.Println("approxDiag:", approxDiag)
 	approxArea := 0.5 * (approxDiag * approxDiag)
 	// fmt.Println("approxArea:", approxArea, "maxAreaM2:", maxAreaM2)

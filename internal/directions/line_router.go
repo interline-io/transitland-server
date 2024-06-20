@@ -49,7 +49,7 @@ func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, err
 	// Ensure we are in UTC
 	departAt = departAt.In(time.UTC)
 
-	distance := tlxy.DistanceHaversine(req.From.Lon, req.From.Lat, req.To.Lon, req.To.Lat) / 1000.0
+	distance := tlxy.DistanceHaversine(tlxy.Point{Lon: req.From.Lon, Lat: req.From.Lat}, tlxy.Point{Lon: req.To.Lon, Lat: req.To.Lat}) / 1000.0
 	speed := 1.0 // m/s
 	switch req.Mode {
 	case model.StepModeAuto:
