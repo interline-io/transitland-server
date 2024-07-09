@@ -44,7 +44,7 @@ func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
-	msr := model.ScheduleRelationshipScheduled
+	msr := model.ScheduleRelationshipStatic
 	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil {
 		sr := rtt.GetTrip().GetScheduleRelationship().String()
 		switch sr {
@@ -56,8 +56,6 @@ func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip
 			msr = model.ScheduleRelationshipCanceled
 		case "UNSCHEDULED":
 			msr = model.ScheduleRelationshipUnscheduled
-		default:
-			return nil, nil
 		}
 	}
 	return &msr, nil

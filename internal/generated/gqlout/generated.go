@@ -7683,6 +7683,7 @@ enum ScheduleRelationship {
   ADDED
   UNSCHEDULED
   CANCELED
+  STATIC
 }
 
 type StopTimeEvent {
