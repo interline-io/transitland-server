@@ -116,24 +116,26 @@ type rtTestCase struct {
 }
 
 func testRt(t *testing.T, tc rtTestCase) {
-	// Create a new RT Finder for each test...
-	c, _ := newTestClientWithOpts(t, testconfig.Options{
-		When:    "2022-09-01T00:00:00",
-		RTJsons: tc.rtfiles,
+	t.Run(tc.name, func(t *testing.T) {
+		// Create a new RT Finder for each test...
+		c, _ := newTestClientWithOpts(t, testconfig.Options{
+			When:    "2022-09-01T00:00:00",
+			RTJsons: tc.rtfiles,
+		})
+		var resp map[string]interface{}
+		opts := []client.Option{}
+		for k, v := range tc.vars {
+			opts = append(opts, client.Var(k, v))
+		}
+		if err := c.Post(tc.query, &resp, opts...); err != nil {
+			t.Error(err)
+			return
+		}
+		jj := toJson(resp)
+		if tc.cb != nil {
+			tc.cb(t, jj)
+		}
 	})
-	var resp map[string]interface{}
-	opts := []client.Option{}
-	for k, v := range tc.vars {
-		opts = append(opts, client.Var(k, v))
-	}
-	if err := c.Post(tc.query, &resp, opts...); err != nil {
-		t.Error(err)
-		return
-	}
-	jj := toJson(resp)
-	if tc.cb != nil {
-		tc.cb(t, jj)
-	}
 }
 
 func TestStopRTBasic(t *testing.T) {
@@ -293,6 +295,7 @@ func TestStopRTBasic_NoRT(t *testing.T) {
 				}
 				found = true
 				assert.Equal(t, checkTrip, st.Get("trip.trip_id").String())
+				assert.Equal(t, "STATIC", st.Get("trip.schedule_relationship").String(), "trip.schedule_relationship")
 				assert.Equal(t, "", st.Get("trip.timestamp").String())
 				assert.Equal(t, "", st.Get("arrival.estimated_utc").String())
 				assert.Equal(t, "", st.Get("departure.estimated_utc").String())

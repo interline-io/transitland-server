@@ -47,6 +47,7 @@ fragment trip on Trip {
   wheelchair_accessible
   bikes_allowed
   stop_pattern_id
+  schedule_relationship
   timestamp
 }
 

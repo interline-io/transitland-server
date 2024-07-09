@@ -1027,6 +1027,7 @@ const (
 	ScheduleRelationshipAdded       ScheduleRelationship = "ADDED"
 	ScheduleRelationshipUnscheduled ScheduleRelationship = "UNSCHEDULED"
 	ScheduleRelationshipCanceled    ScheduleRelationship = "CANCELED"
+	ScheduleRelationshipStatic      ScheduleRelationship = "STATIC"
 )
 
 var AllScheduleRelationship = []ScheduleRelationship{
@@ -1034,11 +1035,12 @@ var AllScheduleRelationship = []ScheduleRelationship{
 	ScheduleRelationshipAdded,
 	ScheduleRelationshipUnscheduled,
 	ScheduleRelationshipCanceled,
+	ScheduleRelationshipStatic,
 }
 
 func (e ScheduleRelationship) IsValid() bool {
 	switch e {
-	case ScheduleRelationshipScheduled, ScheduleRelationshipAdded, ScheduleRelationshipUnscheduled, ScheduleRelationshipCanceled:
+	case ScheduleRelationshipScheduled, ScheduleRelationshipAdded, ScheduleRelationshipUnscheduled, ScheduleRelationshipCanceled, ScheduleRelationshipStatic:
 		return true
 	}
 	return false
