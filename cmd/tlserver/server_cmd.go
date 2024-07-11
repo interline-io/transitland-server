@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"flag"
 	"fmt"
 	"time"
 
@@ -30,6 +29,7 @@ import (
 	"github.com/interline-io/transitland-server/server/rest"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
+	"github.com/spf13/pflag"
 )
 
 type Command struct {
@@ -47,12 +47,15 @@ type Command struct {
 	secrets            []tl.Secret
 }
 
-func (cmd *Command) Parse(args []string) error {
-	fl := flag.NewFlagSet("sync", flag.ExitOnError)
-	fl.Usage = func() {
-		log.Print("Usage: server")
-		fl.PrintDefaults()
-	}
+func (cmd *Command) HelpDesc() (string, string) {
+	return "Run transitland server", ""
+}
+
+func (cmd *Command) HelpArgs() string {
+	return "[flags]"
+}
+
+func (cmd *Command) AddFlags(fl *pflag.FlagSet) {
 	fl.StringVar(&cmd.DBURL, "dburl", "", "Database URL (default: $TL_DATABASE_URL)")
 	fl.StringVar(&cmd.RedisURL, "redisurl", "", "Redis URL (default: $TL_REDIS_URL)")
 	fl.StringVar(&cmd.Storage, "storage", "", "Static storage backend")
@@ -64,8 +67,9 @@ func (cmd *Command) Parse(args []string) error {
 	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
 	fl.IntVar(&cmd.LongQueryDuration, "long-query", 1000, "Log queries over this duration (ms)")
 	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
-	fl.Parse(args)
+}
 
+func (cmd *Command) Parse(args []string) error {
 	// DB
 	if cmd.DBURL == "" {
 		cmd.DBURL = os.Getenv("TL_DATABASE_URL")
