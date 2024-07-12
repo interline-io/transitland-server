@@ -1,6 +1,7 @@
 package rtfinder
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -10,18 +11,24 @@ import (
 
 type lookupCache struct {
 	db              sqlx.Ext
-	fvidSourceCache simpleCache[int, []string]
-	fvidFeedCache   simpleCache[int, string]
-	gtfsTripIdCache simpleCache[int, string]
-	gtfsStopIdCache simpleCache[int, string]
-	routeIdCache    simpleCache[skey, int]
-	tzCache         tzCache
+	fvidSourceCache *simpleCache[int, []string]
+	fvidFeedCache   *simpleCache[int, string]
+	gtfsTripIdCache *simpleCache[int, string]
+	gtfsStopIdCache *simpleCache[int, string]
+	routeIdCache    *simpleCache[skey, int]
+	tzCache         *tzCache
 	rtLookupLock    sync.Mutex
 }
 
 func newLookupCache(db sqlx.Ext) *lookupCache {
 	return &lookupCache{
-		db: db,
+		db:              db,
+		tzCache:         newTzCache(),
+		fvidSourceCache: newSimpleCache[int, []string](),
+		fvidFeedCache:   newSimpleCache[int, string](),
+		gtfsTripIdCache: newSimpleCache[int, string](),
+		gtfsStopIdCache: newSimpleCache[int, string](),
+		routeIdCache:    newSimpleCache[skey, int](),
 	}
 }
 
@@ -93,13 +100,20 @@ func (f *lookupCache) GetFeedVersionRTFeeds(id int) ([]string, bool) {
 func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) {
 	// If a timezone is provided, save it and return immediately
 	if known != "" {
-		// log.Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
+		log.Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
 		return f.tzCache.Add(id, known)
 	}
+
+	// Need to lock while looking up or setting.
+	f.rtLookupLock.Lock()
+	defer f.rtLookupLock.Unlock()
+
 	// Check the cache
 	if loc, ok := f.tzCache.Get(id); ok {
-		// log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
+		log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
 		return loc, ok
+	} else {
+		log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: timezone not in cache")
 	}
 	if id == 0 {
 		log.Trace().Int("stop_id", id).Msg("tz: lookup failed, cant find timezone for stops with id=0 unless speciifed explicitly")
@@ -125,6 +139,7 @@ func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) 
 	}
 	loc, ok := f.tzCache.Add(id, tz)
 	log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: lookup successful")
+	fmt.Printf("LOOKUP CACHE ID: %T %p %#v\n", f.tzCache, f.tzCache, f.tzCache)
 	return loc, ok
 }
 
@@ -208,12 +223,6 @@ func (c *tzCache) Add(key int, tz string) (*time.Location, bool) {
 	var loc *time.Location
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if c.values == nil {
-		c.values = map[int]string{}
-	}
-	if c.tzs == nil {
-		c.tzs = map[string]*time.Location{}
-	}
 	c.values[key] = tz
 	loc, ok := c.tzs[tz]
 	if !ok {
