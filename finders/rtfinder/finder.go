@@ -46,7 +46,6 @@ func (f *Finder) GetGtfsTripID(id int) (string, bool) {
 }
 
 func (f *Finder) StopTimezone(id int, known string) (*time.Location, bool) {
-	fmt.Printf("LOOKUP CACHE ID: %v", f.lc)
 	return f.lc.StopTimezone(id, known)
 }
 
