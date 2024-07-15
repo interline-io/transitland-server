@@ -36,7 +36,18 @@ func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Ca
 }
 
 func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error) {
-	return For(ctx).StopTimesByTripID.Load(ctx, model.TripStopTimeParam{FeedVersionID: obj.FeedVersionID, TripID: obj.ID, Limit: checkLimit(limit), Where: where})()
+	sts, err := For(ctx).StopTimesByTripID.Load(ctx, model.TripStopTimeParam{
+		FeedVersionID: obj.FeedVersionID,
+		TripID:        obj.ID,
+		Limit:         checkLimit(limit),
+		Where:         where,
+	})()
+	for _, st := range sts {
+		if ste, ok := model.ForContext(ctx).RTFinder.FindStopTimeUpdate(obj, st); ok {
+			st.RTStopTimeUpdate = ste
+		}
+	}
+	return sts, err
 }
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {

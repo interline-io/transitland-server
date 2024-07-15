@@ -3,7 +3,6 @@ package dbfinder
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
@@ -62,7 +61,6 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 				if v.ID == nil {
 					ent.ParentStation.Valid = false
 				} else {
-					fmt.Println("setting to", *v.ID)
 					checkParent := tl.Stop{}
 					checkParent.ID = *v.ID
 					ent.ParentStation = tt.NewKey(strconv.Itoa(checkParent.ID))

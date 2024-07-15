@@ -616,3 +616,63 @@ func TestAgencyAlerts(t *testing.T) {
 		testRt(t, tc)
 	}
 }
+
+func TestTripRTStopTimes(t *testing.T) {
+
+	const tripRtQuery = `query($trip_id:String!) {
+	trips(where: { trip_id: $trip_id }) {
+	  id
+	  trip_id
+	  stop_times(limit:100) {
+		stop_sequence
+		arrival {
+			scheduled
+			estimated
+			estimated_utc
+			stop_timezone
+			delay
+			uncertainty
+		}
+		departure {
+			scheduled
+			estimated
+			estimated_utc
+			stop_timezone
+			delay
+			uncertainty
+		}
+	  }
+	}
+  }`
+
+	tcs := []rtTestCase{
+		{
+			"trip stop times",
+			tripRtQuery,
+			hw{
+				"trip_id": "1031527WKDY",
+			},
+			testconfig.DefaultRTJson(),
+			func(t *testing.T, jj string) {
+				checkTrip := "1031527WKDY"
+				trip := gjson.Get(jj, "trips.0")
+				if trip.Get("trip_id").String() != checkTrip {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+				a := trip.Get("stop_times").Array()
+				assert.Equal(t, 20, len(a))
+				delay := 30
+				for _, st := range a {
+					assert.Equal(t, delay, int(st.Get("arrival.delay").Int()), "arrival.delay")
+					assert.Equal(t, delay, int(st.Get("departure.delay").Int()), "departure.delay")
+					sched, _ := tt.NewWideTime(st.Get("arrival.scheduled").String())
+					est, _ := tt.NewWideTime(st.Get("arrival.estimated").String())
+					assert.Equal(t, sched.Seconds+int(delay), est.Seconds, "arrival.scheduled + delay = arrival.estimated for this test")
+				}
+			},
+		},
+	}
+	for _, tc := range tcs {
+		testRt(t, tc)
+	}
+}
