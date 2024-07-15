@@ -1,7 +1,6 @@
 package rtfinder
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -98,15 +97,15 @@ func (f *lookupCache) GetFeedVersionRTFeeds(id int) ([]string, bool) {
 
 // StopTimezone looks up the timezone for a stop
 func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) {
+	// Need to lock while looking up or setting.
+	f.rtLookupLock.Lock()
+	defer f.rtLookupLock.Unlock()
+
 	// If a timezone is provided, save it and return immediately
 	if known != "" {
 		log.Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
 		return f.tzCache.Add(id, known)
 	}
-
-	// Need to lock while looking up or setting.
-	f.rtLookupLock.Lock()
-	defer f.rtLookupLock.Unlock()
 
 	// Check the cache
 	if loc, ok := f.tzCache.Get(id); ok {
@@ -139,7 +138,6 @@ func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) 
 	}
 	loc, ok := f.tzCache.Add(id, tz)
 	log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: lookup successful")
-	fmt.Printf("LOOKUP CACHE ID: %T %p %#v\n", f.tzCache, f.tzCache, f.tzCache)
 	return loc, ok
 }
 
