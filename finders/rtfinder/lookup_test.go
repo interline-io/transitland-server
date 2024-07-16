@@ -32,12 +32,3 @@ func BenchmarkLookupCache_LoadLocationCache(b *testing.B) {
 		lock.Unlock()
 	}
 }
-
-func Benchmark_tzCache(b *testing.B) {
-	c := newTzCache()
-	for n := 0; n < b.N; n++ {
-		loc, ok := c.Add(n, "America/Los_Angeles")
-		_ = loc
-		_ = ok
-	}
-}
