@@ -186,6 +186,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 
 			}
 		}
+		// Accept either Start/End or StartTime/EndTime
 		if where.Start != nil && where.Start.Valid {
 			where.StartTime = &where.Start.Seconds
 		}

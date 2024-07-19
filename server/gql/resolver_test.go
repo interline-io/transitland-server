@@ -16,6 +16,8 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const DEFAULT_WHEN = "2022-09-01T00:00:00"
+
 type hw = map[string]interface{}
 
 type testcase struct {
@@ -32,6 +34,11 @@ type testcase struct {
 	f                  func(*testing.T, string)
 }
 
+type testcaseWithClock struct {
+	testcase
+	whenUtc string
+}
+
 func TestMain(m *testing.M) {
 	// Increase default limit for testing purposes
 	MAXLIMIT = 100_000
@@ -46,16 +53,17 @@ func TestMain(m *testing.M) {
 
 func newTestClient(t testing.TB) (*client.Client, model.Config) {
 	return newTestClientWithOpts(t, testconfig.Options{
-		When:    "2022-09-01T00:00:00",
 		RTJsons: testconfig.DefaultRTJson(),
 	})
 }
 
 func newTestClientWithOpts(t testing.TB, opts testconfig.Options) (*client.Client, model.Config) {
+	if opts.When == "" {
+		opts.When = DEFAULT_WHEN
+	}
 	cfg := testconfig.Config(t, opts)
 	srv, _ := NewServer()
 	graphqlServer := model.AddConfigAndPerms(cfg, srv)
-
 	srvMiddleware := ancheck.NewUserDefaultMiddleware(func() authn.User {
 		return authn.NewCtxUser("testuser", "", "").WithRoles("testrole")
 	})
@@ -205,4 +213,143 @@ func astr(a []gjson.Result) []string {
 		ret = append(ret, b.String())
 	}
 	return ret
+}
+
+// RT helpers
+
+// Additional tests for RT data on StopResolver
+var rtTestStopQuery = `
+fragment alert on Alert {
+	cause
+	effect
+	severity_level
+	url {
+		language
+		text
+	}
+	header_text {
+		language
+		text
+	}
+	description_text {
+		language
+		text
+	}
+	tts_header_text {
+		language
+		text
+	}
+	tts_description_text {
+		language
+		text
+	}
+	active_period {
+		start
+		end
+	}
+}
+
+query($stop_id:String!, $stf:StopTimeFilter!, $active:Boolean) {
+	stops(where: { stop_id: $stop_id }) {
+	  id
+	  stop_id
+	  stop_name
+	  alerts(active:$active, limit:5) {
+		  ...alert
+	  }
+	  stop_times(where:$stf) {
+		stop_sequence
+		service_date
+		date
+		trip {
+		  alerts(active:$active) {
+			...alert
+		  }
+		  trip_id
+		  schedule_relationship
+		  timestamp
+		  route {
+			  route_id
+			  route_short_name
+			  route_long_name
+			  alerts(active:$active) {
+				  ...alert
+			  }
+			  agency {
+				  agency_id
+				  agency_name
+				  alerts(active:$active) {
+					  ...alert
+				  }
+			  }
+		  }
+		}
+		arrival {
+			scheduled
+			scheduled_local
+			scheduled_utc
+			estimated
+			estimated_utc
+			estimated_local
+			stop_timezone
+			delay
+			uncertainty
+		}
+		departure {
+			scheduled
+			scheduled_local
+			scheduled_utc
+			estimated
+			estimated_utc
+			estimated_local
+			stop_timezone
+			delay
+			uncertainty
+		}
+	  }
+	}
+  }
+`
+
+func rtTestStopQueryVars() hw {
+	return hw{
+		"stop_id": "FTVL",
+		"stf": hw{
+			"service_date": "2018-05-30",
+			"start_time":   57600,
+			"end_time":     57900,
+		},
+	}
+}
+
+type rtTestCase struct {
+	name    string
+	query   string
+	vars    map[string]interface{}
+	rtfiles []testconfig.RTJsonFile
+	cb      func(t *testing.T, jj string)
+	when    string
+}
+
+func testRt(t *testing.T, tc rtTestCase) {
+	t.Run(tc.name, func(t *testing.T) {
+		// Create a new RT Finder for each test...
+		c, _ := newTestClientWithOpts(t, testconfig.Options{
+			When:    tc.when,
+			RTJsons: tc.rtfiles,
+		})
+		var resp map[string]interface{}
+		opts := []client.Option{}
+		for k, v := range tc.vars {
+			opts = append(opts, client.Var(k, v))
+		}
+		if err := c.Post(tc.query, &resp, opts...); err != nil {
+			t.Error(err)
+			return
+		}
+		jj := toJson(resp)
+		if tc.cb != nil {
+			tc.cb(t, jj)
+		}
+	})
 }

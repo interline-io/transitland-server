@@ -493,6 +493,7 @@ type StopTime {
   continuous_pickup: Int
   shape_dist_traveled: Float
   service_date: Date
+  date: Date
 }
 
 """
@@ -670,9 +671,12 @@ enum ScheduleRelationship {
 
 type StopTimeEvent {
   stop_timezone: String!
-  scheduled: Seconds
-  estimated: Seconds
+  estimated_local: Time
   estimated_utc: Time
+  estimated: Seconds
+  scheduled_local: Time
+  scheduled_utc: Time
+  scheduled: Seconds
   delay: Int
   uncertainty: Int
 }
@@ -1012,6 +1016,7 @@ input StopFilter {
 }
 
 input StopTimeFilter {
+  date: Date
   service_date: Date
   use_service_window: Boolean
   start_time: Int

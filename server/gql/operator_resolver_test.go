@@ -164,11 +164,7 @@ func TestOperatorResolver(t *testing.T) {
 		},
 	}
 	c, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }
 
 func TestOperatorResolver_License(t *testing.T) {
@@ -308,9 +304,5 @@ func TestOperatorResolver_License(t *testing.T) {
 		},
 	}
 	c, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }

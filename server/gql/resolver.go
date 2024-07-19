@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"strings"
+	"time"
 
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
@@ -68,6 +71,35 @@ func checkBbox(bbox *model.BoundingBox, maxAreaM2 float64) bool {
 func atoi(v string) int {
 	a, _ := strconv.Atoi(v)
 	return a
+}
+
+func nilOr[T any, PT *T](v PT, def T) T {
+	if v == nil {
+		return def
+	}
+	return *v
+}
+
+func ptr[T any, PT *T](v T) PT {
+	a := v
+	return &a
+}
+
+func kebabize(a string) string {
+	return strings.ReplaceAll(strings.ToLower(a), "_", "-")
+}
+
+func tzTruncate(s time.Time, loc *time.Location) *tt.Date {
+	return ptr(tt.NewDate(time.Date(s.Year(), s.Month(), s.Day(), 0, 0, 0, 0, loc)))
+}
+
+func checkFloat(v *float64, min float64, max float64) float64 {
+	if v == nil || *v < min {
+		return min
+	} else if *v > max {
+		return max
+	}
+	return *v
 }
 
 // Resolver .

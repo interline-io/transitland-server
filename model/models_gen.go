@@ -569,15 +569,19 @@ type StopSetInput struct {
 }
 
 type StopTimeEvent struct {
-	StopTimezone string       `json:"stop_timezone"`
-	Scheduled    *tt.WideTime `json:"scheduled,omitempty"`
-	Estimated    *tt.WideTime `json:"estimated,omitempty"`
-	EstimatedUtc *time.Time   `json:"estimated_utc,omitempty"`
-	Delay        *int         `json:"delay,omitempty"`
-	Uncertainty  *int         `json:"uncertainty,omitempty"`
+	StopTimezone   string       `json:"stop_timezone"`
+	EstimatedLocal *time.Time   `json:"estimated_local,omitempty"`
+	EstimatedUtc   *time.Time   `json:"estimated_utc,omitempty"`
+	Estimated      *tt.WideTime `json:"estimated,omitempty"`
+	ScheduledLocal *time.Time   `json:"scheduled_local,omitempty"`
+	ScheduledUtc   *time.Time   `json:"scheduled_utc,omitempty"`
+	Scheduled      *tt.WideTime `json:"scheduled,omitempty"`
+	Delay          *int         `json:"delay,omitempty"`
+	Uncertainty    *int         `json:"uncertainty,omitempty"`
 }
 
 type StopTimeFilter struct {
+	Date                         *tt.Date     `json:"date,omitempty"`
 	ServiceDate                  *tt.Date     `json:"service_date,omitempty"`
 	UseServiceWindow             *bool        `json:"use_service_window,omitempty"`
 	StartTime                    *int         `json:"start_time,omitempty"`

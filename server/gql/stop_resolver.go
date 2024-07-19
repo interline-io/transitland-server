@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-server/internal/directions"
@@ -99,66 +98,167 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 }
 
 func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
+	// We need timezone information to do anything with stop times
+	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(obj.ID, obj.StopTimezone)
+	if !ok {
+		return nil, errors.New("timezone not available for stop")
+	}
+
+	// Local times
+	nowLocal := time.Now().In(loc)
+	if model.ForContext(ctx).Clock != nil {
+		nowLocal = model.ForContext(ctx).Clock.Now().In(loc)
+	}
+
+	// Pre-processing
+	// Convert Start, End to StartTime, EndTime
+	if where != nil {
+		if where.Start != nil {
+			where.StartTime = ptr(where.Start.Seconds)
+			where.Start = nil
+		}
+		if where.End != nil {
+			where.EndTime = ptr(where.End.Seconds)
+			where.End = nil
+		}
+	}
+
 	// Further processing of the StopTimeFilter
 	if where != nil {
+		// Set ServiceDate to local timezone
+		// ServiceDate is a strict GTFS calendar date
+		if where.ServiceDate != nil {
+			where.ServiceDate = tzTruncate(where.ServiceDate.Val, loc)
+		}
+
+		// Set Date to local timezone
+		if where.Date != nil {
+			where.Date = tzTruncate(where.Date.Val, loc)
+		}
+
+		// Convert relative date
+		// if where.RelativeDate != nil {
+		// 	fmt.Println("where.RelativeDate:", *where.RelativeDate)
+		// 	s, err := tt.TimeAt(kebabize(where.RelativeDate.String()), "00:00:00", loc.String(), "", "", "", false)
+		// 	fmt.Println("\tgot:", s)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	where.Date = tzTruncate(s, loc)
+		// }
+
 		// Convert where.Next into departure date and time window
 		if where.Next != nil {
-			loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(obj.ID, obj.StopTimezone)
-			if !ok {
-				return nil, errors.New("timezone not available for stop")
-			}
-			serviceDate := time.Now().In(loc)
-			if model.ForContext(ctx).Clock != nil {
-				serviceDate = model.ForContext(ctx).Clock.Now().In(loc)
-			}
-			st, et := 0, 0
-			st = serviceDate.Hour()*3600 + serviceDate.Minute()*60 + serviceDate.Second()
-			et = st + *where.Next
-			sd2 := tl.Date{Valid: true, Val: serviceDate}
-			where.ServiceDate = &sd2
-			where.StartTime = &st
-			where.EndTime = &et
+			st := nowLocal.Hour()*3600 + nowLocal.Minute()*60 + nowLocal.Second()
+			where.Date = tzTruncate(nowLocal, loc)
+			where.StartTime = ptr(st)
+			where.EndTime = ptr(st + *where.Next)
 			where.Next = nil
 		}
-		// Check if service date is outside the window for this feed version
-		if where.ServiceDate != nil && (where.UseServiceWindow != nil && *where.UseServiceWindow) {
-			sl, ok := r.fvslCache.Get(ctx, obj.FeedVersionID)
+
+		// Map date into service window
+		if nilOr(where.UseServiceWindow, false) {
+			serviceLevels, ok := r.fvslCache.Get(ctx, obj.FeedVersionID)
 			if !ok {
 				return nil, errors.New("service level information not available for feed version")
 			}
-			s := where.ServiceDate.Val
-			if s.Before(sl.StartDate) || s.After(sl.EndDate) {
-				dow := int(s.Weekday()) - 1
-				if dow < 0 {
-					dow = 6
+			// Check if date is outside window
+			if where.Date != nil {
+				s := where.Date.Val
+				if s.Before(serviceLevels.StartDate) || s.After(serviceLevels.EndDate) {
+					dow := int(s.Weekday()) - 1
+					if dow < 0 {
+						dow = 6
+					}
+					where.Date = tzTruncate(serviceLevels.BestWeek.AddDate(0, 0, dow), loc)
 				}
-				where.ServiceDate.Val = sl.BestWeek.AddDate(0, 0, dow)
-				// fmt.Println(
-				// 	"service window, requested day:", s, s.Weekday(),
-				// 	"window start:", sl.StartDate,
-				// 	"window end:", sl.EndDate,
-				// 	"best week:", sl.BestWeek, sl.BestWeek.Weekday(),
-				// 	"switching to:", where.ServiceDate.Time, where.ServiceDate.Time.Weekday(),
-				// )
+			}
+			// Repeat for ServiceDate
+			if where.ServiceDate != nil {
+				s := where.ServiceDate.Val
+				if s.Before(serviceLevels.StartDate) || s.After(serviceLevels.EndDate) {
+					dow := int(s.Weekday()) - 1
+					if dow < 0 {
+						dow = 6
+					}
+					where.ServiceDate = tzTruncate(serviceLevels.BestWeek.AddDate(0, 0, dow), loc)
+				}
 			}
 		}
 	}
-	//
-	sts, err := (For(ctx).StopTimesByStopID.Load(ctx, model.StopTimeParam{
-		StopID:        obj.ID,
-		FeedVersionID: obj.FeedVersionID,
-		Limit:         checkLimit(limit),
-		Where:         where,
-	})())
-	if err != nil {
-		return nil, err
+
+	// Crossing day boundaries...
+	var whereGroups []*model.StopTimeFilter
+	if where != nil && where.Date != nil {
+		date := where.Date
+		dayStart := 0
+		dayEnd := 24 * 60 * 60
+		dayEndMax := 100 * 60 * 60
+		whereStartTime := dayStart
+		if where.StartTime != nil {
+			whereStartTime = *where.StartTime
+		}
+		whereEndTime := dayEnd
+		if where.EndTime != nil {
+			whereEndTime = *where.EndTime
+		}
+		lookBehind := 6 * 3600
+		// if where.ServiceDateLookbehind != nil {
+		// 	lookBehind = where.ServiceDateLookbehind.Seconds
+		// }
+		// Query previous day
+		if whereStartTime < lookBehind {
+			whereCopy := *where
+			whereCopy.ServiceDate = ptr(tt.NewDate(date.Val.AddDate(0, 0, -1)))
+			whereCopy.StartTime = ptr(dayEnd + whereStartTime)
+			whereCopy.EndTime = ptr(dayEndMax)
+			whereGroups = append(whereGroups, &whereCopy)
+		}
+		// Query requested day, clamped to 0 - 24h
+		whereCopy := *where
+		whereCopy.ServiceDate = ptr(tt.NewDate(date.Val))
+		whereCopy.StartTime = ptr(max(dayStart, whereStartTime))
+		whereCopy.EndTime = ptr(whereEndTime)
+		whereGroups = append(whereGroups, &whereCopy)
+		// Query next day
+		if whereEndTime > dayEnd {
+			whereCopy := *where
+			whereCopy.ServiceDate = ptr(tt.NewDate(date.Val.AddDate(0, 0, 1)))
+			whereCopy.StartTime = ptr(dayStart)
+			whereCopy.EndTime = ptr(whereEndTime - dayEnd)
+			whereGroups = append(whereGroups, &whereCopy)
+		}
 	}
 
-	// Add service date used in query, if any
-	if where != nil && where.ServiceDate != nil {
-		for _, st := range sts {
-			st.ServiceDate = tt.NewDate(where.ServiceDate.Val)
+	// Default
+	if len(whereGroups) == 0 {
+		whereGroups = append(whereGroups, where)
+	}
+
+	// Query for each day group
+	var sts []*model.StopTime
+	for _, w := range whereGroups {
+		ents, err := (For(ctx).StopTimesByStopID.Load(ctx, model.StopTimeParam{
+			StopID:        obj.ID,
+			FeedVersionID: obj.FeedVersionID,
+			Limit:         checkLimit(limit),
+			Where:         w,
+		})())
+		if err != nil {
+			return nil, err
 		}
+		// Set service date and calendar date; move calendar date one day forward if > midnight
+		if w != nil && w.ServiceDate != nil {
+			for _, ent := range ents {
+				ent.ServiceDate = tt.NewDate(w.ServiceDate.Val)
+				if ent.ArrivalTime.Seconds < 24*60*60 {
+					ent.Date = tt.NewDate(w.ServiceDate.Val)
+				} else {
+					ent.Date = tt.NewDate(w.ServiceDate.Val.AddDate(0, 0, 1))
+				}
+			}
+		}
+		sts = append(sts, ents...)
 	}
 
 	// Merge scheduled stop times with rt stop times
@@ -192,8 +292,10 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	// Sort by scheduled departure time.
 	// TODO: Sort by rt departure time? Requires full StopTime Resolver for timezones, processing, etc.
 	sort.Slice(sts, func(i, j int) bool {
-		a := sts[i].DepartureTime.Seconds
-		b := sts[j].DepartureTime.Seconds
+		sta := sts[i]
+		stb := sts[j]
+		a := int(sta.ServiceDate.Val.Unix()) + sta.DepartureTime.Seconds
+		b := int(stb.ServiceDate.Val.Unix()) + stb.DepartureTime.Seconds
 		return a < b
 	})
 	return sts, nil
@@ -229,15 +331,6 @@ func (r *stopResolver) NearbyStops(ctx context.Context, obj *model.Stop, limit *
 	c := obj.Coordinates()
 	nearbyStops, err := model.ForContext(ctx).Finder.FindStops(ctx, checkLimit(limit), nil, nil, &model.StopFilter{Near: &model.PointRadius{Lon: c[0], Lat: c[1], Radius: checkFloat(radius, 0, MAX_RADIUS)}})
 	return nearbyStops, err
-}
-
-func checkFloat(v *float64, min float64, max float64) float64 {
-	if v == nil || *v < min {
-		return min
-	} else if *v > max {
-		return max
-	}
-	return *v
 }
 
 //////////
