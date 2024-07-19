@@ -919,6 +919,7 @@ type ComplexityRoot struct {
 		ArrivalTime       func(childComplexity int) int
 		ContinuousDropOff func(childComplexity int) int
 		ContinuousPickup  func(childComplexity int) int
+		Date              func(childComplexity int) int
 		Departure         func(childComplexity int) int
 		DepartureTime     func(childComplexity int) int
 		DropOffType       func(childComplexity int) int
@@ -934,12 +935,15 @@ type ComplexityRoot struct {
 	}
 
 	StopTimeEvent struct {
-		Delay        func(childComplexity int) int
-		Estimated    func(childComplexity int) int
-		EstimatedUtc func(childComplexity int) int
-		Scheduled    func(childComplexity int) int
-		StopTimezone func(childComplexity int) int
-		Uncertainty  func(childComplexity int) int
+		Delay          func(childComplexity int) int
+		Estimated      func(childComplexity int) int
+		EstimatedLocal func(childComplexity int) int
+		EstimatedUtc   func(childComplexity int) int
+		Scheduled      func(childComplexity int) int
+		ScheduledLocal func(childComplexity int) int
+		ScheduledUtc   func(childComplexity int) int
+		StopTimezone   func(childComplexity int) int
+		Uncertainty    func(childComplexity int) int
 	}
 
 	Trip struct {
@@ -5844,6 +5848,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StopTime.ContinuousPickup(childComplexity), true
 
+	case "StopTime.date":
+		if e.complexity.StopTime.Date == nil {
+			break
+		}
+
+		return e.complexity.StopTime.Date(childComplexity), true
+
 	case "StopTime.departure":
 		if e.complexity.StopTime.Departure == nil {
 			break
@@ -5942,6 +5953,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StopTimeEvent.Estimated(childComplexity), true
 
+	case "StopTimeEvent.estimated_local":
+		if e.complexity.StopTimeEvent.EstimatedLocal == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.EstimatedLocal(childComplexity), true
+
 	case "StopTimeEvent.estimated_utc":
 		if e.complexity.StopTimeEvent.EstimatedUtc == nil {
 			break
@@ -5955,6 +5973,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StopTimeEvent.Scheduled(childComplexity), true
+
+	case "StopTimeEvent.scheduled_local":
+		if e.complexity.StopTimeEvent.ScheduledLocal == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.ScheduledLocal(childComplexity), true
+
+	case "StopTimeEvent.scheduled_utc":
+		if e.complexity.StopTimeEvent.ScheduledUtc == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.ScheduledUtc(childComplexity), true
 
 	case "StopTimeEvent.stop_timezone":
 		if e.complexity.StopTimeEvent.StopTimezone == nil {
@@ -7511,6 +7543,7 @@ type StopTime {
   continuous_pickup: Int
   shape_dist_traveled: Float
   service_date: Date
+  date: Date
 }
 
 """
@@ -7573,6 +7606,17 @@ type AgencyPlace {
   adm1_iso: String
   rank: Float
 }
+
+# enum RelativeDate {
+#   TODAY
+#   NEXT_MONDAY
+#   NEXT_TUESDAY
+#   NEXT_WEDNESDAY
+#   NEXT_THURSDAY
+#   NEXT_FRIDAY
+#   NEXT_SATURDAY
+#   NEXT_SUNDAY
+# }
 
 enum PlaceAggregationLevel {
   ADM0
@@ -7688,9 +7732,12 @@ enum ScheduleRelationship {
 
 type StopTimeEvent {
   stop_timezone: String!
-  scheduled: Seconds
-  estimated: Seconds
+  estimated_local: Time
   estimated_utc: Time
+  estimated: Seconds
+  scheduled_local: Time
+  scheduled_utc: Time
+  scheduled: Seconds
   delay: Int
   uncertainty: Int
 }
@@ -8030,7 +8077,9 @@ input StopFilter {
 }
 
 input StopTimeFilter {
+  date: Date
   service_date: Date
+  service_date_lookbehind: Seconds
   use_service_window: Boolean
   start_time: Int
   end_time: Int
@@ -38875,6 +38924,8 @@ func (ec *executionContext) fieldContext_Stop_stop_times(ctx context.Context, fi
 				return ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
 			case "service_date":
 				return ec.fieldContext_StopTime_service_date(ctx, field)
+			case "date":
+				return ec.fieldContext_StopTime_date(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StopTime", field.Name)
 		},
@@ -38964,6 +39015,8 @@ func (ec *executionContext) fieldContext_Stop_departures(ctx context.Context, fi
 				return ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
 			case "service_date":
 				return ec.fieldContext_StopTime_service_date(ctx, field)
+			case "date":
+				return ec.fieldContext_StopTime_date(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StopTime", field.Name)
 		},
@@ -39053,6 +39106,8 @@ func (ec *executionContext) fieldContext_Stop_arrivals(ctx context.Context, fiel
 				return ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
 			case "service_date":
 				return ec.fieldContext_StopTime_service_date(ctx, field)
+			case "date":
+				return ec.fieldContext_StopTime_date(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StopTime", field.Name)
 		},
@@ -41100,12 +41155,18 @@ func (ec *executionContext) fieldContext_StopTime_arrival(ctx context.Context, f
 			switch field.Name {
 			case "stop_timezone":
 				return ec.fieldContext_StopTimeEvent_stop_timezone(ctx, field)
-			case "scheduled":
-				return ec.fieldContext_StopTimeEvent_scheduled(ctx, field)
-			case "estimated":
-				return ec.fieldContext_StopTimeEvent_estimated(ctx, field)
+			case "estimated_local":
+				return ec.fieldContext_StopTimeEvent_estimated_local(ctx, field)
 			case "estimated_utc":
 				return ec.fieldContext_StopTimeEvent_estimated_utc(ctx, field)
+			case "estimated":
+				return ec.fieldContext_StopTimeEvent_estimated(ctx, field)
+			case "scheduled_local":
+				return ec.fieldContext_StopTimeEvent_scheduled_local(ctx, field)
+			case "scheduled_utc":
+				return ec.fieldContext_StopTimeEvent_scheduled_utc(ctx, field)
+			case "scheduled":
+				return ec.fieldContext_StopTimeEvent_scheduled(ctx, field)
 			case "delay":
 				return ec.fieldContext_StopTimeEvent_delay(ctx, field)
 			case "uncertainty":
@@ -41158,12 +41219,18 @@ func (ec *executionContext) fieldContext_StopTime_departure(ctx context.Context,
 			switch field.Name {
 			case "stop_timezone":
 				return ec.fieldContext_StopTimeEvent_stop_timezone(ctx, field)
-			case "scheduled":
-				return ec.fieldContext_StopTimeEvent_scheduled(ctx, field)
-			case "estimated":
-				return ec.fieldContext_StopTimeEvent_estimated(ctx, field)
+			case "estimated_local":
+				return ec.fieldContext_StopTimeEvent_estimated_local(ctx, field)
 			case "estimated_utc":
 				return ec.fieldContext_StopTimeEvent_estimated_utc(ctx, field)
+			case "estimated":
+				return ec.fieldContext_StopTimeEvent_estimated(ctx, field)
+			case "scheduled_local":
+				return ec.fieldContext_StopTimeEvent_scheduled_local(ctx, field)
+			case "scheduled_utc":
+				return ec.fieldContext_StopTimeEvent_scheduled_utc(ctx, field)
+			case "scheduled":
+				return ec.fieldContext_StopTimeEvent_scheduled(ctx, field)
 			case "delay":
 				return ec.fieldContext_StopTimeEvent_delay(ctx, field)
 			case "uncertainty":
@@ -41339,6 +41406,47 @@ func (ec *executionContext) fieldContext_StopTime_service_date(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _StopTime_date(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTime_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tt.Date)
+	fc.Result = res
+	return ec.marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopTime_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Date does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _StopTimeEvent_stop_timezone(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_StopTimeEvent_stop_timezone(ctx, field)
 	if err != nil {
@@ -41383,8 +41491,8 @@ func (ec *executionContext) fieldContext_StopTimeEvent_stop_timezone(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StopTimeEvent_scheduled(ctx, field)
+func (ec *executionContext) _StopTimeEvent_estimated_local(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTimeEvent_estimated_local(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41397,7 +41505,7 @@ func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Scheduled, nil
+		return obj.EstimatedLocal, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41406,19 +41514,60 @@ func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StopTimeEvent_scheduled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StopTimeEvent_estimated_local(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StopTimeEvent",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Seconds does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopTimeEvent_estimated_utc(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTimeEvent_estimated_utc(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EstimatedUtc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopTimeEvent_estimated_utc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41465,8 +41614,8 @@ func (ec *executionContext) fieldContext_StopTimeEvent_estimated(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _StopTimeEvent_estimated_utc(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StopTimeEvent_estimated_utc(ctx, field)
+func (ec *executionContext) _StopTimeEvent_scheduled_local(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTimeEvent_scheduled_local(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41479,7 +41628,7 @@ func (ec *executionContext) _StopTimeEvent_estimated_utc(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.EstimatedUtc, nil
+		return obj.ScheduledLocal, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41493,7 +41642,7 @@ func (ec *executionContext) _StopTimeEvent_estimated_utc(ctx context.Context, fi
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StopTimeEvent_estimated_utc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StopTimeEvent_scheduled_local(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StopTimeEvent",
 		Field:      field,
@@ -41501,6 +41650,88 @@ func (ec *executionContext) fieldContext_StopTimeEvent_estimated_utc(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopTimeEvent_scheduled_utc(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTimeEvent_scheduled_utc(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduledUtc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopTimeEvent_scheduled_utc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTimeEvent_scheduled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Scheduled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.WideTime)
+	fc.Result = res
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopTimeEvent_scheduled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Seconds does not have child fields")
 		},
 	}
 	return fc, nil
@@ -42378,6 +42609,8 @@ func (ec *executionContext) fieldContext_Trip_stop_times(ctx context.Context, fi
 				return ec.fieldContext_StopTime_shape_dist_traveled(ctx, field)
 			case "service_date":
 				return ec.fieldContext_StopTime_service_date(ctx, field)
+			case "date":
+				return ec.fieldContext_StopTime_date(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StopTime", field.Name)
 		},
@@ -48896,13 +49129,20 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"service_date", "use_service_window", "start_time", "end_time", "start", "end", "next", "route_onestop_ids", "allow_previous_route_onestop_ids", "exclude_first", "exclude_last"}
+	fieldsInOrder := [...]string{"date", "service_date", "service_date_lookbehind", "use_service_window", "start_time", "end_time", "start", "end", "next", "route_onestop_ids", "allow_previous_route_onestop_ids", "exclude_first", "exclude_last"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
+			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Date = data
 		case "service_date":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service_date"))
 			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
@@ -48910,6 +49150,13 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 				return it, err
 			}
 			it.ServiceDate = data
+		case "service_date_lookbehind":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service_date_lookbehind"))
+			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ServiceDateLookbehind = data
 		case "use_service_window":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_service_window"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -57091,6 +57338,8 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._StopTime_shape_dist_traveled(ctx, field, obj)
 		case "service_date":
 			out.Values[i] = ec._StopTime_service_date(ctx, field, obj)
+		case "date":
+			out.Values[i] = ec._StopTime_date(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -57130,12 +57379,18 @@ func (ec *executionContext) _StopTimeEvent(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "scheduled":
-			out.Values[i] = ec._StopTimeEvent_scheduled(ctx, field, obj)
-		case "estimated":
-			out.Values[i] = ec._StopTimeEvent_estimated(ctx, field, obj)
+		case "estimated_local":
+			out.Values[i] = ec._StopTimeEvent_estimated_local(ctx, field, obj)
 		case "estimated_utc":
 			out.Values[i] = ec._StopTimeEvent_estimated_utc(ctx, field, obj)
+		case "estimated":
+			out.Values[i] = ec._StopTimeEvent_estimated(ctx, field, obj)
+		case "scheduled_local":
+			out.Values[i] = ec._StopTimeEvent_scheduled_local(ctx, field, obj)
+		case "scheduled_utc":
+			out.Values[i] = ec._StopTimeEvent_scheduled_utc(ctx, field, obj)
+		case "scheduled":
+			out.Values[i] = ec._StopTimeEvent_scheduled(ctx, field, obj)
 		case "delay":
 			out.Values[i] = ec._StopTimeEvent_delay(ctx, field, obj)
 		case "uncertainty":
