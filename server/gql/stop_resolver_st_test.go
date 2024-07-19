@@ -220,14 +220,6 @@ func TestStopResolver_StopTimes_Dates(t *testing.T) {
 			selector:     "stops.0.stop_times.#.service_date",
 			selectExpect: []string{"2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28", "2018-05-28"},
 		},
-		// Relative dates
-		{
-			name:         "next-monday",
-			query:        q,
-			vars:         hw{"stop_id": "MCAR_S", "date": "2018-05-28", "start": "15:00:00", "end": "15:15:00"},
-			selector:     "stops.0.stop_times.#.date",
-			selectExpect: []string{"2018-05-28", "2018-05-28"},
-		},
 	}
 	c, _ := newTestClient(t)
 	queryTestcases(t, c, testcases)

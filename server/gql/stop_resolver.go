@@ -110,7 +110,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 		nowLocal = model.ForContext(ctx).Clock.Now().In(loc)
 	}
 
-	// Prre-processing
+	// Pre-processing
 	// Convert Start, End to StartTime, EndTime
 	if where != nil {
 		if where.Start != nil {
