@@ -143,11 +143,7 @@ func TestTripResolver(t *testing.T) {
 		// TODO: frequencies
 	}
 	c, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }
 
 func TestTripResolver_StopPatternID(t *testing.T) {
@@ -331,9 +327,5 @@ func TestTripResolver_License(t *testing.T) {
 		},
 	}
 	c, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }

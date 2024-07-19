@@ -267,11 +267,7 @@ func TestRouteResolver(t *testing.T) {
 		// TODO: census_geographies
 	}
 	c, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }
 
 func TestRouteResolver_PreviousOnestopID(t *testing.T) {
@@ -306,11 +302,7 @@ func TestRouteResolver_PreviousOnestopID(t *testing.T) {
 		},
 	}
 	c, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }
 
 func TestRouteResolver_Segments(t *testing.T) {
@@ -355,11 +347,7 @@ func TestRouteResolver_Segments(t *testing.T) {
 		},
 	}
 	c, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }
 
 func TestRouteResolver_Cursor(t *testing.T) {
@@ -407,11 +395,7 @@ func TestRouteResolver_Cursor(t *testing.T) {
 			selectExpect: []string{},
 		},
 	}
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }
 
 func TestRouteResolver_License(t *testing.T) {
@@ -561,9 +545,5 @@ func TestRouteResolver_License(t *testing.T) {
 		},
 	}
 	c, _ := newTestClient(t)
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			queryTestcase(t, c, tc)
-		})
-	}
+	queryTestcases(t, c, testcases)
 }
