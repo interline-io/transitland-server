@@ -583,7 +583,6 @@ type StopTimeEvent struct {
 type StopTimeFilter struct {
 	Date                         *tt.Date     `json:"date,omitempty"`
 	ServiceDate                  *tt.Date     `json:"service_date,omitempty"`
-	ServiceDateLookbehind        *tt.WideTime `json:"service_date_lookbehind,omitempty"`
 	UseServiceWindow             *bool        `json:"use_service_window,omitempty"`
 	StartTime                    *int         `json:"start_time,omitempty"`
 	EndTime                      *int         `json:"end_time,omitempty"`

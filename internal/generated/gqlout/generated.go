@@ -7607,17 +7607,6 @@ type AgencyPlace {
   rank: Float
 }
 
-# enum RelativeDate {
-#   TODAY
-#   NEXT_MONDAY
-#   NEXT_TUESDAY
-#   NEXT_WEDNESDAY
-#   NEXT_THURSDAY
-#   NEXT_FRIDAY
-#   NEXT_SATURDAY
-#   NEXT_SUNDAY
-# }
-
 enum PlaceAggregationLevel {
   ADM0
   ADM0_ADM1
@@ -8079,7 +8068,6 @@ input StopFilter {
 input StopTimeFilter {
   date: Date
   service_date: Date
-  service_date_lookbehind: Seconds
   use_service_window: Boolean
   start_time: Int
   end_time: Int
@@ -49129,7 +49117,7 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"date", "service_date", "service_date_lookbehind", "use_service_window", "start_time", "end_time", "start", "end", "next", "route_onestop_ids", "allow_previous_route_onestop_ids", "exclude_first", "exclude_last"}
+	fieldsInOrder := [...]string{"date", "service_date", "use_service_window", "start_time", "end_time", "start", "end", "next", "route_onestop_ids", "allow_previous_route_onestop_ids", "exclude_first", "exclude_last"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49150,13 +49138,6 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 				return it, err
 			}
 			it.ServiceDate = data
-		case "service_date_lookbehind":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service_date_lookbehind"))
-			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ServiceDateLookbehind = data
 		case "use_service_window":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_service_window"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)

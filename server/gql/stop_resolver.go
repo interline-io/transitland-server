@@ -203,9 +203,9 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 			whereEndTime = *where.EndTime
 		}
 		lookBehind := 6 * 3600
-		if where.ServiceDateLookbehind != nil {
-			lookBehind = where.ServiceDateLookbehind.Seconds
-		}
+		// if where.ServiceDateLookbehind != nil {
+		// 	lookBehind = where.ServiceDateLookbehind.Seconds
+		// }
 		// Query previous day
 		if whereStartTime < lookBehind {
 			whereCopy := *where
