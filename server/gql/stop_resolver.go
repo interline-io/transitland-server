@@ -3,6 +3,7 @@ package gql
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -137,15 +138,16 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 		}
 
 		// Convert relative date
-		// if where.RelativeDate != nil {
-		// 	fmt.Println("where.RelativeDate:", *where.RelativeDate)
-		// 	s, err := tt.TimeAt(kebabize(where.RelativeDate.String()), "00:00:00", loc.String(), "", "", "", false)
-		// 	fmt.Println("\tgot:", s)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// 	where.Date = tzTruncate(s, loc)
-		// }
+		if where.RelativeDate != nil {
+			fmt.Println("where.RelativeDate:", *where.RelativeDate)
+			// s, err := tt.TimeAt(kebabize(where.RelativeDate.String()), "00:00:00", loc.String(), "", "", "", false)
+			s, err := tt.RelativeDate(nowLocal, kebabize(string(*where.RelativeDate)))
+			fmt.Println("\tgot:", s)
+			if err != nil {
+				return nil, err
+			}
+			where.Date = tzTruncate(s, loc)
+		}
 
 		// Convert where.Next into departure date and time window
 		if where.Next != nil {
