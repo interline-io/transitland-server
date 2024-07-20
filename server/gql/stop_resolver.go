@@ -140,7 +140,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 		// Convert relative date
 		if where.RelativeDate != nil {
 			fmt.Println("where.RelativeDate:", *where.RelativeDate)
-			// s, err := tt.TimeAt(kebabize(where.RelativeDate.String()), "00:00:00", loc.String(), "", "", "", false)
+			fmt.Println("\tnowLocal:", nowLocal)
 			s, err := tt.RelativeDate(nowLocal, kebabize(string(*where.RelativeDate)))
 			fmt.Println("\tgot:", s)
 			if err != nil {
@@ -151,11 +151,13 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 
 		// Convert where.Next into departure date and time window
 		if where.Next != nil {
+			if where.Date == nil {
+				where.Date = tzTruncate(nowLocal, loc)
+			}
 			st := nowLocal.Hour()*3600 + nowLocal.Minute()*60 + nowLocal.Second()
-			where.Date = tzTruncate(nowLocal, loc)
 			where.StartTime = ptr(st)
 			where.EndTime = ptr(st + *where.Next)
-			where.Next = nil
+			fmt.Println("NEXT:", *where.Next, *where.StartTime, *where.EndTime, "NEW DATE:", where.Date)
 		}
 
 		// Map date into service window
@@ -240,6 +242,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	// Query for each day group
 	var sts []*model.StopTime
 	for _, w := range whereGroups {
+		fmt.Println("WHERE:", w.ServiceDate.String(), nilOr(w.StartTime, 0), nilOr(w.EndTime, 0))
 		ents, err := (For(ctx).StopTimesByStopID.Load(ctx, model.StopTimeParam{
 			StopID:        obj.ID,
 			FeedVersionID: obj.FeedVersionID,
