@@ -302,6 +302,7 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 	testcases := []testcaseWithClock{
 		// Relative times
 		{
+			whenUtc: "2018-05-30T22:00:00Z",
 			testcase: testcase{
 				name:         "where next 3600",
 				query:        `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{next:3600}) {arrival_time}}}`,
@@ -309,28 +310,28 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 				selectExpect: []string{"15:01:00", "15:09:00", "15:09:00", "15:16:00", "15:24:00", "15:24:00", "15:31:00", "15:39:00", "15:39:00", "15:46:00", "15:54:00", "15:54:00"}, // these should start at 15:00 - 16:00
 
 			},
-			whenUtc: "2018-05-30T22:00:00",
 		},
 		{
+			whenUtc: "2018-05-30T06:00:00Z", // 23:00 local time
 			testcase: testcase{
 				name:         "where next 7200, includes after midnight",
 				query:        `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{next:7200}) {arrival_time}}}`,
 				selector:     "stops.0.stop_times.#.arrival_time",
 				selectExpect: []string{"23:14:00", "23:14:00", "23:34:00", "23:34:00", "23:54:00", "23:54:00", "24:14:00", "24:14:00", "24:47:00", "24:47:00"},
 			},
-			whenUtc: "2018-05-30T06:00:00", // 23:00 local time
 		},
 		{
+			whenUtc: "2018-05-30T06:00:00Z", // 23:00 local time
 			testcase: testcase{
 				name:         "where next 7200, includes after midnight, check date",
 				query:        `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{next:7200}) {arrival_time date}}}`,
 				selector:     "stops.0.stop_times.#.date",
 				selectExpect: []string{"2018-05-29", "2018-05-29", "2018-05-29", "2018-05-29", "2018-05-29", "2018-05-29", "2018-05-30", "2018-05-30", "2018-05-30", "2018-05-30"},
 			},
-			whenUtc: "2018-05-30T06:00:00", // 23:00 local time
 		},
 
 		{
+			whenUtc: "2018-05-30T22:00:00Z",
 			testcase: testcase{
 				name:         "where next 1800",
 				query:        `query{ stops(where:{stop_id:"MCAR_S"}) { stop_times(where:{next:1800}) {arrival_time}}}`,
@@ -338,9 +339,9 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 				selectExpect: []string{"15:01:00", "15:09:00", "15:09:00", "15:16:00", "15:24:00", "15:24:00"}, // these should start at 15:00 - 15:30
 
 			},
-			whenUtc: "2018-05-30T22:00:00",
 		},
 		{
+			whenUtc: "2018-05-30T22:00:00Z",
 			testcase: testcase{
 				name:         "where next 900, east coast",
 				query:        `query{ stops(where:{stop_id:"6497"}) { stop_times(where:{next:900}) {arrival_time}}}`,
@@ -348,9 +349,9 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 				selectExpect: []string{"18:00:00", "18:00:00", "18:00:00", "18:00:00", "18:00:00", "18:03:00", "18:10:00", "18:10:00", "18:13:00", "18:14:00", "18:15:00", "18:15:00"}, // these should start at 18:00 - 18:15
 
 			},
-			whenUtc: "2018-05-30T22:00:00",
 		},
 		{
+			whenUtc: "2018-05-30T22:00:00Z",
 			testcase: testcase{
 				name:  "where next 600, multiple timezones",
 				query: `query{ stops(where:{onestop_ids:["s-dhvrsm227t-universityareatransitcenter", "s-9q9p1wxf72-macarthur"]}) { onestop_id stop_id stop_times(where:{next:600}) {arrival_time}}}`,
@@ -401,13 +402,12 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 					}]
 				}`,
 			},
-			whenUtc: "2018-05-30T22:00:00",
 		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			c, _ := newTestClientWithOpts(t, testconfig.Options{
-				When:    tc.whenUtc,
+				WhenUtc: tc.whenUtc,
 				RTJsons: testconfig.DefaultRTJson(),
 			})
 			queryTestcase(t, c, tc.testcase)
@@ -415,31 +415,214 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 	}
 }
 
-// func TestStopResolver_StopTimes_RelativeDates(t *testing.T) {
-// 	q := `query($stop_id:String!,$relative_date:RelativeDate,$start:Seconds,$end:Seconds,$ed:Boolean){ stops(where:{stop_id:$stop_id}) { stop_times(where:{relative_date:$relative_date, start:$start, end:$end, use_service_window:$ed}) {date service_date arrival_time}}}`
-// 	testcases := []testcaseWithClock{
-// 		{
-// 			testcase: testcase{
-// 				name:         "next-monday",
-// 				query:        q,
-// 				vars:         hw{"stop_id": "MCAR_S", "relative_date": "NEXT_MONDAY", "start": "15:00:00", "end": "15:15:00"},
-// 				selector:     "stops.0.stop_times.#.date",
-// 				selectExpect: []string{"2018-05-28", "2018-05-28"},
-// 				f: func(t *testing.T, jj string) {
-// 					fmt.Println("jj:", string(jj))
-// 				},
-// 			},
-// 			whenUtc: "2018-05-28T22:00:00", // Monday
-// 		},
-// 	}
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			fmt.Println("RUN WITH TIME:", tc.whenUtc)
-// 			c, _ := newTestClientWithOpts(t, testconfig.Options{
-// 				When:    tc.whenUtc,
-// 				RTJsons: testconfig.DefaultRTJson(),
-// 			})
-// 			queryTestcase(t, c, tc.testcase)
-// 		})
-// 	}
-// }
+func TestStopResolver_StopTimes_RelativeDates(t *testing.T) {
+	q := `query($stop_id:String!,$relative_date:RelativeDate,$next:Int,$start:Seconds,$end:Seconds,$ed:Boolean){ stops(where:{stop_id:$stop_id}) { stop_times(where:{relative_date:$relative_date, start:$start, end:$end, next:$next use_service_window:$ed}) {trip { id trip_id } date service_date arrival_time}}}`
+	testcases := []testcaseWithClock{
+		{
+			whenUtc: "2018-05-30T22:00:00Z",
+			testcase: testcase{
+				name:  "today (wednesday)",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "TODAY", "start": "15:00:00", "end": "15:15:00"},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-05-30", "2018-05-30", "2018-05-30"},
+				}, {
+					selector: "stops.0.stop_times.#.arrival_time",
+					expect:   []string{"15:01:00", "15:09:00", "15:09:00"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"4611442WKDY", "3671433WKDY", "2251450WKDY"},
+				}},
+			},
+		},
+		{
+			whenUtc: "2018-05-27T22:00:00Z",
+			testcase: testcase{
+				name:  "today (sunday)",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "TODAY", "start": "15:00:00", "end": "15:15:00"},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-05-27", "2018-05-27"},
+				}, {
+					selector: "stops.0.stop_times.#.arrival_time",
+					expect:   []string{"15:15:00", "15:15:00"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"3671438SUN", "2271456SUN"},
+				}},
+			},
+		},
+		{
+			whenUtc: "2018-06-04T22:00:00Z", // Monday
+			testcase: testcase{
+				name:  "monday",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "MONDAY", "start": "15:00:00", "end": "15:15:00"},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-06-04", "2018-06-04", "2018-06-04"},
+				}, {
+					selector: "stops.0.stop_times.#.arrival_time",
+					expect:   []string{"15:01:00", "15:09:00", "15:09:00"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"4611442WKDY", "3671433WKDY", "2251450WKDY"},
+				}},
+			},
+		},
+		{
+			whenUtc: "2018-06-04T22:00:00Z", // Monday
+			testcase: testcase{
+				name:  "next-monday",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "NEXT_MONDAY", "start": "15:00:00", "end": "15:15:00"},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-06-11", "2018-06-11", "2018-06-11"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"4611442WKDY", "3671433WKDY", "2251450WKDY"},
+				}},
+			},
+		},
+		{
+			whenUtc: "2018-05-27T22:00:00Z", // Sunday
+			testcase: testcase{
+				name:  "next-sunday",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "NEXT_SUNDAY", "start": "15:00:00", "end": "15:15:00"},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-06-03", "2018-06-03"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"3671438SUN", "2271456SUN"},
+				}},
+			},
+		},
+		{
+			whenUtc: "2018-05-25T22:00:00Z",
+			testcase: testcase{
+				name:  "sunday",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "SUNDAY", "start": "15:00:00", "end": "15:15:00"},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"3671438SUN", "2271456SUN"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"3671438SUN", "2271456SUN"},
+				}},
+			},
+		},
+		// Combined with Next
+		{
+			whenUtc: "2018-06-01T19:00:00Z",
+			testcase: testcase{
+				name:  "today (next=3600)",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "TODAY", "next": 900},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-06-01", "2018-06-01", "2018-06-01"},
+				}, {
+					selector: "stops.0.stop_times.#.arrival_time",
+					expect:   []string{"12:01:00", "12:09:00", "12:09:00"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"4591142WKDY", "3691133WKDY", "2211150WKDY"},
+				}},
+			},
+		},
+		{
+			whenUtc: "2018-06-04T19:00:00Z",
+			testcase: testcase{
+				name:  "next-monday (next=3600)",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "NEXT_MONDAY", "next": 900},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-06-11", "2018-06-11", "2018-06-11"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"4591142WKDY", "3691133WKDY", "2211150WKDY"},
+				}, {
+					selector: "stops.0.stop_times.#.arrival_time",
+					expect:   []string{"12:01:00", "12:09:00", "12:09:00"},
+				}},
+			},
+		},
+		// Combined with fallback
+		{
+			whenUtc: "2024-07-21T19:00:00Z",
+			testcase: testcase{
+				name:  "today (sunday, outside window, next=3600)",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "TODAY", "next": 900},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{},
+				}},
+			},
+		},
+		{
+			whenUtc: "2024-07-22T19:00:00Z",
+			testcase: testcase{
+				name:  "next-monday (outside window, next=3600)",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "NEXT_MONDAY", "next": 900},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{},
+				}},
+			},
+		},
+		{
+			whenUtc: "2024-07-21T19:00:00Z",
+			testcase: testcase{
+				name:  "today (sunday, outside window, use fallback, next=3600)",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "TODAY", "next": 900, "ed": true},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-06-10", "2018-06-10"},
+				}, {
+					selector: "stops.0.stop_times.#.arrival_time",
+					expect:   []string{"12:15:00", "12:15:00"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"3691138SUN", "2251156SUN"},
+				}},
+			},
+		},
+		{
+			whenUtc: "2024-07-22T19:00:00Z",
+			testcase: testcase{
+				name:  "next-monday (outside window, use fallback, next=3600)",
+				query: q,
+				vars:  hw{"stop_id": "MCAR_S", "relative_date": "NEXT_MONDAY", "next": 900, "ed": true},
+				sel: []testcaseSelector{{
+					selector: "stops.0.stop_times.#.date",
+					expect:   []string{"2018-06-04", "2018-06-04", "2018-06-04"},
+				}, {
+					selector: "stops.0.stop_times.#.trip.trip_id",
+					expect:   []string{"4591142WKDY", "3691133WKDY", "2211150WKDY"},
+				}, {
+					selector: "stops.0.stop_times.#.arrival_time",
+					expect:   []string{"12:01:00", "12:09:00", "12:09:00"},
+				}},
+			},
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, _ := newTestClientWithOpts(t, testconfig.Options{
+				WhenUtc: tc.whenUtc,
+				RTJsons: testconfig.DefaultRTJson(),
+			})
+			queryTestcase(t, c, tc.testcase)
+		})
+	}
+}

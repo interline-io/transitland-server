@@ -581,18 +581,19 @@ type StopTimeEvent struct {
 }
 
 type StopTimeFilter struct {
-	Date                         *tt.Date     `json:"date,omitempty"`
-	ServiceDate                  *tt.Date     `json:"service_date,omitempty"`
-	UseServiceWindow             *bool        `json:"use_service_window,omitempty"`
-	StartTime                    *int         `json:"start_time,omitempty"`
-	EndTime                      *int         `json:"end_time,omitempty"`
-	Start                        *tt.WideTime `json:"start,omitempty"`
-	End                          *tt.WideTime `json:"end,omitempty"`
-	Next                         *int         `json:"next,omitempty"`
-	RouteOnestopIds              []string     `json:"route_onestop_ids,omitempty"`
-	AllowPreviousRouteOnestopIds *bool        `json:"allow_previous_route_onestop_ids,omitempty"`
-	ExcludeFirst                 *bool        `json:"exclude_first,omitempty"`
-	ExcludeLast                  *bool        `json:"exclude_last,omitempty"`
+	Date                         *tt.Date      `json:"date,omitempty"`
+	RelativeDate                 *RelativeDate `json:"relative_date,omitempty"`
+	ServiceDate                  *tt.Date      `json:"service_date,omitempty"`
+	UseServiceWindow             *bool         `json:"use_service_window,omitempty"`
+	StartTime                    *int          `json:"start_time,omitempty"`
+	EndTime                      *int          `json:"end_time,omitempty"`
+	Start                        *tt.WideTime  `json:"start,omitempty"`
+	End                          *tt.WideTime  `json:"end,omitempty"`
+	Next                         *int          `json:"next,omitempty"`
+	RouteOnestopIds              []string      `json:"route_onestop_ids,omitempty"`
+	AllowPreviousRouteOnestopIds *bool         `json:"allow_previous_route_onestop_ids,omitempty"`
+	ExcludeFirst                 *bool         `json:"exclude_first,omitempty"`
+	ExcludeLast                  *bool         `json:"exclude_last,omitempty"`
 }
 
 type TripFilter struct {
@@ -1021,6 +1022,73 @@ func (e *PlaceAggregationLevel) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PlaceAggregationLevel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type RelativeDate string
+
+const (
+	RelativeDateToday         RelativeDate = "TODAY"
+	RelativeDateMonday        RelativeDate = "MONDAY"
+	RelativeDateTuesday       RelativeDate = "TUESDAY"
+	RelativeDateWednesday     RelativeDate = "WEDNESDAY"
+	RelativeDateThursday      RelativeDate = "THURSDAY"
+	RelativeDateFriday        RelativeDate = "FRIDAY"
+	RelativeDateSaturday      RelativeDate = "SATURDAY"
+	RelativeDateSunday        RelativeDate = "SUNDAY"
+	RelativeDateNextMonday    RelativeDate = "NEXT_MONDAY"
+	RelativeDateNextTuesday   RelativeDate = "NEXT_TUESDAY"
+	RelativeDateNextWednesday RelativeDate = "NEXT_WEDNESDAY"
+	RelativeDateNextThursday  RelativeDate = "NEXT_THURSDAY"
+	RelativeDateNextFriday    RelativeDate = "NEXT_FRIDAY"
+	RelativeDateNextSaturday  RelativeDate = "NEXT_SATURDAY"
+	RelativeDateNextSunday    RelativeDate = "NEXT_SUNDAY"
+)
+
+var AllRelativeDate = []RelativeDate{
+	RelativeDateToday,
+	RelativeDateMonday,
+	RelativeDateTuesday,
+	RelativeDateWednesday,
+	RelativeDateThursday,
+	RelativeDateFriday,
+	RelativeDateSaturday,
+	RelativeDateSunday,
+	RelativeDateNextMonday,
+	RelativeDateNextTuesday,
+	RelativeDateNextWednesday,
+	RelativeDateNextThursday,
+	RelativeDateNextFriday,
+	RelativeDateNextSaturday,
+	RelativeDateNextSunday,
+}
+
+func (e RelativeDate) IsValid() bool {
+	switch e {
+	case RelativeDateToday, RelativeDateMonday, RelativeDateTuesday, RelativeDateWednesday, RelativeDateThursday, RelativeDateFriday, RelativeDateSaturday, RelativeDateSunday, RelativeDateNextMonday, RelativeDateNextTuesday, RelativeDateNextWednesday, RelativeDateNextThursday, RelativeDateNextFriday, RelativeDateNextSaturday, RelativeDateNextSunday:
+		return true
+	}
+	return false
+}
+
+func (e RelativeDate) String() string {
+	return string(e)
+}
+
+func (e *RelativeDate) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RelativeDate(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RelativeDate", str)
+	}
+	return nil
+}
+
+func (e RelativeDate) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

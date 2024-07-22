@@ -14,7 +14,7 @@ import (
 
 func TestTripRequest(t *testing.T) {
 	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{
-		When:    "2018-06-01T00:00:00",
+		WhenUtc: "2018-06-01T00:00:00Z",
 		RTJsons: testconfig.DefaultRTJson(),
 	})
 	ctx := model.WithConfig(context.Background(), cfg)

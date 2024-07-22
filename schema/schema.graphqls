@@ -557,6 +557,24 @@ type AgencyPlace {
   rank: Float
 }
 
+enum RelativeDate {
+  TODAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+  NEXT_MONDAY
+  NEXT_TUESDAY
+  NEXT_WEDNESDAY
+  NEXT_THURSDAY
+  NEXT_FRIDAY
+  NEXT_SATURDAY
+  NEXT_SUNDAY
+}
+
 enum PlaceAggregationLevel {
   ADM0
   ADM0_ADM1
@@ -1017,6 +1035,7 @@ input StopFilter {
 
 input StopTimeFilter {
   date: Date
+  relative_date: RelativeDate
   service_date: Date
   use_service_window: Boolean
   start_time: Int

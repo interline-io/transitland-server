@@ -137,23 +137,22 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 		}
 
 		// Convert relative date
-		// if where.RelativeDate != nil {
-		// 	fmt.Println("where.RelativeDate:", *where.RelativeDate)
-		// 	s, err := tt.TimeAt(kebabize(where.RelativeDate.String()), "00:00:00", loc.String(), "", "", "", false)
-		// 	fmt.Println("\tgot:", s)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// 	where.Date = tzTruncate(s, loc)
-		// }
+		if where.RelativeDate != nil {
+			s, err := tt.RelativeDate(nowLocal, kebabize(string(*where.RelativeDate)))
+			if err != nil {
+				return nil, err
+			}
+			where.Date = tzTruncate(s, loc)
+		}
 
 		// Convert where.Next into departure date and time window
 		if where.Next != nil {
+			if where.Date == nil {
+				where.Date = tzTruncate(nowLocal, loc)
+			}
 			st := nowLocal.Hour()*3600 + nowLocal.Minute()*60 + nowLocal.Second()
-			where.Date = tzTruncate(nowLocal, loc)
 			where.StartTime = ptr(st)
 			where.EndTime = ptr(st + *where.Next)
-			where.Next = nil
 		}
 
 		// Map date into service window

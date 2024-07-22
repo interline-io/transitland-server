@@ -7607,6 +7607,24 @@ type AgencyPlace {
   rank: Float
 }
 
+enum RelativeDate {
+  TODAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+  NEXT_MONDAY
+  NEXT_TUESDAY
+  NEXT_WEDNESDAY
+  NEXT_THURSDAY
+  NEXT_FRIDAY
+  NEXT_SATURDAY
+  NEXT_SUNDAY
+}
+
 enum PlaceAggregationLevel {
   ADM0
   ADM0_ADM1
@@ -8067,6 +8085,7 @@ input StopFilter {
 
 input StopTimeFilter {
   date: Date
+  relative_date: RelativeDate
   service_date: Date
   use_service_window: Boolean
   start_time: Int
@@ -49117,7 +49136,7 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"date", "service_date", "use_service_window", "start_time", "end_time", "start", "end", "next", "route_onestop_ids", "allow_previous_route_onestop_ids", "exclude_first", "exclude_last"}
+	fieldsInOrder := [...]string{"date", "relative_date", "service_date", "use_service_window", "start_time", "end_time", "start", "end", "next", "route_onestop_ids", "allow_previous_route_onestop_ids", "exclude_first", "exclude_last"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49131,6 +49150,13 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 				return it, err
 			}
 			it.Date = data
+		case "relative_date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("relative_date"))
+			data, err := ec.unmarshalORelativeDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRelativeDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RelativeDate = data
 		case "service_date":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service_date"))
 			data, err := ec.unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, v)
@@ -62790,6 +62816,22 @@ func (ec *executionContext) marshalORTVehicleDescriptor2ᚖgithubᚗcomᚋinterl
 		return graphql.Null
 	}
 	return ec._RTVehicleDescriptor(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalORelativeDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRelativeDate(ctx context.Context, v interface{}) (*model.RelativeDate, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.RelativeDate)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORelativeDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRelativeDate(ctx context.Context, sel ast.SelectionSet, v *model.RelativeDate) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalORouteAttribute2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRouteAttribute(ctx context.Context, sel ast.SelectionSet, v *model.RouteAttribute) graphql.Marshaler {

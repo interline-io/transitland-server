@@ -16,9 +16,16 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const DEFAULT_WHEN = "2022-09-01T00:00:00"
+const DEFAULT_WHEN = "2022-09-01T00:00:00Z"
 
 type hw = map[string]interface{}
+
+type testcaseSelector struct {
+	selector     string
+	expect       []string
+	expectUnique []string
+	expectCount  int
+}
 
 type testcase struct {
 	name               string
@@ -31,6 +38,7 @@ type testcase struct {
 	selectExpect       []string
 	selectExpectUnique []string
 	selectExpectCount  int
+	sel                []testcaseSelector
 	f                  func(*testing.T, string)
 }
 
@@ -58,8 +66,8 @@ func newTestClient(t testing.TB) (*client.Client, model.Config) {
 }
 
 func newTestClientWithOpts(t testing.TB, opts testconfig.Options) (*client.Client, model.Config) {
-	if opts.When == "" {
-		opts.When = DEFAULT_WHEN
+	if opts.WhenUtc == "" {
+		opts.WhenUtc = DEFAULT_WHEN
 	}
 	cfg := testconfig.Config(t, opts)
 	srv, _ := NewServer()
@@ -104,17 +112,25 @@ func queryTestcase(t *testing.T, c *client.Client, tc testcase) {
 		tc.f(t, jj)
 	}
 	if tc.selector != "" {
+		tc.sel = append(tc.sel, testcaseSelector{
+			selector:     tc.selector,
+			expect:       tc.selectExpect,
+			expectCount:  tc.selectExpectCount,
+			expectUnique: tc.selectExpectUnique,
+		})
+	}
+	for _, sel := range tc.sel {
 		a := []string{}
-		for _, v := range gjson.Get(jj, tc.selector).Array() {
+		for _, v := range gjson.Get(jj, sel.selector).Array() {
 			a = append(a, v.String())
 		}
-		if tc.selectExpectCount != 0 {
+		if sel.expectCount != 0 {
 			tested = true
-			if len(a) != tc.selectExpectCount {
-				t.Errorf("selector returned %d elements, expected %d", len(a), tc.selectExpectCount)
+			if len(a) != sel.expectCount {
+				t.Errorf("selector returned %d elements, expected %d", len(a), sel.expectCount)
 			}
 		}
-		if tc.selectExpectUnique != nil {
+		if sel.expectUnique != nil {
 			tested = true
 			mm := map[string]int{}
 			for _, v := range a {
@@ -124,12 +140,12 @@ func queryTestcase(t *testing.T, c *client.Client, tc testcase) {
 			for k := range mm {
 				keys = append(keys, k)
 			}
-			assert.ElementsMatch(t, tc.selectExpectUnique, keys)
+			assert.ElementsMatch(t, sel.expectUnique, keys)
 		}
-		if tc.selectExpect != nil {
+		if sel.expect != nil {
 			tested = true
-			if !assert.ElementsMatch(t, tc.selectExpect, a) {
-				t.Errorf("got %#v -- expect %#v\n\n", a, tc.selectExpect)
+			if !assert.ElementsMatch(t, sel.expect, a) {
+				t.Errorf("got %#v -- expect %#v\n\n", a, sel.expect)
 			}
 		}
 	}
@@ -328,14 +344,14 @@ type rtTestCase struct {
 	vars    map[string]interface{}
 	rtfiles []testconfig.RTJsonFile
 	cb      func(t *testing.T, jj string)
-	when    string
+	whenUtc string
 }
 
 func testRt(t *testing.T, tc rtTestCase) {
 	t.Run(tc.name, func(t *testing.T) {
 		// Create a new RT Finder for each test...
 		c, _ := newTestClientWithOpts(t, testconfig.Options{
-			When:    tc.when,
+			WhenUtc: tc.whenUtc,
 			RTJsons: tc.rtfiles,
 		})
 		var resp map[string]interface{}
