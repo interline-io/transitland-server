@@ -26,7 +26,7 @@ import (
 // Test helpers
 
 type Options struct {
-	When           string
+	WhenUtc        string
 	Storage        string
 	RTStorage      string
 	RTJsons        []RTJsonFile
@@ -80,11 +80,11 @@ func DefaultRTJson() []RTJsonFile {
 
 func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	// Default time
-	if opts.When == "" {
-		opts.When = "2022-09-01T00:00:00"
+	if opts.WhenUtc == "" {
+		opts.WhenUtc = "2022-09-01T00:00:00Z"
 	}
 
-	when, err := time.Parse("2006-01-02T15:04:05", opts.When)
+	when, err := time.Parse("2006-01-02T15:04:05Z", opts.WhenUtc)
 	if err != nil {
 		t.Fatal(err)
 	}

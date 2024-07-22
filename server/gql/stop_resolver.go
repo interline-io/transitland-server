@@ -3,7 +3,6 @@ package gql
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -139,10 +138,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 
 		// Convert relative date
 		if where.RelativeDate != nil {
-			fmt.Println("where.RelativeDate:", *where.RelativeDate)
-			fmt.Println("\tnowLocal:", nowLocal)
 			s, err := tt.RelativeDate(nowLocal, kebabize(string(*where.RelativeDate)))
-			fmt.Println("\tgot:", s)
 			if err != nil {
 				return nil, err
 			}
@@ -157,7 +153,6 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 			st := nowLocal.Hour()*3600 + nowLocal.Minute()*60 + nowLocal.Second()
 			where.StartTime = ptr(st)
 			where.EndTime = ptr(st + *where.Next)
-			fmt.Println("NEXT:", *where.Next, *where.StartTime, *where.EndTime, "NEW DATE:", where.Date)
 		}
 
 		// Map date into service window
@@ -242,7 +237,6 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	// Query for each day group
 	var sts []*model.StopTime
 	for _, w := range whereGroups {
-		fmt.Println("WHERE:", w.ServiceDate.String(), nilOr(w.StartTime, 0), nilOr(w.EndTime, 0))
 		ents, err := (For(ctx).StopTimesByStopID.Load(ctx, model.StopTimeParam{
 			StopID:        obj.ID,
 			FeedVersionID: obj.FeedVersionID,

@@ -54,7 +54,7 @@ func testHandlersWithOptions(t testing.TB, opts testconfig.Options) (http.Handle
 
 func checkTestCase(t *testing.T, tc testCase) {
 	opts := testconfig.Options{
-		When:    "2018-06-01T00:00:00",
+		WhenUtc: "2018-06-01T00:00:00Z",
 		RTJsons: testconfig.DefaultRTJson(),
 	}
 	cfg := testconfig.Config(t, opts)
