@@ -36,29 +36,29 @@ type Query {
 }
 
 type Mutation {
-    # Feed versions
-    validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
-    feed_version_update(set: FeedVersionSetInput!): FeedVersion
-    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
-    feed_version_import(id: Int!): FeedVersionImportResult!
-    feed_version_unimport(id: Int!): FeedVersionUnimportResult!
-    feed_version_delete(id: Int!): FeedVersionDeleteResult!
-    
-    # Entity editing
-    # stops
-    stop_create(set: StopSetInput!): Stop!
-    stop_update(set: StopSetInput!): Stop!
-    stop_delete(id: Int!): EntityDeleteResult!
-    
-    # levels
-    level_create(set: LevelSetInput!): Level!
-    level_update(set: LevelSetInput!): Level!
-    level_delete(id: Int!): EntityDeleteResult!
-    
-    # pathways
-    pathway_create(set: PathwaySetInput!): Pathway!
-    pathway_update(set: PathwaySetInput!): Pathway!
-    pathway_delete(id: Int!): EntityDeleteResult!
+  # Feed versions
+  validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
+  feed_version_update(set: FeedVersionSetInput!): FeedVersion
+  feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
+  feed_version_import(id: Int!): FeedVersionImportResult!
+  feed_version_unimport(id: Int!): FeedVersionUnimportResult!
+  feed_version_delete(id: Int!): FeedVersionDeleteResult!
+  
+  # Entity editing
+  # stops
+  stop_create(set: StopSetInput!): Stop!
+  stop_update(set: StopSetInput!): Stop!
+  stop_delete(id: Int!): EntityDeleteResult!
+  
+  # levels
+  level_create(set: LevelSetInput!): Level!
+  level_update(set: LevelSetInput!): Level!
+  level_delete(id: Int!): EntityDeleteResult!
+  
+  # pathways
+  pathway_create(set: PathwaySetInput!): Pathway!
+  pathway_update(set: PathwaySetInput!): Pathway!
+  pathway_delete(id: Int!): EntityDeleteResult!
 }
 
 type EntityDeleteResult {
@@ -1066,6 +1066,8 @@ input PathwayFilter {
 
 input TripFilter {
   service_date: Date
+  relative_date: RelativeDate
+  use_service_window: Boolean
   trip_id: String
   stop_pattern_id: Int
   license: LicenseFilter

@@ -5,9 +5,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/lib/pq"
 )
@@ -16,6 +18,26 @@ import (
 var MAXLIMIT = 100_000
 
 // helpers
+
+func nilOr[T any, PT *T](v PT, def T) T {
+	if v == nil {
+		return def
+	}
+	return *v
+}
+
+func ptr[T any, PT *T](v T) PT {
+	a := v
+	return &a
+}
+
+func kebabize(a string) string {
+	return strings.ReplaceAll(strings.ToLower(a), "_", "-")
+}
+
+func tzTruncate(s time.Time, loc *time.Location) *tt.Date {
+	return ptr(tt.NewDate(time.Date(s.Year(), s.Month(), s.Day(), 0, 0, 0, 0, loc)))
+}
 
 func checkLimit(limit *int) uint64 {
 	return checkRange(limit, 0, MAXLIMIT)

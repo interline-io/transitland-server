@@ -597,14 +597,16 @@ type StopTimeFilter struct {
 }
 
 type TripFilter struct {
-	ServiceDate     *tt.Date       `json:"service_date,omitempty"`
-	TripID          *string        `json:"trip_id,omitempty"`
-	StopPatternID   *int           `json:"stop_pattern_id,omitempty"`
-	License         *LicenseFilter `json:"license,omitempty"`
-	RouteIds        []int          `json:"route_ids,omitempty"`
-	RouteOnestopIds []string       `json:"route_onestop_ids,omitempty"`
-	FeedVersionSha1 *string        `json:"feed_version_sha1,omitempty"`
-	FeedOnestopID   *string        `json:"feed_onestop_id,omitempty"`
+	ServiceDate      *tt.Date       `json:"service_date,omitempty"`
+	RelativeDate     *RelativeDate  `json:"relative_date,omitempty"`
+	UseServiceWindow *bool          `json:"use_service_window,omitempty"`
+	TripID           *string        `json:"trip_id,omitempty"`
+	StopPatternID    *int           `json:"stop_pattern_id,omitempty"`
+	License          *LicenseFilter `json:"license,omitempty"`
+	RouteIds         []int          `json:"route_ids,omitempty"`
+	RouteOnestopIds  []string       `json:"route_onestop_ids,omitempty"`
+	FeedVersionSha1  *string        `json:"feed_version_sha1,omitempty"`
+	FeedOnestopID    *string        `json:"feed_onestop_id,omitempty"`
 }
 
 type TripStopTimeFilter struct {

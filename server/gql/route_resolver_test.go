@@ -45,6 +45,21 @@ func TestRouteResolver(t *testing.T) {
 			selectExpect: []string{"305", "309", "313", "319", "323", "329", "365", "371", "375", "381", "385", "310", "314", "320", "324", "330", "360", "366", "370", "376", "380", "386", "801", "803", "802", "804"},
 		},
 		{
+			name:         "trips service date",
+			query:        `query($route_id: String!, $service_date:Date) {  routes(where:{route_id:$route_id}) {trips(where:{service_date:$service_date}) {trip_id trip_headsign}} }`,
+			vars:         hw{"route_id": "Bu-130", "service_date": "2018-06-18"}, // use baby bullet
+			selector:     "routes.0.trips.#.trip_id",
+			selectExpect: []string{"305", "309", "313", "319", "323", "329", "365", "371", "375", "381", "385", "310", "314", "320", "324", "330", "360", "366", "370", "376", "380", "386"},
+		},
+		{
+			name:         "trips relative date",
+			query:        `query($route_id: String!, $relative_date:RelativeDate) {  routes(where:{route_id:$route_id}) {trips(where:{relative_date:$relative_date}) {trip_id trip_headsign}} }`,
+			vars:         hw{"route_id": "Bu-130", "relative_date": "TODAY"}, // use baby bullet
+			selector:     "routes.0.trips.#.trip_id",
+			selectExpect: []string{"305", "309", "313", "319", "323", "329", "365", "371", "375", "381", "385", "310", "314", "320", "324", "330", "360", "366", "370", "376", "380", "386"},
+		},
+
+		{
 			name:         "route_stops",
 			query:        `query($route_id: String!) {  routes(where:{route_id:$route_id}) {route_stops{stop{stop_id stop_name}}} }`,
 			vars:         vars,

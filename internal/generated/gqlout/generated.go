@@ -8116,6 +8116,8 @@ input PathwayFilter {
 
 input TripFilter {
   service_date: Date
+  relative_date: RelativeDate
+  use_service_window: Boolean
   trip_id: String
   stop_pattern_id: Int
   license: LicenseFilter
@@ -49247,7 +49249,7 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"service_date", "trip_id", "stop_pattern_id", "license", "route_ids", "route_onestop_ids", "feed_version_sha1", "feed_onestop_id"}
+	fieldsInOrder := [...]string{"service_date", "relative_date", "use_service_window", "trip_id", "stop_pattern_id", "license", "route_ids", "route_onestop_ids", "feed_version_sha1", "feed_onestop_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49261,6 +49263,20 @@ func (ec *executionContext) unmarshalInputTripFilter(ctx context.Context, obj in
 				return it, err
 			}
 			it.ServiceDate = data
+		case "relative_date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("relative_date"))
+			data, err := ec.unmarshalORelativeDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐRelativeDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RelativeDate = data
+		case "use_service_window":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_service_window"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UseServiceWindow = data
 		case "trip_id":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trip_id"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)

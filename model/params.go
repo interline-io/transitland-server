@@ -1,9 +1,20 @@
 package model
 
-import "github.com/interline-io/transitland-lib/tlxy"
+import (
+	"time"
+
+	"github.com/interline-io/transitland-lib/tlxy"
+)
 
 // This file contains parameters that can be passed to methods for finding/selecting/grouping entities
 // These are distinct from WHERE graphql input filters, which are available to users.
+
+type ServiceWindow struct {
+	NowLocal  time.Time
+	StartDate time.Time
+	EndDate   time.Time
+	BestWeek  time.Time
+}
 
 type StopPlaceParam struct {
 	ID    int
@@ -96,6 +107,7 @@ type TripParam struct {
 	FeedVersionID int
 	RouteID       int
 	Limit         *int
+	ServiceWindow *ServiceWindow
 	Where         *TripFilter
 }
 

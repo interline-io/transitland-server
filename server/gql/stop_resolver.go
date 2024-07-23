@@ -157,30 +157,31 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 
 		// Map date into service window
 		if nilOr(where.UseServiceWindow, false) {
-			serviceLevels, ok := r.fvslCache.Get(ctx, obj.FeedVersionID)
-			if !ok {
+			fvsw, err := model.ForContext(ctx).Finder.FindFeedVersionServiceWindow(ctx, obj.FeedVersionID)
+			startDate, endDate, bestWeek := fvsw.StartDate, fvsw.EndDate, fvsw.BestWeek
+			if err != nil {
 				return nil, errors.New("service level information not available for feed version")
 			}
 			// Check if date is outside window
 			if where.Date != nil {
 				s := where.Date.Val
-				if s.Before(serviceLevels.StartDate) || s.After(serviceLevels.EndDate) {
+				if s.Before(startDate) || s.After(endDate) {
 					dow := int(s.Weekday()) - 1
 					if dow < 0 {
 						dow = 6
 					}
-					where.Date = tzTruncate(serviceLevels.BestWeek.AddDate(0, 0, dow), loc)
+					where.Date = tzTruncate(bestWeek.AddDate(0, 0, dow), loc)
 				}
 			}
 			// Repeat for ServiceDate
 			if where.ServiceDate != nil {
 				s := where.ServiceDate.Val
-				if s.Before(serviceLevels.StartDate) || s.After(serviceLevels.EndDate) {
+				if s.Before(startDate) || s.After(endDate) {
 					dow := int(s.Weekday()) - 1
 					if dow < 0 {
 						dow = 6
 					}
-					where.ServiceDate = tzTruncate(serviceLevels.BestWeek.AddDate(0, 0, dow), loc)
+					where.ServiceDate = tzTruncate(bestWeek.AddDate(0, 0, dow), loc)
 				}
 			}
 		}
@@ -213,7 +214,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 			whereCopy.EndTime = ptr(dayEndMax)
 			whereGroups = append(whereGroups, &whereCopy)
 		}
-		// Query requested day, clamped to 0 - 24h
+		// Query requested day
 		whereCopy := *where
 		whereCopy.ServiceDate = ptr(tt.NewDate(date.Val))
 		whereCopy.StartTime = ptr(max(dayStart, whereStartTime))

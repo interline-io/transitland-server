@@ -8,9 +8,7 @@ import (
 )
 
 func NewServer() (http.Handler, error) {
-	c := gqlout.Config{Resolvers: &Resolver{
-		fvslCache: newFvslCache(),
-	}}
+	c := gqlout.Config{Resolvers: &Resolver{}}
 	// Setup server
 	srv := handler.NewDefaultServer(gqlout.NewExecutableSchema(c))
 	graphqlServer := loaderMiddleware(srv)
