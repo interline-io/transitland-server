@@ -2,7 +2,6 @@ package clock
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -100,7 +99,6 @@ func (f *ServiceWindowCache) queryFv(ctx context.Context, fvid int) (ServiceWind
 	}
 	fiData := fis[0]
 	if fiData.FeedStartDate.Valid && fiData.FeedEndDate.Valid {
-		fmt.Println("using feedstart/feedend")
 		ret.StartDate = fiData.FeedStartDate.Val
 		ret.EndDate = fiData.FeedEndDate.Val
 	}
