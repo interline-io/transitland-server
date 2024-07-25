@@ -189,6 +189,37 @@ func TestStopRT_DepartureFallback(t *testing.T) {
 	testRt(t, tc)
 }
 
+func TestStopRT_LastDelay(t *testing.T) {
+	tc := rtTestCase{
+		name:    "use delay value from last provided delay in trip update",
+		query:   rtTestStopQuery,
+		vars:    rtTestStopQueryVars(),
+		rtfiles: []testconfig.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-last-delay.json"}},
+		cb: func(t *testing.T, jj string) {
+			a := gjson.Get(jj, "stops.0.stop_times").Array()
+			checkTrip := "1031527WKDY"
+			found := false
+			for _, st := range a {
+				if st.Get("trip.trip_id").String() != checkTrip {
+					continue
+				}
+				found = true
+				assert.Equal(t, "2018-05-30T16:02:00-07:00", st.Get("departure.scheduled_local").String())
+				assert.Equal(t, "2018-05-30T23:02:00Z", st.Get("departure.scheduled_utc").String())
+				assert.Equal(t, "1527721320", st.Get("departure.scheduled_unix").String())
+				assert.Equal(t, "2018-05-30T16:02:45-07:00", st.Get("departure.estimated_local").String())
+				assert.Equal(t, "2018-05-30T23:02:45Z", st.Get("departure.estimated_utc").String())
+				assert.Equal(t, "1527721365", st.Get("departure.estimated_unix").String())
+				// Check delay is NOT set
+				assert.Equal(t, "", st.Get("departure.delay").String())
+			}
+			if !found {
+				t.Errorf("expected to find trip '%s'", checkTrip)
+			}
+		},
+	}
+	testRt(t, tc)
+}
 func TestStopRT_StopIDFallback(t *testing.T) {
 	tc := rtTestCase{
 		name:    "use stop_id as fallback if no matching stop sequence",

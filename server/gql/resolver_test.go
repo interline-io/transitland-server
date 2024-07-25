@@ -304,8 +304,10 @@ query($stop_id:String!, $stf:StopTimeFilter!, $active:Boolean) {
 			scheduled
 			scheduled_local
 			scheduled_utc
+			scheduled_unix
 			estimated
 			estimated_utc
+			estimated_unix
 			estimated_local
 			stop_timezone
 			delay
@@ -315,8 +317,10 @@ query($stop_id:String!, $stf:StopTimeFilter!, $active:Boolean) {
 			scheduled
 			scheduled_local
 			scheduled_utc
+			scheduled_unix
 			estimated
 			estimated_utc
+			estimated_unix
 			estimated_local
 			stop_timezone
 			delay
