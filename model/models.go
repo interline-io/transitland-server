@@ -79,8 +79,8 @@ type Trip struct {
 }
 
 type RTStopTimeUpdate struct {
-	PropagatedDelay *int32
-	StopTimeUpdate  *pb.TripUpdate_StopTimeUpdate
+	LastDelay      *int32
+	StopTimeUpdate *pb.TripUpdate_StopTimeUpdate
 }
 
 type StopTime struct {

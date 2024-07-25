@@ -42,7 +42,7 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 	var ste *pb.TripUpdate_StopTimeEvent
 	var delay *int32
 	if rtSte := obj.RTStopTimeUpdate; rtSte != nil && rtSte.StopTimeUpdate != nil {
-		delay = rtSte.PropagatedDelay
+		delay = rtSte.LastDelay
 		if t := rtSte.StopTimeUpdate.Arrival; t != nil {
 			ste = t
 		} else if t := rtSte.StopTimeUpdate.Departure; t != nil {
@@ -61,8 +61,8 @@ func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (
 	// create departure; fallback to RT arrival if departure is not present
 	var ste *pb.TripUpdate_StopTimeEvent
 	var delay *int32
-	if rtSte := obj.RTStopTimeUpdate; rtSte.StopTimeUpdate != nil {
-		delay = rtSte.PropagatedDelay
+	if rtSte := obj.RTStopTimeUpdate; rtSte != nil && rtSte.StopTimeUpdate != nil {
+		delay = rtSte.LastDelay
 		if t := rtSte.StopTimeUpdate.Departure; t != nil {
 			ste = t
 		} else if t := rtSte.StopTimeUpdate.Arrival; t != nil {

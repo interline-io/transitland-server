@@ -211,15 +211,15 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 		// Match on stop sequence
 		var lastDelay *int32
 		for _, ste := range rtTrip.StopTimeUpdate {
-			if ste.Arrival.Delay != nil {
+			if ste.Arrival != nil && ste.Arrival.Delay != nil {
 				lastDelay = ste.Arrival.Delay
 			}
-			if ste.Departure.Delay != nil {
-				lastDelay = ste.Arrival.Delay
+			if ste.Departure != nil && ste.Departure.Delay != nil {
+				lastDelay = ste.Departure.Delay
 			}
 			if int(ste.GetStopSequence()) == seq {
 				log.Trace().Str("trip_id", t.TripID).Int("seq", seq).Msgf("found stop time update on trip_id/stop_sequence")
-				return &model.RTStopTimeUpdate{StopTimeUpdate: ste, PropagatedDelay: lastDelay}, true
+				return &model.RTStopTimeUpdate{StopTimeUpdate: ste, LastDelay: lastDelay}, true
 			}
 		}
 		// If no match on stop sequence, match on stop_id if stop is not visited twice
@@ -233,16 +233,16 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 		}
 		lastDelay = nil
 		for _, ste := range rtTrip.StopTimeUpdate {
-			if ste.Arrival.Delay != nil {
+			if ste.Arrival != nil && ste.Arrival.Delay != nil {
 				lastDelay = ste.Arrival.Delay
 			}
-			if ste.Departure.Delay != nil {
-				lastDelay = ste.Arrival.Delay
+			if ste.Departure != nil && ste.Departure.Delay != nil {
+				lastDelay = ste.Departure.Delay
 			}
 			stid := ste.GetStopId()
 			if sid == stid && check[stid] == 1 {
 				log.Trace().Str("trip_id", t.TripID).Str("stop_id", sid).Msgf("found stop time update on trip_id/stop_id")
-				return &model.RTStopTimeUpdate{StopTimeUpdate: ste, PropagatedDelay: lastDelay}, true
+				return &model.RTStopTimeUpdate{StopTimeUpdate: ste, LastDelay: lastDelay}, true
 			}
 		}
 	}
