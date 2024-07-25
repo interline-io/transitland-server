@@ -331,7 +331,7 @@ func StopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow
 		whereGroups = append(whereGroups, where)
 	}
 
-	return whereGroups, nil
+	return whereGroups
 }
 
 func pairKeys(spairs []FVPair) ([]int, []int) {
