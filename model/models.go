@@ -78,11 +78,16 @@ type Trip struct {
 	tl.Trip
 }
 
+type RTStopTimeUpdate struct {
+	PropagatedDelay *int32
+	StopTimeUpdate  *pb.TripUpdate_StopTimeUpdate
+}
+
 type StopTime struct {
 	ServiceDate      tl.Date
 	Date             tl.Date
-	RTTripID         string                        // internal: for ADDED trips
-	RTStopTimeUpdate *pb.TripUpdate_StopTimeUpdate // internal
+	RTTripID         string            // internal: for ADDED trips
+	RTStopTimeUpdate *RTStopTimeUpdate // internal
 	tl.StopTime
 }
 

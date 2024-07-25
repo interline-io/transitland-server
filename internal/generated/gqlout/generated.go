@@ -943,6 +943,7 @@ type ComplexityRoot struct {
 		ScheduledLocal func(childComplexity int) int
 		ScheduledUtc   func(childComplexity int) int
 		StopTimezone   func(childComplexity int) int
+		TimeUtc        func(childComplexity int) int
 		Uncertainty    func(childComplexity int) int
 	}
 
@@ -5995,6 +5996,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StopTimeEvent.StopTimezone(childComplexity), true
 
+	case "StopTimeEvent.time_utc":
+		if e.complexity.StopTimeEvent.TimeUtc == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.TimeUtc(childComplexity), true
+
 	case "StopTimeEvent.uncertainty":
 		if e.complexity.StopTimeEvent.Uncertainty == nil {
 			break
@@ -7086,29 +7094,29 @@ type Query {
 }
 
 type Mutation {
-    # Feed versions
-    validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
-    feed_version_update(set: FeedVersionSetInput!): FeedVersion
-    feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
-    feed_version_import(id: Int!): FeedVersionImportResult!
-    feed_version_unimport(id: Int!): FeedVersionUnimportResult!
-    feed_version_delete(id: Int!): FeedVersionDeleteResult!
-    
-    # Entity editing
-    # stops
-    stop_create(set: StopSetInput!): Stop!
-    stop_update(set: StopSetInput!): Stop!
-    stop_delete(id: Int!): EntityDeleteResult!
-    
-    # levels
-    level_create(set: LevelSetInput!): Level!
-    level_update(set: LevelSetInput!): Level!
-    level_delete(id: Int!): EntityDeleteResult!
-    
-    # pathways
-    pathway_create(set: PathwaySetInput!): Pathway!
-    pathway_update(set: PathwaySetInput!): Pathway!
-    pathway_delete(id: Int!): EntityDeleteResult!
+  # Feed versions
+  validate_gtfs(file: Upload, url: String, realtime_urls: [String!]): ValidationReport
+  feed_version_update(set: FeedVersionSetInput!): FeedVersion
+  feed_version_fetch(file: Upload, url: String, feed_onestop_id: String!): FeedVersionFetchResult
+  feed_version_import(id: Int!): FeedVersionImportResult!
+  feed_version_unimport(id: Int!): FeedVersionUnimportResult!
+  feed_version_delete(id: Int!): FeedVersionDeleteResult!
+  
+  # Entity editing
+  # stops
+  stop_create(set: StopSetInput!): Stop!
+  stop_update(set: StopSetInput!): Stop!
+  stop_delete(id: Int!): EntityDeleteResult!
+  
+  # levels
+  level_create(set: LevelSetInput!): Level!
+  level_update(set: LevelSetInput!): Level!
+  level_delete(id: Int!): EntityDeleteResult!
+  
+  # pathways
+  pathway_create(set: PathwaySetInput!): Pathway!
+  pathway_update(set: PathwaySetInput!): Pathway!
+  pathway_delete(id: Int!): EntityDeleteResult!
 }
 
 type EntityDeleteResult {
@@ -7738,13 +7746,18 @@ enum ScheduleRelationship {
 }
 
 type StopTimeEvent {
+  """Local time for stop"""
   stop_timezone: String!
+  """Estimated schedule times; can be based on propagated delay"""
   estimated_local: Time
   estimated_utc: Time
   estimated: Seconds
+  """Static schedule times"""
   scheduled_local: Time
   scheduled_utc: Time
   scheduled: Seconds
+  """Raw RT values"""
+  time_utc: Time
   delay: Int
   uncertainty: Int
 }
@@ -41176,6 +41189,8 @@ func (ec *executionContext) fieldContext_StopTime_arrival(ctx context.Context, f
 				return ec.fieldContext_StopTimeEvent_scheduled_utc(ctx, field)
 			case "scheduled":
 				return ec.fieldContext_StopTimeEvent_scheduled(ctx, field)
+			case "time_utc":
+				return ec.fieldContext_StopTimeEvent_time_utc(ctx, field)
 			case "delay":
 				return ec.fieldContext_StopTimeEvent_delay(ctx, field)
 			case "uncertainty":
@@ -41240,6 +41255,8 @@ func (ec *executionContext) fieldContext_StopTime_departure(ctx context.Context,
 				return ec.fieldContext_StopTimeEvent_scheduled_utc(ctx, field)
 			case "scheduled":
 				return ec.fieldContext_StopTimeEvent_scheduled(ctx, field)
+			case "time_utc":
+				return ec.fieldContext_StopTimeEvent_time_utc(ctx, field)
 			case "delay":
 				return ec.fieldContext_StopTimeEvent_delay(ctx, field)
 			case "uncertainty":
@@ -41741,6 +41758,47 @@ func (ec *executionContext) fieldContext_StopTimeEvent_scheduled(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Seconds does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopTimeEvent_time_utc(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTimeEvent_time_utc(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimeUtc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopTimeEvent_time_utc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -57414,6 +57472,8 @@ func (ec *executionContext) _StopTimeEvent(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._StopTimeEvent_scheduled_utc(ctx, field, obj)
 		case "scheduled":
 			out.Values[i] = ec._StopTimeEvent_scheduled(ctx, field, obj)
+		case "time_utc":
+			out.Values[i] = ec._StopTimeEvent_time_utc(ctx, field, obj)
 		case "delay":
 			out.Values[i] = ec._StopTimeEvent_delay(ctx, field, obj)
 		case "uncertainty":

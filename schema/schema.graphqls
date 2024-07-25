@@ -688,13 +688,18 @@ enum ScheduleRelationship {
 }
 
 type StopTimeEvent {
+  """Local time for stop"""
   stop_timezone: String!
+  """Estimated schedule times; can be based on propagated delay"""
   estimated_local: Time
   estimated_utc: Time
   estimated: Seconds
+  """Static schedule times"""
   scheduled_local: Time
   scheduled_utc: Time
   scheduled: Seconds
+  """Raw RT values"""
+  time_utc: Time
   delay: Int
   uncertainty: Int
 }

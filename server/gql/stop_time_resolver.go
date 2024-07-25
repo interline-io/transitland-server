@@ -40,14 +40,16 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 	}
 	// create departure; fallback to RT departure if arrival is not present
 	var ste *pb.TripUpdate_StopTimeEvent
-	if obj.RTStopTimeUpdate != nil {
-		if t := obj.RTStopTimeUpdate.Arrival; t != nil {
+	var delay *int32
+	if rtSte := obj.RTStopTimeUpdate; rtSte != nil && rtSte.StopTimeUpdate != nil {
+		delay = rtSte.PropagatedDelay
+		if t := rtSte.StopTimeUpdate.Arrival; t != nil {
 			ste = t
-		} else if t := obj.RTStopTimeUpdate.Departure; t != nil {
+		} else if t := rtSte.StopTimeUpdate.Departure; t != nil {
 			ste = t
 		}
 	}
-	return fromSte(ste, obj.DepartureTime, obj.ServiceDate, loc), nil
+	return fromSte(ste, delay, obj.DepartureTime, obj.ServiceDate, loc), nil
 }
 
 func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
@@ -58,17 +60,19 @@ func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (
 	}
 	// create departure; fallback to RT arrival if departure is not present
 	var ste *pb.TripUpdate_StopTimeEvent
-	if obj.RTStopTimeUpdate != nil {
-		if t := obj.RTStopTimeUpdate.Departure; t != nil {
+	var delay *int32
+	if rtSte := obj.RTStopTimeUpdate; rtSte.StopTimeUpdate != nil {
+		delay = rtSte.PropagatedDelay
+		if t := rtSte.StopTimeUpdate.Departure; t != nil {
 			ste = t
-		} else if t := obj.RTStopTimeUpdate.Arrival; t != nil {
+		} else if t := rtSte.StopTimeUpdate.Arrival; t != nil {
 			ste = t
 		}
 	}
-	return fromSte(ste, obj.DepartureTime, obj.ServiceDate, loc), nil
+	return fromSte(ste, delay, obj.DepartureTime, obj.ServiceDate, loc), nil
 }
 
-func fromSte(ste *pb.TripUpdate_StopTimeEvent, sched tl.WideTime, serviceDate tl.Date, loc *time.Location) *model.StopTimeEvent {
+func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTime, serviceDate tl.Date, loc *time.Location) *model.StopTimeEvent {
 	a := model.StopTimeEvent{
 		StopTimezone: loc.String(),
 		Scheduled:    &sched,
@@ -97,27 +101,37 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, sched tl.WideTime, serviceDate tl
 			estUtc := time.Unix(ste.GetTime(), 0).UTC()
 			estLocal := estUtc.In(loc)
 			est := tt.NewWideTimeFromSeconds(estLocal.Hour()*3600 + estLocal.Minute()*60 + estLocal.Second())
-			a.Estimated = &est
-			a.EstimatedUtc = &estUtc
-			a.EstimatedLocal = &estLocal
+			a.TimeUtc = &estUtc // raw RT
+			a.Estimated = ptr(est)
+			a.EstimatedUtc = ptr(estUtc)
+			a.EstimatedLocal = ptr(estLocal)
 		} else if ste.Delay != nil && sched.Valid {
-			// Create a local adjusted time
+			// Create a time based on STE delay
 			est := tt.NewWideTimeFromSeconds(sched.Seconds + int(*ste.Delay))
 			estUtc := schedUtc.Add(time.Second * time.Duration(est.Seconds))
 			estLocal := estUtc.In(loc)
-			a.Estimated = &est
+			a.Estimated = ptr(est)
 			if serviceDate.Valid {
-				a.EstimatedUtc = &estUtc
-				a.EstimatedLocal = &estLocal
+				a.EstimatedUtc = ptr(estUtc)
+				a.EstimatedLocal = ptr(estLocal)
+			}
+		} else if lastDelay != nil && sched.Valid {
+			// Create a time based on propagated delay
+			est := tt.NewWideTimeFromSeconds(sched.Seconds + int(*lastDelay))
+			estUtc := schedUtc.Add(time.Second * time.Duration(est.Seconds))
+			estLocal := estUtc.In(loc)
+			a.Estimated = ptr(est)
+			if serviceDate.Valid {
+				a.EstimatedUtc = ptr(estUtc)
+				a.EstimatedLocal = ptr(estLocal)
 			}
 		}
+		// Only pass through actual delay
 		if ste.Delay != nil {
-			v := int(ste.GetDelay())
-			a.Delay = &v
+			a.Delay = ptr(int(ste.GetDelay()))
 		}
 		if ste.Uncertainty != nil {
-			v := int(ste.GetUncertainty())
-			a.Uncertainty = &v
+			a.Uncertainty = ptr(int(ste.GetUncertainty()))
 		}
 	}
 	return &a

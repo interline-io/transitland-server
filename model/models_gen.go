@@ -569,15 +569,20 @@ type StopSetInput struct {
 }
 
 type StopTimeEvent struct {
-	StopTimezone   string       `json:"stop_timezone"`
+	// Local time for stop
+	StopTimezone string `json:"stop_timezone"`
+	// Estimated schedule times; can be based on propagated delay
 	EstimatedLocal *time.Time   `json:"estimated_local,omitempty"`
 	EstimatedUtc   *time.Time   `json:"estimated_utc,omitempty"`
 	Estimated      *tt.WideTime `json:"estimated,omitempty"`
+	// Static schedule times
 	ScheduledLocal *time.Time   `json:"scheduled_local,omitempty"`
 	ScheduledUtc   *time.Time   `json:"scheduled_utc,omitempty"`
 	Scheduled      *tt.WideTime `json:"scheduled,omitempty"`
-	Delay          *int         `json:"delay,omitempty"`
-	Uncertainty    *int         `json:"uncertainty,omitempty"`
+	// Raw RT values
+	TimeUtc     *time.Time `json:"time_utc,omitempty"`
+	Delay       *int       `json:"delay,omitempty"`
+	Uncertainty *int       `json:"uncertainty,omitempty"`
 }
 
 type StopTimeFilter struct {
