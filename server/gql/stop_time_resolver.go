@@ -3,7 +3,6 @@ package gql
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -34,13 +33,12 @@ func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*mode
 }
 
 func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
-	fmt.Printf("ARRIVAL: %#v\n", obj)
-	// lookup timezone
+	// Lookup timezone
 	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(atoi(obj.StopID), "")
 	if !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
-	// create arrival; fallback to RT departure if arrival is not present
+	// Create arrival; fallback to RT departure if arrival is not present
 	var ste *pb.TripUpdate_StopTimeEvent
 	var delay *int32
 	if rtStu := obj.RTStopTimeUpdate; rtStu != nil {
@@ -56,13 +54,12 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 }
 
 func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
-	fmt.Printf("DEPARTURE: %#v\n", obj)
-	// lookup timezone
+	// Lookup timezone
 	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(atoi(obj.StopID), "")
 	if !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
-	// create departure; fallback to RT arrival if departure is not present
+	// Create departure; fallback to RT arrival if departure is not present
 	var ste *pb.TripUpdate_StopTimeEvent
 	var delay *int32
 	if rtStu := obj.RTStopTimeUpdate; rtStu != nil {

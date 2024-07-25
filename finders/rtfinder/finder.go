@@ -199,18 +199,11 @@ func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*m
 	return limitAlerts(foundAlerts, limit)
 }
 
-func copyPtr[T any, PT *T](v PT) PT {
-	if v == nil {
-		return nil
-	}
-	a := *v
-	return &a
-}
-
 func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.RTStopTimeUpdate, bool) {
 	tid := t.TripID
 	seq := st.StopSequence
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
+	// Attempt to match on stop sequence
 	for _, topic := range topics {
 		// Match on trip
 		rtTrip, rtok := f.getTrip(topic, tid)
@@ -226,22 +219,30 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 			if ste.Departure != nil && ste.Departure.Delay != nil {
 				lastDelay = ste.Departure.Delay
 			}
-			// copy lastDelay...
 			if int(ste.GetStopSequence()) == seq {
 				log.Trace().Str("trip_id", t.TripID).Int("seq", seq).Msgf("found stop time update on trip_id/stop_sequence")
 				return &model.RTStopTimeUpdate{StopTimeUpdate: ste, LastDelay: copyPtr(lastDelay)}, true
 			}
+		}
+	}
+	// Attempt to match on stop id
+	for _, topic := range topics {
+		// Match on trip
+		rtTrip, rtok := f.getTrip(topic, tid)
+		if !rtok {
+			continue
 		}
 		// If no match on stop sequence, match on stop_id if stop is not visited twice
 		check := map[string]int{}
 		for _, ste := range rtTrip.StopTimeUpdate {
 			check[ste.GetStopId()] += 1
 		}
+		// Get GTFS stop id for comparing with RT
 		sid, ok := f.lc.GetGtfsStopID(atoi(st.StopID))
 		if !ok {
 			continue
 		}
-		lastDelay = nil
+		var lastDelay *int32
 		for _, ste := range rtTrip.StopTimeUpdate {
 			if ste.Arrival != nil && ste.Arrival.Delay != nil {
 				lastDelay = ste.Arrival.Delay
@@ -256,7 +257,6 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 			}
 		}
 		// Matched on trip, but no match on stop sequence or stop_id
-		// Return the last delay
 		return &model.RTStopTimeUpdate{LastDelay: copyPtr(lastDelay)}, true
 	}
 	log.Trace().Str("trip_id", t.TripID).Int("seq", seq).Msgf("no stop time update found")
@@ -430,4 +430,12 @@ func newTranslation(v *pb.TranslatedString) []*model.RTTranslation {
 
 func getTopicKey(topic string, t string) string {
 	return fmt.Sprintf("rtdata:%s:%s", topic, t)
+}
+
+func copyPtr[T any, PT *T](v PT) PT {
+	if v == nil {
+		return nil
+	}
+	a := *v
+	return &a
 }
