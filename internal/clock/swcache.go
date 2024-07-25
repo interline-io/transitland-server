@@ -2,6 +2,7 @@ package clock
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -48,14 +49,23 @@ func (f *ServiceWindowCache) Get(ctx context.Context, fvid int) (ServiceWindow, 
 	}
 	a.Location = fvData.Location
 
-	// Get start, end window and fallback from week from FVSL data
+	// Get fallback week from FVSL data
 	fvslData, err := f.queryFvsl(ctx, fvid)
 	if err != nil {
 		return a, false, err
 	}
-	a.StartDate = tzTruncate(fvslData.StartDate, a.Location)
-	a.EndDate = tzTruncate(fvslData.EndDate, a.Location)
 	a.FallbackWeek = tzTruncate(fvslData.FallbackWeek, a.Location)
+
+	// Use calculated date window if not available from FVSW
+	if fvData.StartDate.IsZero() || fvData.EndDate.IsZero() {
+		// Use feed info date ranges if available
+		a.StartDate = tzTruncate(fvslData.StartDate, a.Location)
+		a.EndDate = tzTruncate(fvslData.EndDate, a.Location)
+	} else {
+		// Fallback to calculated date range based on FVSL data
+		a.StartDate = tzTruncate(fvData.StartDate, a.Location)
+		a.EndDate = tzTruncate(fvData.EndDate, a.Location)
+	}
 
 	// Add to cache
 	f.fvslWindows[fvid] = a
@@ -90,12 +100,15 @@ func (f *ServiceWindowCache) queryFv(ctx context.Context, fvid int) (ServiceWind
 	}
 	fiData := fis[0]
 	if fiData.FeedStartDate.Valid && fiData.FeedEndDate.Valid {
+		fmt.Println("using feedstart/feedend")
 		ret.StartDate = fiData.FeedStartDate.Val
 		ret.EndDate = fiData.FeedEndDate.Val
-	} else {
-		ret.StartDate = fiData.EarliestCalendarDate.Val
-		ret.EndDate = fiData.LatestCalendarDate.Val
 	}
+	// else {
+	// 	fmt.Println("using calendar start/end")
+	// 	ret.StartDate = fiData.EarliestCalendarDate.Val
+	// 	ret.EndDate = fiData.LatestCalendarDate.Val
+	// }
 	ret.Location, _ = f.tzCache.Location(fiData.DefaultTimezone.Val)
 	return ret, nil
 }
