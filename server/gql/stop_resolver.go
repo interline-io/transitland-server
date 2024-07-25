@@ -158,7 +158,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 		// Map date into service window
 		if nilOr(where.UseServiceWindow, false) {
 			fvsw, err := model.ForContext(ctx).Finder.FindFeedVersionServiceWindow(ctx, obj.FeedVersionID)
-			startDate, endDate, bestWeek := fvsw.StartDate, fvsw.EndDate, fvsw.BestWeek
+			startDate, endDate, fallbackWeek := fvsw.StartDate, fvsw.EndDate, fvsw.FallbackWeek
 			if err != nil {
 				return nil, errors.New("service level information not available for feed version")
 			}
@@ -170,7 +170,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 					if dow < 0 {
 						dow = 6
 					}
-					where.Date = tzTruncate(bestWeek.AddDate(0, 0, dow), loc)
+					where.Date = tzTruncate(fallbackWeek.AddDate(0, 0, dow), loc)
 				}
 			}
 			// Repeat for ServiceDate
@@ -181,7 +181,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 					if dow < 0 {
 						dow = 6
 					}
-					where.ServiceDate = tzTruncate(bestWeek.AddDate(0, 0, dow), loc)
+					where.ServiceDate = tzTruncate(fallbackWeek.AddDate(0, 0, dow), loc)
 				}
 			}
 		}

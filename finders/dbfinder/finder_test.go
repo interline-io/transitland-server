@@ -54,7 +54,7 @@ func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			fvsw, err := testFinder.FindFeedVersionServiceWindow(context.TODO(), tc.fvid)
-			start, end, best := fvsw.StartDate, fvsw.EndDate, fvsw.BestWeek
+			start, end, best := fvsw.StartDate, fvsw.EndDate, fvsw.FallbackWeek
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -38,13 +38,13 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	// Process FVSW
 	if where != nil && fvsw != nil {
 		if where.RelativeDate != nil {
-			fmt.Println("NOW LOCAL:", fvsw.NowLocal)
 			// This must be an enum; panic is OK
 			s, err := tt.RelativeDate(fvsw.NowLocal, kebabize(string(*where.RelativeDate)))
 			if err != nil {
 				panic(err)
 			}
 			where.ServiceDate = tzTruncate(s, fvsw.NowLocal.Location())
+			fmt.Println("TRIP SELECT NOW LOCAL:", fvsw.NowLocal, "USE REL DATE:", where.RelativeDate, "NEW SERVICE DATE:", where.ServiceDate)
 		}
 		if where.UseServiceWindow != nil && *where.UseServiceWindow {
 			s := where.ServiceDate.Val
@@ -53,8 +53,9 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				if dow < 0 {
 					dow = 6
 				}
-				where.ServiceDate = tzTruncate(fvsw.BestWeek.AddDate(0, 0, dow), fvsw.NowLocal.Location())
+				where.ServiceDate = tzTruncate(fvsw.FallbackWeek.AddDate(0, 0, dow), fvsw.Location)
 			}
+			fmt.Println("TRIP SELECT NOW LOCAL:", fvsw.NowLocal, "USE SERVICE DATE:", where.ServiceDate, "NEW SERVICE WINDOW:", where.ServiceDate)
 		}
 	}
 

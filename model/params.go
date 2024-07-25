@@ -10,10 +10,11 @@ import (
 // These are distinct from WHERE graphql input filters, which are available to users.
 
 type ServiceWindow struct {
-	NowLocal  time.Time
-	StartDate time.Time
-	EndDate   time.Time
-	BestWeek  time.Time
+	NowLocal     time.Time
+	StartDate    time.Time
+	EndDate      time.Time
+	FallbackWeek time.Time
+	Location     *time.Location
 }
 
 type StopPlaceParam struct {

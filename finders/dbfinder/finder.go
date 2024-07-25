@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
@@ -22,13 +23,13 @@ type Finder struct {
 	Clock      clock.Clock
 	db         sqlx.Ext
 	adminCache *adminCache
-	fvslCache  *fvslCache
+	fvslCache  *clock.ServiceWindowCache
 }
 
 func NewFinder(db sqlx.Ext) *Finder {
 	finder := &Finder{
 		db:        db,
-		fvslCache: newFvslCache(db),
+		fvslCache: clock.NewServiceWindowCache(db),
 	}
 	return finder
 }
@@ -150,9 +151,22 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 
 // Custom queries
 
-func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (model.ServiceWindow, error) {
+func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*model.ServiceWindow, error) {
 	a, _, err := f.fvslCache.Get(ctx, fvid)
-	return a, err
+	// Get local time
+	nowLocal := time.Now().In(a.Location)
+	if model.ForContext(ctx).Clock != nil {
+		nowLocal = model.ForContext(ctx).Clock.Now().In(a.Location)
+	}
+	// Copy back to model
+	ret := &model.ServiceWindow{
+		NowLocal:     nowLocal,
+		StartDate:    a.StartDate,
+		EndDate:      a.EndDate,
+		FallbackWeek: a.FallbackWeek,
+		Location:     a.Location,
+	}
+	return ret, err
 }
 
 // Simple ID loaders
@@ -1147,11 +1161,12 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 		func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
 			jj, _ := json.Marshal(fvwhere)
 			fvsw, _ := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
-			fmt.Println("FVID:", fvwhere.FeedVersionID, "WHERE:", string(jj), "FVSW:", fvsw)
+			jj2, _ := json.Marshal(fvsw)
+			fmt.Println("FVID:", fvwhere.FeedVersionID, "WHERE:", string(jj), "FVSW:", string(jj2))
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, &fvsw),
+					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
 					"gtfs_routes",
 					"id",
 					"gtfs_trips",
@@ -1316,11 +1331,12 @@ func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripPa
 		func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
 			fvsw, _ := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
 			jj, _ := json.Marshal(fvwhere)
-			fmt.Println("FVID:", fvwhere.FeedVersionID, "WHERE:", string(jj), "FVSW2:", fvsw)
+			jj2, _ := json.Marshal(fvsw)
+			fmt.Println("FVID:", fvwhere.FeedVersionID, "WHERE:", string(jj), "FVSW2:", string(jj2))
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, &fvsw),
+					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
 					"feed_versions",
 					"id",
 					"gtfs_trips",
