@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/lib/pq"
 )
@@ -201,6 +202,136 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		}
 	}
 	return q
+}
+
+func StopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow) []*model.StopTimeFilter {
+	// Pre-processing
+	// Convert Start, End to StartTime, EndTime
+	if where != nil {
+		if where.Start != nil {
+			where.StartTime = ptr(where.Start.Seconds)
+			where.Start = nil
+		}
+		if where.End != nil {
+			where.EndTime = ptr(where.End.Seconds)
+			where.End = nil
+		}
+	}
+
+	// Further processing of the StopTimeFilter
+	if where != nil {
+		var loc *time.Location
+		var nowLocal time.Time
+		if fvsw != nil {
+			loc = fvsw.Location
+			nowLocal = fvsw.NowLocal
+		}
+
+		// Set ServiceDate to local timezone
+		// ServiceDate is a strict GTFS calendar date
+		if where.ServiceDate != nil {
+			where.ServiceDate = tzTruncate(where.ServiceDate.Val, loc)
+		}
+
+		// Set Date to local timezone
+		if where.Date != nil {
+			where.Date = tzTruncate(where.Date.Val, loc)
+		}
+
+		// Convert relative date
+		if where.RelativeDate != nil {
+			if s, err := tt.RelativeDate(nowLocal, kebabize(string(*where.RelativeDate))); err != nil {
+				// This should always succeed because it is an enum and will be caught earlier
+				// TODO: log
+			} else {
+				where.Date = tzTruncate(s, loc)
+			}
+		}
+
+		// Convert where.Next into departure date and time window
+		if where.Next != nil {
+			if where.Date == nil {
+				where.Date = tzTruncate(nowLocal, loc)
+			}
+			st := nowLocal.Hour()*3600 + nowLocal.Minute()*60 + nowLocal.Second()
+			where.StartTime = ptr(st)
+			where.EndTime = ptr(st + *where.Next)
+		}
+
+		// Map date into service window
+		if nilOr(where.UseServiceWindow, false) && fvsw != nil {
+			startDate, endDate, fallbackWeek := fvsw.StartDate, fvsw.EndDate, fvsw.FallbackWeek
+			// Check if date is outside window
+			if where.Date != nil {
+				s := where.Date.Val
+				if s.Before(startDate) || s.After(endDate) {
+					dow := int(s.Weekday()) - 1
+					if dow < 0 {
+						dow = 6
+					}
+					where.Date = tzTruncate(fallbackWeek.AddDate(0, 0, dow), loc)
+				}
+			}
+			// Repeat for ServiceDate
+			if where.ServiceDate != nil {
+				s := where.ServiceDate.Val
+				if s.Before(startDate) || s.After(endDate) {
+					dow := int(s.Weekday()) - 1
+					if dow < 0 {
+						dow = 6
+					}
+					where.ServiceDate = tzTruncate(fallbackWeek.AddDate(0, 0, dow), loc)
+				}
+			}
+		}
+	}
+
+	// Check if we are crossing date boundaires, and split into separate service date queries
+	var whereGroups []*model.StopTimeFilter
+	if where != nil && where.Date != nil {
+		date := where.Date
+		dayStart := 0
+		dayEnd := 24 * 60 * 60
+		dayEndMax := 100 * 60 * 60
+		whereStartTime := dayStart
+		if where.StartTime != nil {
+			whereStartTime = *where.StartTime
+		}
+		whereEndTime := dayEnd
+		if where.EndTime != nil {
+			whereEndTime = *where.EndTime
+		}
+		lookBehind := 6 * 3600
+		// Query previous day
+		if whereStartTime < lookBehind {
+			whereCopy := *where
+			whereCopy.ServiceDate = ptr(tt.NewDate(date.Val.AddDate(0, 0, -1)))
+			whereCopy.StartTime = ptr(dayEnd + whereStartTime)
+			whereCopy.EndTime = ptr(dayEndMax)
+			whereGroups = append(whereGroups, &whereCopy)
+		}
+		// Query requested day
+		whereCopy := *where
+		whereCopy.ServiceDate = ptr(tt.NewDate(date.Val))
+		whereCopy.StartTime = ptr(max(dayStart, whereStartTime))
+		whereCopy.EndTime = ptr(whereEndTime)
+		whereGroups = append(whereGroups, &whereCopy)
+		// Query next day
+		if whereEndTime > dayEnd {
+			whereCopy := *where
+			whereCopy.ServiceDate = ptr(tt.NewDate(date.Val.AddDate(0, 0, 1)))
+			whereCopy.StartTime = ptr(dayStart)
+			whereCopy.EndTime = ptr(whereEndTime - dayEnd)
+			whereGroups = append(whereGroups, &whereCopy)
+		}
+	}
+
+	// Default
+	if len(whereGroups) == 0 {
+		whereGroups = append(whereGroups, where)
+	}
+
+	return whereGroups, nil
 }
 
 func pairKeys(spairs []FVPair) ([]int, []int) {

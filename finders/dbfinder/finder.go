@@ -680,33 +680,59 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 }
 
 func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {
+	// We need to split by feed version id to extract service window
+	// Fields must be public
+	type fvParamGroup struct {
+		FeedVersionID int
+		Where         *model.StopTimeFilter
+	}
 	return paramGroupQuery(
 		params,
-		func(p model.StopTimeParam) (FVPair, *model.StopTimeFilter, *int) {
+		func(p model.StopTimeParam) (FVPair, fvParamGroup, *int) {
 			a := FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}
-			return a, p.Where, p.Limit
+			w := fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}
+			return a, w, p.Limit
 		},
-		func(keys []FVPair, where *model.StopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
-			if where != nil && where.ServiceDate != nil {
-				// Get stops on a specified day
-				err := dbutil.Select(ctx,
+		func(keys []FVPair, fvwhere fvParamGroup, limit *int) (ents []*model.StopTime, err error) {
+			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
+			if err != nil {
+				return nil, err
+			}
+			// Run separate queries for each possible service day
+			for _, w := range StopTimeFilterExpand(fvwhere.Where, fvsw) {
+				var serviceDate *tt.Date
+				if w != nil && w.ServiceDate != nil {
+					serviceDate = w.ServiceDate
+				}
+				var sts []*model.StopTime
+				var q sq.SelectBuilder
+				if serviceDate != nil {
+					// Get stops on a specified day
+					q = StopDeparturesSelect(keys, w)
+				} else {
+					// Otherwise get all stop_times for stop
+					q = StopTimeSelect(nil, keys, nil)
+				}
+				// Run query
+				if err := dbutil.Select(ctx,
 					f.db,
-					StopDeparturesSelect(keys, where),
-					&ents,
-				)
-				if err != nil {
+					q,
+					&sts,
+				); err != nil {
 					return nil, err
 				}
-			} else {
-				// Otherwise get all stop_times for stop
-				err := dbutil.Select(ctx,
-					f.db,
-					StopTimeSelect(nil, keys, nil),
-					&ents,
-				)
-				if err != nil {
-					return nil, err
+				// Set service date based on StopTimeFilter, and adjust calendar date if needed
+				if serviceDate != nil {
+					for _, ent := range sts {
+						ent.ServiceDate = tt.NewDate(serviceDate.Val)
+						if ent.ArrivalTime.Seconds > 24*60*60 {
+							ent.Date = tt.NewDate(serviceDate.Val.AddDate(0, 0, 1))
+						} else {
+							ent.Date = tt.NewDate(serviceDate.Val)
+						}
+					}
 				}
+				ents = append(ents, sts...)
 			}
 			return ents, err
 		},
@@ -1147,7 +1173,7 @@ func (f *Finder) RouteGeometriesByRouteID(ctx context.Context, params []model.Ro
 
 func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
 	// We need to split by feed version id to extract service window
-	// MUST be public
+	// Fields must be public
 	type fvParamGroup struct {
 		FeedVersionID int
 		Where         *model.TripFilter
@@ -1317,7 +1343,7 @@ func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) (
 
 func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
 	// We need to split by feed version id to extract service window
-	// MUST be public fields
+	// Fields must be public
 	type fvParamGroup struct {
 		FeedVersionID int
 		Where         *model.TripFilter
