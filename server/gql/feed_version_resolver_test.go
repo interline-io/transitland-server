@@ -3,6 +3,7 @@ package gql
 import (
 	"testing"
 
+	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -319,6 +320,124 @@ func TestFeedVersionResolver(t *testing.T) {
 	}
 	c, _ := newTestClient(t)
 	queryTestcases(t, c, testcases)
+}
+
+func TestFeedVersionResolver_Trips_Date(t *testing.T) {
+	weekdayTrips := []string{"STBA", "CITY1", "CITY2", "AB1", "AB2", "BFC1", "BFC2"}
+	weekendTrips := []string{"STBA", "CITY1", "CITY2", "AB1", "AB2", "BFC1", "BFC2", "AAMV1", "AAMV2", "AAMV3", "AAMV4"} // all trips
+	const q = `
+	query ($sha1: String, $service_date: Date, $relative_date: RelativeDate, $use_service_window:Boolean) {
+		feed_versions(where: {sha1: $sha1}) {
+			id
+			sha1
+			trips(where: {relative_date: $relative_date, service_date: $service_date,use_service_window:$use_service_window}) {
+				id
+				trip_id
+			}
+		}
+	}`
+	testcases := []testcaseWithClock{
+		{
+			whenUtc: "2007-02-05T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, no filters",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493"},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: weekendTrips,
+			},
+		},
+		{
+			whenUtc: "2007-02-05T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, service date (tuesday)",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493", "service_date": "2007-02-06"},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: weekdayTrips,
+			},
+		},
+		{
+			whenUtc: "2007-02-05T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, service date (saturday)",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493", "service_date": "2007-02-10"},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: weekendTrips, // all trips
+			},
+		},
+		// Relative dates
+		{
+			whenUtc: "2007-02-03T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, relative date (today, today is saturday)",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493", "relative_date": "TODAY"},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: weekendTrips,
+			},
+		},
+		{
+			whenUtc: "2007-02-03T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, relative date (next-monday, today is saturday)",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493", "relative_date": "NEXT_MONDAY"},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: weekdayTrips,
+			},
+		},
+		{
+			whenUtc: "2007-02-05T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, relative date (next-saturday, today is monday)",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493", "relative_date": "NEXT_SATURDAY"},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: weekendTrips, // all trips
+			},
+		},
+		// Window
+		{
+			whenUtc: "2024-07-23T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, service date (tuesday), outside of window",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493", "service_date": "2024-07-23"},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: []string{},
+			},
+		},
+		{
+			whenUtc: "2024-07-23T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, service date (tuesday), outside of window, use fallback",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493", "service_date": "2024-07-23", "use_service_window": true},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: weekdayTrips,
+			},
+		},
+		{
+			whenUtc: "2024-07-23T22:00:00Z",
+			testcase: testcase{
+				name:         "trips, relative date (next-saturday, today is tuesday), outside of window, use fallback",
+				query:        q,
+				vars:         hw{"sha1": "43e2278aa272879c79460582152b04e7487f0493", "relative_date": "NEXT_SATURDAY", "use_service_window": true},
+				selector:     "feed_versions.0.trips.#.trip_id",
+				selectExpect: weekendTrips,
+			},
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, _ := newTestClientWithOpts(t, testconfig.Options{
+				WhenUtc: tc.whenUtc,
+			})
+			queryTestcase(t, c, tc.testcase)
+		})
+	}
 }
 
 func TestFeedVersionResolver_Segments(t *testing.T) {

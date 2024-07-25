@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/interline-io/log"
+	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -15,14 +16,14 @@ type lookupCache struct {
 	gtfsTripIdCache *simpleCache[int, string]
 	gtfsStopIdCache *simpleCache[int, string]
 	routeIdCache    *simpleCache[skey, int]
-	tzCache         *tzCache
+	tzCache         *clock.TzCache[int]
 	rtLookupLock    sync.Mutex
 }
 
 func newLookupCache(db sqlx.Ext) *lookupCache {
 	return &lookupCache{
 		db:              db,
-		tzCache:         newTzCache(),
+		tzCache:         clock.NewTzCache[int](),
 		fvidSourceCache: newSimpleCache[int, []string](),
 		fvidFeedCache:   newSimpleCache[int, string](),
 		gtfsTripIdCache: newSimpleCache[int, string](),
@@ -180,57 +181,4 @@ func newSimpleCache[K comparable, V any]() *simpleCache[K, V] {
 	return &simpleCache[K, V]{
 		values: map[K]V{},
 	}
-}
-
-////
-
-// tzCache saves and manages the timezone location cache
-type tzCache struct {
-	lock   sync.Mutex
-	tzs    map[string]*time.Location
-	values map[int]string
-}
-
-func newTzCache() *tzCache {
-	return &tzCache{
-		tzs:    map[string]*time.Location{},
-		values: map[int]string{},
-	}
-}
-
-func (c *tzCache) Get(key int) (*time.Location, bool) {
-	var loc *time.Location
-	defer c.lock.Unlock()
-	c.lock.Lock()
-	tz, ok := c.values[key]
-	if ok {
-		loc, ok = c.tzs[tz] // will be nil if invalid timezone
-	}
-	return loc, ok
-}
-
-func (c *tzCache) Location(tz string) (*time.Location, bool) {
-	defer c.lock.Unlock()
-	c.lock.Lock()
-	loc := c.tzs[tz]
-	return loc, loc == nil
-}
-
-func (c *tzCache) Add(key int, tz string) (*time.Location, bool) {
-	var err error
-	var loc *time.Location
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.values[key] = tz
-	loc, ok := c.tzs[tz]
-	if !ok {
-		ok = true
-		loc, err = time.LoadLocation(tz)
-		if err != nil {
-			ok = false
-			loc = nil
-		}
-		c.tzs[tz] = loc
-	}
-	return loc, ok
 }

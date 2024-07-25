@@ -2,10 +2,11 @@ package dbfinder
 
 import (
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
-func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.TripFilter) sq.SelectBuilder {
+func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.TripFilter, fvsw *model.ServiceWindow) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.id",
 		"gtfs_trips.feed_version_id",
@@ -32,6 +33,29 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		OrderBy("gtfs_trips.feed_version_id,gtfs_trips.id").
 		Limit(checkLimit(limit))
 
+	// Process FVSW
+	if where != nil && fvsw != nil {
+		if where.RelativeDate != nil {
+			// This must be an enum; panic is OK
+			s, err := tt.RelativeDate(fvsw.NowLocal, kebabize(string(*where.RelativeDate)))
+			if err != nil {
+				panic(err)
+			}
+			where.ServiceDate = tzTruncate(s, fvsw.NowLocal.Location())
+		}
+		if where.UseServiceWindow != nil && *where.UseServiceWindow {
+			s := where.ServiceDate.Val
+			if s.Before(fvsw.StartDate) || s.After(fvsw.EndDate) {
+				dow := int(s.Weekday()) - 1
+				if dow < 0 {
+					dow = 6
+				}
+				where.ServiceDate = tzTruncate(fvsw.FallbackWeek.AddDate(0, 0, dow), fvsw.Location)
+			}
+		}
+	}
+
+	// Process other parameters
 	if where != nil {
 		if where.StopPatternID != nil {
 			q = q.Where(sq.Eq{"stop_pattern_id": where.StopPatternID})
@@ -54,7 +78,6 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		if len(where.RouteIds) > 0 {
 			q = q.Where(In("gtfs_trips.route_id", where.RouteIds))
 		}
-
 		if where.ServiceDate != nil {
 			serviceDate := where.ServiceDate.Val
 			q = q.JoinClause(`

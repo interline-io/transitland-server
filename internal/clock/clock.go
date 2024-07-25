@@ -22,3 +22,9 @@ type Mock struct {
 func (dc *Mock) Now() time.Time {
 	return dc.T
 }
+
+// Helpers
+
+func tzTruncate(s time.Time, loc *time.Location) time.Time {
+	return time.Date(s.Year(), s.Month(), s.Day(), 0, 0, 0, 0, loc)
+}

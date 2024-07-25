@@ -35,7 +35,7 @@ type EntityFinder interface {
 	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
 	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
-	FindFeedVersionServiceWindow(context.Context, int) (time.Time, time.Time, time.Time, error)
+	FindFeedVersionServiceWindow(context.Context, int) (*ServiceWindow, error)
 	DBX() sqlx.Ext // escape hatch, for now
 }
 

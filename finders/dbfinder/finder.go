@@ -9,7 +9,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
-	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-server/internal/clock"
@@ -23,10 +22,15 @@ type Finder struct {
 	Clock      clock.Clock
 	db         sqlx.Ext
 	adminCache *adminCache
+	fvslCache  *clock.ServiceWindowCache
 }
 
 func NewFinder(db sqlx.Ext) *Finder {
-	return &Finder{db: db}
+	finder := &Finder{
+		db:        db,
+		fvslCache: clock.NewServiceWindowCache(db),
+	}
+	return finder
 }
 
 func (f *Finder) DBX() sqlx.Ext {
@@ -92,7 +96,7 @@ func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor,
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) || (where != nil && len(where.RouteIds) > 0) {
 		active = false
 	}
-	q := TripSelect(limit, after, ids, active, f.PermFilter(ctx), where)
+	q := TripSelect(limit, after, ids, active, f.PermFilter(ctx), where, nil)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
@@ -146,116 +150,22 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 
 // Custom queries
 
-func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (time.Time, time.Time, time.Time, error) {
-	type fvslQuery struct {
-		FetchedAt    tl.Time
-		StartDate    tl.Time
-		EndDate      tl.Time
-		TotalService tl.Int
+func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*model.ServiceWindow, error) {
+	a, _, err := f.fvslCache.Get(ctx, fvid)
+	// Get local time
+	nowLocal := time.Now().In(a.Location)
+	if model.ForContext(ctx).Clock != nil {
+		nowLocal = model.ForContext(ctx).Clock.Now().In(a.Location)
 	}
-	minServiceRatio := 0.75
-	startDate := time.Time{}
-	endDate := time.Time{}
-	bestWeek := time.Time{}
-
-	// Get FVSLs
-	q := sq.StatementBuilder.
-		Select("fv.fetched_at", "fvsl.start_date", "fvsl.end_date", "monday + tuesday + wednesday + thursday + friday + saturday + sunday as total_service").
-		From("feed_version_service_levels fvsl").
-		Join("feed_versions fv on fv.id = fvsl.feed_version_id").
-		Where(sq.Eq{"route_id": nil}).
-		Where(sq.Eq{"fvsl.feed_version_id": fvid}).
-		OrderBy("fvsl.start_date").
-		Limit(1000)
-	var ents []fvslQuery
-	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
-		return startDate, endDate, bestWeek, logErr(ctx, err)
+	// Copy back to model
+	ret := &model.ServiceWindow{
+		NowLocal:     nowLocal,
+		StartDate:    a.StartDate,
+		EndDate:      a.EndDate,
+		FallbackWeek: a.FallbackWeek,
+		Location:     a.Location,
 	}
-	if len(ents) == 0 {
-		return startDate, endDate, bestWeek, errors.New("no fvsl results")
-	}
-
-	var fis []tl.FeedInfo
-	fiq := sq.StatementBuilder.Select("*").From("gtfs_feed_infos").Where(sq.Eq{"feed_version_id": fvid}).OrderBy("feed_start_date").Limit(1)
-	if err := dbutil.Select(ctx, f.db, fiq, &fis); err != nil {
-		return startDate, endDate, bestWeek, logErr(ctx, err)
-	}
-
-	// Check if we have feed infos, otherwise calculate based on fetched week or highest service week
-	fetched := ents[0].FetchedAt.Val
-	if len(fis) > 0 && fis[0].FeedStartDate.Valid && fis[0].FeedEndDate.Valid {
-		// fmt.Println("using feed infos")
-		startDate = fis[0].FeedStartDate.Val
-		endDate = fis[0].FeedEndDate.Val
-	} else {
-		// Get the week which includes fetched_at date, and the highest service week
-		highestIdx := 0
-		highestService := -1
-		fetchedWeek := -1
-		for i, ent := range ents {
-			sd := ent.StartDate.Val
-			ed := ent.EndDate.Val
-			if (sd.Before(fetched) || sd.Equal(fetched)) && (ed.After(fetched) || ed.Equal(fetched)) {
-				fetchedWeek = i
-			}
-			if ent.TotalService.Int() > highestService {
-				highestIdx = i
-				highestService = ent.TotalService.Int()
-			}
-		}
-		if fetchedWeek < 0 {
-			// fmt.Println("fetched week not in fvsls, using highest week:", highestIdx, highestService)
-			fetchedWeek = highestIdx
-		} else {
-			// fmt.Println("using fetched week:", fetchedWeek)
-		}
-		// If the fetched week has bad service, use highest week
-		if float64(ents[fetchedWeek].TotalService.Val)/float64(highestService) < minServiceRatio {
-			// fmt.Println("fetched week has poor service ratio, falling back to highest week:", fetchedWeek)
-			fetchedWeek = highestIdx
-		}
-
-		// Expand window in both directions from chosen week
-		startDate = ents[fetchedWeek].StartDate.Val
-		endDate = ents[fetchedWeek].EndDate.Val
-		for i := fetchedWeek; i < len(ents); i++ {
-			ent := ents[i]
-			if float64(ent.TotalService.Val)/float64(highestService) < minServiceRatio {
-				break
-			}
-			if ent.StartDate.Val.Before(startDate) {
-				startDate = ent.StartDate.Val
-			}
-			endDate = ent.EndDate.Val
-		}
-		for i := fetchedWeek - 1; i > 0; i-- {
-			ent := ents[i]
-			if float64(ent.TotalService.Val)/float64(highestService) < minServiceRatio {
-				break
-			}
-			if ent.EndDate.Val.After(endDate) {
-				endDate = ent.EndDate.Val
-			}
-			startDate = ent.StartDate.Val
-		}
-	}
-
-	// Check again to find the highest service week in the window
-	// This will be used as the typical week for dates outside the window
-	// bestWeek must start with a Monday
-	bestWeek = ents[0].StartDate.Val
-	bestService := ents[0].TotalService.Val
-	for _, ent := range ents {
-		sd := ent.StartDate.Val
-		ed := ent.EndDate.Val
-		if (sd.Before(endDate) || sd.Equal(endDate)) && (ed.After(startDate) || ed.Equal(startDate)) {
-			if ent.TotalService.Val > bestService {
-				bestService = ent.TotalService.Val
-				bestWeek = ent.StartDate.Val
-			}
-		}
-	}
-	return startDate, endDate, bestWeek, nil
+	return ret, err
 }
 
 // Simple ID loaders
@@ -770,33 +680,59 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 }
 
 func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {
+	// We need to split by feed version id to extract service window
+	// Fields must be public
+	type fvParamGroup struct {
+		FeedVersionID int
+		Where         *model.StopTimeFilter
+	}
 	return paramGroupQuery(
 		params,
-		func(p model.StopTimeParam) (FVPair, *model.StopTimeFilter, *int) {
+		func(p model.StopTimeParam) (FVPair, fvParamGroup, *int) {
 			a := FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}
-			return a, p.Where, p.Limit
+			w := fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}
+			return a, w, p.Limit
 		},
-		func(keys []FVPair, where *model.StopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
-			if where != nil && where.ServiceDate != nil {
-				// Get stops on a specified day
-				err := dbutil.Select(ctx,
+		func(keys []FVPair, fvwhere fvParamGroup, limit *int) (ents []*model.StopTime, err error) {
+			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
+			if err != nil {
+				return nil, err
+			}
+			// Run separate queries for each possible service day
+			for _, w := range StopTimeFilterExpand(fvwhere.Where, fvsw) {
+				var serviceDate *tt.Date
+				if w != nil && w.ServiceDate != nil {
+					serviceDate = w.ServiceDate
+				}
+				var sts []*model.StopTime
+				var q sq.SelectBuilder
+				if serviceDate != nil {
+					// Get stops on a specified day
+					q = StopDeparturesSelect(keys, w)
+				} else {
+					// Otherwise get all stop_times for stop
+					q = StopTimeSelect(nil, keys, nil)
+				}
+				// Run query
+				if err := dbutil.Select(ctx,
 					f.db,
-					StopDeparturesSelect(keys, where),
-					&ents,
-				)
-				if err != nil {
+					q,
+					&sts,
+				); err != nil {
 					return nil, err
 				}
-			} else {
-				// Otherwise get all stop_times for stop
-				err := dbutil.Select(ctx,
-					f.db,
-					StopTimeSelect(nil, keys, nil),
-					&ents,
-				)
-				if err != nil {
-					return nil, err
+				// Set service date based on StopTimeFilter, and adjust calendar date if needed
+				if serviceDate != nil {
+					for _, ent := range sts {
+						ent.ServiceDate = tt.NewDate(serviceDate.Val)
+						if ent.ArrivalTime.Seconds > 24*60*60 {
+							ent.Date = tt.NewDate(serviceDate.Val.AddDate(0, 0, 1))
+						} else {
+							ent.Date = tt.NewDate(serviceDate.Val)
+						}
+					}
 				}
+				ents = append(ents, sts...)
 			}
 			return ents, err
 		},
@@ -1236,16 +1172,26 @@ func (f *Finder) RouteGeometriesByRouteID(ctx context.Context, params []model.Ro
 }
 
 func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
+	// We need to split by feed version id to extract service window
+	// Fields must be public
+	type fvParamGroup struct {
+		FeedVersionID int
+		Where         *model.TripFilter
+	}
 	return paramGroupQuery(
 		params,
-		func(p model.TripParam) (int, *model.TripFilter, *int) {
-			return p.RouteID, p.Where, p.Limit
+		func(p model.TripParam) (int, fvParamGroup, *int) {
+			return p.RouteID, fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}, p.Limit
 		},
-		func(keys []int, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
+		func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
+			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
+			if err != nil {
+				return nil, err
+			}
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
 					"gtfs_routes",
 					"id",
 					"gtfs_trips",
@@ -1396,16 +1342,26 @@ func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) (
 }
 
 func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
+	// We need to split by feed version id to extract service window
+	// Fields must be public
+	type fvParamGroup struct {
+		FeedVersionID int
+		Where         *model.TripFilter
+	}
 	return paramGroupQuery(
 		params,
-		func(p model.TripParam) (int, *model.TripFilter, *int) {
-			return p.FeedVersionID, p.Where, p.Limit
+		func(p model.TripParam) (int, fvParamGroup, *int) {
+			return p.FeedVersionID, fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}, p.Limit
 		},
-		func(keys []int, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
+		func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
+			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
+			if err != nil {
+				return nil, err
+			}
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
 					"feed_versions",
 					"id",
 					"gtfs_trips",

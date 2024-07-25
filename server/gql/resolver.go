@@ -103,9 +103,7 @@ func checkFloat(v *float64, min float64, max float64) float64 {
 }
 
 // Resolver .
-type Resolver struct {
-	fvslCache *fvslCache
-}
+type Resolver struct{}
 
 // Query .
 func (r *Resolver) Query() gqlout.QueryResolver { return &queryResolver{r} }

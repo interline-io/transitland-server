@@ -1,4 +1,4 @@
-package rtfinder
+package clock
 
 import (
 	"sync"
@@ -33,8 +33,8 @@ func BenchmarkLookupCache_LoadLocationCache(b *testing.B) {
 	}
 }
 
-func Benchmark_tzCache(b *testing.B) {
-	c := newTzCache()
+func Benchmark_TzCache(b *testing.B) {
+	c := NewTzCache[int]()
 	for n := 0; n < b.N; n++ {
 		loc, ok := c.Add(n, "America/Los_Angeles")
 		_ = loc
