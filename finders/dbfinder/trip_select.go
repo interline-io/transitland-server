@@ -1,8 +1,6 @@
 package dbfinder
 
 import (
-	"fmt"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
@@ -44,7 +42,6 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				panic(err)
 			}
 			where.ServiceDate = tzTruncate(s, fvsw.NowLocal.Location())
-			fmt.Println("TRIP SELECT NOW LOCAL:", fvsw.NowLocal, "USE REL DATE:", where.RelativeDate, "NEW SERVICE DATE:", where.ServiceDate)
 		}
 		if where.UseServiceWindow != nil && *where.UseServiceWindow {
 			s := where.ServiceDate.Val
@@ -55,7 +52,6 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				}
 				where.ServiceDate = tzTruncate(fvsw.FallbackWeek.AddDate(0, 0, dow), fvsw.Location)
 			}
-			fmt.Println("TRIP SELECT NOW LOCAL:", fvsw.NowLocal, "USE SERVICE DATE:", where.ServiceDate, "NEW SERVICE WINDOW:", where.ServiceDate)
 		}
 	}
 

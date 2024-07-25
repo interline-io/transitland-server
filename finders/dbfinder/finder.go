@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -1159,10 +1158,10 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 			return p.RouteID, fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}, p.Limit
 		},
 		func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
-			jj, _ := json.Marshal(fvwhere)
-			fvsw, _ := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
-			jj2, _ := json.Marshal(fvsw)
-			fmt.Println("FVID:", fvwhere.FeedVersionID, "WHERE:", string(jj), "FVSW:", string(jj2))
+			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
+			if err != nil {
+				return nil, err
+			}
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
@@ -1329,10 +1328,10 @@ func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripPa
 			return p.FeedVersionID, fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}, p.Limit
 		},
 		func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
-			fvsw, _ := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
-			jj, _ := json.Marshal(fvwhere)
-			jj2, _ := json.Marshal(fvsw)
-			fmt.Println("FVID:", fvwhere.FeedVersionID, "WHERE:", string(jj), "FVSW2:", string(jj2))
+			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
+			if err != nil {
+				return nil, err
+			}
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
