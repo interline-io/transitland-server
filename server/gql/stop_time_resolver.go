@@ -81,7 +81,7 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTi
 	}
 
 	// Nothing else to do without timezone or valid schedule
-	if loc == nil || !sched.Valid {
+	if loc == nil {
 		return &a
 	}
 
@@ -91,7 +91,7 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTi
 	h, m, s := sched.HMS()
 	schedLocal := time.Date(sd.Year(), sd.Month(), sd.Day(), h, m, s, 0, loc)
 	schedUtc := schedLocal.In(time.UTC)
-	if serviceDate.Valid {
+	if serviceDate.Valid && sched.Valid {
 		a.ScheduledUtc = &schedUtc
 		a.ScheduledUnix = ptr(int(schedUtc.Unix()))
 		a.ScheduledLocal = &schedLocal
@@ -128,7 +128,7 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTi
 		a.EstimatedUtc = ptr(estUtc)
 		a.EstimatedUnix = ptr(int(estUtc.Unix()))
 		a.EstimatedLocal = ptr(estLocal)
-	} else if ste.Delay != nil {
+	} else if ste.Delay != nil && sched.Valid {
 		// Create a time based on STE delay
 		est := tt.NewWideTimeFromSeconds(sched.Seconds + int(*ste.Delay))
 		estUtc := schedUtc.Add(time.Second * time.Duration(int(*ste.Delay)))

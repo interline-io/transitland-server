@@ -262,6 +262,7 @@ func TestStopRT_StopIDFallback_NoDoubleVisit(t *testing.T) {
 				}
 				found = true
 				assert.Equal(t, "", st.Get("departure.estimated_utc").String())
+				assert.Equal(t, "", st.Get("departure.time_utc").String())
 			}
 			if !found {
 				t.Errorf("expected to find trip '%s'", checkTrip)
