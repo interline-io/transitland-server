@@ -32,7 +32,7 @@ func (r *stopTimeResolver) ScheduleRelationship(ctx context.Context, obj *model.
 		return convertScheduleRelationship(stu.TripUpdate.Trip.ScheduleRelationship.String()), nil
 	}
 	// Otherwise, if ANY RT data is present (e.g. a propagated delay), default to SCHEDULED
-	if stu != nil && stu.StopTimeUpdate != nil {
+	if stu != nil && (stu.StopTimeUpdate != nil || stu.LastDelay != nil) {
 		return ptr(model.ScheduleRelationshipScheduled), nil
 	}
 	// Otherwise, default to STATIC

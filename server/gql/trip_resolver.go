@@ -55,9 +55,14 @@ func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
-	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil && rtt.Trip != nil && rtt.Trip.ScheduleRelationship != nil {
-		sr := rtt.Trip.ScheduleRelationship.String()
-		return convertScheduleRelationship(sr), nil
+	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil {
+		// If TripUpdate TripDescriptor has schedule relationship, use that
+		if rtt.Trip != nil && rtt.Trip.ScheduleRelationship != nil {
+			sr := rtt.Trip.ScheduleRelationship.String()
+			return convertScheduleRelationship(sr), nil
+		}
+		// Otherwise default to SCHEDULED
+		return ptr(model.ScheduleRelationshipScheduled), nil
 	}
 	return ptr(model.ScheduleRelationshipStatic), nil
 }
