@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,6 +52,102 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.0.trip.shape.geometry.type",
 			expectSelect: []string{},
+			expectLength: 0,
+		},
+		{
+			name: "next=4 hours",
+			h:    StopDepartureRequest{StopKey: sid, Next: 4 * 3600, IncludeGeometry: false, WithCursor: WithCursor{Limit: 1000}},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.departures").Array()
+				dates := map[string]int{}
+				serviceDates := map[string]int{}
+				var departures []string
+				for _, st := range a {
+					dates[st.Get("date").String()] += 1
+					serviceDates[st.Get("service_date").String()] += 1
+					departures = append(departures, st.Get("departure.scheduled_local").String())
+				}
+				slices.Sort(departures)
+				assert.Equal(t, map[string]int{"2018-05-31": 75}, dates, "dates")
+				assert.Equal(t, map[string]int{"2018-05-31": 75}, serviceDates, "service_dates")
+				assert.Equal(t, "2018-05-31T17:02:00-07:00", slices.Min(departures), "departure min")
+				assert.Equal(t, "2018-05-31T20:48:00-07:00", slices.Max(departures), "departure max")
+			},
+		},
+		{
+			name: "next=24 hours",
+			h:    StopDepartureRequest{StopKey: sid, Next: 24 * 3600, IncludeGeometry: false, WithCursor: WithCursor{Limit: 1000}},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.departures").Array()
+				dates := map[string]int{}
+				serviceDates := map[string]int{}
+				var departures []string
+				for _, st := range a {
+					dates[st.Get("date").String()] += 1
+					serviceDates[st.Get("service_date").String()] += 1
+					departures = append(departures, st.Get("departure.scheduled_local").String())
+				}
+				slices.Sort(departures)
+				assert.Equal(t, map[string]int{"2018-05-31": 111, "2018-06-01": 303}, dates, "dates")
+				assert.Equal(t, map[string]int{"2018-05-31": 120, "2018-06-01": 294}, serviceDates, "service_dates")
+				assert.Equal(t, "2018-05-31T17:02:00-07:00", slices.Min(departures), "departure min")
+				assert.Equal(t, "2018-06-01T16:57:00-07:00", slices.Max(departures), "departure max")
+			},
+		},
+		{
+			name: "next=4 hours relative_date=next saturday",
+			h:    StopDepartureRequest{StopKey: sid, Next: 4 * 3600, RelativeDate: "NEXT_SATURDAY", IncludeGeometry: false, WithCursor: WithCursor{Limit: 1000}},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.departures").Array()
+				dates := map[string]int{}
+				serviceDates := map[string]int{}
+				var departures []string
+				for _, st := range a {
+					dates[st.Get("date").String()] += 1
+					serviceDates[st.Get("service_date").String()] += 1
+					departures = append(departures, st.Get("departure.scheduled_local").String())
+				}
+				slices.Sort(departures)
+				assert.Equal(t, map[string]int{"2018-06-02": 60}, dates, "dates")
+				assert.Equal(t, map[string]int{"2018-06-02": 60}, serviceDates, "service_dates")
+				assert.Equal(t, "2018-06-02T17:02:00-07:00", slices.Min(departures), "departure min")
+				assert.Equal(t, "2018-06-02T20:49:00-07:00", slices.Max(departures), "departure max")
+			},
+		},
+		{
+			name: "service_date 2018-06-06 22:00 to 26:00",
+			h:    StopDepartureRequest{StopKey: sid, ServiceDate: "2018-06-05", StartTime: "22:00:00", EndTime: "26:00:00", WithCursor: WithCursor{Limit: 1000}},
+			f: func(t *testing.T, jj string) {
+				a := gjson.Get(jj, "stops.0.departures").Array()
+				dates := map[string]int{}
+				serviceDates := map[string]int{}
+				var departures []string
+				for _, st := range a {
+					dates[st.Get("date").String()] += 1
+					serviceDates[st.Get("service_date").String()] += 1
+					departures = append(departures, st.Get("departure.scheduled_local").String())
+				}
+				slices.Sort(departures)
+				assert.Equal(t, map[string]int{"2018-06-05": 24, "2018-06-06": 9}, dates, "dates")
+				assert.Equal(t, map[string]int{"2018-06-05": 33}, serviceDates, "service_dates")
+				assert.Equal(t, "2018-06-05T22:02:00-07:00", slices.Min(departures), "departure min")
+				assert.Equal(t, "2018-06-06T01:00:00-07:00", slices.Max(departures), "departure max")
+			},
+		},
+		{
+			name:         "relative_date=today",
+			h:            StopDepartureRequest{StopKey: sid, RelativeDate: "today", StartTime: "10:00:00", EndTime: "10:10:00", UseServiceWindow: bp(true)},
+			format:       "",
+			selector:     "stops.0.departures.#.date",
+			expectSelect: []string{"2018-05-31", "2018-05-31", "2018-05-31", "2018-05-31"},
+			expectLength: 0,
+		},
+		{
+			name:         "relative_date=next wednesday",
+			h:            StopDepartureRequest{StopKey: sid, RelativeDate: "next_wednesday", StartTime: "10:00:00", EndTime: "10:10:00", UseServiceWindow: bp(true)},
+			format:       "",
+			selector:     "stops.0.departures.#.date",
+			expectSelect: []string{"2018-06-06", "2018-06-06", "2018-06-06", "2018-06-06"},
 			expectLength: 0,
 		},
 		{

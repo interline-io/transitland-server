@@ -64,17 +64,26 @@ fragment departure on StopTime {
   arrival_time
   departure_time
   shape_dist_traveled
+  schedule_relationship
+  service_date
+  date
   arrival {
     scheduled
+    scheduled_utc
+    scheduled_local
     estimated
     estimated_utc
+    estimated_local
     delay
     uncertainty
   }
   departure {
     scheduled
+    scheduled_utc
+    scheduled_local
     estimated
     estimated_utc
+    estimated_local
     delay
     uncertainty
   }

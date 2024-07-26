@@ -18,6 +18,8 @@ type StopDepartureRequest struct {
 	OnestopID        string `json:"onestop_id"`
 	Next             int    `json:"next,string"`
 	ServiceDate      string `json:"service_date"`
+	Date             string `json:"date"`
+	RelativeDate     string `json:"relative_date"`
 	StartTime        string `json:"start_time"`
 	EndTime          string `json:"end_time"`
 	IncludeGeometry  bool   `json:"include_geometry,string"`
@@ -60,8 +62,14 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	if r.UseServiceWindow == nil || *r.UseServiceWindow {
 		stwhere["use_service_window"] = true
 	}
-	if r.ServiceDate != "" {
+	if r.Date != "" {
+		stwhere["date"] = r.Date
+	} else if r.RelativeDate != "" {
+		stwhere["relative_date"] = strings.ToUpper(r.RelativeDate)
+	} else if r.ServiceDate != "" {
 		stwhere["service_date"] = r.ServiceDate
+	}
+	if r.StartTime != "" || r.EndTime != "" {
 		stwhere["start"] = r.StartTime
 		if r.EndTime != "" {
 			stwhere["end"] = r.EndTime

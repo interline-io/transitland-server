@@ -3,6 +3,7 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+	"strings"
 )
 
 //go:embed trip_request.gql
@@ -18,6 +19,7 @@ type TripRequest struct {
 	FeedOnestopID    string `json:"feed_onestop_id"`
 	FeedVersionSHA1  string `json:"feed_version_sha1"`
 	ServiceDate      string `json:"service_date"`
+	RelativeDate     string `json:"relative_date"`
 	IncludeGeometry  bool   `json:"include_geometry,string"`
 	IncludeStopTimes bool   `json:"include_stop_times,string"`
 	IncludeAlerts    bool   `json:"include_alerts,string"`
@@ -57,7 +59,9 @@ func (r TripRequest) Query() (string, map[string]interface{}) {
 	if r.TripID != "" {
 		where["trip_id"] = r.TripID
 	}
-	if r.ServiceDate != "" {
+	if r.RelativeDate != "" {
+		where["relative_date"] = strings.ToUpper(r.RelativeDate)
+	} else if r.ServiceDate != "" {
 		where["service_date"] = r.ServiceDate
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
