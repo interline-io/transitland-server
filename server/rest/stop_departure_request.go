@@ -70,7 +70,9 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 		stwhere["service_date"] = r.ServiceDate
 	}
 	if r.StartTime != "" || r.EndTime != "" {
-		stwhere["start"] = r.StartTime
+		if r.StartTime != "" {
+			stwhere["start"] = r.StartTime
+		}
 		if r.EndTime != "" {
 			stwhere["end"] = r.EndTime
 		}
