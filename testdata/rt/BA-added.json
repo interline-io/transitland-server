@@ -516,6 +516,28 @@
                     "schedule_relationship": 3
                 }
             }
+        },
+        {
+            "id":"1131530WKDY",
+            "trip_update": {
+                "trip": {
+                    "trip_id": "1131530WKDY",
+                    "route_id": "03",
+                    "schedule_relationship": 0
+                },
+                "stop_time_update": [
+                    {
+                        "stop_sequence": 1,
+                        "stop_id": "FTVL",
+                        "arrival": {
+                            "delay": 45
+                        },
+                        "departure": {
+                            "delay": 45
+                        }
+                    }
+                ]
+            }
         }
     ]
 }

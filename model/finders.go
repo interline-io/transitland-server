@@ -139,7 +139,7 @@ type RTFinder interface {
 	FindAlertsForRoute(*Route, *int, *bool) []*Alert
 	FindAlertsForAgency(*Agency, *int, *bool) []*Alert
 	GetAddedTripsForStop(*Stop) []*pb.TripUpdate
-	FindStopTimeUpdate(*Trip, *StopTime) (*pb.TripUpdate_StopTimeUpdate, bool)
+	FindStopTimeUpdate(*Trip, *StopTime) (*RTStopTimeUpdate, bool)
 	// lookup cache methods
 	StopTimezone(int, string) (*time.Location, bool)
 	GetGtfsTripID(int) (string, bool)

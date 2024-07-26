@@ -277,6 +277,7 @@ query($stop_id:String!, $stf:StopTimeFilter!, $active:Boolean) {
 		stop_sequence
 		service_date
 		date
+		schedule_relationship
 		trip {
 		  alerts(active:$active) {
 			...alert
@@ -304,10 +305,13 @@ query($stop_id:String!, $stf:StopTimeFilter!, $active:Boolean) {
 			scheduled
 			scheduled_local
 			scheduled_utc
+			scheduled_unix
 			estimated
 			estimated_utc
+			estimated_unix
 			estimated_local
 			stop_timezone
+			time_unix
 			delay
 			uncertainty
 		}
@@ -315,10 +319,13 @@ query($stop_id:String!, $stf:StopTimeFilter!, $active:Boolean) {
 			scheduled
 			scheduled_local
 			scheduled_utc
+			scheduled_unix
 			estimated
 			estimated_utc
+			estimated_unix
 			estimated_local
 			stop_timezone
+			time_unix
 			delay
 			uncertainty
 		}

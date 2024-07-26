@@ -189,6 +189,37 @@ func TestStopRT_DepartureFallback(t *testing.T) {
 	testRt(t, tc)
 }
 
+func TestStopRT_LastDelay(t *testing.T) {
+	tc := rtTestCase{
+		name:    "use delay value from last provided delay in trip update",
+		query:   rtTestStopQuery,
+		vars:    rtTestStopQueryVars(),
+		rtfiles: []testconfig.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-last-delay.json"}},
+		cb: func(t *testing.T, jj string) {
+			a := gjson.Get(jj, "stops.0.stop_times").Array()
+			checkTrip := "1031527WKDY"
+			found := false
+			for _, st := range a {
+				if st.Get("trip.trip_id").String() != checkTrip {
+					continue
+				}
+				found = true
+				assert.Equal(t, "2018-05-30T16:02:00-07:00", st.Get("departure.scheduled_local").String())
+				assert.Equal(t, "2018-05-30T23:02:00Z", st.Get("departure.scheduled_utc").String())
+				assert.Equal(t, "1527721320", st.Get("departure.scheduled_unix").String())
+				assert.Equal(t, "2018-05-30T16:02:45-07:00", st.Get("departure.estimated_local").String())
+				assert.Equal(t, "2018-05-30T23:02:45Z", st.Get("departure.estimated_utc").String())
+				assert.Equal(t, "1527721365", st.Get("departure.estimated_unix").String())
+				// Check delay is NOT set
+				assert.Equal(t, "", st.Get("departure.delay").String())
+			}
+			if !found {
+				t.Errorf("expected to find trip '%s'", checkTrip)
+			}
+		},
+	}
+	testRt(t, tc)
+}
 func TestStopRT_StopIDFallback(t *testing.T) {
 	tc := rtTestCase{
 		name:    "use stop_id as fallback if no matching stop sequence",
@@ -231,6 +262,7 @@ func TestStopRT_StopIDFallback_NoDoubleVisit(t *testing.T) {
 				}
 				found = true
 				assert.Equal(t, "", st.Get("departure.estimated_utc").String())
+				assert.Equal(t, "", st.Get("departure.time_utc").String())
 			}
 			if !found {
 				t.Errorf("expected to find trip '%s'", checkTrip)
@@ -300,6 +332,115 @@ func TestStopRT_AddedTrip(t *testing.T) {
 		},
 	}
 	testRt(t, tc)
+}
+
+func TestStopRT_ScheduleRelationship(t *testing.T) {
+	tcs := []rtTestCase{
+		{
+			name:    "static trip",
+			query:   rtTestStopQuery,
+			vars:    rtTestStopQueryVars(),
+			rtfiles: []testconfig.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-added.json"}},
+			cb: func(t *testing.T, jj string) {
+				checkTrip := "1031527WKDY"
+				found := false
+				a := gjson.Get(jj, "stops.0.stop_times").Array()
+				for _, st := range a {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					assert.Equal(t, checkTrip, st.Get("trip.trip_id").String(), "trip.trip_id")
+					assert.Equal(t, "2018-05-30T23:02:00Z", st.Get("departure.scheduled_utc").String(), "departure.scheduled_utc")
+					assert.Equal(t, "", st.Get("departure.estimated_utc").String(), "departure.estimated_utc")
+					assert.Equal(t, "STATIC", st.Get("trip.schedule_relationship").String(), "trip.schedule_relationship")
+					assert.Equal(t, "STATIC", st.Get("schedule_relationship").String(), "schedule_relationship")
+				}
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+			},
+		},
+
+		{
+			name:    "scheduled trip",
+			query:   rtTestStopQuery,
+			vars:    rtTestStopQueryVars(),
+			rtfiles: []testconfig.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-added.json"}},
+			cb: func(t *testing.T, jj string) {
+				checkTrip := "1131530WKDY"
+				found := false
+				a := gjson.Get(jj, "stops.0.stop_times").Array()
+				for _, st := range a {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					assert.Equal(t, checkTrip, st.Get("trip.trip_id").String(), "trip.trip_id")
+					assert.Equal(t, "2018-05-30T23:05:00Z", st.Get("departure.scheduled_utc").String(), "departure.scheduled_utc")
+					assert.Equal(t, "2018-05-30T23:05:45Z", st.Get("departure.estimated_utc").String(), "departure.estimated_utc")
+					assert.Equal(t, "SCHEDULED", st.Get("trip.schedule_relationship").String(), "trip.schedule_relationship")
+					assert.Equal(t, "SCHEDULED", st.Get("schedule_relationship").String(), "schedule_relationship")
+				}
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+			},
+		},
+		{
+			name:    "added trip",
+			query:   rtTestStopQuery,
+			vars:    rtTestStopQueryVars(),
+			rtfiles: []testconfig.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-added.json"}},
+			cb: func(t *testing.T, jj string) {
+				checkTrip := "-123"
+				found := false
+				a := gjson.Get(jj, "stops.0.stop_times").Array()
+				for _, st := range a {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					assert.Equal(t, checkTrip, st.Get("trip.trip_id").String(), "trip.trip_id")
+					assert.Equal(t, "", st.Get("departure.scheduled_utc").String(), "departure.scheduled_utc")
+					assert.Equal(t, "2018-05-30T23:02:32Z", st.Get("departure.estimated_utc").String(), "departure.estimated_utc")
+					assert.Equal(t, "ADDED", st.Get("trip.schedule_relationship").String(), "trip.schedule_relationship")
+					assert.Equal(t, "ADDED", st.Get("schedule_relationship").String(), "schedule_relationship")
+				}
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+			},
+		},
+		{
+			name:    "canceled trip",
+			query:   rtTestStopQuery,
+			vars:    rtTestStopQueryVars(),
+			rtfiles: []testconfig.RTJsonFile{{Feed: "BA", Ftype: "realtime_trip_updates", Fname: "BA-added.json"}},
+			cb: func(t *testing.T, jj string) {
+				checkTrip := "2211533WKDY"
+				found := false
+				a := gjson.Get(jj, "stops.0.stop_times").Array()
+				for _, st := range a {
+					if st.Get("trip.trip_id").String() != checkTrip {
+						continue
+					}
+					found = true
+					assert.Equal(t, checkTrip, st.Get("trip.trip_id").String(), "trip.trip_id")
+					assert.Equal(t, "2018-05-30T23:02:00Z", st.Get("departure.scheduled_utc").String(), "departure.scheduled_utc")
+					assert.Equal(t, "", st.Get("departure.estimated_utc").String(), "departure.estimated_utc")
+					assert.Equal(t, "CANCELED", st.Get("trip.schedule_relationship").String(), "trip.schedule_relationship")
+					assert.Equal(t, "CANCELED", st.Get("schedule_relationship").String(), "chedule_relationship")
+				}
+				if !found {
+					t.Errorf("expected to find trip '%s'", checkTrip)
+				}
+			},
+		},
+	}
+	for _, tc := range tcs {
+		testRt(t, tc)
+	}
 }
 
 func TestStopRT_CanceledTrip(t *testing.T) {

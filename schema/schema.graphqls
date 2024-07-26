@@ -494,6 +494,7 @@ type StopTime {
   shape_dist_traveled: Float
   service_date: Date
   date: Date
+  schedule_relationship: ScheduleRelationship
 }
 
 """
@@ -685,16 +686,29 @@ enum ScheduleRelationship {
   UNSCHEDULED
   CANCELED
   STATIC
+  SKIPPED
+  NO_DATA
+  REPLACEMENT
+  DUPLICATED
+  DELETED
 }
 
 type StopTimeEvent {
+  """Local time for stop"""
   stop_timezone: String!
-  estimated_local: Time
+  """Estimated schedule times; can be based on propagated delay"""
   estimated_utc: Time
+  estimated_unix: Int
+  estimated_local: Time
   estimated: Seconds
-  scheduled_local: Time
+  """Static schedule times"""
   scheduled_utc: Time
+  scheduled_unix: Int
+  scheduled_local: Time
   scheduled: Seconds
+  """Raw RT values"""
+  time_utc: Time
+  time_unix: Int
   delay: Int
   uncertainty: Int
 }

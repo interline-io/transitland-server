@@ -569,15 +569,23 @@ type StopSetInput struct {
 }
 
 type StopTimeEvent struct {
-	StopTimezone   string       `json:"stop_timezone"`
-	EstimatedLocal *time.Time   `json:"estimated_local,omitempty"`
+	// Local time for stop
+	StopTimezone string `json:"stop_timezone"`
+	// Estimated schedule times; can be based on propagated delay
 	EstimatedUtc   *time.Time   `json:"estimated_utc,omitempty"`
+	EstimatedUnix  *int         `json:"estimated_unix,omitempty"`
+	EstimatedLocal *time.Time   `json:"estimated_local,omitempty"`
 	Estimated      *tt.WideTime `json:"estimated,omitempty"`
-	ScheduledLocal *time.Time   `json:"scheduled_local,omitempty"`
+	// Static schedule times
 	ScheduledUtc   *time.Time   `json:"scheduled_utc,omitempty"`
+	ScheduledUnix  *int         `json:"scheduled_unix,omitempty"`
+	ScheduledLocal *time.Time   `json:"scheduled_local,omitempty"`
 	Scheduled      *tt.WideTime `json:"scheduled,omitempty"`
-	Delay          *int         `json:"delay,omitempty"`
-	Uncertainty    *int         `json:"uncertainty,omitempty"`
+	// Raw RT values
+	TimeUtc     *time.Time `json:"time_utc,omitempty"`
+	TimeUnix    *int       `json:"time_unix,omitempty"`
+	Delay       *int       `json:"delay,omitempty"`
+	Uncertainty *int       `json:"uncertainty,omitempty"`
 }
 
 type StopTimeFilter struct {
@@ -1102,6 +1110,11 @@ const (
 	ScheduleRelationshipUnscheduled ScheduleRelationship = "UNSCHEDULED"
 	ScheduleRelationshipCanceled    ScheduleRelationship = "CANCELED"
 	ScheduleRelationshipStatic      ScheduleRelationship = "STATIC"
+	ScheduleRelationshipSkipped     ScheduleRelationship = "SKIPPED"
+	ScheduleRelationshipNoData      ScheduleRelationship = "NO_DATA"
+	ScheduleRelationshipReplacement ScheduleRelationship = "REPLACEMENT"
+	ScheduleRelationshipDuplicated  ScheduleRelationship = "DUPLICATED"
+	ScheduleRelationshipDeleted     ScheduleRelationship = "DELETED"
 )
 
 var AllScheduleRelationship = []ScheduleRelationship{
@@ -1110,11 +1123,16 @@ var AllScheduleRelationship = []ScheduleRelationship{
 	ScheduleRelationshipUnscheduled,
 	ScheduleRelationshipCanceled,
 	ScheduleRelationshipStatic,
+	ScheduleRelationshipSkipped,
+	ScheduleRelationshipNoData,
+	ScheduleRelationshipReplacement,
+	ScheduleRelationshipDuplicated,
+	ScheduleRelationshipDeleted,
 }
 
 func (e ScheduleRelationship) IsValid() bool {
 	switch e {
-	case ScheduleRelationshipScheduled, ScheduleRelationshipAdded, ScheduleRelationshipUnscheduled, ScheduleRelationshipCanceled, ScheduleRelationshipStatic:
+	case ScheduleRelationshipScheduled, ScheduleRelationshipAdded, ScheduleRelationshipUnscheduled, ScheduleRelationshipCanceled, ScheduleRelationshipStatic, ScheduleRelationshipSkipped, ScheduleRelationshipNoData, ScheduleRelationshipReplacement, ScheduleRelationshipDuplicated, ScheduleRelationshipDeleted:
 		return true
 	}
 	return false
