@@ -915,23 +915,24 @@ type ComplexityRoot struct {
 	}
 
 	StopTime struct {
-		Arrival           func(childComplexity int) int
-		ArrivalTime       func(childComplexity int) int
-		ContinuousDropOff func(childComplexity int) int
-		ContinuousPickup  func(childComplexity int) int
-		Date              func(childComplexity int) int
-		Departure         func(childComplexity int) int
-		DepartureTime     func(childComplexity int) int
-		DropOffType       func(childComplexity int) int
-		Interpolated      func(childComplexity int) int
-		PickupType        func(childComplexity int) int
-		ServiceDate       func(childComplexity int) int
-		ShapeDistTraveled func(childComplexity int) int
-		Stop              func(childComplexity int) int
-		StopHeadsign      func(childComplexity int) int
-		StopSequence      func(childComplexity int) int
-		Timepoint         func(childComplexity int) int
-		Trip              func(childComplexity int) int
+		Arrival              func(childComplexity int) int
+		ArrivalTime          func(childComplexity int) int
+		ContinuousDropOff    func(childComplexity int) int
+		ContinuousPickup     func(childComplexity int) int
+		Date                 func(childComplexity int) int
+		Departure            func(childComplexity int) int
+		DepartureTime        func(childComplexity int) int
+		DropOffType          func(childComplexity int) int
+		Interpolated         func(childComplexity int) int
+		PickupType           func(childComplexity int) int
+		ScheduleRelationship func(childComplexity int) int
+		ServiceDate          func(childComplexity int) int
+		ShapeDistTraveled    func(childComplexity int) int
+		Stop                 func(childComplexity int) int
+		StopHeadsign         func(childComplexity int) int
+		StopSequence         func(childComplexity int) int
+		Timepoint            func(childComplexity int) int
+		Trip                 func(childComplexity int) int
 	}
 
 	StopTimeEvent struct {
@@ -1218,6 +1219,8 @@ type StopTimeResolver interface {
 	Trip(ctx context.Context, obj *model.StopTime) (*model.Trip, error)
 	Arrival(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error)
 	Departure(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error)
+
+	ScheduleRelationship(ctx context.Context, obj *model.StopTime) (*model.ScheduleRelationship, error)
 }
 type TripResolver interface {
 	Calendar(ctx context.Context, obj *model.Trip) (*model.Calendar, error)
@@ -5894,6 +5897,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StopTime.PickupType(childComplexity), true
 
+	case "StopTime.schedule_relationship":
+		if e.complexity.StopTime.ScheduleRelationship == nil {
+			break
+		}
+
+		return e.complexity.StopTime.ScheduleRelationship(childComplexity), true
+
 	case "StopTime.service_date":
 		if e.complexity.StopTime.ServiceDate == nil {
 			break
@@ -7576,6 +7586,7 @@ type StopTime {
   shape_dist_traveled: Float
   service_date: Date
   date: Date
+  schedule_relationship: ScheduleRelationship
 }
 
 """
@@ -7767,6 +7778,11 @@ enum ScheduleRelationship {
   UNSCHEDULED
   CANCELED
   STATIC
+  SKIPPED
+  NO_DATA
+  REPLACEMENT
+  DUPLICATED
+  DELETED
 }
 
 type StopTimeEvent {
@@ -38975,6 +38991,8 @@ func (ec *executionContext) fieldContext_Stop_stop_times(ctx context.Context, fi
 				return ec.fieldContext_StopTime_service_date(ctx, field)
 			case "date":
 				return ec.fieldContext_StopTime_date(ctx, field)
+			case "schedule_relationship":
+				return ec.fieldContext_StopTime_schedule_relationship(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StopTime", field.Name)
 		},
@@ -39066,6 +39084,8 @@ func (ec *executionContext) fieldContext_Stop_departures(ctx context.Context, fi
 				return ec.fieldContext_StopTime_service_date(ctx, field)
 			case "date":
 				return ec.fieldContext_StopTime_date(ctx, field)
+			case "schedule_relationship":
+				return ec.fieldContext_StopTime_schedule_relationship(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StopTime", field.Name)
 		},
@@ -39157,6 +39177,8 @@ func (ec *executionContext) fieldContext_Stop_arrivals(ctx context.Context, fiel
 				return ec.fieldContext_StopTime_service_date(ctx, field)
 			case "date":
 				return ec.fieldContext_StopTime_date(ctx, field)
+			case "schedule_relationship":
+				return ec.fieldContext_StopTime_schedule_relationship(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StopTime", field.Name)
 		},
@@ -41512,6 +41534,47 @@ func (ec *executionContext) fieldContext_StopTime_date(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _StopTime_schedule_relationship(ctx context.Context, field graphql.CollectedField, obj *model.StopTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTime_schedule_relationship(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StopTime().ScheduleRelationship(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ScheduleRelationship)
+	fc.Result = res
+	return ec.marshalOScheduleRelationship2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐScheduleRelationship(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopTime_schedule_relationship(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopTime",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ScheduleRelationship does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _StopTimeEvent_stop_timezone(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_StopTimeEvent_stop_timezone(ctx, field)
 	if err != nil {
@@ -42840,6 +42903,8 @@ func (ec *executionContext) fieldContext_Trip_stop_times(ctx context.Context, fi
 				return ec.fieldContext_StopTime_service_date(ctx, field)
 			case "date":
 				return ec.fieldContext_StopTime_date(ctx, field)
+			case "schedule_relationship":
+				return ec.fieldContext_StopTime_schedule_relationship(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StopTime", field.Name)
 		},
@@ -57583,6 +57648,39 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._StopTime_service_date(ctx, field, obj)
 		case "date":
 			out.Values[i] = ec._StopTime_date(ctx, field, obj)
+		case "schedule_relationship":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StopTime_schedule_relationship(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

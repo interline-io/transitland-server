@@ -81,6 +81,7 @@ type Trip struct {
 type RTStopTimeUpdate struct {
 	LastDelay      *int32
 	StopTimeUpdate *pb.TripUpdate_StopTimeUpdate
+	TripUpdate     *pb.TripUpdate
 }
 
 type StopTime struct {

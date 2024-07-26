@@ -4,10 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
-	"strings"
-	"time"
 
-	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
@@ -73,24 +70,9 @@ func atoi(v string) int {
 	return a
 }
 
-func nilOr[T any, PT *T](v PT, def T) T {
-	if v == nil {
-		return def
-	}
-	return *v
-}
-
 func ptr[T any, PT *T](v T) PT {
 	a := v
 	return &a
-}
-
-func kebabize(a string) string {
-	return strings.ReplaceAll(strings.ToLower(a), "_", "-")
-}
-
-func tzTruncate(s time.Time, loc *time.Location) *tt.Date {
-	return ptr(tt.NewDate(time.Date(s.Year(), s.Month(), s.Day(), 0, 0, 0, 0, loc)))
 }
 
 func checkFloat(v *float64, min float64, max float64) float64 {
@@ -100,6 +82,35 @@ func checkFloat(v *float64, min float64, max float64) float64 {
 		return max
 	}
 	return *v
+}
+
+func convertScheduleRelationship(sr string) *model.ScheduleRelationship {
+	var msr model.ScheduleRelationship
+	switch sr {
+	case "STATIC":
+		msr = model.ScheduleRelationshipStatic
+	case "SCHEDULED":
+		msr = model.ScheduleRelationshipScheduled
+	case "ADDED":
+		msr = model.ScheduleRelationshipAdded
+	case "CANCELED":
+		msr = model.ScheduleRelationshipCanceled
+	case "UNSCHEDULED":
+		msr = model.ScheduleRelationshipUnscheduled
+	case "REPLACEMENT":
+		msr = model.ScheduleRelationshipReplacement
+	case "DUPLICATED":
+		msr = model.ScheduleRelationshipDuplicated
+	case "DELETED":
+		msr = model.ScheduleRelationshipDeleted
+	case "SKIPPED":
+		msr = model.ScheduleRelationshipSkipped
+	case "NO_DATA":
+		msr = model.ScheduleRelationshipNoData
+	default:
+		return nil
+	}
+	return &msr
 }
 
 // Resolver .

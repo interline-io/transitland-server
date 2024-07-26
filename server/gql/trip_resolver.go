@@ -55,21 +55,11 @@ func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
-	msr := model.ScheduleRelationshipStatic
-	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil {
-		sr := rtt.GetTrip().GetScheduleRelationship().String()
-		switch sr {
-		case "SCHEDULED":
-			msr = model.ScheduleRelationshipScheduled
-		case "ADDED":
-			msr = model.ScheduleRelationshipAdded
-		case "CANCELED":
-			msr = model.ScheduleRelationshipCanceled
-		case "UNSCHEDULED":
-			msr = model.ScheduleRelationshipUnscheduled
-		}
+	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil && rtt.Trip != nil && rtt.Trip.ScheduleRelationship != nil {
+		sr := rtt.Trip.ScheduleRelationship.String()
+		return convertScheduleRelationship(sr), nil
 	}
-	return &msr, nil
+	return ptr(model.ScheduleRelationshipStatic), nil
 }
 
 func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error) {

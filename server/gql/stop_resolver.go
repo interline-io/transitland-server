@@ -126,7 +126,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 			// create a new StopTime
 			rtst := &model.StopTime{}
 			rtst.RTTripID = rtTrip.Trip.GetTripId()
-			rtst.RTStopTimeUpdate = &model.RTStopTimeUpdate{StopTimeUpdate: stu}
+			rtst.RTStopTimeUpdate = &model.RTStopTimeUpdate{TripUpdate: rtTrip, StopTimeUpdate: stu}
 			rtst.FeedVersionID = obj.FeedVersionID
 			rtst.TripID = "0"
 			rtst.StopID = strconv.Itoa(obj.ID)

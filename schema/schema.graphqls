@@ -494,6 +494,7 @@ type StopTime {
   shape_dist_traveled: Float
   service_date: Date
   date: Date
+  schedule_relationship: ScheduleRelationship
 }
 
 """
@@ -685,6 +686,11 @@ enum ScheduleRelationship {
   UNSCHEDULED
   CANCELED
   STATIC
+  SKIPPED
+  NO_DATA
+  REPLACEMENT
+  DUPLICATED
+  DELETED
 }
 
 type StopTimeEvent {

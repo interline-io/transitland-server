@@ -277,6 +277,7 @@ query($stop_id:String!, $stf:StopTimeFilter!, $active:Boolean) {
 		stop_sequence
 		service_date
 		date
+		schedule_relationship
 		trip {
 		  alerts(active:$active) {
 			...alert

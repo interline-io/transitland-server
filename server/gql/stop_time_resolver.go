@@ -21,6 +21,24 @@ func (r *stopTimeResolver) Stop(ctx context.Context, obj *model.StopTime) (*mode
 	return For(ctx).StopsByID.Load(ctx, atoi(obj.StopID))()
 }
 
+func (r *stopTimeResolver) ScheduleRelationship(ctx context.Context, obj *model.StopTime) (*model.ScheduleRelationship, error) {
+	stu := obj.RTStopTimeUpdate
+	// Use StopTimeUpdate ScheduleRelationship value if explicitly provided
+	// if stu != nil && stu.StopTimeUpdate != nil && stu.StopTimeUpdate.ScheduleRelationship != nil {
+	// 	return convertScheduleRelationship(stu.StopTimeUpdate.ScheduleRelationship.String()), nil
+	// }
+	// Otherwise, try defaulting to TripUpdate ScheduleRelationship value
+	if stu != nil && stu.TripUpdate != nil && stu.TripUpdate.Trip != nil && stu.TripUpdate.Trip.ScheduleRelationship != nil {
+		return convertScheduleRelationship(stu.TripUpdate.Trip.ScheduleRelationship.String()), nil
+	}
+	// Otherwise, if ANY RT data is present (e.g. a propagated delay), default to SCHEDULED
+	if stu != nil && stu.StopTimeUpdate != nil {
+		return ptr(model.ScheduleRelationshipScheduled), nil
+	}
+	// Otherwise, default to STATIC
+	return ptr(model.ScheduleRelationshipStatic), nil
+}
+
 func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*model.Trip, error) {
 	if obj.TripID == "0" && obj.RTTripID != "" {
 		t := model.Trip{}
