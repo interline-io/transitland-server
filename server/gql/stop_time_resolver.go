@@ -118,7 +118,7 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTi
 	// Check to apply lastDelay
 	if ste == nil && lastDelay != nil {
 		// Create a time based on propagated delay
-		est := tt.NewWideTimeFromSeconds(int(*lastDelay))
+		est := tt.NewWideTimeFromSeconds(sched.Seconds + int(*lastDelay))
 		estUtc := schedUtc.Add(time.Second * time.Duration(int(*lastDelay)))
 		estLocal := estUtc.In(loc)
 		a.Estimated = ptr(est)
