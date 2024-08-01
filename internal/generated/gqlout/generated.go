@@ -938,6 +938,7 @@ type ComplexityRoot struct {
 	StopTimeEvent struct {
 		Delay          func(childComplexity int) int
 		Estimated      func(childComplexity int) int
+		EstimatedDelay func(childComplexity int) int
 		EstimatedLocal func(childComplexity int) int
 		EstimatedUnix  func(childComplexity int) int
 		EstimatedUtc   func(childComplexity int) int
@@ -5967,6 +5968,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StopTimeEvent.Estimated(childComplexity), true
 
+	case "StopTimeEvent.estimated_delay":
+		if e.complexity.StopTimeEvent.EstimatedDelay == nil {
+			break
+		}
+
+		return e.complexity.StopTimeEvent.EstimatedDelay(childComplexity), true
+
 	case "StopTimeEvent.estimated_local":
 		if e.complexity.StopTimeEvent.EstimatedLocal == nil {
 			break
@@ -7792,6 +7800,7 @@ type StopTimeEvent {
   estimated_utc: Time
   estimated_unix: Int
   estimated_local: Time
+  estimated_delay: Int
   estimated: Seconds
   """Static schedule times"""
   scheduled_utc: Time
@@ -41232,6 +41241,8 @@ func (ec *executionContext) fieldContext_StopTime_arrival(ctx context.Context, f
 				return ec.fieldContext_StopTimeEvent_estimated_unix(ctx, field)
 			case "estimated_local":
 				return ec.fieldContext_StopTimeEvent_estimated_local(ctx, field)
+			case "estimated_delay":
+				return ec.fieldContext_StopTimeEvent_estimated_delay(ctx, field)
 			case "estimated":
 				return ec.fieldContext_StopTimeEvent_estimated(ctx, field)
 			case "scheduled_utc":
@@ -41304,6 +41315,8 @@ func (ec *executionContext) fieldContext_StopTime_departure(ctx context.Context,
 				return ec.fieldContext_StopTimeEvent_estimated_unix(ctx, field)
 			case "estimated_local":
 				return ec.fieldContext_StopTimeEvent_estimated_local(ctx, field)
+			case "estimated_delay":
+				return ec.fieldContext_StopTimeEvent_estimated_delay(ctx, field)
 			case "estimated":
 				return ec.fieldContext_StopTimeEvent_estimated(ctx, field)
 			case "scheduled_utc":
@@ -41737,6 +41750,47 @@ func (ec *executionContext) fieldContext_StopTimeEvent_estimated_local(ctx conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StopTimeEvent_estimated_delay(ctx context.Context, field graphql.CollectedField, obj *model.StopTimeEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StopTimeEvent_estimated_delay(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EstimatedDelay, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StopTimeEvent_estimated_delay(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StopTimeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -57726,6 +57780,8 @@ func (ec *executionContext) _StopTimeEvent(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._StopTimeEvent_estimated_unix(ctx, field, obj)
 		case "estimated_local":
 			out.Values[i] = ec._StopTimeEvent_estimated_local(ctx, field, obj)
+		case "estimated_delay":
+			out.Values[i] = ec._StopTimeEvent_estimated_delay(ctx, field, obj)
 		case "estimated":
 			out.Values[i] = ec._StopTimeEvent_estimated(ctx, field, obj)
 		case "scheduled_utc":

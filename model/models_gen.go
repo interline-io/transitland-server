@@ -575,6 +575,7 @@ type StopTimeEvent struct {
 	EstimatedUtc   *time.Time   `json:"estimated_utc,omitempty"`
 	EstimatedUnix  *int         `json:"estimated_unix,omitempty"`
 	EstimatedLocal *time.Time   `json:"estimated_local,omitempty"`
+	EstimatedDelay *int         `json:"estimated_delay,omitempty"`
 	Estimated      *tt.WideTime `json:"estimated,omitempty"`
 	// Static schedule times
 	ScheduledUtc   *time.Time   `json:"scheduled_utc,omitempty"`

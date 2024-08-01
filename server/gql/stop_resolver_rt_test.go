@@ -23,8 +23,10 @@ func TestStopRT_Basic(t *testing.T) {
 			for _, st := range a {
 				assert.Equal(t, "America/Los_Angeles", st.Get("arrival.stop_timezone").String(), "arrival.stop_timezone")
 				assert.Equal(t, delay, int(st.Get("arrival.delay").Int()), "arrival.delay")
+				assert.Equal(t, delay, int(st.Get("arrival.estimated_delay").Int()), "arrival.estimated_delay")
 				assert.Equal(t, "America/Los_Angeles", st.Get("departure.stop_timezone").String(), "departure.stop_timezone")
 				assert.Equal(t, delay, int(st.Get("departure.delay").Int()), "departure.delay")
+				assert.Equal(t, delay, int(st.Get("departure.estimated_delay").Int()), "departure.estimated_delay")
 				sched, _ := tt.NewWideTime(st.Get("arrival.scheduled").String())
 				est, _ := tt.NewWideTime(st.Get("arrival.estimated").String())
 				assert.Equal(t, sched.Seconds+int(delay), est.Seconds, "arrival.scheduled + delay = arrival.estimated for this test")
@@ -210,6 +212,7 @@ func TestStopRT_LastDelay(t *testing.T) {
 				assert.Equal(t, "2018-05-30T16:02:45-07:00", st.Get("departure.estimated_local").String())
 				assert.Equal(t, "2018-05-30T23:02:45Z", st.Get("departure.estimated_utc").String())
 				assert.Equal(t, "1527721365", st.Get("departure.estimated_unix").String())
+				assert.Equal(t, int64(45), st.Get("departure.estimated_delay").Int())
 				// Check delay is NOT set
 				assert.Equal(t, "", st.Get("departure.delay").String())
 			}

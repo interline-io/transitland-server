@@ -700,6 +700,7 @@ type StopTimeEvent {
   estimated_utc: Time
   estimated_unix: Int
   estimated_local: Time
+  estimated_delay: Int
   estimated: Seconds
   """Static schedule times"""
   scheduled_utc: Time

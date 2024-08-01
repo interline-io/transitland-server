@@ -98,74 +98,76 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTi
 		Scheduled:    &sched,
 	}
 
-	// Nothing else to do without timezone or valid schedule
+	// Nothing else to do without timezone
 	if loc == nil {
 		return &a
 	}
 
 	// Apply local timezone
 	// Hours, minutes, seconds in local scheduled time
-	sd := serviceDate.Val
-	h, m, s := sched.HMS()
-	schedLocal := time.Date(sd.Year(), sd.Month(), sd.Day(), h, m, s, 0, loc)
-	schedUtc := schedLocal.In(time.UTC)
 	if serviceDate.Valid && sched.Valid {
+		sd := serviceDate.Val
+		h, m, s := sched.HMS()
+		schedLocal := time.Date(sd.Year(), sd.Month(), sd.Day(), h, m, s, 0, loc)
+		schedUtc := schedLocal.In(time.UTC)
 		a.ScheduledUtc = &schedUtc
 		a.ScheduledUnix = ptr(int(schedUtc.Unix()))
 		a.ScheduledLocal = &schedLocal
 	}
 
-	// Check to apply lastDelay
-	if ste == nil && lastDelay != nil {
-		// Create a time based on propagated delay
-		est := tt.NewWideTimeFromSeconds(sched.Seconds + int(*lastDelay))
-		estUtc := schedUtc.Add(time.Second * time.Duration(int(*lastDelay)))
-		estLocal := estUtc.In(loc)
-		a.Estimated = ptr(est)
-		if serviceDate.Valid {
-			a.EstimatedUtc = ptr(estUtc)
-			a.EstimatedUnix = ptr(int(estUtc.Unix()))
-			a.EstimatedLocal = ptr(estLocal)
-		}
+	// Get timestamp and delay
+	var useDelay *int32 = lastDelay
+	if ste != nil && ste.Delay != nil {
+		useDelay = ste.Delay
+	}
+	var useTime *int64 = nil
+	if ste != nil && ste.Time != nil {
+		useTime = ste.Time
 	}
 
-	// No ste, nothing else to do
-	if ste == nil {
-		return &a
-	}
-
-	// Apply StopTimeEvent
-	if ste.Time != nil {
-		// Set est based on rt time
-		// TODO: Should serviceDate override this, regardless?
-		estUtc := time.Unix(ste.GetTime(), 0).UTC()
+	// Apply time or delay value
+	if useTime != nil {
+		// Use explicit timestamp
+		estUtc := time.Unix(*useTime, 0).UTC()
 		estLocal := estUtc.In(loc)
 		est := tt.NewWideTimeFromSeconds(estLocal.Hour()*3600 + estLocal.Minute()*60 + estLocal.Second())
-		a.TimeUtc = &estUtc // raw RT
 		a.Estimated = ptr(est)
 		a.EstimatedUtc = ptr(estUtc)
 		a.EstimatedUnix = ptr(int(estUtc.Unix()))
 		a.EstimatedLocal = ptr(estLocal)
-	} else if ste.Delay != nil && sched.Valid {
+	} else if useDelay != nil && a.ScheduledUtc != nil {
 		// Create a time based on STE delay
-		est := tt.NewWideTimeFromSeconds(sched.Seconds + int(*ste.Delay))
-		estUtc := schedUtc.Add(time.Second * time.Duration(int(*ste.Delay)))
+		estUtc := a.ScheduledUtc.Add(time.Second * time.Duration(int(*useDelay)))
 		estLocal := estUtc.In(loc)
+		est := tt.NewWideTimeFromSeconds(sched.Seconds + int(*useDelay))
 		a.Estimated = ptr(est)
-		if serviceDate.Valid {
-			a.EstimatedUtc = ptr(estUtc)
-			a.EstimatedUnix = ptr(int(estUtc.Unix()))
-			a.EstimatedLocal = ptr(estLocal)
+		a.EstimatedUtc = ptr(estUtc)
+		a.EstimatedUnix = ptr(int(estUtc.Unix()))
+		a.EstimatedLocal = ptr(estLocal)
+	}
+
+	// Only pass through actual message time, delay, uncertainty
+	if ste != nil {
+		if ste.Time != nil {
+			t := time.Unix(*ste.Time, 0).UTC()
+			a.TimeUtc = ptr(t)
+			a.TimeUnix = ptr(int(t.Unix()))
 		}
-	} else {
-		// Could not est time
+		if ste.Delay != nil {
+			a.Delay = ptr(int(ste.GetDelay()))
+		}
+		if ste.Uncertainty != nil {
+			a.Uncertainty = ptr(int(ste.GetUncertainty()))
+		}
 	}
-	// Only pass through actual delay
-	if ste.Delay != nil {
-		a.Delay = ptr(int(ste.GetDelay()))
-	}
-	if ste.Uncertainty != nil {
-		a.Uncertainty = ptr(int(ste.GetUncertainty()))
+
+	// Set EstimatedDelay inclusive of all possible sources
+	if a.EstimatedUtc != nil && a.ScheduledUtc != nil {
+		// Clamp to reasonable bounds
+		estDelay := int(a.EstimatedUtc.Unix() - a.ScheduledUtc.Unix())
+		if estDelay > -(24*3600) && estDelay < (24*3600) {
+			a.EstimatedDelay = ptr(estDelay)
+		}
 	}
 	return &a
 }
