@@ -129,7 +129,7 @@ func requestGetJob(req *http.Request) (jobs.Job, error) {
 // writeJobResponse writes job response
 func writeJobResponse(ret jobResponse, w http.ResponseWriter) {
 	if rj, err := json.Marshal(ret); err != nil {
-		http.Error(w, util.MakeJsonError(http.StatusText(http.StatusBadRequest)), http.StatusBadRequest)
+		util.WriteJsonError(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	} else {
 		w.Write(rj)

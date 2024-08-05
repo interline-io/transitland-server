@@ -129,6 +129,15 @@ func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []
 	return limitAlerts(foundAlerts, limit)
 }
 
+func (f *Finder) GetMessage(topic string, topicKey string) (*pb.FeedMessage, bool) {
+	tk := getTopicKey(topic, topicKey)
+	a, ok := f.cache.GetSource(tk)
+	if a != nil && ok {
+		return a.msg, ok
+	}
+	return nil, false
+}
+
 func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) []*model.Alert {
 	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)

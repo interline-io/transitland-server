@@ -49,6 +49,8 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	r.HandleFunc("/feeds/{feed_key}", feedHandler)
 	r.Handle("/feeds/{feed_key}/download_latest_feed_version", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(graphqlHandler, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
 
+	r.Handle("/feeds/{feed_key}/download_latest_rt/{rt_type}.{format}", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(graphqlHandler, "feedDownloadRtHelper", feedDownloadRtHelper)))
+
 	r.HandleFunc("/feed_versions.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions", feedVersionHandler)
 	r.HandleFunc("/feed_versions/{feed_version_key}.{format}", feedVersionHandler)
@@ -203,7 +205,7 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 		// Handle format
 		format := opts["format"]
 		if format == "png" && cfg.DisableImage {
-			http.Error(w, util.MakeJsonError("image generation disabled"), http.StatusInternalServerError)
+			util.WriteJsonError(w, "image generation disabled", http.StatusInternalServerError)
 			return
 		}
 
@@ -224,19 +226,19 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 		s, err := json.Marshal(opts)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to marshal request params")
-			http.Error(w, util.MakeJsonError("parameter error"), http.StatusInternalServerError)
+			util.WriteJsonError(w, "parameter error", http.StatusInternalServerError)
 			return
 		}
 		if err := json.Unmarshal(s, handler); err != nil {
 			log.Error().Err(err).Msg("failed to unmarshal request params")
-			http.Error(w, util.MakeJsonError("parameter error"), http.StatusInternalServerError)
+			util.WriteJsonError(w, "parameter error", http.StatusInternalServerError)
 			return
 		}
 
 		// Make the request
 		response, err := makeRequest(ctx, graphqlHandler, handler, format, r.URL)
 		if err != nil {
-			http.Error(w, util.MakeJsonError(err.Error()), http.StatusInternalServerError)
+			util.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
