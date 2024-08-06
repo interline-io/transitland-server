@@ -143,6 +143,7 @@ type RTFinder interface {
 	// lookup cache methods
 	StopTimezone(int, string) (*time.Location, bool)
 	GetGtfsTripID(int) (string, bool)
+	GetMessage(string, string) (*pb.FeedMessage, bool)
 }
 
 // GBFSFinder manages and looks up GBFS data

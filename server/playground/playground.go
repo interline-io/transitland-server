@@ -103,7 +103,7 @@ func Handler(title string, endpoint string) http.HandlerFunc {
 			"jsSRI":       "sha384-TqI6gT2PjmSrnEOTvGHLad1U4Vm5VoyzMmcKK0C/PLCWTnwPyXhCJY6NYhC/tp19",
 		})
 		if err != nil {
-			http.Error(w, util.MakeJsonError(http.StatusText(http.StatusUnauthorized)), http.StatusInternalServerError)
+			util.WriteJsonError(w, http.StatusText(http.StatusUnauthorized), http.StatusInternalServerError)
 		}
 	}
 }

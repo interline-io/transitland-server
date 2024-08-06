@@ -1,11 +1,16 @@
 package util
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"net/http"
+)
 
-func MakeJsonError(msg string) string {
+func WriteJsonError(w http.ResponseWriter, msg string, statusCode int) {
 	a := map[string]string{
 		"error": msg,
 	}
 	jj, _ := json.Marshal(&a)
-	return string(jj)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	w.Write(jj)
 }

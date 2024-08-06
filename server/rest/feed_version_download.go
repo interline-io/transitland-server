@@ -15,6 +15,8 @@ import (
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/tidwall/gjson"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 const latestFeedVersionQuery = `
@@ -31,13 +33,13 @@ query($feed_onestop_id: String!, $ids: [Int!]) {
   }
 `
 
-// Query redirects user to download the given fv from S3 public URL
-// assuming that redistribution is allowed for the feed.
-func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
+func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
 	key := chi.URLParam(r, "feed_key")
+	rtType := fmt.Sprintf("realtime_%s", chi.URLParam(r, "rt_type"))
+	format := chi.URLParam(r, "format")
 	gvars := hw{}
 	if key == "" {
-		http.Error(w, util.MakeJsonError("not found"), http.StatusNotFound)
+		util.WriteJsonError(w, "not found", http.StatusNotFound)
 		return
 	} else if v, err := strconv.Atoi(key); err == nil {
 		gvars["ids"] = []int{v}
@@ -48,14 +50,79 @@ func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.Respon
 	// Check if we're allowed to redistribute feed and look up latest feed version
 	feedResponse, err := makeGraphQLRequest(r.Context(), graphqlHandler, latestFeedVersionQuery, gvars)
 	if err != nil {
-		http.Error(w, util.MakeJsonError("server error"), http.StatusInternalServerError)
+		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
+		return
+	}
+
+	found := false
+	allowed := false
+	jj, err := json.Marshal(feedResponse)
+	if err != nil {
+		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
+		return
+	}
+	if gjson.Get(string(jj), "feeds.0.license.redistribution_allowed").String() != "no" {
+		allowed = true
+	}
+
+	// Check if we have data
+	rtf := model.ForContext(r.Context()).RTFinder
+	rtMsg, ok := rtf.GetMessage(key, rtType)
+	if ok && rtMsg != nil {
+		found = true
+	}
+
+	// Errors if not allowed or no data
+	if !found {
+		util.WriteJsonError(w, "not found", http.StatusNotFound)
+		return
+	}
+	if !allowed {
+		util.WriteJsonError(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var data []byte
+	var marshalErr error
+	if format == "json" {
+		data, marshalErr = protojson.Marshal(rtMsg)
+		w.Header().Add("Content-Type", "application/json")
+	} else {
+		data, marshalErr = proto.Marshal(rtMsg)
+		w.Header().Add("Content-Type", "application/octet-stream")
+	}
+	if marshalErr != nil {
+		util.WriteJsonError(w, "error processing result", http.StatusInternalServerError)
+		return
+	}
+	w.Write(data)
+}
+
+// Query redirects user to download the given fv from S3 public URL
+// assuming that redistribution is allowed for the feed.
+func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
+	key := chi.URLParam(r, "feed_key")
+	gvars := hw{}
+	if key == "" {
+		util.WriteJsonError(w, "not found", http.StatusNotFound)
+		return
+	} else if v, err := strconv.Atoi(key); err == nil {
+		gvars["ids"] = []int{v}
+	} else {
+		gvars["feed_onestop_id"] = key
+	}
+
+	// Check if we're allowed to redistribute feed and look up latest feed version
+	feedResponse, err := makeGraphQLRequest(r.Context(), graphqlHandler, latestFeedVersionQuery, gvars)
+	if err != nil {
+		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
 		return
 	}
 	found := false
 	allowed := false
 	json, err := json.Marshal(feedResponse)
 	if err != nil {
-		http.Error(w, util.MakeJsonError("server error"), http.StatusInternalServerError)
+		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
 		return
 	}
 	if gjson.Get(string(json), "feeds.0.feed_versions.0.sha1").Exists() {
@@ -67,11 +134,11 @@ func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.Respon
 	fid := gjson.Get(string(json), "feeds.0.onestop_id").String()
 	fvsha1 := gjson.Get(string(json), "feeds.0.feed_versions.0.sha1").String()
 	if !found {
-		http.Error(w, util.MakeJsonError("not found"), http.StatusNotFound)
+		util.WriteJsonError(w, "not found", http.StatusNotFound)
 		return
 	}
 	if !allowed {
-		http.Error(w, util.MakeJsonError("not authorized"), http.StatusUnauthorized)
+		util.WriteJsonError(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -109,7 +176,7 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 	gvars := hw{}
 	key := chi.URLParam(r, "feed_version_key")
 	if key == "" {
-		http.Error(w, util.MakeJsonError("not found"), http.StatusNotFound)
+		util.WriteJsonError(w, "not found", http.StatusNotFound)
 		return
 	} else if v, err := strconv.Atoi(key); err == nil {
 		gvars["ids"] = []int{v}
@@ -119,7 +186,7 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 	// Check if we're allowed to redistribute feed
 	checkfv, err := makeGraphQLRequest(r.Context(), graphqlHandler, feedVersionFileQuery, gvars)
 	if err != nil {
-		http.Error(w, util.MakeJsonError("server error"), http.StatusInternalServerError)
+		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
 		return
 	}
 	// todo: use gjson
@@ -144,11 +211,11 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 		}
 	}
 	if !found {
-		http.Error(w, util.MakeJsonError("not found"), http.StatusNotFound)
+		util.WriteJsonError(w, "not found", http.StatusNotFound)
 		return
 	}
 	if !allowed {
-		http.Error(w, util.MakeJsonError("not authorized"), http.StatusUnauthorized)
+		util.WriteJsonError(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -169,14 +236,14 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string, downloadKey string) {
 	store, err := store.GetStore(storage)
 	if err != nil {
-		http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
+		util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 		return
 	}
 	fvkey := fmt.Sprintf("%s.zip", fvsha1)
 	if v, ok := store.(request.Presigner); ok {
 		signedUrl, err := v.CreateSignedUrl(r.Context(), fvkey, downloadKey, tl.Secret{})
 		if err != nil {
-			http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
+			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 			return
 		}
 		w.Header().Add("Location", signedUrl)
@@ -184,11 +251,11 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 	} else {
 		rdr, _, err := store.Download(r.Context(), fvkey, tl.Secret{}, tl.FeedAuthorization{})
 		if err != nil {
-			http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
+			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 			return
 		}
 		if _, err := io.Copy(w, rdr); err != nil {
-			http.Error(w, util.MakeJsonError("failed access file"), http.StatusInternalServerError)
+			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 		}
 	}
 }
