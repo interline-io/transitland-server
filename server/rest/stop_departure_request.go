@@ -62,12 +62,16 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 	if r.UseServiceWindow == nil || *r.UseServiceWindow {
 		stwhere["use_service_window"] = true
 	}
+	// Restore previous default behavior
+	// If no date is specified, use next hour
 	if r.Date != "" {
 		stwhere["date"] = r.Date
 	} else if r.RelativeDate != "" {
 		stwhere["relative_date"] = strings.ToUpper(r.RelativeDate)
 	} else if r.ServiceDate != "" {
 		stwhere["service_date"] = r.ServiceDate
+	} else if r.Next == 0 {
+		r.Next = 3600
 	}
 	if r.StartTime != "" || r.EndTime != "" {
 		if r.StartTime != "" {
@@ -76,10 +80,7 @@ func (r StopDepartureRequest) Query() (string, map[string]interface{}) {
 		if r.EndTime != "" {
 			stwhere["end"] = r.EndTime
 		}
-	} else {
-		if r.Next == 0 {
-			r.Next = 3600
-		}
+	} else if r.Next > 0 {
 		stwhere["next"] = r.Next
 	}
 	return stopDepartureQuery, hw{
