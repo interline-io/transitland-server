@@ -61,7 +61,6 @@ func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r 
 		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
 		return
 	}
-	fid := gjson.Get(string(jj), "feeds.0.onestop_id").String()
 	if gjson.Get(string(jj), "feeds.0.license.redistribution_allowed").String() != "no" {
 		allowed = true
 	}
@@ -81,15 +80,6 @@ func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r 
 	if !allowed {
 		util.WriteJsonError(w, "not authorized", http.StatusUnauthorized)
 		return
-	}
-
-	// Send request to metering
-	if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
-		dims := []meters.Dimension{
-			{Key: "feed_onestop_id", Value: fid},
-			{Key: "is_latest_feed_version", Value: "true"},
-		}
-		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
 
 	var data []byte

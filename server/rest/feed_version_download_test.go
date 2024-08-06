@@ -199,21 +199,12 @@ func TestFeedDownloadRtLatestRequest(t *testing.T) {
 		asUser.ServeHTTP(rr, req)
 		assert.Equal(t, 200, rr.Result().StatusCode, "status code")
 	})
-	t.Run("not authorized as anon", func(t *testing.T) {
+	t.Run("ok as anon", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feeds/BA~rt/download_latest_rt/alerts.json", nil)
 		rr := httptest.NewRecorder()
 		asAnon := restSrv
 		asAnon.ServeHTTP(rr, req)
-		assert.Equal(t, 401, rr.Result().StatusCode, "status code")
-	})
-	t.Run("not authorized as user, missing role", func(t *testing.T) {
-		req, _ := http.NewRequest("GET", "/feeds/BA~rt/download_latest_rt/alerts.json", nil)
-		rr := httptest.NewRecorder()
-		asUser := ancheck.NewUserDefaultMiddleware(func() authn.User {
-			return authn.NewCtxUser("testuser", "", "").WithRoles("testrole")
-		})(restSrv)
-		asUser.ServeHTTP(rr, req)
-		assert.Equal(t, 401, rr.Result().StatusCode, "status code")
+		assert.Equal(t, 200, rr.Result().StatusCode, "status code")
 	})
 	t.Run("alerts ok json", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feeds/BA~rt/download_latest_rt/alerts.json", nil)

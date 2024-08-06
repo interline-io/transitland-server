@@ -49,7 +49,7 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	r.HandleFunc("/feeds/{feed_key}", feedHandler)
 	r.Handle("/feeds/{feed_key}/download_latest_feed_version", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(graphqlHandler, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
 
-	r.Handle("/feeds/{feed_key}/download_latest_rt/{rt_type}.{format}", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(graphqlHandler, "feedDownloadRtHelper", feedDownloadRtHelper)))
+	r.Handle("/feeds/{feed_key}/download_latest_rt/{rt_type}.{format}", makeHandlerFunc(graphqlHandler, "feedDownloadRtHelper", feedDownloadRtHelper))
 
 	r.HandleFunc("/feed_versions.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions", feedVersionHandler)
