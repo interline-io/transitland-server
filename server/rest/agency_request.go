@@ -9,7 +9,7 @@ import (
 //go:embed agency_request.gql
 var agencyQuery string
 
-// AgencyRequest holds options for a Route request
+// AgencyRequest holds options for an Agency request
 type AgencyRequest struct {
 	ID              int       `json:"id,string"`
 	AgencyKey       string    `json:"agency_key"`

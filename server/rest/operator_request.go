@@ -8,21 +8,25 @@ import (
 //go:embed operator_request.gql
 var operatorQuery string
 
-// OperatorRequest holds options for a Route request
+// OperatorRequest holds options for an Operator request
 type OperatorRequest struct {
-	OperatorKey   string `json:"operator_key"`
-	ID            int    `json:"id,string"`
-	OnestopID     string `json:"onestop_id"`
-	FeedOnestopID string `json:"feed_onestop_id"`
-	Search        string `json:"search"`
-	TagKey        string `json:"tag_key"`
-	TagValue      string `json:"tag_value"`
-	Adm0Name      string `json:"adm0_name"`
-	Adm0Iso       string `json:"adm0_iso"`
-	Adm1Name      string `json:"adm1_name"`
-	Adm1Iso       string `json:"adm1_iso"`
-	CityName      string `json:"city_name"`
-	IncludeAlerts bool   `json:"include_alerts,string"`
+	OperatorKey   string    `json:"operator_key"`
+	ID            int       `json:"id,string"`
+	OnestopID     string    `json:"onestop_id"`
+	FeedOnestopID string    `json:"feed_onestop_id"`
+	Search        string    `json:"search"`
+	TagKey        string    `json:"tag_key"`
+	TagValue      string    `json:"tag_value"`
+	Lon           float64   `json:"lon,string"`
+	Lat           float64   `json:"lat,string"`
+	Bbox          *restBbox `json:"bbox"`
+	Radius        float64   `json:"radius,string"`
+	Adm0Name      string    `json:"adm0_name"`
+	Adm0Iso       string    `json:"adm0_iso"`
+	Adm1Name      string    `json:"adm1_name"`
+	Adm1Iso       string    `json:"adm1_iso"`
+	CityName      string    `json:"city_name"`
+	IncludeAlerts bool      `json:"include_alerts,string"`
 	LicenseFilter
 	WithCursor
 }
@@ -52,6 +56,12 @@ func (r OperatorRequest) Query() (string, map[string]interface{}) {
 	}
 	if r.TagKey != "" {
 		where["tags"] = hw{r.TagKey: r.TagValue}
+	}
+	if r.Lat != 0.0 && r.Lon != 0.0 {
+		where["near"] = hw{"lat": r.Lat, "lon": r.Lon, "radius": r.Radius}
+	}
+	if r.Bbox != nil {
+		where["bbox"] = r.Bbox.AsJson()
 	}
 	if r.Adm0Name != "" {
 		where["adm0_name"] = r.Adm0Name
