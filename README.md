@@ -17,10 +17,11 @@
 
 ## Usage
 
-The resulting `tlserver` binary includes several core commands from `transitland-lib`, and adds the `server` command.
+The resulting [`tlserver`](docs/cli/tlserver.md) binary includes several core commands from `transitland-lib` and adds the `server` command.
 
 The main subcommands are:
 * [tlserver server](docs/cli/tlserver_server.md)	 - Run transitland server
+* [tlserver server](tlserver_server.md)	 - Run transitland server
 * [tlserver fetch](docs/cli/tlserver_fetch.md)	 - Fetch GTFS data and create feed versions
 * [tlserver import](docs/cli/tlserver_import.md)	 - Import feed versions
 * [tlserver sync](docs/cli/tlserver_sync.md)	 - Sync DMFR files to database
@@ -43,21 +44,23 @@ The server instance configured by the  `tlserver` command runs without authentic
 
 ## Development
 
-1. Install `go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.17.0`
+1. Install `go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
 2. On macOS, you will need the GNU timeout command: `brew install coreutils`
-3. Check out `github.com/interline-io/transitland-lib` which contains the necessary schema and migrations.
-4. Initialize test database schema: `transitland-lib/internal/schema/postgres/bootstrap.sh tlv2_test_server`
+3. You will also need GDAL tools for importing reference data sets: `apt-get install gdal-bin`, or `brew install gdal-bin`, etc.
+4. Check out `github.com/interline-io/transitland-lib` which contains the necessary schema and migrations.
+5. Initialize test database schema: `transitland-lib/internal/schema/postgres/bootstrap.sh tlv2_test_server`
    - This will create the `tlv2_test_server` database in postgres
    - Will halt with an error (intentionally) if this database already exists
    - Runs golang-migrate on the migrations in `transitland-lib/internal/schema/postgres/migrations`
    - Unpacks and imports the Natural Earth datasets bundled with `transitland-lib`
-5. Initialize test fixtures: `./test_setup.sh`
+6. Initialize test fixtures: `./testdata/test_setup.sh`
    - Builds and installs the `cmd/tlserver` command
    - Sets up test feeds contained in `testdata/server/server-test.dmfr.json`
    - Fetches and imports feeds contained in `testdata/external`
-   - Creates additional fixtures defined in `test_supplement.pgsql`
-6. Set `TL_TEST_SERVER_DATABASE_URL` to the connection string for the database initialized above 
-6. Run all tests with `go test -v ./...`
+   - Creates additional fixtures defined in `testdata/test_supplement.pgsql`
+   - Note that temporary files will be created in `testdata/tmp`; these are excluded in `.gitignore`
+7. Set `TL_TEST_SERVER_DATABASE_URL` to the connection string for the database initialized above 
+8. Run all tests with `go test -v ./...`
 
 Test cases generally run within transactions; you do not need to regenerate the fixtures unless you are testing migrations or changes to data import functionality.
   
