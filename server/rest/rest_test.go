@@ -34,6 +34,7 @@ type testCase struct {
 	selector     string
 	expectSelect []string
 	expectLength int
+	expectError  bool
 	f            func(*testing.T, string)
 }
 
@@ -75,13 +76,20 @@ func checkTestCase(t *testing.T, tc testCase) {
 }
 
 func checkTestCaseWithHandlers(t *testing.T, tc testCase, graphqlHandler http.Handler, restHandler http.Handler) {
+	tested := false
 	data, err := makeRequest(context.TODO(), graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
-		t.Error(err)
+		if tc.expectError {
+			tested = true
+		} else {
+			t.Error(err)
+			return
+		}
+	} else if tc.expectError {
+		t.Error("expected error")
 		return
 	}
 	jj := string(data)
-	tested := false
 	if tc.f != nil {
 		tested = true
 		tc.f(t, jj)

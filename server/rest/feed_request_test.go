@@ -18,7 +18,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT", "test-gbfs", "BA", "HA", "BA~rt", "CT~rt", "test", "EX"},
-			expectLength: 0,
 		},
 		{
 			name:         "onestop_id",
@@ -26,7 +25,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA"},
-			expectLength: 0,
 		},
 		{
 			name:         "spec",
@@ -34,7 +32,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA~rt", "CT~rt"},
-			expectLength: 0,
 		},
 		{
 			name:         "spec lower case",
@@ -42,7 +39,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT", "BA", "HA", "test", "EX"},
-			expectLength: 0,
 		},
 		{
 			name:         "spec lower case dash",
@@ -50,7 +46,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA~rt", "CT~rt"},
-			expectLength: 0,
 		},
 
 		{
@@ -59,7 +54,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA~rt", "BA"},
-			expectLength: 0,
 		},
 		{
 			name:         "fetch_error true",
@@ -67,7 +61,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"test"},
-			expectLength: 0,
 		},
 		{
 			name:         "fetch_error false",
@@ -75,7 +68,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA", "CT", "HA", "EX"},
-			expectLength: 0,
 		},
 		{
 			name:         "tags test=ok",
@@ -83,7 +75,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA"},
-			expectLength: 0,
 		},
 		{
 			name:         "tags foo present",
@@ -91,7 +82,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA"},
-			expectLength: 0,
 		},
 		{
 			name:         "url type",
@@ -99,7 +89,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA~rt", "CT~rt"},
-			expectLength: 0,
 		},
 		{
 			name:         "url source",
@@ -107,7 +96,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT"},
-			expectLength: 0,
 		},
 		{
 			name:         "url source and type",
@@ -115,7 +103,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT"},
-			expectLength: 0,
 		},
 		{
 			name:         "url source case insensitive",
@@ -123,7 +110,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT"},
-			expectLength: 0,
 		},
 		{
 			name:         "url source case sensitive",
@@ -131,7 +117,6 @@ func TestFeedRequest(t *testing.T) {
 			format:       "",
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{},
-			expectLength: 0,
 		},
 		// spatial
 		{
@@ -139,21 +124,18 @@ func TestFeedRequest(t *testing.T) {
 			h:            FeedRequest{Lon: -122.407974, Lat: 37.784471, Radius: 100},
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA"},
-			expectLength: 0,
 		},
 		{
 			name:         "lat,lon,radius 2000m",
 			h:            FeedRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000},
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"CT", "BA"},
-			expectLength: 0,
 		},
 		{
 			name:         "bbox",
 			h:            FeedRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -122.2698781543005, MinLat: 37.80700393130445, MaxLon: -122.2677640139239, MaxLat: 37.8088734037938}}},
 			selector:     "feeds.#.onestop_id",
 			expectSelect: []string{"BA"},
-			expectLength: 0,
 		},
 	}
 	for _, tc := range testcases {

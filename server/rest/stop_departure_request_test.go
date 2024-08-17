@@ -28,7 +28,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.#.departure_time",
 			expectSelect: []string{"10:02:00", "10:02:00", "10:05:00", "10:09:00", "10:12:00"},
-			expectLength: 0,
 		},
 		{
 			name:         "departure 10:00:00 to 10:10:00",
@@ -36,7 +35,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.#.departure_time",
 			expectSelect: []string{"10:02:00", "10:02:00", "10:05:00", "10:09:00"},
-			expectLength: 0,
 		},
 		{
 			name:         "include_geometry=true",
@@ -44,7 +42,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.0.trip.shape.geometry.type",
 			expectSelect: []string{"LineString"},
-			expectLength: 0,
 		},
 		{
 			name:         "include_geometry=false",
@@ -52,7 +49,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.0.trip.shape.geometry.type",
 			expectSelect: []string{},
-			expectLength: 0,
 		},
 		{
 			name: "next=4 hours",
@@ -140,7 +136,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.#.date",
 			expectSelect: []string{"2018-05-31", "2018-05-31", "2018-05-31", "2018-05-31"},
-			expectLength: 0,
 		},
 		{
 			name:         "relative_date=next wednesday",
@@ -148,7 +143,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.#.date",
 			expectSelect: []string{"2018-06-06", "2018-06-06", "2018-06-06", "2018-06-06"},
-			expectLength: 0,
 		},
 		{
 			name:         "use_service_window=true",
@@ -156,7 +150,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.#.service_date",
 			expectSelect: []string{"2018-06-04", "2018-06-04", "2018-06-04", "2018-06-04"},
-			expectLength: 0,
 		},
 		{
 			name:         "use_service_window=false",
@@ -164,7 +157,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.#.service_date",
 			expectSelect: []string{},
-			expectLength: 0,
 		},
 		{
 			name:         "use_service_window=false good date",
@@ -172,7 +164,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.#.service_date",
 			expectSelect: []string{"2018-06-04", "2018-06-04", "2018-06-04", "2018-06-04"},
-			expectLength: 0,
 		},
 		{
 			name:         "selects best service window date",
@@ -180,7 +171,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.departures.#.service_date",
 			expectSelect: []string{"2018-06-04", "2018-06-04", "2018-06-04", "2018-06-04"},
-			expectLength: 0,
 		},
 		{
 			name:         "no pagination",
@@ -188,7 +178,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "meta.next",
 			expectSelect: []string{},
-			expectLength: 0,
 		},
 		{
 			name:         "requires valid stop key",
@@ -196,7 +185,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.onestop_id",
 			expectSelect: []string{},
-			expectLength: 0,
 		},
 		{
 			name:         "requires valid stop key 2",
@@ -204,7 +192,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.onestop_id",
 			expectSelect: []string{},
-			expectLength: 0,
 		},
 		{
 			name:         "feed_key",
@@ -212,7 +199,6 @@ func TestStopDepartureRequest(t *testing.T) {
 			format:       "",
 			selector:     "stops.0.stop_id",
 			expectSelect: []string{"FTVL"},
-			expectLength: 0,
 		},
 		//
 		{

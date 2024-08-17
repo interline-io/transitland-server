@@ -33,14 +33,12 @@ func TestStopRequest(t *testing.T) {
 			h:            StopRequest{OnestopID: osid},
 			selector:     "stops.#.onestop_id",
 			expectSelect: []string{osid},
-			expectLength: 0,
 		}, // default
 		{
 			name:         "stop_id",
 			h:            StopRequest{StopID: "70011"},
 			selector:     "stops.#.stop_id",
 			expectSelect: []string{"70011"},
-			expectLength: 0,
 		}, // default
 		{
 			name:         "limit:1",
@@ -68,14 +66,12 @@ func TestStopRequest(t *testing.T) {
 			h:            StopRequest{FeedOnestopID: "BA", WithCursor: WithCursor{Limit: 100}},
 			selector:     "stops.#.stop_id",
 			expectSelect: bartstops,
-			expectLength: 0,
 		},
 		{
 			name:         "feed_onestop_id,stop_id",
 			h:            StopRequest{FeedOnestopID: "BA", StopID: "12TH"},
 			selector:     "stops.#.stop_id",
 			expectSelect: []string{"12TH"},
-			expectLength: 0,
 		},
 		{
 			name:         "feed_version_sha1",
@@ -99,7 +95,6 @@ func TestStopRequest(t *testing.T) {
 			h:            StopRequest{ServedByOnestopIds: "o-9q9-bayarearapidtransit", WithCursor: WithCursor{Limit: 100}},
 			selector:     "stops.#.stop_id",
 			expectSelect: bartstops,
-			expectLength: 0,
 		},
 		{
 			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit,o-9q9-caltrain",
@@ -137,42 +132,36 @@ func TestStopRequest(t *testing.T) {
 			h:            StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 10},
 			selector:     "stops.#.stop_id",
 			expectSelect: []string{"POWL"},
-			expectLength: 0,
 		},
 		{
 			name:         "lat,lon,radius 2000m",
 			h:            StopRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000},
 			selector:     "stops.#.stop_id",
 			expectSelect: []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"},
-			expectLength: 0,
 		},
 		{
 			name:         "bbox",
 			h:            StopRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -122.2698781543005, MinLat: 37.80700393130445, MaxLon: -122.2677640139239, MaxLat: 37.8088734037938}}},
 			selector:     "stops.#.stop_id",
 			expectSelect: []string{"19TH", "19TH_N"},
-			expectLength: 0,
 		},
 		{
 			name:         "search",
 			h:            StopRequest{Search: "macarthur"},
 			selector:     "stops.#.stop_id",
 			expectSelect: []string{"MCAR", "MCAR_S"},
-			expectLength: 0,
 		}, // default
 		{
 			name:         "feed:stop_id",
 			h:            StopRequest{StopKey: "BA:FTVL"},
 			selector:     "stops.#.stop_id",
 			expectSelect: []string{"FTVL"},
-			expectLength: 0,
 		},
 		{
 			name:         "place",
 			h:            StopRequest{StopKey: "BA:FTVL"},
 			selector:     "stops.#.place.adm1_name",
 			expectSelect: []string{"California"},
-			expectLength: 0,
 		},
 	}
 	for _, tc := range testcases {
@@ -188,7 +177,6 @@ func TestStopRequest_AdminCache(t *testing.T) {
 		h:            StopRequest{StopKey: "BA:FTVL"},
 		selector:     "stops.#.place.adm1_name",
 		expectSelect: []string{"California"},
-		expectLength: 0,
 	}
 	type canLoadAdmins interface {
 		LoadAdmins() error
@@ -263,14 +251,12 @@ func TestStopRequest_Pagination(t *testing.T) {
 			h:            StopRequest{WithCursor: WithCursor{Limit: 10}},
 			selector:     "stops.#.stop_id",
 			expectSelect: allIds[:10],
-			expectLength: 0,
 		},
 		{
 			name:         "pagination after 10",
 			h:            StopRequest{WithCursor: WithCursor{Limit: 10, After: allEnts[10].ID}},
 			selector:     "stops.#.stop_id",
 			expectSelect: allIds[11:21],
-			expectLength: 0,
 		},
 	}
 	for _, tc := range testcases {
