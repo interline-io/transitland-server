@@ -5,8 +5,9 @@
 ## Table of Contents <!-- omit in toc -->
 <!-- to update use https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one -->
 - [Installation](#installation)
-- [Usage as a Web Service](#usage-as-a-web-service)
-  - [`server` command](#server-command)
+- [Usage](#usage)
+- [Usage as a web service](#usage-as-a-web-service)
+- [Development](#development)
 - [Licenses](#licenses)
 
 
@@ -14,29 +15,60 @@
 
 `cd cmd/tlserver && go install .`
 
+## Usage
 
-## Usage as a Web Service
+The resulting [`tlserver`](doc/cli/tlserver.md) binary includes several core commands from `transitland-lib` and adds the `server` command.
 
-### `server` command
+The main subcommands are:
+* [tlserver server](docs/cli/tlserver_server.md)	 - Run transitland server
+* [tlserver version](tlserver_version.md)	 - Program version and supported GTFS and GTFS-RT versions
+* [tlserver fetch](docs/cli/tlserver_fetch.md)	 - Fetch GTFS data and create feed versions
+* [tlserver import](docs/cli/tlserver_import.md)	 - Import feed versions
+* [tlserver sync](docs/cli/tlserver_sync.md)	 - Sync DMFR files to database
+* [tlserver unimport](docs/cli/tlserver_unimport.md)	 - Unimport feed versions
+* [tlserver rebuild-stats](docs/cli/tlserver_rebuild-stats.md)	 - Rebuild statistics for feeds or specific feed versions
 
-To start the server with the REST API endpoints, GraphQL API endpoint, GraphQL explorer UI, image generation endpoints, and without authentication (all requests run as admin):
+## Usage as a web service
+
+To start the server with the REST API endpoints, GraphQL API endpoint, GraphQL explorer UI, and image generation endpoints:
 
 ```
-tlserver server --playground --auth=admin --dburl=postgres://localhost/transitland_db?sslmode=disable
+tlserver server --dburl "postgres://your_host/your_database"
 ```
 
-The above command assumes you have a Postgres database named "transitland_db" running on your machine under the default Postgres port. Alternatively set the database URL using the `TL_DATABASE_URL` environment variable.
+Alternatively, the database connection string can be specified using `TL_DATABASE_URL` environment variable. For local development environments, you will usually need to add `?sslmode=disable` to the connection string.
 
-Open `http://localhost:8080/` in your web browser or query it using an HTTP client.
+Open http://localhost:8080/ in your web browser to see the GraphQL browser, or use the endpoints at `/query` or `/rest/...`
 
-To start stripped down, with only REST API endpoints (no GraphQL API or explorer UI, no static image API endpoints) and with JWT authentication:
+The "example" server instance configured by the  `tlserver` command runs without authentication or authorization. Auth configuration is beyond the scope of this example command but can be added by configuring the server in your own package and adding HTTP middlewares to set user context and permissions data. You can use `cmd/tlserver/main.go` as an example to get started; it uses only public APIs from this package. (Earlier versions of `tlserver` included more built-in auth middlewares, but in our experience these are almost always custom per-installation, and were removed from this repo.) Additionally, this example server configuration exposes Go profiler endpoints on `/debug/pprof/...`. 
 
-```
-tlserver server --disable-image --disable-graphql --auth=jwt --jwt-audience="http://example.com" --jwt-issuer="<issuer_id>" --jwt-public-key-file="<key.pem>"
-```
+## Development
 
-Note that if you are using JWT authentication, place the process behind a reverse-proxy or gateway that can issue JWT tokens. At Interline, we use the combination of [Kong](https://docs.konghq.com/) and [Auth0](https://auth0.com/).
+1. Install `go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
+2. On macOS, you will need the GNU timeout command: `brew install coreutils`
+3. You will also need GDAL tools for importing reference data sets: `apt-get install gdal-bin`, or `brew install gdal-bin`, etc.
+4. Check out `github.com/interline-io/transitland-lib` which contains the necessary schema and migrations.
+5. Set `TL_TEST_SERVER_DATABASE_URL` to the connection string to a test database
+   - e.g. `postgresql://localhost:5432/tlv2_test_server?sslmode=disable`
+   - You must also set `PGHOST=localhost`, `PGDATABASE=tlv2_test_server`, etc., to match this url
+   - This requirement may be removed in the future
+1. Initialize test database schema: `transitland-lib/internal/schema/postgres/bootstrap.sh`
+   - This will create the `tlv2_test_server` database in postgres
+   - Will halt with an error (intentionally) if this database already exists
+   - Runs golang-migrate on the migrations in `transitland-lib/internal/schema/postgres/migrations`
+   - Unpacks and imports the Natural Earth datasets bundled with `transitland-lib`
+2. Initialize test fixtures: `./testdata/test_setup.sh`
+   - Builds and installs the `cmd/tlserver` command
+   - Sets up test feeds contained in `testdata/server/server-test.dmfr.json`
+   - Fetches and imports feeds contained in `testdata/external`
+   - Creates additional fixtures defined in `testdata/test_supplement.pgsql`
+   - Note that temporary files will be created in `testdata/tmp`; these are excluded in `.gitignore`
+3. Optional: Set `TL_TEST_REDIS_URL` to run some GBFS tests
+4. Optional: Set `TL_TEST_FGA_ENDPOINT` to a running [OpenFGA](https://github.com/openfga/openfga) server to run authorization tests
+5. Run all tests with `go test -v ./...`
 
+Test cases generally run within transactions; you do not need to regenerate the fixtures unless you are testing migrations or changes to data import functionality.
+  
 ## Licenses
 
 `transitland-server` is released under a "dual license" model:
