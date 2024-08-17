@@ -2,6 +2,8 @@ package rest
 
 import (
 	"testing"
+
+	"github.com/interline-io/transitland-server/model"
 )
 
 func TestOperatorRequest(t *testing.T) {
@@ -48,8 +50,6 @@ func TestOperatorRequest(t *testing.T) {
 			expectSelect: []string{"o-9q9-caltrain"},
 			expectLength: 0,
 		},
-		// {"lat,lon,radius 10m", OperatorRequest{Lon: -122.407974, Lat: 37.784471, Radius: 10}, "", "operators.#.onestop_id", []string{"BART"}, 0},
-		// {"lat,lon,radius 2000m", OperatorRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000}, "", "operators.#.onestop_id", []string{"caltrain-ca-us", "BART"}, 0},
 		{
 			name:         "adm0name",
 			h:            OperatorRequest{Adm0Name: "united states of america"},
@@ -105,6 +105,49 @@ func TestOperatorRequest(t *testing.T) {
 			selector:     "operators.#.onestop_id",
 			expectSelect: []string{},
 			expectLength: 0,
+		},
+		{
+			name:         "lat,lon,radius 10m",
+			h:            OperatorRequest{Lon: -122.407974, Lat: 37.784471, Radius: 10},
+			selector:     "operators.#.onestop_id",
+			expectSelect: []string{"o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "lat,lon,radius 2000m",
+			h:            OperatorRequest{Lon: -122.407974, Lat: 37.784471, Radius: 2000},
+			selector:     "operators.#.onestop_id",
+			expectSelect: []string{"o-9q9-caltrain", "o-9q9-bayarearapidtransit"},
+		},
+		{
+			name:         "lat,lon,radius florida",
+			h:            OperatorRequest{Lon: -82.45857, Lat: 27.94798, Radius: 1000},
+			selector:     "operators.#.onestop_id",
+			expectSelect: []string{"o-dhv-hillsborougharearegionaltransit"},
+		},
+		{
+			name:         "lat,lon,radius new york empty",
+			h:            OperatorRequest{Lon: -74.00681230709345, Lat: 40.71335722414244, Radius: 1000},
+			selector:     "operators.#.onestop_id",
+			expectSelect: []string{},
+		},
+		{
+			name:         "bbox",
+			h:            OperatorRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -122.2698781543005, MinLat: 37.80700393130445, MaxLon: -122.2677640139239, MaxLat: 37.8088734037938}}},
+			selector:     "operators.#.onestop_id",
+			expectSelect: []string{"o-9q9-bayarearapidtransit"},
+			expectLength: 0,
+		},
+		{
+			name:         "bbox larger",
+			h:            OperatorRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -122.774406, MinLat: 37.541086, MaxLon: -121.895500, MaxLat: 37.966172}}},
+			selector:     "operators.#.onestop_id",
+			expectSelect: []string{"o-9q9-caltrain", "o-9q9-bayarearapidtransit"},
+			expectLength: 0,
+		},
+		{
+			name:        "bbox too large",
+			h:           OperatorRequest{Bbox: &restBbox{model.BoundingBox{MinLon: -148.664396, MinLat: 4.999277, MaxLon: -36.164396, MaxLat: 59.173810}}},
+			expectError: true,
 		},
 	}
 	for _, tc := range testcases {
