@@ -72,14 +72,12 @@ func TestTripRequest(t *testing.T) {
 			h:            TripRequest{TripID: "5132248WKDY"},
 			selector:     "trips.#.trip_id",
 			expectSelect: []string{"5132248WKDY"},
-			expectLength: 0,
 		},
 		{
 			name:         "trip_id,feed_version_id",
 			h:            TripRequest{TripID: "5132248WKDY", FeedVersionSHA1: fv},
 			selector:     "trips.#.trip_id",
 			expectSelect: []string{"5132248WKDY"},
-			expectLength: 0,
 		},
 		{
 			name:         "route_id",
@@ -93,7 +91,6 @@ func TestTripRequest(t *testing.T) {
 			h:            TripRequest{WithCursor: WithCursor{Limit: 1000}, RouteID: routeId, ServiceDate: "2018-01-01"},
 			selector:     "trips.#.trip_id",
 			expectSelect: nil,
-			expectLength: 0,
 		},
 		{
 			name:         "route_id,service_date 2",
@@ -114,35 +111,30 @@ func TestTripRequest(t *testing.T) {
 			h:            TripRequest{WithCursor: WithCursor{Limit: 1000}, RouteID: routeId, ServiceDate: "2020-05-18"},
 			selector:     "trips.#.trip_id",
 			expectSelect: nil,
-			expectLength: 0,
 		},
 		{
 			name:         "route_id,trip_id",
 			h:            TripRequest{WithCursor: WithCursor{Limit: 1000}, RouteID: routeId, TripID: "5132248WKDY"},
 			selector:     "trips.#.trip_id",
 			expectSelect: []string{"5132248WKDY"},
-			expectLength: 0,
 		},
 		{
 			name:         "include_geometry=true",
 			h:            TripRequest{TripID: "5132248WKDY", IncludeGeometry: true},
 			selector:     "trips.0.shape.geometry.type",
 			expectSelect: []string{"LineString"},
-			expectLength: 0,
 		},
 		{
 			name:         "include_geometry=false",
 			h:            TripRequest{TripID: "5132248WKDY", IncludeGeometry: false},
 			selector:     "trips.0.shape.geometry.type",
 			expectSelect: []string{},
-			expectLength: 0,
 		},
 		{
 			name:         "does not include stop_times without id",
 			h:            TripRequest{TripID: "5132248WKDY"},
 			selector:     "trips.0.stop_times.#.stop_sequence",
 			expectSelect: nil,
-			expectLength: 0,
 		},
 		{
 			name:         "id includes stop_times",
