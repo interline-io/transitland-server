@@ -17,11 +17,11 @@
 
 ## Usage
 
-The resulting [`tlserver`](docs/cli/tlserver.md) binary includes several core commands from `transitland-lib` and adds the `server` command.
+The resulting [`tlserver`](doc/cli/tlserver.md) binary includes several core commands from `transitland-lib` and adds the `server` command.
 
 The main subcommands are:
 * [tlserver server](docs/cli/tlserver_server.md)	 - Run transitland server
-* [tlserver server](tlserver_server.md)	 - Run transitland server
+* [tlserver server](docs/cli/tlserver_server.md)	 - Run transitland server
 * [tlserver fetch](docs/cli/tlserver_fetch.md)	 - Fetch GTFS data and create feed versions
 * [tlserver import](docs/cli/tlserver_import.md)	 - Import feed versions
 * [tlserver sync](docs/cli/tlserver_sync.md)	 - Sync DMFR files to database
