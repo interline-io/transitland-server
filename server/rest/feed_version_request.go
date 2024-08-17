@@ -8,7 +8,7 @@ import (
 //go:embed feed_version_request.gql
 var feedVersionQuery string
 
-// FeedVersionRequest holds options for a Route request
+// FeedVersionRequest holds options for a Feed Version request
 type FeedVersionRequest struct {
 	FeedVersionKey  string    `json:"feed_version_key"`
 	FeedKey         string    `json:"feed_key"`

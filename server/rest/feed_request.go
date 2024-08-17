@@ -9,7 +9,7 @@ import (
 //go:embed feed_request.gql
 var feedQuery string
 
-// FeedRequest holds options for a Route request
+// FeedRequest holds options for a Feed request
 type FeedRequest struct {
 	FeedKey          string    `json:"feed_key"`
 	ID               int       `json:"id,string"`
