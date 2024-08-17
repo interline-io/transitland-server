@@ -17,7 +17,7 @@
 
 ## Usage
 
-The resulting [`tlserver`](doc/cli/tlserver.md) binary includes several core commands from `transitland-lib` and adds the `server` command.
+The resulting [`tlserver`](docs/cli/tlserver.md) binary includes several core commands from `transitland-lib` and adds the `server` command.
 
 The main subcommands are:
 * [tlserver server](docs/cli/tlserver_server.md)	 - Run transitland server
