@@ -48,19 +48,25 @@ The server instance configured by the  `tlserver` command runs without authentic
 2. On macOS, you will need the GNU timeout command: `brew install coreutils`
 3. You will also need GDAL tools for importing reference data sets: `apt-get install gdal-bin`, or `brew install gdal-bin`, etc.
 4. Check out `github.com/interline-io/transitland-lib` which contains the necessary schema and migrations.
-5. Initialize test database schema: `transitland-lib/internal/schema/postgres/bootstrap.sh tlv2_test_server`
+5. Set `TL_TEST_SERVER_DATABASE_URL` to the connection string to a test database
+   - e.g. `postgresql://localhost:5432/tlv2_test_server?sslmode=disable`
+   - You must also set `PGHOST=localhost`, `PGDATABASE=tlv2_test_server
+   - `, etc., to match this url
+   - This requirement may be removed in the future
+6. Initialize test database schema: `transitland-lib/internal/schema/postgres/bootstrap.sh`
    - This will create the `tlv2_test_server` database in postgres
    - Will halt with an error (intentionally) if this database already exists
    - Runs golang-migrate on the migrations in `transitland-lib/internal/schema/postgres/migrations`
    - Unpacks and imports the Natural Earth datasets bundled with `transitland-lib`
-6. Initialize test fixtures: `./testdata/test_setup.sh`
+7. Initialize test fixtures: `./testdata/test_setup.sh`
    - Builds and installs the `cmd/tlserver` command
    - Sets up test feeds contained in `testdata/server/server-test.dmfr.json`
    - Fetches and imports feeds contained in `testdata/external`
    - Creates additional fixtures defined in `testdata/test_supplement.pgsql`
    - Note that temporary files will be created in `testdata/tmp`; these are excluded in `.gitignore`
-7. Set `TL_TEST_SERVER_DATABASE_URL` to the connection string for the database initialized above 
-8. Run all tests with `go test -v ./...`
+8. Optional: Set `TL_TEST_REDIS_URL` to run some GBFS tests
+9. Optional: Set `TL_TEST_FGA_ENDPOINT` to a running [OpenFGA](https://github.com/openfga/openfga) server to run authorization tests
+10. Run all tests with `go test -v ./...`
 
 Test cases generally run within transactions; you do not need to regenerate the fixtures unless you are testing migrations or changes to data import functionality.
   
