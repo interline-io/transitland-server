@@ -21,7 +21,7 @@ The resulting [`tlserver`](doc/cli/tlserver.md) binary includes several core com
 
 The main subcommands are:
 * [tlserver server](docs/cli/tlserver_server.md)	 - Run transitland server
-* [tlserver server](docs/cli/tlserver_server.md)	 - Run transitland server
+* [tlserver version](tlserver_version.md)	 - Program version and supported GTFS and GTFS-RT versions
 * [tlserver fetch](docs/cli/tlserver_fetch.md)	 - Fetch GTFS data and create feed versions
 * [tlserver import](docs/cli/tlserver_import.md)	 - Import feed versions
 * [tlserver sync](docs/cli/tlserver_sync.md)	 - Sync DMFR files to database
@@ -38,9 +38,9 @@ tlserver server --dburl "postgres://your_host/your_database"
 
 Alternatively, the database connection string can be specified using `TL_DATABASE_URL` environment variable. For local development environments, you will usually need to add `?sslmode=disable` to the connection string.
 
-Open http://localhost:8080/ in your web browser to see the GraphQL broaser, or use the endpoints at `/query` or `/rest/...`
+Open http://localhost:8080/ in your web browser to see the GraphQL browser, or use the endpoints at `/query` or `/rest/...`
 
-The server instance configured by the  `tlserver` command runs without authentication or authorization. This configuration is beyond the scope of the "example" command defined in `cmd/tlserver`, and can be added by creating a new executable in your own package and adding various HTTP middlewares to set user context and permissions data.
+The "example" server instance configured by the  `tlserver` command runs without authentication or authorization. Auth configuration is beyond the scope of this example command but can be added by configuring the server in your own package and adding HTTP middlewares to set user context and permissions data. You can use `cmd/tlserver/main.go` as an example to get started; it uses only public APIs from this package. (Earlier versions of `tlserver` included more built-in auth middlewares, but in our experience these are almost always custom per-installation, and were removed from this repo.)
 
 ## Development
 
@@ -50,23 +50,22 @@ The server instance configured by the  `tlserver` command runs without authentic
 4. Check out `github.com/interline-io/transitland-lib` which contains the necessary schema and migrations.
 5. Set `TL_TEST_SERVER_DATABASE_URL` to the connection string to a test database
    - e.g. `postgresql://localhost:5432/tlv2_test_server?sslmode=disable`
-   - You must also set `PGHOST=localhost`, `PGDATABASE=tlv2_test_server
-   - `, etc., to match this url
+   - You must also set `PGHOST=localhost`, `PGDATABASE=tlv2_test_server`, etc., to match this url
    - This requirement may be removed in the future
-6. Initialize test database schema: `transitland-lib/internal/schema/postgres/bootstrap.sh`
+1. Initialize test database schema: `transitland-lib/internal/schema/postgres/bootstrap.sh`
    - This will create the `tlv2_test_server` database in postgres
    - Will halt with an error (intentionally) if this database already exists
    - Runs golang-migrate on the migrations in `transitland-lib/internal/schema/postgres/migrations`
    - Unpacks and imports the Natural Earth datasets bundled with `transitland-lib`
-7. Initialize test fixtures: `./testdata/test_setup.sh`
+2. Initialize test fixtures: `./testdata/test_setup.sh`
    - Builds and installs the `cmd/tlserver` command
    - Sets up test feeds contained in `testdata/server/server-test.dmfr.json`
    - Fetches and imports feeds contained in `testdata/external`
    - Creates additional fixtures defined in `testdata/test_supplement.pgsql`
    - Note that temporary files will be created in `testdata/tmp`; these are excluded in `.gitignore`
-8. Optional: Set `TL_TEST_REDIS_URL` to run some GBFS tests
-9. Optional: Set `TL_TEST_FGA_ENDPOINT` to a running [OpenFGA](https://github.com/openfga/openfga) server to run authorization tests
-10. Run all tests with `go test -v ./...`
+3. Optional: Set `TL_TEST_REDIS_URL` to run some GBFS tests
+4. Optional: Set `TL_TEST_FGA_ENDPOINT` to a running [OpenFGA](https://github.com/openfga/openfga) server to run authorization tests
+5. Run all tests with `go test -v ./...`
 
 Test cases generally run within transactions; you do not need to regenerate the fixtures unless you are testing migrations or changes to data import functionality.
   
