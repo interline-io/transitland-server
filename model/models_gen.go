@@ -72,9 +72,9 @@ type AgencyPlaceFilter struct {
 type Alert struct {
 	// GTFS-RT Alert active alert period. See https://gtfs.org/realtime/reference/#message-timerange
 	ActivePeriod []*RTTimeRange `json:"active_period,omitempty"`
-	// GTFS-RT Alert cause. See https://gtfs.org/realtime/reference/#enum-cause
+	// GTFS-RT Alert [cause](https://gtfs.org/realtime/reference/#enum-cause)
 	Cause *string `json:"cause,omitempty"`
-	// GTFS-RT Alert effect. See https://gtfs.org/realtime/reference/#enum-effect
+	// GTFS-RT Alert [effect](https://gtfs.org/realtime/reference/#enum-effect)
 	Effect *string `json:"effect,omitempty"`
 	// GTFS-RT Alert header text
 	HeaderText []*RTTranslation `json:"header_text"`
@@ -1572,8 +1572,8 @@ func (e RelativeDate) MarshalGQL(w io.Writer) {
 // This enum combines possible values from both schedule relationship types, plus an additional STATIC value.
 //
 // See:
-// - https://gtfs.org/realtime/reference/#enum-schedulerelationship
-// - https://gtfs.org/realtime/reference/#enum-schedulerelationship-1
+// - [ScheduleRelationship](https://gtfs.org/realtime/reference/#enum-schedulerelationship)
+// - [ScheduleRelationship](https://gtfs.org/realtime/reference/#enum-schedulerelationship-1)
 type ScheduleRelationship string
 
 const (

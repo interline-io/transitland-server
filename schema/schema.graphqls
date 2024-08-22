@@ -1094,8 +1094,8 @@ type CensusTable {
 This enum combines possible values from both schedule relationship types, plus an additional STATIC value. 
 
 See:
-- https://gtfs.org/realtime/reference/#enum-schedulerelationship
-- https://gtfs.org/realtime/reference/#enum-schedulerelationship-1
+- [ScheduleRelationship](https://gtfs.org/realtime/reference/#enum-schedulerelationship)
+- [ScheduleRelationship](https://gtfs.org/realtime/reference/#enum-schedulerelationship-1)
 """
 enum ScheduleRelationship {
   SCHEDULED
@@ -1176,9 +1176,9 @@ type VehiclePosition {
 type Alert {
   "GTFS-RT Alert active alert period. See https://gtfs.org/realtime/reference/#message-timerange"
   active_period: [RTTimeRange!]
-  "GTFS-RT Alert cause. See https://gtfs.org/realtime/reference/#enum-cause"
+  "GTFS-RT Alert [cause](https://gtfs.org/realtime/reference/#enum-cause)"
   cause: String
-  "GTFS-RT Alert effect. See https://gtfs.org/realtime/reference/#enum-effect"
+  "GTFS-RT Alert [effect](https://gtfs.org/realtime/reference/#enum-effect)"
   effect: String
   "GTFS-RT Alert header text"
   header_text: [RTTranslation!]!
