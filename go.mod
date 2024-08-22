@@ -1,6 +1,6 @@
 module github.com/interline-io/transitland-server
 
-go 1.21.5
+go 1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.42
@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/location v1.22.1
 	github.com/flopp/go-staticmaps v0.0.0-20220221183018-c226716bec53
+	github.com/getkin/kin-openapi v0.127.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/go-redis/redis/v8 v8.11.5
@@ -72,7 +73,6 @@ require (
 	github.com/flopp/go-coordsparser v0.0.0-20201115094714-8baaeb7062d5 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
-	github.com/getkin/kin-openapi v0.127.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/golang-jwt/jwt v3.2.1+incompatible // indirect
@@ -89,7 +89,6 @@ require (
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
@@ -104,7 +103,6 @@ require (
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pkg/browser v0.0.0-20210115035449-ce105d075bb4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/snabb/isoweek v1.0.1 // indirect
 	github.com/sosodev/duration v1.2.0 // indirect
