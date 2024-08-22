@@ -1,18 +1,48 @@
 # Scalar types
+
+"""Counts of entities by filename"""
 scalar Counts
+
+"""String key/value pairs"""
 scalar Tags
+
+"""GeoJSON style geometry"""
 scalar Geometry
+
+"""Date with time, in UTC"""
 scalar Time
+
+"""Date"""
 scalar Date
+
+"""Geographic point (longitude,latitude)"""
 scalar Point
+
+"""Geographic points comprising a line"""
 scalar LineString
-scalar Seconds
+
+"""Geographic polygon"""
 scalar Polygon
+
+"""Local time since midnight, in HH:MM:SS. May also be input as integer seconds."""
+scalar Seconds
+
+"""Map with arbitrary keys and values"""
 scalar Map
+
+"""Any value"""
 scalar Any
+
+"""File upload"""
 scalar Upload
+
+"""Entity key"""
 scalar Key
+
+"""Boolean (true, false, null)"""
 scalar Bool
+
+"""Array of strings"""
 scalar Strings
 
 # Force resolver
@@ -1327,48 +1357,6 @@ type ValidationReportError {
   entity_json: Map!
 }
 
-"""Result of a feed fetch operation"""
-type FeedVersionFetchResult {
-  "Details of fetched feed version, if successful"
-  feed_version: FeedVersion
-  "Exception log if fetch failed"
-  fetch_error: String
-  "Set if the fetched feed version is already present in the database with the same directory contents"
-  found_sha1: Boolean!
-  "Set if the fetched feed version is already present in the database with the same SHA1 hash"
-  found_dir_sha1: Boolean!
-}
-
-"""Result of feed version import operation"""
-type FeedVersionImportResult {
-  "Did the import succeed"
-  success: Boolean!
-}
-
-"""Result of feed version unimport operation"""
-type FeedVersionUnimportResult {
-  "Did the unimport succeed"
-  success: Boolean!
-}
-
-"""Result of feed version delete operation"""
-type FeedVersionDeleteResult {
-  "Did the delete succeed"
-  success: Boolean!
-}
-
-
-# Update inputs
-
-input FeedVersionSetInput {
-  "Entity ID to update"
-  id: Int
-  "Set entity name to this value"
-  name: String
-  "Set entity description to this value"
-  description: String
-}
-
 # Query filters
 
 """Search options for operators"""
@@ -1482,7 +1470,7 @@ input FeedFilter {
   tags: Tags
   "Search for feeds by their source URLs"
   source_url: FeedSourceUrl
-  "Search for feeds with the these license details"
+  "Search for feeds with these license details"
   license: LicenseFilter
   "Search for feeds within this bounding box"
   bbox: BoundingBox
@@ -1572,115 +1560,200 @@ input AgencyFilter {
   adm0_iso: String
   "Search for agencies by state/province/division ISO 3166-2 code (provided by Natural Earth)"
   adm1_iso: String
-  "Search for agencies with the these license details"
+  "Search for agencies with these license details"
   license: LicenseFilter
 }
 
+"""Search options for routes"""
 input RouteFilter {
+  "Search for routes with this OnestopID"
   onestop_id: String
+  "Search for routes with these OnestopIDs"
   onestop_ids: [String!]
+  "Include previously used OnestopIDs that match the same (feed,route_id)"
   allow_previous_onestop_ids: Boolean
+  "Search for routes with this feed version SHA1 hash"
   feed_version_sha1: String
+  "Search for routes with this feed OnestopID"
   feed_onestop_id: String
+  "Search for routes with this GTFS route_id"
   route_id: String
+  "Search for routes with this GTFS route_type"
   route_type: Int
+  "Search for routes with 1 or more trips (true) or 0 or more trips (false or null)"
   serviced: Boolean
+  "Search for routes within this bounding box"
   bbox: BoundingBox
+  "Search for routes within this geographic polygon"
   within: Polygon
+  "Search for routes within specified radius of a point"
   near: PointRadius
+  "Full text search"
   search: String
+  "Search for routes operated by operators with this OnestopID"
   operator_onestop_id: String
+  "Search for routes with these license details"
   license: LicenseFilter
-  agency_ids: [Int!] # keep?
+  "Search for routes with these agency integer IDs. Deprecated."
+  agency_ids: [Int!] 
 }
 
+"""Search options for stops"""
 input StopFilter {
+  "Search for stops with this OnestopID"
   onestop_id: String
+  "Search for stops with these OnestopIDs"
   onestop_ids: [String!]
+  "Include previous used OnestopIDs that match the same (feed,stop_id)"
   allow_previous_onestop_ids: Boolean
+  "Search for stops with this feed version SHA1 hash"
   feed_version_sha1: String
+  "Search for stops with this feed OnestopID"
   feed_onestop_id: String
+  "Search for stops with this GTFS stop_id"
   stop_id: String
+  "Search for stops with this GTFS stop_code"
   stop_code: String
+  "Search for stops with this GTFS location_type"
   location_type: Int
+  "Search for stops with 1 or more trips (true) or 0 or more trips (false or null)"
   serviced: Boolean
+  "Search for stops within this bounding box"
   bbox: BoundingBox
+  "Search for stops within this geographic polygon"
   within: Polygon
+  "Search for stops within specified radius of a point"
   near: PointRadius
+  "Full text search"
   search: String
+  "Search for stops with these license details"
   license: LicenseFilter
+  "Search for stops with service by routes or operators with these OnestopIDs"
   served_by_onestop_ids: [String!]
+  "Search for stopswith service by routes with the specified GTFS route_type"
   served_by_route_type: Int
-  agency_ids: [Int!] # keep?
+  "Search for stops with these agency integer IDs. Deprecated."
+  agency_ids: [Int!]
 }
 
+"""Search options for stop times, optionally on a given date"""
 input StopTimeFilter {
+  "Search for trips scheduled on the specified calendar date"
   date: Date
+  "Search for trips scheduled on the specified relative date"
   relative_date: RelativeDate
+  "Search for trips scheduled on the specified GTFS calendar service date"
   service_date: Date
+  "Use the feed version fallback week for dates outside the normal service window for that feed version"
   use_service_window: Boolean
+  "Search for stop times with departure times later than the specified time, in seconds since midnight"
   start_time: Int
+  "Search for stop times with arrival times before the specified time, in seconds since midnight"
   end_time: Int
+  "Search for stop times with departure times later than the specified time, in local time HH:MM:SS"
   start: Seconds
+  "Search for stop times with arrival times before the specified time, in local time HH:MM:SS"
   end: Seconds
+  "Search for stop times with departures within the specified number of seconds (in local time)"
   next: Int
+  "Search for stop times with service by routes with the specified route OnestopIDs"
   route_onestop_ids: [String!] # keep?
+  "Include previously used route OnestopIDs that match the same (feed,route_id)"
   allow_previous_route_onestop_ids: Boolean
+  "Exclude the first stop_time in a trip"
   exclude_first: Boolean
+  "Exclude the last stop_time in a trip"
   exclude_last: Boolean
 }
 
+"""Search options for stop times for a trip with no date specified"""
 input TripStopTimeFilter {
+  "Search for stop times with departure times later than the specified time, in local time HH:MM:SS"
   start: Seconds
+  "Search for stop times with arrival times before the specified time, in local time HH:MM:SS"
   end: Seconds
 }
 
+"""Search options for stop observations"""
 input StopObservationFilter {
+  "Search for stop observations derived from the specified source"
   source: String!
+  "Search for stop observations associated with this feed version integer ID"
   feed_version_id: Int!
+  "Search for stop observations made on this trip start date"
   trip_start_date: Date!
 }
 
+"""Search options for pathways"""
 input PathwayFilter {
+  "Search for pathways with this GTFS pathway_mode"
   pathway_mode: Int
 }
 
+"""Search options for trips"""
 input TripFilter {
+  "Search for trips scheduled on the specified GTFS calendar service date"
   service_date: Date
+  "Search for trips scheduled on the specified relative date"
   relative_date: RelativeDate
+  "Use the feed version fallback week for dates outside the normal service window for that feed version"
   use_service_window: Boolean
+  "Search for trips with this GTFS trip_id"
   trip_id: String
+  "Search for trips with this stop pattern ID"
   stop_pattern_id: Int
+  "Search for trips with these license details"
   license: LicenseFilter
-  route_ids: [Int!] # keep?
+  "Search for trips associated with these route integer IDs. Deprecated."
+  route_ids: [Int!]
+  "Search for trips associated with these route OnestopIDs"
   route_onestop_ids: [String!] # keep?
+  "Search for trips with this feed version SHA1 hash"
   feed_version_sha1: String
+  "Search for trips with this feed OnestopID"
   feed_onestop_id: String
 }
 
+"""Search options for route segments"""
 input SegmentFilter {
+  "Search for segments associated with this layer name"
   layer: String
 }
 
+"""Search options for route segment patterns"""
 input SegmentPatternFilter {
+  "Search for segments patterns associated with this layer name"
   layer: String
 }
 
+"""Search for entities with these license requirements. See feed license documentation."""
 input LicenseFilter {
+  "Search for entities with this Share Alike license restriction"
   share_alike_optional: LicenseValue
+  "Search for entities with this Create Derived Product license restriction"
   create_derived_product: LicenseValue
+  "Search for entities with this Commercial Use Allowed restriction"
   commercial_use_allowed: LicenseValue
+  "Search for entities with this Use Without Attribution restriction"
   use_without_attribution: LicenseValue
+  "Search for entities with this Redistribution Allowed restriction"
   redistribution_allowed: LicenseValue
 }
 
+
+"""Search options for feed version service level summaries"""
 input FeedVersionServiceLevelFilter {
+  "Search for service level summaries starting on or after this date"
   start_date: Date
+  "Search for service level summaries ending on or before this date"
   end_date: Date
 }
 
+"""Search options for feed version date range coverage"""
 input ServiceCoversFilter {
+  "Search for feed versions fetched after this time"
   fetched_after: Time
+  "Search for feed versions fetched before this time"
   fetched_before: Time
   "Search using only feed_info.txt values"
   feed_start_date: Date
@@ -1696,83 +1769,185 @@ input ServiceCoversFilter {
   latest_calendar_date: Date
 }
 
+"""Search options for agency associated places"""
 input AgencyPlaceFilter {
+  "Search for associations with at least this rank value"
   min_rank: Float
 }
 
+"""Search options for associated places"""
 input PlaceFilter {
+  "Search for place associations with at least this rank value"
   min_rank: Float
+  "Search for place associations by country name (provided by Natural Earth)"
   adm0_name: String
+  "Search for place associations by state/province/division name (provided by Natural Earth)"
   adm1_name: String
+  "Search for place associations by city name (provided by Natural Earth)"
   city_name: String
 }
 
+"""Search options for calendar dates"""
 input CalendarDateFilter {
+  "Search for calendar date exceptions on this date"
   date: Date
+  "Search for calendar date exceptions with this GTFS exception_type"
   exception_type: Int
 }
 
+"""Search for entities within specified radius of a point"""
 input PointRadius {
+  "Latitude"
   lat: Float!
+  "Longitude"
   lon: Float!
+  "Radius around specified point"
   radius: Float!
 }
 
+"""Search for entities within a specified bounding box"""
 input BoundingBox {
+  "Minimum longitude"
   min_lon: Float!
+  "Minimum latitude"
   min_lat: Float!
+  "Maximum longitude"
   max_lon: Float!
+  "Maximum latitude"
   max_lat: Float!
 }
 
 # entity mutations
 
+"""Result of a feed fetch operation"""
+type FeedVersionFetchResult {
+  "Details of fetched feed version, if successful"
+  feed_version: FeedVersion
+  "Exception log if fetch failed"
+  fetch_error: String
+  "Set if the fetched feed version is already present in the database with the same directory contents"
+  found_sha1: Boolean!
+  "Set if the fetched feed version is already present in the database with the same SHA1 hash"
+  found_dir_sha1: Boolean!
+}
+
+"""Result of feed version import operation"""
+type FeedVersionImportResult {
+  "Did the import succeed"
+  success: Boolean!
+}
+
+"""Result of feed version unimport operation"""
+type FeedVersionUnimportResult {
+  "Did the unimport succeed"
+  success: Boolean!
+}
+
+"""Result of feed version delete operation"""
+type FeedVersionDeleteResult {
+  "Did the delete succeed"
+  success: Boolean!
+}
+
+
+"""Update a feed version entity"""
+input FeedVersionSetInput {
+  "Entity ID to update"
+  id: Int
+  "Set entity name to this value"
+  name: String
+  "Set entity description to this value"
+  description: String
+}
+
+"""Specify a feed version"""
 input FeedVersionInput {
+  "Feed version integer ID"
   id: Int
 }
 
+"""Update a stop entity"""
 input StopSetInput {
+  "Entity ID to update"
   id: Int
+  "Feed version of entity to update"
   feed_version: FeedVersionInput
+  "Set GTFS location_type to this value"
   location_type: Int
+  "Set GTFS stop_code to this value"
   stop_code: String
+  "Set GTFS stop_desc to this value"
   stop_desc: String
+  "Set GTFS stop_id to this value"
   stop_id: String
+  "Set GTFS stop_name to this value"
   stop_name: String
+  "Set GTFS stop_timezone to this value"
   stop_timezone: String
+  "Set GTFS stop_url to this value"
   stop_url: String
+  "Set GTFS wheelchair_boarding to this value"
   wheelchair_boarding: Int
+  "Set GTFS zone_id to this value"
   zone_id: String
+  "Set GTFS platform_code to this value"
   platform_code: String
+  "Set GTFS tts_stop_name to this value"
   tts_stop_name: String
+  "Set stop geometry to this value"
   geometry: Point
+  "Set stop parent station to this stop"
   parent: StopSetInput
+  "Set stop level to this level"
   level: LevelSetInput
 }
 
+"""Update a level entity"""
 input LevelSetInput {
+  "Entity ID to update"
   id: Int
+  "Feed version of entity to update"
   feed_version: FeedVersionInput
+  "Set GTFS level_id to this value"
   level_id: String
+  "Set GTFS level_name to this value"
   level_name: String
+  "Set GTFS level_index to this value"
   level_index: Float
+  "Set level geometry to this value"
   geometry: Polygon
+  "Set level parent station to this stop"
   parent: StopSetInput
 }
 
+"""Update a pathway entity"""
 input PathwaySetInput {
+  "Entity ID to update"
   id: Int
+  "Feed version of entity to update"
   feed_version: FeedVersionInput
+  "Set GTFS pathway_id to this value"
   pathway_id: String
+  "Set GTFS pathway_mode to this value"
   pathway_mode: Int
+  "Set GTFS is_bidirectional to this value"
   is_bidirectional: Int
+  "Set GTFS length to this value"
   length: Float
+  "Set GTFS traversal_time to this value"
   traversal_time: Int
+  "Set GTFS stair_count to this value"
   stair_count: Int
+  "Set GTFS max_slope to this value"
   max_slope: Float
+  "Set GTFS min_width to this value"
   min_width: Float
+  "Set GTFS signposted_as to this value"
   signposted_as: String
+  "Set GTFS reverse_signposted_as to this value"
   reverse_signposted_as: String
+  "Set pathway origin to this stop"
   from_stop: StopSetInput
+  "Set pathway destination to this stop"
   to_stop: StopSetInput
 }
