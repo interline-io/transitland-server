@@ -28,7 +28,7 @@ fragment alert on Alert {
   }
 }
 
-query stops($limit: Int, $after: Int, $ids: [Int!], $include_alerts: Boolean!, $include_routes: Boolean!, $where: StopFilter) {
+query ($limit: Int, $after: Int, $ids: [Int!], $include_alerts: Boolean!, $include_routes: Boolean!, $where: StopFilter) {
   stops(limit: $limit, ids: $ids, after: $after, where: $where) {
     id
     stop_id
