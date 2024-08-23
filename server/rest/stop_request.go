@@ -31,6 +31,12 @@ type StopRequest struct {
 	WithCursor
 }
 
+func (r StopRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Query: stopQuery,
+	}
+}
+
 // ResponseKey returns the GraphQL response entity key.
 func (r StopRequest) ResponseKey() string { return "stops" }
 
