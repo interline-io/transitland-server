@@ -1,6 +1,6 @@
 module github.com/interline-io/transitland-server
 
-go 1.21.5
+go 1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.42
@@ -26,12 +26,12 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/tidwall/gjson v1.17.0
 	github.com/tidwall/rtree v1.10.0
 	github.com/tidwall/tinylru v1.1.0
 	github.com/twpayne/go-geom v1.5.1
-	github.com/vektah/gqlparser/v2 v2.5.10
+	github.com/vektah/gqlparser/v2 v2.5.16
 	google.golang.org/protobuf v1.33.0
 )
 
@@ -96,7 +96,7 @@ require (
 	github.com/openfga/go-sdk v0.2.3 // indirect
 	github.com/pkg/browser v0.0.0-20210115035449-ce105d075bb4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rogpeppe/go-internal v1.10.0 // indirect
+	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/snabb/isoweek v1.0.1 // indirect
 	github.com/sosodev/duration v1.2.0 // indirect
