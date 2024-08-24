@@ -1,0 +1,74 @@
+package openapi
+
+import "github.com/getkin/kin-openapi/openapi3"
+
+var parameterComponents = openapi3.ParametersMap{
+    {{ range $paramName, $param := .Components.Parameters }}
+    {{ $pv := $param.Value }}
+    "{{ $paramName}}": &openapi3.ParameterRef{
+        Value: &openapi3.Parameter{
+            Name: "{{ $pv.Name }}",
+            In: "{{ $pv.In }}",
+            {{ if $pv.Description }}Description: `{{ $pv.Description }}`, {{ end }}
+            {{ if $pv.Required }}Required: {{ $pv.Required }}, {{ end }}
+            {{ $pvsc := $pv.Schema }}
+            {{ if $pvsc }}
+            Schema: &openapi3.SchemaRef{
+                {{ if $pvsc.Ref }}Ref: "{{ $pvsc.Ref }}", 
+                {{ else if $pvsc.Value }}Value: &openapi3.Schema{
+                    {{ if $pvsc.Value.Type }}Type: {{ printf "%#v" $pvsc.Value.Type }},{{ end }}
+                    {{ if $pvsc.Value.Format }}Format: "{{ $pvsc.Value.Format }}", {{ end }}
+                    {{ if $pvsc.Value.Enum }}Enum: {{ printf "%#v" $pvsc.Value.Enum }}, {{ end }}
+                },{{ end }}
+            },{{ end }}
+        },
+    },{{ end }}   
+}
+
+{{ $root := . }}
+var pathItems = map[string]*openapi3.PathItem{
+    {{ range $index, $pathName := .Paths.InMatchingOrder }}
+    {{ $pathItem  := $root.Paths.Find $pathName }}
+    {{ $get := $pathItem.Get }}
+    "{{ $pathName }}": {
+        {{ if $pathItem.Summary }}Summary: "{{ $pathItem.Summary }}",{{ end }}
+        {{ if $pathItem.Description }}Description: "{{ $pathItem.Description }}",{{ end }}
+        Get: &openapi3.Operation{
+            Summary: "{{ $get.Summary }}",
+            Description: `{{ $get.Description }}`,
+            {{ if $get.OperationID }}OperationID: "{{ $get.OperationID }}", {{ end }}
+            Parameters: openapi3.Parameters{
+                {{ range $_, $param := $get.Parameters }}
+                &openapi3.ParameterRef{
+                    {{ $pv := $param.Value }}
+                    {{ if $param.Extensions }}
+                    Extensions: map[string]any{
+                    {{ range $extKey, $extVal := $param.Extensions }}
+                        "{{ $extKey }}": {{ printf "%#v" $extVal }},
+                    {{ end }}
+                    },
+                    {{ end }}
+                    {{ if $param.Ref }}Ref: "{{ $param.Ref }}", {{ else if $pv }}
+                    Value: &openapi3.Parameter{
+                        Name: "{{ $pv.Name }}",
+                        In: "{{ $pv.In }}",
+                        {{ if $pv.Description }}Description: `{{ $pv.Description }}`, {{ end }}
+                        {{ if $pv.Required }}Required: {{ $pv.Required }}, {{ end }}
+                        {{ $pvsc := $pv.Schema }}
+                        {{ if $pvsc }}
+                        Schema: &openapi3.SchemaRef{
+                            {{ if $pvsc.Ref }}Ref: "{{ $pvsc.Ref }}", 
+                            {{ else if $pvsc.Value }}Value: &openapi3.Schema{
+                                {{ if $pvsc.Value.Type }}Type: {{ printf "%#v" $pvsc.Value.Type }},{{ end }}
+                                {{ if $pvsc.Value.Format }}Format: "{{ $pvsc.Value.Format }}", {{ end }}
+                                {{ if $pvsc.Value.Enum }}Enum: {{ printf "%#v" $pvsc.Value.Enum }}, {{ end }}
+                            },{{ end }}
+                        },
+                    {{ end }}
+                    },{{ end }}
+                },{{ end }}
+            },
+        },
+    },
+    {{ end }}
+}

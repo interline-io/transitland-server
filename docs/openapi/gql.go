@@ -91,14 +91,8 @@ func ParseDocstring(v string) ParsedDocstring {
 	return ret
 }
 
-func newSchema() *openapi3.Schema {
-	return &openapi3.Schema{
-		Properties: openapi3.Schemas{},
-	}
-}
-
 func selRecurse(recurseValue any, parentSchema openapi3.Schemas, level int) {
-	schema := newSchema()
+	schema := &openapi3.Schema{}
 	namedType := ""
 	if frag, ok := recurseValue.(*ast.FragmentSpread); ok {
 		for _, sel := range frag.Definition.SelectionSet {

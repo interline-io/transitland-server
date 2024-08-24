@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"strconv"
 	"strings"
+
+	"github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed stop_request.gql
@@ -29,6 +31,12 @@ type StopRequest struct {
 	IncludeRoutes      bool      `json:"include_routes,string"`
 	LicenseFilter
 	WithCursor
+}
+
+type RequestInfo struct {
+	Query string
+	Path  string
+	Get   *openapi3.Operation
 }
 
 func (r StopRequest) RequestInfo() RequestInfo {

@@ -134,3 +134,5 @@ require (
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
+
+replace github.com/getkin/kin-openapi => /Users/irees/src/other/kin-openapi
