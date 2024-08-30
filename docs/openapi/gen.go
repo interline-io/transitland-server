@@ -1,11 +1,6 @@
 package openapi
 
 import (
-	"context"
-	"encoding/json"
-	"os"
-	"testing"
-
 	oa "github.com/getkin/kin-openapi/openapi3"
 	"github.com/interline-io/transitland-server/server/rest"
 )
@@ -14,7 +9,7 @@ type RestHandlers interface {
 	RequestInfo() rest.RequestInfo
 }
 
-func TestValidateSchema(t *testing.T) {
+func GenerateOpenAPI() (*oa.T, error) {
 	outdoc := &oa.T{
 		OpenAPI: "3.0.0",
 		Info: &oa.Info{
@@ -53,18 +48,19 @@ func TestValidateSchema(t *testing.T) {
 	outdoc.Paths = oa.NewPaths(pathOpts...)
 
 	// Write output
-	jj, _ := json.MarshalIndent(outdoc, "", "  ")
-	out, _ := os.Create("rest-out.json")
-	out.Write(jj)
-	out.Close()
+	// jj, _ := json.MarshalIndent(outdoc, "", "  ")
+	// out, _ := os.Create(outpath)
+	// out.Write(jj)
+	// out.Close()
 
 	// Validate output
-	schema, err := oa.NewLoader().LoadFromFile("./rest-out.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	var validationOpts []oa.ValidationOption
-	if err := schema.Validate(context.Background(), validationOpts...); err != nil {
-		t.Fatal(err)
-	}
+	// schema, err := oa.NewLoader().LoadFromFile("./rest-out.json")
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// var validationOpts []oa.ValidationOption
+	// if err := schema.Validate(context.Background(), validationOpts...); err != nil {
+	// 	t.Fatal(err)
+	// }
+	return outdoc, nil
 }
