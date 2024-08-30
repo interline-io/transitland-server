@@ -40,7 +40,7 @@ func (r StopRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Stops",
 				Description: `Search for stops`,
-				Responses:   queryToResponses(stopQuery),
+				Responses:   queryToOAResponses(stopQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "stop_key",
@@ -164,7 +164,7 @@ func (r StopEntityRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Stops",
 				Description: `Search for stops`,
-				Responses:   queryToResponses(stopQuery),
+				Responses:   queryToOAResponses(stopQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "stop_key",

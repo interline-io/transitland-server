@@ -39,7 +39,7 @@ func (r FeedRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Feeds",
 				Description: `Search for feeds`,
-				Responses:   queryToResponses(feedQuery),
+				Responses:   queryToOAResponses(feedQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "feed_key",

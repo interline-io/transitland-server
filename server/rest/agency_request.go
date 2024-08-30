@@ -43,34 +43,28 @@ func (r AgencyRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Agencies",
 				Description: ``,
-				Responses:   queryToResponses(agencyQuery),
+				Responses:   queryToOAResponses(agencyQuery),
 				Parameters: oa.Parameters{
-					&pref{
-						Value: &param{
-							Name:        "agency_key",
-							In:          "query",
-							Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
-							Schema:      &sref{Value: newSchema("string", "", nil)},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "agency_id",
-							In:          "query",
-							Description: `Search for records with this GTFS agency_id (string)`,
-							Schema:      &sref{Value: newSchema("string", "", nil)},
-							Extensions:  newExt("", "agency_id=BART", ""),
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "agency_name",
-							In:          "query",
-							Description: `Search for records with this GTFS agency_name`,
-							Schema:      &sref{Value: newSchema("string", "", nil)},
-							Extensions:  newExt("", "agency_name=Caltrain", ""),
-						},
-					},
+					&pref{Value: &param{
+						Name:        "agency_key",
+						In:          "query",
+						Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "agency_id",
+						In:          "query",
+						Description: `Search for records with this GTFS agency_id (string)`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "agency_id=BART", ""),
+					}},
+					&pref{Value: &param{
+						Name:        "agency_name",
+						In:          "query",
+						Description: `Search for records with this GTFS agency_name`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "agency_name=Caltrain", ""),
+					}},
 					newPRef("idParam"),
 					newPRef("includeAlertsParam"),
 					newPRef("afterParam"),
@@ -183,18 +177,14 @@ func (r AgencyKeyRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Agencies",
 				Description: ``,
-				Responses:   queryToResponses(agencyQuery),
+				Responses:   queryToOAResponses(agencyQuery),
 				Parameters: oa.Parameters{
-					&pref{
-						Value: &param{
-							Name:        "agency_key",
-							In:          "path",
-							Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-						},
-					},
+					&pref{Value: &param{
+						Name:        "agency_key",
+						In:          "path",
+						Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
 					newPRef("includeAlertsParam"),
 					newPRefExt("limitParam", "", "limit=1", ""),
 					newPRefExt("formatParam", "", "format=geojson", ""),

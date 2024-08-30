@@ -40,7 +40,7 @@ func (r OperatorRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Operators",
 				Description: `Search for operators`,
-				Responses:   queryToResponses(operatorQuery),
+				Responses:   queryToOAResponses(operatorQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "tag_key",

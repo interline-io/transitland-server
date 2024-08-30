@@ -37,7 +37,7 @@ func (r StopDepartureRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Stop departures",
 				Description: `Departures from a given stop based on static and real-time data`,
-				Responses:   queryToResponses(stopDepartureQuery),
+				Responses:   queryToOAResponses(stopDepartureQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "stop_key",

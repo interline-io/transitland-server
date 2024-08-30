@@ -5,14 +5,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/getkin/kin-openapi/openapi3"
+	oa "github.com/getkin/kin-openapi/openapi3"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func queryToResponses(queryString string) *openapi3.Responses {
+func queryToOAResponses(queryString string) *oa.Responses {
 	// Load schema
 	schema := gqlout.NewExecutableSchema(gqlout.Config{Resolvers: &gql.Resolver{}})
 
@@ -23,50 +23,50 @@ func queryToResponses(queryString string) *openapi3.Responses {
 	}
 
 	///////////
-	responseObj := openapi3.SchemaRef{Value: &openapi3.Schema{
+	responseObj := oa.SchemaRef{Value: &oa.Schema{
 		Title:      "data",
-		Properties: openapi3.Schemas{},
+		Properties: oa.Schemas{},
 	}}
 	for _, op := range query.Operations {
 		for _, sel := range op.SelectionSet {
-			selRecurse(sel, responseObj.Value.Properties, 0)
+			queryRecurse(sel, responseObj.Value.Properties, 0)
 		}
 	}
 	desc := "ok"
-	res := openapi3.WithStatus(200, &openapi3.ResponseRef{Value: &openapi3.Response{
+	res := oa.WithStatus(200, &oa.ResponseRef{Value: &oa.Response{
 		Description: &desc,
-		Content:     openapi3.NewContentWithSchemaRef(&responseObj, []string{"application/json"}),
+		Content:     oa.NewContentWithSchemaRef(&responseObj, []string{"application/json"}),
 	}})
-	ret := openapi3.NewResponses(res)
+	ret := oa.NewResponses(res)
 	return ret
 }
 
-var gqlScalarTypes = map[string]openapi3.Schema{
+var gqlScalarToOASchema = map[string]oa.Schema{
 	"Time": {
-		Type:    openapi3.NewStringSchema().Type,
+		Type:    oa.NewStringSchema().Type,
 		Format:  "datetime",
 		Example: "2019-11-15T00:45:55.409906",
 	},
 	"Int": {
-		Type: openapi3.NewIntegerSchema().Type,
+		Type: oa.NewIntegerSchema().Type,
 	},
 	"Float": {
-		Type: openapi3.NewFloat64Schema().Type,
+		Type: oa.NewFloat64Schema().Type,
 	},
 	"String": {
-		Type: openapi3.NewStringSchema().Type,
+		Type: oa.NewStringSchema().Type,
 	},
 	"Boolean": {
-		Type: openapi3.NewBoolSchema().Type,
+		Type: oa.NewBoolSchema().Type,
 	},
 	"ID": {
-		Type: openapi3.NewInt64Schema().Type,
+		Type: oa.NewInt64Schema().Type,
 	},
 	"Counts":   {},
 	"Tags":     {},
 	"Geometry": {},
 	"Date": {
-		Type:    openapi3.NewStringSchema().Type,
+		Type:    oa.NewStringSchema().Type,
 		Format:  "date",
 		Example: "2019-11-15",
 	},
@@ -123,20 +123,20 @@ func ParseDocstring(v string) ParsedDocstring {
 	return ret
 }
 
-func selRecurse(recurseValue any, parentSchema openapi3.Schemas, level int) {
-	schema := &openapi3.Schema{
-		Properties: openapi3.Schemas{},
+func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int) {
+	schema := &oa.Schema{
+		Properties: oa.Schemas{},
 	}
 	namedType := ""
 	if frag, ok := recurseValue.(*ast.FragmentSpread); ok {
 		for _, sel := range frag.Definition.SelectionSet {
-			selRecurse(sel, schema.Properties, level)
+			queryRecurse(sel, schema.Properties, level)
 		}
 		schema.Title = frag.Name
 		schema.Description = frag.ObjectDefinition.Description
 	} else if field, ok := recurseValue.(*ast.Field); ok {
 		for _, sel := range field.SelectionSet {
-			selRecurse(sel, schema.Properties, level+1)
+			queryRecurse(sel, schema.Properties, level+1)
 		}
 		schema.Title = field.Name
 		schema.Description = field.Definition.Description
@@ -149,12 +149,12 @@ func selRecurse(recurseValue any, parentSchema openapi3.Schemas, level int) {
 	fmt.Printf("%s %s\n", strings.Repeat(" ", level*4), schema.Title)
 
 	// Scalar types
-	if scalarType, ok := gqlScalarTypes[namedType]; ok {
+	if scalarType, ok := gqlScalarToOASchema[namedType]; ok {
 		schema.Type = scalarType.Type
 		schema.Format = scalarType.Format
 		schema.Example = scalarType.Example
 	} else {
-		schema.Type = openapi3.NewObjectSchema().Type
+		schema.Type = oa.NewObjectSchema().Type
 	}
 
 	// Parse docstring
@@ -166,14 +166,14 @@ func selRecurse(recurseValue any, parentSchema openapi3.Schemas, level int) {
 		schema.Example = example
 	}
 	for _, doc := range parsed.ExternalDocs {
-		schema.ExternalDocs = &openapi3.ExternalDocs{URL: doc.URL, Description: doc.Text}
+		schema.ExternalDocs = &oa.ExternalDocs{URL: doc.URL, Description: doc.Text}
 	}
 	for _, e := range parsed.Enum {
 		schema.Enum = append(schema.Enum, e)
 	}
 
 	// Add to parent
-	parentSchema[schema.Title] = openapi3.NewSchemaRef("", schema)
+	parentSchema[schema.Title] = oa.NewSchemaRef("", schema)
 }
 
 func parseGroups(re *regexp.Regexp, v string) []map[string]string {

@@ -6,19 +6,10 @@ import (
 
 type param = oa.Parameter
 type pref = oa.ParameterRef
-type sref = oa.SchemaRef
 
 type RequestInfo struct {
 	Path     string
 	PathItem *oa.PathItem
-}
-
-func newSchema(st string, format string, enum []any) *oa.Schema {
-	return &oa.Schema{
-		Type:   &oa.Types{st},
-		Format: format,
-		Enum:   enum,
-	}
 }
 
 func newPRef(paramRef string) *oa.ParameterRef {
@@ -35,7 +26,11 @@ func newPRefExt(paramRef, paramDesc, exampleDesc, exampleUrl string) *oa.Paramet
 }
 
 func newSRVal(st string, format string, enum []any) *oa.SchemaRef {
-	return &sref{Value: newSchema(st, format, enum)}
+	return &oa.SchemaRef{Value: &oa.Schema{
+		Type:   &oa.Types{st},
+		Format: format,
+		Enum:   enum,
+	}}
 }
 
 func newExt(paramDesc, exampleDesc, exampleUrl string) map[string]any {
@@ -61,9 +56,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "adm0_iso",
 			In:          "query",
 			Description: `Search by country 2 letter ISO 3166 code`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"adm0NameParam": &pref{
@@ -71,9 +64,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "adm0_name",
 			In:          "query",
 			Description: `Search by country name`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"adm1IsoParam": &pref{
@@ -81,9 +72,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "adm1_iso",
 			In:          "query",
 			Description: `Search by state/province/division ISO 3166-2 code`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"adm1NameParam": &pref{
@@ -91,9 +80,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "adm1_name",
 			In:          "query",
 			Description: `Search by state/province/division name`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"afterParam": &pref{
@@ -101,9 +88,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "after",
 			In:          "query",
 			Description: `Pagination cursor value. This should be treated as an opaque value created by the server and returned as the link to the next result page, which may be empty. For historical reasons, this is based on the integer record ID values, but that should not be assumed to be the case in the future.`,
-			Schema: &sref{
-				Value: newSchema("integer", "int32", nil),
-			},
+			Schema:      newSRVal("integer", "int32", nil),
 		},
 	},
 	"bboxParam": &pref{
@@ -111,9 +96,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "bbox",
 			In:          "query",
 			Description: `Geographic search using a bounding box, with coordinates in (min_lon, min_lat, max_lon, max_lat) order as a comma separated string`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"cityNameParam": &pref{
@@ -121,9 +104,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "city_name",
 			In:          "query",
 			Description: `Search by city name`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"feedParam": &pref{
@@ -131,9 +112,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "feed_onestop_id",
 			In:          "query",
 			Description: `Search for records in this feed`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"formatParam": &pref{
@@ -141,9 +120,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "format",
 			In:          "query",
 			Description: `Response format`,
-			Schema: &sref{
-				Value: newSchema("string", "", []any{"json", "geojson", "geojsonl", "png"}),
-			},
+			Schema:      newSRVal("string", "", []any{"json", "geojson", "geojsonl", "png"}),
 		},
 	},
 	"idParam": &pref{
@@ -151,9 +128,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "id",
 			In:          "query",
 			Description: `Search for a specific internal ID`,
-			Schema: &sref{
-				Value: newSchema("integer", "int32", nil),
-			},
+			Schema:      newSRVal("integer", "int32", nil),
 		},
 	},
 	"includeAlertsParam": &pref{
@@ -161,9 +136,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "include_alerts",
 			In:          "query",
 			Description: `Include alerts from GTFS Realtime feeds`,
-			Schema: &sref{
-				Value: newSchema("string", "", []any{"true", "false"}),
-			},
+			Schema:      newSRVal("string", "", []any{"true", "false"}),
 		},
 	},
 	"latParam": &pref{
@@ -171,9 +144,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "lat",
 			In:          "query",
 			Description: `Latitude`,
-			Schema: &sref{
-				Value: newSchema("number", "", nil),
-			},
+			Schema:      newSRVal("number", "", nil),
 		},
 	},
 	"licenseCommercialUseAllowedParam": &pref{
@@ -181,9 +152,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "license_commercial_use_allowed",
 			In:          "query",
 			Description: `Filter entities by feed license 'commercial_use_allowed' value. Please see Source Feed concept for details on license values. 'exclude_no' is equivalent to 'yes' and 'unknown'.`,
-			Schema: &sref{
-				Value: newSchema("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
-			},
+			Schema:      newSRVal("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
 		},
 	},
 	"licenseCreateDerivedProductParam": &pref{
@@ -191,9 +160,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "license_create_derived_product",
 			In:          "query",
 			Description: `Filter entities by feed license 'create_derived_product' value. Please see Source Feed concept for details on license values. 'exclude_no' is equivalent to 'yes' and 'unknown'.`,
-			Schema: &sref{
-				Value: newSchema("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
-			},
+			Schema:      newSRVal("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
 		},
 	},
 	"licenseRedistributionAllowedParam": &pref{
@@ -201,9 +168,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "license_redistribution_allowed",
 			In:          "query",
 			Description: `Filter entities by feed license 'redistribution_allowed' value. Please see Source Feed concept for details on license values. 'exclude_no' is equivalent to 'yes' and 'unknown'.`,
-			Schema: &sref{
-				Value: newSchema("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
-			},
+			Schema:      newSRVal("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
 		},
 	},
 	"licenseShareAlikeOptionalParam": &pref{
@@ -211,9 +176,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "license_share_alike_optional",
 			In:          "query",
 			Description: `Filter entities by feed license 'share_alike_optional' value. Please see Source Feed concept for details on license values. 'exclude_no' is equivalent to 'yes' and 'unknown'.`,
-			Schema: &sref{
-				Value: newSchema("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
-			},
+			Schema:      newSRVal("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
 		},
 	},
 	"licenseUseWithoutAttributionParam": &pref{
@@ -221,9 +184,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "license_use_without_attribution",
 			In:          "query",
 			Description: `Filter entities by feed license 'use_without_attribution' value. Please see Source Feed concept for details on license values. 'exclude_no' is equivalent to 'yes' and 'unknown'.`,
-			Schema: &sref{
-				Value: newSchema("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
-			},
+			Schema:      newSRVal("string", "", []any{"yes", "no", "unknown", "exclude_no"}),
 		},
 	},
 	"limitParam": &pref{
@@ -231,9 +192,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "limit",
 			In:          "query",
 			Description: `Maximum number of records to return`,
-			Schema: &sref{
-				Value: newSchema("integer", "int32", nil),
-			},
+			Schema:      newSRVal("integer", "int32", nil),
 		},
 	},
 	"lonParam": &pref{
@@ -241,9 +200,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "lon",
 			In:          "query",
 			Description: `Longitude`,
-			Schema: &sref{
-				Value: newSchema("number", "", nil),
-			},
+			Schema:      newSRVal("number", "", nil),
 		},
 	},
 	"onestopParam": &pref{
@@ -251,9 +208,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "onestop_id",
 			In:          "query",
 			Description: `Search for a specific Onestop ID`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"radiusParam": &pref{
@@ -261,9 +216,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "radius",
 			In:          "query",
 			Description: `Search radius (meters); requires lat and lon`,
-			Schema: &sref{
-				Value: newSchema("number", "", nil),
-			},
+			Schema:      newSRVal("number", "", nil),
 		},
 	},
 	"relativeDateParam": &pref{
@@ -271,9 +224,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "relative_date",
 			In:          "query",
 			Description: `Search for departures on a relative date label, e.g. TODAY, TUESDAY, NEXT_WEDNESDAY`,
-			Schema: &sref{
-				Value: newSchema("string", "", []any{"TODAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY", "NEXT_MONDAY", "NEXT_TUESDAY", "NEXT_WEDNESDAY", "NEXT_THURSDAY", "NEXT_FRIDAY", "NEXT_SATURDAY", "NEXT_SUNDAY"}),
-			},
+			Schema:      newSRVal("string", "", []any{"TODAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY", "NEXT_MONDAY", "NEXT_TUESDAY", "NEXT_WEDNESDAY", "NEXT_THURSDAY", "NEXT_FRIDAY", "NEXT_SATURDAY", "NEXT_SUNDAY"}),
 		},
 	},
 	"searchParam": &pref{
@@ -281,9 +232,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "search",
 			In:          "query",
 			Description: `Full text search`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 	"sha1Param": &pref{
@@ -291,9 +240,7 @@ var ParameterComponents = oa.ParametersMap{
 			Name:        "feed_version_sha1",
 			In:          "query",
 			Description: `Search for records in this feed version`,
-			Schema: &sref{
-				Value: newSchema("string", "", nil),
-			},
+			Schema:      newSRVal("string", "", nil),
 		},
 	},
 }
@@ -310,8 +257,7 @@ var ParameterComponents = oa.ParametersMap{
 // 						In:          "path",
 // 						Description: `Feed lookup key; can be an integer ID or a Onestop ID`,
 // 						Required:    true,
-// 						Schema: &sref{
-// 							Value: newSchema("string", "", nil),
+// 						Schema: &sref{// 							Value: newSchema("string", "", nil),
 // 						},
 // 					},
 // 				},
@@ -329,8 +275,7 @@ var ParameterComponents = oa.ParametersMap{
 // 						In:          "path",
 // 						Description: `Feed version lookup key; can be an integer ID or a SHA1 value`,
 // 						Required:    true,
-// 						Schema: &sref{
-// 							Value: newSchema("string", "", nil),
+// 						Schema: &sref{// 							Value: newSchema("string", "", nil),
 // 						},
 // 					},
 // 				},
