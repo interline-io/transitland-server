@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"strconv"
 	"strings"
+
+	oa "github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed feed_request.gql
@@ -28,6 +30,150 @@ type FeedRequest struct {
 	Bbox             *restBbox `json:"bbox"`
 	LicenseFilter
 	WithCursor
+}
+
+func (r FeedRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/feeds",
+		PathItem: &oa.PathItem{
+			Extensions: map[string]any{
+				"x-alternates": []any{map[string]any{"description": "Request feeds in specified format", "method": "get", "path": "/feeds.{format}"}, map[string]any{"description": "Request a feed by ID or Onestop ID", "method": "get", "path": "/feeds/{feed_key}"}, map[string]any{"description": "Request a feed by ID or Onestop ID in specified format", "method": "get", "path": "/feeds/{feed_key}.{format}"}},
+			},
+			Get: &oa.Operation{
+				Summary:     "Feeds",
+				Description: `Search for feeds`,
+				Responses:   queryToResponses(feedQuery),
+				Parameters: oa.Parameters{
+					&pref{
+						Ref: "#/components/parameters/idParam",
+					},
+					&pref{
+						Value: &param{
+							Name:        "feed_key",
+							In:          "query",
+							Description: `Feed lookup key; can be an integer ID or a Onestop ID`,
+							Schema: &sref{
+								Value: newSchema("string", "", nil),
+							},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/afterParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/limitParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "limit=1", "url": "/feeds?limit=1"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/formatParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "format=geojson", "url": "/feeds?format=geojson"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/searchParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "search=caltrain", "url": "/feeds?search=caltrain"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/onestopParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "onestop_id=f-sf~bay~area~rg", "url": "/feeds?onestop_id=f-sf~bay~area~rg"}},
+						},
+					},
+					&pref{
+						Value: &param{
+							Name:        "spec",
+							In:          "query",
+							Description: `Type of data contained in this feed`,
+							Schema: &sref{
+								Value: newSchema("string", "", []any{"gtfs", "gtfs-rt", "gbfs", "mds"}),
+							},
+							Extensions: map[string]any{
+								"x-example-requests": []any{map[string]any{"description": "spec=gtfs", "url": "/feeds?spec=gtfs"}},
+							},
+						},
+					},
+					&pref{
+						Value: &param{
+							Name:        "fetch_error",
+							In:          "query",
+							Description: `Search for feeds with or without a fetch error`,
+							Schema: &sref{
+								Value: newSchema("string", "", []any{"true", "false"}),
+							},
+							Extensions: map[string]any{
+								"x-example-requests": []any{map[string]any{"description": "fetch_error=true", "url": "/feeds?fetch_error=true"}},
+							},
+						},
+					},
+					&pref{
+						Value: &param{
+							Name:        "tag_key",
+							In:          "query",
+							Description: `Search for feeds with a tag. Combine with tag_value also query for the value of the tag.`,
+							Schema: &sref{
+								Value: newSchema("string", "", nil),
+							},
+							Extensions: map[string]any{
+								"x-example-requests": []any{map[string]any{"description": "tag_key=gtfs_data_exchange", "url": "/feeds?tag_key=gtfs_data_exchange"}},
+							},
+						},
+					},
+					&pref{
+						Value: &param{
+							Name:        "tag_value",
+							In:          "query",
+							Description: `Search for feeds tagged with a given value. Must be combined with tag_key.`,
+							Schema: &sref{
+								Value: newSchema("string", "", nil),
+							},
+							Extensions: map[string]any{
+								"x-example-requests": []any{map[string]any{"description": "tag_key=unstable_url&tag_value=true", "url": "/feeds?tag_key=unstable_url&tag_value=true"}},
+							},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/radiusParam",
+						Extensions: map[string]any{
+							"x-description":      "Search for feeds geographically; radius is in meters, requires lon and lat",
+							"x-example-requests": []any{map[string]any{"description": "lon=-122&lat=37&radius=1000", "url": "/feeds?lon=-122.3?lat=37.8&radius=1000"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/lonParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/latParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/bboxParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "bbox=-122.269,37.807,-122.267,37.808", "url": "/feeds?bbox=-122.269,37.807,-122.267,37.808"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseCommercialUseAllowedParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseShareAlikeOptionalParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseCreateDerivedProductParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseRedistributionAllowedParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseUseWithoutAttributionParam",
+					},
+				},
+			},
+		},
+	}
 }
 
 // ResponseKey .

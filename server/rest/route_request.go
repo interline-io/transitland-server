@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"strconv"
 	"strings"
+
+	oa "github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed route_request.gql
@@ -32,6 +34,165 @@ type RouteRequest struct {
 	IncludeStops      bool      `json:"include_stops,string"`
 	LicenseFilter
 	WithCursor
+}
+
+func (r RouteRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/routes",
+		PathItem: &oa.PathItem{
+			Extensions: map[string]any{
+				"x-alternates": []any{map[string]any{"description": "Request routes in specified format", "method": "get", "path": "/routes.{format}"}, map[string]any{"description": "Request a route", "method": "get", "path": "/routes/{route_key}"}, map[string]any{"description": "Request a route in a specified format", "method": "get", "path": "/routes/{route_key}.{format}"}},
+			},
+			Get: &oa.Operation{
+				Summary:     "Routes",
+				Description: `Search for routes`,
+				Responses:   queryToResponses(routeQuery),
+				Parameters: oa.Parameters{
+					&pref{
+						Ref: "#/components/parameters/idParam",
+					},
+					&pref{
+						Value: &param{
+							Name:        "route_key",
+							In:          "query",
+							Description: `Route lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs route_id>' key, or a Onestop ID`,
+							Schema: &sref{
+								Value: newSchema("string", "", nil),
+							},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/afterParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/limitParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "limit=1", "url": "/routes?limit=1"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/formatParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "format=png", "url": "/routes?format=png&feed_onestop_id=f-dr5r7-nycdotsiferry"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/includeAlertsParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/searchParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "search=daly+city", "url": "/routes?search=daly+city"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/onestopParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "onestop_id=r-9q9j-l1", "url": "/routes?onestop_id=r-9q9j-l1"}},
+						},
+					},
+					&pref{
+						Value: &param{
+							Name:        "route_id",
+							In:          "query",
+							Description: `Search for records with this GTFS route_id`,
+							Schema: &sref{
+								Value: newSchema("string", "", nil),
+							},
+							Extensions: map[string]any{
+								"x-example-requests": []any{map[string]any{"description": "route_id=Bu-130", "url": "/routes?feed_onestop_id=f-sf~bay~area~rg&route_id=AC:10"}},
+							},
+						},
+					},
+					&pref{
+						Value: &param{
+							Name:        "route_type",
+							In:          "query",
+							Description: `Search for routes with this GTFS route (vehicle) type`,
+							Schema: &sref{
+								Value: newSchema("integer", "", nil),
+							},
+							Extensions: map[string]any{
+								"x-example-requests": []any{map[string]any{"description": "route_type=1", "url": "/routes?route_type=1"}},
+							},
+						},
+					},
+					&pref{
+						Value: &param{
+							Name:        "operator_onestop_id",
+							In:          "query",
+							Description: `Search for records by operator OnestopID`,
+							Schema: &sref{
+								Value: newSchema("string", "", nil),
+							},
+							Extensions: map[string]any{
+								"x-example-requests": []any{map[string]any{"description": "operator_onestop_id=...", "url": "/routes?operator_onestop_id=o-9q9-caltrain"}},
+							},
+						},
+					},
+					&pref{
+						Value: &param{
+							Name:        "include_geometry",
+							In:          "query",
+							Description: `Include route geometry`,
+							Schema: &sref{
+								Value: newSchema("string", "", []any{"true", "false"}),
+							},
+							Extensions: map[string]any{
+								"x-example-requests": []any{map[string]any{"description": "include_geometry=true", "url": "/routes?include_geometry=true"}},
+							},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/sha1Param",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "feed_version_sha1=041ffeec...", "url": "/routes?feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/feedParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "feed_onestop_id=f-sf~bay~area~rg", "url": "/routes?feed_onestop_id=f-sf~bay~area~rg"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/radiusParam",
+						Extensions: map[string]any{
+							"x-description":      "Search for routes geographically, based on stops at this location; radius is in meters, requires lon and lat",
+							"x-example-requests": []any{map[string]any{"description": "lon=-122&lat=37&radius=1000", "url": "/routes?lon=-122.3&lat=37.8&radius=1000"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/latParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/lonParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/bboxParam",
+						Extensions: map[string]any{
+							"x-example-requests": []any{map[string]any{"description": "bbox=-122.269,37.807,-122.267,37.808", "url": "/routes?bbox=-122.269,37.807,-122.267,37.808"}},
+						},
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseCommercialUseAllowedParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseShareAlikeOptionalParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseCreateDerivedProductParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseRedistributionAllowedParam",
+					},
+					&pref{
+						Ref: "#/components/parameters/licenseUseWithoutAttributionParam",
+					},
+				},
+			},
+		},
+	}
 }
 
 // ResponseKey returns the GraphQL response entity key.

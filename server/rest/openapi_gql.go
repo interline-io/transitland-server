@@ -1,15 +1,50 @@
-package openapi
+package rest
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/interline-io/transitland-server/internal/generated/gqlout"
+	"github.com/interline-io/transitland-server/server/gql"
+	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-var scalarTypes = map[string]openapi3.Schema{
+func queryToResponses(queryString string) *openapi3.Responses {
+	// Load schema
+	schema := gqlout.NewExecutableSchema(gqlout.Config{Resolvers: &gql.Resolver{}})
+
+	// Prepare document
+	query, err := gqlparser.LoadQuery(schema.Schema(), queryString)
+	if err != nil {
+		panic(err)
+	}
+
+	///////////
+	responseObj := openapi3.SchemaRef{Value: &openapi3.Schema{
+		Title:      "data",
+		Properties: openapi3.Schemas{},
+	}}
+	for _, op := range query.Operations {
+		for _, sel := range op.SelectionSet {
+			selRecurse(sel, responseObj.Value.Properties, 0)
+		}
+	}
+	desc := "ok"
+	res := openapi3.WithStatus(200, &openapi3.ResponseRef{Value: &openapi3.Response{
+		Description: &desc,
+		Content:     openapi3.NewContentWithSchemaRef(&responseObj, []string{"application/json"}),
+	}})
+	ret := openapi3.NewResponses(res)
+	jj, _ := json.MarshalIndent(ret, "", "  ")
+	fmt.Println(string(jj))
+	return ret
+}
+
+var gqlScalarTypes = map[string]openapi3.Schema{
 	"Time": {
 		Type:    openapi3.NewStringSchema().Type,
 		Format:  "datetime",
@@ -117,7 +152,7 @@ func selRecurse(recurseValue any, parentSchema openapi3.Schemas, level int) {
 	fmt.Printf("%s %s\n", strings.Repeat(" ", level*4), schema.Title)
 
 	// Scalar types
-	if scalarType, ok := scalarTypes[namedType]; ok {
+	if scalarType, ok := gqlScalarTypes[namedType]; ok {
 		schema.Type = scalarType.Type
 		schema.Format = scalarType.Format
 		schema.Example = scalarType.Example
