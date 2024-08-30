@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"strconv"
 	"strings"
+
+	oa "github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed agency_request.gql
@@ -32,6 +34,64 @@ type AgencyRequest struct {
 	IncludeRoutes   bool      `json:"include_routes,string"`
 	LicenseFilter
 	WithCursor
+}
+
+func (r AgencyRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/agencies",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Agencies",
+				Description: ``,
+				Responses:   queryToOAResponses(agencyQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "agency_key",
+						In:          "query",
+						Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "agency_id",
+						In:          "query",
+						Description: `Search for records with this GTFS agency_id (string)`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "agency_id=BART", ""),
+					}},
+					&pref{Value: &param{
+						Name:        "agency_name",
+						In:          "query",
+						Description: `Search for records with this GTFS agency_name`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "agency_name=Caltrain", ""),
+					}},
+					newPRef("idParam"),
+					newPRef("includeAlertsParam"),
+					newPRef("afterParam"),
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+					newPRefExt("searchParam", "", "search=bart", ""),
+					newPRefExt("onestopParam", "", "onestop_id=o-9q9-caltrain", ""),
+					newPRefExt("sha1Param", "", "feed_version_sha1=1c4721d4...", "feed_version_sha1=1c4721d4e0c9fae1e81f7c79660696e4280ed05b"),
+					newPRefExt("feedParam", "", "feed_onestop_id=f-sf~bay~area~rg", ""),
+					newPRefExt("radiusParam", "Search for agencies geographically, based on stops at this location; radius is in meters, requires lon and lat", "lon=-122.3&lat=37.8&radius=1000", ""),
+					newPRef("lonParam"),
+					newPRef("latParam"),
+					newPRefExt("bboxParam", "", "bbox=-122.269,37.807,-122.267,37.808", ""),
+					newPRefExt("adm0NameParam", "", "adm0_name=Mexico", ""),
+					newPRefExt("adm0IsoParam", "", "adm0_iso=US", ""),
+					newPRefExt("adm1NameParam", "", "adm1_name=California", ""),
+					newPRefExt("adm1IsoParam", "", "adm1_iso=US-CA", ""),
+					newPRefExt("cityNameParam", "", "city_name=Oakland", ""),
+					newPRef("licenseCommercialUseAllowedParam"),
+					newPRef("licenseShareAlikeOptionalParam"),
+					newPRef("licenseCreateDerivedProductParam"),
+					newPRef("licenseRedistributionAllowedParam"),
+					newPRef("licenseUseWithoutAttributionParam"),
+				},
+			},
+		},
+	}
 }
 
 // ResponseKey returns the GraphQL response entity key.
@@ -101,5 +161,35 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 		"include_alerts": r.IncludeAlerts,
 		"include_routes": r.IncludeRoutes,
 		"where":          where,
+	}
+}
+
+///////////////
+
+type AgencyKeyRequest struct {
+	AgencyRequest
+}
+
+func (r AgencyKeyRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/agencies/{agency_key}",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Agencies",
+				Description: ``,
+				Responses:   queryToOAResponses(agencyQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "agency_key",
+						In:          "path",
+						Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					newPRef("includeAlertsParam"),
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+				},
+			},
+		},
 	}
 }

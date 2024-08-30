@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"strconv"
 	"strings"
+
+	oa "github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed stop_request.gql
@@ -31,11 +33,71 @@ type StopRequest struct {
 	WithCursor
 }
 
+func (r StopRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/stops",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Stops",
+				Description: `Search for stops`,
+				Responses:   queryToOAResponses(stopQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "stop_key",
+						In:          "query",
+						Description: `Stop lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs stop_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "stop_id",
+						In:          "query",
+						Description: `Search for records with this GTFS stop_id`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "stop_id=EMBR", "feed_onestop_id=f-c20-trimet&stop_id=1108"),
+					}},
+					&pref{Value: &param{
+						Name:        "served_by_onestop_ids",
+						In:          "query",
+						Description: `Search stops visited by a route or agency OnestopID. Accepts comma separated values.`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "served_by_onestop_ids=o-9q9-bart,o-9q9-caltrain", "served_by_onestop_ids=o-9q9-bart,o-9q9-caltrain"),
+					}},
+					&pref{Value: &param{
+						Name:        "served_by_route_type",
+						In:          "query",
+						Description: `Search for stops served by a particular route (vehicle) type`,
+						Schema:      newSRVal("integer", "", nil),
+						Extensions:  newExt("", "served_by_route_type=1", "served_by_route_type=1"),
+					}},
+					newPRef("includeAlertsParam"),
+					newPRef("idParam"),
+					newPRef("afterParam"),
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+					newPRefExt("searchParam", "", "search=embarcadero", ""),
+					newPRefExt("onestopParam", "", "onestop_id=...", "onestop_id=s-9q8yyzcny3-embarcadero"),
+					newPRefExt("sha1Param", "", "feed_version_sha1=1c4721d4...", "feed_version_sha1=1c4721d4e0c9fae1e81f7c79660696e4280ed05b"),
+					newPRefExt("feedParam", "", "feed_onestop_id=f-c20-trimet", ""),
+					newPRefExt("radiusParam", "Search for stops geographically; radius is in meters, requires lon and lat", "lon=-122.3&lat=37.8&radius=1000", ""),
+					newPRef("lonParam"),
+					newPRef("latParam"),
+					newPRefExt("bboxParam", "", "bbox=-122.269,37.807,-122.267,37.808", ""),
+					newPRef("licenseCommercialUseAllowedParam"),
+					newPRef("licenseShareAlikeOptionalParam"),
+					newPRef("licenseCreateDerivedProductParam"),
+					newPRef("licenseRedistributionAllowedParam"),
+					newPRef("licenseUseWithoutAttributionParam"),
+				},
+			},
+		},
+	}
+}
+
 // ResponseKey returns the GraphQL response entity key.
 func (r StopRequest) ResponseKey() string { return "stops" }
 
 // Query returns a GraphQL query string and variables.
-func (r StopRequest) Query() (string, map[string]interface{}) {
+func (r StopRequest) Query() (string, map[string]any) {
 	if r.StopKey == "" {
 		// pass
 	} else if fsid, eid, ok := strings.Cut(r.StopKey, ":"); ok {
@@ -86,5 +148,35 @@ func (r StopRequest) Query() (string, map[string]interface{}) {
 		"include_alerts": r.IncludeAlerts,
 		"include_routes": r.IncludeRoutes,
 		"where":          where,
+	}
+}
+
+///////////////
+
+type StopEntityRequest struct {
+	StopRequest
+}
+
+func (r StopEntityRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/stops/{stop_key}",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Stops",
+				Description: `Search for stops`,
+				Responses:   queryToOAResponses(stopQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "stop_key",
+						In:          "query",
+						Description: `Stop lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs stop_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					newPRef("includeAlertsParam"),
+					newPRef("limitParam"),
+					newPRef("formatParam"),
+				},
+			},
+		},
 	}
 }

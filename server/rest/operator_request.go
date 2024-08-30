@@ -3,6 +3,8 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+
+	oa "github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed operator_request.gql
@@ -29,6 +31,56 @@ type OperatorRequest struct {
 	IncludeAlerts bool      `json:"include_alerts,string"`
 	LicenseFilter
 	WithCursor
+}
+
+func (r OperatorRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/operators",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Operators",
+				Description: `Search for operators`,
+				Responses:   queryToOAResponses(operatorQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "tag_key",
+						In:          "query",
+						Description: `Search for operators with a tag. Combine with tag_value also query for the value of the tag.`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "tag_key=us_ntd_id", ""),
+					}},
+					&pref{Value: &param{
+						Name:        "tag_value",
+						In:          "query",
+						Description: `Search for feeds tagged with a given value. Must be combined with tag_key.`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "tag_key=us_ntd_id&tag_value=40029", ""),
+					}},
+					newPRefExt("onestopParam", "", "onestop_id=o-9q9-caltrain", ""),
+					newPRefExt("feedParam", "", "feed_onestop_id=f-sf~bay~area~rg", ""),
+					newPRefExt("searchParam", "", "search=bart", ""),
+					newPRef("includeAlertsParam"),
+					newPRef("idParam"),
+					newPRef("afterParam"),
+					newPRef("limitParam"),
+					newPRefExt("adm0NameParam", "", "adm0_name=Mexico", ""),
+					newPRefExt("adm0IsoParam", "", "adm0_iso=US", ""),
+					newPRefExt("adm1NameParam", "", "adm1_name=California", ""),
+					newPRefExt("adm1IsoParam", "", "adm1_iso=US-CA", ""),
+					newPRefExt("cityNameParam", "", "city_name=Oakland", ""),
+					newPRefExt("radiusParam", "Search for operators geographically, based on stops at this location; radius is in meters, requires lon and lat", "lon=-122.3&lat=37.8&radius=1000", ""),
+					newPRef("lonParam"),
+					newPRef("latParam"),
+					newPRefExt("bboxParam", "", "bbox=-122.269,37.807,-122.267,37.808", ""),
+					newPRef("licenseCommercialUseAllowedParam"),
+					newPRef("licenseShareAlikeOptionalParam"),
+					newPRef("licenseCreateDerivedProductParam"),
+					newPRef("licenseRedistributionAllowedParam"),
+					newPRef("licenseUseWithoutAttributionParam"),
+				},
+			},
+		},
+	}
 }
 
 // ResponseKey returns the GraphQL response entity key.

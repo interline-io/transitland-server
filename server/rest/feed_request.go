@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"strconv"
 	"strings"
+
+	oa "github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed feed_request.gql
@@ -28,6 +30,70 @@ type FeedRequest struct {
 	Bbox             *restBbox `json:"bbox"`
 	LicenseFilter
 	WithCursor
+}
+
+func (r FeedRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/feeds",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Feeds",
+				Description: `Search for feeds`,
+				Responses:   queryToOAResponses(feedQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "feed_key",
+						In:          "query",
+						Description: `Feed lookup key; can be an integer ID or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "spec",
+						In:          "query",
+						Description: `Type of data contained in this feed`,
+						Schema:      newSRVal("string", "", []any{"gtfs", "gtfs-rt", "gbfs", "mds"}),
+						Extensions:  newExt("", "spec=gtfs", "/feeds?spec=gtfs"),
+					}},
+					&pref{Value: &param{
+						Name:        "fetch_error",
+						In:          "query",
+						Description: `Search for feeds with or without a fetch error`,
+						Schema:      newSRVal("string", "", []any{"true", "false"}),
+						Extensions:  newExt("", "fetch_error=true", "/feeds?fetch_error=true"),
+					}},
+					&pref{Value: &param{
+						Name:        "tag_key",
+						In:          "query",
+						Description: `Search for feeds with a tag. Combine with tag_value also query for the value of the tag.`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "tag_key=gtfs_data_exchange", ""),
+					}},
+					&pref{Value: &param{
+						Name:        "tag_value",
+						In:          "query",
+						Description: `Search for feeds tagged with a given value. Must be combined with tag_key.`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "tag_key=unstable_url&tag_value=true", "/feeds?tag_key=unstable_url&tag_value=true"),
+					}},
+					newPRef("idParam"),
+					newPRef("afterParam"),
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+					newPRefExt("searchParam", "", "search=caltrain", ""),
+					newPRefExt("onestopParam", "", "onestop_id=f-sf~bay~area~rg", ""),
+					newPRef("lonParam"),
+					newPRef("latParam"),
+					newPRefExt("radiusParam", "Search for feeds geographically; radius is in meters, requires lon and lat", "lon=-122.3?lat=37.8&radius=1000", ""),
+					newPRefExt("bboxParam", "", "bbox=-122.269,37.807,-122.267,37.808", ""),
+					newPRef("licenseCommercialUseAllowedParam"),
+					newPRef("licenseShareAlikeOptionalParam"),
+					newPRef("licenseCreateDerivedProductParam"),
+					newPRef("licenseRedistributionAllowedParam"),
+					newPRef("licenseUseWithoutAttributionParam"),
+				},
+			},
+		},
+	}
 }
 
 // ResponseKey .

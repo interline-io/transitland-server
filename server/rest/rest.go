@@ -179,6 +179,15 @@ func queryToMap(vars url.Values) map[string]string {
 	return m
 }
 
+func makeHandlerFunc(graphqlHandler http.Handler, handlerName string, f func(http.Handler, http.ResponseWriter, *http.Request)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+			apiMeter.AddDimension("rest", "handler", handlerName)
+		}
+		f(graphqlHandler, w, r)
+	}
+}
+
 // makeHandler wraps an apiHandler into an HandlerFunc and performs common checks.
 func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -371,15 +380,6 @@ func renderGeojsonl(response map[string]any) ([]byte, error) {
 	}
 
 	return ret, nil
-}
-
-func makeHandlerFunc(graphqlHandler http.Handler, handlerName string, f func(http.Handler, http.ResponseWriter, *http.Request)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
-			apiMeter.AddDimension("rest", "handler", handlerName)
-		}
-		f(graphqlHandler, w, r)
-	}
 }
 
 func getAfterID(ent apiHandler, response map[string]interface{}) (int, bool, error) {

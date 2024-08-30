@@ -3,6 +3,8 @@ package rest
 import (
 	_ "embed"
 	"strconv"
+
+	oa "github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed feed_version_request.gql
@@ -25,6 +27,69 @@ type FeedVersionRequest struct {
 	Radius          float64   `json:"radius,string"`
 	Bbox            *restBbox `json:"bbox"`
 	WithCursor
+}
+
+func (r FeedVersionRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/feed_versions",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Feed Versions",
+				Description: `Search for feed versions`,
+				Responses:   queryToOAResponses(feedVersionQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "feed_version_key",
+						In:          "query",
+						Description: `Feed version lookup key; can be an integer ID or a SHA1 value`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "feed_key",
+						In:          "query",
+						Description: `Feed lookup key; can be an integer ID or Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "sha1",
+						In:          "query",
+						Description: `Feed version SHA1`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "sha1=e535eb2b3...", "/feed_versions?sha1=dd7aca4a8e4c90908fd3603c097fabee75fea907"),
+					}},
+					&pref{Value: &param{
+						Name:        "feed_onestop_id",
+						In:          "query",
+						Description: `Feed OnestopID`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "feed_onestop_id=f-sf~bay~area~rg", "/feed_versions?feed_onestop_id=f-sf~bay~area~rg"),
+					}},
+					&pref{Value: &param{
+						Name:        "fetched_before",
+						In:          "query",
+						Description: `Filter for feed versions fetched earlier than given date time in UTC`,
+						Schema:      newSRVal("string", "datetime", nil),
+						Extensions:  newExt("", "fetched_before=2023-01-01T00:00:00Z", "/feed_versions?fetched_before=2023-01-01T00:00:00Z"),
+					}},
+					&pref{Value: &param{
+						Name:        "fetched_after",
+						In:          "query",
+						Description: `Filter for feed versions fetched since given date time in UTC`,
+						Schema:      newSRVal("string", "datetime", nil),
+						Extensions:  newExt("", "fetched_after=2023-01-01T00:00:00Z", "/feed_versions?fetched_after=2023-01-01T00:00:00Z"),
+					}},
+					newPRef("idParam"),
+					newPRef("afterParam"),
+					newPRefExt("limitParam", "", "limit=1", "/feed_versions?limit=1"),
+					newPRefExt("formatParam", "", "format=geojson", "/feed_versions?format=geojson"),
+					newPRefExt("radiusParam", "Search for feed versions geographically; radius is in meters, requires lon and lat", "lon=-122.3&lat=37.8&radius=1000", ""),
+					newPRef("lonParam"),
+					newPRef("latParam"),
+					newPRefExt("bboxParam", "", "bbox=-122.269,37.807,-122.267,37.808", ""),
+				},
+			},
+		},
+	}
 }
 
 // Query returns a GraphQL query string and variables.
