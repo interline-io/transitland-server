@@ -40,67 +40,17 @@ func (r AgencyRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/agencies",
 		PathItem: &oa.PathItem{
-			Extensions: map[string]any{
-				"x-alternates": []any{map[string]any{"description": "Request agencies in specified format", "method": "get", "path": "/agencies.{format}"}, map[string]any{"description": "Request an agency", "method": "get", "path": "/agencies/{agency_key}"}, map[string]any{"description": "Request an agency in specified format", "method": "get", "path": "/agencies/{agency_key}.{format}"}},
-			},
 			Get: &oa.Operation{
 				Summary:     "Agencies",
 				Description: ``,
 				Responses:   queryToResponses(agencyQuery),
 				Parameters: oa.Parameters{
 					&pref{
-						Ref: "#/components/parameters/idParam",
-					},
-					&pref{
 						Value: &param{
 							Name:        "agency_key",
 							In:          "query",
 							Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/includeAlertsParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/afterParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/limitParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "limit=1", "url": "/agencies?limit=1"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/formatParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "format=geojson", "url": "/agencies?format=geojson"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/searchParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "search=bart", "url": "/agencies?search=bart"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/onestopParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "onestop_id=o-9q9-caltrain", "url": "/agencies?onestop_id=o-9q9-caltrain"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/sha1Param",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "feed_version_sha1=1c4721d4...", "url": "/agencies?feed_version_sha1=1c4721d4e0c9fae1e81f7c79660696e4280ed05b"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/feedParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "feed_onestop_id=f-sf~bay~area~rg", "url": "/agencies?feed_onestop_id=f-sf~bay~area~rg"}},
+							Schema:      &sref{Value: newSchema("string", "", nil)},
 						},
 					},
 					&pref{
@@ -108,12 +58,8 @@ func (r AgencyRequest) RequestInfo() RequestInfo {
 							Name:        "agency_id",
 							In:          "query",
 							Description: `Search for records with this GTFS agency_id (string)`,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "agency_id=BART", "url": "/agencies?agency_id=BART"}},
-							},
+							Schema:      &sref{Value: newSchema("string", "", nil)},
+							Extensions:  newExt("", "agency_id=BART", ""),
 						},
 					},
 					&pref{
@@ -121,78 +67,33 @@ func (r AgencyRequest) RequestInfo() RequestInfo {
 							Name:        "agency_name",
 							In:          "query",
 							Description: `Search for records with this GTFS agency_name`,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "agency_name=Caltrain", "url": "/agencies?agency_name=Caltrain"}},
-							},
+							Schema:      &sref{Value: newSchema("string", "", nil)},
+							Extensions:  newExt("", "agency_name=Caltrain", ""),
 						},
 					},
-					&pref{
-						Ref: "#/components/parameters/radiusParam",
-						Extensions: map[string]any{
-							"x-description":      "Search for agencies geographically, based on stops at this location; radius is in meters, requires lon and lat",
-							"x-example-requests": []any{map[string]any{"description": "lon=-122&lat=37&radius=1000", "url": "/agencies?lon=-122.3&lat=37.8&radius=1000"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/lonParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/latParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/bboxParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "bbox=-122.269,37.807,-122.267,37.808", "url": "/agencies?bbox=-122.269,37.807,-122.267,37.808"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/adm0NameParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "adm0_name=Mexico", "url": "/agencies?adm0_name=Mexico"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/adm0IsoParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "adm0_iso=US", "url": "/agencies?adm0_iso=US"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/adm1NameParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "adm1_name=California", "url": "/agencies?adm1_name=California"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/adm1IsoParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "adm1_iso=US-CA", "url": "/agencies?adm1_iso=US-CA"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/cityNameParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "city_name=Oakland", "url": "/agencies?city_name=Oakland"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseCommercialUseAllowedParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseShareAlikeOptionalParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseCreateDerivedProductParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseRedistributionAllowedParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseUseWithoutAttributionParam",
-					},
+					newPRef("idParam"),
+					newPRef("includeAlertsParam"),
+					newPRef("afterParam"),
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+					newPRefExt("searchParam", "", "search=bart", ""),
+					newPRefExt("onestopParam", "", "onestop_id=o-9q9-caltrain", ""),
+					newPRefExt("sha1Param", "", "feed_version_sha1=1c4721d4...", "feed_version_sha1=1c4721d4e0c9fae1e81f7c79660696e4280ed05b"),
+					newPRefExt("feedParam", "", "feed_onestop_id=f-sf~bay~area~rg", ""),
+					newPRefExt("radiusParam", "Search for agencies geographically, based on stops at this location; radius is in meters, requires lon and lat", "lon=-122.3&lat=37.8&radius=1000", ""),
+					newPRef("lonParam"),
+					newPRef("latParam"),
+					newPRefExt("bboxParam", "", "bbox=-122.269,37.807,-122.267,37.808", ""),
+					newPRefExt("adm0NameParam", "", "adm0_name=Mexico", ""),
+					newPRefExt("adm0IsoParam", "", "adm0_iso=US", ""),
+					newPRefExt("adm1NameParam", "", "adm1_name=California", ""),
+					newPRefExt("adm1IsoParam", "", "adm1_iso=US-CA", ""),
+					newPRefExt("cityNameParam", "", "city_name=Oakland", ""),
+					newPRef("licenseCommercialUseAllowedParam"),
+					newPRef("licenseShareAlikeOptionalParam"),
+					newPRef("licenseCreateDerivedProductParam"),
+					newPRef("licenseRedistributionAllowedParam"),
+					newPRef("licenseUseWithoutAttributionParam"),
 				},
 			},
 		},
@@ -266,5 +167,39 @@ func (r AgencyRequest) Query() (string, map[string]interface{}) {
 		"include_alerts": r.IncludeAlerts,
 		"include_routes": r.IncludeRoutes,
 		"where":          where,
+	}
+}
+
+///////////////
+
+type AgencyKeyRequest struct {
+	AgencyRequest
+}
+
+func (r AgencyKeyRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/agencies/{agency_key}",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Agencies",
+				Description: ``,
+				Responses:   queryToResponses(agencyQuery),
+				Parameters: oa.Parameters{
+					&pref{
+						Value: &param{
+							Name:        "agency_key",
+							In:          "path",
+							Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+							Schema: &sref{
+								Value: newSchema("string", "", nil),
+							},
+						},
+					},
+					newPRef("includeAlertsParam"),
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+				},
+			},
+		},
 	}
 }

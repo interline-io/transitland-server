@@ -21,6 +21,40 @@ func newSchema(st string, format string, enum []any) *oa.Schema {
 	}
 }
 
+func newPRef(paramRef string) *oa.ParameterRef {
+	return &oa.ParameterRef{
+		Ref: "#/components/parameters/" + paramRef,
+	}
+}
+
+func newPRefExt(paramRef, paramDesc, exampleDesc, exampleUrl string) *oa.ParameterRef {
+	return &oa.ParameterRef{
+		Ref:        "#/components/parameters/" + paramRef,
+		Extensions: newExt(paramDesc, exampleDesc, exampleUrl),
+	}
+}
+
+func newSRVal(st string, format string, enum []any) *oa.SchemaRef {
+	return &sref{Value: newSchema(st, format, enum)}
+}
+
+func newExt(paramDesc, exampleDesc, exampleUrl string) map[string]any {
+	ret := map[string]any{}
+	if paramDesc != "" {
+		ret["x-description"] = paramDesc
+	}
+	if exampleUrl == "" {
+		exampleUrl = exampleDesc
+	}
+	if exampleDesc != "" {
+		ret["x-example-requests"] = []any{map[string]any{"description": exampleDesc, "url": exampleUrl}}
+	}
+	if len(ret) == 0 {
+		return nil
+	}
+	return ret
+}
+
 var ParameterComponents = oa.ParametersMap{
 	"adm0IsoParam": &pref{
 		Value: &param{

@@ -40,155 +40,69 @@ func (r RouteRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/routes",
 		PathItem: &oa.PathItem{
-			Extensions: map[string]any{
-				"x-alternates": []any{map[string]any{"description": "Request routes in specified format", "method": "get", "path": "/routes.{format}"}, map[string]any{"description": "Request a route", "method": "get", "path": "/routes/{route_key}"}, map[string]any{"description": "Request a route in a specified format", "method": "get", "path": "/routes/{route_key}.{format}"}},
-			},
 			Get: &oa.Operation{
 				Summary:     "Routes",
 				Description: `Search for routes`,
 				Responses:   queryToResponses(routeQuery),
 				Parameters: oa.Parameters{
-					&pref{
-						Ref: "#/components/parameters/idParam",
-					},
-					&pref{
-						Value: &param{
-							Name:        "route_key",
-							In:          "query",
-							Description: `Route lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs route_id>' key, or a Onestop ID`,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/afterParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/limitParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "limit=1", "url": "/routes?limit=1"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/formatParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "format=png", "url": "/routes?format=png&feed_onestop_id=f-dr5r7-nycdotsiferry"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/includeAlertsParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/searchParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "search=daly+city", "url": "/routes?search=daly+city"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/onestopParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "onestop_id=r-9q9j-l1", "url": "/routes?onestop_id=r-9q9j-l1"}},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "route_id",
-							In:          "query",
-							Description: `Search for records with this GTFS route_id`,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "route_id=Bu-130", "url": "/routes?feed_onestop_id=f-sf~bay~area~rg&route_id=AC:10"}},
-							},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "route_type",
-							In:          "query",
-							Description: `Search for routes with this GTFS route (vehicle) type`,
-							Schema: &sref{
-								Value: newSchema("integer", "", nil),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "route_type=1", "url": "/routes?route_type=1"}},
-							},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "operator_onestop_id",
-							In:          "query",
-							Description: `Search for records by operator OnestopID`,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "operator_onestop_id=...", "url": "/routes?operator_onestop_id=o-9q9-caltrain"}},
-							},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "include_geometry",
-							In:          "query",
-							Description: `Include route geometry`,
-							Schema: &sref{
-								Value: newSchema("string", "", []any{"true", "false"}),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "include_geometry=true", "url": "/routes?include_geometry=true"}},
-							},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/sha1Param",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "feed_version_sha1=041ffeec...", "url": "/routes?feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/feedParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "feed_onestop_id=f-sf~bay~area~rg", "url": "/routes?feed_onestop_id=f-sf~bay~area~rg"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/radiusParam",
-						Extensions: map[string]any{
-							"x-description":      "Search for routes geographically, based on stops at this location; radius is in meters, requires lon and lat",
-							"x-example-requests": []any{map[string]any{"description": "lon=-122&lat=37&radius=1000", "url": "/routes?lon=-122.3&lat=37.8&radius=1000"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/latParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/lonParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/bboxParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "bbox=-122.269,37.807,-122.267,37.808", "url": "/routes?bbox=-122.269,37.807,-122.267,37.808"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseCommercialUseAllowedParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseShareAlikeOptionalParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseCreateDerivedProductParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseRedistributionAllowedParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseUseWithoutAttributionParam",
-					},
+					&pref{Value: &param{
+						Name:        "route_key",
+						In:          "query",
+						Description: `Route lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs route_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "agency_key",
+						In:          "query",
+						Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "route_id",
+						In:          "query",
+						Description: `Search for records with this GTFS route_id`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "route_id=Bu-130", "feed_onestop_id=f-sf~bay~area~rg&route_id=AC:10"),
+					}},
+					&pref{Value: &param{
+						Name:        "route_type",
+						In:          "query",
+						Description: `Search for routes with this GTFS route (vehicle) type`,
+						Schema:      newSRVal("integer", "", nil),
+						Extensions:  newExt("", "route_type=1", "?route_type=1"),
+					}},
+					&pref{Value: &param{
+						Name:        "operator_onestop_id",
+						In:          "query",
+						Description: `Search for records by operator OnestopID`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "operator_onestop_id=...", "operator_onestop_id=o-9q9-caltrain"),
+					}},
+					&pref{Value: &param{
+						Name:        "include_geometry",
+						In:          "query",
+						Description: `Include route geometry`,
+						Schema:      newSRVal("string", "", []any{"true", "false"}),
+						Extensions:  newExt("", "include_geometry=true", ""),
+					}},
+					newPRef("idParam"),
+					newPRef("includeAlertsParam"),
+					newPRef("afterParam"),
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=png", "?format=png&feed_onestop_id=f-dr5r7-nycdotsiferry"),
+					newPRefExt("searchParam", "", "search=daly+city", "?search=daly+city"),
+					newPRefExt("onestopParam", "", "onestop_id=r-9q9j-l1", "/routes?onestop_id=r-9q9j-l1"),
+					newPRefExt("sha1Param", "", "feed_version_sha1=041ffeec...", "feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"),
+					newPRefExt("feedParam", "", "feed_onestop_id=f-sf~bay~area~rg", ""),
+					newPRefExt("radiusParam", "Search for routes geographically, based on stops at this location; radius is in meters, requires lon and lat", "lon=-122&lat=37&radius=1000", "lon=-122.3&lat=37.8&radius=1000"),
+					newPRef("latParam"),
+					newPRef("lonParam"),
+					newPRefExt("bboxParam", "", "bbox=-122.269,37.807,-122.267,37.808", ""),
+					newPRef("licenseCommercialUseAllowedParam"),
+					newPRef("licenseShareAlikeOptionalParam"),
+					newPRef("licenseCreateDerivedProductParam"),
+					newPRef("licenseRedistributionAllowedParam"),
+					newPRef("licenseUseWithoutAttributionParam"),
 				},
 			},
 		},
@@ -271,5 +185,70 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 		"include_alerts":   r.IncludeAlerts,
 		"include_geometry": r.IncludeGeometry,
 		"include_stops":    r.IncludeStops,
+	}
+}
+
+//////////
+
+type RouteKeyRequest struct {
+	RouteRequest
+}
+
+func (r RouteKeyRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/routes/{route_key}",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Routes",
+				Description: `Search for routes`,
+				Responses:   queryToResponses(routeQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "route_key",
+						In:          "path",
+						Description: `Route lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs route_id>' key, or a Onestop ID`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					newPRef("limitParam"),
+					newPRef("formatParam"),
+					newPRef("includeAlertsParam"),
+				},
+			},
+		},
+	}
+}
+
+//////////
+
+type AgencyRouteRequest struct {
+	RouteRequest
+}
+
+func (r AgencyRouteRequest) RequestInfo() RequestInfo {
+	// Include all base parameters except for agency_key
+	baseInfo := RouteRequest{}.RequestInfo()
+	var params oa.Parameters
+	params = append(params, &pref{Value: &param{
+		Name:        "agency_key",
+		In:          "path",
+		Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+		Schema:      newSRVal("string", "", nil),
+	}})
+	for _, param := range baseInfo.PathItem.Get.Parameters {
+		if param.Value != nil && param.Value.Name == "agency_key" {
+			continue
+		}
+		params = append(params, param)
+	}
+	return RequestInfo{
+		Path: "/agencies/{agency_key}/routes",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Routes",
+				Description: `Search for routes`,
+				Responses:   queryToResponses(routeQuery),
+				Parameters:  params,
+			},
+		},
 	}
 }

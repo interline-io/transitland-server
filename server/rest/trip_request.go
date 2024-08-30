@@ -34,137 +34,61 @@ func (r TripRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/routes/{route_key}/trips",
 		PathItem: &oa.PathItem{
-			Extensions: map[string]any{
-				"x-alternates": []any{map[string]any{"description": "Request trips in specified format", "method": "get", "path": "/routes/{route_key}/trips.{format}"}, map[string]any{"description": "Request a single trip by ID", "method": "get", "path": "/routes/{route_key}/trips/{id}"}, map[string]any{"description": "Request a single trip by ID in specified format", "method": "get", "path": "/routes/{route_key}/trips/{id}.format"}},
-			},
 			Get: &oa.Operation{
 				Summary:     "Trips",
 				Description: `Search for trips`,
 				Responses:   queryToResponses(tripQuery),
 				Parameters: oa.Parameters{
-					&pref{
-						Ref: "#/components/parameters/includeAlertsParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/idParam",
-					},
-					&pref{
-						Value: &param{
-							Name:        "route_key",
-							In:          "path",
-							Description: `Route lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs route_id>' key, or a Onestop ID`,
-							Required:    true,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/afterParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/limitParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "limit=1", "url": "/routes/r-9q9j-l1/trips?limit=1"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/formatParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "format=geojson", "url": "/routes/r-9q9j-l1/trips?limit=10&format=geojson"}},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "service_date",
-							In:          "query",
-							Description: `Search for trips active on this date`,
-							Schema: &sref{
-								Value: newSchema("string", "date", nil),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "service_date=...", "url": "/routes/r-9q9j-l1/trips?service_date=2021-07-14"}},
-							},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/relativeDateParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "/routes/r-9q9j-l1/trips?relative_date=NEXT_MONDAY", "url": "/routes/r-9q9j-l1/trips?relative_date=NEXT_MONDAY"}},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "trip_id",
-							In:          "query",
-							Description: `Search for records with this GTFS trip_id`,
-							Schema: &sref{
-								Value: newSchema("string", "", nil),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "trip_id=305", "url": "/routes/r-9q9j-l1/trips?trip_id=305"}},
-							},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "include_geometry",
-							In:          "query",
-							Description: `Include shape geometry`,
-							Schema: &sref{
-								Value: newSchema("string", "", []any{"true", "false"}),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "include_geometry=true", "url": "/routes/r-9q9j-l1/trips?limit=10&include_geometry=true"}},
-							},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/sha1Param",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "feed_version_sha1=041ffeec...", "url": "/routes/r-9q9j-l1/trips?feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"}},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/feedParam",
-						Extensions: map[string]any{
-							"x-example-requests": []any{map[string]any{"description": "feed_onestop_id=f-sf~bay~area~rg", "url": "/routes/r-9q9j-l1/trips?feed_onestop_id=f-sf~bay~area~rg"}},
-						},
-					},
-					&pref{
-						Value: &param{
-							Name:        "use_service_window",
-							In:          "query",
-							Description: `Use a fall-back service date if the requested service_date is outside the active service period of the feed version. The fall-back date is selected as the matching day-of-week in the week which provides the best level of scheduled service in the feed version. This value defaults to true.`,
-							Schema: &sref{
-								Value: newSchema("string", "", []any{"true", "false"}),
-							},
-							Extensions: map[string]any{
-								"x-example-requests": []any{map[string]any{"description": "use_service_window=false", "url": "/routes/r-9q9j-l1/trips?use_service_window=false"}},
-							},
-						},
-					},
-					&pref{
-						Ref: "#/components/parameters/latParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/lonParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseCommercialUseAllowedParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseShareAlikeOptionalParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseCreateDerivedProductParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseRedistributionAllowedParam",
-					},
-					&pref{
-						Ref: "#/components/parameters/licenseUseWithoutAttributionParam",
-					},
+					&pref{Value: &param{
+						Name:        "route_key",
+						In:          "path",
+						Description: `Route lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs route_id>' key, or a Onestop ID`,
+						Required:    true,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "service_date",
+						In:          "query",
+						Description: `Search for trips active on this date`,
+						Schema:      newSRVal("string", "date", nil),
+						Extensions:  newExt("", "service_date=...", "route_onestop_id=r-9q9j-l1&service_date=2021-07-14"),
+					}},
+					&pref{Value: &param{
+						Name:        "trip_id",
+						In:          "query",
+						Description: `Search for records with this GTFS trip_id`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "trip_id=305", "route_onestop_id=r-9q9j-l1&trip_id=305"),
+					}},
+					&pref{Value: &param{
+						Name:        "include_geometry",
+						In:          "query",
+						Description: `Include shape geometry`,
+						Schema:      newSRVal("string", "", []any{"true", "false"}),
+						Extensions:  newExt("", "include_geometry=true", "route_onestop_id=r-9q9j-l1&include_geometry=true"),
+					}},
+					&pref{Value: &param{
+						Name:        "use_service_window",
+						In:          "query",
+						Description: `Use a fall-back service date if the requested service_date is outside the active service period of the feed version. The fall-back date is selected as the matching day-of-week in the week which provides the best level of scheduled service in the feed version. This value defaults to true.`,
+						Schema:      newSRVal("string", "", []any{"true", "false"}),
+						Extensions:  newExt("", "use_service_window=false", "route_onestop_id=r-9q9j-l1&use_service_window=false"),
+					}},
+					newPRefExt("relativeDateParam", "", "relative_date=NEXT_MONDAY", "route_onestop_id=r-9q9j-l1&relative_date=NEXT_MONDAY"),
+					newPRef("includeAlertsParam"),
+					newPRef("idParam"),
+					newPRef("afterParam"),
+					newPRefExt("limitParam", "", "limit=1", "route_onestop_id=r-9q9j-l1&limit=10&limit=1"),
+					newPRefExt("formatParam", "", "format=geojson", "route_onestop_id=r-9q9j-l1&limit=10&format=geojson"),
+					newPRefExt("sha1Param", "", "feed_version_sha1=041ffeec...", "route_onestop_id=r-9q9j-l1&feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"),
+					newPRefExt("feedParam", "", "feed_onestop_id=f-sf~bay~area~rg", "route_onestop_id=r-9q9j-l1&feed_onestop_id=f-sf~bay~area~rg"),
+					newPRef("latParam"),
+					newPRef("lonParam"),
+					newPRef("licenseCommercialUseAllowedParam"),
+					newPRef("licenseShareAlikeOptionalParam"),
+					newPRef("licenseCreateDerivedProductParam"),
+					newPRef("licenseRedistributionAllowedParam"),
+					newPRef("licenseUseWithoutAttributionParam"),
 				},
 			},
 		},
@@ -243,4 +167,43 @@ func (r TripRequest) ProcessGeoJSON(response map[string]interface{}) error {
 		}
 	}
 	return processGeoJSON(r, response)
+}
+
+///////////
+
+type TripEntityRequest struct {
+	TripRequest
+}
+
+func (r TripEntityRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/routes/{route_key}/trips/{id}",
+		PathItem: &oa.PathItem{
+			Get: &oa.Operation{
+				Summary:     "Trips",
+				Description: `Search for trips`,
+				Responses:   queryToResponses(tripQuery),
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "route_key",
+						In:          "path",
+						Description: `Route lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs route_id>' key, or a Onestop ID`,
+						Required:    true,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "include_geometry",
+						In:          "query",
+						Description: `Include shape geometry`,
+						Schema:      newSRVal("string", "", []any{"true", "false"}),
+						Extensions:  newExt("", "include_geometry=true", "route_onestop_id=r-9q9j-l1&include_geometry=true"),
+					}},
+					newPRef("includeAlertsParam"),
+					newPRef("idParam"),
+					newPRefExt("limitParam", "", "limit=1", "route_onestop_id=r-9q9j-l1&limit=1"),
+					newPRefExt("formatParam", "", "format=geojson", "route_onestop_id=r-9q9j-l1&format=geojson"),
+				},
+			},
+		},
+	}
 }

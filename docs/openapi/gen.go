@@ -46,21 +46,5 @@ func GenerateOpenAPI() (*oa.T, error) {
 		pathOpts = append(pathOpts, oa.WithPath(requestInfo.Path, requestInfo.PathItem))
 	}
 	outdoc.Paths = oa.NewPaths(pathOpts...)
-
-	// Write output
-	// jj, _ := json.MarshalIndent(outdoc, "", "  ")
-	// out, _ := os.Create(outpath)
-	// out.Write(jj)
-	// out.Close()
-
-	// Validate output
-	// schema, err := oa.NewLoader().LoadFromFile("./rest-out.json")
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	// var validationOpts []oa.ValidationOption
-	// if err := schema.Validate(context.Background(), validationOpts...); err != nil {
-	// 	t.Fatal(err)
-	// }
 	return outdoc, nil
 }

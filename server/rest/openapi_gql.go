@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -39,8 +38,6 @@ func queryToResponses(queryString string) *openapi3.Responses {
 		Content:     openapi3.NewContentWithSchemaRef(&responseObj, []string{"application/json"}),
 	}})
 	ret := openapi3.NewResponses(res)
-	jj, _ := json.MarshalIndent(ret, "", "  ")
-	fmt.Println(string(jj))
 	return ret
 }
 
