@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"text/template"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	oa "github.com/getkin/kin-openapi/openapi3"
@@ -61,35 +60,10 @@ func TestGen(t *testing.T) {
 				selRecurse(sel, root.Components.Schemas, 0)
 			}
 		}
-
 		_ = k
-
 	}
-
 	jj, _ := json.MarshalIndent(root, "", "  ")
 	fmt.Println(string(jj))
-}
-
-func TestConvertOpenAPI(t *testing.T) {
-	schema, err := oa.NewLoader().LoadFromFile("./rest.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	var validationOpts []oa.ValidationOption
-	if err := schema.Validate(context.Background(), validationOpts...); err != nil {
-		t.Fatal(err)
-	}
-
-	// Output Generated Go
-	tmpl, err := template.New("openapi.tmpl").ParseFiles("./openapi.tmpl")
-	if err != nil {
-		t.Fatal(err)
-	}
-	out, _ := os.Create("openapi_out.go")
-	defer out.Close()
-	if err := tmpl.Execute(out, schema); err != nil {
-		t.Fatal(err)
-	}
 }
 
 func TestValidateSchema(t *testing.T) {
@@ -104,16 +78,14 @@ func TestValidateSchema(t *testing.T) {
 			},
 		},
 	}
-	_ = outdoc
-
 	outdoc.Components = &oa.Components{
 		Parameters: oa.ParametersMap{},
 	}
-	for paramName, paramRef := range parameterComponents {
+	for paramName, paramRef := range rest.ParameterComponents {
 		outdoc.Components.Parameters[paramName] = paramRef
 	}
 	var pathOpts []oa.NewPathsOption
-	for pathName, pathItem := range pathItems {
+	for pathName, pathItem := range rest.PathItems {
 		desc := "ok"
 		res := openapi3.WithStatus(200, &oa.ResponseRef{Value: &oa.Response{
 			Description: &desc,
@@ -123,8 +95,7 @@ func TestValidateSchema(t *testing.T) {
 	}
 	outdoc.Paths = oa.NewPaths(pathOpts...)
 
-	// jj, _ := json.MarshalIndent(outdoc, "", "  ")
-	jj, _ := outdoc.MarshalJSON()
+	jj, _ := json.MarshalIndent(outdoc, "", "  ")
 
 	out, _ := os.Create("rest-out.json")
 	out.Write(jj)
@@ -138,5 +109,4 @@ func TestValidateSchema(t *testing.T) {
 	if err := schema.Validate(context.Background(), validationOpts...); err != nil {
 		t.Fatal(err)
 	}
-
 }
