@@ -202,6 +202,37 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"WARM"},
 		},
+		// served_by_route_types
+		{
+			name:         "served_by_route_types=[2]",
+			query:        `query{stops(where:{feed_onestop_id: "HA", served_by_route_types:[0]}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"6690", "6691", "6692", "6693", "6694", "6695", "6698", "6699", "6700", "6701", "7713"},
+		},
+		{
+			name:         "served_by_route_types=[0,4]",
+			query:        `query{stops(where:{feed_onestop_id: "HA", served_by_route_types:[0,4]}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"6690", "6691", "6692", "6693", "6694", "6695", "6698", "6699", "6700", "6701", "7713", "8030", "8031", "8032", "8033", "8034", "8035", "8038", "8039", "8040", "8041", "8042", "8043"},
+		},
+		{
+			name:         "served_by_route_type=0",
+			query:        `query{stops(where:{feed_onestop_id: "HA", served_by_route_type:4}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"6690", "6691", "6692", "6693", "6694", "6695", "6698", "6699", "6700", "6701", "7713"},
+		},
+		{
+			name:         "served_by_route_type=4",
+			query:        `query{stops(where:{feed_onestop_id: "HA", served_by_route_type:4}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"8030", "8031", "8032", "8033", "8034", "8035", "8038", "8039", "8040", "8041", "8042", "8043"},
+		},
+		{
+			name:         "served_by_route_type=0 served_by_route_types=[4]",
+			query:        `query{stops(where:{feed_onestop_id: "HA", served_by_route_type:0, served_by_route_types:[4]}) { stop_id } }`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"6690", "6691", "6692", "6693", "6694", "6695", "6698", "6699", "6700", "6701", "7713", "8030", "8031", "8032", "8033", "8034", "8035", "8038", "8039", "8040", "8041", "8042", "8043"},
+		},
 		// served_by_onestop_ids
 		{
 			name:         "served_by_onestop_ids=o-9q9-bayarearapidtransit",

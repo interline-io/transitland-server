@@ -8732,6 +8732,8 @@ input StopFilter {
   served_by_onestop_ids: [String!]
   "Search for stopswith service by routes with the specified GTFS route_type"
   served_by_route_type: Int
+  "Search for stopswith service by routes with any of the specified GTFS route_types"
+  served_by_route_types: [Int!]
   "Search for stops with these agency integer IDs. Deprecated."
   agency_ids: [Int!]
 }
@@ -49900,7 +49902,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "bbox", "within", "near", "search", "license", "served_by_onestop_ids", "served_by_route_type", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "bbox", "within", "near", "search", "license", "served_by_onestop_ids", "served_by_route_type", "served_by_route_types", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -50019,6 +50021,13 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj in
 				return it, err
 			}
 			it.ServedByRouteType = data
+		case "served_by_route_types":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("served_by_route_types"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ServedByRouteTypes = data
 		case "agency_ids":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agency_ids"))
 			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)

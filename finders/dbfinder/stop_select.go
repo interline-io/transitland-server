@@ -3,6 +3,7 @@ package dbfinder
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/lib/pq"
 )
 
 func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.StopFilter) sq.SelectBuilder {
@@ -109,7 +110,13 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 
 		// Served by route type
 		if where.ServedByRouteType != nil {
-			q = q.JoinClause(`join lateral (select tlrs_rt.stop_id from tl_route_stops tlrs_rt join gtfs_routes on gtfs_routes.id = tlrs_rt.route_id where tlrs_rt.stop_id = gtfs_stops.id and gtfs_routes.route_type = ? limit 1) rt on true`, *where.ServedByRouteType)
+			where.ServedByRouteTypes = append(where.ServedByRouteTypes, *where.ServedByRouteType)
+		}
+		if len(where.ServedByRouteTypes) > 0 {
+			q = q.JoinClause(
+				`join lateral (select tlrs_rt.stop_id from tl_route_stops tlrs_rt join gtfs_routes on gtfs_routes.id = tlrs_rt.route_id where tlrs_rt.stop_id = gtfs_stops.id and gtfs_routes.route_type = ANY(?) limit 1) rt on true`,
+				pq.Array(where.ServedByRouteTypes),
+			)
 		}
 
 		// Accepts both route and operator Onestop IDs

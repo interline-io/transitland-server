@@ -781,6 +781,8 @@ type StopFilter struct {
 	ServedByOnestopIds []string `json:"served_by_onestop_ids,omitempty"`
 	// Search for stopswith service by routes with the specified GTFS route_type
 	ServedByRouteType *int `json:"served_by_route_type,omitempty"`
+	// Search for stopswith service by routes with any of the specified GTFS route_types
+	ServedByRouteTypes []int `json:"served_by_route_types,omitempty"`
 	// Search for stops with these agency integer IDs. Deprecated.
 	AgencyIds []int `json:"agency_ids,omitempty"`
 }
