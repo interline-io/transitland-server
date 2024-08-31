@@ -1098,12 +1098,12 @@ type FeedVersionResolver interface {
 	Segments(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.Segment, error)
 }
 type FeedVersionGtfsImportResolver interface {
-	SkipEntityErrorCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
-	EntityCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
-	WarningCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
-	SkipEntityReferenceCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
-	SkipEntityFilterCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
-	SkipEntityMarkedCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (interface{}, error)
+	SkipEntityErrorCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (any, error)
+	EntityCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (any, error)
+	WarningCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (any, error)
+	SkipEntityReferenceCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (any, error)
+	SkipEntityFilterCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (any, error)
+	SkipEntityMarkedCount(ctx context.Context, obj *model.FeedVersionGtfsImport) (any, error)
 }
 type LevelResolver interface {
 	Stops(ctx context.Context, obj *model.Level) ([]*model.Stop, error)
@@ -19518,7 +19518,7 @@ func (ec *executionContext) _FeedVersionGtfsImport_skip_entity_error_count(ctx c
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(any)
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
@@ -19559,7 +19559,7 @@ func (ec *executionContext) _FeedVersionGtfsImport_entity_count(ctx context.Cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(any)
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
@@ -19600,7 +19600,7 @@ func (ec *executionContext) _FeedVersionGtfsImport_warning_count(ctx context.Con
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(any)
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
@@ -19641,7 +19641,7 @@ func (ec *executionContext) _FeedVersionGtfsImport_skip_entity_reference_count(c
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(any)
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
@@ -19682,7 +19682,7 @@ func (ec *executionContext) _FeedVersionGtfsImport_skip_entity_filter_count(ctx 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(any)
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
@@ -19723,7 +19723,7 @@ func (ec *executionContext) _FeedVersionGtfsImport_skip_entity_marked_count(ctx 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(any)
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
@@ -62224,7 +62224,7 @@ func (ec *executionContext) marshalOAlert2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋ
 	return ret
 }
 
-func (ec *executionContext) unmarshalOAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
+func (ec *executionContext) unmarshalOAny2interface(ctx context.Context, v interface{}) (any, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -62232,7 +62232,7 @@ func (ec *executionContext) unmarshalOAny2interface(ctx context.Context, v inter
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.SelectionSet, v any) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
