@@ -11,6 +11,10 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+func ptr[T any](v T) *T {
+	return &v
+}
+
 func TestRouteRequest(t *testing.T) {
 	routeIds := []string{"1", "12", "14", "15", "16", "17", "19", "20", "24", "25", "275", "30", "31", "32", "33", "34", "35", "36", "360", "37", "38", "39", "400", "42", "45", "46", "48", "5", "51", "6", "60", "7", "75", "8", "9", "96", "97", "570", "571", "572", "573", "574", "800", "PWT", "SKY", "01", "03", "05", "07", "11", "19", "Bu-130", "Li-130", "Lo-130", "TaSj-130", "Gi-130", "Sp-130"}
 	fv := "e535eb2b3b9ac3ef15d82c56575e914575e732e0"
@@ -36,15 +40,21 @@ func TestRouteRequest(t *testing.T) {
 		{
 
 			name:         "route_type:2",
-			h:            RouteRequest{RouteType: "2"},
+			h:            RouteRequest{RouteType: ptr(2)},
 			selector:     "routes.#.route_id",
 			expectSelect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130"},
 		},
 		{
 			name:         "route_type:1",
-			h:            RouteRequest{RouteType: "1"},
+			h:            RouteRequest{RouteType: ptr(1)},
 			selector:     "routes.#.route_id",
 			expectSelect: []string{"01", "03", "05", "07", "11", "19"},
+		},
+		{
+			name:         "route_types:1,4",
+			h:            RouteRequest{RouteTypes: "1,4"},
+			selector:     "routes.#.route_id",
+			expectSelect: []string{"01", "03", "05", "07", "11", "19", "PWT"},
 		},
 		{
 			name:         "feed_onestop_id,route_id",

@@ -103,26 +103,38 @@ func TestStopRequest(t *testing.T) {
 			expectLength: 114,
 		},
 		{
+			name:         "served_by_route_types=0,4",
+			h:            StopRequest{ServedByRouteTypes: "0,4", FeedOnestopID: "HA", WithCursor: WithCursor{Limit: 1000}},
+			selector:     "stops.#.stop_id",
+			expectLength: 23,
+		},
+		{
+			name:         "served_by_route_types=0",
+			h:            StopRequest{ServedByRouteTypes: "0", FeedOnestopID: "HA", WithCursor: WithCursor{Limit: 1000}},
+			selector:     "stops.#.stop_id",
+			expectLength: 11,
+		},
+		{
 			name:         "served_by_route_type=0",
-			h:            StopRequest{ServedByRouteType: intp(0), FeedOnestopID: "HA", WithCursor: WithCursor{Limit: 1000}},
+			h:            StopRequest{ServedByRouteType: ptr(0), FeedOnestopID: "HA", WithCursor: WithCursor{Limit: 1000}},
 			selector:     "stops.#.stop_id",
 			expectLength: 11,
 		},
 		{
 			name:         "served_by_route_type=1",
-			h:            StopRequest{ServedByRouteType: intp(1), FeedOnestopID: "BA", WithCursor: WithCursor{Limit: 1000}},
+			h:            StopRequest{ServedByRouteType: ptr(1), FeedOnestopID: "BA", WithCursor: WithCursor{Limit: 1000}},
 			selector:     "stops.#.stop_id",
 			expectLength: 50,
 		},
 		{
 			name:         "served_by_route_type=2",
-			h:            StopRequest{ServedByRouteType: intp(2), FeedOnestopID: "CT", WithCursor: WithCursor{Limit: 1000}},
+			h:            StopRequest{ServedByRouteType: ptr(2), FeedOnestopID: "CT", WithCursor: WithCursor{Limit: 1000}},
 			selector:     "stops.#.stop_id",
 			expectLength: 62,
 		},
 		{
 			name:         "served_by_route_type=3",
-			h:            StopRequest{ServedByRouteType: intp(3), FeedOnestopID: "CT", WithCursor: WithCursor{Limit: 1000}},
+			h:            StopRequest{ServedByRouteType: ptr(3), FeedOnestopID: "CT", WithCursor: WithCursor{Limit: 1000}},
 			selector:     "stops.#.stop_id",
 			expectLength: 2,
 		},
@@ -353,8 +365,4 @@ func TestStopRequest_License(t *testing.T) {
 			checkTestCase(t, tc)
 		})
 	}
-}
-
-func intp(v int) *int {
-	return &v
 }

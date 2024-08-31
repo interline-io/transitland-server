@@ -17,7 +17,8 @@ type RouteRequest struct {
 	RouteKey          string    `json:"route_key"`
 	AgencyKey         string    `json:"agency_key"`
 	RouteID           string    `json:"route_id"`
-	RouteType         string    `json:"route_type"`
+	RouteType         *int      `json:"route_type"`
+	RouteTypes        string    `json:"route_types"`
 	OnestopID         string    `json:"onestop_id"`
 	OperatorOnestopID string    `json:"operator_onestop_id"`
 	Format            string    `json:"format"`
@@ -69,7 +70,14 @@ func (r RouteRequest) RequestInfo() RequestInfo {
 						In:          "query",
 						Description: `Search for routes with this GTFS route (vehicle) type`,
 						Schema:      newSRVal("integer", "", nil),
-						Extensions:  newExt("", "route_type=1", "?route_type=1"),
+						Extensions:  newExt("", "route_type=1", "route_type=1"),
+					}},
+					&pref{Value: &param{
+						Name:        "route_types",
+						In:          "query",
+						Description: `Search for routes with these GTFS route (vehicle) types. Accepts comma separated values.`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "route_types=1,2", "route_types=1,2"),
 					}},
 					&pref{Value: &param{
 						Name:        "operator_onestop_id",
@@ -155,8 +163,11 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 	if r.RouteID != "" {
 		where["route_id"] = r.RouteID
 	}
-	if r.RouteType != "" {
-		where["route_type"] = r.RouteType
+	if r.RouteType != nil {
+		where["route_type"] = *r.RouteType
+	}
+	if r.RouteTypes != "" {
+		where["route_types"] = commaSplit(r.RouteTypes)
 	}
 	if r.OnestopID != "" {
 		where["onestop_id"] = r.OnestopID
