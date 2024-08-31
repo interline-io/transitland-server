@@ -8680,6 +8680,8 @@ input RouteFilter {
   route_id: String
   "Search for routes with this GTFS route_type"
   route_type: Int
+  "Search for routes with any of these GTFS route_types"
+  route_types: [Int!]
   "Search for routes with 1 or more trips (true) or 0 or more trips (false or null)"
   serviced: Boolean
   "Search for routes within this bounding box"
@@ -49647,7 +49649,7 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "route_id", "route_type", "serviced", "bbox", "within", "near", "search", "operator_onestop_id", "license", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "route_id", "route_type", "route_types", "serviced", "bbox", "within", "near", "search", "operator_onestop_id", "license", "agency_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49703,6 +49705,13 @@ func (ec *executionContext) unmarshalInputRouteFilter(ctx context.Context, obj i
 				return it, err
 			}
 			it.RouteType = data
+		case "route_types":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("route_types"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RouteTypes = data
 		case "serviced":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviced"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)

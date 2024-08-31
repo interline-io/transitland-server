@@ -1580,6 +1580,8 @@ input RouteFilter {
   route_id: String
   "Search for routes with this GTFS route_type"
   route_type: Int
+  "Search for routes with any of these GTFS route_types"
+  route_types: [Int!]
   "Search for routes with 1 or more trips (true) or 0 or more trips (false or null)"
   serviced: Boolean
   "Search for routes within this bounding box"

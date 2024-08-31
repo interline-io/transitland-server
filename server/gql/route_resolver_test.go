@@ -128,6 +128,24 @@ func TestRouteResolver(t *testing.T) {
 			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130"},
 		},
 		{
+			name:         "where route_types=[2]",
+			query:        `query {routes(where:{route_types:[2]}) {route_id} }`,
+			selector:     "routes.#.route_id",
+			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130"},
+		},
+		{
+			name:         "where route_types=[0,2]",
+			query:        `query {routes(where:{route_types:[0,2]}) {route_id} }`,
+			selector:     "routes.#.route_id",
+			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130", "800"},
+		},
+		{
+			name:         "where route_type=0 route_types=[2]",
+			query:        `query {routes(where:{route_type:0, route_types:[2]}) {route_id} }`,
+			selector:     "routes.#.route_id",
+			selectExpect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130", "800"},
+		},
+		{
 			name:         "where search",
 			query:        `query {routes(where:{search:"warm"}) {route_id} }`,
 			selector:     "routes.#.route_id",

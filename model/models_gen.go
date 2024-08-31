@@ -566,6 +566,8 @@ type RouteFilter struct {
 	RouteID *string `json:"route_id,omitempty"`
 	// Search for routes with this GTFS route_type
 	RouteType *int `json:"route_type,omitempty"`
+	// Search for routes with any of these GTFS route_types
+	RouteTypes []int `json:"route_types,omitempty"`
 	// Search for routes with 1 or more trips (true) or 0 or more trips (false or null)
 	Serviced *bool `json:"serviced,omitempty"`
 	// Search for routes within this bounding box

@@ -70,7 +70,10 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 			q = q.Where(sq.Eq{"gtfs_routes.route_id": *where.RouteID})
 		}
 		if where.RouteType != nil {
-			q = q.Where(sq.Eq{"gtfs_routes.route_type": where.RouteType})
+			where.RouteTypes = append(where.RouteTypes, *where.RouteType)
+		}
+		if len(where.RouteTypes) > 0 {
+			q = q.Where(sq.Eq{"gtfs_routes.route_type": where.RouteTypes})
 		}
 		if where.FeedVersionSha1 != nil {
 			q = q.Where("feed_versions.id = (select id from feed_versions where sha1 = ? limit 1)", *where.FeedVersionSha1)
