@@ -27,6 +27,7 @@ type StopRequest struct {
 	Format             string    `json:"format"`
 	ServedByOnestopIds string    `json:"served_by_onestop_ids"`
 	ServedByRouteType  *int      `json:"served_by_route_type,string"`
+	ServedByRouteTypes string    `json:"served_by_route_types"`
 	IncludeAlerts      bool      `json:"include_alerts,string"`
 	IncludeRoutes      bool      `json:"include_routes,string"`
 	LicenseFilter
@@ -65,9 +66,16 @@ func (r StopRequest) RequestInfo() RequestInfo {
 					&pref{Value: &param{
 						Name:        "served_by_route_type",
 						In:          "query",
-						Description: `Search for stops served by a particular route (vehicle) type`,
+						Description: `Search for stops served by a particular route (vehicle) type.`,
 						Schema:      newSRVal("integer", "", nil),
 						Extensions:  newExt("", "served_by_route_type=1", "served_by_route_type=1"),
+					}},
+					&pref{Value: &param{
+						Name:        "served_by_route_types",
+						In:          "query",
+						Description: `Search for stops served by particular route (vehicle) types. Accepts comma separated values.`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "served_by_route_types=1,2", "served_by_route_types=1,2"),
 					}},
 					newPRef("includeAlertsParam"),
 					newPRef("idParam"),
@@ -139,6 +147,9 @@ func (r StopRequest) Query() (string, map[string]any) {
 	}
 	if r.ServedByRouteType != nil {
 		where["served_by_route_type"] = *r.ServedByRouteType
+	}
+	if r.ServedByRouteTypes != "" {
+		where["served_by_route_types"] = commaSplit(r.ServedByRouteTypes)
 	}
 	where["license"] = checkLicenseFilter(r.LicenseFilter)
 	return stopQuery, hw{

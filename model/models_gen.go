@@ -566,6 +566,8 @@ type RouteFilter struct {
 	RouteID *string `json:"route_id,omitempty"`
 	// Search for routes with this GTFS route_type
 	RouteType *int `json:"route_type,omitempty"`
+	// Search for routes with any of these GTFS route_types
+	RouteTypes []int `json:"route_types,omitempty"`
 	// Search for routes with 1 or more trips (true) or 0 or more trips (false or null)
 	Serviced *bool `json:"serviced,omitempty"`
 	// Search for routes within this bounding box
@@ -781,6 +783,8 @@ type StopFilter struct {
 	ServedByOnestopIds []string `json:"served_by_onestop_ids,omitempty"`
 	// Search for stopswith service by routes with the specified GTFS route_type
 	ServedByRouteType *int `json:"served_by_route_type,omitempty"`
+	// Search for stopswith service by routes with any of the specified GTFS route_types
+	ServedByRouteTypes []int `json:"served_by_route_types,omitempty"`
 	// Search for stops with these agency integer IDs. Deprecated.
 	AgencyIds []int `json:"agency_ids,omitempty"`
 }
