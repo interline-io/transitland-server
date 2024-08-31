@@ -217,7 +217,7 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 		},
 		{
 			name:         "served_by_route_type=0",
-			query:        `query{stops(where:{feed_onestop_id: "HA", served_by_route_type:4}) { stop_id } }`,
+			query:        `query{stops(where:{feed_onestop_id: "HA", served_by_route_type:0}) { stop_id } }`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"6690", "6691", "6692", "6693", "6694", "6695", "6698", "6699", "6700", "6701", "7713"},
 		},
