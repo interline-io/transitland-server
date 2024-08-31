@@ -1632,6 +1632,8 @@ input StopFilter {
   served_by_onestop_ids: [String!]
   "Search for stopswith service by routes with the specified GTFS route_type"
   served_by_route_type: Int
+  "Search for stopswith service by routes with any of the specified GTFS route_types"
+  served_by_route_types: [Int!]
   "Search for stops with these agency integer IDs. Deprecated."
   agency_ids: [Int!]
 }
