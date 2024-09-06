@@ -197,7 +197,7 @@ func gqlRecurse(recurseValue any, parentSchema oa.Schemas, level int, order int)
 	switch field := recurseValue.(type) {
 	case *ast.Field:
 		fmt.Printf("%s %s %T\n", indent, field.Alias, field)
-		schemaSetType(sref, field.Definition.Type)
+		schemaSetType(sref, field.Definition.Type, false)
 		childProps := schema.Properties
 		if field.Definition.Type.NamedType == "" {
 			childProps = schema.Items.Value.Properties
@@ -210,11 +210,7 @@ func gqlRecurse(recurseValue any, parentSchema oa.Schemas, level int, order int)
 		schema.Nullable = !field.Definition.Type.NonNull
 	case *ast.FieldDefinition:
 		fmt.Printf("%s %s %T\n", indent, field.Name, field)
-		if field.Name == "vehicle_equipment" {
-			fmt.Printf("\t\t\t\t\t%#v\n", field.Type)
-		}
-
-		schemaSetType(sref, field.Type)
+		schemaSetType(sref, field.Type, true)
 		schema.Title = field.Name
 		schema.Description = field.Description
 	case *ast.Definition:
@@ -255,27 +251,35 @@ func gqlRecurse(recurseValue any, parentSchema oa.Schemas, level int, order int)
 	parentSchema[schema.Title] = sref
 }
 
-func schemaSetType(sref *oa.SchemaRef, t *ast.Type) {
+func schemaSetType(sref *oa.SchemaRef, t *ast.Type, allowRef bool) {
 	namedType, isArray := baseType(t)
+	if sref.Extensions == nil {
+		sref.Extensions = map[string]any{}
+	}
+	sref.Extensions["x-graphql-type"] = t.String()
 	if isArray {
 		sref.Value.Type = &oa.Types{"array"}
-		sref.Extensions["x-graphql-type"] = t.String()
+
 		itemSref := &oa.SchemaRef{Value: &oa.Schema{
 			Properties: oa.Schemas{},
 			Extensions: map[string]any{},
 		}}
-		schemaSetType(itemSref, t.Elem)
+		schemaSetType(itemSref, t.Elem, allowRef)
 		sref.Value.Items = itemSref
 	}
 	if scalarTypeFn, ok := gqlScalarToOASchema[namedType]; ok {
 		scalarType := scalarTypeFn()
+		if sref.Extensions == nil {
+			sref.Extensions = map[string]any{}
+		}
+		sref.Extensions["x-graphql-type"] = t.String()
 		sref.Value.Type = scalarType.Type
 		sref.Value.Format = scalarType.Format
 		sref.Value.Example = scalarType.Example
 		if scalarType.Items != nil {
 			sref.Value.Items = scalarType.Items
 		}
-	} else if !isArray && !strings.HasPrefix(namedType, "_") {
+	} else if allowRef && !isArray && !strings.HasPrefix(namedType, "_") {
 		sref.Ref = fmt.Sprintf("#/components/schemas/%s", namedType)
 	}
 }

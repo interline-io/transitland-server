@@ -18,7 +18,7 @@ func TestGenerateOpenAPI(t *testing.T) {
 
 	// Write output
 	jj, _ := json.MarshalIndent(outdoc, "", "  ")
-	f, err := os.Create("rest.swagger.json")
+	f, err := os.Create("rest.json")
 	if err != nil {
 		t.Fatal(err)
 	}
