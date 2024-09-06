@@ -36,7 +36,7 @@ func (r FeedVersionRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Feed Versions",
 				Description: `Search for feed versions`,
-				Responses:   queryToOAResponses(feedVersionQuery),
+				Responses:   generateOpenAPIResponses(feedVersionQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "feed_version_key",

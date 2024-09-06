@@ -44,7 +44,7 @@ func (r RouteRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Routes",
 				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
+				Responses:   generateOpenAPIResponses(routeQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
@@ -212,7 +212,7 @@ func (r RouteKeyRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Routes",
 				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
+				Responses:   generateOpenAPIResponses(routeQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
@@ -257,7 +257,7 @@ func (r AgencyRouteRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Routes",
 				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
+				Responses:   generateOpenAPIResponses(routeQuery),
 				Parameters:  params,
 			},
 		},

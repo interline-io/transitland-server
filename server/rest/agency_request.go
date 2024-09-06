@@ -43,7 +43,7 @@ func (r AgencyRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Agencies",
 				Description: ``,
-				Responses:   queryToOAResponses(agencyQuery),
+				Responses:   generateOpenAPIResponses(agencyQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "agency_key",
@@ -177,7 +177,7 @@ func (r AgencyKeyRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Agencies",
 				Description: ``,
-				Responses:   queryToOAResponses(agencyQuery),
+				Responses:   generateOpenAPIResponses(agencyQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "agency_key",

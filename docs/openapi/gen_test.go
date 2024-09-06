@@ -3,20 +3,27 @@ package openapi
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"os"
 	"testing"
 
 	oa "github.com/getkin/kin-openapi/openapi3"
+	"github.com/interline-io/transitland-server/server/rest"
 )
 
 func TestGenerateOpenAPI(t *testing.T) {
-	outdoc, err := GenerateOpenAPI()
+	outdoc, err := rest.GenerateOpenAPI()
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	// Write output
 	jj, _ := json.MarshalIndent(outdoc, "", "  ")
-	fmt.Println(string(jj))
+	f, err := os.Create("rest.swagger.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Write(jj)
+	f.Close()
 
 	// Validate output
 	schema, err := oa.NewLoader().LoadFromData(jj)

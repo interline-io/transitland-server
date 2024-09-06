@@ -37,7 +37,7 @@ func (r TripRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Trips",
 				Description: `Search for trips`,
-				Responses:   queryToOAResponses(tripQuery),
+				Responses:   generateOpenAPIResponses(tripQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
@@ -182,7 +182,7 @@ func (r TripEntityRequest) RequestInfo() RequestInfo {
 			Get: &oa.Operation{
 				Summary:     "Trips",
 				Description: `Search for trips`,
-				Responses:   queryToOAResponses(tripQuery),
+				Responses:   generateOpenAPIResponses(tripQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
