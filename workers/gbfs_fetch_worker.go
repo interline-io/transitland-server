@@ -19,7 +19,7 @@ type GbfsFetchWorker struct {
 	FetchEpoch int64  `json:"fetch_epoch"`
 }
 
-func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
+func (w *GbfsFetchWorker) Run(ctx context.Context, _ jobs.Job) error {
 	cfg := model.ForContext(ctx)
 	log := log.For(ctx)
 	log.Info().Str("feed_id", w.FeedID).Str("url", w.Url).Msg("gbfs-fetch: started")
