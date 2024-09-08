@@ -40,13 +40,13 @@ func TestRouteRequest(t *testing.T) {
 		{
 
 			name:         "route_type:2",
-			h:            RouteRequest{RouteType: ptr(2)},
+			h:            RouteRequest{RouteType: "2"},
 			selector:     "routes.#.route_id",
 			expectSelect: []string{"Bu-130", "Li-130", "Lo-130", "Gi-130", "Sp-130"},
 		},
 		{
 			name:         "route_type:1",
-			h:            RouteRequest{RouteType: ptr(1)},
+			h:            RouteRequest{RouteType: "1"},
 			selector:     "routes.#.route_id",
 			expectSelect: []string{"01", "03", "05", "07", "11", "19"},
 		},

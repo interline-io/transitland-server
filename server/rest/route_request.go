@@ -17,7 +17,7 @@ type RouteRequest struct {
 	RouteKey          string    `json:"route_key"`
 	AgencyKey         string    `json:"agency_key"`
 	RouteID           string    `json:"route_id"`
-	RouteType         *int      `json:"route_type"`
+	RouteType         string    `json:"route_type"`
 	RouteTypes        string    `json:"route_types"`
 	OnestopID         string    `json:"onestop_id"`
 	OperatorOnestopID string    `json:"operator_onestop_id"`
@@ -163,8 +163,8 @@ func (r RouteRequest) Query() (string, map[string]interface{}) {
 	if r.RouteID != "" {
 		where["route_id"] = r.RouteID
 	}
-	if r.RouteType != nil {
-		where["route_type"] = *r.RouteType
+	if r.RouteType != "" {
+		where["route_type"] = r.RouteType
 	}
 	if r.RouteTypes != "" {
 		where["route_types"] = commaSplit(r.RouteTypes)
