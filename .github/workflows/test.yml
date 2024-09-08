@@ -18,6 +18,7 @@ jobs:
       PGHOST: localhost
       PGPORT: 5432
       TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
+      TL_TEST_REDIS_URL: redis://localhost
     services:
       postgres:
         image: postgis/postgis:12-3.2-alpine
@@ -33,16 +34,16 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      # redis:
-      #   image: redis:6.0.8
-      #   ports:
-      #     - 6379:6379
-      #   # Set health checks to wait until redis has started
-      #   options: >-
-      #     --health-cmd "redis-cli ping"
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
+      redis:
+        image: redis:7.4.0-alpine
+        ports:
+          - 6379:6379
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
