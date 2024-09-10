@@ -116,7 +116,7 @@ func In[T any](col string, val []T) sq.Sqlizer {
 	}
 	return sq.Expr(
 		fmt.Sprintf("%s = ANY(?)", az09(col)),
-		val, // pq.Array(val),
+		val,
 	)
 }
 

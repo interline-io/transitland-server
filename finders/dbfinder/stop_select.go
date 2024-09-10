@@ -114,7 +114,7 @@ func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		if len(where.ServedByRouteTypes) > 0 {
 			q = q.JoinClause(
 				`join lateral (select tlrs_rt.stop_id from tl_route_stops tlrs_rt join gtfs_routes on gtfs_routes.id = tlrs_rt.route_id where tlrs_rt.stop_id = gtfs_stops.id and gtfs_routes.route_type = ANY(?) limit 1) rt on true`,
-				where.ServedByRouteTypes, // pq.Array(where.ServedByRouteTypes),
+				where.ServedByRouteTypes,
 			)
 		}
 
