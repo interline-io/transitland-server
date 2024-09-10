@@ -11,7 +11,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/lib/pq"
 )
 
 // Maximum query result limit
@@ -117,7 +116,7 @@ func In[T any](col string, val []T) sq.Sqlizer {
 	}
 	return sq.Expr(
 		fmt.Sprintf("%s = ANY(?)", az09(col)),
-		pq.Array(val),
+		val, // pq.Array(val),
 	)
 }
 
