@@ -18,7 +18,7 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
-	github.com/interline-io/transitland-dbutil v0.0.0-20240617204844-9e866bced7e0
+	github.com/interline-io/transitland-dbutil v0.0.0-20240910220001-ffa4b122a43b
 	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240720064749-913eca1b6d02
 	github.com/interline-io/transitland-mw v0.0.0-20240617205004-a761497c539c
 	github.com/jellydator/ttlcache/v2 v2.11.1
@@ -129,7 +129,7 @@ require (
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -139,12 +139,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
-
-replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
-
-replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
-
-replace github.com/interline-io/log => /Users/irees/src/interline-io/log
-
+// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+// replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
+// replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
+// replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/getkin/kin-openapi => /Users/irees/src/other/kin-openapi
