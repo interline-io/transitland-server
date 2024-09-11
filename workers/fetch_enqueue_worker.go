@@ -17,6 +17,10 @@ type FetchEnqueueWorker struct {
 	FeedIDs         []string `json:"feed_ids"`
 }
 
+func (w *FetchEnqueueWorker) Kind() string {
+	return "fetch-enqueue"
+}
+
 func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	log := log.For(ctx)
 	log.Info().Msg("fetch-enqueue: started")

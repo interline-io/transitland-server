@@ -15,9 +15,17 @@ func (w *testOkWorker) Run(ctx context.Context, job jobs.Job) error {
 	return nil
 }
 
+func (w *testOkWorker) Kind() string {
+	return "test-ok"
+}
+
 type testFailWorker struct{}
 
 func (w *testFailWorker) Run(ctx context.Context, job jobs.Job) error {
 	log.For(ctx).Error().Msg("testFailWorker")
 	return errors.New("testFailWorker")
+}
+
+func (w *testFailWorker) Kind() string {
+	return "test-fail"
 }

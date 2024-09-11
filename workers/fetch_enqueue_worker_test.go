@@ -16,11 +16,7 @@ func TestFetchEnqueueWorker(t *testing.T) {
 		a := "BA"
 		jobQueue := cfg.JobQueue
 		jobQueue.Use(newCfgMiddleware(cfg))
-		jobQueue.AddWorker("default", GetWorker, 1)
-		go func() {
-			jobQueue.Run()
-		}()
-		jobQueue.AddJob(jobs.Job{
+		jobQueue.RunJob(context.Background(), jobs.Job{
 			JobType: "fetch-enqueue",
 			JobArgs: map[string]any{"feed_ids": []string{a}, "ignore_fetch_wait": true},
 		})

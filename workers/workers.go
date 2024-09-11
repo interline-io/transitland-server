@@ -12,35 +12,15 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-// GetWorker returns the correct worker type for this job.
-func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
-	var r jobs.JobWorker
-	class := job.JobType
-	switch class {
-	case "fetch-enqueue":
-		r = &FetchEnqueueWorker{}
-	case "rt-fetch":
-		r = &RTFetchWorker{}
-	case "static-fetch":
-		r = &StaticFetchWorker{}
-	case "gbfs-fetch":
-		r = &GbfsFetchWorker{}
-	case "test-ok":
-		r = &testOkWorker{}
-	case "test-fail":
-		r = &testFailWorker{}
-	default:
-		return nil, errors.New("unknown job type")
+func AllWorkers() []jobs.JobFn {
+	return []jobs.JobFn{
+		func() jobs.JobWorker { return &FetchEnqueueWorker{} },
+		func() jobs.JobWorker { return &RTFetchWorker{} },
+		func() jobs.JobWorker { return &StaticFetchWorker{} },
+		func() jobs.JobWorker { return &GbfsFetchWorker{} },
+		func() jobs.JobWorker { return &testOkWorker{} },
+		func() jobs.JobWorker { return &testFailWorker{} },
 	}
-	// Load json
-	jw, err := json.Marshal(job.JobArgs)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(jw, r); err != nil {
-		return nil, err
-	}
-	return r, nil
 }
 
 // NewServer creates a simple api for submitting and running jobs.
@@ -96,18 +76,17 @@ func runJobRequest(w http.ResponseWriter, req *http.Request) {
 	ret := jobResponse{
 		Job: job,
 	}
-	wk, err := GetWorker(job)
-	if err != nil {
-		ret.Error = err.Error()
+	if jobQueue := model.ForContext(req.Context()).JobQueue; jobQueue == nil {
 		ret.Status = "failed"
-		ret.Success = false
-	} else if err := wk.Run(req.Context(), job); err != nil {
+		ret.Error = "no job queue available"
+	} else if err := jobQueue.RunJob(req.Context(), job); err != nil {
 		ret.Error = err.Error()
 		ret.Status = "failed"
 		ret.Success = false
 	} else {
 		ret.Status = "completed"
 		ret.Success = true
+
 	}
 	writeJobResponse(ret, w)
 }
@@ -118,10 +97,6 @@ func requestGetJob(req *http.Request) (jobs.Job, error) {
 	err := json.NewDecoder(req.Body).Decode(&job)
 	if err != nil {
 		return job, errors.New("error parsing body")
-	}
-	// check worker type
-	if _, err := GetWorker(job); err != nil {
-		return job, err
 	}
 	return job, nil
 }
