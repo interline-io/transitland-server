@@ -277,6 +277,7 @@ type ComplexityRoot struct {
 		SHA1                  func(childComplexity int) int
 		Segments              func(childComplexity int, limit *int) int
 		ServiceLevels         func(childComplexity int, limit *int, where *model.FeedVersionServiceLevelFilter) int
+		ServiceWindow         func(childComplexity int) int
 		Stops                 func(childComplexity int, limit *int, where *model.StopFilter) int
 		Trips                 func(childComplexity int, limit *int, where *model.TripFilter) int
 		URL                   func(childComplexity int) int
@@ -339,6 +340,16 @@ type ComplexityRoot struct {
 		Thursday  func(childComplexity int) int
 		Tuesday   func(childComplexity int) int
 		Wednesday func(childComplexity int) int
+	}
+
+	FeedVersionServiceWindow struct {
+		DefaultTimezone      func(childComplexity int) int
+		EarliestCalendarDate func(childComplexity int) int
+		FallbackWeek         func(childComplexity int) int
+		FeedEndDate          func(childComplexity int) int
+		FeedStartDate        func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		LatestCalendarDate   func(childComplexity int) int
 	}
 
 	FeedVersionUnimportResult struct {
@@ -1089,6 +1100,7 @@ type FeedVersionResolver interface {
 	FeedVersionGtfsImport(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionGtfsImport, error)
 	Files(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedVersionFileInfo, error)
 	ServiceLevels(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.FeedVersionServiceLevelFilter) ([]*model.FeedVersionServiceLevel, error)
+	ServiceWindow(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionServiceWindow, error)
 	Agencies(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.AgencyFilter) ([]*model.Agency, error)
 	Routes(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.RouteFilter) ([]*model.Route, error)
 	Stops(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.StopFilter) ([]*model.Stop, error)
@@ -2394,6 +2406,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FeedVersion.ServiceLevels(childComplexity, args["limit"].(*int), args["where"].(*model.FeedVersionServiceLevelFilter)), true
 
+	case "FeedVersion.service_window":
+		if e.complexity.FeedVersion.ServiceWindow == nil {
+			break
+		}
+
+		return e.complexity.FeedVersion.ServiceWindow(childComplexity), true
+
 	case "FeedVersion.stops":
 		if e.complexity.FeedVersion.Stops == nil {
 			break
@@ -2716,6 +2735,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FeedVersionServiceLevel.Wednesday(childComplexity), true
+
+	case "FeedVersionServiceWindow.default_timezone":
+		if e.complexity.FeedVersionServiceWindow.DefaultTimezone == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionServiceWindow.DefaultTimezone(childComplexity), true
+
+	case "FeedVersionServiceWindow.earliest_calendar_date":
+		if e.complexity.FeedVersionServiceWindow.EarliestCalendarDate == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionServiceWindow.EarliestCalendarDate(childComplexity), true
+
+	case "FeedVersionServiceWindow.fallback_week":
+		if e.complexity.FeedVersionServiceWindow.FallbackWeek == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionServiceWindow.FallbackWeek(childComplexity), true
+
+	case "FeedVersionServiceWindow.feed_end_date":
+		if e.complexity.FeedVersionServiceWindow.FeedEndDate == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionServiceWindow.FeedEndDate(childComplexity), true
+
+	case "FeedVersionServiceWindow.feed_start_date":
+		if e.complexity.FeedVersionServiceWindow.FeedStartDate == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionServiceWindow.FeedStartDate(childComplexity), true
+
+	case "FeedVersionServiceWindow.id":
+		if e.complexity.FeedVersionServiceWindow.ID == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionServiceWindow.ID(childComplexity), true
+
+	case "FeedVersionServiceWindow.latest_calendar_date":
+		if e.complexity.FeedVersionServiceWindow.LatestCalendarDate == nil {
+			break
+		}
+
+		return e.complexity.FeedVersionServiceWindow.LatestCalendarDate(childComplexity), true
 
 	case "FeedVersionUnimportResult.success":
 		if e.complexity.FeedVersionUnimportResult.Success == nil {
@@ -7387,6 +7455,8 @@ type FeedVersion {
   files(limit: Int): [FeedVersionFileInfo!]!
   "Service levels (in seconds per day) for this feed version"
   service_levels(limit: Int, where: FeedVersionServiceLevelFilter): [FeedVersionServiceLevel!]!
+  "Summary details on service dates for this feed version"
+  service_window: FeedVersionServiceWindow
   "Agencies associated with this feed version, if imported"
   agencies(limit: Int, where: AgencyFilter): [Agency!]!
   "Routes associated with this feed version, if imported"
@@ -7455,6 +7525,24 @@ type FeedVersionGtfsImport {
   created_at: Time
   "Updated at"
   updated_at: Time
+}
+
+"""Summary details on service dates in a feed version"""
+type FeedVersionServiceWindow {
+  "Internal integer ID"
+  id: Int!
+  "Feed start date from feed_info.txt, if available"
+  feed_start_date: Date
+  "Feed end date from feed_info.txt, if available"
+  feed_end_date: Date
+  "Calculated earliest calendar date in service schedule"
+  earliest_calendar_date: Date
+  "Calculated latest calendar date in service schedule"
+  latest_calendar_date: Date
+  "Week with most typical service patterns inside the service window"
+  fallback_week: Date
+  "Default timezone for this feed version"
+  default_timezone: String
 }
 
 """Number of seconds of service scheduled for each day in a feed version"""
@@ -11503,6 +11591,8 @@ func (ec *executionContext) fieldContext_Agency_feed_version(_ context.Context, 
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -15315,6 +15405,8 @@ func (ec *executionContext) fieldContext_Feed_feed_versions(ctx context.Context,
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -16784,6 +16876,8 @@ func (ec *executionContext) fieldContext_FeedState_feed_version(_ context.Contex
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -17966,6 +18060,63 @@ func (ec *executionContext) fieldContext_FeedVersion_service_levels(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _FeedVersion_service_window(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersion_service_window(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.FeedVersion().ServiceWindow(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.FeedVersionServiceWindow)
+	fc.Result = res
+	return ec.marshalOFeedVersionServiceWindow2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceWindow(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersion_service_window(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersion",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FeedVersionServiceWindow_id(ctx, field)
+			case "feed_start_date":
+				return ec.fieldContext_FeedVersionServiceWindow_feed_start_date(ctx, field)
+			case "feed_end_date":
+				return ec.fieldContext_FeedVersionServiceWindow_feed_end_date(ctx, field)
+			case "earliest_calendar_date":
+				return ec.fieldContext_FeedVersionServiceWindow_earliest_calendar_date(ctx, field)
+			case "latest_calendar_date":
+				return ec.fieldContext_FeedVersionServiceWindow_latest_calendar_date(ctx, field)
+			case "fallback_week":
+				return ec.fieldContext_FeedVersionServiceWindow_fallback_week(ctx, field)
+			case "default_timezone":
+				return ec.fieldContext_FeedVersionServiceWindow_default_timezone(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FeedVersionServiceWindow", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FeedVersion_agencies(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersion) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FeedVersion_agencies(ctx, field)
 	if err != nil {
@@ -18733,6 +18884,8 @@ func (ec *executionContext) fieldContext_FeedVersionFetchResult_feed_version(_ c
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -20347,6 +20500,296 @@ func (ec *executionContext) fieldContext_FeedVersionServiceLevel_sunday(_ contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionServiceWindow_id(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionServiceWindow_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionServiceWindow_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionServiceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionServiceWindow_feed_start_date(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionServiceWindow_feed_start_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedStartDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionServiceWindow_feed_start_date(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionServiceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Date does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionServiceWindow_feed_end_date(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionServiceWindow_feed_end_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedEndDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionServiceWindow_feed_end_date(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionServiceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Date does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionServiceWindow_earliest_calendar_date(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionServiceWindow_earliest_calendar_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EarliestCalendarDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionServiceWindow_earliest_calendar_date(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionServiceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Date does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionServiceWindow_latest_calendar_date(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionServiceWindow_latest_calendar_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LatestCalendarDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionServiceWindow_latest_calendar_date(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionServiceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Date does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionServiceWindow_fallback_week(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionServiceWindow_fallback_week(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FallbackWeek, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionServiceWindow_fallback_week(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionServiceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Date does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeedVersionServiceWindow_default_timezone(ctx context.Context, field graphql.CollectedField, obj *model.FeedVersionServiceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeedVersionServiceWindow_default_timezone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultTimezone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeedVersionServiceWindow_default_timezone(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeedVersionServiceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -29592,6 +30035,8 @@ func (ec *executionContext) fieldContext_Mutation_feed_version_update(ctx contex
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -32325,6 +32770,8 @@ func (ec *executionContext) fieldContext_Query_feed_versions(ctx context.Context
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -34678,6 +35125,8 @@ func (ec *executionContext) fieldContext_Route_feed_version(_ context.Context, f
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -38912,6 +39361,8 @@ func (ec *executionContext) fieldContext_Stop_feed_version(_ context.Context, fi
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -43602,6 +44053,8 @@ func (ec *executionContext) fieldContext_Trip_feed_version(_ context.Context, fi
 				return ec.fieldContext_FeedVersion_files(ctx, field)
 			case "service_levels":
 				return ec.fieldContext_FeedVersion_service_levels(ctx, field)
+			case "service_window":
+				return ec.fieldContext_FeedVersion_service_window(ctx, field)
 			case "agencies":
 				return ec.fieldContext_FeedVersion_agencies(ctx, field)
 			case "routes":
@@ -52542,6 +52995,39 @@ func (ec *executionContext) _FeedVersion(ctx context.Context, sel ast.SelectionS
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "service_window":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._FeedVersion_service_window(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "agencies":
 			field := field
 
@@ -53340,6 +53826,57 @@ func (ec *executionContext) _FeedVersionServiceLevel(ctx context.Context, sel as
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var feedVersionServiceWindowImplementors = []string{"FeedVersionServiceWindow"}
+
+func (ec *executionContext) _FeedVersionServiceWindow(ctx context.Context, sel ast.SelectionSet, obj *model.FeedVersionServiceWindow) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, feedVersionServiceWindowImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FeedVersionServiceWindow")
+		case "id":
+			out.Values[i] = ec._FeedVersionServiceWindow_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "feed_start_date":
+			out.Values[i] = ec._FeedVersionServiceWindow_feed_start_date(ctx, field, obj)
+		case "feed_end_date":
+			out.Values[i] = ec._FeedVersionServiceWindow_feed_end_date(ctx, field, obj)
+		case "earliest_calendar_date":
+			out.Values[i] = ec._FeedVersionServiceWindow_earliest_calendar_date(ctx, field, obj)
+		case "latest_calendar_date":
+			out.Values[i] = ec._FeedVersionServiceWindow_latest_calendar_date(ctx, field, obj)
+		case "fallback_week":
+			out.Values[i] = ec._FeedVersionServiceWindow_fallback_week(ctx, field, obj)
+		case "default_timezone":
+			out.Values[i] = ec._FeedVersionServiceWindow_default_timezone(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -62684,6 +63221,13 @@ func (ec *executionContext) unmarshalOFeedVersionServiceLevelFilter2ᚖgithubᚗ
 	}
 	res, err := ec.unmarshalInputFeedVersionServiceLevelFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFeedVersionServiceWindow2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedVersionServiceWindow(ctx context.Context, sel ast.SelectionSet, v *model.FeedVersionServiceWindow) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._FeedVersionServiceWindow(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx context.Context, v interface{}) (tt.Float, error) {

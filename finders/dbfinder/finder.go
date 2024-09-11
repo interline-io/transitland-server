@@ -463,7 +463,7 @@ func (f *Finder) CensusTableByID(ctx context.Context, ids []int) ([]*model.Censu
 	return arrangeBy(ids, ents, func(ent *model.CensusTable) int { return ent.ID }), nil
 }
 
-func (f *Finder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
+func (f *Finder) FeedVersionGtfsImportByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
 	var ents []*model.FeedVersionGtfsImport
 	err := dbutil.Select(ctx,
 		f.db,
@@ -474,6 +474,19 @@ func (f *Finder) FeedVersionGtfsImportsByFeedVersionID(ctx context.Context, ids 
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	return arrangeBy(ids, ents, func(ent *model.FeedVersionGtfsImport) int { return ent.FeedVersionID }), nil
+}
+
+func (f *Finder) FeedVersionServiceWindowByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionServiceWindow, []error) {
+	var ents []*model.FeedVersionServiceWindow
+	err := dbutil.Select(ctx,
+		f.db,
+		quickSelect("feed_version_service_windows", nil, nil, nil).Where(In("feed_version_id", ids)),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.FeedVersionServiceWindow) int { return ent.FeedVersionID }), nil
 }
 
 func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {

@@ -291,6 +291,25 @@ type FeedVersionServiceLevelFilter struct {
 	EndDate *tt.Date `json:"end_date,omitempty"`
 }
 
+// Summary details on service dates in a feed version
+type FeedVersionServiceWindow struct {
+	// Internal integer ID
+	ID int `json:"id"`
+	// Feed start date from feed_info.txt, if available
+	FeedStartDate *tt.Date `json:"feed_start_date,omitempty"`
+	// Feed end date from feed_info.txt, if available
+	FeedEndDate *tt.Date `json:"feed_end_date,omitempty"`
+	// Calculated earliest calendar date in service schedule
+	EarliestCalendarDate *tt.Date `json:"earliest_calendar_date,omitempty"`
+	// Calculated latest calendar date in service schedule
+	LatestCalendarDate *tt.Date `json:"latest_calendar_date,omitempty"`
+	// Week with most typical service patterns inside the service window
+	FallbackWeek *tt.Date `json:"fallback_week,omitempty"`
+	// Default timezone for this feed version
+	DefaultTimezone *string `json:"default_timezone,omitempty"`
+	FeedVersionID   int     `json:"-"`
+}
+
 // Update a feed version entity
 type FeedVersionSetInput struct {
 	// Entity ID to update

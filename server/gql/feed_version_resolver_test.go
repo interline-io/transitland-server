@@ -44,6 +44,12 @@ func TestFeedVersionResolver(t *testing.T) {
 			expect: `{"feed_versions":[{"feed_version_gtfs_import":{"in_progress":false,"success":true}}]}`,
 		},
 		{
+			name:   "service_window",
+			query:  `query($feed_version_sha1: String!) {  feed_versions(where:{sha1:$feed_version_sha1}) {service_window{default_timezone feed_start_date feed_end_date earliest_calendar_date latest_calendar_date fallback_week}} }`,
+			vars:   vars,
+			expect: `{"feed_versions":[{"service_window":{"default_timezone":"America/Los_Angeles","earliest_calendar_date":"2017-10-02","fallback_week":"2018-06-18","feed_end_date":null,"feed_start_date":null,"latest_calendar_date":"2019-10-06"}}]}`,
+		},
+		{
 			name:   "feed_infos",
 			query:  `query($feed_version_sha1: String!) {  feed_versions(where:{sha1:$feed_version_sha1}) {feed_infos {feed_publisher_name feed_publisher_url feed_lang feed_version feed_start_date feed_end_date}} }`,
 			vars:   hw{"feed_version_sha1": "e535eb2b3b9ac3ef15d82c56575e914575e732e0"}, // check BART instead

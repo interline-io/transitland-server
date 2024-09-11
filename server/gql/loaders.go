@@ -38,7 +38,8 @@ type Loaders struct {
 	FeedStatesByFeedID                                           *dataloader.Loader[int, *model.FeedState]
 	FeedVersionFileInfosByFeedVersionID                          *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
 	FeedVersionGeometryByID                                      *dataloader.Loader[int, *tt.Polygon]
-	FeedVersionGtfsImportsByFeedVersionID                        *dataloader.Loader[int, *model.FeedVersionGtfsImport]
+	FeedVersionGtfsImportByFeedVersionID                         *dataloader.Loader[int, *model.FeedVersionGtfsImport]
+	FeedVersionServiceWindowByFeedVersionID                      *dataloader.Loader[int, *model.FeedVersionServiceWindow]
 	FeedVersionsByFeedID                                         *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
 	FeedVersionsByID                                             *dataloader.Loader[int, *model.FeedVersion]
 	FeedVersionServiceLevelsByFeedVersionID                      *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
@@ -88,23 +89,23 @@ type Loaders struct {
 // NewLoaders instantiates data loaders for the middleware
 func NewLoaders(dbf model.Finder) *Loaders {
 	loaders := &Loaders{
-		AgenciesByFeedVersionID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByFeedVersionID),
-		AgenciesByID:                            withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByID),
-		AgenciesByOnestopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByOnestopID),
-		AgencyPlacesByAgencyID:                  withWaitAndCapacity(waitTime, maxBatch, dbf.AgencyPlacesByAgencyID),
-		CalendarDatesByServiceID:                withWaitAndCapacity(waitTime, maxBatch, dbf.CalendarDatesByServiceID),
-		CalendarsByID:                           withWaitAndCapacity(waitTime, maxBatch, dbf.CalendarsByID),
-		CensusGeographiesByEntityID:             withWaitAndCapacity(waitTime, maxBatch, dbf.CensusGeographiesByEntityID),
-		CensusTableByID:                         withWaitAndCapacity(waitTime, maxBatch, dbf.CensusTableByID),
-		CensusValuesByGeographyID:               withWaitAndCapacity(waitTime, maxBatch, dbf.CensusValuesByGeographyID),
-		FeedFetchesByFeedID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.FeedFetchesByFeedID),
-		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, maxBatch, dbf.FeedInfosByFeedVersionID),
-		FeedsByID:                               withWaitAndCapacity(waitTime, maxBatch, dbf.FeedsByID),
-		FeedsByOperatorOnestopID:                withWaitAndCapacity(waitTime, maxBatch, dbf.FeedsByOperatorOnestopID),
-		FeedStatesByFeedID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.FeedStatesByFeedID),
-		FeedVersionFileInfosByFeedVersionID:     withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionFileInfosByFeedVersionID),
-		FeedVersionGeometryByID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGeometryByID),
-		FeedVersionGtfsImportsByFeedVersionID:   withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGtfsImportsByFeedVersionID),
+		AgenciesByFeedVersionID:              withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByFeedVersionID),
+		AgenciesByID:                         withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByID),
+		AgenciesByOnestopID:                  withWaitAndCapacity(waitTime, maxBatch, dbf.AgenciesByOnestopID),
+		AgencyPlacesByAgencyID:               withWaitAndCapacity(waitTime, maxBatch, dbf.AgencyPlacesByAgencyID),
+		CalendarDatesByServiceID:             withWaitAndCapacity(waitTime, maxBatch, dbf.CalendarDatesByServiceID),
+		CalendarsByID:                        withWaitAndCapacity(waitTime, maxBatch, dbf.CalendarsByID),
+		CensusGeographiesByEntityID:          withWaitAndCapacity(waitTime, maxBatch, dbf.CensusGeographiesByEntityID),
+		CensusTableByID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.CensusTableByID),
+		CensusValuesByGeographyID:            withWaitAndCapacity(waitTime, maxBatch, dbf.CensusValuesByGeographyID),
+		FeedFetchesByFeedID:                  withWaitAndCapacity(waitTime, maxBatch, dbf.FeedFetchesByFeedID),
+		FeedInfosByFeedVersionID:             withWaitAndCapacity(waitTime, maxBatch, dbf.FeedInfosByFeedVersionID),
+		FeedsByID:                            withWaitAndCapacity(waitTime, maxBatch, dbf.FeedsByID),
+		FeedsByOperatorOnestopID:             withWaitAndCapacity(waitTime, maxBatch, dbf.FeedsByOperatorOnestopID),
+		FeedStatesByFeedID:                   withWaitAndCapacity(waitTime, maxBatch, dbf.FeedStatesByFeedID),
+		FeedVersionFileInfosByFeedVersionID:  withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionFileInfosByFeedVersionID),
+		FeedVersionGeometryByID:              withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGeometryByID),
+		FeedVersionGtfsImportByFeedVersionID: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGtfsImportByFeedVersionID), FeedVersionServiceWindowByFeedVersionID: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionID),
 		FeedVersionsByFeedID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionsByFeedID),
 		FeedVersionsByID:                        withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionsByID),
 		FeedVersionServiceLevelsByFeedVersionID: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceLevelsByFeedVersionID),
