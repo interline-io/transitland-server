@@ -6,7 +6,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/lib/pq"
 )
 
 type FVPair struct {
@@ -73,7 +72,6 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		serviceDate = where.ServiceDate.Val
 	}
 	sids, fvids := pairKeys(spairs)
-	pqfvids := pq.Array(fvids)
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
@@ -144,11 +142,11 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			serviceDate,
 			serviceDate,
 			serviceDate,
-			pqfvids,
+			fvids,
 			serviceDate,
-			pqfvids,
+			fvids,
 			serviceDate,
-			pqfvids).
+			fvids).
 		Where(
 			In("sts.stop_id", sids),
 			In("sts.feed_version_id", fvids),
