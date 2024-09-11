@@ -287,6 +287,8 @@ type FeedVersion {
   files(limit: Int): [FeedVersionFileInfo!]!
   "Service levels (in seconds per day) for this feed version"
   service_levels(limit: Int, where: FeedVersionServiceLevelFilter): [FeedVersionServiceLevel!]!
+  "Summary details on service dates for this feed version"
+  service_window: FeedVersionServiceWindow
   "Agencies associated with this feed version, if imported"
   agencies(limit: Int, where: AgencyFilter): [Agency!]!
   "Routes associated with this feed version, if imported"
@@ -355,6 +357,24 @@ type FeedVersionGtfsImport {
   created_at: Time
   "Updated at"
   updated_at: Time
+}
+
+"""Summary details on service dates in a feed version"""
+type FeedVersionServiceWindow {
+  "Internal integer ID"
+  id: Int!
+  "Feed start date from feed_info.txt, if available"
+  feed_start_date: Date
+  "Feed end date from feed_info.txt, if available"
+  feed_end_date: Date
+  "Calculated earliest calendar date in service schedule"
+  earliest_calendar_date: Date
+  "Calculated latest calendar date in service schedule"
+  latest_calendar_date: Date
+  "Week with most typical service patterns inside the service window"
+  fallback_week: Date
+  "Default timezone for this feed version"
+  default_timezone: String
 }
 
 """Number of seconds of service scheduled for each day in a feed version"""

@@ -46,7 +46,12 @@ func (r *feedVersionResolver) Files(ctx context.Context, obj *model.FeedVersion,
 }
 
 func (r *feedVersionResolver) FeedVersionGtfsImport(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionGtfsImport, error) {
-	return For(ctx).FeedVersionGtfsImportsByFeedVersionID.Load(ctx, obj.ID)()
+	return For(ctx).FeedVersionGtfsImportByFeedVersionID.Load(ctx, obj.ID)()
+}
+
+func (r *feedVersionResolver) ServiceWindow(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionServiceWindow, error) {
+	return nil, nil
+	// return For(ctx).FeedVersionServiceWindowByFeedVersionID.Load(ctx, obj.ID)()
 }
 
 func (r *feedVersionResolver) ServiceLevels(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.FeedVersionServiceLevelFilter) ([]*model.FeedVersionServiceLevel, error) {

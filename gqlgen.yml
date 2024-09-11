@@ -95,6 +95,10 @@ models:
         resolver: true
       agency:
         resolver: true
+  FeedVersionServiceWindow:
+    extraFields:
+      FeedVersionID:
+        type: int
   RouteHeadway:
     fields:
       stop:
@@ -183,8 +187,7 @@ models:
         resolver: true
     extraFields:
       MatchEntityID:
-        type: int
-      
+        type: int      
   CensusValue:
     extraFields:
       GeographyID:

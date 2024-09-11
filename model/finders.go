@@ -84,7 +84,7 @@ type EntityLoader interface {
 	SegmentsByFeedVersionID(context.Context, []SegmentParam) ([][]*Segment, []error)
 
 	// Other loaders
-	FeedVersionGtfsImportsByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
+	FeedVersionGtfsImportByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
 	FeedStatesByFeedID(context.Context, []int) ([]*FeedState, []error)
 	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
 	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)

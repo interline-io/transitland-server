@@ -38,7 +38,7 @@ type Loaders struct {
 	FeedStatesByFeedID                                           *dataloader.Loader[int, *model.FeedState]
 	FeedVersionFileInfosByFeedVersionID                          *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
 	FeedVersionGeometryByID                                      *dataloader.Loader[int, *tt.Polygon]
-	FeedVersionGtfsImportsByFeedVersionID                        *dataloader.Loader[int, *model.FeedVersionGtfsImport]
+	FeedVersionGtfsImportByFeedVersionID                         *dataloader.Loader[int, *model.FeedVersionGtfsImport]
 	FeedVersionsByFeedID                                         *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
 	FeedVersionsByID                                             *dataloader.Loader[int, *model.FeedVersion]
 	FeedVersionServiceLevelsByFeedVersionID                      *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
@@ -104,7 +104,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		FeedStatesByFeedID:                      withWaitAndCapacity(waitTime, maxBatch, dbf.FeedStatesByFeedID),
 		FeedVersionFileInfosByFeedVersionID:     withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionFileInfosByFeedVersionID),
 		FeedVersionGeometryByID:                 withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGeometryByID),
-		FeedVersionGtfsImportsByFeedVersionID:   withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGtfsImportsByFeedVersionID),
+		FeedVersionGtfsImportByFeedVersionID:    withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionGtfsImportByFeedVersionID),
 		FeedVersionsByFeedID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionsByFeedID),
 		FeedVersionsByID:                        withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionsByID),
 		FeedVersionServiceLevelsByFeedVersionID: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceLevelsByFeedVersionID),
