@@ -18,6 +18,9 @@ func TestFetchEnqueueWorker(t *testing.T) {
 		jobQueue.Use(newCfgMiddleware(cfg))
 		jobQueue.AddQueue("default", 8)
 		jobQueue.AddJobType(func() jobs.JobWorker { return &FetchEnqueueWorker{} })
+		jobQueue.AddJobType(func() jobs.JobWorker { return &StaticFetchWorker{} })
+		jobQueue.AddJobType(func() jobs.JobWorker { return &GbfsFetchWorker{} })
+		jobQueue.AddJobType(func() jobs.JobWorker { return &RTFetchWorker{} })
 		go func() {
 			jobQueue.Run()
 		}()
