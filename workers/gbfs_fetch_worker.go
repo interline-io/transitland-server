@@ -19,6 +19,10 @@ type GbfsFetchWorker struct {
 	FetchEpoch int64  `json:"fetch_epoch"`
 }
 
+func (w *GbfsFetchWorker) Kind() string {
+	return "gbfs-fetch"
+}
+
 func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	cfg := model.ForContext(ctx)
 	log := log.For(ctx)

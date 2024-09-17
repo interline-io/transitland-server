@@ -12,35 +12,20 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-// GetWorker returns the correct worker type for this job.
-func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
-	var r jobs.JobWorker
-	class := job.JobType
-	switch class {
-	case "fetch-enqueue":
-		r = &FetchEnqueueWorker{}
-	case "rt-fetch":
-		r = &RTFetchWorker{}
-	case "static-fetch":
-		r = &StaticFetchWorker{}
-	case "gbfs-fetch":
-		r = &GbfsFetchWorker{}
-	case "test-ok":
-		r = &testOkWorker{}
-	case "test-fail":
-		r = &testFailWorker{}
-	default:
-		return nil, errors.New("unknown job type")
-	}
-	// Load json
-	jw, err := json.Marshal(job.JobArgs)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(jw, r); err != nil {
-		return nil, err
-	}
-	return r, nil
+func AddAllQueues(jobQueue jobs.JobQueue, workers int) {
+	jobQueue.AddQueue("default", workers)
+	jobQueue.AddQueue("rt-fetch", workers)
+	jobQueue.AddQueue("static-fetch", workers)
+	jobQueue.AddQueue("gbfs-fetch", workers)
+}
+
+func AddAllWorkers(jobQueue jobs.JobQueue) {
+	jobQueue.AddJobType(func() jobs.JobWorker { return &StaticFetchWorker{} })
+	jobQueue.AddJobType(func() jobs.JobWorker { return &RTFetchWorker{} })
+	jobQueue.AddJobType(func() jobs.JobWorker { return &GbfsFetchWorker{} })
+	jobQueue.AddJobType(func() jobs.JobWorker { return &FetchEnqueueWorker{} })
+	jobQueue.AddJobType(func() jobs.JobWorker { return &testFailWorker{} })
+	jobQueue.AddJobType(func() jobs.JobWorker { return &testOkWorker{} })
 }
 
 // NewServer creates a simple api for submitting and running jobs.
@@ -96,15 +81,13 @@ func runJobRequest(w http.ResponseWriter, req *http.Request) {
 	ret := jobResponse{
 		Job: job,
 	}
-	wk, err := GetWorker(job)
-	if err != nil {
-		ret.Error = err.Error()
+	ctx := req.Context()
+	if jobQueue := model.ForContext(ctx).JobQueue; jobQueue == nil {
 		ret.Status = "failed"
-		ret.Success = false
-	} else if err := wk.Run(req.Context(), job); err != nil {
-		ret.Error = err.Error()
+		ret.Error = "no job queue available"
+	} else if err := jobQueue.RunJob(ctx, job); err != nil {
 		ret.Status = "failed"
-		ret.Success = false
+		ret.Error = err.Error()
 	} else {
 		ret.Status = "completed"
 		ret.Success = true
@@ -118,10 +101,6 @@ func requestGetJob(req *http.Request) (jobs.Job, error) {
 	err := json.NewDecoder(req.Body).Decode(&job)
 	if err != nil {
 		return job, errors.New("error parsing body")
-	}
-	// check worker type
-	if _, err := GetWorker(job); err != nil {
-		return job, err
 	}
 	return job, nil
 }
