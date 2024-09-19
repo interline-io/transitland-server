@@ -17,7 +17,7 @@ func TestFetchEnqueueWorker(t *testing.T) {
 		a := "BA"
 		jobQueue := cfg.JobQueue
 		jobQueue.Use(newCfgMiddleware(cfg))
-		jobQueue.AddQueue("default", 1)
+		// jobQueue.AddQueue("default", 1)
 		go func() {
 			jobQueue.Run()
 		}()

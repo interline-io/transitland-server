@@ -23,7 +23,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		aurl := ts.URL + "/bart.zip"
 		jobQueue := cfg.JobQueue
 		jobQueue.Use(newCfgMiddleware(cfg))
-		jobQueue.AddQueue("default", 1)
+		// jobQueue.AddQueue("default", 1)
 		go func() {
 			jobQueue.Run()
 		}()

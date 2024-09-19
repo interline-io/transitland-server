@@ -22,7 +22,7 @@ func TestGbfsFetchWorker(t *testing.T) {
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		jobQueue := cfg.JobQueue
 		jobQueue.Use(newCfgMiddleware(cfg))
-		jobQueue.AddQueue("default", 1)
+		// jobQueue.AddQueue("default", 1)
 		go func() {
 			jobQueue.Run()
 			time.Sleep(1 * time.Second)
