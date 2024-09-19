@@ -12,37 +12,6 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-// GetWorker returns the correct worker type for this job.
-func GetWorker(job jobs.Job) (jobs.JobWorker, error) {
-	var r jobs.JobWorker
-	class := job.JobType
-	switch class {
-	case "fetch-enqueue":
-		r = &FetchEnqueueWorker{}
-	case "rt-fetch":
-		r = &RTFetchWorker{}
-	case "static-fetch":
-		r = &StaticFetchWorker{}
-	case "gbfs-fetch":
-		r = &GbfsFetchWorker{}
-	case "test-ok":
-		r = &testOkWorker{}
-	case "test-fail":
-		r = &testFailWorker{}
-	default:
-		return nil, errors.New("unknown job type")
-	}
-	// Load json
-	jw, err := json.Marshal(job.JobArgs)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(jw, r); err != nil {
-		return nil, err
-	}
-	return r, nil
-}
-
 // NewServer creates a simple api for submitting and running jobs.
 func NewServer(queueName string, workers int) (http.Handler, error) {
 	r := chi.NewRouter()
@@ -96,19 +65,19 @@ func runJobRequest(w http.ResponseWriter, req *http.Request) {
 	ret := jobResponse{
 		Job: job,
 	}
-	wk, err := GetWorker(job)
-	if err != nil {
-		ret.Error = err.Error()
-		ret.Status = "failed"
-		ret.Success = false
-	} else if err := wk.Run(req.Context(), job); err != nil {
-		ret.Error = err.Error()
-		ret.Status = "failed"
-		ret.Success = false
-	} else {
-		ret.Status = "completed"
-		ret.Success = true
-	}
+	// wk, err := GetWorker(job)
+	// if err != nil {
+	// 	ret.Error = err.Error()
+	// 	ret.Status = "failed"
+	// 	ret.Success = false
+	// } else if err := wk.Run(req.Context(), job); err != nil {
+	// 	ret.Error = err.Error()
+	// 	ret.Status = "failed"
+	// 	ret.Success = false
+	// } else {
+	// 	ret.Status = "completed"
+	// 	ret.Success = true
+	// }
 	writeJobResponse(ret, w)
 }
 
@@ -120,9 +89,9 @@ func requestGetJob(req *http.Request) (jobs.Job, error) {
 		return job, errors.New("error parsing body")
 	}
 	// check worker type
-	if _, err := GetWorker(job); err != nil {
-		return job, err
-	}
+	// if _, err := GetWorker(job); err != nil {
+	// 	return job, err
+	// }
 	return job, nil
 }
 
