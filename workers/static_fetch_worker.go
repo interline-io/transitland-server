@@ -15,6 +15,10 @@ type StaticFetchWorker struct {
 	FetchEpoch int64  `json:"fetch_epoch"`
 }
 
+func (w *StaticFetchWorker) Kind() string {
+	return "static-fetch"
+}
+
 func (w *StaticFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	log := log.For(ctx)
 	log.Info().Str("feed_id", w.FeedID).Str("feed_url", w.FeedUrl).Msg("static-fetch: started")

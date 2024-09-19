@@ -16,6 +16,10 @@ type RTFetchWorker struct {
 	FetchEpoch   int64  `json:"fetch_epoch"`
 }
 
+func (w *RTFetchWorker) Kind() string {
+	return "rt-fetch"
+}
+
 func (w *RTFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	log := log.For(ctx)
 	log.Info().Str("target", w.Target).Str("source_feed_id", w.SourceFeedID).Str("source_type", w.SourceType).Str("url", w.Url).Msg("rt-fetch: started")
