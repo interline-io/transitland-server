@@ -20,7 +20,7 @@ jobs:
       TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
     services:
       postgres:
-        image: postgis/postgis:12-3.2-alpine
+        image: postgis/postgis:12-3.4-alpine
         ports:
           - 5432:5432
         env:
