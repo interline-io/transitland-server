@@ -181,7 +181,8 @@ func queryToMap(vars url.Values) map[string]string {
 
 func makeHandlerFunc(graphqlHandler http.Handler, handlerName string, f func(http.Handler, http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+		ctx := r.Context()
+		if apiMeter := meters.ForContext(ctx); apiMeter != nil {
 			apiMeter.AddDimension("rest", "handler", handlerName)
 		}
 		f(graphqlHandler, w, r)

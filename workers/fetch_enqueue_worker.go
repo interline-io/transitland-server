@@ -161,7 +161,7 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 		log.Error().Msg("no job queue available")
 	} else {
 		for _, j := range jj {
-			if err := jobQueue.AddJob(j); err != nil {
+			if err := jobQueue.AddJob(ctx, j); err != nil {
 				return err
 			}
 		}

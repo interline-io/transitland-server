@@ -51,7 +51,8 @@ func WithPerms(ctx context.Context, checker Checker) context.Context {
 func AddPerms(checker Checker) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(WithPerms(r.Context(), checker))
+			ctx := r.Context()
+			r = r.WithContext(WithPerms(ctx, checker))
 			next.ServeHTTP(w, r)
 		})
 	}

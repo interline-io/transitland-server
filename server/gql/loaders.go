@@ -158,9 +158,10 @@ func loaderMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// This is per request scoped loaders/cache
 		// Is this OK to use as a long term cache?
-		cfg := model.ForContext(r.Context())
+		ctx := r.Context()
+		cfg := model.ForContext(ctx)
 		loaders := NewLoaders(cfg.Finder)
-		nextCtx := context.WithValue(r.Context(), loadersKey, loaders)
+		nextCtx := context.WithValue(ctx, loadersKey, loaders)
 		r = r.WithContext(nextCtx)
 		next.ServeHTTP(w, r)
 	})

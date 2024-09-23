@@ -34,6 +34,7 @@ query($feed_onestop_id: String!, $ids: [Int!]) {
 `
 
 func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	key := chi.URLParam(r, "feed_key")
 	rtType := fmt.Sprintf("realtime_%s", chi.URLParam(r, "rt_type"))
 	format := chi.URLParam(r, "format")
@@ -48,7 +49,7 @@ func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r 
 	}
 
 	// Check if we're allowed to redistribute feed and look up latest feed version
-	feedResponse, err := makeGraphQLRequest(r.Context(), graphqlHandler, latestFeedVersionQuery, gvars)
+	feedResponse, err := makeGraphQLRequest(ctx, graphqlHandler, latestFeedVersionQuery, gvars)
 	if err != nil {
 		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
 		return
@@ -66,7 +67,7 @@ func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r 
 	}
 
 	// Check if we have data
-	rtf := model.ForContext(r.Context()).RTFinder
+	rtf := model.ForContext(ctx).RTFinder
 	rtMsg, ok := rtf.GetMessage(key, rtType)
 	if ok && rtMsg != nil {
 		found = true
@@ -101,6 +102,7 @@ func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r 
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
 func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	key := chi.URLParam(r, "feed_key")
 	gvars := hw{}
 	if key == "" {
@@ -113,7 +115,7 @@ func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.Respon
 	}
 
 	// Check if we're allowed to redistribute feed and look up latest feed version
-	feedResponse, err := makeGraphQLRequest(r.Context(), graphqlHandler, latestFeedVersionQuery, gvars)
+	feedResponse, err := makeGraphQLRequest(ctx, graphqlHandler, latestFeedVersionQuery, gvars)
 	if err != nil {
 		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
 		return
@@ -143,7 +145,7 @@ func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.Respon
 	}
 
 	// Send request to metering
-	if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
 		dims := []meters.Dimension{
 			{Key: "fv_sha1", Value: fvsha1},
 			{Key: "feed_onestop_id", Value: fid},
@@ -152,7 +154,7 @@ func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.Respon
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
 	downloadKey := fmt.Sprintf("%s-%s.zip", fid, fvsha1)
-	cfg := model.ForContext(r.Context())
+	cfg := model.ForContext(ctx)
 	serveFromStorage(w, r, cfg.Storage, fvsha1, downloadKey)
 }
 
@@ -173,6 +175,7 @@ query($feed_version_sha1:String!, $ids: [Int!]) {
 // Query redirects user to download the given fv from S3 public URL
 // assuming that redistribution is allowed for the feed.
 func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	gvars := hw{}
 	key := chi.URLParam(r, "feed_version_key")
 	if key == "" {
@@ -184,7 +187,7 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 		gvars["feed_version_sha1"] = key
 	}
 	// Check if we're allowed to redistribute feed
-	checkfv, err := makeGraphQLRequest(r.Context(), graphqlHandler, feedVersionFileQuery, gvars)
+	checkfv, err := makeGraphQLRequest(ctx, graphqlHandler, feedVersionFileQuery, gvars)
 	if err != nil {
 		util.WriteJsonError(w, "server error", http.StatusInternalServerError)
 		return
@@ -220,7 +223,7 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 	}
 
 	// Send request to metering
-	if apiMeter := meters.ForContext(r.Context()); apiMeter != nil {
+	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
 		dims := []meters.Dimension{
 			{Key: "fv_sha1", Value: fvsha1},
 			{Key: "feed_onestop_id", Value: fid},
@@ -229,11 +232,12 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 		apiMeter.Meter("feed-version-downloads", 1.0, dims)
 	}
 	downloadKey := fmt.Sprintf("%s-%s.zip", fid, fvsha1)
-	cfg := model.ForContext(r.Context())
+	cfg := model.ForContext(ctx)
 	serveFromStorage(w, r, cfg.Storage, fvsha1, downloadKey)
 }
 
 func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string, downloadKey string) {
+	ctx := r.Context()
 	store, err := store.GetStore(storage)
 	if err != nil {
 		util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
@@ -241,7 +245,7 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 	}
 	fvkey := fmt.Sprintf("%s.zip", fvsha1)
 	if v, ok := store.(request.Presigner); ok {
-		signedUrl, err := v.CreateSignedUrl(r.Context(), fvkey, downloadKey, tl.Secret{})
+		signedUrl, err := v.CreateSignedUrl(ctx, fvkey, downloadKey, tl.Secret{})
 		if err != nil {
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 			return
@@ -249,7 +253,7 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 		w.Header().Add("Location", signedUrl)
 		w.WriteHeader(http.StatusFound)
 	} else {
-		rdr, _, err := store.Download(r.Context(), fvkey, tl.Secret{}, tl.FeedAuthorization{})
+		rdr, _, err := store.Download(ctx, fvkey, tl.Secret{}, tl.FeedAuthorization{})
 		if err != nil {
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 			return

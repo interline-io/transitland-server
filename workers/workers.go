@@ -46,6 +46,7 @@ type jobResponse struct {
 
 // addJobRequest adds the request to the appropriate queue
 func addJobRequest(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
 	job, err := requestGetJob(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -56,10 +57,10 @@ func addJobRequest(w http.ResponseWriter, req *http.Request) {
 	ret := jobResponse{
 		Job: job,
 	}
-	if jobQueue := model.ForContext(req.Context()).JobQueue; jobQueue == nil {
+	if jobQueue := model.ForContext(ctx).JobQueue; jobQueue == nil {
 		ret.Status = "failed"
 		ret.Error = "no job queue available"
-	} else if err := jobQueue.AddJob(job); err != nil {
+	} else if err := jobQueue.AddJob(ctx, job); err != nil {
 		ret.Status = "failed"
 		ret.Error = err.Error()
 	} else {
@@ -71,6 +72,7 @@ func addJobRequest(w http.ResponseWriter, req *http.Request) {
 
 // runJobRequest runs the job directly
 func runJobRequest(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
 	job, err := requestGetJob(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -81,7 +83,6 @@ func runJobRequest(w http.ResponseWriter, req *http.Request) {
 	ret := jobResponse{
 		Job: job,
 	}
-	ctx := req.Context()
 	if jobQueue := model.ForContext(ctx).JobQueue; jobQueue == nil {
 		ret.Status = "failed"
 		ret.Error = "no job queue available"

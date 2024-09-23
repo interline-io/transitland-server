@@ -14,6 +14,7 @@ import (
 )
 
 func TestStaticFetchWorker(t *testing.T) {
+	ctx := context.Background()
 	ts := testutil.NewTestServer(testdata.Path("external"))
 	defer ts.Close()
 
@@ -25,9 +26,9 @@ func TestStaticFetchWorker(t *testing.T) {
 		jobQueue.AddQueue("default", 1)
 		jobQueue.AddJobType(func() jobs.JobWorker { return &StaticFetchWorker{} })
 		go func() {
-			jobQueue.Run()
+			jobQueue.Run(ctx)
 		}()
-		jobQueue.AddJob(jobs.Job{
+		jobQueue.AddJob(ctx, jobs.Job{
 			JobType: "static-fetch",
 			JobArgs: map[string]any{
 				"feed_id":  a,

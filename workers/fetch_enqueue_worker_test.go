@@ -12,6 +12,7 @@ import (
 )
 
 func TestFetchEnqueueWorker(t *testing.T) {
+	ctx := context.Background()
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		a := "BA"
 		jobQueue := cfg.JobQueue
@@ -22,9 +23,9 @@ func TestFetchEnqueueWorker(t *testing.T) {
 		jobQueue.AddJobType(func() jobs.JobWorker { return &GbfsFetchWorker{} })
 		jobQueue.AddJobType(func() jobs.JobWorker { return &RTFetchWorker{} })
 		go func() {
-			jobQueue.Run()
+			jobQueue.Run(ctx)
 		}()
-		jobQueue.AddJob(jobs.Job{
+		jobQueue.AddJob(ctx, jobs.Job{
 			JobType: "fetch-enqueue",
 			JobArgs: map[string]any{"feed_ids": []string{a}, "ignore_fetch_wait": true},
 		})

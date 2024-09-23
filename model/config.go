@@ -46,7 +46,8 @@ func WithConfig(ctx context.Context, cfg Config) context.Context {
 func AddConfig(cfg Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(WithConfig(r.Context(), cfg))
+			ctx := r.Context()
+			r = r.WithContext(WithConfig(ctx, cfg))
 			next.ServeHTTP(w, r)
 		})
 	}
