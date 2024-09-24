@@ -15,8 +15,8 @@ import (
 func AddAllQueues(jobQueue jobs.JobQueue, workers int) {
 	jobQueue.AddQueue("default", workers)
 	jobQueue.AddQueue("rt-fetch", workers)
-	jobQueue.AddQueue("static-fetch", workers)
-	jobQueue.AddQueue("gbfs-fetch", workers)
+	// jobQueue.AddQueue("static-fetch", workers)
+	// jobQueue.AddQueue("gbfs-fetch", workers)
 }
 
 func AddAllWorkers(jobQueue jobs.JobQueue) {

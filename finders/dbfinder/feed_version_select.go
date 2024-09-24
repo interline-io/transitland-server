@@ -73,14 +73,14 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 			if covers.StartDate != nil && covers.StartDate.Valid {
 				joinFvsw = true
 				q = q.
-					Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.StartDate.Val}).
-					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.StartDate.Val})
+					Where(sq.LtOrEq{"greatest(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.StartDate.Val}).
+					Where(sq.GtOrEq{"least(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.StartDate.Val})
 			}
 			if covers.EndDate != nil && covers.EndDate.Valid {
 				joinFvsw = true
 				q = q.
-					Where(sq.LtOrEq{"coalesce(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.EndDate.Val}).
-					Where(sq.GtOrEq{"coalesce(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
+					Where(sq.LtOrEq{"greatest(fvsw.feed_start_date,fvsw.earliest_calendar_date)": covers.EndDate.Val}).
+					Where(sq.GtOrEq{"least(fvsw.feed_end_date,fvsw.latest_calendar_date)": covers.EndDate.Val})
 			}
 
 			// Handle feed_info.txt extent
