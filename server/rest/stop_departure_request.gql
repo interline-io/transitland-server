@@ -172,6 +172,15 @@ query ($include_geometry: Boolean!, $include_alerts: Boolean!, $limit: Int, $ids
     departures(limit: $limit, where: $stop_time_where) {
       ...departures
     }
+    children {
+      ...stop
+      departures(limit: $limit, where: $stop_time_where) {
+        ...departures
+      }      
+      alerts @include(if: $include_alerts) {
+        ...alert
+      }        
+    }    
     parent {
       ...stop
       children {
