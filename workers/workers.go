@@ -12,22 +12,6 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func AddAllQueues(jobQueue jobs.JobQueue, workers int) {
-	jobQueue.AddQueue("default", workers)
-	jobQueue.AddQueue("rt-fetch", workers)
-	jobQueue.AddQueue("static-fetch", workers)
-	jobQueue.AddQueue("gbfs-fetch", workers)
-}
-
-func AddAllWorkers(jobQueue jobs.JobQueue) {
-	jobQueue.AddJobType(func() jobs.JobWorker { return &StaticFetchWorker{} })
-	jobQueue.AddJobType(func() jobs.JobWorker { return &RTFetchWorker{} })
-	jobQueue.AddJobType(func() jobs.JobWorker { return &GbfsFetchWorker{} })
-	jobQueue.AddJobType(func() jobs.JobWorker { return &FetchEnqueueWorker{} })
-	jobQueue.AddJobType(func() jobs.JobWorker { return &testFailWorker{} })
-	jobQueue.AddJobType(func() jobs.JobWorker { return &testOkWorker{} })
-}
-
 // NewServer creates a simple api for submitting and running jobs.
 func NewServer(queueName string, workers int) (http.Handler, error) {
 	r := chi.NewRouter()

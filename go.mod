@@ -19,15 +19,15 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
 	github.com/interline-io/transitland-dbutil v0.0.0-20240921002057-a0d8e4032291
-	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240919233435-e97727adacb2
-	github.com/interline-io/transitland-mw v0.0.0-20240923220308-f5706a5d24b8
+	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240925194728-7080aed7d7ad
+	github.com/interline-io/transitland-mw v0.0.0-20240925194746-7e3acf276fb5
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
-	github.com/tidwall/gjson v1.17.0
+	github.com/tidwall/gjson v1.17.3
 	github.com/tidwall/rtree v1.10.0
 	github.com/tidwall/tinylru v1.1.0
 	github.com/twpayne/go-geom v1.5.1
@@ -87,8 +87,8 @@ require (
 	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.7.0 // indirect
-	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/jackc/pgx/v5 v5.7.1 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -106,31 +106,32 @@ require (
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/riverqueue/river v0.11.4 // indirect
-	github.com/riverqueue/river/riverdriver v0.11.4 // indirect
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.11.4 // indirect
-	github.com/riverqueue/river/rivershared v0.11.4 // indirect
-	github.com/riverqueue/river/rivertype v0.11.4 // indirect
+	github.com/riverqueue/river v0.12.0 // indirect
+	github.com/riverqueue/river/riverdriver v0.12.0 // indirect
+	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.12.0 // indirect
+	github.com/riverqueue/river/rivershared v0.12.0 // indirect
+	github.com/riverqueue/river/rivertype v0.12.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/snabb/isoweek v1.0.1 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/tidwall/geoindex v1.7.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tkrajina/gpxgo v1.1.2 // indirect
 	github.com/twpayne/go-polyline v1.1.1 // indirect
 	github.com/urfave/cli/v2 v2.27.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.uber.org/goleak v1.3.0 // indirect
-	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
