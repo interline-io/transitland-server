@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-mw/jobs"
+	"github.com/interline-io/transitland-jobs/jobs"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"

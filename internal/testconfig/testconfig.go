@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-dbutil/testutil"
+	localjobs "github.com/interline-io/transitland-jobs/local"
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/auth/azcheck"
-	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -138,7 +138,7 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	}
 
 	// Initialize job queue - do not start
-	jobQueue := jobs.NewLocalJobs()
+	jobQueue := localjobs.NewLocalJobs()
 
 	return model.Config{
 		Finder:     dbf,

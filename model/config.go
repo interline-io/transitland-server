@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/interline-io/transitland-jobs/jobs"
 	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/clock"
 )
 
