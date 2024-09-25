@@ -160,13 +160,10 @@ func (w *FetchEnqueueWorker) Run(ctx context.Context, job jobs.Job) error {
 	if jobQueue := cfg.JobQueue; jobQueue == nil {
 		log.Error().Msg("no job queue available")
 	} else {
-		for _, j := range jj {
-			if err := jobQueue.AddJob(ctx, j); err != nil {
-				return err
-			}
+		if err := jobQueue.AddJobs(ctx, jj); err != nil {
+			return err
 		}
 	}
-
 	log.Info().Msg("fetch-enqueue: success")
 	return nil
 }
