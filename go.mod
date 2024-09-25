@@ -19,7 +19,7 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
 	github.com/interline-io/transitland-dbutil v0.0.0-20240921002057-a0d8e4032291
-	github.com/interline-io/transitland-jobs v0.0.0-20240925232329-5ef524b558df
+	github.com/interline-io/transitland-jobs v0.0.0-20240925233226-25b3915bf03f
 	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240925194728-7080aed7d7ad
 	github.com/interline-io/transitland-mw v0.0.0-20240925232542-4c4474f2e41d
 	github.com/jellydator/ttlcache/v2 v2.11.1
