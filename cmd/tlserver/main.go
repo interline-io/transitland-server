@@ -29,8 +29,8 @@ import (
 	"github.com/interline-io/transitland-lib/tlcli"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/validator"
-	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -196,7 +196,7 @@ func (cmd *ServerCommand) Run() error {
 	root.Use(model.AddConfig(cfg))
 
 	// This server only supports admin access
-	root.Use(ancheck.AdminDefaultMiddleware("admin"))
+	root.Use(usercheck.AdminDefaultMiddleware("admin"))
 
 	// Add logging middleware - must be after auth
 	root.Use(log.LoggingMiddleware(cmd.LongQueryDuration, func(ctx context.Context) string {

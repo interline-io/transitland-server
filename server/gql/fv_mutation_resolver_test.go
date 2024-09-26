@@ -8,7 +8,7 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-dbutil/testutil"
-	"github.com/interline-io/transitland-mw/auth/ancheck"
+	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/testdata"
@@ -28,7 +28,7 @@ func TestFeedVersionFetchResolver(t *testing.T) {
 		testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 			srv, _ := NewServer()
 			srv = model.AddConfigAndPerms(cfg, srv)
-			srv = ancheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
+			srv = usercheck.AdminDefaultMiddleware("test")(srv) // Run all requests as admin
 			// Run all requests as admin
 			c := client.New(srv)
 			resp := make(map[string]interface{})
@@ -148,7 +148,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 				srv, _ := NewServer()
 				srv = model.AddConfigAndPerms(cfg, srv)
-				srv = ancheck.UserDefaultMiddleware("test")(srv) // Run all requests as user
+				srv = usercheck.UserDefaultMiddleware("test")(srv) // Run all requests as user
 				c := client.New(srv)
 				queryTestcase(t, c, tc)
 			})

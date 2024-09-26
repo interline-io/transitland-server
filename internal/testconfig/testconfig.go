@@ -12,7 +12,7 @@ import (
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-mw/auth/azcheck"
+	"github.com/interline-io/transitland-server/finders/azcheck"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"

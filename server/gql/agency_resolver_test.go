@@ -6,8 +6,8 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-dbutil/testutil"
-	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authz"
+	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/testdata"
@@ -336,7 +336,7 @@ func TestAgencyResolver_Authz(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			c := client.New(ancheck.UserDefaultMiddleware(tc.user)(srv))
+			c := client.New(usercheck.UserDefaultMiddleware(tc.user)(srv))
 			queryTestcase(t, c, tc)
 		})
 	}

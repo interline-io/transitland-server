@@ -8,8 +8,8 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/interline-io/transitland-dbutil/testutil"
-	"github.com/interline-io/transitland-mw/auth/ancheck"
 	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
@@ -72,7 +72,7 @@ func newTestClientWithOpts(t testing.TB, opts testconfig.Options) (*client.Clien
 	cfg := testconfig.Config(t, opts)
 	srv, _ := NewServer()
 	graphqlServer := model.AddConfigAndPerms(cfg, srv)
-	srvMiddleware := ancheck.NewUserDefaultMiddleware(func() authn.User {
+	srvMiddleware := usercheck.NewUserDefaultMiddleware(func() authn.User {
 		return authn.NewCtxUser("testuser", "", "").WithRoles("testrole")
 	})
 	return client.New(srvMiddleware(graphqlServer)), cfg
