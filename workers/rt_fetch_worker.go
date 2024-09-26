@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-mw/jobs"
+	"github.com/interline-io/transitland-jobs/jobs"
 	"github.com/interline-io/transitland-server/actions"
 )
 

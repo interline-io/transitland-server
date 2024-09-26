@@ -19,8 +19,9 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
 	github.com/interline-io/transitland-dbutil v0.0.0-20240921002057-a0d8e4032291
+	github.com/interline-io/transitland-jobs v0.0.0-20240925233226-25b3915bf03f
 	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240925194728-7080aed7d7ad
-	github.com/interline-io/transitland-mw v0.0.0-20240925220640-09d7bcec717c
+	github.com/interline-io/transitland-mw v0.0.0-20240925232542-4c4474f2e41d
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
@@ -61,13 +62,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.5 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
-	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/digitalocean/go-workers2 v0.10.4 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/flopp/go-coordsparser v0.0.0-20201115094714-8baaeb7062d5 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
@@ -106,24 +105,17 @@ require (
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/riverqueue/river v0.12.0 // indirect
-	github.com/riverqueue/river/riverdriver v0.12.0 // indirect
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.12.0 // indirect
-	github.com/riverqueue/river/rivershared v0.12.0 // indirect
-	github.com/riverqueue/river/rivertype v0.12.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/snabb/isoweek v1.0.1 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/tidwall/geoindex v1.7.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
-	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tkrajina/gpxgo v1.1.2 // indirect
 	github.com/twpayne/go-polyline v1.1.1 // indirect
 	github.com/urfave/cli/v2 v2.27.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
-	go.uber.org/goleak v1.3.0 // indirect
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
