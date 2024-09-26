@@ -49,6 +49,7 @@ jobs:
         image: openfga/openfga
         ports:
           - 9080:8080
+        options: run
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
