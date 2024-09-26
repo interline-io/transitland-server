@@ -21,7 +21,7 @@ require (
 	github.com/interline-io/transitland-dbutil v0.0.0-20240921002057-a0d8e4032291
 	github.com/interline-io/transitland-jobs v0.0.0-20240925233226-25b3915bf03f
 	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240925194728-7080aed7d7ad
-	github.com/interline-io/transitland-mw v0.0.0-20240926032013-e3bf37847827
+	github.com/interline-io/transitland-mw v0.0.0-20240926045305-c1ac7d5585a0
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
