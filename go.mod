@@ -18,10 +18,10 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
-	github.com/interline-io/transitland-dbutil v0.0.0-20240921002057-a0d8e4032291
-	github.com/interline-io/transitland-jobs v0.0.0-20240925233226-25b3915bf03f
+	github.com/interline-io/transitland-dbutil v0.0.0-20240926050128-c077a48a6bd9
+	github.com/interline-io/transitland-jobs v0.0.0-20240926050735-c0bbd9d4b586
 	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240925194728-7080aed7d7ad
-	github.com/interline-io/transitland-mw v0.0.0-20240925232542-4c4474f2e41d
+	github.com/interline-io/transitland-mw v0.0.0-20240926050650-e8757efef9c7
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
@@ -44,7 +44,6 @@ require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
 	github.com/PuerkitoBio/rehttp v1.3.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
-	github.com/amberflo/metering-go/v2 v2.5.0 // indirect
 	github.com/auth0/go-auth0 v0.17.2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.15 // indirect
@@ -70,7 +69,6 @@ require (
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/flopp/go-coordsparser v0.0.0-20201115094714-8baaeb7062d5 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
-	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
@@ -88,7 +86,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.7.1 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
@@ -115,7 +112,6 @@ require (
 	github.com/twpayne/go-polyline v1.1.1 // indirect
 	github.com/urfave/cli/v2 v2.27.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
-	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect

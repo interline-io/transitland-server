@@ -15,7 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-mw/auth/ancheck"
+	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/interline-io/transitland-server/model"
@@ -47,7 +47,7 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	r.HandleFunc("/feeds", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}.{format}", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}", feedHandler)
-	r.Handle("/feeds/{feed_key}/download_latest_feed_version", ancheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(graphqlHandler, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
+	r.Handle("/feeds/{feed_key}/download_latest_feed_version", usercheck.RoleRequired("tl_download_fv_current")(makeHandlerFunc(graphqlHandler, "feedVersionDownloadLatest", feedVersionDownloadLatestHandler)))
 
 	r.Handle("/feeds/{feed_key}/download_latest_rt/{rt_type}.{format}", makeHandlerFunc(graphqlHandler, "feedDownloadRtHelper", feedDownloadRtHelper))
 
@@ -56,7 +56,7 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	r.HandleFunc("/feed_versions/{feed_version_key}.{format}", feedVersionHandler)
 	r.HandleFunc("/feed_versions/{feed_version_key}", feedVersionHandler)
 	r.HandleFunc("/feeds/{feed_key}/feed_versions", feedVersionHandler)
-	r.Handle("/feed_versions/{feed_version_key}/download", ancheck.RoleRequired("tl_download_fv_historic")(makeHandlerFunc(graphqlHandler, "feedVersionDownload", feedVersionDownloadHandler)))
+	r.Handle("/feed_versions/{feed_version_key}/download", usercheck.RoleRequired("tl_download_fv_historic")(makeHandlerFunc(graphqlHandler, "feedVersionDownload", feedVersionDownloadHandler)))
 
 	r.HandleFunc("/agencies.{format}", agencyHandler)
 	r.HandleFunc("/agencies", agencyHandler)

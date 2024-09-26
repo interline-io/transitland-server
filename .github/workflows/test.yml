@@ -18,6 +18,8 @@ jobs:
       PGHOST: localhost
       PGPORT: 5432
       TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
+      # TL_TEST_FGA_ENDPOINT: http://localhost:9080
+      TL_REDIS_URL: redis://localhost
     services:
       postgres:
         image: postgis/postgis:12-3.4-alpine
@@ -43,6 +45,10 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      # openfga:
+      #   image: openfga/openfga
+      #   ports:
+      #     - 9080:8080
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
