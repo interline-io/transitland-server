@@ -12,7 +12,7 @@ import (
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-server/finders/azcheck"
+	"github.com/interline-io/transitland-server/finders/azchecker"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -93,12 +93,12 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	// Setup Checker
 	var checker model.Checker
 	if opts.FGAEndpoint != "" {
-		checkerCfg := azcheck.CheckerConfig{
+		checkerCfg := azchecker.CheckerConfig{
 			FGAEndpoint:      opts.FGAEndpoint,
 			FGALoadModelFile: opts.FGAModelFile,
 			FGALoadTestData:  opts.FGAModelTuples,
 		}
-		checker, err = azcheck.NewCheckerFromConfig(checkerCfg, db)
+		checker, err = azchecker.NewCheckerFromConfig(checkerCfg, db)
 		if err != nil {
 			t.Fatal(err)
 		}

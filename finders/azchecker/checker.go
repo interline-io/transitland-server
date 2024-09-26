@@ -1,4 +1,4 @@
-package azcheck
+package azchecker
 
 import (
 	"context"
