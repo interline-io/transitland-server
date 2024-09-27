@@ -21,8 +21,7 @@ require (
 	github.com/interline-io/transitland-dbutil v0.0.0-20240926050128-c077a48a6bd9
 	github.com/interline-io/transitland-jobs v0.0.0-20240926233719-2940e87552a9
 	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240925194728-7080aed7d7ad
-	github.com/interline-io/transitland-mw v0.0.0-20240926071350-036afe82b343
-	github.com/jellydator/ttlcache/v2 v2.11.1
+	github.com/interline-io/transitland-mw v0.0.0-20240927064219-dd137580ae4d
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
@@ -30,7 +29,6 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/tidwall/gjson v1.17.3
 	github.com/tidwall/rtree v1.10.0
-	github.com/tidwall/tinylru v1.1.0
 	github.com/twpayne/go-geom v1.5.1
 	github.com/vektah/gqlparser/v2 v2.5.16
 	google.golang.org/protobuf v1.34.1
@@ -86,6 +84,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.7.1 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/jellydator/ttlcache/v2 v2.11.1 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
@@ -108,6 +107,7 @@ require (
 	github.com/tidwall/geoindex v1.7.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/tinylru v1.2.1 // indirect
 	github.com/tkrajina/gpxgo v1.1.2 // indirect
 	github.com/twpayne/go-polyline v1.1.1 // indirect
 	github.com/urfave/cli/v2 v2.27.4 // indirect

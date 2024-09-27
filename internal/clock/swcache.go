@@ -8,6 +8,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-mw/caches/tzcache"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -22,14 +23,14 @@ type ServiceWindowCache struct {
 	db          sqlx.Ext
 	lock        sync.Mutex
 	fvslWindows map[int]ServiceWindow
-	tzCache     *TzCache[int]
+	tzCache     *tzcache.Cache[int]
 }
 
 func NewServiceWindowCache(db sqlx.Ext) *ServiceWindowCache {
 	return &ServiceWindowCache{
 		db:          db,
 		fvslWindows: map[int]ServiceWindow{},
-		tzCache:     NewTzCache[int](),
+		tzCache:     tzcache.NewCache[int](),
 	}
 }
 

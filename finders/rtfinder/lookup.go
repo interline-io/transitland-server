@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-mw/caches/tzcache"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -16,14 +16,14 @@ type lookupCache struct {
 	gtfsTripIdCache *simpleCache[int, string]
 	gtfsStopIdCache *simpleCache[int, string]
 	routeIdCache    *simpleCache[skey, int]
-	tzCache         *clock.TzCache[int]
+	tzCache         *tzcache.Cache[int]
 	rtLookupLock    sync.Mutex
 }
 
 func newLookupCache(db sqlx.Ext) *lookupCache {
 	return &lookupCache{
 		db:              db,
-		tzCache:         clock.NewTzCache[int](),
+		tzCache:         tzcache.NewCache[int](),
 		fvidSourceCache: newSimpleCache[int, []string](),
 		fvidFeedCache:   newSimpleCache[int, string](),
 		gtfsTripIdCache: newSimpleCache[int, string](),

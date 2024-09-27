@@ -13,8 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -28,7 +28,7 @@ func init() {
 		Timeout: 10 * time.Second,
 	}
 	if os.Getenv("TL_DIRECTIONS_ENABLE_CACHE") != "" {
-		client.Transport = httpcache.NewHTTPCache(nil, nil, httpcache.NewTTLCache(16*1024, 24*time.Hour))
+		client.Transport = httpcache.NewCache(nil, nil, httpcache.NewTTLCache(16*1024, 24*time.Hour))
 	}
 	if err := RegisterRouter("valhalla", func() Handler {
 		return newValhallaRouter(client, endpoint, apikey)
