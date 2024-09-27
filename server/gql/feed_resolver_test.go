@@ -26,24 +26,24 @@ func TestFeedResolver(t *testing.T) {
 			name:   "urls",
 			query:  `query($onestop_id:String!) { feeds(where:{onestop_id:$onestop_id}) {urls { static_current static_historic }}}`,
 			vars:   hw{"onestop_id": "CT"},
-			expect: `{"feeds":[{"urls":{"static_current":"file://testdata/external/caltrain.zip","static_historic":["https://caltrain.com/old_feed.zip"]}}]}`,
+			expect: `{"feeds":[{"urls":{"static_current":"file://testdata/gtfs/caltrain.zip","static_historic":["https://caltrain.com/old_feed.zip"]}}]}`,
 		},
 		{
 			name:   "search by url case insensitive",
 			query:  `query($url:String!) { feeds(where:{source_url:{url:$url}}) { onestop_id }}`,
-			vars:   hw{"url": "file://testdata/external/Caltrain.zip"},
+			vars:   hw{"url": "file://testdata/gtfs/Caltrain.zip"},
 			expect: `{"feeds":[{"onestop_id":"CT"}]}`,
 		},
 		{
 			name:   "search by url case sensitive",
 			query:  `query($url:String!) { feeds(where:{source_url:{url:$url, case_sensitive: true}}) { onestop_id }}`,
-			vars:   hw{"url": "file://testdata/external/Caltrain.zip"},
+			vars:   hw{"url": "file://testdata/gtfs/Caltrain.zip"},
 			expect: `{"feeds":[]}`,
 		},
 		{
 			name:   "search by url with type specified",
 			query:  `query($url:String!) { feeds(where:{source_url:{url:$url, type: static_current}}) { onestop_id }}`,
-			vars:   hw{"url": "file://testdata/external/caltrain.zip"},
+			vars:   hw{"url": "file://testdata/gtfs/caltrain.zip"},
 			expect: `{"feeds":[{"onestop_id":"CT"}]}`,
 		},
 		{

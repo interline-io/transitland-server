@@ -220,5 +220,6 @@ func valDuration(t float64) *model.Duration {
 }
 
 func valDistance(v float64, units string) *model.Distance {
+	_ = units
 	return &model.Distance{Distance: v, Units: model.DistanceUnitKilometers}
 }
