@@ -6,11 +6,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path/filepath"
 	"testing"
 
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/location"
 	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-server/model"
@@ -19,7 +17,7 @@ import (
 
 func Test_awsRouter(t *testing.T) {
 	tcs := []testCase{
-		{"ped", basicTests["ped"], true, 4215, 4.100, testdata.Path("fixtures/response/aws_ped.json")},
+		{"ped", basicTests["ped"], true, 4215, 4.100, testdata.Path("directions/response/aws_ped.json")},
 		{"bike", basicTests["bike"], false, 0, 0, ""}, // unsupported mode
 		{"auto", basicTests["auto"], true, 671, 5.452, ""},
 		{"depart_now", model.DirectionRequest{Mode: model.StepModeAuto, From: &baseFrom, To: &baseTo, DepartAt: nil}, true, 671, 4.1, ""}, // at LEAST 671s
@@ -28,7 +26,7 @@ func Test_awsRouter(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			recorder := testutil.NewRecorder(filepath.Join(testdata.Path("fixtures/aws/location"), tc.name), "directions://aws")
+			recorder := testutil.NewRecorder(filepath.Join(testdata.Path("directions/aws/location"), tc.name), "directions://aws")
 			defer recorder.Stop()
 			h, err := makeTestMockRouter(recorder)
 			if err != nil {
@@ -52,18 +50,18 @@ func makeTestMockRouter(tr http.RoundTripper) (*awsRouter, error) {
 }
 
 // Regenerate results
-func makeTestAwsRouter(tr http.RoundTripper) (*awsRouter, error) {
-	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
-	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		return nil, err
-	}
-	cfg.HTTPClient = &http.Client{
-		Transport: tr,
-	}
-	lc := location.NewFromConfig(cfg)
-	return newAWSRouter(lc, cn), nil
-}
+// func makeTestAwsRouter(tr http.RoundTripper) (*awsRouter, error) {
+// 	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
+// 	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	cfg.HTTPClient = &http.Client{
+// 		Transport: tr,
+// 	}
+// 	lc := location.NewFromConfig(cfg)
+// 	return newAWSRouter(lc, cn), nil
+// }
 
 // We need to mock out the location services client
 type mockLocationClient struct {

@@ -60,7 +60,7 @@ The "example" server instance configured by the  `tlserver` command runs without
 2. Initialize test fixtures: `./testdata/test_setup.sh`
    - Builds and installs the `cmd/tlserver` command
    - Sets up test feeds contained in `testdata/server/server-test.dmfr.json`
-   - Fetches and imports feeds contained in `testdata/external`
+   - Fetches and imports feeds contained in `testdata/gtfs`
    - Creates additional fixtures defined in `testdata/test_supplement.pgsql`
    - Note that temporary files will be created in `testdata/tmp`; these are excluded in `.gitignore`
 3. Optional: Set `TL_TEST_REDIS_URL` to run some GBFS tests

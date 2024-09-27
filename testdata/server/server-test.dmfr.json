@@ -9,7 +9,7 @@
         "en-US"
       ],
       "urls": {
-        "static_current": "file://testdata/external/caltrain.zip",
+        "static_current": "file://testdata/gtfs/caltrain.zip",
         "static_historic": [
           "https://caltrain.com/old_feed.zip"
         ]
@@ -66,7 +66,7 @@
         "share_alike_optional": "no"
       }, 
       "urls": {
-        "static_current": "file://testdata/external/bart.zip"
+        "static_current": "file://testdata/gtfs/bart.zip"
       }
     },
     {
@@ -81,7 +81,7 @@
         "share_alike_optional": "yes"
       },    
       "urls": {
-        "static_current": "file://testdata/external/hart.zip"
+        "static_current": "file://testdata/gtfs/hart.zip"
       }
     },    
     {
@@ -109,14 +109,14 @@
       "spec": "gtfs",
       "id": "EX",    
       "urls": {
-        "static_current": "file://testdata/external/example.zip"
+        "static_current": "file://testdata/gtfs/example.zip"
       }
     },
     {
       "spec": "gtfs",
       "id": "EG",    
       "urls": {
-        "static_current": "file://testdata/external/eg.zip"
+        "static_current": "file://testdata/gtfs/eg.zip"
       }
     }
   ],

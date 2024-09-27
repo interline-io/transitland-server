@@ -119,7 +119,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "bart existing",
 			feedId:             "BA",
-			serveFile:          "external/bart.zip",
+			serveFile:          "gtfs/bart.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 456139,
 			expectResponseSHA1: "e535eb2b3b9ac3ef15d82c56575e914575e732e0",
@@ -128,7 +128,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "bart existing old",
 			feedId:             "BA",
-			serveFile:          "external/bart-old.zip",
+			serveFile:          "gtfs/bart-old.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 429721,
 			expectResponseSHA1: "dd7aca4a8e4c90908fd3603c097fabee75fea907",
@@ -137,7 +137,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "bart invalid",
 			feedId:             "BA",
-			serveFile:          "external/invalid.zip",
+			serveFile:          "gtfs/invalid.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 12,
 			expectResponseSHA1: "88af471a23dfdc103e67752dd56128ae77b8debe",
@@ -147,7 +147,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "bart new",
 			feedId:             "BA",
-			serveFile:          "external/bart-new.zip",
+			serveFile:          "gtfs/bart-new.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 1151609,
 			expectResponseSHA1: "b40aa01814bf92dba06dbccdebcc3aefa6208248",
@@ -157,7 +157,7 @@ func TestStaticFetchWorker(t *testing.T) {
 		{
 			name:               "hart existing",
 			feedId:             "HA",
-			serveFile:          "external/hart.zip",
+			serveFile:          "gtfs/hart.zip",
 			expectResponseCode: 200,
 			expectResponseSize: 3543136,
 			expectResponseSHA1: "c969427f56d3a645195dd8365cde6d7feae7e99b",
@@ -249,7 +249,7 @@ func TestValidateUpload(t *testing.T) {
 	}{
 		{
 			name:      "ct",
-			serveFile: "external/caltrain.zip",
+			serveFile: "gtfs/caltrain.zip",
 			rtUrls:    []string{"rt/CT-vp-error.json"},
 			f: func(t *testing.T, result *model.ValidationReport) {
 				if len(result.Errors) != 1 {
