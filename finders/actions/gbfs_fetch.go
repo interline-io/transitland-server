@@ -1,4 +1,4 @@
-package workers
+package actions
 
 import (
 	"context"
@@ -7,27 +7,15 @@ import (
 	"time"
 
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-jobs/jobs"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/model"
 )
 
-type GbfsFetchWorker struct {
-	Url        string `json:"url"`
-	FeedID     string `json:"feed_id"`
-	FetchEpoch int64  `json:"fetch_epoch"`
-}
-
-func (w *GbfsFetchWorker) Kind() string {
-	return "gbfs-fetch"
-}
-
-func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
+func GBFSFetch(ctx context.Context, feedId string, feedUrl string) error {
 	cfg := model.ForContext(ctx)
 	log := log.For(ctx)
-	log.Info().Str("feed_id", w.FeedID).Str("url", w.Url).Msg("gbfs-fetch: started")
-	gfeeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &w.FeedID})
+	gfeeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
 		log.Error().Err(err).Msg("gbfs-fetch: error loading source feed")
 		return err
@@ -43,8 +31,8 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	opts.FeedID = gfeeds[0].ID
 	opts.URLType = "gbfs_auto_discovery"
 	opts.FetchedAt = time.Now().In(time.UTC)
-	if w.Url != "" {
-		opts.FeedURL = w.Url
+	if feedUrl != "" {
+		opts.FeedURL = feedUrl
 	}
 	feeds, result, err := gbfs.Fetch(
 		tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()),
@@ -60,10 +48,9 @@ func (w *GbfsFetchWorker) Run(ctx context.Context, job jobs.Job) error {
 	// Save to cache
 	for _, feed := range feeds {
 		if feed.SystemInformation != nil {
-			key := fmt.Sprintf("%s:%s", w.FeedID, feed.SystemInformation.Language.Val)
+			key := fmt.Sprintf("%s:%s", feedId, feed.SystemInformation.Language.Val)
 			cfg.GbfsFinder.AddData(ctx, key, feed)
 		}
 	}
-	log.Info().Msg("gbfs-fetch: success")
 	return nil
 }

@@ -1,21 +1,109 @@
-package actions
+package test
+
+// Separate test package because we need to import "actions" into "testconfig"
 
 import (
 	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
-
 	"github.com/interline-io/transitland-dbutil/dbutil"
+	"github.com/interline-io/transitland-dbutil/testutil"
+	"github.com/interline-io/transitland-jobs/jobs"
 	"github.com/interline-io/transitland-lib/dmfr"
+	"github.com/interline-io/transitland-server/finders/actions"
+	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
+	"github.com/twpayne/go-geom"
 )
+
+type testWorker struct {
+	kind  string
+	count *int64
+}
+
+func (t *testWorker) Kind() string {
+	return t.kind
+}
+
+func (t *testWorker) Run(ctx context.Context) error {
+	time.Sleep(1 * time.Millisecond)
+	atomic.AddInt64(t.count, 1)
+	return nil
+}
+
+func TestFetchEnqueue(t *testing.T) {
+	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+		ctx := model.WithConfig(context.Background(), cfg)
+		a := "BA"
+
+		// Setup dummy workers
+		count := int64(0)
+		jq := cfg.JobQueue
+		go func() {
+			jq.AddQueue("static-fetch", 1)
+			jq.AddJobType(func() jobs.JobWorker { return &testWorker{count: &count, kind: "static-fetch"} })
+			err := jq.Run(ctx)
+			if err != nil {
+				panic(err)
+			}
+		}()
+
+		// Run FetchEnqueue
+		if err := actions.FetchEnqueue(ctx, []string{a}, nil, true); err != nil {
+			t.Fatal(err)
+		}
+
+		// Wait and stop queue
+		time.Sleep(1 * time.Second)
+		if err := jq.Stop(ctx); err != nil {
+			t.Fatal(err)
+		}
+
+		// Check a dummy job was executed
+		assert.Equal(t, count, int64(1))
+	})
+}
+
+func TestGBFSFetch(t *testing.T) {
+	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("gbfs")})
+	defer ts.Close()
+	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+		ctx := model.WithConfig(context.Background(), cfg)
+		if err := actions.GBFSFetch(ctx, "test-gbfs", ts.URL+"/gbfs.json"); err != nil {
+			t.Fatal(err)
+		}
+
+		// Test
+		bikes, err := cfg.GbfsFinder.FindBikes(
+			ctx,
+			nil,
+			&model.GbfsBikeRequest{
+				Near: &model.PointRadius{
+					Lon:    -122.396445,
+					Lat:    37.793250,
+					Radius: 100,
+				},
+			},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		bikeids := []string{}
+		for _, ent := range bikes {
+			bikeids = append(bikeids, ent.BikeID.Val)
+		}
+		assert.ElementsMatch(t, []string{"2e09a0ed99c8ad32cca516661618645e"}, bikeids)
+	})
+}
 
 func TestStaticFetchWorker(t *testing.T) {
 	tcs := []struct {
@@ -114,7 +202,7 @@ func TestStaticFetchWorker(t *testing.T) {
 				cfg.Checker = nil // disable checker for this test
 				ctx := model.WithConfig(context.Background(), cfg)
 				// Run job
-				if result, err := StaticFetch(ctx, tc.feedId, nil, feedUrl); err != nil && !tc.expectError {
+				if result, err := actions.StaticFetch(ctx, tc.feedId, nil, feedUrl); err != nil && !tc.expectError {
 					_ = result
 					t.Fatal("unexpected error", err)
 				} else if err == nil && tc.expectError {
@@ -147,6 +235,72 @@ func TestStaticFetchWorker(t *testing.T) {
 				}
 			})
 
+		})
+	}
+}
+
+func TestValidateUpload(t *testing.T) {
+	tcs := []struct {
+		name        string
+		serveFile   string
+		rtUrls      []string
+		expectError bool
+		f           func(*testing.T, *model.ValidationReport)
+	}{
+		{
+			name:      "ct",
+			serveFile: "external/caltrain.zip",
+			rtUrls:    []string{"rt/CT-vp-error.json"},
+			f: func(t *testing.T, result *model.ValidationReport) {
+				if len(result.Errors) != 1 {
+					t.Fatal("expected errors")
+					return
+				}
+				if len(result.Errors[0].Errors) != 1 {
+					t.Fatal("expected errors")
+					return
+				}
+				g := result.Errors[0].Errors[0]
+				if v, ok := g.Geometry.Geometry.(*geom.GeometryCollection); ok {
+					ggs := v.Geoms()
+					assert.Equal(t, len(ggs), 2)
+					assert.Equal(t, len(ggs[0].FlatCoords()), 1112)
+					assert.Equal(t, len(ggs[1].FlatCoords()), 2)
+				}
+			},
+		},
+	}
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup http
+			ts := testutil.NewTestServer(testdata.Path())
+			defer ts.Close()
+
+			// Setup job
+			testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+				cfg.Checker = nil // disable checker for this test
+				ctx := model.WithConfig(context.Background(), cfg)
+				// Run job
+				feedUrl := ts.URL + "/" + tc.serveFile
+				var rturls []string
+				for _, v := range tc.rtUrls {
+					rturls = append(rturls, ts.URL+"/"+v)
+				}
+				result, err := actions.ValidateUpload(ctx, nil, &feedUrl, rturls)
+				if err != nil && !tc.expectError {
+					_ = result
+					t.Fatal("unexpected error", err)
+				} else if err == nil && tc.expectError {
+					t.Fatal("expected responseError")
+				} else if err != nil && tc.expectError {
+					return
+				}
+				if tc.f != nil {
+					tc.f(t, result)
+				}
+				// jj, _ := json.MarshalIndent(result, "", "  ")
+				// fmt.Println(string(jj))
+			})
 		})
 	}
 }

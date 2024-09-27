@@ -14,6 +14,7 @@ type Config struct {
 	RTFinder           RTFinder
 	GbfsFinder         GbfsFinder
 	Checker            Checker
+	Actions            Actions
 	JobQueue           jobs.JobQueue
 	Clock              clock.Clock
 	Secrets            []tl.Secret

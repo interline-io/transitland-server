@@ -7,7 +7,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 
-	"github.com/interline-io/transitland-server/actions"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -20,7 +19,7 @@ func (r *mutationResolver) ValidateGtfs(ctx context.Context, file *graphql.Uploa
 	if file != nil {
 		src = file.File
 	}
-	return actions.ValidateUpload(ctx, src, url, rturls)
+	return model.ForContext(ctx).Actions.ValidateUpload(ctx, src, url, rturls)
 }
 
 func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.Upload, url *string, feedId string) (*model.FeedVersionFetchResult, error) {
@@ -32,7 +31,7 @@ func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.U
 	if url != nil {
 		feedUrl = *url
 	}
-	return actions.StaticFetch(ctx, feedId, feedSrc, feedUrl)
+	return model.ForContext(ctx).Actions.StaticFetch(ctx, feedId, feedSrc, feedUrl)
 }
 
 func (r *mutationResolver) FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
