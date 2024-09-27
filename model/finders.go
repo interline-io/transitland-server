@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -156,4 +157,12 @@ type GbfsFinder interface {
 
 type Checker interface {
 	authz.CheckerServer
+}
+
+type Actions interface {
+	FetchEnqueue(context.Context, []string, []string, bool) error
+	StaticFetch(context.Context, string, io.Reader, string) (*FeedVersionFetchResult, error)
+	RTFetch(context.Context, string, string, string, string) error
+	ValidateUpload(context.Context, io.Reader, *string, []string) (*ValidationReport, error)
+	GBFSFetch(context.Context, string, string) error
 }

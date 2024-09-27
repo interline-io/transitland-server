@@ -19,9 +19,9 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
 	github.com/interline-io/transitland-dbutil v0.0.0-20240926050128-c077a48a6bd9
-	github.com/interline-io/transitland-jobs v0.0.0-20240926050735-c0bbd9d4b586
+	github.com/interline-io/transitland-jobs v0.0.0-20240926233719-2940e87552a9
 	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20240925194728-7080aed7d7ad
-	github.com/interline-io/transitland-mw v0.0.0-20240926050650-e8757efef9c7
+	github.com/interline-io/transitland-mw v0.0.0-20240926071350-036afe82b343
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
@@ -131,5 +131,6 @@ require (
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
 // replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
+// replace github.com/interline-io/transitland-jobs => /Users/irees/src/interline-io/transitland-jobs
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/getkin/kin-openapi => /Users/irees/src/other/kin-openapi

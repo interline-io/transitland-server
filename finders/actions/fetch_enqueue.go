@@ -3,137 +3,179 @@ package actions
 import (
 	"context"
 	"errors"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"math"
-	"os"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
-	"github.com/interline-io/transitland-lib/dmfr/fetch"
-	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-jobs/jobs"
+	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
-	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
-	"google.golang.org/protobuf/proto"
+
+	"github.com/interline-io/transitland-server/model"
 )
 
-func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl string) (*model.FeedVersionFetchResult, error) {
+func FetchEnqueue(ctx context.Context, feedIds []string, urlTypes []string, ignoreFetchWait bool) error {
 	cfg := model.ForContext(ctx)
-	dbf := cfg.Finder
-
-	urlType := "static_current"
-	feed, err := fetchCheckFeed(ctx, feedId)
+	db := cfg.Finder.DBX()
+	now := time.Now().In(time.UTC)
+	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{})
 	if err != nil {
-		return nil, err
-	}
-	if feed == nil {
-		return nil, nil
+		return err
 	}
 
-	// Prepare
-	fetchOpts := fetch.Options{
-		FeedID:        feed.ID,
-		URLType:       urlType,
-		FeedURL:       feedUrl,
-		Storage:       cfg.Storage,
-		Secrets:       cfg.Secrets,
-		FetchedAt:     time.Now().In(time.UTC),
-		AllowFTPFetch: true,
+	// Check onestop ids
+	checkOsid := map[string]bool{}
+	for _, v := range feedIds {
+		checkOsid[v] = true
 	}
-
-	if user := authn.ForContext(ctx); user != nil {
-		fetchOpts.CreatedBy = tt.NewString(user.ID())
-	}
-
-	// Allow a Reader
-	if feedSrc != nil {
-		tmpfile, err := ioutil.TempFile("", "validator-upload")
-		if err != nil {
-			return nil, err
+	feedLookup := map[int]*model.Feed{}
+	for _, feed := range feeds {
+		if len(checkOsid) > 0 && !checkOsid[feed.FeedID] {
+			continue
 		}
-		io.Copy(tmpfile, feedSrc)
-		tmpfile.Close()
-		defer os.Remove(tmpfile.Name())
-		fetchOpts.FeedURL = tmpfile.Name()
-		fetchOpts.AllowLocalFetch = true
+		feedLookup[feed.ID] = feed
 	}
 
-	// Make request
-	mr := model.FeedVersionFetchResult{}
-	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
-	if err := db.Tx(func(atx tldb.Adapter) error {
-		fr, err := fetch.StaticFetch(atx, fetchOpts)
+	// Check url types
+	staticKeys := []string{"static_current"}
+	rtKeys := []string{"realtime_alerts", "realtime_trip_updates", "realtime_vehicle_positions"}
+	gbfsKeys := []string{"gbfs_auto_discovery"}
+	checkUrlTypes := map[string]bool{}
+	for _, v := range urlTypes {
+		checkUrlTypes[v] = true
+	}
+	if len(checkUrlTypes) == 0 {
+		for _, a := range [][]string{staticKeys, rtKeys, gbfsKeys} {
+			for _, v := range a {
+				checkUrlTypes[v] = true
+			}
+		}
+	}
+
+	// Check for fetch wait times and error backoffs
+	// This is structured to avoid bad N+1 queries
+	feedsByUrlType := map[string][]CheckFetchWaitResult{}
+	for urlType, ok := range checkUrlTypes {
+		if !ok {
+			continue
+		}
+		var feedIds []int
+		for _, feed := range feedLookup {
+			if getUrl(feed.URLs, urlType) != "" {
+				feedIds = append(feedIds, feed.ID)
+			}
+		}
+
+		feedChecks, err := CheckFetchWaitBatch(ctx, db, feedIds, urlType)
 		if err != nil {
 			return err
 		}
-		mr.FoundSha1 = fr.Found
-		if fr.FetchError != nil {
-			a := fr.FetchError.Error()
-			mr.FetchError = &a
-		} else if fr.FeedVersion != nil {
-			mr.FeedVersion = &model.FeedVersion{FeedVersion: *fr.FeedVersion}
-			mr.FetchError = nil
+		var feedsOk []CheckFetchWaitResult
+		for _, check := range feedChecks {
+			if check.OK() || ignoreFetchWait {
+				feedsOk = append(feedsOk, check)
+			}
 		}
-		return nil
-	}); err != nil {
-		return nil, err
+		feedsByUrlType[urlType] = feedsOk
 	}
-	return &mr, nil
+
+	// Static fetch
+	var jj []jobs.Job
+	for _, urlType := range staticKeys {
+		for _, check := range feedsByUrlType[urlType] {
+			feed, ok := feedLookup[check.ID]
+			if !ok {
+				continue
+			}
+			// TODO: Make this type safe, use StaticFetchWorker{} as job args
+			jj = append(jj, jobs.Job{
+				Queue:       "static-fetch",
+				JobType:     "static-fetch",
+				Unique:      true,
+				JobDeadline: now.Add(check.Deadline()).Unix(),
+				JobArgs: jobs.JobArgs{
+					"feed_url":    getUrl(feed.URLs, urlType),
+					"feed_id":     feed.FeedID,
+					"fetch_epoch": 0,
+				},
+			})
+		}
+	}
+
+	// RT fetch
+	for _, urlType := range rtKeys {
+		for _, check := range feedsByUrlType[urlType] {
+			feed, ok := feedLookup[check.ID]
+			if !ok {
+				continue
+			}
+			// TODO: Make this type safe, use StaticFetchWorker{} as job args
+			jj = append(jj, jobs.Job{
+				Queue:       "rt-fetch",
+				JobType:     "rt-fetch",
+				Unique:      true,
+				JobDeadline: now.Add(check.Deadline()).Unix(),
+				JobArgs: jobs.JobArgs{
+					"target":         feed.FeedID,
+					"url":            getUrl(feed.URLs, urlType),
+					"source_type":    urlType,
+					"source_feed_id": feed.FeedID,
+					"fetch_epoch":    0,
+				},
+			})
+		}
+	}
+
+	// GBFS fetch
+	for _, urlType := range gbfsKeys {
+		for _, check := range feedsByUrlType[urlType] {
+			feed, ok := feedLookup[check.ID]
+			if !ok {
+				continue
+			}
+			jj = append(jj, jobs.Job{
+				Queue:       "gbfs-fetch",
+				JobType:     "gbfs-fetch",
+				Unique:      true,
+				JobDeadline: now.Add(check.Deadline()).Unix(),
+				JobArgs: jobs.JobArgs{
+					"url":         getUrl(feed.URLs, urlType),
+					"feed_id":     feed.FeedID,
+					"fetch_epoch": 0,
+				},
+			})
+		}
+	}
+
+	if jobQueue := cfg.JobQueue; jobQueue == nil {
+		return errors.New("no job queue available")
+	} else {
+		if err := jobQueue.AddJobs(ctx, jj); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, urlType string) error {
-	cfg := model.ForContext(ctx)
-
-	feed, err := fetchCheckFeed(ctx, feedId)
-	if err != nil {
-		return err
+func getUrl(urls tl.FeedUrls, urlType string) string {
+	url := ""
+	switch urlType {
+	case "static_current":
+		url = urls.StaticCurrent
+	case "realtime_alerts":
+		url = urls.RealtimeAlerts
+	case "realtime_trip_updates":
+		url = urls.RealtimeTripUpdates
+	case "realtime_vehicle_positions":
+		url = urls.RealtimeVehiclePositions
+	case "gbfs_auto_discovery":
+		url = urls.GbfsAutoDiscovery
 	}
-	if feed == nil {
-		return nil
-	}
-
-	// Prepare
-	fetchOpts := fetch.Options{
-		FeedID:    feed.ID,
-		URLType:   urlType,
-		FeedURL:   feedUrl,
-		Storage:   cfg.RTStorage,
-		Secrets:   cfg.Secrets,
-		FetchedAt: time.Now().In(time.UTC),
-	}
-
-	// Make request
-	var rtMsg *pb.FeedMessage
-	var fetchErr error
-	if err := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
-		fr, err := fetch.RTFetch(atx, fetchOpts)
-		if err != nil {
-			return err
-		}
-		rtMsg = fr.Message
-		fetchErr = fr.FetchError
-		return nil
-	}); err != nil {
-		return err
-	}
-
-	// Check result and cache
-	if fetchErr != nil {
-		return fetchErr
-	}
-	rtdata, err := proto.Marshal(rtMsg)
-	if err != nil {
-		return errors.New("invalid rt data")
-	}
-	key := fmt.Sprintf("rtdata:%s:%s", target, urlType)
-	return cfg.RTFinder.AddData(key, rtdata)
+	return url
 }
 
 type CheckFetchWaitResult struct {

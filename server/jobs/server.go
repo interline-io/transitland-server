@@ -1,7 +1,6 @@
-package workers
+package jobs
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -97,22 +96,5 @@ func writeJobResponse(ret jobResponse, w http.ResponseWriter) {
 		return
 	} else {
 		w.Write(rj)
-	}
-}
-
-///////////
-
-type cfgMiddleware struct {
-	jobs.JobWorker
-	cfg model.Config
-}
-
-func (w *cfgMiddleware) Run(ctx context.Context, job jobs.Job) error {
-	return w.JobWorker.Run(model.WithConfig(ctx, w.cfg), job)
-}
-
-func newCfgMiddleware(cfg model.Config) jobs.JobMiddleware {
-	return func(w jobs.JobWorker) jobs.JobWorker {
-		return &cfgMiddleware{cfg: cfg, JobWorker: w}
 	}
 }
