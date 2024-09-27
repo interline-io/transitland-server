@@ -13,8 +13,8 @@ import (
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/httpcache"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -39,7 +39,7 @@ func init() {
 		// By default use a 1 minute TTL cache
 		cache := httpcache.NewTTLCache(16*1024, 1*time.Minute)
 		cache.SkipExtension(true) // don't refresh values on get
-		client.Transport = httpcache.NewHTTPCache(nil, httpcache.NoHeadersKey, cache)
+		client.Transport = httpcache.NewCache(nil, httpcache.NoHeadersKey, cache)
 
 	}
 	cfg.HTTPClient = client
