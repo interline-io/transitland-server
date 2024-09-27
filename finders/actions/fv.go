@@ -2,17 +2,101 @@ package actions
 
 import (
 	"context"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
 
+	"github.com/interline-io/transitland-lib/dmfr/importer"
+	"github.com/interline-io/transitland-lib/dmfr/unimporter"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlcsv"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/validator"
+	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
 )
+
+func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
+	cfg := model.ForContext(ctx)
+	if err := checkFeedEdit(ctx, fvid); err != nil {
+		return nil, err
+	}
+	opts := importer.Options{
+		FeedVersionID: fvid,
+		Storage:       cfg.Storage,
+	}
+	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+	fr, fe := importer.MainImportFeedVersion(db, opts)
+	if fe != nil {
+		return nil, fe
+	}
+	mr := model.FeedVersionImportResult{
+		Success: fr.FeedVersionImport.Success,
+	}
+	return &mr, nil
+}
+
+func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
+	cfg := model.ForContext(ctx)
+	if err := checkFeedEdit(ctx, fvid); err != nil {
+		return nil, err
+	}
+	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+	if err := db.Tx(func(atx tldb.Adapter) error {
+		return unimporter.UnimportFeedVersion(atx, fvid, nil)
+	}); err != nil {
+		return nil, err
+	}
+	mr := model.FeedVersionUnimportResult{
+		Success: true,
+	}
+	return &mr, nil
+}
+
+func FeedVersionUpdate(ctx context.Context, values model.FeedVersionSetInput) (int, error) {
+	cfg := model.ForContext(ctx)
+	if values.ID == nil {
+		return 0, errors.New("id required")
+	}
+	fvid := *values.ID
+	if err := checkFeedEdit(ctx, fvid); err != nil {
+		return 0, err
+	}
+
+	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+	err := db.Tx(func(atx tldb.Adapter) error {
+		fv := tl.FeedVersion{}
+		fv.ID = fvid
+		var cols []string
+		if values.Name != nil {
+			fv.Name = tt.NewString(*values.Name)
+			cols = append(cols, "name")
+		} else {
+			fv.Name.Valid = false
+		}
+		if values.Description != nil {
+			fv.Description = tt.NewString(*values.Description)
+			cols = append(cols, "description")
+		} else {
+			fv.Description.Valid = false
+		}
+		return atx.Update(&fv, cols...)
+	})
+	if err != nil {
+		return 0, err
+	}
+	return fvid, nil
+}
+
+func FeedVersionDelete(ctx context.Context, fvid int) (*model.FeedVersionDeleteResult, error) {
+	if err := checkFeedEdit(ctx, fvid); err != nil {
+		return nil, err
+	}
+	return nil, errors.New("temporarily unavailable")
+}
 
 // ValidateUpload takes a file Reader and produces a validation package containing errors, warnings, file infos, service levels, etc.
 func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls []string) (*model.ValidationReport, error) {
@@ -204,4 +288,19 @@ func checkurl(address string) bool {
 
 func strptr(v string) *string {
 	return &v
+}
+
+func checkFeedEdit(ctx context.Context, fvid int) error {
+	if fvid <= 0 {
+		return errors.New("invalid feed version id")
+	}
+	cfg := model.ForContext(ctx)
+	if checker := cfg.Checker; checker == nil {
+		return nil
+	} else if check, err := checker.FeedVersionPermissions(ctx, &authz.FeedVersionRequest{Id: int64(fvid)}); err != nil {
+		return err
+	} else if !check.Actions.CanEdit {
+		return authz.ErrUnauthorized
+	}
+	return nil
 }

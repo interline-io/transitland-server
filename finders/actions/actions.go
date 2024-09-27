@@ -32,3 +32,19 @@ func (Actions) GBFSFetch(ctx context.Context, feedId string, feedUrl string) err
 func (Actions) FetchEnqueue(ctx context.Context, feedIds []string, urlTypes []string, ignoreFetchWait bool) error {
 	return FetchEnqueue(ctx, feedIds, urlTypes, ignoreFetchWait)
 }
+
+func (Actions) FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
+	return FeedVersionImport(ctx, fvid)
+}
+
+func (Actions) FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
+	return FeedVersionUnimport(ctx, fvid)
+}
+
+func (Actions) FeedVersionUpdate(ctx context.Context, values model.FeedVersionSetInput) (int, error) {
+	return FeedVersionUpdate(ctx, values)
+}
+
+func (Actions) FeedVersionDelete(ctx context.Context, fvid int) (*model.FeedVersionDeleteResult, error) {
+	return FeedVersionDelete(ctx, fvid)
+}

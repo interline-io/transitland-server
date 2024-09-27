@@ -76,3 +76,45 @@ func (w *FetchEnqueueWorker) Kind() string {
 func (w *FetchEnqueueWorker) Run(ctx context.Context) error {
 	return model.ForContext(ctx).Actions.FetchEnqueue(ctx, w.FeedIDs, w.URLTypes, w.IgnoreFetchWait)
 }
+
+// FeedVersionImportWorker
+type FeedVersionImportWorker struct {
+	FeedVersionID int `json:"feed_version_id"`
+}
+
+func (w *FeedVersionImportWorker) Kind() string {
+	return "fetch-version-import"
+}
+
+func (w *FeedVersionImportWorker) Run(ctx context.Context) error {
+	_, err := model.ForContext(ctx).Actions.FeedVersionImport(ctx, w.FeedVersionID)
+	return err
+}
+
+// FeedVersionUnimportWorker
+type FeedVersionUnimportWorker struct {
+	FeedVersionID int `json:"feed_version_id"`
+}
+
+func (w *FeedVersionUnimportWorker) Kind() string {
+	return "fetch-version-unimport"
+}
+
+func (w *FeedVersionUnimportWorker) Run(ctx context.Context) error {
+	_, err := model.ForContext(ctx).Actions.FeedVersionUnimport(ctx, w.FeedVersionID)
+	return err
+}
+
+// FeedVersionDeleteWorker
+type FeedVersionDeleteWorker struct {
+	FeedVersionID int `json:"feed_version_id"`
+}
+
+func (w *FeedVersionDeleteWorker) Kind() string {
+	return "fetch-version-delete"
+}
+
+func (w *FeedVersionDeleteWorker) Run(ctx context.Context) error {
+	_, err := model.ForContext(ctx).Actions.FeedVersionDelete(ctx, w.FeedVersionID)
+	return err
+}

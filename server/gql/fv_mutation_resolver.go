@@ -35,20 +35,20 @@ func (r *mutationResolver) FeedVersionFetch(ctx context.Context, file *graphql.U
 }
 
 func (r *mutationResolver) FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {
-	return model.ForContext(ctx).Finder.FeedVersionImport(ctx, fvid)
+	return model.ForContext(ctx).Actions.FeedVersionImport(ctx, fvid)
 }
 
 func (r *mutationResolver) FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimportResult, error) {
-	return model.ForContext(ctx).Finder.FeedVersionUnimport(ctx, fvid)
+	return model.ForContext(ctx).Actions.FeedVersionUnimport(ctx, fvid)
 }
 
 func (r *mutationResolver) FeedVersionUpdate(ctx context.Context, values model.FeedVersionSetInput) (*model.FeedVersion, error) {
-	finder := model.ForContext(ctx).Finder
-	entId, err := finder.FeedVersionUpdate(ctx, values)
+	cfg := model.ForContext(ctx)
+	entId, err := cfg.Actions.FeedVersionUpdate(ctx, values)
 	if err != nil {
 		return nil, err
 	}
-	ents, errs := finder.FeedVersionsByID(ctx, []int{entId})
+	ents, errs := cfg.Finder.FeedVersionsByID(ctx, []int{entId})
 	return first(errs, ents)
 }
 
