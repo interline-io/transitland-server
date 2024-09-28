@@ -144,7 +144,7 @@ type RTFinder interface {
 	GetMessage(string, string) (*pb.FeedMessage, bool)
 }
 
-// GBFSFinder manages and looks up GBFS data
+// GbfsFinder manages and looks up GBFS data
 type GbfsFinder interface {
 	AddData(context.Context, string, gbfs.GbfsFeed) error
 	FindBikes(context.Context, *int, *GbfsBikeRequest) ([]*GbfsFreeBikeStatus, error)
@@ -156,10 +156,9 @@ type Checker interface {
 }
 
 type Actions interface {
-	FetchEnqueue(context.Context, []string, []string, bool) error
 	StaticFetch(context.Context, string, io.Reader, string) (*FeedVersionFetchResult, error)
 	RTFetch(context.Context, string, string, string, string) error
-	GBFSFetch(context.Context, string, string) error
+	GbfsFetch(context.Context, string, string) error
 	ValidateUpload(context.Context, io.Reader, *string, []string) (*ValidationReport, error)
 	FeedVersionUnimport(context.Context, int) (*FeedVersionUnimportResult, error)
 	FeedVersionImport(context.Context, int) (*FeedVersionImportResult, error)

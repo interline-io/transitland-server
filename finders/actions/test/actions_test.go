@@ -14,7 +14,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-dbutil/testutil"
-	"github.com/interline-io/transitland-jobs/jobs"
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-server/finders/actions"
 	"github.com/interline-io/transitland-server/internal/gbfs"
@@ -40,45 +39,12 @@ func (t *testWorker) Run(ctx context.Context) error {
 	return nil
 }
 
-func TestFetchEnqueue(t *testing.T) {
-	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
-		ctx := model.WithConfig(context.Background(), cfg)
-		a := "BA"
-
-		// Setup dummy workers
-		count := int64(0)
-		jq := cfg.JobQueue
-		go func() {
-			jq.AddQueue("static-fetch", 1)
-			jq.AddJobType(func() jobs.JobWorker { return &testWorker{count: &count, kind: "static-fetch"} })
-			err := jq.Run(ctx)
-			if err != nil {
-				panic(err)
-			}
-		}()
-
-		// Run FetchEnqueue
-		if err := actions.FetchEnqueue(ctx, []string{a}, nil, true); err != nil {
-			t.Fatal(err)
-		}
-
-		// Wait and stop queue
-		time.Sleep(1 * time.Second)
-		if err := jq.Stop(ctx); err != nil {
-			t.Fatal(err)
-		}
-
-		// Check a dummy job was executed
-		assert.Equal(t, count, int64(1))
-	})
-}
-
-func TestGBFSFetch(t *testing.T) {
+func TestGbfsFetch(t *testing.T) {
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("gbfs")})
 	defer ts.Close()
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		ctx := model.WithConfig(context.Background(), cfg)
-		if err := actions.GBFSFetch(ctx, "test-gbfs", ts.URL+"/gbfs.json"); err != nil {
+		if err := actions.GbfsFetch(ctx, "test-gbfs", ts.URL+"/gbfs.json"); err != nil {
 			t.Fatal(err)
 		}
 

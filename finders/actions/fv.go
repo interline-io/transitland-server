@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/interline-io/transitland-lib/copier"
 	"github.com/interline-io/transitland-lib/dmfr/importer"
 	"github.com/interline-io/transitland-lib/dmfr/unimporter"
 	"github.com/interline-io/transitland-lib/tl"
@@ -24,9 +25,16 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return nil, err
 	}
+	// TODO: Check if these should be settable
 	opts := importer.Options{
 		FeedVersionID: fvid,
 		Storage:       cfg.Storage,
+		Options: copier.Options{
+			InterpolateStopTimes:       true,
+			CreateMissingShapes:        true,
+			DeduplicateJourneyPatterns: true,
+			SimplifyShapes:             5.0,
+		},
 	}
 	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 	fr, fe := importer.MainImportFeedVersion(db, opts)

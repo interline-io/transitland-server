@@ -15,6 +15,7 @@ import (
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/model"
 	"google.golang.org/protobuf/proto"
@@ -132,7 +133,7 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 	return cfg.RTFinder.AddData(key, rtdata)
 }
 
-func GBFSFetch(ctx context.Context, feedId string, feedUrl string) error {
+func GbfsFetch(ctx context.Context, feedId string, feedUrl string) error {
 	cfg := model.ForContext(ctx)
 	log := log.For(ctx)
 	gfeeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
@@ -173,4 +174,27 @@ func GBFSFetch(ctx context.Context, feedId string, feedUrl string) error {
 		}
 	}
 	return nil
+}
+
+func fetchCheckFeed(ctx context.Context, feedId string) (*model.Feed, error) {
+	// Check feed exists
+	cfg := model.ForContext(ctx)
+	feeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
+	if err != nil {
+		return nil, err
+	}
+	if len(feeds) == 0 {
+		return nil, errors.New("feed not found")
+	}
+	feed := feeds[0]
+
+	// Check feed permissions
+	if checker := cfg.Checker; checker == nil {
+		// pass
+	} else if check, err := checker.FeedPermissions(ctx, &authz.FeedRequest{Id: int64(feed.ID)}); err != nil {
+		return nil, err
+	} else if !check.Actions.CanCreateFeedVersion {
+		return nil, errors.New("unauthorized")
+	}
+	return feed, nil
 }

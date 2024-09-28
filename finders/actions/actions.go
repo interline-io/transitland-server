@@ -25,12 +25,8 @@ func (Actions) ValidateUpload(ctx context.Context, src io.Reader, feedURL *strin
 	return ValidateUpload(ctx, src, feedURL, rturls)
 }
 
-func (Actions) GBFSFetch(ctx context.Context, feedId string, feedUrl string) error {
-	return GBFSFetch(ctx, feedId, feedUrl)
-}
-
-func (Actions) FetchEnqueue(ctx context.Context, feedIds []string, urlTypes []string, ignoreFetchWait bool) error {
-	return FetchEnqueue(ctx, feedIds, urlTypes, ignoreFetchWait)
+func (Actions) GbfsFetch(ctx context.Context, feedId string, feedUrl string) error {
+	return GbfsFetch(ctx, feedId, feedUrl)
 }
 
 func (Actions) FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportResult, error) {

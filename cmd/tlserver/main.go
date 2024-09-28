@@ -158,7 +158,7 @@ func (cmd *ServerCommand) Run() error {
 		dbFinder.LoadAdmins()
 	}
 
-	// Create RTFinder, GBFSFinder
+	// Create RTFinder, GbfsFinder
 	var rtFinder model.RTFinder
 	var gbfsFinder model.GbfsFinder
 	if redisClient != nil {
