@@ -41,10 +41,6 @@ type EntityFinder interface {
 }
 
 type EntityMutator interface {
-	FeedVersionUnimport(ctx context.Context, fvid int) (*FeedVersionUnimportResult, error)
-	FeedVersionImport(ctx context.Context, fvid int) (*FeedVersionImportResult, error)
-	FeedVersionUpdate(ctx context.Context, values FeedVersionSetInput) (int, error)
-	FeedVersionDelete(ctx context.Context, fvid int) (*FeedVersionDeleteResult, error)
 	StopCreate(ctx context.Context, input StopSetInput) (int, error)
 	StopUpdate(ctx context.Context, input StopSetInput) (int, error)
 	StopDelete(ctx context.Context, id int) error
@@ -148,7 +144,7 @@ type RTFinder interface {
 	GetMessage(string, string) (*pb.FeedMessage, bool)
 }
 
-// GBFSFinder manages and looks up GBFS data
+// GbfsFinder manages and looks up GBFS data
 type GbfsFinder interface {
 	AddData(context.Context, string, gbfs.GbfsFeed) error
 	FindBikes(context.Context, *int, *GbfsBikeRequest) ([]*GbfsFreeBikeStatus, error)
@@ -160,9 +156,12 @@ type Checker interface {
 }
 
 type Actions interface {
-	FetchEnqueue(context.Context, []string, []string, bool) error
 	StaticFetch(context.Context, string, io.Reader, string) (*FeedVersionFetchResult, error)
 	RTFetch(context.Context, string, string, string, string) error
+	GbfsFetch(context.Context, string, string) error
 	ValidateUpload(context.Context, io.Reader, *string, []string) (*ValidationReport, error)
-	GBFSFetch(context.Context, string, string) error
+	FeedVersionUnimport(context.Context, int) (*FeedVersionUnimportResult, error)
+	FeedVersionImport(context.Context, int) (*FeedVersionImportResult, error)
+	FeedVersionUpdate(context.Context, FeedVersionSetInput) (int, error)
+	FeedVersionDelete(context.Context, int) (*FeedVersionDeleteResult, error)
 }
