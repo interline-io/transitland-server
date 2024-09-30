@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	oa "github.com/getkin/kin-openapi/openapi3"
+	"github.com/interline-io/log"
+	"github.com/interline-io/transitland-mw/auth/authn"
 )
 
 //go:embed stop_request.gql
@@ -119,6 +121,12 @@ func (r StopRequest) Query(ctx context.Context) (string, map[string]any) {
 	} else {
 		r.OnestopID = r.StopKey
 		r.IncludeRoutes = true
+	}
+
+	user := authn.ForContext(ctx)
+	if user == nil || (!user.HasRole("tl_pro") && r.IncludeRoutes) {
+		log.Trace().Msg("setting include_routes = false")
+		r.IncludeRoutes = false
 	}
 
 	where := hw{}
