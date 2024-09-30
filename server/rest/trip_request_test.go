@@ -8,15 +8,21 @@ import (
 
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
 func TestTripRequest(t *testing.T) {
-	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{
+	cfg := testconfig.Config(t, testconfig.Options{
 		WhenUtc: "2018-06-01T00:00:00Z",
 		RTJsons: testconfig.DefaultRTJson(),
 	})
+	graphqlHandler, err := gql.NewServer()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	ctx := model.WithConfig(context.Background(), cfg)
 	d, err := makeGraphQLRequest(ctx, graphqlHandler, `query{routes(where:{feed_onestop_id:"BA",route_id:"11"}) {id onestop_id}}`, nil)
 	if err != nil {
@@ -176,7 +182,7 @@ func TestTripRequest(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
+			checkTestCase(t, tc)
 		})
 	}
 }

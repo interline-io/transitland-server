@@ -158,7 +158,7 @@ func TestRouteRequest_Format(t *testing.T) {
 }
 
 func TestRouteRequest_Pagination(t *testing.T) {
-	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
+	cfg := testconfig.Config(t, testconfig.Options{})
 	allEnts, err := cfg.Finder.FindRoutes(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -204,7 +204,7 @@ func TestRouteRequest_Pagination(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
+			checkTestCase(t, tc)
 		})
 	}
 }

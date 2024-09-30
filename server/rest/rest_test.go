@@ -9,9 +9,11 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-dbutil/testutil"
+	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
+	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -36,6 +38,8 @@ type testCase struct {
 	expectLength int
 	expectError  bool
 	f            func(*testing.T, string)
+	user         string
+	userRoles    []string
 }
 
 func testHandlersWithOptions(t testing.TB, opts testconfig.Options) (http.Handler, http.Handler, model.Config) {
@@ -54,30 +58,24 @@ func testHandlersWithOptions(t testing.TB, opts testconfig.Options) (http.Handle
 }
 
 func checkTestCase(t *testing.T, tc testCase) {
-	opts := testconfig.Options{
+	graphqlHandler, _, _ := testHandlersWithOptions(t, testconfig.Options{
 		WhenUtc: "2018-06-01T00:00:00Z",
 		RTJsons: testconfig.DefaultRTJson(),
-	}
-	cfg := testconfig.Config(t, opts)
-	graphqlHandler, err := gql.NewServer()
-	if err != nil {
-		t.Fatal(err)
-	}
-	restHandler, err := NewServer(graphqlHandler)
-	if err != nil {
-		t.Fatal(err)
-	}
-	checkTestCaseWithHandlers(
-		t,
-		tc,
-		model.AddConfigAndPerms(cfg, graphqlHandler),
-		model.AddConfigAndPerms(cfg, restHandler),
-	)
-}
-
-func checkTestCaseWithHandlers(t *testing.T, tc testCase, graphqlHandler http.Handler, restHandler http.Handler) {
+		Storage: testdata.Path("tmp"),
+	})
 	tested := false
-	data, err := makeRequest(context.TODO(), graphqlHandler, tc.h, tc.format, nil)
+
+	// Inject user
+	// This is not the best place to inject the user
+	// But we are calling the handler directly, not through middleware.
+	// TODO: Clean this up
+	ctx := context.Background()
+	if tc.user != "" {
+		user := authn.NewCtxUser(tc.user, "", "").WithRoles(tc.userRoles...)
+		ctx = authn.WithUser(ctx, user)
+	}
+
+	data, err := makeRequest(ctx, graphqlHandler, tc.h, tc.format, nil)
 	if err != nil {
 		if tc.expectError {
 			tested = true

@@ -201,7 +201,7 @@ func TestAgencyRequest_Format(t *testing.T) {
 }
 
 func TestAgencyRequest_Pagination(t *testing.T) {
-	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
+	cfg := testconfig.Config(t, testconfig.Options{})
 	allEnts, err := cfg.Finder.FindAgencies(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -240,7 +240,7 @@ func TestAgencyRequest_Pagination(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
+			checkTestCase(t, tc)
 		})
 	}
 }
