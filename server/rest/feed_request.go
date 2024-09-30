@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	_ "embed"
 	"strconv"
 	"strings"
@@ -102,7 +103,7 @@ func (r FeedRequest) ResponseKey() string {
 }
 
 // Query returns a GraphQL query string and variables.
-func (r FeedRequest) Query() (string, map[string]interface{}) {
+func (r FeedRequest) Query(ctx context.Context) (string, map[string]interface{}) {
 	if r.FeedKey == "" {
 		// pass
 	} else if v, err := strconv.Atoi(r.FeedKey); err == nil {

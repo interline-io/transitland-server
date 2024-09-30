@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	_ "embed"
 	"strconv"
 	"strings"
@@ -101,7 +102,7 @@ func (r TripRequest) ResponseKey() string {
 }
 
 // Query returns a GraphQL query string and variables.
-func (r TripRequest) Query() (string, map[string]interface{}) {
+func (r TripRequest) Query(ctx context.Context) (string, map[string]interface{}) {
 	// ID or RouteID should be considered mandatory.
 	if r.RouteKey == "" {
 		// pass
