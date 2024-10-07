@@ -183,29 +183,29 @@ func TestStopRequest(t *testing.T) {
 	}
 }
 
-// func TestStopRequest_IncludeRoutes(t *testing.T) {
-// 	testcases := []testCase{
-// 		{
-// 			name:         "no auth",
-// 			h:            StopRequest{StopID: "70011", IncludeRoutes: true},
-// 			selector:     "stops.0.route_stops",
-// 			expectLength: 0,
-// 		},
-// 		{
-// 			name:         "with tl_pro",
-// 			h:            StopRequest{StopID: "70011", IncludeRoutes: true},
-// 			selector:     "stops.0.route_stops",
-// 			expectLength: 5,
-// 			user:         "test",
-// 			userRoles:    []string{"tl_pro"},
-// 		},
-// 	}
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			checkTestCase(t, tc)
-// 		})
-// 	}
-// }
+func TestStopRequest_IncludeRoutes(t *testing.T) {
+	testcases := []testCase{
+		{
+			name:         "no auth",
+			h:            StopRequest{StopID: "70011", IncludeRoutes: true},
+			selector:     "stops.0.route_stops",
+			expectLength: 0,
+		},
+		{
+			name:         "with tl_pro",
+			h:            StopRequest{StopID: "70011", IncludeRoutes: true},
+			selector:     "stops.0.route_stops",
+			expectLength: 5,
+			user:         "test",
+			userRoles:    []string{"tl_pro"},
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			checkTestCase(t, tc)
+		})
+	}
+}
 
 func TestStopRequest_AdminCache(t *testing.T) {
 	tc := testCase{
