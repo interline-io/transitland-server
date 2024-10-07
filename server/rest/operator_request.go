@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	_ "embed"
 	"strconv"
 
@@ -87,7 +88,7 @@ func (r OperatorRequest) RequestInfo() RequestInfo {
 func (r OperatorRequest) ResponseKey() string { return "operators" }
 
 // Query returns a GraphQL query string and variables.
-func (r OperatorRequest) Query() (string, map[string]interface{}) {
+func (r OperatorRequest) Query(ctx context.Context) (string, map[string]interface{}) {
 	if r.OperatorKey == "" {
 		// pass
 	} else if v, err := strconv.Atoi(r.OperatorKey); err == nil {

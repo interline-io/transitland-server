@@ -99,7 +99,7 @@ func getKey(value string) string {
 
 // A type that can generate a GraphQL query and variables.
 type apiHandler interface {
-	Query() (string, map[string]interface{})
+	Query(context.Context) (string, map[string]interface{})
 }
 
 // A type that can generate a GeoJSON response.
@@ -273,7 +273,7 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 // makeRequest prepares an apiHandler and makes the request.
 func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandler, format string, u *url.URL) ([]byte, error) {
 	cfg := model.ForContext(ctx)
-	query, vars := ent.Query()
+	query, vars := ent.Query(ctx)
 	response, err := makeGraphQLRequest(ctx, graphqlHandler, query, vars)
 	if err != nil {
 		vjson, _ := json.Marshal(vars)

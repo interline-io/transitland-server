@@ -183,6 +183,30 @@ func TestStopRequest(t *testing.T) {
 	}
 }
 
+func TestStopRequest_IncludeRoutes(t *testing.T) {
+	testcases := []testCase{
+		{
+			name:         "no auth",
+			h:            StopRequest{StopID: "70011", IncludeRoutes: true},
+			selector:     "stops.0.route_stops",
+			expectLength: 0,
+		},
+		{
+			name:         "with tl_pro",
+			h:            StopRequest{StopID: "70011", IncludeRoutes: true},
+			selector:     "stops.0.route_stops",
+			expectLength: 5,
+			user:         "test",
+			userRoles:    []string{"tl_pro"},
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			checkTestCase(t, tc)
+		})
+	}
+}
+
 func TestStopRequest_AdminCache(t *testing.T) {
 	tc := testCase{
 		name:         "place",
@@ -193,7 +217,7 @@ func TestStopRequest_AdminCache(t *testing.T) {
 	type canLoadAdmins interface {
 		LoadAdmins() error
 	}
-	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
+	cfg := testconfig.Config(t, testconfig.Options{})
 	if v, ok := cfg.Finder.(canLoadAdmins); !ok {
 		t.Fatal("finder cant load admins")
 	} else {
@@ -201,7 +225,7 @@ func TestStopRequest_AdminCache(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
+	checkTestCase(t, tc)
 }
 
 func TestStopRequest_Format(t *testing.T) {
@@ -240,7 +264,7 @@ func TestStopRequest_Format(t *testing.T) {
 }
 
 func TestStopRequest_Pagination(t *testing.T) {
-	graphqlHandler, restHandler, cfg := testHandlersWithOptions(t, testconfig.Options{})
+	cfg := testconfig.Config(t, testconfig.Options{})
 	allEnts, err := cfg.Finder.FindStops(model.WithConfig(context.Background(), cfg), nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -273,7 +297,7 @@ func TestStopRequest_Pagination(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			checkTestCaseWithHandlers(t, tc, graphqlHandler, restHandler)
+			checkTestCase(t, tc)
 		})
 	}
 }

@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	_ "embed"
 	"strconv"
 
@@ -93,7 +94,7 @@ func (r FeedVersionRequest) RequestInfo() RequestInfo {
 }
 
 // Query returns a GraphQL query string and variables.
-func (r FeedVersionRequest) Query() (string, map[string]interface{}) {
+func (r FeedVersionRequest) Query(ctx context.Context) (string, map[string]interface{}) {
 	// Handle feed key
 	if r.FeedKey == "" {
 		// pass
