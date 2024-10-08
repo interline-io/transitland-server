@@ -20,8 +20,6 @@ import (
 	"github.com/interline-io/transitland-lib/cmds"
 	"github.com/interline-io/transitland-lib/diff"
 	"github.com/interline-io/transitland-lib/dmfr"
-	"github.com/interline-io/transitland-lib/extract"
-	"github.com/interline-io/transitland-lib/merge"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tlcli"
 	"github.com/interline-io/transitland-lib/tldb"
@@ -53,11 +51,11 @@ func init() {
 		tlcli.CobraHelper(&cmds.ImportCommand{}, pc, "import"),
 		tlcli.CobraHelper(&cmds.RebuildStatsCommand{}, pc, "rebuild-stats"),
 		tlcli.CobraHelper(&cmds.SyncCommand{}, pc, "sync"),
-		tlcli.CobraHelper(&cmds.UnimporterCommand{}, pc, "unimport"),
+		tlcli.CobraHelper(&cmds.UnimportCommand{}, pc, "unimport"),
 		tlcli.CobraHelper(&cmds.ValidatorCommand{}, pc, "validate"),
 		tlcli.CobraHelper(&diff.Command{}, pc, "diff"),
-		tlcli.CobraHelper(&extract.Command{}, pc, "extract"),
-		tlcli.CobraHelper(&merge.Command{}, pc, "merge"),
+		tlcli.CobraHelper(&cmds.ExtractCommand{}, pc, "extract"),
+		tlcli.CobraHelper(&cmds.MergeCommand{}, pc, "merge"),
 		tlcli.CobraHelper(&ServerCommand{}, pc, "server"),
 		tlcli.CobraHelper(&versionCommand{}, pc, "version"),
 		genDocCommand,
