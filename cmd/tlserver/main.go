@@ -17,18 +17,14 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
+	"github.com/interline-io/transitland-lib/cmds"
 	"github.com/interline-io/transitland-lib/diff"
 	"github.com/interline-io/transitland-lib/dmfr"
-	"github.com/interline-io/transitland-lib/dmfr/fetch"
-	"github.com/interline-io/transitland-lib/dmfr/importer"
-	"github.com/interline-io/transitland-lib/dmfr/sync"
-	"github.com/interline-io/transitland-lib/dmfr/unimporter"
 	"github.com/interline-io/transitland-lib/extract"
 	"github.com/interline-io/transitland-lib/merge"
 	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tlcli"
 	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-lib/validator"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/finders/dbfinder"
@@ -53,17 +49,17 @@ func init() {
 	genDocCommand.Hidden = true
 
 	rootCmd.AddCommand(
-		tlcli.CobraHelper(&validator.Command{}, pc, "validate"),
-		tlcli.CobraHelper(&extract.Command{}, pc, "extract"),
+		tlcli.CobraHelper(&cmds.FetchCommand{}, pc, "fetch"),
+		tlcli.CobraHelper(&cmds.ImportCommand{}, pc, "import"),
+		tlcli.CobraHelper(&cmds.RebuildStatsCommand{}, pc, "rebuild-stats"),
+		tlcli.CobraHelper(&cmds.SyncCommand{}, pc, "sync"),
+		tlcli.CobraHelper(&cmds.UnimporterCommand{}, pc, "unimport"),
+		tlcli.CobraHelper(&cmds.ValidatorCommand{}, pc, "validate"),
 		tlcli.CobraHelper(&diff.Command{}, pc, "diff"),
+		tlcli.CobraHelper(&extract.Command{}, pc, "extract"),
 		tlcli.CobraHelper(&merge.Command{}, pc, "merge"),
-		tlcli.CobraHelper(&versionCommand{}, pc, "version"),
-		tlcli.CobraHelper(&fetch.Command{}, pc, "fetch"),
-		tlcli.CobraHelper(&sync.Command{}, pc, "sync"),
-		tlcli.CobraHelper(&fetch.RebuildStatsCommand{}, pc, "rebuild-stats"),
-		tlcli.CobraHelper(&importer.Command{}, pc, "import"),
-		tlcli.CobraHelper(&unimporter.Command{}, pc, "unimport"),
 		tlcli.CobraHelper(&ServerCommand{}, pc, "server"),
+		tlcli.CobraHelper(&versionCommand{}, pc, "version"),
 		genDocCommand,
 	)
 }

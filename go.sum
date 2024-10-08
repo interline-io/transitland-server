@@ -158,8 +158,8 @@ github.com/interline-io/transitland-dbutil v0.0.0-20241007223837-7564820963d3 h1
 github.com/interline-io/transitland-dbutil v0.0.0-20241007223837-7564820963d3/go.mod h1:kgcAMx0H8Hrg9NCT6pxJhJqtN5itAhEQmaalFQjTGaQ=
 github.com/interline-io/transitland-jobs v0.0.0-20241007224018-cfcf2ea0fd72 h1:B22lnyOgSlPfZYSOXlCDRk+QHIPuk0H5/MjKf6jZUto=
 github.com/interline-io/transitland-jobs v0.0.0-20241007224018-cfcf2ea0fd72/go.mod h1:8hAqZ//zkgpxGMcGEHPs/zmFNw7DMhkvMl6WyYbCSM0=
-github.com/interline-io/transitland-lib v0.17.0-rc0.0.20241007223914-1042c7a96dc3 h1:4iSWZVD7xn6y5AeYeXwom16ddFeCN7wJz/Du6XusNSY=
-github.com/interline-io/transitland-lib v0.17.0-rc0.0.20241007223914-1042c7a96dc3/go.mod h1:1H9CH3iavzKjdJjLnhyu5MI35K/ySotez6cotosB0F0=
+github.com/interline-io/transitland-lib v0.17.0-rc0.0.20241008214912-c63b191e03a1 h1:eRzPh7ABEnXV2/zaW53sBFzdLInDtc7pAmuAR47XaBI=
+github.com/interline-io/transitland-lib v0.17.0-rc0.0.20241008214912-c63b191e03a1/go.mod h1:1H9CH3iavzKjdJjLnhyu5MI35K/ySotez6cotosB0F0=
 github.com/interline-io/transitland-mw v0.0.0-20241007223948-3ff905d6e27e h1:XJmgG8Aq9R4rC0FnBocCV1rr9RwEBJFcvnC1WDHmlqI=
 github.com/interline-io/transitland-mw v0.0.0-20241007223948-3ff905d6e27e/go.mod h1:3UNXaOzARo8gMTIKReRDGgYXmZ42JhVlS/XW1+q64kQ=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
@@ -392,6 +392,7 @@ google.golang.org/protobuf v1.34.1 h1:9ddQBjfCyZPOHPUiPxpYESBLc+T8P3E+Vo4IbKZgFW
 google.golang.org/protobuf v1.34.1/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
 gopkg.in/dnaeon/go-vcr.v2 v2.3.0 h1:nwyjLPYlDmZkurnsEr5iWdjqy8kM+xV80E3TbvTA4Ow=
