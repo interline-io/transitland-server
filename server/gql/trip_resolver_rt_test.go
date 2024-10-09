@@ -124,7 +124,7 @@ func TestTripRT_StopTimes(t *testing.T) {
 					assert.Equal(t, delay, int(st.Get("departure.delay").Int()), "departure.delay")
 					sched, _ := tt.NewSecondsFromString(st.Get("arrival.scheduled").String())
 					est, _ := tt.NewSecondsFromString(st.Get("arrival.estimated").String())
-					assert.Equal(t, sched.Seconds()+delay, est.Seconds, "arrival.scheduled + delay = arrival.estimated for this test")
+					assert.Equal(t, sched.Seconds()+delay, est.Seconds(), "arrival.scheduled + delay = arrival.estimated for this test")
 				}
 			},
 		},

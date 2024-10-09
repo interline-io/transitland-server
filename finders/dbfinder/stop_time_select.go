@@ -44,7 +44,7 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeF
 			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.Start.Seconds()})
 		}
 		if where.End != nil {
-			q = q.Where(sq.LtOrEq{"sts.arrival_time + gtfs_trips.journey_pattern_offset": where.End.Seconds})
+			q = q.Where(sq.LtOrEq{"sts.arrival_time + gtfs_trips.journey_pattern_offset": where.End.Seconds()})
 		}
 	}
 	if len(tpairs) > 0 {
