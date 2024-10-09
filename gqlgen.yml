@@ -75,7 +75,7 @@ models:
   Point:
     model: "github.com/interline-io/transitland-lib/tl/tt.Point"
   Seconds:
-    model: "github.com/interline-io/transitland-lib/tl/tt.WideTime"
+    model: "github.com/interline-io/transitland-lib/tl/tt.Seconds"
   Geometry:
     model: "github.com/interline-io/transitland-lib/tl/tt.Geometry"    
   Date:

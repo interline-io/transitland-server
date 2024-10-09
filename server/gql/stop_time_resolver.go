@@ -92,7 +92,7 @@ func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (
 	return fromSte(ste, delay, obj.DepartureTime, obj.ServiceDate, loc), nil
 }
 
-func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTime, serviceDate tl.Date, loc *time.Location) *model.StopTimeEvent {
+func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tt.Seconds, serviceDate tl.Date, loc *time.Location) *model.StopTimeEvent {
 	a := model.StopTimeEvent{
 		StopTimezone: loc.String(),
 		Scheduled:    &sched,
@@ -130,7 +130,7 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTi
 		// Use explicit timestamp
 		estUtc := time.Unix(*useTime, 0).UTC()
 		estLocal := estUtc.In(loc)
-		est := tt.NewWideTimeFromSeconds(estLocal.Hour()*3600 + estLocal.Minute()*60 + estLocal.Second())
+		est := tt.NewSeconds(estLocal.Hour()*3600 + estLocal.Minute()*60 + estLocal.Second())
 		a.Estimated = ptr(est)
 		a.EstimatedUtc = ptr(estUtc)
 		a.EstimatedUnix = ptr(int(estUtc.Unix()))
@@ -139,7 +139,7 @@ func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tl.WideTi
 		// Create a time based on STE delay
 		estUtc := a.ScheduledUtc.Add(time.Second * time.Duration(int(*useDelay)))
 		estLocal := estUtc.In(loc)
-		est := tt.NewWideTimeFromSeconds(sched.Seconds + int(*useDelay))
+		est := tt.NewSeconds(int(sched.Val) + int(*useDelay))
 		a.Estimated = ptr(est)
 		a.EstimatedUtc = ptr(estUtc)
 		a.EstimatedUnix = ptr(int(estUtc.Unix()))

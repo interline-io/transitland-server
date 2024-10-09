@@ -41,7 +41,7 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeF
 
 	if where != nil {
 		if where.Start != nil {
-			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.Start.Seconds})
+			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": where.Start.Seconds()})
 		}
 		if where.End != nil {
 			q = q.Where(sq.LtOrEq{"sts.arrival_time + gtfs_trips.journey_pattern_offset": where.End.Seconds})
@@ -187,10 +187,10 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		}
 		// Accept either Start/End or StartTime/EndTime
 		if where.Start != nil && where.Start.Valid {
-			where.StartTime = &where.Start.Seconds
+			where.StartTime = ptr(where.Start.Seconds())
 		}
 		if where.End != nil && where.End.Valid {
-			where.EndTime = &where.End.Seconds
+			where.EndTime = ptr(where.End.Seconds())
 		}
 		if where.StartTime != nil {
 			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": *where.StartTime})
@@ -207,11 +207,11 @@ func StopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow
 	// Convert Start, End to StartTime, EndTime
 	if where != nil {
 		if where.Start != nil {
-			where.StartTime = ptr(where.Start.Seconds)
+			where.StartTime = ptr(where.Start.Seconds())
 			where.Start = nil
 		}
 		if where.End != nil {
-			where.EndTime = ptr(where.End.Seconds)
+			where.EndTime = ptr(where.End.Seconds())
 			where.End = nil
 		}
 	}

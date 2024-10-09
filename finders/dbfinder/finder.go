@@ -738,7 +738,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				if serviceDate != nil {
 					for _, ent := range sts {
 						ent.ServiceDate = tt.NewDate(serviceDate.Val)
-						if ent.ArrivalTime.Seconds > 24*60*60 {
+						if ent.ArrivalTime.Val > 24*60*60 {
 							ent.Date = tt.NewDate(serviceDate.Val.AddDate(0, 0, 1))
 						} else {
 							ent.Date = tt.NewDate(serviceDate.Val)
