@@ -101,10 +101,10 @@ func (r *routeHeadwayResolver) Stop(ctx context.Context, obj *model.RouteHeadway
 	return For(ctx).StopsByID.Load(ctx, obj.SelectedStopID)()
 }
 
-func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tl.WideTime, error) {
-	var ret []*tl.WideTime
+func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tt.Seconds, error) {
+	var ret []*tt.Seconds
 	for _, v := range obj.DepartureInts.Val {
-		w := tt.NewWideTimeFromSeconds(v)
+		w := tt.NewSeconds(int(v))
 		ret = append(ret, &w)
 	}
 	return ret, nil

@@ -367,9 +367,9 @@ func (g *GbfsVehicleDockAvailable) VehicleTypes() []*GbfsVehicleType {
 		return nil
 	}
 	var ret []*GbfsVehicleType
-	for _, s := range g.VehicleDockAvailable.VehicleTypeIDs {
+	for _, s := range g.VehicleDockAvailable.VehicleTypeIDs.Val {
 		for _, t := range g.Feed.VehicleTypes {
-			if s.Val == t.VehicleTypeID.Val {
+			if s == t.VehicleTypeID.Val {
 				ret = append(ret, &GbfsVehicleType{VehicleType: t, Feed: g.Feed})
 			}
 		}
@@ -399,9 +399,9 @@ func (g *GbfsVehicleType) PricingPlans() []*GbfsSystemPricingPlan {
 		return nil
 	}
 	var ret []*GbfsSystemPricingPlan
-	for _, t := range g.PricingPlanIDs {
+	for _, t := range g.PricingPlanIDs.Val {
 		for _, s := range g.Feed.Plans {
-			if t.Val == s.PlanID.Val {
+			if t == s.PlanID.Val {
 				ret = append(ret, &GbfsSystemPricingPlan{SystemPricingPlan: s})
 			}
 		}

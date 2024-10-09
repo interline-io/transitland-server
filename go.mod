@@ -129,7 +129,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+
 // replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/transitland-jobs => /Users/irees/src/interline-io/transitland-jobs

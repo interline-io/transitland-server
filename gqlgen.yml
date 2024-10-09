@@ -18,8 +18,6 @@ resolver:
   package: resolvers
   filename_template: "{name}.gql.go"
 
-
-
 # struct_fields_always_pointers: false
 # resolvers_always_return_pointers: false
 # omit_slice_element_pointers: false
@@ -75,7 +73,7 @@ models:
   Point:
     model: "github.com/interline-io/transitland-lib/tl/tt.Point"
   Seconds:
-    model: "github.com/interline-io/transitland-lib/tl/tt.WideTime"
+    model: "github.com/interline-io/transitland-lib/tl/tt.Seconds"
   Geometry:
     model: "github.com/interline-io/transitland-lib/tl/tt.Geometry"    
   Date:

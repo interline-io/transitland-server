@@ -1185,7 +1185,7 @@ type RouteResolver interface {
 type RouteHeadwayResolver interface {
 	Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error)
 
-	Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tt.WideTime, error)
+	Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tt.Seconds, error)
 }
 type RouteStopResolver interface {
 	Route(ctx context.Context, obj *model.RouteStop) (*model.Route, error)
@@ -20909,9 +20909,9 @@ func (ec *executionContext) _Frequency_start_time(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.WideTime)
+	res := resTmp.(tt.Seconds)
 	fc.Result = res
-	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Frequency_start_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -20953,9 +20953,9 @@ func (ec *executionContext) _Frequency_end_time(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.WideTime)
+	res := resTmp.(tt.Seconds)
 	fc.Result = res
-	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Frequency_end_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34059,9 +34059,9 @@ func (ec *executionContext) _RTTripDescriptor_start_time(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RTTripDescriptor_start_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -36765,9 +36765,9 @@ func (ec *executionContext) _RouteHeadway_departures(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*tt.WideTime)
+	res := resTmp.([]*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTimeᚄ(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSecondsᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RouteHeadway_departures(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41216,9 +41216,9 @@ func (ec *executionContext) _StopObservation_trip_start_time(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopObservation_trip_start_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41544,9 +41544,9 @@ func (ec *executionContext) _StopObservation_scheduled_arrival_time(ctx context.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopObservation_scheduled_arrival_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41585,9 +41585,9 @@ func (ec *executionContext) _StopObservation_scheduled_departure_time(ctx contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopObservation_scheduled_departure_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41626,9 +41626,9 @@ func (ec *executionContext) _StopObservation_observed_arrival_time(ctx context.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopObservation_observed_arrival_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41667,9 +41667,9 @@ func (ec *executionContext) _StopObservation_observed_departure_time(ctx context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopObservation_observed_departure_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41875,9 +41875,9 @@ func (ec *executionContext) _StopTime_arrival_time(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.WideTime)
+	res := resTmp.(tt.Seconds)
 	fc.Result = res
-	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTime_arrival_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41919,9 +41919,9 @@ func (ec *executionContext) _StopTime_departure_time(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.WideTime)
+	res := resTmp.(tt.Seconds)
 	fc.Result = res
-	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTime_departure_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43009,9 +43009,9 @@ func (ec *executionContext) _StopTimeEvent_estimated(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTimeEvent_estimated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43173,9 +43173,9 @@ func (ec *executionContext) _StopTimeEvent_scheduled(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.WideTime)
+	res := resTmp.(*tt.Seconds)
 	fc.Result = res
-	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, field.Selections, res)
+	return ec.marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTimeEvent_scheduled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -50734,14 +50734,14 @@ func (ec *executionContext) unmarshalInputStopTimeFilter(ctx context.Context, ob
 			it.EndTime = data
 		case "start":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
+			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Start = data
 		case "end":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
+			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -50893,14 +50893,14 @@ func (ec *executionContext) unmarshalInputTripStopTimeFilter(ctx context.Context
 		switch k {
 		case "start":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
+			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Start = data
 		case "end":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, v)
+			data, err := ec.unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -61836,23 +61836,23 @@ func (ec *executionContext) marshalNRouteStopPattern2ᚖgithubᚗcomᚋinterline
 	return ec._RouteStopPattern(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, v interface{}) (tt.WideTime, error) {
-	var res tt.WideTime
+func (ec *executionContext) unmarshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx context.Context, v interface{}) (tt.Seconds, error) {
+	var res tt.Seconds
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, sel ast.SelectionSet, v tt.WideTime) graphql.Marshaler {
+func (ec *executionContext) marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx context.Context, sel ast.SelectionSet, v tt.Seconds) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, v interface{}) (*tt.WideTime, error) {
-	var res = new(tt.WideTime)
+func (ec *executionContext) unmarshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx context.Context, v interface{}) (*tt.Seconds, error) {
+	var res = new(tt.Seconds)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, sel ast.SelectionSet, v *tt.WideTime) graphql.Marshaler {
+func (ec *executionContext) marshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx context.Context, sel ast.SelectionSet, v *tt.Seconds) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -64601,7 +64601,7 @@ func (ec *executionContext) marshalOScheduleRelationship2ᚖgithubᚗcomᚋinter
 	return v
 }
 
-func (ec *executionContext) unmarshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTimeᚄ(ctx context.Context, v interface{}) ([]*tt.WideTime, error) {
+func (ec *executionContext) unmarshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSecondsᚄ(ctx context.Context, v interface{}) ([]*tt.Seconds, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -64610,10 +64610,10 @@ func (ec *executionContext) unmarshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑi
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]*tt.WideTime, len(vSlice))
+	res := make([]*tt.Seconds, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -64621,13 +64621,13 @@ func (ec *executionContext) unmarshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑi
 	return res, nil
 }
 
-func (ec *executionContext) marshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTimeᚄ(ctx context.Context, sel ast.SelectionSet, v []*tt.WideTime) graphql.Marshaler {
+func (ec *executionContext) marshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSecondsᚄ(ctx context.Context, sel ast.SelectionSet, v []*tt.Seconds) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := make(graphql.Array, len(v))
 	for i := range v {
-		ret[i] = ec.marshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx, sel, v[i])
+		ret[i] = ec.marshalNSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx, sel, v[i])
 	}
 
 	for _, e := range ret {
@@ -64639,16 +64639,16 @@ func (ec *executionContext) marshalOSeconds2ᚕᚖgithubᚗcomᚋinterlineᚑio�
 	return ret
 }
 
-func (ec *executionContext) unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, v interface{}) (*tt.WideTime, error) {
+func (ec *executionContext) unmarshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx context.Context, v interface{}) (*tt.Seconds, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(tt.WideTime)
+	var res = new(tt.Seconds)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐWideTime(ctx context.Context, sel ast.SelectionSet, v *tt.WideTime) graphql.Marshaler {
+func (ec *executionContext) marshalOSeconds2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐSeconds(ctx context.Context, sel ast.SelectionSet, v *tt.Seconds) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -65072,18 +65072,12 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 }
 
 func (ec *executionContext) unmarshalOStrings2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐStrings(ctx context.Context, v interface{}) (tt.Strings, error) {
-	if v == nil {
-		return nil, nil
-	}
 	var res tt.Strings
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOStrings2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐStrings(ctx context.Context, sel ast.SelectionSet, v tt.Strings) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
 	return v
 }
 
