@@ -30,7 +30,6 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
 		JoinClause("left join tl_agency_geometries ON tl_agency_geometries.agency_id = gtfs_agencies.id").
 		JoinClause("left join current_operators_in_feed coif ON coif.feed_id = current_feeds.id AND coif.resolved_gtfs_agency_id = gtfs_agencies.agency_id").
-		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_agencies.feed_version_id,gtfs_agencies.id").
 		Limit(checkLimit(limit))
 
@@ -118,6 +117,6 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 	}
 
 	// Handle permissions
-	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
+	q = pfJoinCheckFv(q, permFilter)
 	return q
 }
