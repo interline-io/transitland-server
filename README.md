@@ -52,10 +52,10 @@ The "example" server instance configured by the  `tlserver` command runs without
    - e.g. `postgresql://localhost:5432/tlv2_test_server?sslmode=disable`
    - You must also set `PGHOST=localhost`, `PGDATABASE=tlv2_test_server`, etc., to match this url
    - This requirement may be removed in the future
-1. Initialize test database schema: `transitland-lib/internal/schema/postgres/bootstrap.sh`
+1. Initialize test database schema: `transitland-lib/schema/postgres/bootstrap.sh`
    - This will create the `tlv2_test_server` database in postgres
    - Will halt with an error (intentionally) if this database already exists
-   - Runs golang-migrate on the migrations in `transitland-lib/internal/schema/postgres/migrations`
+   - Runs golang-migrate on the migrations in `transitland-lib/schema/postgres/migrations`
    - Unpacks and imports the Natural Earth datasets bundled with `transitland-lib`
 2. Initialize test fixtures: `./testdata/test_setup.sh`
    - Builds and installs the `cmd/tlserver` command
