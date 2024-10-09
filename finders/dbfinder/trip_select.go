@@ -125,6 +125,6 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	}
 
 	// Handle permissions
-	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
+	q = pfJoinCheckFv(q, permFilter)
 	return q
 }

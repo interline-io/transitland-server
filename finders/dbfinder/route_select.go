@@ -31,7 +31,6 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 		From("gtfs_routes").
 		Join("feed_versions ON feed_versions.id = gtfs_routes.feed_version_id").
 		Join("current_feeds ON current_feeds.id = feed_versions.feed_id").
-		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		OrderBy("gtfs_routes.feed_version_id,gtfs_routes.id").
 		Limit(checkLimit(limit))
 
@@ -148,7 +147,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 	}
 
 	// Handle permissions
-	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
+	q = pfJoinCheckFv(q, permFilter)
 	return q
 }
 
