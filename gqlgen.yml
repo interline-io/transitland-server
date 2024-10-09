@@ -18,8 +18,6 @@ resolver:
   package: resolvers
   filename_template: "{name}.gql.go"
 
-
-
 # struct_fields_always_pointers: false
 # resolvers_always_return_pointers: false
 # omit_slice_element_pointers: false

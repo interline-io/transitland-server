@@ -60570,12 +60570,13 @@ func (ec *executionContext) marshalNCounts2githubᚗcomᚋinterlineᚑioᚋtrans
 }
 
 func (ec *executionContext) unmarshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, v interface{}) (tt.Date, error) {
-	res, err := ec.unmarshalInputDate(ctx, v)
+	var res tt.Date
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNDate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, sel ast.SelectionSet, v tt.Date) graphql.Marshaler {
-	return ec._Date(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDateᚄ(ctx context.Context, v interface{}) ([]*tt.Date, error) {
@@ -60611,8 +60612,9 @@ func (ec *executionContext) marshalNDate2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋt
 }
 
 func (ec *executionContext) unmarshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, v interface{}) (*tt.Date, error) {
-	res, err := ec.unmarshalInputDate(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var res = new(tt.Date)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, sel ast.SelectionSet, v *tt.Date) graphql.Marshaler {
@@ -60622,7 +60624,7 @@ func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		}
 		return graphql.Null
 	}
-	return ec._Date(ctx, sel, v)
+	return v
 }
 
 func (ec *executionContext) unmarshalNDirectionRequest2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDirectionRequest(ctx context.Context, v interface{}) (model.DirectionRequest, error) {
@@ -61356,12 +61358,13 @@ func (ec *executionContext) marshalNLineString2githubᚗcomᚋinterlineᚑioᚋt
 }
 
 func (ec *executionContext) unmarshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx context.Context, v interface{}) (tt.Map, error) {
-	res, err := ec.unmarshalInputMap(ctx, v)
+	var res tt.Map
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNMap2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐMap(ctx context.Context, sel ast.SelectionSet, v tt.Map) graphql.Marshaler {
-	return ec._Map(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) marshalNMe2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐMe(ctx context.Context, sel ast.SelectionSet, v model.Me) graphql.Marshaler {
@@ -62793,12 +62796,13 @@ func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.S
 }
 
 func (ec *executionContext) unmarshalOBool2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx context.Context, v interface{}) (tt.Bool, error) {
-	res, err := ec.unmarshalInputBool(ctx, v)
+	var res tt.Bool
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOBool2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐBool(ctx context.Context, sel ast.SelectionSet, v tt.Bool) graphql.Marshaler {
-	return ec._Bool(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -62890,27 +62894,29 @@ func (ec *executionContext) marshalOCensusValue2ᚖgithubᚗcomᚋinterlineᚑio
 }
 
 func (ec *executionContext) unmarshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, v interface{}) (tt.Date, error) {
-	res, err := ec.unmarshalInputDate(ctx, v)
+	var res tt.Date
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, sel ast.SelectionSet, v tt.Date) graphql.Marshaler {
-	return ec._Date(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, v interface{}) (*tt.Date, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputDate(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var res = new(tt.Date)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalODate2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐDate(ctx context.Context, sel ast.SelectionSet, v *tt.Date) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._Date(ctx, sel, v)
+	return v
 }
 
 func (ec *executionContext) marshalODistance2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐDistance(ctx context.Context, sel ast.SelectionSet, v *model.Distance) graphql.Marshaler {
@@ -63225,12 +63231,13 @@ func (ec *executionContext) marshalOFeedVersionServiceWindow2ᚖgithubᚗcomᚋi
 }
 
 func (ec *executionContext) unmarshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx context.Context, v interface{}) (tt.Float, error) {
-	res, err := ec.unmarshalInputFloat(ctx, v)
+	var res tt.Float
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐFloat(ctx context.Context, sel ast.SelectionSet, v tt.Float) graphql.Marshaler {
-	return ec._Float(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
@@ -64004,12 +64011,13 @@ func (ec *executionContext) marshalOImportStatus2ᚖgithubᚗcomᚋinterlineᚑi
 }
 
 func (ec *executionContext) unmarshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx context.Context, v interface{}) (tt.Int, error) {
-	res, err := ec.unmarshalInputInt(ctx, v)
+	var res tt.Int
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐInt(ctx context.Context, sel ast.SelectionSet, v tt.Int) graphql.Marshaler {
-	return ec._Int(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -64990,12 +64998,13 @@ func (ec *executionContext) unmarshalOStopTimeFilter2ᚖgithubᚗcomᚋinterline
 }
 
 func (ec *executionContext) unmarshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx context.Context, v interface{}) (tt.String, error) {
-	res, err := ec.unmarshalInputString(ctx, v)
+	var res tt.String
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐString(ctx context.Context, sel ast.SelectionSet, v tt.String) graphql.Marshaler {
-	return ec._String(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
@@ -65063,45 +65072,49 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 }
 
 func (ec *executionContext) unmarshalOStrings2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐStrings(ctx context.Context, v interface{}) (tt.Strings, error) {
-	res, err := ec.unmarshalInputStrings(ctx, v)
+	var res tt.Strings
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOStrings2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐStrings(ctx context.Context, sel ast.SelectionSet, v tt.Strings) graphql.Marshaler {
-	return ec._Strings(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTags(ctx context.Context, v interface{}) (tt.Tags, error) {
-	res, err := ec.unmarshalInputTags(ctx, v)
+	var res tt.Tags
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOTags2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTags(ctx context.Context, sel ast.SelectionSet, v tt.Tags) graphql.Marshaler {
-	return ec._Tags(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOTags2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTags(ctx context.Context, v interface{}) (*tt.Tags, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputTags(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var res = new(tt.Tags)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOTags2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTags(ctx context.Context, sel ast.SelectionSet, v *tt.Tags) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._Tags(ctx, sel, v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx context.Context, v interface{}) (tt.Time, error) {
-	res, err := ec.unmarshalInputTime(ctx, v)
+	var res tt.Time
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOTime2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋtlᚋttᚐTime(ctx context.Context, sel ast.SelectionSet, v tt.Time) graphql.Marshaler {
-	return ec._Time(ctx, sel, &v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
