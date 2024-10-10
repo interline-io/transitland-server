@@ -29,7 +29,7 @@ func TestStopRT_Basic(t *testing.T) {
 				assert.Equal(t, delay, int(st.Get("departure.estimated_delay").Int()), "departure.estimated_delay")
 				sched, _ := tt.NewSecondsFromString(st.Get("arrival.scheduled").String())
 				est, _ := tt.NewSecondsFromString(st.Get("arrival.estimated").String())
-				assert.Equal(t, sched.Seconds()+delay, est.Seconds(), "arrival.scheduled + delay = arrival.estimated for this test")
+				assert.Equal(t, sched.Int()+delay, est.Int(), "arrival.scheduled + delay = arrival.estimated for this test")
 			}
 			checkTrip := "1031527WKDY"
 			found := false

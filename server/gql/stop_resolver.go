@@ -139,8 +139,8 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	sort.Slice(sts, func(i, j int) bool {
 		sta := sts[i]
 		stb := sts[j]
-		a := int(sta.ServiceDate.Val.Unix()) + sta.DepartureTime.Seconds()
-		b := int(stb.ServiceDate.Val.Unix()) + stb.DepartureTime.Seconds()
+		a := int(sta.ServiceDate.Val.Unix()) + sta.DepartureTime.Int()
+		b := int(stb.ServiceDate.Val.Unix()) + stb.DepartureTime.Int()
 		return a < b
 	})
 	return sts, nil

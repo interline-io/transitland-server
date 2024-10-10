@@ -49,37 +49,53 @@ models:
       - "github.com/99designs/gqlgen/graphql.Boolean"
       - "github.com/interline-io/transitland-lib/tl/tt.Bool"      
   TimeInput:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Time"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Time"
   StringInput:
-    model: "github.com/interline-io/transitland-lib/tl/tt.String"      
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.String"      
   IntInput:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Input"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Input"
   FloatInput:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Float"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Float"
   Bool:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Bool"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Bool"
   Key:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Key"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Key"
   Strings:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Strings"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Strings"
   Counts:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Counts"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Counts"
   Tags:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Tags"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Tags"
   Polygon:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Polygon"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Polygon"
   LineString:
-    model: "github.com/interline-io/transitland-lib/tl/tt.LineString"
+    model:
+      - "github.com/interline-io/transitland-lib/tl/tt.LineString"
   Point:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Point"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Point"
   Seconds:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Seconds"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Seconds"
   Geometry:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Geometry"    
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Geometry"    
   Date:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Date"
+    model:
+      - "github.com/interline-io/transitland-lib/tl/tt.Date"
   Map:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Map"
+    model: 
+      - "github.com/interline-io/transitland-lib/tl/tt.Map"
   Feed:
     fields:
       onestop_id:
