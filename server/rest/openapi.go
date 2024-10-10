@@ -14,8 +14,13 @@ type RequestAltPath struct {
 }
 
 type RequestInfo struct {
-	Path     string
-	PathItem *oa.PathItem
+	Path string
+	Get  RequestOperation
+}
+
+type RequestOperation struct {
+	Operation *oa.Operation
+	Query     string
 }
 
 func newPRef(paramRef string) *oa.ParameterRef {

@@ -33,11 +33,11 @@ type FeedVersionRequest struct {
 func (r FeedVersionRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/feed_versions",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
+		Get: RequestOperation{
+			Query: feedVersionQuery,
+			Operation: &oa.Operation{
 				Summary:     "Feed Versions",
 				Description: `Search for feed versions`,
-				Responses:   queryToOAResponses(feedVersionQuery),
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/feed_versions.{format}", "Request feed versions in specified format"},

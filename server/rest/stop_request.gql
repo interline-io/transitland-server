@@ -76,6 +76,7 @@ query ($limit: Int, $after: Int, $ids: [Int!], $include_alerts: Boolean!, $inclu
     alerts @include(if: $include_alerts) {
       ...alert
     }
+    # [hide:true]
     route_stops(limit: 1000) @include(if: $include_routes) {
       route {
         id

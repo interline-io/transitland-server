@@ -34,11 +34,11 @@ type StopDepartureRequest struct {
 func (r StopDepartureRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/stops/{stop_key}/departures",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
+		Get: RequestOperation{
+			Query: stopDepartureQuery,
+			Operation: &oa.Operation{
 				Summary:     "Stop departures",
 				Description: `Departures from a given stop based on static and real-time data`,
-				Responses:   queryToOAResponses(stopDepartureQuery),
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{},
 				},

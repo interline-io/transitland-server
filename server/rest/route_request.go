@@ -41,11 +41,11 @@ type RouteRequest struct {
 func (r RouteRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/routes",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
+		Get: RequestOperation{
+			Query: routeQuery,
+			Operation: &oa.Operation{
 				Summary:     "Routes",
 				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/routes.{format}", "Request routes in specified format"},
@@ -216,11 +216,11 @@ type RouteKeyRequest struct {
 func (r RouteKeyRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/routes/{route_key}",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
+		Get: RequestOperation{
+			Query: routeQuery,
+			Operation: &oa.Operation{
 				Summary:     "Routes",
 				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
@@ -239,35 +239,35 @@ func (r RouteKeyRequest) RequestInfo() RequestInfo {
 
 //////////
 
-type AgencyRouteRequest struct {
-	RouteRequest
-}
+// type AgencyRouteRequest struct {
+// 	RouteRequest
+// }
 
-func (r AgencyRouteRequest) RequestInfo() RequestInfo {
-	// Include all base parameters except for agency_key
-	baseInfo := RouteRequest{}.RequestInfo()
-	var params oa.Parameters
-	params = append(params, &pref{Value: &param{
-		Name:        "agency_key",
-		In:          "path",
-		Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
-		Schema:      newSRVal("string", "", nil),
-	}})
-	for _, param := range baseInfo.PathItem.Get.Parameters {
-		if param.Value != nil && param.Value.Name == "agency_key" {
-			continue
-		}
-		params = append(params, param)
-	}
-	return RequestInfo{
-		Path: "/agencies/{agency_key}/routes",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
-				Summary:     "Routes",
-				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
-				Parameters:  params,
-			},
-		},
-	}
-}
+// func (r AgencyRouteRequest) RequestInfo() RequestInfo {
+// 	// Include all base parameters except for agency_key
+// 	baseInfo := RouteRequest{}.RequestInfo()
+// 	var params oa.Parameters
+// 	params = append(params, &pref{Value: &param{
+// 		Name:        "agency_key",
+// 		In:          "path",
+// 		Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+// 		Schema:      newSRVal("string", "", nil),
+// 	}})
+// 	for _, param := range baseInfo.PathItem.Get.Parameters {
+// 		if param.Value != nil && param.Value.Name == "agency_key" {
+// 			continue
+// 		}
+// 		params = append(params, param)
+// 	}
+// 	return RequestInfo{
+// 		Path: "/agencies/{agency_key}/routes",
+// 		Get: RequestOperation{
+// 			Query: routeQuery,
+// 			Operation: &oa.Operation{
+// 				Summary:     "Routes",
+// 				Description: `Search for routes`,
+// 				Parameters:  params,
+// 			},
+// 		},
+// 	}
+// }

@@ -36,11 +36,11 @@ type FeedRequest struct {
 func (r FeedRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/feeds",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
+		Get: RequestOperation{
+			Query: feedQuery,
+			Operation: &oa.Operation{
 				Summary:     "Feeds",
 				Description: `Search for feeds`,
-				Responses:   queryToOAResponses(feedQuery),
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/feeds.{format}", "Request feeds in specified format"},

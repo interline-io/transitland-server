@@ -34,11 +34,11 @@ type TripRequest struct {
 func (r TripRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/routes/{route_key}/trips",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
+		Get: RequestOperation{
+			Query: tripQuery,
+			Operation: &oa.Operation{
 				Summary:     "Trips",
 				Description: `Search for trips`,
-				Responses:   queryToOAResponses(tripQuery),
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/routes/{route_key}/trips.{format}", "Request trips in specified format"},
@@ -186,11 +186,11 @@ type TripEntityRequest struct {
 func (r TripEntityRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/routes/{route_key}/trips/{id}",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
+		Get: RequestOperation{
+			Query: tripQuery,
+			Operation: &oa.Operation{
 				Summary:     "Trips",
 				Description: `Search for trips`,
-				Responses:   queryToOAResponses(tripQuery),
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
