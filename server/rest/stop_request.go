@@ -45,6 +45,13 @@ func (r StopRequest) RequestInfo() RequestInfo {
 				Summary:     "Stops",
 				Description: `Search for stops`,
 				Responses:   queryToOAResponses(stopQuery),
+				Extensions: map[string]any{
+					"x-alternates": []RequestAltPath{
+						{"GET", "/stops.{format}", "Request stops in specified format"},
+						{"GET", "/stops/{route_key}", "Request a stop by ID or Onestop ID"},
+						{"GET", "/stops/{route_key}.format", "Request a stop by ID or Onestop ID in specified format"},
+					},
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "stop_key",

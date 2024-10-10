@@ -38,6 +38,14 @@ func (r FeedVersionRequest) RequestInfo() RequestInfo {
 				Summary:     "Feed Versions",
 				Description: `Search for feed versions`,
 				Responses:   queryToOAResponses(feedVersionQuery),
+				Extensions: map[string]any{
+					"x-alternates": []RequestAltPath{
+						{"GET", "/feed_versions.{format}", "Request feed versions in specified format"},
+						{"GET", "/feed_versions/{feed_version_key}", "Request a feed version by ID or SHA1"},
+						{"GET", "/feed_versions/{feed_version_key}.format", "Request a feed version by ID or SHA1 in specifed format"},
+						{"GET", "/feeds/{feed_key}/feed_versions", "Request feed versions by feed ID or Onestop ID"},
+					},
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "feed_version_key",

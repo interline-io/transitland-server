@@ -42,6 +42,13 @@ func (r OperatorRequest) RequestInfo() RequestInfo {
 				Summary:     "Operators",
 				Description: `Search for operators`,
 				Responses:   queryToOAResponses(operatorQuery),
+				Extensions: map[string]any{
+					"x-alternates": []RequestAltPath{
+						{"GET", "/operators.{format}", "Request operators in specified format"},
+						{"GET", "/operators/{onestop_id}", "Request an operator by Onestop ID"},
+						{"GET", "/operators/{onestop_id}.format", "Request an operator by Onestop ID in specified format"},
+					},
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "tag_key",

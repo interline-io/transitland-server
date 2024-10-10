@@ -43,8 +43,15 @@ func (r AgencyRequest) RequestInfo() RequestInfo {
 		PathItem: &oa.PathItem{
 			Get: &oa.Operation{
 				Summary:     "Agencies",
-				Description: ``,
+				Description: `Search for agencies`,
 				Responses:   queryToOAResponses(agencyQuery),
+				Extensions: map[string]any{
+					"x-alternates": []RequestAltPath{
+						{"GET", "/agencies.{format}", "Request agencies in specified format"},
+						{"GET", "/agencies/{agency_key}", "Request an agency"},
+						{"GET", "/agencies/{agency_key}.format", "Request an agency in a specified format"},
+					},
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "agency_key",

@@ -40,6 +40,7 @@ func GenerateOpenAPI() (*oa.T, error) {
 		&rest.RouteRequest{},
 		&rest.TripRequest{},
 		&rest.StopRequest{},
+		&rest.StopDepartureRequest{},
 	}
 	for _, handler := range handlers {
 		requestInfo := handler.RequestInfo()

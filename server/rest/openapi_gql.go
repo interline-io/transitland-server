@@ -62,24 +62,38 @@ var gqlScalarToOASchema = map[string]oa.Schema{
 	"ID": {
 		Type: oa.NewInt64Schema().Type,
 	},
-	"Counts":   {},
-	"Tags":     {},
-	"Geometry": {},
+	"Counts": {
+		Type: oa.NewObjectSchema().Type,
+	},
+	"Tags": {
+		Type: oa.NewObjectSchema().Type,
+	},
 	"Date": {
 		Type:    oa.NewStringSchema().Type,
 		Format:  "date",
 		Example: "2019-11-15",
 	},
-	"Point":      {},
-	"LineString": {},
-	"Seconds":    {},
-	"Polygon":    {},
-	"Map":        {},
+	"Seconds": {
+		Type:    oa.NewStringSchema().Type,
+		Format:  "hms",
+		Example: "15:21:04",
+	},
+	"Map": {
+		Type: oa.NewObjectSchema().Type,
+	},
+	"Bool": {
+		Type: oa.NewBoolSchema().Type,
+	},
+	"Strings": {
+		Type: oa.NewArraySchema().Type,
+	},
 	"Any":        {},
 	"Upload":     {},
 	"Key":        {},
-	"Bool":       {},
-	"Strings":    {},
+	"Polygon":    {},
+	"Geometry":   {},
+	"Point":      {},
+	"LineString": {},
 }
 
 type ParsedUrl struct {
@@ -127,7 +141,9 @@ func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int) {
 	schema := &oa.Schema{
 		Properties: oa.Schemas{},
 	}
+	gqlType := ""
 	namedType := ""
+	isArray := false
 	if frag, ok := recurseValue.(*ast.FragmentSpread); ok {
 		for _, sel := range frag.Definition.SelectionSet {
 			queryRecurse(sel, schema.Properties, level)
@@ -142,11 +158,18 @@ func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int) {
 		schema.Description = field.Definition.Description
 		schema.Nullable = !field.Definition.Type.NonNull
 		namedType = field.Definition.Type.NamedType
+		gqlType = field.Definition.Type.NamedType
+		if field.Definition.Type.Elem != nil {
+			gqlType = field.Definition.Type.Elem.Name()
+		}
+		if strings.HasPrefix(field.Definition.Type.String(), "[") {
+			isArray = true
+		}
 	} else {
 		return
 	}
 
-	fmt.Printf("%s %s\n", strings.Repeat(" ", level*4), schema.Title)
+	fmt.Printf("%s %s (%s : %s)\n", strings.Repeat(" ", level*4), schema.Title, namedType, gqlType)
 
 	// Scalar types
 	if scalarType, ok := gqlScalarToOASchema[namedType]; ok {
@@ -155,6 +178,9 @@ func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int) {
 		schema.Example = scalarType.Example
 	} else {
 		schema.Type = oa.NewObjectSchema().Type
+		if gqlType != "" {
+			schema.Extensions = map[string]any{"x-graphql-type": gqlType}
+		}
 	}
 
 	// Parse docstring
@@ -170,6 +196,24 @@ func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int) {
 	}
 	for _, e := range parsed.Enum {
 		schema.Enum = append(schema.Enum, e)
+	}
+
+	if isArray {
+		innerSchema := &oa.Schema{
+			Properties: schema.Properties,
+			Type:       schema.Type,
+			Extensions: schema.Extensions,
+		}
+		outerSchema := &oa.Schema{
+			Title:        schema.Title,
+			Description:  schema.Description,
+			Nullable:     schema.Nullable,
+			Type:         oa.NewArraySchema().Type,
+			ExternalDocs: schema.ExternalDocs,
+			Enum:         schema.Enum,
+			Items:        oa.NewSchemaRef("", innerSchema),
+		}
+		schema = outerSchema
 	}
 
 	// Add to parent

@@ -39,6 +39,13 @@ func (r TripRequest) RequestInfo() RequestInfo {
 				Summary:     "Trips",
 				Description: `Search for trips`,
 				Responses:   queryToOAResponses(tripQuery),
+				Extensions: map[string]any{
+					"x-alternates": []RequestAltPath{
+						{"GET", "/routes/{route_key}/trips.{format}", "Request trips in specified format"},
+						{"GET", "/routes/{route_key}/trips/{id}", "Request a trip by ID"},
+						{"GET", "/routes/{route_key}/trips/{id}.format", "Request a trip by ID in specified format"},
+					},
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
