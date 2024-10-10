@@ -314,25 +314,68 @@
             "$ref": "#/components/parameters/afterParam"
           },
           {
-            "$ref": "#/components/parameters/limitParam"
+            "$ref": "#/components/parameters/limitParam",
+            "x-example-requests": [
+              {
+                "description": "limit=1",
+                "url": "limit=1"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/formatParam"
+            "$ref": "#/components/parameters/formatParam",
+            "x-example-requests": [
+              {
+                "description": "format=geojson",
+                "url": "format=geojson"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/searchParam"
+            "$ref": "#/components/parameters/searchParam",
+            "x-example-requests": [
+              {
+                "description": "search=bart",
+                "url": "search=bart"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/onestopParam"
+            "$ref": "#/components/parameters/onestopParam",
+            "x-example-requests": [
+              {
+                "description": "onestop_id=o-9q9-caltrain",
+                "url": "onestop_id=o-9q9-caltrain"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/sha1Param"
+            "$ref": "#/components/parameters/sha1Param",
+            "x-example-requests": [
+              {
+                "description": "feed_version_sha1=1c4721d4...",
+                "url": "feed_version_sha1=1c4721d4e0c9fae1e81f7c79660696e4280ed05b"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/feedParam"
+            "$ref": "#/components/parameters/feedParam",
+            "x-example-requests": [
+              {
+                "description": "feed_onestop_id=f-sf~bay~area~rg",
+                "url": "feed_onestop_id=f-sf~bay~area~rg"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/radiusParam"
+            "$ref": "#/components/parameters/radiusParam",
+            "x-description": "Search for agencies geographically, based on stops at this location; radius is in meters, requires lon and lat",
+            "x-example-requests": [
+              {
+                "description": "lon=-122.3\u0026lat=37.8\u0026radius=1000",
+                "url": "lon=-122.3\u0026lat=37.8\u0026radius=1000"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/lonParam"
@@ -341,22 +384,58 @@
             "$ref": "#/components/parameters/latParam"
           },
           {
-            "$ref": "#/components/parameters/bboxParam"
+            "$ref": "#/components/parameters/bboxParam",
+            "x-example-requests": [
+              {
+                "description": "bbox=-122.269,37.807,-122.267,37.808",
+                "url": "bbox=-122.269,37.807,-122.267,37.808"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/adm0NameParam"
+            "$ref": "#/components/parameters/adm0NameParam",
+            "x-example-requests": [
+              {
+                "description": "adm0_name=Mexico",
+                "url": "adm0_name=Mexico"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/adm0IsoParam"
+            "$ref": "#/components/parameters/adm0IsoParam",
+            "x-example-requests": [
+              {
+                "description": "adm0_iso=US",
+                "url": "adm0_iso=US"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/adm1NameParam"
+            "$ref": "#/components/parameters/adm1NameParam",
+            "x-example-requests": [
+              {
+                "description": "adm1_name=California",
+                "url": "adm1_name=California"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/adm1IsoParam"
+            "$ref": "#/components/parameters/adm1IsoParam",
+            "x-example-requests": [
+              {
+                "description": "adm1_iso=US-CA",
+                "url": "adm1_iso=US-CA"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/cityNameParam"
+            "$ref": "#/components/parameters/cityNameParam",
+            "x-example-requests": [
+              {
+                "description": "city_name=Oakland",
+                "url": "city_name=Oakland"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/licenseCommercialUseAllowedParam"
@@ -1205,13 +1284,32 @@
             "$ref": "#/components/parameters/afterParam"
           },
           {
-            "$ref": "#/components/parameters/limitParam"
+            "$ref": "#/components/parameters/limitParam",
+            "x-example-requests": [
+              {
+                "description": "limit=1",
+                "url": "/feed_versions?limit=1"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/formatParam"
+            "$ref": "#/components/parameters/formatParam",
+            "x-example-requests": [
+              {
+                "description": "format=geojson",
+                "url": "/feed_versions?format=geojson"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/radiusParam"
+            "$ref": "#/components/parameters/radiusParam",
+            "x-description": "Search for feed versions geographically; radius is in meters, requires lon and lat",
+            "x-example-requests": [
+              {
+                "description": "lon=-122.3\u0026lat=37.8\u0026radius=1000",
+                "url": "lon=-122.3\u0026lat=37.8\u0026radius=1000"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/lonParam"
@@ -1220,7 +1318,13 @@
             "$ref": "#/components/parameters/latParam"
           },
           {
-            "$ref": "#/components/parameters/bboxParam"
+            "$ref": "#/components/parameters/bboxParam",
+            "x-example-requests": [
+              {
+                "description": "bbox=-122.269,37.807,-122.267,37.808",
+                "url": "bbox=-122.269,37.807,-122.267,37.808"
+              }
+            ]
           }
         ],
         "responses": {
@@ -1726,16 +1830,40 @@
             "$ref": "#/components/parameters/afterParam"
           },
           {
-            "$ref": "#/components/parameters/limitParam"
+            "$ref": "#/components/parameters/limitParam",
+            "x-example-requests": [
+              {
+                "description": "limit=1",
+                "url": "limit=1"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/formatParam"
+            "$ref": "#/components/parameters/formatParam",
+            "x-example-requests": [
+              {
+                "description": "format=geojson",
+                "url": "format=geojson"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/searchParam"
+            "$ref": "#/components/parameters/searchParam",
+            "x-example-requests": [
+              {
+                "description": "search=caltrain",
+                "url": "search=caltrain"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/onestopParam"
+            "$ref": "#/components/parameters/onestopParam",
+            "x-example-requests": [
+              {
+                "description": "onestop_id=f-sf~bay~area~rg",
+                "url": "onestop_id=f-sf~bay~area~rg"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/lonParam"
@@ -1744,10 +1872,23 @@
             "$ref": "#/components/parameters/latParam"
           },
           {
-            "$ref": "#/components/parameters/radiusParam"
+            "$ref": "#/components/parameters/radiusParam",
+            "x-description": "Search for feeds geographically; radius is in meters, requires lon and lat",
+            "x-example-requests": [
+              {
+                "description": "lon=-122.3?lat=37.8\u0026radius=1000",
+                "url": "lon=-122.3?lat=37.8\u0026radius=1000"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/bboxParam"
+            "$ref": "#/components/parameters/bboxParam",
+            "x-example-requests": [
+              {
+                "description": "bbox=-122.269,37.807,-122.267,37.808",
+                "url": "bbox=-122.269,37.807,-122.267,37.808"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/licenseCommercialUseAllowedParam"
@@ -2220,13 +2361,31 @@
             ]
           },
           {
-            "$ref": "#/components/parameters/onestopParam"
+            "$ref": "#/components/parameters/onestopParam",
+            "x-example-requests": [
+              {
+                "description": "onestop_id=o-9q9-caltrain",
+                "url": "onestop_id=o-9q9-caltrain"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/feedParam"
+            "$ref": "#/components/parameters/feedParam",
+            "x-example-requests": [
+              {
+                "description": "feed_onestop_id=f-sf~bay~area~rg",
+                "url": "feed_onestop_id=f-sf~bay~area~rg"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/searchParam"
+            "$ref": "#/components/parameters/searchParam",
+            "x-example-requests": [
+              {
+                "description": "search=bart",
+                "url": "search=bart"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/includeAlertsParam"
@@ -2241,22 +2400,59 @@
             "$ref": "#/components/parameters/limitParam"
           },
           {
-            "$ref": "#/components/parameters/adm0NameParam"
+            "$ref": "#/components/parameters/adm0NameParam",
+            "x-example-requests": [
+              {
+                "description": "adm0_name=Mexico",
+                "url": "adm0_name=Mexico"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/adm0IsoParam"
+            "$ref": "#/components/parameters/adm0IsoParam",
+            "x-example-requests": [
+              {
+                "description": "adm0_iso=US",
+                "url": "adm0_iso=US"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/adm1NameParam"
+            "$ref": "#/components/parameters/adm1NameParam",
+            "x-example-requests": [
+              {
+                "description": "adm1_name=California",
+                "url": "adm1_name=California"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/adm1IsoParam"
+            "$ref": "#/components/parameters/adm1IsoParam",
+            "x-example-requests": [
+              {
+                "description": "adm1_iso=US-CA",
+                "url": "adm1_iso=US-CA"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/cityNameParam"
+            "$ref": "#/components/parameters/cityNameParam",
+            "x-example-requests": [
+              {
+                "description": "city_name=Oakland",
+                "url": "city_name=Oakland"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/radiusParam"
+            "$ref": "#/components/parameters/radiusParam",
+            "x-description": "Search for operators geographically, based on stops at this location; radius is in meters, requires lon and lat",
+            "x-example-requests": [
+              {
+                "description": "lon=-122.3\u0026lat=37.8\u0026radius=1000",
+                "url": "lon=-122.3\u0026lat=37.8\u0026radius=1000"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/lonParam"
@@ -2265,7 +2461,13 @@
             "$ref": "#/components/parameters/latParam"
           },
           {
-            "$ref": "#/components/parameters/bboxParam"
+            "$ref": "#/components/parameters/bboxParam",
+            "x-example-requests": [
+              {
+                "description": "bbox=-122.269,37.807,-122.267,37.808",
+                "url": "bbox=-122.269,37.807,-122.267,37.808"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/licenseCommercialUseAllowedParam"
@@ -2809,25 +3011,68 @@
             "$ref": "#/components/parameters/afterParam"
           },
           {
-            "$ref": "#/components/parameters/limitParam"
+            "$ref": "#/components/parameters/limitParam",
+            "x-example-requests": [
+              {
+                "description": "limit=1",
+                "url": "limit=1"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/formatParam"
+            "$ref": "#/components/parameters/formatParam",
+            "x-example-requests": [
+              {
+                "description": "format=png",
+                "url": "?format=png\u0026feed_onestop_id=f-dr5r7-nycdotsiferry"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/searchParam"
+            "$ref": "#/components/parameters/searchParam",
+            "x-example-requests": [
+              {
+                "description": "search=daly+city",
+                "url": "?search=daly+city"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/onestopParam"
+            "$ref": "#/components/parameters/onestopParam",
+            "x-example-requests": [
+              {
+                "description": "onestop_id=r-9q9j-l1",
+                "url": "/routes?onestop_id=r-9q9j-l1"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/sha1Param"
+            "$ref": "#/components/parameters/sha1Param",
+            "x-example-requests": [
+              {
+                "description": "feed_version_sha1=041ffeec...",
+                "url": "feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/feedParam"
+            "$ref": "#/components/parameters/feedParam",
+            "x-example-requests": [
+              {
+                "description": "feed_onestop_id=f-sf~bay~area~rg",
+                "url": "feed_onestop_id=f-sf~bay~area~rg"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/radiusParam"
+            "$ref": "#/components/parameters/radiusParam",
+            "x-description": "Search for routes geographically, based on stops at this location; radius is in meters, requires lon and lat",
+            "x-example-requests": [
+              {
+                "description": "lon=-122\u0026lat=37\u0026radius=1000",
+                "url": "lon=-122.3\u0026lat=37.8\u0026radius=1000"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/latParam"
@@ -2836,7 +3081,13 @@
             "$ref": "#/components/parameters/lonParam"
           },
           {
-            "$ref": "#/components/parameters/bboxParam"
+            "$ref": "#/components/parameters/bboxParam",
+            "x-example-requests": [
+              {
+                "description": "bbox=-122.269,37.807,-122.267,37.808",
+                "url": "bbox=-122.269,37.807,-122.267,37.808"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/licenseCommercialUseAllowedParam"
@@ -3832,7 +4083,13 @@
             ]
           },
           {
-            "$ref": "#/components/parameters/relativeDateParam"
+            "$ref": "#/components/parameters/relativeDateParam",
+            "x-example-requests": [
+              {
+                "description": "relative_date=NEXT_MONDAY",
+                "url": "route_onestop_id=r-9q9j-l1\u0026relative_date=NEXT_MONDAY"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/includeAlertsParam"
@@ -3844,16 +4101,40 @@
             "$ref": "#/components/parameters/afterParam"
           },
           {
-            "$ref": "#/components/parameters/limitParam"
+            "$ref": "#/components/parameters/limitParam",
+            "x-example-requests": [
+              {
+                "description": "limit=1",
+                "url": "route_onestop_id=r-9q9j-l1\u0026limit=10\u0026limit=1"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/formatParam"
+            "$ref": "#/components/parameters/formatParam",
+            "x-example-requests": [
+              {
+                "description": "format=geojson",
+                "url": "route_onestop_id=r-9q9j-l1\u0026limit=10\u0026format=geojson"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/sha1Param"
+            "$ref": "#/components/parameters/sha1Param",
+            "x-example-requests": [
+              {
+                "description": "feed_version_sha1=041ffeec...",
+                "url": "route_onestop_id=r-9q9j-l1\u0026feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/feedParam"
+            "$ref": "#/components/parameters/feedParam",
+            "x-example-requests": [
+              {
+                "description": "feed_onestop_id=f-sf~bay~area~rg",
+                "url": "route_onestop_id=r-9q9j-l1\u0026feed_onestop_id=f-sf~bay~area~rg"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/latParam"
@@ -5309,25 +5590,68 @@
             "$ref": "#/components/parameters/afterParam"
           },
           {
-            "$ref": "#/components/parameters/limitParam"
+            "$ref": "#/components/parameters/limitParam",
+            "x-example-requests": [
+              {
+                "description": "limit=1",
+                "url": "limit=1"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/formatParam"
+            "$ref": "#/components/parameters/formatParam",
+            "x-example-requests": [
+              {
+                "description": "format=geojson",
+                "url": "format=geojson"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/searchParam"
+            "$ref": "#/components/parameters/searchParam",
+            "x-example-requests": [
+              {
+                "description": "search=embarcadero",
+                "url": "search=embarcadero"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/onestopParam"
+            "$ref": "#/components/parameters/onestopParam",
+            "x-example-requests": [
+              {
+                "description": "onestop_id=...",
+                "url": "onestop_id=s-9q8yyzcny3-embarcadero"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/sha1Param"
+            "$ref": "#/components/parameters/sha1Param",
+            "x-example-requests": [
+              {
+                "description": "feed_version_sha1=1c4721d4...",
+                "url": "feed_version_sha1=1c4721d4e0c9fae1e81f7c79660696e4280ed05b"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/feedParam"
+            "$ref": "#/components/parameters/feedParam",
+            "x-example-requests": [
+              {
+                "description": "feed_onestop_id=f-c20-trimet",
+                "url": "feed_onestop_id=f-c20-trimet"
+              }
+            ]
           },
           {
-            "$ref": "#/components/parameters/radiusParam"
+            "$ref": "#/components/parameters/radiusParam",
+            "x-description": "Search for stops geographically; radius is in meters, requires lon and lat",
+            "x-example-requests": [
+              {
+                "description": "lon=-122.3\u0026lat=37.8\u0026radius=1000",
+                "url": "lon=-122.3\u0026lat=37.8\u0026radius=1000"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/lonParam"
@@ -5336,7 +5660,13 @@
             "$ref": "#/components/parameters/latParam"
           },
           {
-            "$ref": "#/components/parameters/bboxParam"
+            "$ref": "#/components/parameters/bboxParam",
+            "x-example-requests": [
+              {
+                "description": "bbox=-122.269,37.807,-122.267,37.808",
+                "url": "bbox=-122.269,37.807,-122.267,37.808"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/licenseCommercialUseAllowedParam"
@@ -6097,7 +6427,13 @@
             ]
           },
           {
-            "$ref": "#/components/parameters/limitParam"
+            "$ref": "#/components/parameters/limitParam",
+            "x-example-requests": [
+              {
+                "description": "limit=1",
+                "url": "/stops/f-sf~bay~area~rg:LAKE/departures?limit=1"
+              }
+            ]
           },
           {
             "description": "Search for departures on a specified GTFS service calendar date, in YYYY-MM-DD format",
@@ -6211,7 +6547,13 @@
             "$ref": "#/components/parameters/idParam"
           },
           {
-            "$ref": "#/components/parameters/relativeDateParam"
+            "$ref": "#/components/parameters/relativeDateParam",
+            "x-example-requests": [
+              {
+                "description": "relative_date=NEXT_MONDAY",
+                "url": "/stops/f-sf~bay~area~rg:LAKE/departures?relative_date=NEXT_MONDAY"
+              }
+            ]
           },
           {
             "$ref": "#/components/parameters/includeAlertsParam"
