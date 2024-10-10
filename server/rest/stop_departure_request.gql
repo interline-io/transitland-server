@@ -10,6 +10,7 @@ fragment stop on Stop {
   geometry
   location_type
   platform_code
+  tts_stop_name
   wheelchair_boarding
   zone_id
 }
@@ -154,7 +155,6 @@ fragment alert on Alert {
 
 query ($include_geometry: Boolean!, $include_alerts: Boolean!, $limit: Int, $ids: [Int!], $after: Int, $where: StopFilter, $stop_time_where: StopTimeFilter) {
   stops(limit: 100, ids: $ids, after: $after, where: $where) {
-    tts_stop_name
     ...stop
     feed_version {
       id
