@@ -43,8 +43,7 @@ func (r AgencyRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: agencyQuery,
 			Operation: &oa.Operation{
-				Summary:     "Agencies",
-				Description: `Search for agencies`,
+				Summary: `Search for agencies`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/agencies.{format}", "Request agencies in specified format"},
@@ -184,8 +183,7 @@ func (r AgencyKeyRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: agencyQuery,
 			Operation: &oa.Operation{
-				Summary:     "Agencies",
-				Description: ``,
+				Summary: "Agencies",
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "agency_key",

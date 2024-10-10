@@ -36,8 +36,7 @@ func (r FeedVersionRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: feedVersionQuery,
 			Operation: &oa.Operation{
-				Summary:     "Feed Versions",
-				Description: `Search for feed versions`,
+				Summary: `Search for feed versions`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/feed_versions.{format}", "Request feed versions in specified format"},
@@ -157,4 +156,36 @@ func (r FeedVersionRequest) Query(ctx context.Context) (string, map[string]inter
 // ResponseKey .
 func (r FeedVersionRequest) ResponseKey() string {
 	return "feed_versions"
+}
+
+///////////
+
+// Currently this exists only for OpenAPI documentation
+type FeedVersionDownloadRequest struct {
+}
+
+func (r FeedVersionDownloadRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path:        "/feed_versions/{feed_version_key}/download",
+		Description: `Download this feed version GTFS zip for this feed, if redistribution is allowd by the source feed's license. Available only using Transitland professional or enterprise plan API keys.`,
+		Get: RequestOperation{
+			Operation: &oa.Operation{
+				Summary: "Download feed version",
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "feed_version_key",
+						In:          "path",
+						Required:    true,
+						Description: `Feed version lookup key; can be an integer ID or a SHA1 value`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+				},
+			},
+		},
+	}
+}
+
+// Query returns a GraphQL query string and variables.
+func (r FeedVersionDownloadRequest) Query(ctx context.Context) (string, map[string]interface{}) {
+	return "", nil
 }

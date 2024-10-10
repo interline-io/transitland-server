@@ -37,8 +37,7 @@ func (r TripRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: tripQuery,
 			Operation: &oa.Operation{
-				Summary:     "Trips",
-				Description: `Search for trips`,
+				Summary: `Search for trips`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/routes/{route_key}/trips.{format}", "Request trips in specified format"},
@@ -189,8 +188,7 @@ func (r TripEntityRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: tripQuery,
 			Operation: &oa.Operation{
-				Summary:     "Trips",
-				Description: `Search for trips`,
+				Summary: `Search for trips`,
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",

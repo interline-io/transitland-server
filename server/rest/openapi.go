@@ -8,14 +8,15 @@ type param = oa.Parameter
 type pref = oa.ParameterRef
 
 type RequestAltPath struct {
-	Method      string `json:"method"`
-	Path        string `json:"path"`
-	Description string `json:"description"`
+	Method  string `json:"method"`
+	Path    string `json:"path"`
+	Summary string `json:"summary"`
 }
 
 type RequestInfo struct {
-	Path string
-	Get  RequestOperation
+	Path        string
+	Description string
+	Get         RequestOperation
 }
 
 type RequestOperation struct {

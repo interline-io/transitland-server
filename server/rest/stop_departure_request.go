@@ -37,8 +37,7 @@ func (r StopDepartureRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: stopDepartureQuery,
 			Operation: &oa.Operation{
-				Summary:     "Stop departures",
-				Description: `Departures from a given stop based on static and real-time data`,
+				Summary: `Departures from a given stop based on static and real-time data`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{},
 				},

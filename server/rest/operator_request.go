@@ -40,8 +40,7 @@ func (r OperatorRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: operatorQuery,
 			Operation: &oa.Operation{
-				Summary:     "Operators",
-				Description: `Search for operators`,
+				Summary: `Search for operators`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/operators.{format}", "Request operators in specified format"},

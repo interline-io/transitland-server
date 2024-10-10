@@ -39,8 +39,7 @@ func (r FeedRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: feedQuery,
 			Operation: &oa.Operation{
-				Summary:     "Feeds",
-				Description: `Search for feeds`,
+				Summary: `Search for feeds`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/feeds.{format}", "Request feeds in specified format"},
@@ -182,4 +181,36 @@ func checkFeedSpecFilterValue(v string) string {
 		return "GTFS_RT"
 	}
 	return v
+}
+
+////////////
+
+// Currently this exists only for OpenAPI documentation
+type FeedDownloadLatestFeedVersionRequest struct {
+}
+
+func (r FeedDownloadLatestFeedVersionRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path:        "/feeds/{feed_key}/download_latest_feed_version",
+		Description: `Download the latest feed version GTFS zip for this feed, if redistribution is allowd by the source feed's license`,
+		Get: RequestOperation{
+			Operation: &oa.Operation{
+				Summary: "Download latest feed version",
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "feed_key",
+						In:          "path",
+						Required:    true,
+						Description: `Feed lookup key; can be an integer ID or Onestop ID value`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+				},
+			},
+		},
+	}
+}
+
+// Query returns a GraphQL query string and variables.
+func (r FeedDownloadLatestFeedVersionRequest) Query(ctx context.Context) (string, map[string]interface{}) {
+	return "", nil
 }

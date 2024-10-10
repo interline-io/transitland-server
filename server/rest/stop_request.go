@@ -43,8 +43,7 @@ func (r StopRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: stopQuery,
 			Operation: &oa.Operation{
-				Summary:     "Stops",
-				Description: `Search for stops`,
+				Summary: `Search for stops`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/stops.{format}", "Request stops in specified format"},
@@ -190,8 +189,7 @@ func (r StopEntityRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: stopQuery,
 			Operation: &oa.Operation{
-				Summary:     "Stops",
-				Description: `Search for stops`,
+				Summary: `Search for stops`,
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "stop_key",

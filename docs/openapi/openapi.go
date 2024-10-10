@@ -12,14 +12,15 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func queryToOAResponses(queryString string) *oa.Responses {
+func queryToOAResponses(queryString string) (*oa.Responses, error) {
 	// Load schema
 	schema := gqlout.NewExecutableSchema(gqlout.Config{Resolvers: &gql.Resolver{}})
+	gs := schema.Schema()
 
 	// Prepare document
-	query, err := gqlparser.LoadQuery(schema.Schema(), queryString)
+	query, err := gqlparser.LoadQuery(gs, queryString)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	///////////
@@ -29,7 +30,7 @@ func queryToOAResponses(queryString string) *oa.Responses {
 	}}
 	for _, op := range query.Operations {
 		for selOrder, sel := range op.SelectionSet {
-			queryRecurse(sel, responseObj.Value.Properties, 0, selOrder)
+			queryRecurse(gs, sel, responseObj.Value.Properties, 0, selOrder)
 		}
 	}
 	desc := "ok"
@@ -38,7 +39,7 @@ func queryToOAResponses(queryString string) *oa.Responses {
 		Content:     oa.NewContentWithSchemaRef(&responseObj, []string{"application/json"}),
 	}})
 	ret := oa.NewResponses(res)
-	return ret
+	return ret, nil
 }
 
 var gqlScalarToOASchema = map[string]oa.Schema{
@@ -140,7 +141,7 @@ func ParseDocstring(v string) ParsedDocstring {
 	return ret
 }
 
-func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int, order int) int {
+func queryRecurse(gs *ast.Schema, recurseValue any, parentSchema oa.Schemas, level int, order int) int {
 	schema := &oa.Schema{
 		Properties: oa.Schemas{},
 		Extensions: map[string]any{},
@@ -164,17 +165,23 @@ func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int, order in
 		gqlType = field.Definition.Type.NamedType
 		if field.Definition.Type.Elem != nil {
 			gqlType = field.Definition.Type.Elem.Name()
+
+		}
+		if gst, ok := gs.Types[field.Definition.Type.String()]; ok {
+			for _, ev := range gst.EnumValues {
+				schema.Enum = append(schema.Enum, ev.Name)
+			}
 		}
 		if strings.HasPrefix(field.Definition.Type.String(), "[") {
 			isArray = true
 		}
 		for _, sel := range field.SelectionSet {
-			order = queryRecurse(sel, schema.Properties, level+1, order+1)
+			order = queryRecurse(gs, sel, schema.Properties, level+1, order+1)
 		}
 	} else if frag, ok := recurseValue.(*ast.FragmentSpread); ok {
 		for _, sel := range frag.Definition.SelectionSet {
 			// Ugly hack to put fragments at the end of the selection set
-			order = queryRecurse(sel, parentSchema, level, order+1)
+			order = queryRecurse(gs, sel, parentSchema, level, order+1)
 		}
 		return order
 	} else {

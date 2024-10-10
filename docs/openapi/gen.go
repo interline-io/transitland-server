@@ -48,11 +48,18 @@ func GenerateOpenAPI() (*oa.T, error) {
 		&rest.TripRequest{},
 		&rest.StopRequest{},
 		&rest.StopDepartureRequest{},
+		&rest.FeedVersionDownloadRequest{},
+		&rest.FeedDownloadLatestFeedVersionRequest{},
 	}
 	for _, handler := range handlers {
 		requestInfo := handler.RequestInfo()
+		oaResponse, err := queryToOAResponses(requestInfo.Get.Query)
+		if err != nil {
+			return outdoc, err
+		}
 		getOp := requestInfo.Get.Operation
-		getOp.Responses = queryToOAResponses(requestInfo.Get.Query)
+		getOp.Responses = oaResponse
+		getOp.Description = requestInfo.Description
 		pathItem := &oa.PathItem{Get: getOp}
 		pathOpts = append(pathOpts, oa.WithPath(requestInfo.Path, pathItem))
 	}

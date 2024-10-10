@@ -44,8 +44,7 @@ func (r RouteRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: routeQuery,
 			Operation: &oa.Operation{
-				Summary:     "Routes",
-				Description: `Search for routes`,
+				Summary: `Search for routes`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/routes.{format}", "Request routes in specified format"},
@@ -219,8 +218,7 @@ func (r RouteKeyRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Query: routeQuery,
 			Operation: &oa.Operation{
-				Summary:     "Routes",
-				Description: `Search for routes`,
+				Summary: `Search for routes`,
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
