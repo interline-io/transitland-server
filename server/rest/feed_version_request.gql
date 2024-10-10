@@ -45,7 +45,6 @@ query($limit: Int, $ids: [Int!], $after: Int, $where: FeedVersionFilter) {
       in_progress
       success
       exception_log
-      # generated_count
       warning_count
       skip_entity_error_count
       skip_entity_filter_count
