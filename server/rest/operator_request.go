@@ -37,11 +37,10 @@ type OperatorRequest struct {
 func (r OperatorRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/operators",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
-				Summary:     "Operators",
-				Description: `Search for operators`,
-				Responses:   queryToOAResponses(operatorQuery),
+		Get: RequestOperation{
+			Query: operatorQuery,
+			Operation: &oa.Operation{
+				Summary: `Search for operators`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/operators.{format}", "Request operators in specified format"},

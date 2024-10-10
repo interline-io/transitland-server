@@ -3,7 +3,7 @@ module github.com/interline-io/transitland-server
 go 1.23.0
 
 require (
-	github.com/99designs/gqlgen v0.17.49
+	github.com/99designs/gqlgen v0.17.55
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/aws/aws-sdk-go v1.44.218
 	github.com/aws/aws-sdk-go-v2 v1.17.5
@@ -30,8 +30,8 @@ require (
 	github.com/tidwall/gjson v1.17.3
 	github.com/tidwall/rtree v1.10.0
 	github.com/twpayne/go-geom v1.5.1
-	github.com/vektah/gqlparser/v2 v2.5.16
-	google.golang.org/protobuf v1.34.1
+	github.com/vektah/gqlparser/v2 v2.5.17
+	google.golang.org/protobuf v1.34.2
 )
 
 require (
@@ -116,7 +116,7 @@ require (
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
-	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
@@ -129,9 +129,11 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
+// Fork to allow exporting x- extensions
+replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17
+
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
 // replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/transitland-jobs => /Users/irees/src/interline-io/transitland-jobs
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
-// replace github.com/getkin/kin-openapi => /Users/irees/src/other/kin-openapi

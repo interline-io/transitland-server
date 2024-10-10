@@ -40,11 +40,10 @@ type StopRequest struct {
 func (r StopRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/stops",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
-				Summary:     "Stops",
-				Description: `Search for stops`,
-				Responses:   queryToOAResponses(stopQuery),
+		Get: RequestOperation{
+			Query: stopQuery,
+			Operation: &oa.Operation{
+				Summary: `Search for stops`,
 				Extensions: map[string]any{
 					"x-alternates": []RequestAltPath{
 						{"GET", "/stops.{format}", "Request stops in specified format"},
@@ -187,11 +186,10 @@ type StopEntityRequest struct {
 func (r StopEntityRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/stops/{stop_key}",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
-				Summary:     "Stops",
-				Description: `Search for stops`,
-				Responses:   queryToOAResponses(stopQuery),
+		Get: RequestOperation{
+			Query: stopQuery,
+			Operation: &oa.Operation{
+				Summary: `Search for stops`,
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "stop_key",

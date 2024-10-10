@@ -51,7 +51,7 @@ fragment trip on Trip {
   timestamp
 }
 
-fragment departure on StopTime {
+fragment departures on StopTime {
   stop_sequence
   stop_headsign
   timepoint
@@ -89,10 +89,6 @@ fragment departure on StopTime {
     delay
     uncertainty
   }
-}
-
-fragment departures on StopTime {
-  ...departure
   trip {
     ...trip
     route {
