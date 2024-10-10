@@ -1229,7 +1229,7 @@
             "x-example-requests": [
               {
                 "description": "sha1=e535eb2b3...",
-                "url": "/feed_versions?sha1=dd7aca4a8e4c90908fd3603c097fabee75fea907"
+                "url": "sha1=dd7aca4a8e4c90908fd3603c097fabee75fea907"
               }
             ]
           },
@@ -1243,7 +1243,7 @@
             "x-example-requests": [
               {
                 "description": "feed_onestop_id=f-sf~bay~area~rg",
-                "url": "/feed_versions?feed_onestop_id=f-sf~bay~area~rg"
+                "url": "feed_onestop_id=f-sf~bay~area~rg"
               }
             ]
           },
@@ -1258,7 +1258,7 @@
             "x-example-requests": [
               {
                 "description": "fetched_before=2023-01-01T00:00:00Z",
-                "url": "/feed_versions?fetched_before=2023-01-01T00:00:00Z"
+                "url": "fetched_before=2023-01-01T00:00:00Z"
               }
             ]
           },
@@ -1273,7 +1273,7 @@
             "x-example-requests": [
               {
                 "description": "fetched_after=2023-01-01T00:00:00Z",
-                "url": "/feed_versions?fetched_after=2023-01-01T00:00:00Z"
+                "url": "fetched_after=2023-01-01T00:00:00Z"
               }
             ]
           },
@@ -1288,7 +1288,7 @@
             "x-example-requests": [
               {
                 "description": "limit=1",
-                "url": "/feed_versions?limit=1"
+                "url": "limit=1"
               }
             ]
           },
@@ -1297,7 +1297,7 @@
             "x-example-requests": [
               {
                 "description": "format=geojson",
-                "url": "/feed_versions?format=geojson"
+                "url": "format=geojson"
               }
             ]
           },
@@ -1773,7 +1773,7 @@
             "x-example-requests": [
               {
                 "description": "spec=gtfs",
-                "url": "/feeds?spec=gtfs"
+                "url": "spec=gtfs"
               }
             ]
           },
@@ -1791,7 +1791,7 @@
             "x-example-requests": [
               {
                 "description": "fetch_error=true",
-                "url": "/feeds?fetch_error=true"
+                "url": "fetch_error=true"
               }
             ]
           },
@@ -1819,7 +1819,7 @@
             "x-example-requests": [
               {
                 "description": "tag_key=unstable_url\u0026tag_value=true",
-                "url": "/feeds?tag_key=unstable_url\u0026tag_value=true"
+                "url": "tag_key=unstable_url\u0026tag_value=true"
               }
             ]
           },
@@ -3042,7 +3042,7 @@
             "x-example-requests": [
               {
                 "description": "onestop_id=r-9q9j-l1",
-                "url": "/routes?onestop_id=r-9q9j-l1"
+                "url": "onestop_id=r-9q9j-l1"
               }
             ]
           },

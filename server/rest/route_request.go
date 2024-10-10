@@ -106,7 +106,7 @@ func (r RouteRequest) RequestInfo() RequestInfo {
 					newPRefExt("limitParam", "", "limit=1", ""),
 					newPRefExt("formatParam", "", "format=png", "?format=png&feed_onestop_id=f-dr5r7-nycdotsiferry"),
 					newPRefExt("searchParam", "", "search=daly+city", "?search=daly+city"),
-					newPRefExt("onestopParam", "", "onestop_id=r-9q9j-l1", "/routes?onestop_id=r-9q9j-l1"),
+					newPRefExt("onestopParam", "", "onestop_id=r-9q9j-l1", "onestop_id=r-9q9j-l1"),
 					newPRefExt("sha1Param", "", "feed_version_sha1=041ffeec...", "feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"),
 					newPRefExt("feedParam", "", "feed_onestop_id=f-sf~bay~area~rg", ""),
 					newPRefExt("radiusParam", "Search for routes geographically, based on stops at this location; radius is in meters, requires lon and lat", "lon=-122&lat=37&radius=1000", "lon=-122.3&lat=37.8&radius=1000"),
