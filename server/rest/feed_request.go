@@ -41,6 +41,13 @@ func (r FeedRequest) RequestInfo() RequestInfo {
 				Summary:     "Feeds",
 				Description: `Search for feeds`,
 				Responses:   queryToOAResponses(feedQuery),
+				Extensions: map[string]any{
+					"x-alternates": []RequestAltPath{
+						{"GET", "/feeds.{format}", "Request feeds in specified format"},
+						{"GET", "/feeds/{feed_key}", "Request a feed by ID or Onestop ID"},
+						{"GET", "/feeds/{feed_key}.format", "Request a feed by ID or Onestop ID in specifed format"},
+					},
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "feed_key",

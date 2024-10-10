@@ -3,7 +3,7 @@ package openapi
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"os"
 	"testing"
 
 	oa "github.com/getkin/kin-openapi/openapi3"
@@ -16,7 +16,6 @@ func TestGenerateOpenAPI(t *testing.T) {
 	}
 	// Write output
 	jj, _ := json.MarshalIndent(outdoc, "", "  ")
-	fmt.Println(string(jj))
 
 	// Validate output
 	schema, err := oa.NewLoader().LoadFromData(jj)
@@ -27,5 +26,9 @@ func TestGenerateOpenAPI(t *testing.T) {
 	if err := schema.Validate(context.Background(), validationOpts...); err != nil {
 		t.Fatal(err)
 	}
-
+	outf, err := os.Create("rest.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	outf.Write(jj)
 }
