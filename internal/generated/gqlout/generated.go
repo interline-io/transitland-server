@@ -8326,7 +8326,11 @@ type StopTimeEvent {
   estimated_unix: Int
   "Estimated time in the local time zone"
   estimated_local: Time
-  "Estimated delay, based on a matching TripUpdate or previous StopTimeUpdate in this trip"
+  """  
+  Estimated schedule delay, in seconds, based on either a timestamp or overall trip delay. 
+  
+  This value can be set directly from a matching GTFS-RT StopTimeUpdate timestamp or delay value or set via an estimated overall trip delay. The value is capped at +/- 86,400 seconds (24 hours). Values larger than that are are likely erroneous and will be set to null.
+  """
   estimated_delay: Int
   "Estimated time in local time HH:MM:SS"
   estimated: Seconds
@@ -8342,9 +8346,9 @@ type StopTimeEvent {
   time_utc: Time
   "Estimated time in Unix epoch seconds, source directly from matching GTFS-RT StopTimeUpdate. See https://gtfs.org/realtime/reference/#message-stoptimeevent"
   time_unix: Int
-  "Estimated delay, source directly from matching GTFS-RT StopTimeUpdate. See https://gtfs.org/realtime/reference/#message-stoptimeevent"
+  "Estimated schedule delay, in seconds. This value is set when there is a directly matching GTFS-RT StopTimeUpdate for this stop and passed through as-is. See GTFS Realtime documentation. See https://gtfs.org/realtime/reference/#message-stoptimeevent"
   delay: Int
-  "Estimated uncertainty, source directly from matching GTFS-RT StopTimeUpdate. See https://gtfs.org/realtime/reference/#message-stoptimeevent"
+  "Estimation uncertainty. This value is set when there is a directly matching GTFS-RT StopTimeUpdate for this stop and passed through as-is. See https://gtfs.org/realtime/reference/#message-stoptimeevent"
   uncertainty: Int
 }
 
