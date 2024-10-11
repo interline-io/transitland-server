@@ -41,11 +41,17 @@ type RouteRequest struct {
 func (r RouteRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/routes",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
-				Summary:     "Routes",
-				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
+		Get: RequestOperation{
+			Query: routeQuery,
+			Operation: &oa.Operation{
+				Summary: `Search for routes`,
+				Extensions: map[string]any{
+					"x-alternates": []RequestAltPath{
+						{"GET", "/routes.{format}", "Request routes in specified format"},
+						{"GET", "/routes/{route_key}", "Request a route by ID or Onestop ID"},
+						{"GET", "/routes/{route_key}.format", "Request a route by ID or Onestop ID in specified format"},
+					},
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
@@ -100,7 +106,7 @@ func (r RouteRequest) RequestInfo() RequestInfo {
 					newPRefExt("limitParam", "", "limit=1", ""),
 					newPRefExt("formatParam", "", "format=png", "?format=png&feed_onestop_id=f-dr5r7-nycdotsiferry"),
 					newPRefExt("searchParam", "", "search=daly+city", "?search=daly+city"),
-					newPRefExt("onestopParam", "", "onestop_id=r-9q9j-l1", "/routes?onestop_id=r-9q9j-l1"),
+					newPRefExt("onestopParam", "", "onestop_id=r-9q9j-l1", "onestop_id=r-9q9j-l1"),
 					newPRefExt("sha1Param", "", "feed_version_sha1=041ffeec...", "feed_version_sha1=041ffeec98316e560bc2b91960f7150ad329bd5f"),
 					newPRefExt("feedParam", "", "feed_onestop_id=f-sf~bay~area~rg", ""),
 					newPRefExt("radiusParam", "Search for routes geographically, based on stops at this location; radius is in meters, requires lon and lat", "lon=-122&lat=37&radius=1000", "lon=-122.3&lat=37.8&radius=1000"),
@@ -209,11 +215,10 @@ type RouteKeyRequest struct {
 func (r RouteKeyRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/routes/{route_key}",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
-				Summary:     "Routes",
-				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
+		Get: RequestOperation{
+			Query: routeQuery,
+			Operation: &oa.Operation{
+				Summary: `Search for routes`,
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "route_key",
@@ -232,35 +237,35 @@ func (r RouteKeyRequest) RequestInfo() RequestInfo {
 
 //////////
 
-type AgencyRouteRequest struct {
-	RouteRequest
-}
+// type AgencyRouteRequest struct {
+// 	RouteRequest
+// }
 
-func (r AgencyRouteRequest) RequestInfo() RequestInfo {
-	// Include all base parameters except for agency_key
-	baseInfo := RouteRequest{}.RequestInfo()
-	var params oa.Parameters
-	params = append(params, &pref{Value: &param{
-		Name:        "agency_key",
-		In:          "path",
-		Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
-		Schema:      newSRVal("string", "", nil),
-	}})
-	for _, param := range baseInfo.PathItem.Get.Parameters {
-		if param.Value != nil && param.Value.Name == "agency_key" {
-			continue
-		}
-		params = append(params, param)
-	}
-	return RequestInfo{
-		Path: "/agencies/{agency_key}/routes",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
-				Summary:     "Routes",
-				Description: `Search for routes`,
-				Responses:   queryToOAResponses(routeQuery),
-				Parameters:  params,
-			},
-		},
-	}
-}
+// func (r AgencyRouteRequest) RequestInfo() RequestInfo {
+// 	// Include all base parameters except for agency_key
+// 	baseInfo := RouteRequest{}.RequestInfo()
+// 	var params oa.Parameters
+// 	params = append(params, &pref{Value: &param{
+// 		Name:        "agency_key",
+// 		In:          "path",
+// 		Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
+// 		Schema:      newSRVal("string", "", nil),
+// 	}})
+// 	for _, param := range baseInfo.PathItem.Get.Parameters {
+// 		if param.Value != nil && param.Value.Name == "agency_key" {
+// 			continue
+// 		}
+// 		params = append(params, param)
+// 	}
+// 	return RequestInfo{
+// 		Path: "/agencies/{agency_key}/routes",
+// 		Get: RequestOperation{
+// 			Query: routeQuery,
+// 			Operation: &oa.Operation{
+// 				Summary:     "Routes",
+// 				Description: `Search for routes`,
+// 				Parameters:  params,
+// 			},
+// 		},
+// 	}
+// }

@@ -42,6 +42,6 @@ func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model
 	}
 
 	// Handle permissions
-	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
+	q = pfJoinCheckFv(q, permFilter)
 	return q
 }

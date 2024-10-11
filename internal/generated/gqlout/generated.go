@@ -7866,7 +7866,10 @@ type Trip {
   frequencies(limit: Int): [Frequency!]!
   "GTFS-RT alerts for this trip"
   alerts(active: Boolean, limit: Int): [Alert!]
-  "GTFS-RT ScheduleRelationship"
+  """A status flag for real-time information about this trip. 
+  
+  If no real-time information is available, the value will be STATIC and the estimated arrival/departure times will be empty. A trip with real-time information available will be SCHEDULED; a canceled trip will be CANCELED, and an added trip that is not present in the static GTFS will be ADDED.
+  """
   schedule_relationship: ScheduleRelationship
   "GTFS-RT TripUpdate timestamp"
   timestamp: Time
@@ -7964,7 +7967,10 @@ type StopTime {
   service_date: Date
   "If part of an arrival/departure query, the calendar date for this scheduled stop time"
   date: Date
-  "GTFS-RT SceduleRelationship; set to STATIC if no associated GTFS-RT data"
+  """A status flag for real-time information about this trip. 
+  
+  If no real-time information is available, the value will be STATIC and the estimated arrival/departure times will be empty. A trip with real-time information available will be SCHEDULED; a canceled trip will be CANCELED, and an added trip that is not present in the static GTFS will be ADDED.
+  """
   schedule_relationship: ScheduleRelationship
 }
 

@@ -25,8 +25,7 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 		).
 		From("current_feeds").
 		OrderBy("current_feeds.id asc").
-		Limit(checkRange(limit, 0, 10_000)).
-		Where(sq.Eq{"deleted_at": nil})
+		Limit(checkRange(limit, 0, 10_000))
 
 	if where != nil {
 		if where.OnestopID != nil {
@@ -140,6 +139,6 @@ func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.Pe
 	}
 
 	// Handle permissions
-	q = pfJoinCheck(q, "current_feeds.id", "", permFilter)
+	q = pfJoinCheck(q, permFilter)
 	return q
 }

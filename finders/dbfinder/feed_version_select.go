@@ -25,7 +25,6 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 		).
 		From("feed_versions").
 		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
-		Where(sq.Eq{"current_feeds.deleted_at": nil}).
 		Limit(checkLimit(limit)).
 		OrderBy("feed_versions.fetched_at desc, feed_versions.id desc")
 
@@ -146,7 +145,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 	}
 
 	// Handle permissions
-	q = pfJoinCheck(q, "feed_versions.feed_id", "feed_versions.id", permFilter)
+	q = pfJoinCheckFv(q, permFilter)
 	return q
 }
 

@@ -7,9 +7,21 @@ import (
 type param = oa.Parameter
 type pref = oa.ParameterRef
 
+type RequestAltPath struct {
+	Method  string `json:"method"`
+	Path    string `json:"path"`
+	Summary string `json:"summary"`
+}
+
 type RequestInfo struct {
-	Path     string
-	PathItem *oa.PathItem
+	Path        string
+	Description string
+	Get         RequestOperation
+}
+
+type RequestOperation struct {
+	Operation *oa.Operation
+	Query     string
 }
 
 func newPRef(paramRef string) *oa.ParameterRef {
@@ -244,42 +256,3 @@ var ParameterComponents = oa.ParametersMap{
 		},
 	},
 }
-
-// var PathItems = map[string]*oa.PathItem{
-// 	"/feeds/{feed_key}/download_latest_feed_version": {
-// 		Get: &oa.Operation{
-// 			Summary:     "",
-// 			Description: `Download latest feed version for this feed`,
-// 			Parameters: oa.Parameters{
-// 				&pref{
-// 					Value: &param{
-// 						Name:        "feed_key",
-// 						In:          "path",
-// 						Description: `Feed lookup key; can be an integer ID or a Onestop ID`,
-// 						Required:    true,
-// 						Schema: &sref{// 							Value: newSchema("string", "", nil),
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	},
-// 	"/feed_versions/{feed_version_key}/download": {
-// 		Get: &oa.Operation{
-// 			Summary:     "",
-// 			Description: `Download this feed version`,
-// 			Parameters: oa.Parameters{
-// 				&pref{
-// 					Value: &param{
-// 						Name:        "feed_version_key",
-// 						In:          "path",
-// 						Description: `Feed version lookup key; can be an integer ID or a SHA1 value`,
-// 						Required:    true,
-// 						Schema: &sref{// 							Value: newSchema("string", "", nil),
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	},
-// }

@@ -1,4 +1,4 @@
-package rest
+package main
 
 import (
 	"fmt"
@@ -12,14 +12,15 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func queryToOAResponses(queryString string) *oa.Responses {
+func queryToOAResponses(queryString string) (*oa.Responses, error) {
 	// Load schema
 	schema := gqlout.NewExecutableSchema(gqlout.Config{Resolvers: &gql.Resolver{}})
+	gs := schema.Schema()
 
 	// Prepare document
-	query, err := gqlparser.LoadQuery(schema.Schema(), queryString)
+	query, err := gqlparser.LoadQuery(gs, queryString)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	///////////
@@ -28,8 +29,8 @@ func queryToOAResponses(queryString string) *oa.Responses {
 		Properties: oa.Schemas{},
 	}}
 	for _, op := range query.Operations {
-		for _, sel := range op.SelectionSet {
-			queryRecurse(sel, responseObj.Value.Properties, 0)
+		for selOrder, sel := range op.SelectionSet {
+			queryRecurse(gs, sel, responseObj.Value.Properties, 0, selOrder)
 		}
 	}
 	desc := "ok"
@@ -38,7 +39,7 @@ func queryToOAResponses(queryString string) *oa.Responses {
 		Content:     oa.NewContentWithSchemaRef(&responseObj, []string{"application/json"}),
 	}})
 	ret := oa.NewResponses(res)
-	return ret
+	return ret, nil
 }
 
 var gqlScalarToOASchema = map[string]oa.Schema{
@@ -62,24 +63,38 @@ var gqlScalarToOASchema = map[string]oa.Schema{
 	"ID": {
 		Type: oa.NewInt64Schema().Type,
 	},
-	"Counts":   {},
-	"Tags":     {},
-	"Geometry": {},
+	"Counts": {
+		Type: oa.NewObjectSchema().Type,
+	},
+	"Tags": {
+		Type: oa.NewObjectSchema().Type,
+	},
 	"Date": {
 		Type:    oa.NewStringSchema().Type,
 		Format:  "date",
 		Example: "2019-11-15",
 	},
-	"Point":      {},
-	"LineString": {},
-	"Seconds":    {},
-	"Polygon":    {},
-	"Map":        {},
+	"Seconds": {
+		Type:    oa.NewStringSchema().Type,
+		Format:  "hms",
+		Example: "15:21:04",
+	},
+	"Map": {
+		Type: oa.NewObjectSchema().Type,
+	},
+	"Bool": {
+		Type: oa.NewBoolSchema().Type,
+	},
+	"Strings": {
+		Type: oa.NewArraySchema().Type,
+	},
 	"Any":        {},
 	"Upload":     {},
 	"Key":        {},
-	"Bool":       {},
-	"Strings":    {},
+	"Polygon":    {},
+	"Geometry":   {},
+	"Point":      {},
+	"LineString": {},
 }
 
 type ParsedUrl struct {
@@ -93,6 +108,7 @@ type ParsedDocstring struct {
 	ExternalDocs []ParsedUrl
 	Examples     []string
 	Enum         []string
+	Hide         bool
 }
 
 var reLinks = regexp.MustCompile(`(\[(?P<text>.+)\]\((?P<url>.+)\))`)
@@ -117,36 +133,64 @@ func ParseDocstring(v string) ParsedDocstring {
 			for _, e := range strings.Split(value, ",") {
 				ret.Enum = append(ret.Enum, strings.TrimSpace(e))
 			}
+		case "hide":
+			ret.Hide = true
 		}
 	}
 	ret.Text = strings.TrimSpace(reAnno.ReplaceAllString(v, ""))
 	return ret
 }
 
-func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int) {
+func queryRecurse(gs *ast.Schema, recurseValue any, parentSchema oa.Schemas, level int, order int) int {
 	schema := &oa.Schema{
 		Properties: oa.Schemas{},
+		Extensions: map[string]any{},
 	}
+	gqlType := ""
 	namedType := ""
-	if frag, ok := recurseValue.(*ast.FragmentSpread); ok {
-		for _, sel := range frag.Definition.SelectionSet {
-			queryRecurse(sel, schema.Properties, level)
-		}
-		schema.Title = frag.Name
-		schema.Description = frag.ObjectDefinition.Description
-	} else if field, ok := recurseValue.(*ast.Field); ok {
-		for _, sel := range field.SelectionSet {
-			queryRecurse(sel, schema.Properties, level+1)
+	isArray := false
+	if field, ok := recurseValue.(*ast.Field); ok {
+		if field.Comment != nil {
+			for _, c := range field.Comment.List {
+				pd := ParseDocstring(c.Value)
+				if pd.Hide {
+					return order
+				}
+			}
 		}
 		schema.Title = field.Name
 		schema.Description = field.Definition.Description
 		schema.Nullable = !field.Definition.Type.NonNull
 		namedType = field.Definition.Type.NamedType
+		gqlType = field.Definition.Type.NamedType
+		if field.Definition.Type.Elem != nil {
+			gqlType = field.Definition.Type.Elem.Name()
+
+		}
+		if gst, ok := gs.Types[field.Definition.Type.String()]; ok {
+			for _, ev := range gst.EnumValues {
+				schema.Enum = append(schema.Enum, ev.Name)
+			}
+		}
+		if strings.HasPrefix(field.Definition.Type.String(), "[") {
+			isArray = true
+		}
+		for _, sel := range field.SelectionSet {
+			order = queryRecurse(gs, sel, schema.Properties, level+1, order+1)
+		}
+	} else if frag, ok := recurseValue.(*ast.FragmentSpread); ok {
+		for _, sel := range frag.Definition.SelectionSet {
+			// Ugly hack to put fragments at the end of the selection set
+			order = queryRecurse(gs, sel, parentSchema, level, order+1)
+		}
+		return order
 	} else {
-		return
+		return order
 	}
 
-	fmt.Printf("%s %s\n", strings.Repeat(" ", level*4), schema.Title)
+	fmt.Printf("%s %s (%s : %s : order %d)\n", strings.Repeat(" ", level*4), schema.Title, namedType, gqlType, order)
+	order += 1
+	schema.Extensions["x-order"] = order
 
 	// Scalar types
 	if scalarType, ok := gqlScalarToOASchema[namedType]; ok {
@@ -155,6 +199,9 @@ func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int) {
 		schema.Example = scalarType.Example
 	} else {
 		schema.Type = oa.NewObjectSchema().Type
+		if gqlType != "" {
+			schema.Extensions["x-graphql-type"] = gqlType
+		}
 	}
 
 	// Parse docstring
@@ -172,8 +219,28 @@ func queryRecurse(recurseValue any, parentSchema oa.Schemas, level int) {
 		schema.Enum = append(schema.Enum, e)
 	}
 
+	if isArray {
+		innerSchema := &oa.Schema{
+			Properties: schema.Properties,
+			Type:       schema.Type,
+			Extensions: schema.Extensions,
+		}
+		outerSchema := &oa.Schema{
+			Title:        schema.Title,
+			Description:  schema.Description,
+			Nullable:     schema.Nullable,
+			Type:         oa.NewArraySchema().Type,
+			ExternalDocs: schema.ExternalDocs,
+			Enum:         schema.Enum,
+			Items:        oa.NewSchemaRef("", innerSchema),
+			Extensions:   schema.Extensions,
+		}
+		schema = outerSchema
+	}
+
 	// Add to parent
 	parentSchema[schema.Title] = oa.NewSchemaRef("", schema)
+	return order
 }
 
 func parseGroups(re *regexp.Regexp, v string) []map[string]string {

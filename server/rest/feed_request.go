@@ -36,11 +36,17 @@ type FeedRequest struct {
 func (r FeedRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path: "/feeds",
-		PathItem: &oa.PathItem{
-			Get: &oa.Operation{
-				Summary:     "Feeds",
-				Description: `Search for feeds`,
-				Responses:   queryToOAResponses(feedQuery),
+		Get: RequestOperation{
+			Query: feedQuery,
+			Operation: &oa.Operation{
+				Summary: `Search for feeds`,
+				Extensions: map[string]any{
+					"x-alternates": []RequestAltPath{
+						{"GET", "/feeds.{format}", "Request feeds in specified format"},
+						{"GET", "/feeds/{feed_key}", "Request a feed by ID or Onestop ID"},
+						{"GET", "/feeds/{feed_key}.format", "Request a feed by ID or Onestop ID in specifed format"},
+					},
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "feed_key",
@@ -53,14 +59,14 @@ func (r FeedRequest) RequestInfo() RequestInfo {
 						In:          "query",
 						Description: `Type of data contained in this feed`,
 						Schema:      newSRVal("string", "", []any{"gtfs", "gtfs-rt", "gbfs", "mds"}),
-						Extensions:  newExt("", "spec=gtfs", "/feeds?spec=gtfs"),
+						Extensions:  newExt("", "spec=gtfs", "spec=gtfs"),
 					}},
 					&pref{Value: &param{
 						Name:        "fetch_error",
 						In:          "query",
 						Description: `Search for feeds with or without a fetch error`,
 						Schema:      newSRVal("string", "", []any{"true", "false"}),
-						Extensions:  newExt("", "fetch_error=true", "/feeds?fetch_error=true"),
+						Extensions:  newExt("", "fetch_error=true", "fetch_error=true"),
 					}},
 					&pref{Value: &param{
 						Name:        "tag_key",
@@ -74,7 +80,7 @@ func (r FeedRequest) RequestInfo() RequestInfo {
 						In:          "query",
 						Description: `Search for feeds tagged with a given value. Must be combined with tag_key.`,
 						Schema:      newSRVal("string", "", nil),
-						Extensions:  newExt("", "tag_key=unstable_url&tag_value=true", "/feeds?tag_key=unstable_url&tag_value=true"),
+						Extensions:  newExt("", "tag_key=unstable_url&tag_value=true", "tag_key=unstable_url&tag_value=true"),
 					}},
 					newPRef("idParam"),
 					newPRef("afterParam"),
@@ -175,4 +181,36 @@ func checkFeedSpecFilterValue(v string) string {
 		return "GTFS_RT"
 	}
 	return v
+}
+
+////////////
+
+// Currently this exists only for OpenAPI documentation
+type FeedDownloadLatestFeedVersionRequest struct {
+}
+
+func (r FeedDownloadLatestFeedVersionRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path:        "/feeds/{feed_key}/download_latest_feed_version",
+		Description: `Download the latest feed version GTFS zip for this feed, if redistribution is allowd by the source feed's license`,
+		Get: RequestOperation{
+			Operation: &oa.Operation{
+				Summary: "Download latest feed version",
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "feed_key",
+						In:          "path",
+						Required:    true,
+						Description: `Feed lookup key; can be an integer ID or Onestop ID value`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+				},
+			},
+		},
+	}
+}
+
+// Query returns a GraphQL query string and variables.
+func (r FeedDownloadLatestFeedVersionRequest) Query(ctx context.Context) (string, map[string]interface{}) {
+	return "", nil
 }

@@ -99,14 +99,22 @@ func escapeWordsWithSuffix(v string, sfx string) []string {
 	return ret
 }
 
-func pfJoinCheck(q sq.SelectBuilder, feedCol string, fvCol string, permFilter *model.PermFilter) sq.SelectBuilder {
+func pfJoinCheck(q sq.SelectBuilder, permFilter *model.PermFilter) sq.SelectBuilder {
+	q = q.Join("feed_states fsp on fsp.feed_id = current_feeds.id")
 	sqOr := sq.Or{}
-	q = q.Join(fmt.Sprintf("feed_states fsp on fsp.feed_id = %s", az09(feedCol)))
 	sqOr = append(sqOr, sq.Expr("fsp.public = true"))
 	sqOr = append(sqOr, In("fsp.feed_id", permFilter.GetAllowedFeeds()))
-	if fvCol != "" {
-		sqOr = append(sqOr, In(az09(fvCol), permFilter.GetAllowedFeedVersions()))
-	}
+	return q.Where(sqOr)
+}
+
+func pfJoinCheckFv(q sq.SelectBuilder, permFilter *model.PermFilter) sq.SelectBuilder {
+	q = q.Join("feed_states fsp on fsp.feed_id = feed_versions.feed_id").
+		Where(sq.Eq{"current_feeds.deleted_at": nil}).
+		Where(sq.Eq{"feed_versions.deleted_at": nil})
+	sqOr := sq.Or{}
+	sqOr = append(sqOr, sq.Expr("fsp.public = true"))
+	sqOr = append(sqOr, In("feed_versions.feed_id", permFilter.GetAllowedFeeds()))
+	sqOr = append(sqOr, In("feed_versions.id", permFilter.GetAllowedFeedVersions()))
 	return q.Where(sqOr)
 }
 
