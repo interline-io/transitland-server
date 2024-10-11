@@ -7,9 +7,9 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
-	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/gtfs"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -29,7 +29,7 @@ func (f *Finder) StopUpdate(ctx context.Context, input model.StopSetInput) (int,
 }
 
 func (f *Finder) StopDelete(ctx context.Context, id int) error {
-	ent := tl.Stop{}
+	ent := gtfs.Stop{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
 }
@@ -39,8 +39,8 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 		ctx,
 		input.ID,
 		fvint(input.FeedVersion),
-		&tl.Stop{},
-		func(ent *tl.Stop) ([]string, error) {
+		&gtfs.Stop{},
+		func(ent *gtfs.Stop) ([]string, error) {
 			var cols []string
 			cols = checkCol(&ent.StopID, input.StopID, "stop_id", cols)
 			cols = checkCol(&ent.StopCode, input.StopCode, "stop_code", cols)
@@ -61,7 +61,7 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 				if v.ID == nil {
 					ent.ParentStation.Valid = false
 				} else {
-					checkParent := tl.Stop{}
+					checkParent := gtfs.Stop{}
 					checkParent.ID = *v.ID
 					ent.ParentStation = tt.NewKey(strconv.Itoa(checkParent.ID))
 				}
@@ -71,7 +71,7 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 				if v.ID == nil {
 					ent.LevelID.Valid = false
 				} else {
-					checkLevel := tl.Level{}
+					checkLevel := gtfs.Level{}
 					checkLevel.ID = *v.ID
 					ent.LevelID = tt.NewKey(strconv.Itoa(checkLevel.ID))
 				}
@@ -97,7 +97,7 @@ func (f *Finder) PathwayUpdate(ctx context.Context, input model.PathwaySetInput)
 }
 
 func (f *Finder) PathwayDelete(ctx context.Context, id int) error {
-	ent := tl.Pathway{}
+	ent := gtfs.Pathway{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
 }
@@ -107,8 +107,8 @@ func createUpdatePathway(ctx context.Context, input model.PathwaySetInput) (int,
 		ctx,
 		input.ID,
 		fvint(input.FeedVersion),
-		&tl.Pathway{},
-		func(ent *tl.Pathway) ([]string, error) {
+		&gtfs.Pathway{},
+		func(ent *gtfs.Pathway) ([]string, error) {
 			var cols []string
 			cols = checkCol(&ent.PathwayID, input.PathwayID, "pathway_id", cols)
 			cols = checkCol(&ent.PathwayMode, input.PathwayMode, "pathway_mode", cols)
@@ -125,7 +125,7 @@ func createUpdatePathway(ctx context.Context, input model.PathwaySetInput) (int,
 				if v.ID == nil {
 					ent.FromStopID = ""
 				} else {
-					checkStop := tl.Stop{}
+					checkStop := gtfs.Stop{}
 					checkStop.ID = *v.ID
 					ent.FromStopID = strconv.Itoa(checkStop.ID)
 				}
@@ -135,7 +135,7 @@ func createUpdatePathway(ctx context.Context, input model.PathwaySetInput) (int,
 				if v.ID == nil {
 					ent.ToStopID = ""
 				} else {
-					checkStop := tl.Stop{}
+					checkStop := gtfs.Stop{}
 					checkStop.ID = *v.ID
 					ent.ToStopID = strconv.Itoa(checkStop.ID)
 				}
@@ -161,7 +161,7 @@ func (f *Finder) LevelUpdate(ctx context.Context, input model.LevelSetInput) (in
 }
 
 func (f *Finder) LevelDelete(ctx context.Context, id int) error {
-	ent := tl.Level{}
+	ent := gtfs.Level{}
 	ent.ID = id
 	return deleteEnt(ctx, &ent)
 }
@@ -183,7 +183,7 @@ func createUpdateLevel(ctx context.Context, input model.LevelSetInput) (int, err
 				if v.ID == nil {
 					ent.ParentStation.Valid = false
 				} else {
-					checkParent := tl.Stop{}
+					checkParent := gtfs.Stop{}
 					checkParent.ID = *v.ID
 					ent.ParentStation = tt.NewKey(strconv.Itoa(checkParent.ID))
 				}

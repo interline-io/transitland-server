@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 )
 
 // Search options for agencies

@@ -9,8 +9,8 @@ import (
 	"github.com/twpayne/go-geom/xy"
 
 	"github.com/interline-io/transitland-dbutil/dbutil"
-	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlxy"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/jmoiron/sqlx"
 	"github.com/tidwall/rtree"
 )

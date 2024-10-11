@@ -3,7 +3,7 @@ package gql
 import (
 	"context"
 
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -11,13 +11,13 @@ import (
 
 type calendarResolver struct{ *Resolver }
 
-// StartDate map time.Time to tl.Date
+// StartDate map time.Time to tt.Date
 func (r *calendarResolver) StartDate(ctx context.Context, obj *model.Calendar) (*tt.Date, error) {
 	a := tt.NewDate(obj.StartDate)
 	return &a, nil
 }
 
-// EndDate map time.Time to tl.Date
+// EndDate map time.Time to tt.Date
 func (r *calendarResolver) EndDate(ctx context.Context, obj *model.Calendar) (*tt.Date, error) {
 	a := tt.NewDate(obj.EndDate)
 	return &a, nil

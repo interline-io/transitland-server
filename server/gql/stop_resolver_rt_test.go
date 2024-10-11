@@ -3,7 +3,7 @@ package gql
 import (
 	"testing"
 
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"

@@ -4,26 +4,26 @@ import (
 	"encoding/json"
 
 	"github.com/interline-io/transitland-lib/dmfr"
+	"github.com/interline-io/transitland-lib/gtfs"
 	"github.com/interline-io/transitland-lib/rt/pb"
-	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 )
 
 type Feed struct {
 	SearchRank *string
-	tl.Feed
+	dmfr.Feed
 }
 
 type FeedLicense struct {
-	tl.FeedLicense
+	dmfr.FeedLicense
 }
 
 type FeedUrls struct {
-	tl.FeedUrls
+	dmfr.FeedUrls
 }
 
 type FeedAuthorization struct {
-	tl.FeedAuthorization
+	dmfr.FeedAuthorization
 }
 
 type Agency struct {
@@ -33,11 +33,11 @@ type Agency struct {
 	Geometry        *tt.Polygon `json:"geometry"`
 	SearchRank      *string
 	CoifID          *int
-	tl.Agency
+	gtfs.Agency
 }
 
 type Calendar struct {
-	tl.Calendar
+	gtfs.Calendar
 }
 
 type FeedState struct {
@@ -51,7 +51,7 @@ type FeedFetch struct {
 
 type FeedVersion struct {
 	SHA1Dir tt.String `json:"sha1_dir"`
-	tl.FeedVersion
+	dmfr.FeedVersion
 }
 
 type Operator struct {
@@ -61,7 +61,7 @@ type Operator struct {
 	FeedOnestopID *string
 	SearchRank    *string // internal
 	AgencyID      int     // internal
-	tl.Operator
+	dmfr.Operator
 }
 
 type Route struct {
@@ -70,12 +70,12 @@ type Route struct {
 	OnestopID                    *string
 	HeadwaySecondsWeekdayMorning *int
 	SearchRank                   *string
-	tl.Route
+	gtfs.Route
 }
 
 type Trip struct {
 	RTTripID string // internal: for ADDED trips
-	tl.Trip
+	gtfs.Trip
 }
 
 type RTStopTimeUpdate struct {
@@ -89,7 +89,7 @@ type StopTime struct {
 	Date             tt.Date
 	RTTripID         string            // internal: for ADDED trips
 	RTStopTimeUpdate *RTStopTimeUpdate // internal
-	tl.StopTime
+	gtfs.StopTime
 }
 
 type Stop struct {
@@ -97,33 +97,33 @@ type Stop struct {
 	FeedVersionSHA1 string
 	OnestopID       *string
 	SearchRank      *string
-	tl.Stop
+	gtfs.Stop
 }
 
 type Frequency struct {
-	tl.Frequency
+	gtfs.Frequency
 }
 
 type CalendarDate struct {
-	tl.CalendarDate
+	gtfs.CalendarDate
 }
 
 type Shape struct {
-	tl.Shape
+	gtfs.Shape
 }
 
 type Level struct {
 	Geometry      tt.Polygon
 	ParentStation tt.Key
-	tl.Level
+	gtfs.Level
 }
 
 type FeedInfo struct {
-	tl.FeedInfo
+	gtfs.FeedInfo
 }
 
 type Pathway struct {
-	tl.Pathway
+	gtfs.Pathway
 }
 
 type FeedVersionFileInfo struct {

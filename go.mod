@@ -20,7 +20,7 @@ require (
 	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
 	github.com/interline-io/transitland-dbutil v0.0.0-20241007223837-7564820963d3
 	github.com/interline-io/transitland-jobs v0.0.0-20241007224018-cfcf2ea0fd72
-	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20241011014832-7dce1f39823b
+	github.com/interline-io/transitland-lib v0.17.0-rc0.0.20241011102608-3aedece35968
 	github.com/interline-io/transitland-mw v0.0.0-20241007223948-3ff905d6e27e
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
@@ -72,7 +72,6 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -112,13 +111,17 @@ require (
 	github.com/tidwall/tinylru v1.2.1 // indirect
 	github.com/tkrajina/gpxgo v1.1.2 // indirect
 	github.com/twpayne/go-polyline v1.1.1 // indirect
+	github.com/urfave/cli/v2 v2.27.4 // indirect
+	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
+	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
+	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/grpc v1.59.0 // indirect

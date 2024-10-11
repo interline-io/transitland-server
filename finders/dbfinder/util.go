@@ -9,7 +9,7 @@ import (
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
