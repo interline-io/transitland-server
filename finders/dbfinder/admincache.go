@@ -57,7 +57,7 @@ func (c *adminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 		return err
 	}
 	for _, ent := range ents {
-		g, ok := ent.Geometry.Geometry.(*geom.MultiPolygon)
+		g, ok := ent.Geometry.Val.(*geom.MultiPolygon)
 		if !ok {
 			continue
 		}

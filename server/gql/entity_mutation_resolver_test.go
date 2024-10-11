@@ -39,7 +39,7 @@ func TestStopCreate(t *testing.T) {
 		}
 		assert.Equal(t, stopInput.StopID, &checkEnt.StopID)
 		assert.Equal(t, stopInput.StopName, &checkEnt.StopName)
-		assert.Equal(t, stopInput.Geometry.Coords(), checkEnt.Geometry.Coords())
+		assert.Equal(t, stopInput.Geometry.FlatCoords(), checkEnt.Geometry.FlatCoords())
 	})
 }
 
@@ -73,7 +73,7 @@ func TestStopUpdate(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, stopUpdate.StopID, &checkEnt.StopID)
-		assert.Equal(t, stopUpdate.Geometry.Coords(), checkEnt.Geometry.Coords())
+		assert.Equal(t, stopUpdate.Geometry.FlatCoords(), checkEnt.Geometry.FlatCoords())
 	})
 }
 

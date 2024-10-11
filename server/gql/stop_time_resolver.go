@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
-	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -92,7 +91,7 @@ func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (
 	return fromSte(ste, delay, obj.DepartureTime, obj.ServiceDate, loc), nil
 }
 
-func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tt.Seconds, serviceDate tl.Date, loc *time.Location) *model.StopTimeEvent {
+func fromSte(ste *pb.TripUpdate_StopTimeEvent, lastDelay *int32, sched tt.Seconds, serviceDate tt.Date, loc *time.Location) *model.StopTimeEvent {
 	a := model.StopTimeEvent{
 		StopTimezone: loc.String(),
 		Scheduled:    &sched,

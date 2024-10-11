@@ -30,7 +30,7 @@ type Agency struct {
 	OnestopID       string      `json:"onestop_id"`
 	FeedOnestopID   string      `json:"feed_onestop_id"`
 	FeedVersionSHA1 string      `json:"feed_version_sha1"`
-	Geometry        *tl.Polygon `json:"geometry"`
+	Geometry        *tt.Polygon `json:"geometry"`
 	SearchRank      *string
 	CoifID          *int
 	tl.Agency
@@ -45,12 +45,12 @@ type FeedState struct {
 }
 
 type FeedFetch struct {
-	ResponseSha1 tl.String // confusing but easier than alternative fixes
+	ResponseSha1 tt.String // confusing but easier than alternative fixes
 	dmfr.FeedFetch
 }
 
 type FeedVersion struct {
-	SHA1Dir tl.String `json:"sha1_dir"`
+	SHA1Dir tt.String `json:"sha1_dir"`
 	tl.FeedVersion
 }
 
@@ -85,8 +85,8 @@ type RTStopTimeUpdate struct {
 }
 
 type StopTime struct {
-	ServiceDate      tl.Date
-	Date             tl.Date
+	ServiceDate      tt.Date
+	Date             tt.Date
 	RTTripID         string            // internal: for ADDED trips
 	RTStopTimeUpdate *RTStopTimeUpdate // internal
 	tl.StopTime
@@ -113,7 +113,7 @@ type Shape struct {
 }
 
 type Level struct {
-	Geometry      tl.Polygon
+	Geometry      tt.Polygon
 	ParentStation tt.Key
 	tl.Level
 }

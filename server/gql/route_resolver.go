@@ -3,7 +3,6 @@ package gql
 import (
 	"context"
 
-	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -17,7 +16,7 @@ func (r *routeResolver) Cursor(ctx context.Context, obj *model.Route) (*model.Cu
 	return &c, nil
 }
 
-func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tl.Geometry, error) {
+func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tt.Geometry, error) {
 	if obj.Geometry.Valid {
 		return &obj.Geometry, nil
 	}

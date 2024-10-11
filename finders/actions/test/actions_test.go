@@ -227,7 +227,7 @@ func TestValidateUpload(t *testing.T) {
 					return
 				}
 				g := result.Errors[0].Errors[0]
-				if v, ok := g.Geometry.Geometry.(*geom.GeometryCollection); ok {
+				if v, ok := g.Geometry.Val.(*geom.GeometryCollection); ok {
 					ggs := v.Geoms()
 					assert.Equal(t, len(ggs), 2)
 					assert.Equal(t, len(ggs[0].FlatCoords()), 1112)
