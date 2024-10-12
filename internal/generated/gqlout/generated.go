@@ -7213,6 +7213,18 @@ scalar Bool
 """Array of strings"""
 scalar Strings
 
+"""A color"""
+scalar Color
+
+"""A Language"""
+scalar Language
+
+"""URL"""
+scalar Url
+
+"""Email"""
+scalar Email
+
 # Force resolver
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
@@ -7981,11 +7993,11 @@ type FeedInfo {
   "GTFS feed_info.feed_publisher_name"
   feed_publisher_name: String!
   "GTFS feed_info.feed_publisher_url"
-  feed_publisher_url: String!
+  feed_publisher_url: Url!
   "GTFS feed_info.feed_lang"
-  feed_lang: String!
+  feed_lang: Language!
   "GTFS feed_info.default_lang"
-  default_lang: String
+  default_lang: Language
   "GTFS feed_info.feed_version"
   feed_version: String!
   "GTFS feed_info.feed_start_date"
@@ -7993,9 +8005,9 @@ type FeedInfo {
   "GTFS feed_info.feed_end_date"
   feed_end_date: Date
   "GTFS feed_info.feed_contact_email"
-  feed_contact_email: String
+  feed_contact_email: Email
   "GTFS feed_info.feed_contact_url"
-  feed_contact_url: String
+  feed_contact_url: Url
 }
 
 # Archived observed stop-times
@@ -18622,9 +18634,9 @@ func (ec *executionContext) _FeedInfo_feed_publisher_name(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_publisher_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18666,9 +18678,9 @@ func (ec *executionContext) _FeedInfo_feed_publisher_url(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Url)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_publisher_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18678,7 +18690,7 @@ func (ec *executionContext) fieldContext_FeedInfo_feed_publisher_url(_ context.C
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Url does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18710,9 +18722,9 @@ func (ec *executionContext) _FeedInfo_feed_lang(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Language)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_lang(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18722,7 +18734,7 @@ func (ec *executionContext) fieldContext_FeedInfo_feed_lang(_ context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Language does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18751,9 +18763,9 @@ func (ec *executionContext) _FeedInfo_default_lang(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(tt.Language)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_default_lang(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18763,7 +18775,7 @@ func (ec *executionContext) fieldContext_FeedInfo_default_lang(_ context.Context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Language does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18795,9 +18807,9 @@ func (ec *executionContext) _FeedInfo_feed_version(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18918,9 +18930,9 @@ func (ec *executionContext) _FeedInfo_feed_contact_email(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(tt.Email)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOEmail2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐEmail(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_contact_email(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18930,7 +18942,7 @@ func (ec *executionContext) fieldContext_FeedInfo_feed_contact_email(_ context.C
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Email does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18959,9 +18971,9 @@ func (ec *executionContext) _FeedInfo_feed_contact_url(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.String)
+	res := resTmp.(tt.Url)
 	fc.Result = res
-	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_contact_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18971,7 +18983,7 @@ func (ec *executionContext) fieldContext_FeedInfo_feed_contact_url(_ context.Con
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Url does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23606,9 +23618,9 @@ func (ec *executionContext) _Frequency_headway_secs(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Frequency_headway_secs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -23650,9 +23662,9 @@ func (ec *executionContext) _Frequency_exact_times(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Frequency_exact_times(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -32022,9 +32034,9 @@ func (ec *executionContext) _Level_level_id(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Level_level_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -32066,9 +32078,9 @@ func (ec *executionContext) _Level_level_name(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Level_level_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -32110,9 +32122,9 @@ func (ec *executionContext) _Level_level_index(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(tt.Float)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Level_level_index(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34264,9 +34276,9 @@ func (ec *executionContext) _Pathway_pathway_id(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_pathway_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34308,9 +34320,9 @@ func (ec *executionContext) _Pathway_pathway_mode(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_pathway_mode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34352,9 +34364,9 @@ func (ec *executionContext) _Pathway_is_bidirectional(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_is_bidirectional(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34396,9 +34408,9 @@ func (ec *executionContext) _Pathway_length(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(tt.Float)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_length(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34440,9 +34452,9 @@ func (ec *executionContext) _Pathway_traversal_time(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_traversal_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34484,9 +34496,9 @@ func (ec *executionContext) _Pathway_stair_count(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_stair_count(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34528,9 +34540,9 @@ func (ec *executionContext) _Pathway_max_slope(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(tt.Float)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_max_slope(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34572,9 +34584,9 @@ func (ec *executionContext) _Pathway_min_width(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(tt.Float)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_min_width(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34616,9 +34628,9 @@ func (ec *executionContext) _Pathway_signposted_as(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_signposted_as(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34660,9 +34672,9 @@ func (ec *executionContext) _Pathway_reverse_signposted_as(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_reverse_signposted_as(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44572,9 +44584,9 @@ func (ec *executionContext) _StopTime_stop_sequence(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTime_stop_sequence(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -63669,6 +63681,16 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx context.Context, v interface{}) (tt.Float, error) {
+	var res tt.Float
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx context.Context, sel ast.SelectionSet, v tt.Float) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNFrequency2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFrequencyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Frequency) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -63843,6 +63865,16 @@ func (ec *executionContext) marshalNGbfsVehicleTypeAvailable2ᚖgithubᚗcomᚋi
 	return ec._GbfsVehicleTypeAvailable(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx context.Context, v interface{}) (tt.Int, error) {
+	var res tt.Int
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx context.Context, sel ast.SelectionSet, v tt.Int) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -63881,6 +63913,16 @@ func (ec *executionContext) marshalNItinerary2ᚖgithubᚗcomᚋinterlineᚑio�
 		return graphql.Null
 	}
 	return ec._Itinerary(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx context.Context, v interface{}) (tt.Language, error) {
+	var res tt.Language
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx context.Context, sel ast.SelectionSet, v tt.Language) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNLeg2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLeg(ctx context.Context, sel ast.SelectionSet, v *model.Leg) graphql.Marshaler {
@@ -64694,6 +64736,16 @@ func (ec *executionContext) marshalNStopTimeEvent2ᚖgithubᚗcomᚋinterlineᚑ
 	return ec._StopTimeEvent(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx context.Context, v interface{}) (tt.String, error) {
+	var res tt.String
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx context.Context, sel ast.SelectionSet, v tt.String) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -64833,6 +64885,16 @@ func (ec *executionContext) marshalNTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		return graphql.Null
 	}
 	return ec._Trip(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx context.Context, v interface{}) (tt.Url, error) {
+	var res tt.Url
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx context.Context, sel ast.SelectionSet, v tt.Url) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNValidationRealtimeResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx context.Context, sel ast.SelectionSet, v *model.ValidationRealtimeResult) graphql.Marshaler {
@@ -65540,6 +65602,16 @@ func (ec *executionContext) marshalODuration2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 		return graphql.Null
 	}
 	return ec._Duration(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOEmail2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐEmail(ctx context.Context, v interface{}) (tt.Email, error) {
+	var res tt.Email
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOEmail2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐEmail(ctx context.Context, sel ast.SelectionSet, v tt.Email) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalOFeed2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Feed) graphql.Marshaler {
@@ -66740,6 +66812,16 @@ func (ec *executionContext) marshalOItinerary2ᚕᚖgithubᚗcomᚋinterlineᚑi
 	return ret
 }
 
+func (ec *executionContext) unmarshalOLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx context.Context, v interface{}) (tt.Language, error) {
+	var res tt.Language
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx context.Context, sel ast.SelectionSet, v tt.Language) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalOLeg2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Leg) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -67829,6 +67911,16 @@ func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	}
 	res := graphql.MarshalUpload(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx context.Context, v interface{}) (tt.Url, error) {
+	var res tt.Url
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx context.Context, sel ast.SelectionSet, v tt.Url) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalOValidationRealtimeResult2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidationRealtimeResult) graphql.Marshaler {

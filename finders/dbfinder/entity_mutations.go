@@ -3,7 +3,6 @@ package dbfinder
 import (
 	"context"
 	"errors"
-	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
@@ -109,11 +108,11 @@ func createUpdatePathway(ctx context.Context, input model.PathwaySetInput) (int,
 			cols = scanCol(&ent.ReverseSignpostedAs, input.ReverseSignpostedAs, "reverse_signposted_as", cols)
 			if v := input.FromStop; v != nil {
 				cols = append(cols, "from_stop_id")
-				scanCol(&ent.FromStopID, v.ID, "from_stop_id", cols)
+				scanCol(&ent.FromStopID, v.ID, "", nil)
 			}
 			if v := input.ToStop; v != nil {
 				cols = append(cols, "from_stop_id")
-				scanCol(&ent.ToStopID, v.ID, "to_stop_id", cols)
+				scanCol(&ent.ToStopID, v.ID, "", nil)
 			}
 			return cols, nil
 		})
@@ -149,41 +148,19 @@ func createUpdateLevel(ctx context.Context, input model.LevelSetInput) (int, err
 		&model.Level{},
 		func(ent *model.Level) ([]string, error) {
 			var cols []string
-			cols = appendIf(ent.LevelID.SetIf(input.LevelID), "level_id", cols)
-			cols = appendIf(ent.LevelName.SetIf(input.LevelName), "level_name", cols)
-			cols = appendIf(ent.LevelIndex.SetIf(input.LevelIndex), "level_index", cols)
+			cols = scanCol(&ent.LevelID, input.LevelID, "level_id", cols)
+			cols = scanCol(&ent.LevelName, input.LevelName, "level_name", cols)
+			cols = scanCol(&ent.LevelIndex, input.LevelIndex, "level_index", cols)
 			cols = checkCol(&ent.Geometry, input.Geometry, "geometry", cols)
 			if v := input.Parent; v != nil {
-				cols = appendIf(ent.ParentStation.SetOrUnset(i64a(v.ID)), "parent_station", cols)
+				cols = append(cols, "parent_station")
+				scanCol(&ent.ParentStation, v.ID, "", nil)
 			}
 			return cols, nil
 		})
 }
 
 ///////////
-
-func i64a(v *int) *string {
-	if v != nil {
-		b := strconv.Itoa(*v)
-		return &b
-	}
-	return nil
-}
-
-func to64(v *int) *int64 {
-	if v != nil {
-		b := int64(*v)
-		return &b
-	}
-	return nil
-}
-
-func appendIf(a bool, colname string, cols []string) []string {
-	if a {
-		cols = append(cols, colname)
-	}
-	return cols
-}
 
 func checkCol[T any, P *T](val P, inval P, colname string, cols []string) []string {
 	if inval != nil {

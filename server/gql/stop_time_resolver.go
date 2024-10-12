@@ -39,7 +39,7 @@ func (r *stopTimeResolver) ScheduleRelationship(ctx context.Context, obj *model.
 }
 
 func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*model.Trip, error) {
-	if !obj.TripID.Valid && obj.RTTripID != "" {
+	if obj.TripID.Val == "0" && obj.RTTripID != "" {
 		t := model.Trip{}
 		t.FeedVersionID = obj.FeedVersionID
 		t.TripID = obj.RTTripID
