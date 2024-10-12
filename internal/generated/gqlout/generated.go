@@ -7993,11 +7993,11 @@ type FeedInfo {
   "GTFS feed_info.feed_publisher_name"
   feed_publisher_name: String!
   "GTFS feed_info.feed_publisher_url"
-  feed_publisher_url: Url!
+  feed_publisher_url: String!
   "GTFS feed_info.feed_lang"
-  feed_lang: Language!
+  feed_lang: String!
   "GTFS feed_info.default_lang"
-  default_lang: Language
+  default_lang: String
   "GTFS feed_info.feed_version"
   feed_version: String!
   "GTFS feed_info.feed_start_date"
@@ -8005,9 +8005,9 @@ type FeedInfo {
   "GTFS feed_info.feed_end_date"
   feed_end_date: Date
   "GTFS feed_info.feed_contact_email"
-  feed_contact_email: Email
+  feed_contact_email: String
   "GTFS feed_info.feed_contact_url"
-  feed_contact_url: Url
+  feed_contact_url: String
 }
 
 # Archived observed stop-times
@@ -18678,9 +18678,9 @@ func (ec *executionContext) _FeedInfo_feed_publisher_url(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.Url)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_publisher_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18690,7 +18690,7 @@ func (ec *executionContext) fieldContext_FeedInfo_feed_publisher_url(_ context.C
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Url does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18722,9 +18722,9 @@ func (ec *executionContext) _FeedInfo_feed_lang(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tt.Language)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_lang(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18734,7 +18734,7 @@ func (ec *executionContext) fieldContext_FeedInfo_feed_lang(_ context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Language does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18763,9 +18763,9 @@ func (ec *executionContext) _FeedInfo_default_lang(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Language)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_default_lang(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18775,7 +18775,7 @@ func (ec *executionContext) fieldContext_FeedInfo_default_lang(_ context.Context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Language does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18930,9 +18930,9 @@ func (ec *executionContext) _FeedInfo_feed_contact_email(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Email)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOEmail2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐEmail(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_contact_email(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18942,7 +18942,7 @@ func (ec *executionContext) fieldContext_FeedInfo_feed_contact_email(_ context.C
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Email does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18971,9 +18971,9 @@ func (ec *executionContext) _FeedInfo_feed_contact_url(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(tt.Url)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_contact_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18983,7 +18983,7 @@ func (ec *executionContext) fieldContext_FeedInfo_feed_contact_url(_ context.Con
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Url does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -63915,16 +63915,6 @@ func (ec *executionContext) marshalNItinerary2ᚖgithubᚗcomᚋinterlineᚑio�
 	return ec._Itinerary(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx context.Context, v interface{}) (tt.Language, error) {
-	var res tt.Language
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx context.Context, sel ast.SelectionSet, v tt.Language) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) marshalNLeg2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLeg(ctx context.Context, sel ast.SelectionSet, v *model.Leg) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -64887,16 +64877,6 @@ func (ec *executionContext) marshalNTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 	return ec._Trip(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx context.Context, v interface{}) (tt.Url, error) {
-	var res tt.Url
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx context.Context, sel ast.SelectionSet, v tt.Url) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) marshalNValidationRealtimeResult2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResult(ctx context.Context, sel ast.SelectionSet, v *model.ValidationRealtimeResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -65602,16 +65582,6 @@ func (ec *executionContext) marshalODuration2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 		return graphql.Null
 	}
 	return ec._Duration(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOEmail2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐEmail(ctx context.Context, v interface{}) (tt.Email, error) {
-	var res tt.Email
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOEmail2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐEmail(ctx context.Context, sel ast.SelectionSet, v tt.Email) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalOFeed2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Feed) graphql.Marshaler {
@@ -66812,16 +66782,6 @@ func (ec *executionContext) marshalOItinerary2ᚕᚖgithubᚗcomᚋinterlineᚑi
 	return ret
 }
 
-func (ec *executionContext) unmarshalOLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx context.Context, v interface{}) (tt.Language, error) {
-	var res tt.Language
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx context.Context, sel ast.SelectionSet, v tt.Language) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) marshalOLeg2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Leg) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -67911,16 +67871,6 @@ func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	}
 	res := graphql.MarshalUpload(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx context.Context, v interface{}) (tt.Url, error) {
-	var res tt.Url
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx context.Context, sel ast.SelectionSet, v tt.Url) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalOValidationRealtimeResult2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐValidationRealtimeResultᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidationRealtimeResult) graphql.Marshaler {
