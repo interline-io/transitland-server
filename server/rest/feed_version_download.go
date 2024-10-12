@@ -8,9 +8,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/interline-io/transitland-lib/store"
-	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/request"
+	"github.com/interline-io/transitland-lib/dmfr"
+	"github.com/interline-io/transitland-lib/request"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/interline-io/transitland-server/model"
@@ -238,14 +237,14 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 
 func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string, downloadKey string) {
 	ctx := r.Context()
-	store, err := store.GetStore(storage)
+	store, err := request.GetStore(storage)
 	if err != nil {
 		util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 		return
 	}
 	fvkey := fmt.Sprintf("%s.zip", fvsha1)
 	if v, ok := store.(request.Presigner); ok {
-		signedUrl, err := v.CreateSignedUrl(ctx, fvkey, downloadKey, tl.Secret{})
+		signedUrl, err := v.CreateSignedUrl(ctx, fvkey, downloadKey, dmfr.Secret{})
 		if err != nil {
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 			return
@@ -253,7 +252,7 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 		w.Header().Add("Location", signedUrl)
 		w.WriteHeader(http.StatusFound)
 	} else {
-		rdr, _, err := store.Download(ctx, fvkey, tl.Secret{}, tl.FeedAuthorization{})
+		rdr, _, err := store.Download(ctx, fvkey, dmfr.Secret{}, dmfr.FeedAuthorization{})
 		if err != nil {
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 			return

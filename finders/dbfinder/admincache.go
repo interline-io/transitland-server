@@ -9,8 +9,8 @@ import (
 	"github.com/twpayne/go-geom/xy"
 
 	"github.com/interline-io/transitland-dbutil/dbutil"
-	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlxy"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/jmoiron/sqlx"
 	"github.com/tidwall/rtree"
 )
@@ -57,7 +57,7 @@ func (c *adminCache) LoadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 		return err
 	}
 	for _, ent := range ents {
-		g, ok := ent.Geometry.Geometry.(*geom.MultiPolygon)
+		g, ok := ent.Geometry.Val.(*geom.MultiPolygon)
 		if !ok {
 			continue
 		}

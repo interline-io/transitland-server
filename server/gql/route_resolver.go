@@ -3,8 +3,7 @@ package gql
 import (
 	"context"
 
-	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -17,7 +16,7 @@ func (r *routeResolver) Cursor(ctx context.Context, obj *model.Route) (*model.Cu
 	return &c, nil
 }
 
-func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tl.Geometry, error) {
+func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tt.Geometry, error) {
 	if obj.Geometry.Valid {
 		return &obj.Geometry, nil
 	}
@@ -101,10 +100,10 @@ func (r *routeHeadwayResolver) Stop(ctx context.Context, obj *model.RouteHeadway
 	return For(ctx).StopsByID.Load(ctx, obj.SelectedStopID)()
 }
 
-func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tl.WideTime, error) {
-	var ret []*tl.WideTime
+func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tt.Seconds, error) {
+	var ret []*tt.Seconds
 	for _, v := range obj.DepartureInts.Val {
-		w := tt.NewWideTimeFromSeconds(v)
+		w := tt.NewSeconds(int(v))
 		ret = append(ret, &w)
 	}
 	return ret, nil

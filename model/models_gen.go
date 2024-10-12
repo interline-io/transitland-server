@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 )
 
 // Search options for agencies
@@ -541,7 +541,7 @@ type RTTripDescriptor struct {
 	// GTFS-RT TripDescriptor trip direction
 	DirectionID *int `json:"direction_id,omitempty"`
 	// GTFS-RT TripDescriptor trip start time, in local time HH:MM:SS
-	StartTime *tt.WideTime `json:"start_time,omitempty"`
+	StartTime *tt.Seconds `json:"start_time,omitempty"`
 	// GTFS-RT TripDescriptor trip start time, in local date
 	StartDate *tt.Date `json:"start_date,omitempty"`
 	// GTFS-RT TripDescriptor schedule relationship. See https://gtfs.org/realtime/reference/#enum-schedulerelationship-1
@@ -637,10 +637,10 @@ type RouteHeadway struct {
 	// Number of departures on this stop, day, and direction
 	StopTripCount *int `json:"stop_trip_count,omitempty"`
 	// Actual departure times on this stop, day, and direction
-	DeparturesUnused []*tt.WideTime `json:"departures,omitempty"`
-	DepartureInts    tt.Ints        `db:"departures"`
-	RouteID          int            `json:"-"`
-	SelectedStopID   int            `json:"-"`
+	DeparturesUnused []*tt.Seconds `json:"departures,omitempty"`
+	DepartureInts    tt.Ints       `db:"departures"`
+	RouteID          int           `json:"-"`
+	SelectedStopID   int           `json:"-"`
 }
 
 // RouteStops describe associations between stops, routes, and agencies.
@@ -815,7 +815,7 @@ type StopObservation struct {
 	// GTFS-RT TripUpdate trip start date
 	TripStartDate *tt.Date `json:"trip_start_date,omitempty"`
 	// GTFS-RT TripUpdate trip start time
-	TripStartTime *tt.WideTime `json:"trip_start_time,omitempty"`
+	TripStartTime *tt.Seconds `json:"trip_start_time,omitempty"`
 	// GTFS static origin stop id
 	FromStopID *string `json:"from_stop_id,omitempty"`
 	// GTFS static destination stop id
@@ -831,13 +831,13 @@ type StopObservation struct {
 	// Source data used to calculate this stop observation. Can be trip update or vehicle positions.
 	Source *string `json:"source,omitempty"`
 	// GTFS static scheduled arrival time
-	ScheduledArrivalTime *tt.WideTime `json:"scheduled_arrival_time,omitempty"`
+	ScheduledArrivalTime *tt.Seconds `json:"scheduled_arrival_time,omitempty"`
 	// GTFS static scheduled departure time
-	ScheduledDepartureTime *tt.WideTime `json:"scheduled_departure_time,omitempty"`
+	ScheduledDepartureTime *tt.Seconds `json:"scheduled_departure_time,omitempty"`
 	// GTFS-RT calculated arrival time
-	ObservedArrivalTime *tt.WideTime `json:"observed_arrival_time,omitempty"`
+	ObservedArrivalTime *tt.Seconds `json:"observed_arrival_time,omitempty"`
 	// GTFS-RT calculated departure time
-	ObservedDepartureTime *tt.WideTime `json:"observed_departure_time,omitempty"`
+	ObservedDepartureTime *tt.Seconds `json:"observed_departure_time,omitempty"`
 }
 
 // Search options for stop observations
@@ -918,10 +918,12 @@ type StopTimeEvent struct {
 	EstimatedUnix *int `json:"estimated_unix,omitempty"`
 	// Estimated time in the local time zone
 	EstimatedLocal *time.Time `json:"estimated_local,omitempty"`
-	// Estimated delay, based on a matching TripUpdate or previous StopTimeUpdate in this trip
+	// Estimated schedule delay, in seconds, based on either a timestamp or overall trip delay.
+	//
+	// This value can be set directly from a matching GTFS-RT StopTimeUpdate timestamp or delay value or set via an estimated overall trip delay. The value is capped at +/- 86,400 seconds (24 hours). Values larger than that are are likely erroneous and will be set to null.
 	EstimatedDelay *int `json:"estimated_delay,omitempty"`
 	// Estimated time in local time HH:MM:SS
-	Estimated *tt.WideTime `json:"estimated,omitempty"`
+	Estimated *tt.Seconds `json:"estimated,omitempty"`
 	// Scheduled time in UTC
 	ScheduledUtc *time.Time `json:"scheduled_utc,omitempty"`
 	// Scheduled time in Unix epoch seconds
@@ -929,14 +931,14 @@ type StopTimeEvent struct {
 	// Sceduled time in the local time zone
 	ScheduledLocal *time.Time `json:"scheduled_local,omitempty"`
 	// Scheduled time local time HH:MM:SS
-	Scheduled *tt.WideTime `json:"scheduled,omitempty"`
+	Scheduled *tt.Seconds `json:"scheduled,omitempty"`
 	// Estimated time in UTC, source directly from matching GTFS-RT StopTimeUpdate. See https://gtfs.org/realtime/reference/#message-stoptimeevent
 	TimeUtc *time.Time `json:"time_utc,omitempty"`
 	// Estimated time in Unix epoch seconds, source directly from matching GTFS-RT StopTimeUpdate. See https://gtfs.org/realtime/reference/#message-stoptimeevent
 	TimeUnix *int `json:"time_unix,omitempty"`
-	// Estimated delay, source directly from matching GTFS-RT StopTimeUpdate. See https://gtfs.org/realtime/reference/#message-stoptimeevent
+	// Estimated schedule delay, in seconds. This value is set when there is a directly matching GTFS-RT StopTimeUpdate for this stop and passed through as-is. See GTFS Realtime documentation. See https://gtfs.org/realtime/reference/#message-stoptimeevent
 	Delay *int `json:"delay,omitempty"`
-	// Estimated uncertainty, source directly from matching GTFS-RT StopTimeUpdate. See https://gtfs.org/realtime/reference/#message-stoptimeevent
+	// Estimation uncertainty. This value is set when there is a directly matching GTFS-RT StopTimeUpdate for this stop and passed through as-is. See https://gtfs.org/realtime/reference/#message-stoptimeevent
 	Uncertainty *int `json:"uncertainty,omitempty"`
 }
 
@@ -955,9 +957,9 @@ type StopTimeFilter struct {
 	// Search for stop times with arrival times before the specified time, in seconds since midnight
 	EndTime *int `json:"end_time,omitempty"`
 	// Search for stop times with departure times later than the specified time, in local time HH:MM:SS
-	Start *tt.WideTime `json:"start,omitempty"`
+	Start *tt.Seconds `json:"start,omitempty"`
 	// Search for stop times with arrival times before the specified time, in local time HH:MM:SS
-	End *tt.WideTime `json:"end,omitempty"`
+	End *tt.Seconds `json:"end,omitempty"`
 	// Search for stop times with departures within the specified number of seconds (in local time)
 	Next *int `json:"next,omitempty"`
 	// Search for stop times with service by routes with the specified route OnestopIDs
@@ -997,9 +999,9 @@ type TripFilter struct {
 // Search options for stop times for a trip with no date specified
 type TripStopTimeFilter struct {
 	// Search for stop times with departure times later than the specified time, in local time HH:MM:SS
-	Start *tt.WideTime `json:"start,omitempty"`
+	Start *tt.Seconds `json:"start,omitempty"`
 	// Search for stop times with arrival times before the specified time, in local time HH:MM:SS
-	End *tt.WideTime `json:"end,omitempty"`
+	End *tt.Seconds `json:"end,omitempty"`
 }
 
 // Source URL and JSON representation of GTFS-RT data used for validation

@@ -9,8 +9,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
-	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlxy"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
@@ -738,7 +738,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				if serviceDate != nil {
 					for _, ent := range sts {
 						ent.ServiceDate = tt.NewDate(serviceDate.Val)
-						if ent.ArrivalTime.Seconds > 24*60*60 {
+						if ent.ArrivalTime.Val > 24*60*60 {
 							ent.Date = tt.NewDate(serviceDate.Val.AddDate(0, 0, 1))
 						} else {
 							ent.Date = tt.NewDate(serviceDate.Val)

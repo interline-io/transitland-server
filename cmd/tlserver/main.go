@@ -17,10 +17,10 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
+	tl "github.com/interline-io/transitland-lib"
 	"github.com/interline-io/transitland-lib/cmds"
 	"github.com/interline-io/transitland-lib/diff"
 	"github.com/interline-io/transitland-lib/dmfr"
-	"github.com/interline-io/transitland-lib/tl"
 	"github.com/interline-io/transitland-lib/tlcli"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-mw/auth/authn"
@@ -79,7 +79,7 @@ type ServerCommand struct {
 	RTStorage          string
 	DBURL              string
 	RedisURL           string
-	secrets            []tl.Secret
+	secrets            []dmfr.Secret
 }
 
 func (cmd *ServerCommand) HelpDesc() (string, string) {
@@ -114,7 +114,7 @@ func (cmd *ServerCommand) Parse(args []string) error {
 	}
 
 	// Load secrets
-	var secrets []tl.Secret
+	var secrets []dmfr.Secret
 	if v := cmd.SecretsFile; v != "" {
 		rr, err := dmfr.LoadAndParseRegistry(v)
 		if err != nil {

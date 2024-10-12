@@ -3,7 +3,7 @@ package gql
 import (
 	"testing"
 
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -27,9 +27,9 @@ func TestStopRT_Basic(t *testing.T) {
 				assert.Equal(t, "America/Los_Angeles", st.Get("departure.stop_timezone").String(), "departure.stop_timezone")
 				assert.Equal(t, delay, int(st.Get("departure.delay").Int()), "departure.delay")
 				assert.Equal(t, delay, int(st.Get("departure.estimated_delay").Int()), "departure.estimated_delay")
-				sched, _ := tt.NewWideTime(st.Get("arrival.scheduled").String())
-				est, _ := tt.NewWideTime(st.Get("arrival.estimated").String())
-				assert.Equal(t, sched.Seconds+int(delay), est.Seconds, "arrival.scheduled + delay = arrival.estimated for this test")
+				sched, _ := tt.NewSecondsFromString(st.Get("arrival.scheduled").String())
+				est, _ := tt.NewSecondsFromString(st.Get("arrival.estimated").String())
+				assert.Equal(t, sched.Int()+delay, est.Int(), "arrival.scheduled + delay = arrival.estimated for this test")
 			}
 			checkTrip := "1031527WKDY"
 			found := false

@@ -3,7 +3,7 @@ package gql
 import (
 	"testing"
 
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -122,9 +122,9 @@ func TestTripRT_StopTimes(t *testing.T) {
 				for _, st := range a {
 					assert.Equal(t, delay, int(st.Get("arrival.delay").Int()), "arrival.delay")
 					assert.Equal(t, delay, int(st.Get("departure.delay").Int()), "departure.delay")
-					sched, _ := tt.NewWideTime(st.Get("arrival.scheduled").String())
-					est, _ := tt.NewWideTime(st.Get("arrival.estimated").String())
-					assert.Equal(t, sched.Seconds+int(delay), est.Seconds, "arrival.scheduled + delay = arrival.estimated for this test")
+					sched, _ := tt.NewSecondsFromString(st.Get("arrival.scheduled").String())
+					est, _ := tt.NewSecondsFromString(st.Get("arrival.estimated").String())
+					assert.Equal(t, sched.Int()+delay, est.Int(), "arrival.scheduled + delay = arrival.estimated for this test")
 				}
 			},
 		},

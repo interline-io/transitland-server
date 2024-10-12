@@ -11,8 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/location"
 	"github.com/aws/aws-sdk-go-v2/service/location/types"
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/tt"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
@@ -187,7 +186,7 @@ func awsInt(v *int32) int {
 	return int(*v)
 }
 
-func awsLineString(v [][]float64) tl.LineString {
+func awsLineString(v [][]float64) tt.LineString {
 	coords := []float64{}
 	for _, coord := range v {
 		if len(coord) == 2 {

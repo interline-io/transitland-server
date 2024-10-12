@@ -8,13 +8,13 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/interline-io/transitland-lib/adapters"
 	"github.com/interline-io/transitland-lib/copier"
+	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/importer"
-	"github.com/interline-io/transitland-lib/tl"
-	"github.com/interline-io/transitland-lib/tl/tt"
 	"github.com/interline-io/transitland-lib/tlcsv"
 	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-lib/unimporter"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-lib/validator"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
@@ -54,7 +54,7 @@ func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimp
 	}
 	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
-		return unimporter.UnimportFeedVersion(atx, fvid, nil)
+		return importer.UnimportFeedVersion(atx, fvid, nil)
 	}); err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func FeedVersionUpdate(ctx context.Context, values model.FeedVersionSetInput) (i
 
 	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 	err := db.Tx(func(atx tldb.Adapter) error {
-		fv := tl.FeedVersion{}
+		fv := dmfr.FeedVersion{}
 		fv.ID = fvid
 		var cols []string
 		if values.Name != nil {
@@ -126,7 +126,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 	}
 	//////
 	result := model.ValidationReport{}
-	var reader tl.Reader
+	var reader adapters.Reader
 	if src != nil {
 		// Prepare reader
 		var err error

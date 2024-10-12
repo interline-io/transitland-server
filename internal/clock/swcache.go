@@ -7,7 +7,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
-	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/caches/tzcache"
 	"github.com/jmoiron/sqlx"
 )
@@ -77,13 +77,13 @@ func (f *ServiceWindowCache) queryFv(ctx context.Context, fvid int) (ServiceWind
 	ret := ServiceWindow{}
 	// Query fv fetched_at and FVSW data
 	type fiQuery struct {
-		FetchedAt            tl.Time
-		FeedStartDate        tl.Time
-		FeedEndDate          tl.Time
-		EarliestCalendarDate tl.Time
-		LatestCalendarDate   tl.Time
-		FallbackWeek         tl.Time
-		DefaultTimezone      tl.String
+		FetchedAt            tt.Time
+		FeedStartDate        tt.Time
+		FeedEndDate          tt.Time
+		EarliestCalendarDate tt.Time
+		LatestCalendarDate   tt.Time
+		FallbackWeek         tt.Time
+		DefaultTimezone      tt.String
 	}
 	fvq := sq.StatementBuilder.
 		Select("fv.fetched_at", "fvsw.feed_start_date", "fvsw.feed_end_date", "fvsw.earliest_calendar_date", "fvsw.latest_calendar_date", "fvsw.fallback_week", "fvsw.default_timezone").
@@ -120,10 +120,10 @@ func (f *ServiceWindowCache) queryFvsl(ctx context.Context, fvid int) (ServiceWi
 
 	// Get FVSLs
 	type fvslEnt struct {
-		FetchedAt    tl.Time
-		StartDate    tl.Time
-		EndDate      tl.Time
-		TotalService tl.Int
+		FetchedAt    tt.Time
+		StartDate    tt.Time
+		EndDate      tt.Time
+		TotalService tt.Int
 	}
 	fvslQuery := sq.StatementBuilder.
 		Select("fv.fetched_at", "fvsl.start_date", "fvsl.end_date", "monday + tuesday + wednesday + thursday + friday + saturday + sunday as total_service").

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/interline-io/transitland-jobs/jobs"
-	"github.com/interline-io/transitland-lib/tl"
+	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-server/internal/clock"
 )
 
@@ -17,7 +17,7 @@ type Config struct {
 	Actions            Actions
 	JobQueue           jobs.JobQueue
 	Clock              clock.Clock
-	Secrets            []tl.Secret
+	Secrets            []dmfr.Secret
 	ValidateLargeFiles bool
 	DisableImage       bool
 	RestPrefix         string

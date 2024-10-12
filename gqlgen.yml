@@ -18,8 +18,6 @@ resolver:
   package: resolvers
   filename_template: "{name}.gql.go"
 
-
-
 # struct_fields_always_pointers: false
 # resolvers_always_return_pointers: false
 # omit_slice_element_pointers: false
@@ -31,57 +29,73 @@ models:
   String:
     model:
       - "github.com/99designs/gqlgen/graphql.String"
-      - "github.com/interline-io/transitland-lib/tl/tt.String"
+      - "github.com/interline-io/transitland-lib/tt.String"
   Time:
     model:
       - "github.com/99designs/gqlgen/graphql.Time"
-      - "github.com/interline-io/transitland-lib/tl/tt.Time"
+      - "github.com/interline-io/transitland-lib/tt.Time"
   Int:
     model:
       - "github.com/99designs/gqlgen/graphql.Int"
       - "github.com/99designs/gqlgen/graphql.Int64"
       - "github.com/99designs/gqlgen/graphql.Int32"
-      - "github.com/interline-io/transitland-lib/tl/tt.Int"
+      - "github.com/interline-io/transitland-lib/tt.Int"
   Float:
     model:
       - "github.com/99designs/gqlgen/graphql.Float"
-      - "github.com/interline-io/transitland-lib/tl/tt.Float"
+      - "github.com/interline-io/transitland-lib/tt.Float"
   Boolean:
     model:     
       - "github.com/99designs/gqlgen/graphql.Boolean"
-      - "github.com/interline-io/transitland-lib/tl/tt.Bool"      
+      - "github.com/interline-io/transitland-lib/tt.Bool"      
   TimeInput:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Time"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Time"
   StringInput:
-    model: "github.com/interline-io/transitland-lib/tl/tt.String"      
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.String"      
   IntInput:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Input"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Input"
   FloatInput:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Float"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Float"
   Bool:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Bool"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Bool"
   Key:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Key"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Key"
   Strings:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Strings"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Strings"
   Counts:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Counts"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Counts"
   Tags:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Tags"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Tags"
   Polygon:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Polygon"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Polygon"
   LineString:
-    model: "github.com/interline-io/transitland-lib/tl/tt.LineString"
+    model:
+      - "github.com/interline-io/transitland-lib/tt.LineString"
   Point:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Point"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Point"
   Seconds:
-    model: "github.com/interline-io/transitland-lib/tl/tt.WideTime"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Seconds"
   Geometry:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Geometry"    
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Geometry"    
   Date:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Date"
+    model:
+      - "github.com/interline-io/transitland-lib/tt.Date"
   Map:
-    model: "github.com/interline-io/transitland-lib/tl/tt.Map"
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Map"
   Feed:
     fields:
       onestop_id:
@@ -108,7 +122,7 @@ models:
         fieldName: DeparturesUnused
     extraFields:
       DepartureInts:
-        type: "github.com/interline-io/transitland-lib/tl/tt.Ints"
+        type: "github.com/interline-io/transitland-lib/tt.Ints"
         overrideTags: db:"departures"
       RouteID:
         type: int
@@ -159,7 +173,7 @@ models:
         resolver: true
     extraFields:
       AgencyIDs:
-        type: "github.com/interline-io/transitland-lib/tl/tt.Ints"
+        type: "github.com/interline-io/transitland-lib/tt.Ints"
         overrideTags: db:"agency_ids"
   StopExternalReference:
     fields:
