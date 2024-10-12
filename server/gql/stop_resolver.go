@@ -112,7 +112,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	for _, st := range sts {
 		ft := model.Trip{}
 		ft.FeedVersionID = obj.FeedVersionID
-		ft.TripID, _ = model.ForContext(ctx).RTFinder.GetGtfsTripID(atoi(st.TripID)) // TODO!
+		ft.TripID, _ = model.ForContext(ctx).RTFinder.GetGtfsTripID(st.TripID.Int()) // TODO!
 		if ste, ok := model.ForContext(ctx).RTFinder.FindStopTimeUpdate(&ft, st); ok {
 			st.RTStopTimeUpdate = ste
 		}
@@ -128,9 +128,9 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 			rtst.RTTripID = rtTrip.Trip.GetTripId()
 			rtst.RTStopTimeUpdate = &model.RTStopTimeUpdate{TripUpdate: rtTrip, StopTimeUpdate: stu}
 			rtst.FeedVersionID = obj.FeedVersionID
-			rtst.TripID = "0"
-			rtst.StopID = strconv.Itoa(obj.ID)
-			rtst.StopSequence = int(stu.GetStopSequence())
+			rtst.TripID.Set("0")
+			rtst.StopID.Set(strconv.Itoa(obj.ID))
+			rtst.StopSequence.Set(int64(stu.GetStopSequence()))
 			sts = append(sts, rtst)
 		}
 	}

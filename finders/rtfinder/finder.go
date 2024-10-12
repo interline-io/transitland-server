@@ -210,7 +210,7 @@ func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*m
 
 func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.RTStopTimeUpdate, bool) {
 	tid := t.TripID
-	seq := st.StopSequence
+	seq := st.StopSequence.Int()
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	// Attempt to match on stop sequence
 	for _, topic := range topics {
@@ -240,7 +240,7 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 			check[ste.GetStopId()] += 1
 		}
 		// Get GTFS stop id for comparing with RT
-		sid, ok := f.lc.GetGtfsStopID(atoi(st.StopID))
+		sid, ok := f.lc.GetGtfsStopID(st.StopID.Int())
 		if !ok {
 			continue
 		}
