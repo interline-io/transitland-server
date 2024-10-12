@@ -129,9 +129,11 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
+// Fork to allow exporting x- extensions
+replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17
+
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
 // replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/transitland-jobs => /Users/irees/src/interline-io/transitland-jobs
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
-// replace github.com/getkin/kin-openapi => /Users/irees/src/other/kin-openapi
