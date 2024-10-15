@@ -825,11 +825,11 @@ type FeedInfo {
   "GTFS feed_info.feed_publisher_name"
   feed_publisher_name: String!
   "GTFS feed_info.feed_publisher_url"
-  feed_publisher_url: String!
+  feed_publisher_url: Url!
   "GTFS feed_info.feed_lang"
-  feed_lang: String!
+  feed_lang: Language!
   "GTFS feed_info.default_lang"
-  default_lang: String
+  default_lang: Language
   "GTFS feed_info.feed_version"
   feed_version: String!
   "GTFS feed_info.feed_start_date"
@@ -837,9 +837,9 @@ type FeedInfo {
   "GTFS feed_info.feed_end_date"
   feed_end_date: Date
   "GTFS feed_info.feed_contact_email"
-  feed_contact_email: String
+  feed_contact_email: Email
   "GTFS feed_info.feed_contact_url"
-  feed_contact_url: String
+  feed_contact_url: Url
 }
 
 # Archived observed stop-times
