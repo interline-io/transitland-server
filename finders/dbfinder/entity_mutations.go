@@ -8,6 +8,7 @@ import (
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/gtfs"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -190,7 +191,6 @@ type hasTableName interface {
 	SetFeedVersionID(int)
 	GetID() int
 	SetID(int)
-	Errors() []error
 }
 
 func fvint(fvi *model.FeedVersionInput) *int {
@@ -240,7 +240,7 @@ func createUpdateEnt[T hasTableName](
 	}
 
 	// Validate
-	if errs := baseEnt.Errors(); len(errs) > 0 {
+	if errs := tt.CheckErrors(baseEnt); len(errs) > 0 {
 		return 0, errs[0]
 	}
 	// Save
