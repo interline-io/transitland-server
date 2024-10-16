@@ -17,7 +17,7 @@ func (r *tripResolver) Cursor(ctx context.Context, obj *model.Trip) (*model.Curs
 }
 
 func (r *tripResolver) Route(ctx context.Context, obj *model.Trip) (*model.Route, error) {
-	return For(ctx).RoutesByID.Load(ctx, atoi(obj.RouteID))()
+	return For(ctx).RoutesByID.Load(ctx, obj.RouteID.Int())()
 }
 
 func (r *tripResolver) FeedVersion(ctx context.Context, obj *model.Trip) (*model.FeedVersion, error) {
@@ -32,7 +32,7 @@ func (r *tripResolver) Shape(ctx context.Context, obj *model.Trip) (*model.Shape
 }
 
 func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Calendar, error) {
-	return For(ctx).CalendarsByID.Load(ctx, atoi(obj.ServiceID))()
+	return For(ctx).CalendarsByID.Load(ctx, obj.ServiceID.Int())()
 }
 
 func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error) {

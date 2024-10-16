@@ -41,15 +41,15 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 		&gtfs.Stop{},
 		func(ent *gtfs.Stop) ([]string, error) {
 			var cols []string
-			cols = checkCol(&ent.StopID, input.StopID, "stop_id", cols)
-			cols = checkCol(&ent.StopCode, input.StopCode, "stop_code", cols)
-			cols = checkCol(&ent.StopDesc, input.StopDesc, "stop_desc", cols)
-			cols = checkCol(&ent.StopTimezone, input.StopTimezone, "stop_timezone", cols)
-			cols = checkCol(&ent.StopName, input.StopName, "stop_name", cols)
-			cols = checkCol(&ent.StopURL, input.StopURL, "stop_url", cols)
-			cols = checkCol(&ent.LocationType, input.LocationType, "location_type", cols)
-			cols = checkCol(&ent.WheelchairBoarding, input.WheelchairBoarding, "wheelchair_boarding", cols)
-			cols = checkCol(&ent.ZoneID, input.ZoneID, "zone_id", cols)
+			cols = scanCol(&ent.StopID, input.StopID, "stop_id", cols)
+			cols = scanCol(&ent.StopCode, input.StopCode, "stop_code", cols)
+			cols = scanCol(&ent.StopDesc, input.StopDesc, "stop_desc", cols)
+			cols = scanCol(&ent.StopTimezone, input.StopTimezone, "stop_timezone", cols)
+			cols = scanCol(&ent.StopName, input.StopName, "stop_name", cols)
+			cols = scanCol(&ent.StopURL, input.StopURL, "stop_url", cols)
+			cols = scanCol(&ent.LocationType, input.LocationType, "location_type", cols)
+			cols = scanCol(&ent.WheelchairBoarding, input.WheelchairBoarding, "wheelchair_boarding", cols)
+			cols = scanCol(&ent.ZoneID, input.ZoneID, "zone_id", cols)
 			cols = scanCol(&ent.TtsStopName, input.TtsStopName, "tts_stop_name", cols)
 			cols = scanCol(&ent.PlatformCode, input.PlatformCode, "platform_code", cols)
 			if input.Geometry != nil && input.Geometry.Valid {
@@ -63,6 +63,9 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 				cols = append(cols, "level_id")
 				scanCol(&ent.LevelID, v.ID, "level_id", cols)
 			}
+			// Set some defaults
+			ent.LocationType.OrSet(0)
+
 			return cols, nil
 		})
 }

@@ -42,7 +42,7 @@ func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*mode
 	if obj.TripID.Val == "0" && obj.RTTripID != "" {
 		t := model.Trip{}
 		t.FeedVersionID = obj.FeedVersionID
-		t.TripID = obj.RTTripID
+		t.TripID.Set(obj.RTTripID)
 		a, err := model.ForContext(ctx).RTFinder.MakeTrip(&t)
 		return a, err
 	}

@@ -40,7 +40,7 @@ func (r *routeResolver) Trips(ctx context.Context, obj *model.Route, limit *int,
 }
 
 func (r *routeResolver) Agency(ctx context.Context, obj *model.Route) (*model.Agency, error) {
-	return For(ctx).AgenciesByID.Load(ctx, atoi(obj.AgencyID))()
+	return For(ctx).AgenciesByID.Load(ctx, obj.AgencyID.Int())()
 }
 
 func (r *routeResolver) FeedVersion(ctx context.Context, obj *model.Route) (*model.FeedVersion, error) {

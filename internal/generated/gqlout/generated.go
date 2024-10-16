@@ -7225,6 +7225,9 @@ scalar Url
 """Email"""
 scalar Email
 
+"""Timezone"""
+scalar Timezone
+
 # Force resolver
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
@@ -7621,21 +7624,21 @@ type Agency {
   "OnestopID for this agency (or its associated operator)"
   onestop_id: String!
   "GTFS agency.agency_email"
-  agency_email: String!
+  agency_email: Email
   "GTFS agency.agency_fare_url"
-  agency_fare_url: String!
+  agency_fare_url: Url
   "GTFS agency.agency_id"
   agency_id: String!
   "GTFS agency.agency_lang"
-  agency_lang: String!
+  agency_lang: Language
   "GTFS agency.agency_name"
   agency_name: String!
   "GTFS agency.agency_phone"
-  agency_phone: String!
+  agency_phone: String
   "GTFS agency.agency_timezone"
-  agency_timezone: String!
+  agency_timezone: Timezone!
   "GTFS agency.agency_url"
-  agency_url: String!
+  agency_url: Url!
   "Feed version SHA1 associated with this entity"
   feed_version_sha1: String
   "Feed OnestopID associated with this entity"
@@ -7667,21 +7670,21 @@ type Route {
   "GTFS routes.route_id"
   route_id: String!
   "GTFS routes.route_short_name"
-  route_short_name: String!
+  route_short_name: String
   "GTFS routes.route_long_name"
-  route_long_name: String!
+  route_long_name: String
   "GTFS routes.route_type"
   route_type: Int!
   "GTFS routes.route_color"
-  route_color: String!
+  route_color: Color
   "GTFS routes.route_text_color"
-  route_text_color: String!
+  route_text_color: Color
   "GTFS routes.route_sort_order"
-  route_sort_order: Int!
+  route_sort_order: Int
   "GTFS routes.route_url"
-  route_url: String!
+  route_url: Url
   "GTFS routes.route_desc"
-  route_desc: String!
+  route_desc: String
   "GTFS routes.continuous_pickup"
   continuous_pickup: Int
   "GTFS routes.continuous_drop_off"
@@ -7741,13 +7744,13 @@ type Stop {
   "GTFS stops.stop_name [example:MADISON AV/E 68 ST]"
   stop_name: String!
   "GTFS stops.stop_timezone; if overriding agency/route timezone [example:America/Los_Angeles]"
-  stop_timezone: String!
+  stop_timezone: Timezone
   "GTFS stops.stop_url [example:https://www.bart.gov/stations/ftvl]"
-  stop_url: String!
+  stop_url: Url
   "GTFS stops.wheelchair_boarding [enum:0,1,2]"
-  wheelchair_boarding: Int!
+  wheelchair_boarding: Int
   "GTFS stops.zone_id"
-  zone_id: String!
+  zone_id: String
   "GTFS stops.platform_code"
   platform_code: String
   "GTFS stops.tts_stop_name"
@@ -13728,14 +13731,11 @@ func (ec *executionContext) _Agency_agency_email(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Email)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOEmail2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐEmail(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Agency_agency_email(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13745,7 +13745,7 @@ func (ec *executionContext) fieldContext_Agency_agency_email(_ context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Email does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13772,14 +13772,11 @@ func (ec *executionContext) _Agency_agency_fare_url(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Url)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Agency_agency_fare_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13789,7 +13786,7 @@ func (ec *executionContext) fieldContext_Agency_agency_fare_url(_ context.Contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Url does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13821,9 +13818,9 @@ func (ec *executionContext) _Agency_agency_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Agency_agency_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13860,14 +13857,11 @@ func (ec *executionContext) _Agency_agency_lang(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Language)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOLanguage2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLanguage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Agency_agency_lang(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13877,7 +13871,7 @@ func (ec *executionContext) fieldContext_Agency_agency_lang(_ context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Language does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13909,9 +13903,9 @@ func (ec *executionContext) _Agency_agency_name(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Agency_agency_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13948,14 +13942,11 @@ func (ec *executionContext) _Agency_agency_phone(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Agency_agency_phone(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13997,9 +13988,9 @@ func (ec *executionContext) _Agency_agency_timezone(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Timezone)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTimezone2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐTimezone(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Agency_agency_timezone(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -14009,7 +14000,7 @@ func (ec *executionContext) fieldContext_Agency_agency_timezone(_ context.Contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Timezone does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14041,9 +14032,9 @@ func (ec *executionContext) _Agency_agency_url(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Url)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Agency_agency_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -14053,7 +14044,7 @@ func (ec *executionContext) fieldContext_Agency_agency_url(_ context.Context, fi
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Url does not have child fields")
 		},
 	}
 	return fc, nil
@@ -37014,9 +37005,9 @@ func (ec *executionContext) _Route_route_id(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37053,14 +37044,11 @@ func (ec *executionContext) _Route_route_short_name(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_short_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37097,14 +37085,11 @@ func (ec *executionContext) _Route_route_long_name(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_long_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37146,9 +37131,9 @@ func (ec *executionContext) _Route_route_type(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37185,14 +37170,11 @@ func (ec *executionContext) _Route_route_color(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Color)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOColor2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐColor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_color(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37202,7 +37184,7 @@ func (ec *executionContext) fieldContext_Route_route_color(_ context.Context, fi
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Color does not have child fields")
 		},
 	}
 	return fc, nil
@@ -37229,14 +37211,11 @@ func (ec *executionContext) _Route_route_text_color(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Color)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOColor2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐColor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_text_color(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37246,7 +37225,7 @@ func (ec *executionContext) fieldContext_Route_route_text_color(_ context.Contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Color does not have child fields")
 		},
 	}
 	return fc, nil
@@ -37273,14 +37252,11 @@ func (ec *executionContext) _Route_route_sort_order(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_sort_order(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37317,14 +37293,11 @@ func (ec *executionContext) _Route_route_url(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Url)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37334,7 +37307,7 @@ func (ec *executionContext) fieldContext_Route_route_url(_ context.Context, fiel
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Url does not have child fields")
 		},
 	}
 	return fc, nil
@@ -37361,14 +37334,11 @@ func (ec *executionContext) _Route_route_desc(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Route_route_desc(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -40738,9 +40708,9 @@ func (ec *executionContext) _Shape_shape_id(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Shape_shape_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41327,9 +41297,9 @@ func (ec *executionContext) _Stop_location_type(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_location_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41371,9 +41341,9 @@ func (ec *executionContext) _Stop_stop_code(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41415,9 +41385,9 @@ func (ec *executionContext) _Stop_stop_desc(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_desc(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41459,9 +41429,9 @@ func (ec *executionContext) _Stop_stop_id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41503,9 +41473,9 @@ func (ec *executionContext) _Stop_stop_name(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41542,14 +41512,11 @@ func (ec *executionContext) _Stop_stop_timezone(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Timezone)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOTimezone2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐTimezone(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_timezone(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41559,7 +41526,7 @@ func (ec *executionContext) fieldContext_Stop_stop_timezone(_ context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Timezone does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41586,14 +41553,11 @@ func (ec *executionContext) _Stop_stop_url(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.Url)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOUrl2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐUrl(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41603,7 +41567,7 @@ func (ec *executionContext) fieldContext_Stop_stop_url(_ context.Context, field 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Url does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41630,14 +41594,11 @@ func (ec *executionContext) _Stop_wheelchair_boarding(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_wheelchair_boarding(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41674,14 +41635,11 @@ func (ec *executionContext) _Stop_zone_id(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_zone_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46046,9 +46004,9 @@ func (ec *executionContext) _Trip_trip_id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_trip_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46090,9 +46048,9 @@ func (ec *executionContext) _Trip_trip_headsign(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_trip_headsign(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46134,9 +46092,9 @@ func (ec *executionContext) _Trip_trip_short_name(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_trip_short_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46178,9 +46136,9 @@ func (ec *executionContext) _Trip_direction_id(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_direction_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46222,9 +46180,9 @@ func (ec *executionContext) _Trip_block_id(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_block_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46266,9 +46224,9 @@ func (ec *executionContext) _Trip_wheelchair_accessible(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_wheelchair_accessible(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46310,9 +46268,9 @@ func (ec *executionContext) _Trip_bikes_allowed(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_bikes_allowed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46354,9 +46312,9 @@ func (ec *executionContext) _Trip_stop_pattern_id(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_stop_pattern_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -53666,14 +53624,8 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "agency_email":
 			out.Values[i] = ec._Agency_agency_email(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "agency_fare_url":
 			out.Values[i] = ec._Agency_agency_fare_url(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "agency_id":
 			out.Values[i] = ec._Agency_agency_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -53681,9 +53633,6 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "agency_lang":
 			out.Values[i] = ec._Agency_agency_lang(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "agency_name":
 			out.Values[i] = ec._Agency_agency_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -53691,9 +53640,6 @@ func (ec *executionContext) _Agency(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "agency_phone":
 			out.Values[i] = ec._Agency_agency_phone(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "agency_timezone":
 			out.Values[i] = ec._Agency_agency_timezone(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -59105,14 +59051,8 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "route_short_name":
 			out.Values[i] = ec._Route_route_short_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "route_long_name":
 			out.Values[i] = ec._Route_route_long_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "route_type":
 			out.Values[i] = ec._Route_route_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -59120,29 +59060,14 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "route_color":
 			out.Values[i] = ec._Route_route_color(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "route_text_color":
 			out.Values[i] = ec._Route_route_text_color(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "route_sort_order":
 			out.Values[i] = ec._Route_route_sort_order(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "route_url":
 			out.Values[i] = ec._Route_route_url(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "route_desc":
 			out.Values[i] = ec._Route_route_desc(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "continuous_pickup":
 			out.Values[i] = ec._Route_continuous_pickup(ctx, field, obj)
 		case "continuous_drop_off":
@@ -60552,24 +60477,12 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "stop_timezone":
 			out.Values[i] = ec._Stop_stop_timezone(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "stop_url":
 			out.Values[i] = ec._Stop_stop_url(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "wheelchair_boarding":
 			out.Values[i] = ec._Stop_wheelchair_boarding(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "zone_id":
 			out.Values[i] = ec._Stop_zone_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "platform_code":
 			out.Values[i] = ec._Stop_platform_code(ctx, field, obj)
 		case "tts_stop_name":
@@ -64829,6 +64742,16 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
+func (ec *executionContext) unmarshalNTimezone2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐTimezone(ctx context.Context, v interface{}) (tt.Timezone, error) {
+	var res tt.Timezone
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTimezone2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐTimezone(ctx context.Context, sel ast.SelectionSet, v tt.Timezone) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNTrip2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTrip(ctx context.Context, sel ast.SelectionSet, v model.Trip) graphql.Marshaler {
 	return ec._Trip(ctx, sel, &v)
 }
@@ -65562,6 +65485,16 @@ func (ec *executionContext) marshalOCensusValue2ᚖgithubᚗcomᚋinterlineᚑio
 		return graphql.Null
 	}
 	return ec._CensusValue(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOColor2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐColor(ctx context.Context, v interface{}) (tt.Color, error) {
+	var res tt.Color
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOColor2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐColor(ctx context.Context, sel ast.SelectionSet, v tt.Color) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalODate2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐDate(ctx context.Context, v interface{}) (tt.Date, error) {
@@ -67832,6 +67765,16 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	}
 	res := graphql.MarshalTime(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOTimezone2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐTimezone(ctx context.Context, v interface{}) (tt.Timezone, error) {
+	var res tt.Timezone
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTimezone2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐTimezone(ctx context.Context, sel ast.SelectionSet, v tt.Timezone) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalOTrip2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐTripᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Trip) graphql.Marshaler {

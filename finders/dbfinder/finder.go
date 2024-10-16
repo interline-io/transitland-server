@@ -737,11 +737,11 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				// Set service date based on StopTimeFilter, and adjust calendar date if needed
 				if serviceDate != nil {
 					for _, ent := range sts {
-						ent.ServiceDate = tt.NewDate(serviceDate.Val)
+						ent.ServiceDate.Set(serviceDate.Val)
 						if ent.ArrivalTime.Val > 24*60*60 {
-							ent.Date = tt.NewDate(serviceDate.Val.AddDate(0, 0, 1))
+							ent.Date.Set(serviceDate.Val.AddDate(0, 0, 1))
 						} else {
-							ent.Date = tt.NewDate(serviceDate.Val)
+							ent.Date.Set(serviceDate.Val)
 						}
 					}
 				}
@@ -1216,7 +1216,7 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 			return ents, err
 		},
 		func(ent *model.Trip) int {
-			return atoi(ent.RouteID)
+			return ent.RouteID.Int()
 		},
 	)
 }
@@ -1243,7 +1243,7 @@ func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam
 			return ents, err
 		},
 		func(ent *model.Route) int {
-			return atoi(ent.AgencyID)
+			return ent.AgencyID.Int()
 		},
 	)
 }

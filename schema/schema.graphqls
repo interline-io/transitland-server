@@ -57,6 +57,9 @@ scalar Url
 """Email"""
 scalar Email
 
+"""Timezone"""
+scalar Timezone
+
 # Force resolver
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
@@ -453,21 +456,21 @@ type Agency {
   "OnestopID for this agency (or its associated operator)"
   onestop_id: String!
   "GTFS agency.agency_email"
-  agency_email: String!
+  agency_email: Email
   "GTFS agency.agency_fare_url"
-  agency_fare_url: String!
+  agency_fare_url: Url
   "GTFS agency.agency_id"
   agency_id: String!
   "GTFS agency.agency_lang"
-  agency_lang: String!
+  agency_lang: Language
   "GTFS agency.agency_name"
   agency_name: String!
   "GTFS agency.agency_phone"
-  agency_phone: String!
+  agency_phone: String
   "GTFS agency.agency_timezone"
-  agency_timezone: String!
+  agency_timezone: Timezone!
   "GTFS agency.agency_url"
-  agency_url: String!
+  agency_url: Url!
   "Feed version SHA1 associated with this entity"
   feed_version_sha1: String
   "Feed OnestopID associated with this entity"
@@ -499,21 +502,21 @@ type Route {
   "GTFS routes.route_id"
   route_id: String!
   "GTFS routes.route_short_name"
-  route_short_name: String!
+  route_short_name: String
   "GTFS routes.route_long_name"
-  route_long_name: String!
+  route_long_name: String
   "GTFS routes.route_type"
   route_type: Int!
   "GTFS routes.route_color"
-  route_color: String!
+  route_color: Color
   "GTFS routes.route_text_color"
-  route_text_color: String!
+  route_text_color: Color
   "GTFS routes.route_sort_order"
-  route_sort_order: Int!
+  route_sort_order: Int
   "GTFS routes.route_url"
-  route_url: String!
+  route_url: Url
   "GTFS routes.route_desc"
-  route_desc: String!
+  route_desc: String
   "GTFS routes.continuous_pickup"
   continuous_pickup: Int
   "GTFS routes.continuous_drop_off"
@@ -573,13 +576,13 @@ type Stop {
   "GTFS stops.stop_name [example:MADISON AV/E 68 ST]"
   stop_name: String!
   "GTFS stops.stop_timezone; if overriding agency/route timezone [example:America/Los_Angeles]"
-  stop_timezone: String!
+  stop_timezone: Timezone
   "GTFS stops.stop_url [example:https://www.bart.gov/stations/ftvl]"
-  stop_url: String!
+  stop_url: Url
   "GTFS stops.wheelchair_boarding [enum:0,1,2]"
-  wheelchair_boarding: Int!
+  wheelchair_boarding: Int
   "GTFS stops.zone_id"
-  zone_id: String!
+  zone_id: String
   "GTFS stops.platform_code"
   platform_code: String
   "GTFS stops.tts_stop_name"

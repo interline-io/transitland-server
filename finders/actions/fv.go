@@ -80,13 +80,13 @@ func FeedVersionUpdate(ctx context.Context, values model.FeedVersionSetInput) (i
 		fv.ID = fvid
 		var cols []string
 		if values.Name != nil {
-			fv.Name = tt.NewString(*values.Name)
+			fv.Name.Set(*values.Name)
 			cols = append(cols, "name")
 		} else {
 			fv.Name.Valid = false
 		}
 		if values.Description != nil {
-			fv.Description = tt.NewString(*values.Description)
+			fv.Description.Set(*values.Description)
 			cols = append(cols, "description")
 		} else {
 			fv.Description.Valid = false
@@ -171,6 +171,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		IncludeEntitiesLimit:     10_000,
 		MaxRTMessageSize:         10_000_000,
 		ValidateRealtimeMessages: rturls,
+		Options:                  copier.Options{Quiet: true},
 	}
 	if cfg.ValidateLargeFiles {
 		opts.CheckFileLimits = false
