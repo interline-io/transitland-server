@@ -403,11 +403,6 @@ func makeAlert(a *pb.Alert) *model.Alert {
 	return &r
 }
 
-func atoi(v string) int {
-	a, _ := strconv.Atoi(v)
-	return a
-}
-
 func pstr(v string) *string {
 	if v == "" {
 		return nil
