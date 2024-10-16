@@ -208,7 +208,7 @@ func TestAgencyRequest_Pagination(t *testing.T) {
 	}
 	allIds := []string{}
 	for _, ent := range allEnts {
-		allIds = append(allIds, ent.AgencyID)
+		allIds = append(allIds, ent.AgencyID.Val)
 	}
 	testcases := []testCase{
 		{

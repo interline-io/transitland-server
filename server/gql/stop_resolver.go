@@ -112,7 +112,8 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	for _, st := range sts {
 		ft := model.Trip{}
 		ft.FeedVersionID = obj.FeedVersionID
-		ft.TripID, _ = model.ForContext(ctx).RTFinder.GetGtfsTripID(atoi(st.TripID)) // TODO!
+		tripId, _ := model.ForContext(ctx).RTFinder.GetGtfsTripID(st.TripID.Int())
+		ft.TripID.Set(tripId) // TODO!
 		if ste, ok := model.ForContext(ctx).RTFinder.FindStopTimeUpdate(&ft, st); ok {
 			st.RTStopTimeUpdate = ste
 		}
@@ -120,7 +121,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	// Handle added trips; these must specify stop_id in StopTimeUpdates
 	for _, rtTrip := range model.ForContext(ctx).RTFinder.GetAddedTripsForStop(obj) {
 		for _, stu := range rtTrip.StopTimeUpdate {
-			if stu.GetStopId() != obj.StopID {
+			if stu.GetStopId() != obj.StopID.Val {
 				continue
 			}
 			// create a new StopTime
@@ -128,9 +129,9 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 			rtst.RTTripID = rtTrip.Trip.GetTripId()
 			rtst.RTStopTimeUpdate = &model.RTStopTimeUpdate{TripUpdate: rtTrip, StopTimeUpdate: stu}
 			rtst.FeedVersionID = obj.FeedVersionID
-			rtst.TripID = "0"
-			rtst.StopID = strconv.Itoa(obj.ID)
-			rtst.StopSequence = int(stu.GetStopSequence())
+			rtst.TripID.Set("0")
+			rtst.StopID.Set(strconv.Itoa(obj.ID))
+			rtst.StopSequence.Set(int64(stu.GetStopSequence()))
 			sts = append(sts, rtst)
 		}
 	}
@@ -156,7 +157,7 @@ func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *mo
 	swp := &model.WaypointInput{
 		Lon:  oc[0],
 		Lat:  oc[1],
-		Name: &obj.StopName,
+		Name: &obj.StopName.Val,
 	}
 	p := model.DirectionRequest{}
 	if from != nil {

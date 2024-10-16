@@ -3,7 +3,6 @@ package gql
 import (
 	"context"
 	"errors"
-	"strconv"
 
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-mw/meters"
@@ -63,11 +62,6 @@ func checkBbox(bbox *model.BoundingBox, maxAreaM2 float64) bool {
 	approxArea := 0.5 * (approxDiag * approxDiag)
 	// fmt.Println("approxArea:", approxArea, "maxAreaM2:", maxAreaM2)
 	return approxArea < maxAreaM2
-}
-
-func atoi(v string) int {
-	a, _ := strconv.Atoi(v)
-	return a
 }
 
 func ptr[T any, PT *T](v T) PT {

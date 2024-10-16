@@ -96,6 +96,27 @@ models:
   Map:
     model: 
       - "github.com/interline-io/transitland-lib/tt.Map"
+  Color:
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Color"      
+  Url:
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Url" 
+  Email:
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Email"      
+  Language:
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Language"      
+  Currency:
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.Currency"      
+  CurrencyAmount:
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.CurrencyAmount"      
+  Timezone:
+    model:
+      - "github.com/interline-io/transitland-lib/tt.Timezone"
   Feed:
     fields:
       onestop_id:

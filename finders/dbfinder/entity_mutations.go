@@ -3,7 +3,6 @@ package dbfinder
 import (
 	"context"
 	"errors"
-	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
@@ -42,15 +41,15 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 		&gtfs.Stop{},
 		func(ent *gtfs.Stop) ([]string, error) {
 			var cols []string
-			cols = checkCol(&ent.StopID, input.StopID, "stop_id", cols)
-			cols = checkCol(&ent.StopCode, input.StopCode, "stop_code", cols)
-			cols = checkCol(&ent.StopDesc, input.StopDesc, "stop_desc", cols)
-			cols = checkCol(&ent.StopTimezone, input.StopTimezone, "stop_timezone", cols)
-			cols = checkCol(&ent.StopName, input.StopName, "stop_name", cols)
-			cols = checkCol(&ent.StopURL, input.StopURL, "stop_url", cols)
-			cols = checkCol(&ent.LocationType, input.LocationType, "location_type", cols)
-			cols = checkCol(&ent.WheelchairBoarding, input.WheelchairBoarding, "wheelchair_boarding", cols)
-			cols = checkCol(&ent.ZoneID, input.ZoneID, "zone_id", cols)
+			cols = scanCol(&ent.StopID, input.StopID, "stop_id", cols)
+			cols = scanCol(&ent.StopCode, input.StopCode, "stop_code", cols)
+			cols = scanCol(&ent.StopDesc, input.StopDesc, "stop_desc", cols)
+			cols = scanCol(&ent.StopTimezone, input.StopTimezone, "stop_timezone", cols)
+			cols = scanCol(&ent.StopName, input.StopName, "stop_name", cols)
+			cols = scanCol(&ent.StopURL, input.StopURL, "stop_url", cols)
+			cols = scanCol(&ent.LocationType, input.LocationType, "location_type", cols)
+			cols = scanCol(&ent.WheelchairBoarding, input.WheelchairBoarding, "wheelchair_boarding", cols)
+			cols = scanCol(&ent.ZoneID, input.ZoneID, "zone_id", cols)
 			cols = scanCol(&ent.TtsStopName, input.TtsStopName, "tts_stop_name", cols)
 			cols = scanCol(&ent.PlatformCode, input.PlatformCode, "platform_code", cols)
 			if input.Geometry != nil && input.Geometry.Valid {
@@ -58,24 +57,15 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 			}
 			if v := input.Parent; v != nil {
 				cols = append(cols, "parent_station")
-				if v.ID == nil {
-					ent.ParentStation.Valid = false
-				} else {
-					checkParent := gtfs.Stop{}
-					checkParent.ID = *v.ID
-					ent.ParentStation = tt.NewKey(strconv.Itoa(checkParent.ID))
-				}
+				scanCol(&ent.ParentStation, v.ID, "parent_station", cols)
 			}
 			if v := input.Level; v != nil {
 				cols = append(cols, "level_id")
-				if v.ID == nil {
-					ent.LevelID.Valid = false
-				} else {
-					checkLevel := gtfs.Level{}
-					checkLevel.ID = *v.ID
-					ent.LevelID = tt.NewKey(strconv.Itoa(checkLevel.ID))
-				}
+				scanCol(&ent.LevelID, v.ID, "level_id", cols)
 			}
+			// Set some defaults
+			ent.LocationType.OrSet(0)
+
 			return cols, nil
 		})
 }
@@ -110,35 +100,23 @@ func createUpdatePathway(ctx context.Context, input model.PathwaySetInput) (int,
 		&gtfs.Pathway{},
 		func(ent *gtfs.Pathway) ([]string, error) {
 			var cols []string
-			cols = checkCol(&ent.PathwayID, input.PathwayID, "pathway_id", cols)
-			cols = checkCol(&ent.PathwayMode, input.PathwayMode, "pathway_mode", cols)
-			cols = checkCol(&ent.IsBidirectional, input.IsBidirectional, "is_bidirectional", cols)
-			cols = checkCol(&ent.Length, input.Length, "length", cols)
-			cols = checkCol(&ent.TraversalTime, input.TraversalTime, "traversal_time", cols)
-			cols = checkCol(&ent.StairCount, input.StairCount, "stair_count", cols)
-			cols = checkCol(&ent.MaxSlope, input.MaxSlope, "max_slope", cols)
-			cols = checkCol(&ent.MinWidth, input.MinWidth, "min_width", cols)
-			cols = checkCol(&ent.SignpostedAs, input.SignpostedAs, "signposted_as", cols)
-			cols = checkCol(&ent.ReverseSignpostedAs, input.ReverseSignpostedAs, "reverse_signposted_as", cols)
+			cols = scanCol(&ent.PathwayID, input.PathwayID, "pathway_id", cols)
+			cols = scanCol(&ent.PathwayMode, input.PathwayMode, "pathway_mode", cols)
+			cols = scanCol(&ent.IsBidirectional, input.IsBidirectional, "is_bidirectional", cols)
+			cols = scanCol(&ent.Length, input.Length, "length", cols)
+			cols = scanCol(&ent.TraversalTime, input.TraversalTime, "traversal_time", cols)
+			cols = scanCol(&ent.StairCount, input.StairCount, "stair_count", cols)
+			cols = scanCol(&ent.MaxSlope, input.MaxSlope, "max_slope", cols)
+			cols = scanCol(&ent.MinWidth, input.MinWidth, "min_width", cols)
+			cols = scanCol(&ent.SignpostedAs, input.SignpostedAs, "signposted_as", cols)
+			cols = scanCol(&ent.ReverseSignpostedAs, input.ReverseSignpostedAs, "reverse_signposted_as", cols)
 			if v := input.FromStop; v != nil {
 				cols = append(cols, "from_stop_id")
-				if v.ID == nil {
-					ent.FromStopID = ""
-				} else {
-					checkStop := gtfs.Stop{}
-					checkStop.ID = *v.ID
-					ent.FromStopID = strconv.Itoa(checkStop.ID)
-				}
+				scanCol(&ent.FromStopID, v.ID, "", nil)
 			}
 			if v := input.ToStop; v != nil {
-				cols = append(cols, "to_stop_id")
-				if v.ID == nil {
-					ent.ToStopID = ""
-				} else {
-					checkStop := gtfs.Stop{}
-					checkStop.ID = *v.ID
-					ent.ToStopID = strconv.Itoa(checkStop.ID)
-				}
+				cols = append(cols, "from_stop_id")
+				scanCol(&ent.ToStopID, v.ID, "", nil)
 			}
 			return cols, nil
 		})
@@ -174,19 +152,13 @@ func createUpdateLevel(ctx context.Context, input model.LevelSetInput) (int, err
 		&model.Level{},
 		func(ent *model.Level) ([]string, error) {
 			var cols []string
-			cols = checkCol(&ent.LevelID, input.LevelID, "level_id", cols)
-			cols = checkCol(&ent.LevelName, input.LevelName, "level_name", cols)
-			cols = checkCol(&ent.LevelIndex, input.LevelIndex, "level_index", cols)
+			cols = scanCol(&ent.LevelID, input.LevelID, "level_id", cols)
+			cols = scanCol(&ent.LevelName, input.LevelName, "level_name", cols)
+			cols = scanCol(&ent.LevelIndex, input.LevelIndex, "level_index", cols)
 			cols = checkCol(&ent.Geometry, input.Geometry, "geometry", cols)
 			if v := input.Parent; v != nil {
 				cols = append(cols, "parent_station")
-				if v.ID == nil {
-					ent.ParentStation.Valid = false
-				} else {
-					checkParent := gtfs.Stop{}
-					checkParent.ID = *v.ID
-					ent.ParentStation = tt.NewKey(strconv.Itoa(checkParent.ID))
-				}
+				scanCol(&ent.ParentStation, v.ID, "", nil)
 			}
 			return cols, nil
 		})
@@ -222,7 +194,6 @@ type hasTableName interface {
 	SetFeedVersionID(int)
 	GetID() int
 	SetID(int)
-	Errors() []error
 }
 
 func fvint(fvi *model.FeedVersionInput) *int {
@@ -272,7 +243,7 @@ func createUpdateEnt[T hasTableName](
 	}
 
 	// Validate
-	if errs := baseEnt.Errors(); len(errs) > 0 {
+	if errs := tt.CheckErrors(baseEnt); len(errs) > 0 {
 		return 0, errs[0]
 	}
 	// Save

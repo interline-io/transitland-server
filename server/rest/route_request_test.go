@@ -165,7 +165,7 @@ func TestRouteRequest_Pagination(t *testing.T) {
 	}
 	allIds := []string{}
 	for _, ent := range allEnts {
-		allIds = append(allIds, ent.RouteID)
+		allIds = append(allIds, ent.RouteID.Val)
 	}
 	testcases := []testCase{
 		{

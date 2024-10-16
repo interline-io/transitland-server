@@ -8,7 +8,6 @@ import (
 	"github.com/interline-io/transitland-lib/fetch"
 	"github.com/interline-io/transitland-lib/request"
 	"github.com/interline-io/transitland-lib/tldb"
-	"github.com/interline-io/transitland-lib/tt"
 )
 
 type Options struct {
@@ -59,20 +58,20 @@ func Fetch(atx tldb.Adapter, opts Options) ([]GbfsFeed, Result, error) {
 		tlfetch := dmfr.FeedFetch{}
 		tlfetch.FeedID = opts.FeedID
 		tlfetch.URLType = opts.URLType
-		tlfetch.FetchedAt = tt.NewTime(opts.FetchedAt)
+		tlfetch.FetchedAt.Set(opts.FetchedAt)
 		if !opts.HideURL {
 			tlfetch.URL = opts.FeedURL
 		}
 		if result.ResponseCode > 0 {
-			tlfetch.ResponseCode = tt.NewInt(result.ResponseCode)
-			tlfetch.ResponseSize = tt.NewInt(result.ResponseSize)
-			tlfetch.ResponseSHA1 = tt.NewString(result.ResponseSHA1)
+			tlfetch.ResponseCode.SetInt(result.ResponseCode)
+			tlfetch.ResponseSize.SetInt(result.ResponseSize)
+			tlfetch.ResponseSHA1.Set(result.ResponseSHA1)
 		}
 		if result.FetchError == nil {
 			tlfetch.Success = true
 		} else {
 			tlfetch.Success = false
-			tlfetch.FetchError = tt.NewString(result.FetchError.Error())
+			tlfetch.FetchError.Set(result.FetchError.Error())
 		}
 		if _, err := atx.Insert(&tlfetch); err != nil {
 			return nil, result, err

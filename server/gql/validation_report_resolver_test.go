@@ -34,8 +34,8 @@ func TestValidationReportResolver(t *testing.T) {
 					messages = append(messages, astr(a.Get("errors.#.message").Array())...)
 				}
 				expMessages := []string{
-					"invalid value for field stop_lat '-200.000000': out of bounds, min -90.000000 max 90.000000",
-					"invalid value for field stop_lon '-200.000000': out of bounds, min -180.000000 max 180.000000",
+					"invalid value for field stop_lat '-200': out of bounds, less than -90.000000",
+					"invalid value for field stop_lon '-200': out of bounds, less than -180.000000",
 				}
 				assert.ElementsMatch(t, expMessages, messages)
 			},

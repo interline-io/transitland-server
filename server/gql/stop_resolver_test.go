@@ -114,7 +114,7 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 			name:   "basic fields",
 			query:  `query($stop_id: String!) {  stops(where:{stop_id:$stop_id}) {onestop_id feed_version_sha1 feed_onestop_id location_type stop_code stop_desc stop_id stop_name stop_timezone stop_url wheelchair_boarding zone_id} }`,
 			vars:   vars,
-			expect: `{"stops":[{"feed_onestop_id":"BA","feed_version_sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0","location_type":0,"onestop_id":"s-9q9p1wxf72-macarthur","stop_code":"","stop_desc":"","stop_id":"MCAR","stop_name":"MacArthur","stop_timezone":"","stop_url":"http://www.bart.gov/stations/MCAR/","wheelchair_boarding":1,"zone_id":"MCAR"}]}`,
+			expect: `{"stops":[{"feed_onestop_id":"BA","feed_version_sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0","location_type":0,"onestop_id":"s-9q9p1wxf72-macarthur","stop_code":"","stop_desc":"","stop_id":"MCAR","stop_name":"MacArthur","stop_timezone":null,"stop_url":"http://www.bart.gov/stations/MCAR/","wheelchair_boarding":1,"zone_id":"MCAR"}]}`,
 		},
 		{
 			// just ensure this query completes successfully; checking coordinates is a pain and flaky.
@@ -550,7 +550,7 @@ func stopResolverCursorTestcases(t *testing.T, cfg model.Config) []testcase {
 	}
 	allIds := []string{}
 	for _, st := range allEnts {
-		allIds = append(allIds, st.StopID)
+		allIds = append(allIds, st.StopID.Val)
 	}
 	testcases := []testcase{
 		{

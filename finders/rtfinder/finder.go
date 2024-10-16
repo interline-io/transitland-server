@@ -52,7 +52,7 @@ func (f *Finder) StopTimezone(id int, known string) (*time.Location, bool) {
 func (f *Finder) FindTrip(t *model.Trip) *pb.TripUpdate {
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
-		if a, ok := f.getTrip(topic, t.TripID); ok {
+		if a, ok := f.getTrip(topic, t.TripID.Val); ok {
 			return a
 		}
 	}
@@ -82,7 +82,7 @@ func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*m
 				if s == nil || s.Trip == nil {
 					continue
 				}
-				if s.Trip.GetTripId() == t.TripID {
+				if s.Trip.GetTripId() == t.TripID.Val {
 					found = true
 				}
 			}
@@ -117,7 +117,7 @@ func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []
 				if s == nil || s.Trip != nil || s.GetStopId() != "" {
 					continue
 				}
-				if s.GetRouteId() == t.RouteID {
+				if s.GetRouteId() == t.RouteID.Val {
 					found = true
 				}
 			}
@@ -161,7 +161,7 @@ func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) 
 				if s == nil || s.Trip != nil || s.GetRouteId() != "" || s.GetStopId() != "" {
 					continue
 				}
-				if s.GetAgencyId() == t.AgencyID {
+				if s.GetAgencyId() == t.AgencyID.Val {
 					found = true
 				}
 			}
@@ -196,7 +196,7 @@ func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*m
 				if s == nil || s.Trip != nil {
 					continue
 				}
-				if s.GetStopId() == t.StopID {
+				if s.GetStopId() == t.StopID.Val {
 					found = true
 				}
 			}
@@ -210,19 +210,19 @@ func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*m
 
 func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.RTStopTimeUpdate, bool) {
 	tid := t.TripID
-	seq := st.StopSequence
+	seq := st.StopSequence.Int()
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	// Attempt to match on stop sequence
 	for _, topic := range topics {
 		// Match on trip
-		rtTrip, rtok := f.getTrip(topic, tid)
+		rtTrip, rtok := f.getTrip(topic, tid.Val)
 		if !rtok {
 			continue
 		}
 		// Match on stop sequence
 		for _, ste := range rtTrip.StopTimeUpdate {
 			if int(ste.GetStopSequence()) == seq {
-				log.Trace().Str("trip_id", t.TripID).Int("seq", seq).Msgf("found stop time update on trip_id/stop_sequence")
+				log.Trace().Str("trip_id", t.TripID.Val).Int("seq", seq).Msgf("found stop time update on trip_id/stop_sequence")
 				return &model.RTStopTimeUpdate{TripUpdate: rtTrip, StopTimeUpdate: ste}, true
 			}
 		}
@@ -230,7 +230,7 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 	// Attempt to match on stop id
 	for _, topic := range topics {
 		// Match on trip
-		rtTrip, rtok := f.getTrip(topic, tid)
+		rtTrip, rtok := f.getTrip(topic, tid.Val)
 		if !rtok {
 			continue
 		}
@@ -240,7 +240,7 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 			check[ste.GetStopId()] += 1
 		}
 		// Get GTFS stop id for comparing with RT
-		sid, ok := f.lc.GetGtfsStopID(atoi(st.StopID))
+		sid, ok := f.lc.GetGtfsStopID(st.StopID.Int())
 		if !ok {
 			continue
 		}
@@ -257,14 +257,14 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 				lastDelay = ste.Departure.Delay
 			}
 			if sid == ste.GetStopId() {
-				log.Trace().Str("trip_id", t.TripID).Str("stop_id", sid).Msgf("found stop time update on trip_id/stop_id")
+				log.Trace().Str("trip_id", t.TripID.Val).Str("stop_id", sid).Msgf("found stop time update on trip_id/stop_id")
 				return &model.RTStopTimeUpdate{TripUpdate: rtTrip, StopTimeUpdate: ste, LastDelay: copyPtr(lastDelay)}, true
 			}
 		}
 		// Matched on trip, but no match on stop sequence or stop_id
 		return &model.RTStopTimeUpdate{TripUpdate: rtTrip, LastDelay: copyPtr(lastDelay)}, true
 	}
-	log.Trace().Str("trip_id", t.TripID).Int("seq", seq).Msgf("no stop time update found")
+	log.Trace().Str("trip_id", t.TripID.Val).Int("seq", seq).Msgf("no stop time update found")
 	return nil, false
 }
 
@@ -284,7 +284,7 @@ func (f *Finder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
 				continue
 			}
 			for _, ste := range trip.StopTimeUpdate {
-				if ste.GetStopId() == sid {
+				if ste.GetStopId() == sid.Val {
 					ret = append(ret, trip)
 					break // continue to next trip
 				}
@@ -305,8 +305,8 @@ func (f *Finder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
 		if !ok {
 			return nil, errors.New("not found")
 		}
-		t.RouteID = strconv.Itoa(rid)
-		t.DirectionID = int(rtt.GetDirectionId())
+		t.RouteID.Set(strconv.Itoa(rid))
+		t.DirectionID.SetInt(int(rtt.GetDirectionId()))
 		return &t, nil
 	}
 	return nil, errors.New("not found")
@@ -401,11 +401,6 @@ func makeAlert(a *pb.Alert) *model.Alert {
 	r.TtsDescriptionText = newTranslation(a.TtsDescriptionText)
 	r.URL = newTranslation(a.Url)
 	return &r
-}
-
-func atoi(v string) int {
-	a, _ := strconv.Atoi(v)
-	return a
 }
 
 func pstr(v string) *string {

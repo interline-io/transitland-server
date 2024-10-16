@@ -37,8 +37,8 @@ func TestStopCreate(t *testing.T) {
 		if err := atx.Find(&checkEnt); err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, stopInput.StopID, &checkEnt.StopID)
-		assert.Equal(t, stopInput.StopName, &checkEnt.StopName)
+		assert.Equal(t, stopInput.StopID, &checkEnt.StopID.Val)
+		assert.Equal(t, stopInput.StopName, &checkEnt.StopName.Val)
 		assert.Equal(t, stopInput.Geometry.FlatCoords(), checkEnt.Geometry.FlatCoords())
 	})
 }
@@ -72,7 +72,7 @@ func TestStopUpdate(t *testing.T) {
 		if err := atx.Find(&checkEnt); err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, stopUpdate.StopID, &checkEnt.StopID)
+		assert.Equal(t, stopUpdate.StopID, &checkEnt.StopID.Val)
 		assert.Equal(t, stopUpdate.Geometry.FlatCoords(), checkEnt.Geometry.FlatCoords())
 	})
 }

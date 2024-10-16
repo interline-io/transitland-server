@@ -666,7 +666,7 @@ func (f *Finder) FrequenciesByTripID(ctx context.Context, params []model.Frequen
 			return ents, err
 		},
 		func(ent *model.Frequency) int {
-			return atoi(ent.TripID)
+			return ent.TripID.Int()
 		},
 	)
 }
@@ -687,7 +687,7 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 			return ents, err
 		},
 		func(ent *model.StopTime) FVPair {
-			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: atoi(ent.TripID)}
+			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
 		},
 	)
 }
@@ -737,11 +737,11 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				// Set service date based on StopTimeFilter, and adjust calendar date if needed
 				if serviceDate != nil {
 					for _, ent := range sts {
-						ent.ServiceDate = tt.NewDate(serviceDate.Val)
+						ent.ServiceDate.Set(serviceDate.Val)
 						if ent.ArrivalTime.Val > 24*60*60 {
-							ent.Date = tt.NewDate(serviceDate.Val.AddDate(0, 0, 1))
+							ent.Date.Set(serviceDate.Val.AddDate(0, 0, 1))
 						} else {
-							ent.Date = tt.NewDate(serviceDate.Val)
+							ent.Date.Set(serviceDate.Val)
 						}
 					}
 				}
@@ -750,7 +750,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 			return ents, err
 		},
 		func(ent *model.StopTime) FVPair {
-			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: atoi(ent.StopID)}
+			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.StopID.Int()}
 		},
 	)
 }
@@ -1216,7 +1216,7 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 			return ents, err
 		},
 		func(ent *model.Trip) int {
-			return atoi(ent.RouteID)
+			return ent.RouteID.Int()
 		},
 	)
 }
@@ -1243,7 +1243,7 @@ func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam
 			return ents, err
 		},
 		func(ent *model.Route) int {
-			return atoi(ent.AgencyID)
+			return ent.AgencyID.Int()
 		},
 	)
 }
@@ -1494,7 +1494,7 @@ func (f *Finder) PathwaysByFromStopID(ctx context.Context, params []model.Pathwa
 			return ents, err
 		},
 		func(ent *model.Pathway) int {
-			return atoi(ent.FromStopID)
+			return ent.FromStopID.Int()
 		},
 	)
 }
@@ -1521,7 +1521,7 @@ func (f *Finder) PathwaysByToStopID(ctx context.Context, params []model.PathwayP
 			return ents, err
 		},
 		func(ent *model.Pathway) int {
-			return atoi(ent.ToStopID)
+			return ent.ToStopID.Int()
 		},
 	)
 }
