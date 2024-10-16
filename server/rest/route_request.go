@@ -93,6 +93,7 @@ func (r RouteRequest) RequestInfo() RequestInfo {
 						Schema:      newSRVal("string", "", nil),
 						Extensions:  newExt("", "operator_onestop_id=...", "operator_onestop_id=o-9q9-caltrain"),
 					}},
+					newPRef("includeAlertsParam"),
 					&pref{Value: &param{
 						Name:        "include_geometry",
 						In:          "query",
@@ -100,8 +101,14 @@ func (r RouteRequest) RequestInfo() RequestInfo {
 						Schema:      newSRVal("string", "", []any{"true", "false"}),
 						Extensions:  newExt("", "include_geometry=true", ""),
 					}},
+					&pref{Value: &param{
+						Name:        "include_stops",
+						In:          "query",
+						Description: `Include route stops`,
+						Schema:      newSRVal("string", "", []any{"true", "false"}),
+						Extensions:  newExt("", "include_stops=true", ""),
+					}},
 					newPRef("idParam"),
-					newPRef("includeAlertsParam"),
 					newPRef("afterParam"),
 					newPRefExt("limitParam", "", "limit=1", ""),
 					newPRefExt("formatParam", "", "format=png", "?format=png&feed_onestop_id=f-dr5r7-nycdotsiferry"),
