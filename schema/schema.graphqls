@@ -105,14 +105,14 @@ type Mutation {
   feed_version_unimport(id: Int!): FeedVersionUnimportResult!
   "Delete a feed version"
   feed_version_delete(id: Int!): FeedVersionDeleteResult!
-  
+
   "Create a stop"
   stop_create(set: StopSetInput!): Stop!
   "Update a stop"
   stop_update(set: StopSetInput!): Stop!
   "Delete a stop"
   stop_delete(id: Int!): EntityDeleteResult!
-  
+
   # levels
   "Create a level"
   level_create(set: LevelSetInput!): Level!
@@ -120,7 +120,7 @@ type Mutation {
   level_update(set: LevelSetInput!): Level!
   "Delete a level"
   level_delete(id: Int!): EntityDeleteResult!
-  
+
   # pathways
   "Create a pathway"
   pathway_create(set: PathwaySetInput!): Pathway!
@@ -150,7 +150,7 @@ type Me {
   external_data: Map!
 }
 
-"""Feeds contain details on how to access transit information, including URLs to data sources in various formats (GTFS, GTFS-RT, GBFS, etc), license information, related feeds, details on how to make authorized requests, and current and archived feed versions. 
+"""Feeds contain details on how to access transit information, including URLs to data sources in various formats (GTFS, GTFS-RT, GBFS, etc), license information, related feeds, details on how to make authorized requests, and current and archived feed versions.
 
 Feed versions are archived (as `.zip` files) and imported into the database for querying agencies, stops, routes, trips, etc."""
 type Feed {
@@ -291,7 +291,7 @@ type FeedVersion {
   "An optional description for this feed version"
   description: String
   "Reference to file storage location"
-  file: String  
+  file: String
   "Convex hull around all active stops in the feed version"
   geometry: Polygon
   "Feed associated with this feed version"
@@ -418,7 +418,7 @@ type FeedVersionServiceLevel {
 
 # Operator
 """
-An agency represents a single GTFS `agencies.txt` entity that was imported from a single feed version. The metadata, routes, etc., for an agency include only the data for that specific agency in that specific feed version. 
+An agency represents a single GTFS `agencies.txt` entity that was imported from a single feed version. The metadata, routes, etc., for an agency include only the data for that specific agency in that specific feed version.
 
 Operators are a higher-level abstraction over agencies, with each operator defined by an entry in the [Transitland Atlas](/documentation/atlas). Operators provide a method for enriching the basic GTFS agency data, as well as grouping agencies that span across multiple source feeds. Operators are matched with GTFS agencies using `associated_feeds`, a simple list of Feed OnestopIDs and GTFS `agency_id`s. For instance, the [Atlas operator record](https://github.com/transitland/transitland-atlas/blob/master/operators/o-dr5r-nyct.json) for the [New York City MTA](/operators/o-dr5r-nyct) has `associated_feeds` values for 8 different GTFS feeds. A query for this operator OnestopID thus represents the union of data from all 8 feeds, and includes routes for the subway, bus service for all 5 boroughs, commuter rail agencies, etc., operated by the MTA. This record also includes additional metadata about the MTA, such as the United States National Transit Database ID, Wikidata IDs, and alternate names for the agency. Operator records are created and maintained through pull requests to the Atlas json files and synchronized with the Transitland database on each commit.
 """
@@ -565,16 +565,16 @@ type Stop {
   id: Int!
   "OnestopID for this stop, if available [example:s-dr5ruvgnyk-madisonav~e69st]"
   onestop_id: String!
-  "GTFS stops.location_type [enum:0,1,2,3,4]"
+  "GTFS stops.location_type; this is optional in GTFS spec [enum:0,1,2,3,4]"
   location_type: Int!
   "GTFS stops.stop_code"
-  stop_code: String!
+  stop_code: String
   "GTFS stops.stop_desc [example:NW Corner of Broadway and 14th]"
-  stop_desc: String!
+  stop_desc: String
   "GTFS stops.stop_id [example:400029]"
   stop_id: String!
   "GTFS stops.stop_name [example:MADISON AV/E 68 ST]"
-  stop_name: String!
+  stop_name: String
   "GTFS stops.stop_timezone; if overriding agency/route timezone [example:America/Los_Angeles]"
   stop_timezone: Timezone
   "GTFS stops.stop_url [example:https://www.bart.gov/stations/ftvl]"
@@ -600,7 +600,7 @@ type Stop {
   "Stop parent station"
   parent: Stop
   "Stop external reference"
-  external_reference: StopExternalReference  
+  external_reference: StopExternalReference
   "Stop observations"
   observations(limit: Int, where: StopObservationFilter): [StopObservation!]
   "Stop children"
@@ -644,19 +644,19 @@ type Pathway {
   "GTFS pathways.is_bidirectional"
   is_bidirectional: Int!
   "GTFS pathways.length"
-  length: Float!
+  length: Float
   "GTFS pathways.traversal_time"
-  traversal_time: Int!
+  traversal_time: Int
   "GTFS pathways.stair_count"
-  stair_count: Int!
+  stair_count: Int
   "GTFS pathways.max_slope"
-  max_slope: Float!
+  max_slope: Float
   "GTFS pathways.min_width"
-  min_width: Float!
+  min_width: Float
   "GTFS pathways.signposted_ss"
-  signposted_as: String!
+  signposted_as: String
   "GTFS pathways.reverse_signposted_as"
-  reverse_signposted_as: String!
+  reverse_signposted_as: String
   "Pathway begins at this stop"
   from_stop: Stop!
   "Pathway ends at this stop"
@@ -669,10 +669,10 @@ type Level {
   id: Int!
   "GTFS levels.level_id"
   level_id: String!
-  "GTFS levels.level_name"
-  level_name: String!
   "GTFS levels.level_index"
   level_index: Float!
+  "GTFS levels.level_name"
+  level_name: String
   "An optional geometry describing the footprint of this level"
   geometry: Polygon!
   "Stops associated with this level"
@@ -686,17 +686,17 @@ type Trip {
   "GTFS trips.trip_id"
   trip_id: String!
   "GTFS trips.trip_headsign"
-  trip_headsign: String!
+  trip_headsign: String
   "GTFS trips.trip_short_name"
-  trip_short_name: String!
+  trip_short_name: String
   "GTFS trips.direction_id"
-  direction_id: Int!
+  direction_id: Int
   "GTFS trips.block_id"
-  block_id: String!
+  block_id: String
   "GTFS trips.wheelchair_accessible"
-  wheelchair_accessible: Int!
+  wheelchair_accessible: Int
   "GTFS trips.bikes_allowed"
-  bikes_allowed: Int!
+  bikes_allowed: Int
   "Calculated stop pattern ID; an integer scoped to the feed version"
   stop_pattern_id: Int!
   "Calendar for this trip"
@@ -713,8 +713,8 @@ type Trip {
   frequencies(limit: Int): [Frequency!]!
   "GTFS-RT alerts for this trip"
   alerts(active: Boolean, limit: Int): [Alert!]
-  """A status flag for real-time information about this trip. 
-  
+  """A status flag for real-time information about this trip.
+
   If no real-time information is available, the value will be STATIC and the estimated arrival/departure times will be empty. A trip with real-time information available will be SCHEDULED; a canceled trip will be CANCELED, and an added trip that is not present in the static GTFS will be ADDED.
   """
   schedule_relationship: ScheduleRelationship
@@ -775,15 +775,15 @@ type Frequency {
   "GTFS frequencies.headway_secs"
   headway_secs: Int!
   "GTFS frequencies.exact_times"
-  exact_times: Int!
+  exact_times: Int
 }
 
 """Record from a static GTFS [stop_times.txt](https://gtfs.org/schedule/reference/#stop_timestxt) file."""
 type StopTime {
   "GTFS stop_times.arrival_time"
-  arrival_time: Seconds!
+  arrival_time: Seconds
   "GTFS stop_times.departure_time"
-  departure_time: Seconds!
+  departure_time: Seconds
   "GTFS stop_times.stop_sequence"
   stop_sequence: Int!
   "GTFS stop_times.stop_headsign"
@@ -814,8 +814,8 @@ type StopTime {
   service_date: Date
   "If part of an arrival/departure query, the calendar date for this scheduled stop time"
   date: Date
-  """A status flag for real-time information about this trip. 
-  
+  """A status flag for real-time information about this trip.
+
   If no real-time information is available, the value will be STATIC and the estimated arrival/departure times will be empty. A trip with real-time information available will be SCHEDULED; a canceled trip will be CANCELED, and an added trip that is not present in the static GTFS will be ADDED.
   """
   schedule_relationship: ScheduleRelationship
@@ -834,7 +834,7 @@ type FeedInfo {
   "GTFS feed_info.default_lang"
   default_lang: Language
   "GTFS feed_info.feed_version"
-  feed_version: String!
+  feed_version: String
   "GTFS feed_info.feed_start_date"
   feed_start_date: Date
   "GTFS feed_info.feed_end_date"
@@ -1071,7 +1071,7 @@ type Segment {
   "OSM Way ID, if any, associated with this segment"
   way_id: Int!
   "Geometry for this segment"
-  geometry: LineString! 
+  geometry: LineString!
   "Routes and stop patterns associated with this segment"
   segment_patterns: [SegmentPattern!]
 }
@@ -1130,9 +1130,9 @@ type CensusTable {
 
 # Realtime updates
 
-"""GTFS-RT TripUpdate and StopTimeEvent schedule relationship. 
+"""GTFS-RT TripUpdate and StopTimeEvent schedule relationship.
 
-This enum combines possible values from both schedule relationship types, plus an additional STATIC value. 
+This enum combines possible values from both schedule relationship types, plus an additional STATIC value.
 
 See:
 - [ScheduleRelationship](https://gtfs.org/realtime/reference/#enum-schedulerelationship)
@@ -1154,8 +1154,8 @@ enum ScheduleRelationship {
 """
 StopTimeEvent combines scheduled arrival/departure data with data sourced from GTFS-RT
 
-Each scheduled StopTime will try to be matched with a relevant GTFS-RT TripUpdate and StopTimeUpdate. 
-If the StopTime has a matching TripUpdate (based on trip_id) and StopTimeUpdate (stop_sequence and/or stop_id), the estimated times will be used directly. 
+Each scheduled StopTime will try to be matched with a relevant GTFS-RT TripUpdate and StopTimeUpdate.
+If the StopTime has a matching TripUpdate (based on trip_id) and StopTimeUpdate (stop_sequence and/or stop_id), the estimated times will be used directly.
 If a TripUpdate is matched, but no StopTimeUpdate, the last available delay value in the trip will be applied to later StopTimes in that trip.
 If the Trip is ADDED and does not match a static schedule StopTime, the scheduled times will be absent.
 
@@ -1173,9 +1173,9 @@ type StopTimeEvent {
   estimated_unix: Int
   "Estimated time in the local time zone"
   estimated_local: Time
-  """  
-  Estimated schedule delay, in seconds, based on either a timestamp or overall trip delay. 
-  
+  """
+  Estimated schedule delay, in seconds, based on either a timestamp or overall trip delay.
+
   This value can be set directly from a matching GTFS-RT StopTimeUpdate timestamp or delay value or set via an estimated overall trip delay. The value is capped at +/- 86,400 seconds (24 hours). Values larger than that are are likely erroneous and will be set to null.
   """
   estimated_delay: Int
@@ -1642,7 +1642,7 @@ input RouteFilter {
   "Search for routes with these license details"
   license: LicenseFilter
   "Search for routes with these agency integer IDs. Deprecated."
-  agency_ids: [Int!] 
+  agency_ids: [Int!]
 }
 
 """Search options for stops"""

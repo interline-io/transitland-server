@@ -7273,14 +7273,14 @@ type Mutation {
   feed_version_unimport(id: Int!): FeedVersionUnimportResult!
   "Delete a feed version"
   feed_version_delete(id: Int!): FeedVersionDeleteResult!
-  
+
   "Create a stop"
   stop_create(set: StopSetInput!): Stop!
   "Update a stop"
   stop_update(set: StopSetInput!): Stop!
   "Delete a stop"
   stop_delete(id: Int!): EntityDeleteResult!
-  
+
   # levels
   "Create a level"
   level_create(set: LevelSetInput!): Level!
@@ -7288,7 +7288,7 @@ type Mutation {
   level_update(set: LevelSetInput!): Level!
   "Delete a level"
   level_delete(id: Int!): EntityDeleteResult!
-  
+
   # pathways
   "Create a pathway"
   pathway_create(set: PathwaySetInput!): Pathway!
@@ -7318,7 +7318,7 @@ type Me {
   external_data: Map!
 }
 
-"""Feeds contain details on how to access transit information, including URLs to data sources in various formats (GTFS, GTFS-RT, GBFS, etc), license information, related feeds, details on how to make authorized requests, and current and archived feed versions. 
+"""Feeds contain details on how to access transit information, including URLs to data sources in various formats (GTFS, GTFS-RT, GBFS, etc), license information, related feeds, details on how to make authorized requests, and current and archived feed versions.
 
 Feed versions are archived (as ` + "`" + `.zip` + "`" + ` files) and imported into the database for querying agencies, stops, routes, trips, etc."""
 type Feed {
@@ -7459,7 +7459,7 @@ type FeedVersion {
   "An optional description for this feed version"
   description: String
   "Reference to file storage location"
-  file: String  
+  file: String
   "Convex hull around all active stops in the feed version"
   geometry: Polygon
   "Feed associated with this feed version"
@@ -7586,7 +7586,7 @@ type FeedVersionServiceLevel {
 
 # Operator
 """
-An agency represents a single GTFS ` + "`" + `agencies.txt` + "`" + ` entity that was imported from a single feed version. The metadata, routes, etc., for an agency include only the data for that specific agency in that specific feed version. 
+An agency represents a single GTFS ` + "`" + `agencies.txt` + "`" + ` entity that was imported from a single feed version. The metadata, routes, etc., for an agency include only the data for that specific agency in that specific feed version.
 
 Operators are a higher-level abstraction over agencies, with each operator defined by an entry in the [Transitland Atlas](/documentation/atlas). Operators provide a method for enriching the basic GTFS agency data, as well as grouping agencies that span across multiple source feeds. Operators are matched with GTFS agencies using ` + "`" + `associated_feeds` + "`" + `, a simple list of Feed OnestopIDs and GTFS ` + "`" + `agency_id` + "`" + `s. For instance, the [Atlas operator record](https://github.com/transitland/transitland-atlas/blob/master/operators/o-dr5r-nyct.json) for the [New York City MTA](/operators/o-dr5r-nyct) has ` + "`" + `associated_feeds` + "`" + ` values for 8 different GTFS feeds. A query for this operator OnestopID thus represents the union of data from all 8 feeds, and includes routes for the subway, bus service for all 5 boroughs, commuter rail agencies, etc., operated by the MTA. This record also includes additional metadata about the MTA, such as the United States National Transit Database ID, Wikidata IDs, and alternate names for the agency. Operator records are created and maintained through pull requests to the Atlas json files and synchronized with the Transitland database on each commit.
 """
@@ -7733,16 +7733,16 @@ type Stop {
   id: Int!
   "OnestopID for this stop, if available [example:s-dr5ruvgnyk-madisonav~e69st]"
   onestop_id: String!
-  "GTFS stops.location_type [enum:0,1,2,3,4]"
+  "GTFS stops.location_type; this is optional in GTFS spec [enum:0,1,2,3,4]"
   location_type: Int!
   "GTFS stops.stop_code"
-  stop_code: String!
+  stop_code: String
   "GTFS stops.stop_desc [example:NW Corner of Broadway and 14th]"
-  stop_desc: String!
+  stop_desc: String
   "GTFS stops.stop_id [example:400029]"
   stop_id: String!
   "GTFS stops.stop_name [example:MADISON AV/E 68 ST]"
-  stop_name: String!
+  stop_name: String
   "GTFS stops.stop_timezone; if overriding agency/route timezone [example:America/Los_Angeles]"
   stop_timezone: Timezone
   "GTFS stops.stop_url [example:https://www.bart.gov/stations/ftvl]"
@@ -7768,7 +7768,7 @@ type Stop {
   "Stop parent station"
   parent: Stop
   "Stop external reference"
-  external_reference: StopExternalReference  
+  external_reference: StopExternalReference
   "Stop observations"
   observations(limit: Int, where: StopObservationFilter): [StopObservation!]
   "Stop children"
@@ -7812,19 +7812,19 @@ type Pathway {
   "GTFS pathways.is_bidirectional"
   is_bidirectional: Int!
   "GTFS pathways.length"
-  length: Float!
+  length: Float
   "GTFS pathways.traversal_time"
-  traversal_time: Int!
+  traversal_time: Int
   "GTFS pathways.stair_count"
-  stair_count: Int!
+  stair_count: Int
   "GTFS pathways.max_slope"
-  max_slope: Float!
+  max_slope: Float
   "GTFS pathways.min_width"
-  min_width: Float!
+  min_width: Float
   "GTFS pathways.signposted_ss"
-  signposted_as: String!
+  signposted_as: String
   "GTFS pathways.reverse_signposted_as"
-  reverse_signposted_as: String!
+  reverse_signposted_as: String
   "Pathway begins at this stop"
   from_stop: Stop!
   "Pathway ends at this stop"
@@ -7837,10 +7837,10 @@ type Level {
   id: Int!
   "GTFS levels.level_id"
   level_id: String!
-  "GTFS levels.level_name"
-  level_name: String!
   "GTFS levels.level_index"
   level_index: Float!
+  "GTFS levels.level_name"
+  level_name: String
   "An optional geometry describing the footprint of this level"
   geometry: Polygon!
   "Stops associated with this level"
@@ -7854,17 +7854,17 @@ type Trip {
   "GTFS trips.trip_id"
   trip_id: String!
   "GTFS trips.trip_headsign"
-  trip_headsign: String!
+  trip_headsign: String
   "GTFS trips.trip_short_name"
-  trip_short_name: String!
+  trip_short_name: String
   "GTFS trips.direction_id"
-  direction_id: Int!
+  direction_id: Int
   "GTFS trips.block_id"
-  block_id: String!
+  block_id: String
   "GTFS trips.wheelchair_accessible"
-  wheelchair_accessible: Int!
+  wheelchair_accessible: Int
   "GTFS trips.bikes_allowed"
-  bikes_allowed: Int!
+  bikes_allowed: Int
   "Calculated stop pattern ID; an integer scoped to the feed version"
   stop_pattern_id: Int!
   "Calendar for this trip"
@@ -7881,8 +7881,8 @@ type Trip {
   frequencies(limit: Int): [Frequency!]!
   "GTFS-RT alerts for this trip"
   alerts(active: Boolean, limit: Int): [Alert!]
-  """A status flag for real-time information about this trip. 
-  
+  """A status flag for real-time information about this trip.
+
   If no real-time information is available, the value will be STATIC and the estimated arrival/departure times will be empty. A trip with real-time information available will be SCHEDULED; a canceled trip will be CANCELED, and an added trip that is not present in the static GTFS will be ADDED.
   """
   schedule_relationship: ScheduleRelationship
@@ -7943,15 +7943,15 @@ type Frequency {
   "GTFS frequencies.headway_secs"
   headway_secs: Int!
   "GTFS frequencies.exact_times"
-  exact_times: Int!
+  exact_times: Int
 }
 
 """Record from a static GTFS [stop_times.txt](https://gtfs.org/schedule/reference/#stop_timestxt) file."""
 type StopTime {
   "GTFS stop_times.arrival_time"
-  arrival_time: Seconds!
+  arrival_time: Seconds
   "GTFS stop_times.departure_time"
-  departure_time: Seconds!
+  departure_time: Seconds
   "GTFS stop_times.stop_sequence"
   stop_sequence: Int!
   "GTFS stop_times.stop_headsign"
@@ -7982,8 +7982,8 @@ type StopTime {
   service_date: Date
   "If part of an arrival/departure query, the calendar date for this scheduled stop time"
   date: Date
-  """A status flag for real-time information about this trip. 
-  
+  """A status flag for real-time information about this trip.
+
   If no real-time information is available, the value will be STATIC and the estimated arrival/departure times will be empty. A trip with real-time information available will be SCHEDULED; a canceled trip will be CANCELED, and an added trip that is not present in the static GTFS will be ADDED.
   """
   schedule_relationship: ScheduleRelationship
@@ -8002,7 +8002,7 @@ type FeedInfo {
   "GTFS feed_info.default_lang"
   default_lang: Language
   "GTFS feed_info.feed_version"
-  feed_version: String!
+  feed_version: String
   "GTFS feed_info.feed_start_date"
   feed_start_date: Date
   "GTFS feed_info.feed_end_date"
@@ -8239,7 +8239,7 @@ type Segment {
   "OSM Way ID, if any, associated with this segment"
   way_id: Int!
   "Geometry for this segment"
-  geometry: LineString! 
+  geometry: LineString!
   "Routes and stop patterns associated with this segment"
   segment_patterns: [SegmentPattern!]
 }
@@ -8298,9 +8298,9 @@ type CensusTable {
 
 # Realtime updates
 
-"""GTFS-RT TripUpdate and StopTimeEvent schedule relationship. 
+"""GTFS-RT TripUpdate and StopTimeEvent schedule relationship.
 
-This enum combines possible values from both schedule relationship types, plus an additional STATIC value. 
+This enum combines possible values from both schedule relationship types, plus an additional STATIC value.
 
 See:
 - [ScheduleRelationship](https://gtfs.org/realtime/reference/#enum-schedulerelationship)
@@ -8322,8 +8322,8 @@ enum ScheduleRelationship {
 """
 StopTimeEvent combines scheduled arrival/departure data with data sourced from GTFS-RT
 
-Each scheduled StopTime will try to be matched with a relevant GTFS-RT TripUpdate and StopTimeUpdate. 
-If the StopTime has a matching TripUpdate (based on trip_id) and StopTimeUpdate (stop_sequence and/or stop_id), the estimated times will be used directly. 
+Each scheduled StopTime will try to be matched with a relevant GTFS-RT TripUpdate and StopTimeUpdate.
+If the StopTime has a matching TripUpdate (based on trip_id) and StopTimeUpdate (stop_sequence and/or stop_id), the estimated times will be used directly.
 If a TripUpdate is matched, but no StopTimeUpdate, the last available delay value in the trip will be applied to later StopTimes in that trip.
 If the Trip is ADDED and does not match a static schedule StopTime, the scheduled times will be absent.
 
@@ -8341,9 +8341,9 @@ type StopTimeEvent {
   estimated_unix: Int
   "Estimated time in the local time zone"
   estimated_local: Time
-  """  
-  Estimated schedule delay, in seconds, based on either a timestamp or overall trip delay. 
-  
+  """
+  Estimated schedule delay, in seconds, based on either a timestamp or overall trip delay.
+
   This value can be set directly from a matching GTFS-RT StopTimeUpdate timestamp or delay value or set via an estimated overall trip delay. The value is capped at +/- 86,400 seconds (24 hours). Values larger than that are are likely erroneous and will be set to null.
   """
   estimated_delay: Int
@@ -8810,7 +8810,7 @@ input RouteFilter {
   "Search for routes with these license details"
   license: LicenseFilter
   "Search for routes with these agency integer IDs. Deprecated."
-  agency_ids: [Int!] 
+  agency_ids: [Int!]
 }
 
 """Search options for stops"""
@@ -18793,14 +18793,11 @@ func (ec *executionContext) _FeedInfo_feed_version(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedInfo_feed_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -23648,14 +23645,11 @@ func (ec *executionContext) _Frequency_exact_times(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Frequency_exact_times(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -32043,50 +32037,6 @@ func (ec *executionContext) fieldContext_Level_level_id(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Level_level_name(ctx context.Context, field graphql.CollectedField, obj *model.Level) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Level_level_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LevelName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(tt.String)
-	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Level_level_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Level",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Level_level_index(ctx context.Context, field graphql.CollectedField, obj *model.Level) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Level_level_index(ctx, field)
 	if err != nil {
@@ -32126,6 +32076,47 @@ func (ec *executionContext) fieldContext_Level_level_index(_ context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Level_level_name(ctx context.Context, field graphql.CollectedField, obj *model.Level) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Level_level_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LevelName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tt.String)
+	fc.Result = res
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Level_level_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Level",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -33276,10 +33267,10 @@ func (ec *executionContext) fieldContext_Mutation_level_create(ctx context.Conte
 				return ec.fieldContext_Level_id(ctx, field)
 			case "level_id":
 				return ec.fieldContext_Level_level_id(ctx, field)
-			case "level_name":
-				return ec.fieldContext_Level_level_name(ctx, field)
 			case "level_index":
 				return ec.fieldContext_Level_level_index(ctx, field)
+			case "level_name":
+				return ec.fieldContext_Level_level_name(ctx, field)
 			case "geometry":
 				return ec.fieldContext_Level_geometry(ctx, field)
 			case "stops":
@@ -33345,10 +33336,10 @@ func (ec *executionContext) fieldContext_Mutation_level_update(ctx context.Conte
 				return ec.fieldContext_Level_id(ctx, field)
 			case "level_id":
 				return ec.fieldContext_Level_level_id(ctx, field)
-			case "level_name":
-				return ec.fieldContext_Level_level_name(ctx, field)
 			case "level_index":
 				return ec.fieldContext_Level_level_index(ctx, field)
+			case "level_name":
+				return ec.fieldContext_Level_level_name(ctx, field)
 			case "geometry":
 				return ec.fieldContext_Level_geometry(ctx, field)
 			case "stops":
@@ -34394,14 +34385,11 @@ func (ec *executionContext) _Pathway_length(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Float)
 	fc.Result = res
-	return ec.marshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_length(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34438,14 +34426,11 @@ func (ec *executionContext) _Pathway_traversal_time(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_traversal_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34482,14 +34467,11 @@ func (ec *executionContext) _Pathway_stair_count(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_stair_count(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34526,14 +34508,11 @@ func (ec *executionContext) _Pathway_max_slope(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Float)
 	fc.Result = res
-	return ec.marshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_max_slope(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34570,14 +34549,11 @@ func (ec *executionContext) _Pathway_min_width(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Float)
 	fc.Result = res
-	return ec.marshalNFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
+	return ec.marshalOFloat2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐFloat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_min_width(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34614,14 +34590,11 @@ func (ec *executionContext) _Pathway_signposted_as(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_signposted_as(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -34658,14 +34631,11 @@ func (ec *executionContext) _Pathway_reverse_signposted_as(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Pathway_reverse_signposted_as(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41336,14 +41306,11 @@ func (ec *executionContext) _Stop_stop_code(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41380,14 +41347,11 @@ func (ec *executionContext) _Stop_stop_desc(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_desc(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41468,14 +41432,11 @@ func (ec *executionContext) _Stop_stop_name(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Stop_stop_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42003,10 +41964,10 @@ func (ec *executionContext) fieldContext_Stop_level(_ context.Context, field gra
 				return ec.fieldContext_Level_id(ctx, field)
 			case "level_id":
 				return ec.fieldContext_Level_level_id(ctx, field)
-			case "level_name":
-				return ec.fieldContext_Level_level_name(ctx, field)
 			case "level_index":
 				return ec.fieldContext_Level_level_index(ctx, field)
+			case "level_name":
+				return ec.fieldContext_Level_level_name(ctx, field)
 			case "geometry":
 				return ec.fieldContext_Level_geometry(ctx, field)
 			case "stops":
@@ -42504,10 +42465,10 @@ func (ec *executionContext) fieldContext_Stop_child_levels(ctx context.Context, 
 				return ec.fieldContext_Level_id(ctx, field)
 			case "level_id":
 				return ec.fieldContext_Level_level_id(ctx, field)
-			case "level_name":
-				return ec.fieldContext_Level_level_name(ctx, field)
 			case "level_index":
 				return ec.fieldContext_Level_level_index(ctx, field)
+			case "level_name":
+				return ec.fieldContext_Level_level_name(ctx, field)
 			case "geometry":
 				return ec.fieldContext_Level_geometry(ctx, field)
 			case "stops":
@@ -44449,14 +44410,11 @@ func (ec *executionContext) _StopTime_arrival_time(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Seconds)
 	fc.Result = res
-	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐSeconds(ctx, field.Selections, res)
+	return ec.marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTime_arrival_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44493,14 +44451,11 @@ func (ec *executionContext) _StopTime_departure_time(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Seconds)
 	fc.Result = res
-	return ec.marshalNSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐSeconds(ctx, field.Selections, res)
+	return ec.marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐSeconds(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopTime_departure_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46043,14 +45998,11 @@ func (ec *executionContext) _Trip_trip_headsign(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_trip_headsign(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46087,14 +46039,11 @@ func (ec *executionContext) _Trip_trip_short_name(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_trip_short_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46131,14 +46080,11 @@ func (ec *executionContext) _Trip_direction_id(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_direction_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46175,14 +46121,11 @@ func (ec *executionContext) _Trip_block_id(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalNString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_block_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46219,14 +46162,11 @@ func (ec *executionContext) _Trip_wheelchair_accessible(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_wheelchair_accessible(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -46263,14 +46203,11 @@ func (ec *executionContext) _Trip_bikes_allowed(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(tt.Int)
 	fc.Result = res
-	return ec.marshalNInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
+	return ec.marshalOInt2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Trip_bikes_allowed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -55078,9 +55015,6 @@ func (ec *executionContext) _FeedInfo(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._FeedInfo_default_lang(ctx, field, obj)
 		case "feed_version":
 			out.Values[i] = ec._FeedInfo_feed_version(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "feed_start_date":
 			out.Values[i] = ec._FeedInfo_feed_start_date(ctx, field, obj)
 		case "feed_end_date":
@@ -56539,9 +56473,6 @@ func (ec *executionContext) _Frequency(ctx context.Context, sel ast.SelectionSet
 			}
 		case "exact_times":
 			out.Values[i] = ec._Frequency_exact_times(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -57903,16 +57834,13 @@ func (ec *executionContext) _Level(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "level_name":
-			out.Values[i] = ec._Level_level_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "level_index":
 			out.Values[i] = ec._Level_level_index(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "level_name":
+			out.Values[i] = ec._Level_level_name(ctx, field, obj)
 		case "geometry":
 			out.Values[i] = ec._Level_geometry(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -58319,39 +58247,18 @@ func (ec *executionContext) _Pathway(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "length":
 			out.Values[i] = ec._Pathway_length(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "traversal_time":
 			out.Values[i] = ec._Pathway_traversal_time(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "stair_count":
 			out.Values[i] = ec._Pathway_stair_count(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "max_slope":
 			out.Values[i] = ec._Pathway_max_slope(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "min_width":
 			out.Values[i] = ec._Pathway_min_width(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "signposted_as":
 			out.Values[i] = ec._Pathway_signposted_as(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "reverse_signposted_as":
 			out.Values[i] = ec._Pathway_reverse_signposted_as(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "from_stop":
 			field := field
 
@@ -60457,14 +60364,8 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "stop_code":
 			out.Values[i] = ec._Stop_stop_code(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "stop_desc":
 			out.Values[i] = ec._Stop_stop_desc(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "stop_id":
 			out.Values[i] = ec._Stop_stop_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -60472,9 +60373,6 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "stop_name":
 			out.Values[i] = ec._Stop_stop_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "stop_timezone":
 			out.Values[i] = ec._Stop_stop_timezone(ctx, field, obj)
 		case "stop_url":
@@ -61343,14 +61241,8 @@ func (ec *executionContext) _StopTime(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = graphql.MarshalString("StopTime")
 		case "arrival_time":
 			out.Values[i] = ec._StopTime_arrival_time(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "departure_time":
 			out.Values[i] = ec._StopTime_departure_time(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "stop_sequence":
 			out.Values[i] = ec._StopTime_stop_sequence(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -61664,34 +61556,16 @@ func (ec *executionContext) _Trip(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "trip_headsign":
 			out.Values[i] = ec._Trip_trip_headsign(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "trip_short_name":
 			out.Values[i] = ec._Trip_trip_short_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "direction_id":
 			out.Values[i] = ec._Trip_direction_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "block_id":
 			out.Values[i] = ec._Trip_block_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "wheelchair_accessible":
 			out.Values[i] = ec._Trip_wheelchair_accessible(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "bikes_allowed":
 			out.Values[i] = ec._Trip_bikes_allowed(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "stop_pattern_id":
 			out.Values[i] = ec._Trip_stop_pattern_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -67222,6 +67096,16 @@ func (ec *executionContext) marshalOScheduleRelationship2ᚖgithubᚗcomᚋinter
 	if v == nil {
 		return graphql.Null
 	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐSeconds(ctx context.Context, v interface{}) (tt.Seconds, error) {
+	var res tt.Seconds
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSeconds2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐSeconds(ctx context.Context, sel ast.SelectionSet, v tt.Seconds) graphql.Marshaler {
 	return v
 }
 
