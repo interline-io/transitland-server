@@ -88,6 +88,22 @@ var gqlScalarToOASchema = map[string]oa.Schema{
 	"Strings": {
 		Type: oa.NewArraySchema().Type,
 	},
+	"Color": {
+		Type: oa.NewStringSchema().Type,
+	},
+	"Language": {
+		Type: oa.NewStringSchema().Type,
+	},
+	"Url": {
+		Type: oa.NewStringSchema().Type,
+	},
+	"Email": {
+		Type:   oa.NewStringSchema().Type,
+		Format: "email",
+	},
+	"Timezone": {
+		Type: oa.NewStringSchema().Type,
+	},
 	"Any":        {},
 	"Upload":     {},
 	"Key":        {},
