@@ -100,7 +100,8 @@ func escapeWordsWithSuffix(v string, sfx string) []string {
 }
 
 func pfJoinCheck(q sq.SelectBuilder, permFilter *model.PermFilter) sq.SelectBuilder {
-	q = q.Join("feed_states fsp on fsp.feed_id = current_feeds.id")
+	q = q.Join("feed_states fsp on fsp.feed_id = current_feeds.id").
+		Where(sq.Eq{"current_feeds.deleted_at": nil})
 	sqOr := sq.Or{}
 	sqOr = append(sqOr, sq.Expr("fsp.public = true"))
 	sqOr = append(sqOr, In("fsp.feed_id", permFilter.GetAllowedFeeds()))
