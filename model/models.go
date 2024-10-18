@@ -6,6 +6,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/gtfs"
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-lib/service"
 	"github.com/interline-io/transitland-lib/tt"
 )
 
@@ -109,7 +110,7 @@ type CalendarDate struct {
 }
 
 type Shape struct {
-	gtfs.Shape
+	service.ShapeLine
 }
 
 type Level struct {
