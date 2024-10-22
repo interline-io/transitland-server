@@ -134,9 +134,10 @@ type ComplexityRoot struct {
 	}
 
 	CensusField struct {
-		Column     func(childComplexity int) int
-		FieldTitle func(childComplexity int) int
-		ID         func(childComplexity int) int
+		ColumnOrder func(childComplexity int) int
+		FieldName   func(childComplexity int) int
+		FieldTitle  func(childComplexity int) int
+		ID          func(childComplexity int) int
 	}
 
 	CensusGeography struct {
@@ -153,11 +154,12 @@ type ComplexityRoot struct {
 	}
 
 	CensusTable struct {
-		Fields     func(childComplexity int) int
-		ID         func(childComplexity int) int
-		TableGroup func(childComplexity int) int
-		TableName  func(childComplexity int) int
-		TableTitle func(childComplexity int) int
+		Fields       func(childComplexity int) int
+		ID           func(childComplexity int) int
+		TableDetails func(childComplexity int) int
+		TableGroup   func(childComplexity int) int
+		TableName    func(childComplexity int) int
+		TableTitle   func(childComplexity int) int
 	}
 
 	CensusValue struct {
@@ -1660,12 +1662,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Calendar.Wednesday(childComplexity), true
 
-	case "CensusField.column":
-		if e.complexity.CensusField.Column == nil {
+	case "CensusField.column_order":
+		if e.complexity.CensusField.ColumnOrder == nil {
 			break
 		}
 
-		return e.complexity.CensusField.Column(childComplexity), true
+		return e.complexity.CensusField.ColumnOrder(childComplexity), true
+
+	case "CensusField.field_name":
+		if e.complexity.CensusField.FieldName == nil {
+			break
+		}
+
+		return e.complexity.CensusField.FieldName(childComplexity), true
 
 	case "CensusField.field_title":
 		if e.complexity.CensusField.FieldTitle == nil {
@@ -1769,6 +1778,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CensusTable.ID(childComplexity), true
+
+	case "CensusTable.table_details":
+		if e.complexity.CensusTable.TableDetails == nil {
+			break
+		}
+
+		return e.complexity.CensusTable.TableDetails(childComplexity), true
 
 	case "CensusTable.table_group":
 		if e.complexity.CensusTable.TableGroup == nil {
@@ -8387,7 +8403,9 @@ type CensusTable {
   "Census table title"
   table_title: String!
   "Census table group"
-  table_group: String!
+  table_group: String
+  "Additional details, e.g. population universe"
+  table_details: String
   "Individial field definitions for this table"
   fields: [CensusField!]!
 }
@@ -8395,10 +8413,12 @@ type CensusTable {
 type CensusField {
   "Internal integer ID"
   id: Int!
+  "Census field name"
+  field_name: String!
   "Census field title"
   field_title: String!
   "Census field column order"
-  column: Int!
+  column_order: Float
 }
 
 # Realtime updates
@@ -16030,6 +16050,50 @@ func (ec *executionContext) fieldContext_CensusField_id(_ context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _CensusField_field_name(ctx context.Context, field graphql.CollectedField, obj *model.CensusField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusField_field_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FieldName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusField_field_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusField",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CensusField_field_title(ctx context.Context, field graphql.CollectedField, obj *model.CensusField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CensusField_field_title(ctx, field)
 	if err != nil {
@@ -16074,8 +16138,8 @@ func (ec *executionContext) fieldContext_CensusField_field_title(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _CensusField_column(ctx context.Context, field graphql.CollectedField, obj *model.CensusField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CensusField_column(ctx, field)
+func (ec *executionContext) _CensusField_column_order(ctx context.Context, field graphql.CollectedField, obj *model.CensusField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusField_column_order(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -16088,31 +16152,28 @@ func (ec *executionContext) _CensusField_column(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Column, nil
+		return obj.ColumnOrder, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CensusField_column(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CensusField_column_order(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CensusField",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -16719,17 +16780,55 @@ func (ec *executionContext) _CensusTable_table_group(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CensusTable_table_group(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusTable_table_details(ctx context.Context, field graphql.CollectedField, obj *model.CensusTable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusTable_table_details(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TableDetails, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusTable_table_details(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CensusTable",
 		Field:      field,
@@ -16783,10 +16882,12 @@ func (ec *executionContext) fieldContext_CensusTable_fields(_ context.Context, f
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_CensusField_id(ctx, field)
+			case "field_name":
+				return ec.fieldContext_CensusField_field_name(ctx, field)
 			case "field_title":
 				return ec.fieldContext_CensusField_field_title(ctx, field)
-			case "column":
-				return ec.fieldContext_CensusField_column(ctx, field)
+			case "column_order":
+				return ec.fieldContext_CensusField_column_order(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CensusField", field.Name)
 		},
@@ -16929,6 +17030,8 @@ func (ec *executionContext) fieldContext_CensusValue_table(_ context.Context, fi
 				return ec.fieldContext_CensusTable_table_title(ctx, field)
 			case "table_group":
 				return ec.fieldContext_CensusTable_table_group(ctx, field)
+			case "table_details":
+				return ec.fieldContext_CensusTable_table_details(ctx, field)
 			case "fields":
 				return ec.fieldContext_CensusTable_fields(ctx, field)
 			}
@@ -54661,16 +54764,18 @@ func (ec *executionContext) _CensusField(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "field_name":
+			out.Values[i] = ec._CensusField_field_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "field_title":
 			out.Values[i] = ec._CensusField_field_title(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "column":
-			out.Values[i] = ec._CensusField_column(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
+		case "column_order":
+			out.Values[i] = ec._CensusField_column_order(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -54822,9 +54927,8 @@ func (ec *executionContext) _CensusTable(ctx context.Context, sel ast.SelectionS
 			}
 		case "table_group":
 			out.Values[i] = ec._CensusTable_table_group(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
+		case "table_details":
+			out.Values[i] = ec._CensusTable_table_details(ctx, field, obj)
 		case "fields":
 			field := field
 

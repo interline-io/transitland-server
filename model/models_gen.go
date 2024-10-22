@@ -113,11 +113,13 @@ type CalendarDateFilter struct {
 type CensusField struct {
 	// Internal integer ID
 	ID int `json:"id"`
+	// Census field name
+	FieldName string `json:"field_name"`
 	// Census field title
 	FieldTitle string `json:"field_title"`
 	// Census field column order
-	Column  int `json:"column"`
-	TableID int `json:"-"`
+	ColumnOrder *float64 `json:"column_order,omitempty"`
+	TableID     int      `json:"-"`
 }
 
 // Census geography data
@@ -161,7 +163,9 @@ type CensusTable struct {
 	// Census table title
 	TableTitle string `json:"table_title"`
 	// Census table group
-	TableGroup string `json:"table_group"`
+	TableGroup *string `json:"table_group,omitempty"`
+	// Additional details, e.g. population universe
+	TableDetails *string `json:"table_details,omitempty"`
 	// Individial field definitions for this table
 	Fields []*CensusField `json:"fields"`
 }

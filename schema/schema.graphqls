@@ -1135,7 +1135,9 @@ type CensusTable {
   "Census table title"
   table_title: String!
   "Census table group"
-  table_group: String!
+  table_group: String
+  "Additional details, e.g. population universe"
+  table_details: String
   "Individial field definitions for this table"
   fields: [CensusField!]!
 }
@@ -1143,10 +1145,12 @@ type CensusTable {
 type CensusField {
   "Internal integer ID"
   id: Int!
+  "Census field name"
+  field_name: String!
   "Census field title"
   field_title: String!
   "Census field column order"
-  column: Int!
+  column_order: Float
 }
 
 # Realtime updates
