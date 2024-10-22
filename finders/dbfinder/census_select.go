@@ -20,6 +20,7 @@ func CensusGeographySelect(param *model.CensusGeographyParam, entityIds []int) s
 
 	// Include matched entity column
 	cols := []string{
+		"tlcg.id",
 		"tlcg.geometry",
 		"tlcg.layer_name",
 		"tlcg.geoid",
@@ -83,6 +84,10 @@ func CensusValueSelect(param *model.CensusValueParam, geoids []string) sq.Select
 		Where(sq.Eq{"tlcv.geoid": geoids}).
 		Where(sq.Eq{"tlct.table_name": tnames}).
 		OrderBy("tlcv.table_id")
+	if param.Dataset != nil {
+		q = q.Where(sq.Eq{"tlcd.dataset_name": param.Dataset})
+	}
+
 	return q
 }
 

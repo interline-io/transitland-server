@@ -1109,7 +1109,7 @@ type CensusGeography {
   "Census geography polygon"
   geometry: Polygon
   "Census tables containing data for this geography"
-  values(table_names: [String!]!, limit: Int): [CensusValue]!
+  values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
 }
 
 """Census values"""
@@ -1790,7 +1790,7 @@ input TripFilter {
 
 """Search options for census geographies"""
 input CensusGeographyFilter {
-  Dataset: String
+  dataset: String
   layer: String
   radius: Float
 }

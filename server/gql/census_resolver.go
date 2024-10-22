@@ -11,9 +11,9 @@ import (
 
 type censusGeographyResolver struct{ *Resolver }
 
-func (r *censusGeographyResolver) Values(ctx context.Context, obj *model.CensusGeography, tableNames []string, limit *int) (ents []*model.CensusValue, err error) {
+func (r *censusGeographyResolver) Values(ctx context.Context, obj *model.CensusGeography, tableNames []string, datasetName *string, limit *int) (ents []*model.CensusValue, err error) {
 	// dataloader cant easily pass []string
-	return For(ctx).CensusValuesByGeographyID.Load(ctx, model.CensusValueParam{TableNames: strings.Join(tableNames, ","), Limit: limit, Geoid: *obj.Geoid})()
+	return For(ctx).CensusValuesByGeographyID.Load(ctx, model.CensusValueParam{Dataset: datasetName, TableNames: strings.Join(tableNames, ","), Limit: limit, Geoid: *obj.Geoid})()
 }
 
 type censusValueResolver struct{ *Resolver }

@@ -171,6 +171,7 @@ type CensusGeographyParam struct {
 }
 
 type CensusValueParam struct {
+	Dataset    *string
 	Geoid      string
 	TableNames string // these have to be comma joined for now, []string cant be used as map key
 	Limit      *int

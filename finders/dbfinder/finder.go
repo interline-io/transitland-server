@@ -1672,6 +1672,7 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 		func(p model.CensusValueParam) (string, *model.CensusValueParam, *int) {
 			rp := model.CensusValueParam{
 				TableNames: p.TableNames,
+				Dataset:    p.Dataset,
 			}
 			return p.Geoid, &rp, p.Limit
 		},

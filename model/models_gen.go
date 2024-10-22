@@ -149,7 +149,7 @@ type CensusGeography struct {
 
 // Search options for census geographies
 type CensusGeographyFilter struct {
-	Dataset *string  `json:"Dataset,omitempty"`
+	Dataset *string  `json:"dataset,omitempty"`
 	Layer   *string  `json:"layer,omitempty"`
 	Radius  *float64 `json:"radius,omitempty"`
 }
