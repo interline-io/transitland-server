@@ -150,7 +150,7 @@ type ComplexityRoot struct {
 		LayerName   func(childComplexity int) int
 		Name        func(childComplexity int) int
 		SourceName  func(childComplexity int) int
-		Values      func(childComplexity int, tableNames []string, limit *int) int
+		Values      func(childComplexity int, tableNames []string, dataset *string, limit *int) int
 	}
 
 	CensusTable struct {
@@ -1092,7 +1092,7 @@ type CalendarResolver interface {
 	RemovedDates(ctx context.Context, obj *model.Calendar, limit *int) ([]*tt.Date, error)
 }
 type CensusGeographyResolver interface {
-	Values(ctx context.Context, obj *model.CensusGeography, tableNames []string, limit *int) ([]*model.CensusValue, error)
+	Values(ctx context.Context, obj *model.CensusGeography, tableNames []string, dataset *string, limit *int) ([]*model.CensusValue, error)
 }
 type CensusTableResolver interface {
 	Fields(ctx context.Context, obj *model.CensusTable) ([]*model.CensusField, error)
@@ -1763,7 +1763,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.CensusGeography.Values(childComplexity, args["table_names"].([]string), args["limit"].(*int)), true
+		return e.complexity.CensusGeography.Values(childComplexity, args["table_names"].([]string), args["dataset"].(*string), args["limit"].(*int)), true
 
 	case "CensusTable.fields":
 		if e.complexity.CensusTable.Fields == nil {
@@ -8377,7 +8377,7 @@ type CensusGeography {
   "Census geography polygon"
   geometry: Polygon
   "Census tables containing data for this geography"
-  values(table_names: [String!]!, limit: Int): [CensusValue]!
+  values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
 }
 
 """Census values"""
@@ -9058,7 +9058,7 @@ input TripFilter {
 
 """Search options for census geographies"""
 input CensusGeographyFilter {
-  Dataset: String
+  dataset: String
   layer: String
   radius: Float
 }
@@ -9616,11 +9616,16 @@ func (ec *executionContext) field_CensusGeography_values_args(ctx context.Contex
 		return nil, err
 	}
 	args["table_names"] = arg0
-	arg1, err := ec.field_CensusGeography_values_argsLimit(ctx, rawArgs)
+	arg1, err := ec.field_CensusGeography_values_argsDataset(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["limit"] = arg1
+	args["dataset"] = arg1
+	arg2, err := ec.field_CensusGeography_values_argsLimit(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg2
 	return args, nil
 }
 func (ec *executionContext) field_CensusGeography_values_argsTableNames(
@@ -9642,6 +9647,28 @@ func (ec *executionContext) field_CensusGeography_values_argsTableNames(
 	}
 
 	var zeroVal []string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_CensusGeography_values_argsDataset(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["dataset"]
+	if !ok {
+		var zeroVal *string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("dataset"))
+	if tmp, ok := rawArgs["dataset"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
 	return zeroVal, nil
 }
 
@@ -16574,7 +16601,7 @@ func (ec *executionContext) _CensusGeography_values(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CensusGeography().Values(rctx, obj, fc.Args["table_names"].([]string), fc.Args["limit"].(*int))
+		return ec.resolvers.CensusGeography().Values(rctx, obj, fc.Args["table_names"].([]string), fc.Args["dataset"].(*string), fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -52241,15 +52268,15 @@ func (ec *executionContext) unmarshalInputCensusGeographyFilter(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"Dataset", "layer", "radius"}
+	fieldsInOrder := [...]string{"dataset", "layer", "radius"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "Dataset":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Dataset"))
+		case "dataset":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dataset"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
