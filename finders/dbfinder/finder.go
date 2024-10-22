@@ -1650,10 +1650,9 @@ func (f *Finder) CensusGeographiesByEntityID(ctx context.Context, params []model
 		params,
 		func(p model.CensusGeographyParam) (int, *model.CensusGeographyParam, *int) {
 			rp := model.CensusGeographyParam{
-				Radius:     p.Radius,
-				LayerName:  p.LayerName,
 				EntityType: p.EntityType,
 				Limit:      p.Limit,
+				Where:      p.Where,
 			}
 			return p.EntityID, &rp, p.Limit
 		},
@@ -1670,13 +1669,13 @@ func (f *Finder) CensusGeographiesByEntityID(ctx context.Context, params []model
 func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.CensusValueParam) ([][]*model.CensusValue, []error) {
 	return paramGroupQuery(
 		params,
-		func(p model.CensusValueParam) (int, *model.CensusValueParam, *int) {
+		func(p model.CensusValueParam) (string, *model.CensusValueParam, *int) {
 			rp := model.CensusValueParam{
 				TableNames: p.TableNames,
 			}
-			return p.GeographyID, &rp, p.Limit
+			return p.Geoid, &rp, p.Limit
 		},
-		func(keys []int, where *model.CensusValueParam, limit *int) (ents []*model.CensusValue, err error) {
+		func(keys []string, where *model.CensusValueParam, limit *int) (ents []*model.CensusValue, err error) {
 			err = dbutil.Select(
 				ctx,
 				f.db,
@@ -1685,8 +1684,35 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 			)
 			return ents, err
 		},
-		func(ent *model.CensusValue) int {
-			return ent.GeographyID
+		func(ent *model.CensusValue) string {
+			return ent.Geoid
+		},
+	)
+}
+
+func (f *Finder) CensusFieldsByTableID(ctx context.Context, params []model.CensusFieldParam) ([][]*model.CensusField, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.CensusFieldParam) (int, *model.CensusFieldParam, *int) {
+			return p.TableID, nil, p.Limit
+		},
+		func(keys []int, where *model.CensusFieldParam, limit *int) (ents []*model.CensusField, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelectOrder("tl_census_fields", limit, nil, nil, "id"),
+					"tl_census_tables",
+					"id",
+					"tl_census_fields",
+					"table_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.CensusField) int {
+			return ent.TableID
 		},
 	)
 }

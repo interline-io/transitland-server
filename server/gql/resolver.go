@@ -179,6 +179,14 @@ func (r *Resolver) CensusGeography() gqlout.CensusGeographyResolver {
 	return &censusGeographyResolver{r}
 }
 
+func (r *Resolver) CensusValue() gqlout.CensusValueResolver {
+	return &censusValueResolver{r}
+}
+
+func (r *Resolver) CensusTable() gqlout.CensusTableResolver {
+	return &censusTableResolver{r}
+}
+
 // Pathway .
 func (r *Resolver) Pathway() gqlout.PathwayResolver {
 	return &pathwayResolver{r}

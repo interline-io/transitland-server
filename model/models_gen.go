@@ -110,10 +110,26 @@ type CalendarDateFilter struct {
 	ExceptionType *int `json:"exception_type,omitempty"`
 }
 
+type CensusField struct {
+	// Internal integer ID
+	ID int `json:"id"`
+	// Census field name
+	FieldName string `json:"field_name"`
+	// Census field title
+	FieldTitle string `json:"field_title"`
+	// Census field column order
+	ColumnOrder *float64 `json:"column_order,omitempty"`
+	TableID     int      `json:"-"`
+}
+
 // Census geography data
 type CensusGeography struct {
 	// Internal integer ID
 	ID int `json:"id"`
+	// Dataset name, e.g. acsdt5y2022
+	DatasetName string `json:"dataset_name"`
+	// Source name, e.g. tl_2024_01_tract.zip
+	SourceName string `json:"source_name"`
 	// Census geography source layer
 	LayerName string `json:"layer_name"`
 	// Census geography GEOID
@@ -131,6 +147,13 @@ type CensusGeography struct {
 	MatchEntityID int            `json:"-"`
 }
 
+// Search options for census geographies
+type CensusGeographyFilter struct {
+	Dataset *string  `json:"Dataset,omitempty"`
+	Layer   *string  `json:"layer,omitempty"`
+	Radius  *float64 `json:"radius,omitempty"`
+}
+
 // Census table metadata
 type CensusTable struct {
 	// Internal integer ID
@@ -140,15 +163,25 @@ type CensusTable struct {
 	// Census table title
 	TableTitle string `json:"table_title"`
 	// Census table group
-	TableGroup string `json:"table_group"`
+	TableGroup *string `json:"table_group,omitempty"`
+	// Additional details, e.g. population universe
+	TableDetails *string `json:"table_details,omitempty"`
+	// Individial field definitions for this table
+	Fields []*CensusField `json:"fields"`
 }
 
 // Census values
 type CensusValue struct {
+	// Dataset name, e.g. acsdt5y2022
+	DatasetName string `json:"dataset_name"`
+	// Source name, e.g. tl_2024_01_tract.zip
+	SourceName string `json:"source_name"`
 	// Source table
 	Table *CensusTable `json:"table"`
 	// Column:Value for this table
-	Values      tt.Map `json:"values"`
+	Values tt.Map `json:"values"`
+	// GEOID of associated census geography
+	Geoid       string `json:"geoid"`
 	GeographyID int    `json:"-"`
 	TableID     int    `json:"-"`
 }
