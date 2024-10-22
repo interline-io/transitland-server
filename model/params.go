@@ -164,21 +164,25 @@ type CalendarDateParam struct {
 }
 
 type CensusGeographyParam struct {
-	Radius     *float64
-	LayerName  string
 	EntityType string
 	EntityID   int
 	Limit      *int
+	Where      *CensusGeographyFilter
 }
 
 type CensusValueParam struct {
-	GeographyID int
-	TableNames  string // these have to be comma joined for now, []string cant be used as map key
-	Limit       *int
+	Geoid      string
+	TableNames string // these have to be comma joined for now, []string cant be used as map key
+	Limit      *int
 }
 
 type CensusTableParam struct {
 	Limit *int
+}
+
+type CensusFieldParam struct {
+	Limit   *int
+	TableID int
 }
 
 type RouteStopBufferParam struct {

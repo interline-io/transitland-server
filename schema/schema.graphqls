@@ -488,7 +488,7 @@ type Agency {
   "Routes associated with this agency"
   routes(limit: Int, where: RouteFilter): [Route!]!
   "Census geographies associated with this agency"
-  census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  census_geographies(limit: Int, where: CensusGeographyFilter): [CensusGeography!]
   "GTFS-RT alerts for this agency"
   alerts(active: Boolean, limit: Int): [Alert!]
 }
@@ -546,7 +546,7 @@ type Route {
   "Representative geometries for this route"
   geometries(limit: Int): [RouteGeometry!]!
   "Census geographies associated with this route"
-  census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  census_geographies(limit: Int, where: CensusGeographyFilter): [CensusGeography!]
   "Calculated spatial buffer geometry around this route"
   route_stop_buffer(radius: Float): RouteStopBuffer!
   "Stop patterns for this route"
@@ -624,7 +624,7 @@ type Stop {
   "State/Province associated with this stop"
   place: StopPlace
   "Census geographies associated with this stop"
-  census_geographies(layer: String!, radius: Float, limit: Int): [CensusGeography!]
+  census_geographies(limit: Int, where: CensusGeographyFilter): [CensusGeography!]
   "Directions from this stop"
   directions(to:WaypointInput, from: WaypointInput, mode: StepMode, depart_at: Time): Directions!
   "Stops within a specified radius of this stop"
@@ -1092,6 +1092,10 @@ type RouteAttribute {
 type CensusGeography {
   "Internal integer ID"
   id: Int!
+  "Dataset name, e.g. acsdt5y2022"
+  dataset_name: String!
+  "Source name, e.g. tl_2024_01_tract.zip"
+  source_name: String!
   "Census geography source layer"
   layer_name: String!
   "Census geography GEOID"
@@ -1110,10 +1114,16 @@ type CensusGeography {
 
 """Census values"""
 type CensusValue {
+  "Dataset name, e.g. acsdt5y2022"
+  dataset_name: String!
+  "Source name, e.g. tl_2024_01_tract.zip"
+  source_name: String!
   "Source table"
   table: CensusTable!
   "Column:Value for this table"
   values: Map!
+  "GEOID of associated census geography"
+  geoid: String!
 }
 
 """Census table metadata"""
@@ -1126,6 +1136,17 @@ type CensusTable {
   table_title: String!
   "Census table group"
   table_group: String!
+  "Individial field definitions for this table"
+  fields: [CensusField!]!
+}
+
+type CensusField {
+  "Internal integer ID"
+  id: Int!
+  "Census field title"
+  field_title: String!
+  "Census field column order"
+  column: Int!
 }
 
 # Realtime updates
@@ -1761,6 +1782,13 @@ input TripFilter {
   feed_version_sha1: String
   "Search for trips with this feed OnestopID"
   feed_onestop_id: String
+}
+
+"""Search options for census geographies"""
+input CensusGeographyFilter {
+  Dataset: String
+  layer: String
+  radius: Float
 }
 
 """Search options for route segments"""

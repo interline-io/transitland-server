@@ -224,9 +224,19 @@ models:
       MatchEntityID:
         type: int      
   CensusValue:
+    fields:
+      table:
+        resolver: true
     extraFields:
       GeographyID:
         type: int
       TableID:
         type: int
-  
+  CensusTable:
+    fields:
+      fields:
+        resolver: true
+  CensusField:
+    extraFields:
+      TableID: 
+        type: int

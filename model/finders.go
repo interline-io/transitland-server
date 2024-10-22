@@ -70,8 +70,8 @@ type EntityLoader interface {
 	StopObservationsByStopID(context.Context, []StopObservationParam) ([][]*StopObservation, []error)
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
 	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
-	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 	FeedVersionGeometryByID(context.Context, []int) ([]*tt.Polygon, []error)
+	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 
 	// Segments
 	SegmentPatternsByRouteID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
@@ -120,6 +120,7 @@ type EntityLoader interface {
 	CalendarDatesByServiceID(context.Context, []CalendarDateParam) ([][]*CalendarDate, []error)
 	CensusGeographiesByEntityID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
 	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
+	CensusFieldsByTableID(context.Context, []CensusFieldParam) ([][]*CensusField, []error)
 
 	// Validation reports
 	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
