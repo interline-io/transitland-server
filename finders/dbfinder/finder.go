@@ -1548,7 +1548,7 @@ func (f *Finder) CalendarDatesByServiceID(ctx context.Context, params []model.Ca
 			return ents, err
 		},
 		func(ent *model.CalendarDate) int {
-			return atoi(ent.ServiceID)
+			return ent.ServiceID.Int()
 		},
 	)
 }
