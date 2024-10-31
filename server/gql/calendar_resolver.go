@@ -19,7 +19,8 @@ func (r *calendarResolver) AddedDates(ctx context.Context, obj *model.Calendar, 
 	ret := []*tt.Date{}
 	for _, ent := range ents {
 		if ent.ExceptionType.Val == 1 {
-			ret = append(ret, &ent.Date)
+			x := tt.NewDate(ent.Date.Val)
+			ret = append(ret, &x)
 		}
 	}
 	return ret, nil
@@ -33,7 +34,8 @@ func (r *calendarResolver) RemovedDates(ctx context.Context, obj *model.Calendar
 	ret := []*tt.Date{}
 	for _, ent := range ents {
 		if ent.ExceptionType.Val == 2 {
-			ret = append(ret, &ent.Date)
+			x := tt.NewDate(ent.Date.Val)
+			ret = append(ret, &x)
 		}
 	}
 	return ret, nil
