@@ -79,9 +79,9 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		"gtfs_trips.feed_version_id",
 		"sts.stop_id",
 		// "sts.arrival_time + gtfs_trips.journey_pattern_offset AS arrival_time",
-		"sts.arrival_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.start, 0) AS arrival_time",
+		"sts.arrival_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.freq_start, 0) AS arrival_time",
 		// "sts.departure_time + gtfs_trips.journey_pattern_offset AS departure_time",
-		"sts.departure_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.start, 0) AS departure_time",
+		"sts.departure_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.freq_start, 0) AS departure_time",
 		"sts.stop_sequence",
 		"sts.shape_dist_traveled",
 		"sts.pickup_type",
@@ -153,7 +153,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		JoinClause(`left join (
 				select 
 					trip_id,
-					generate_series(start_time, end_time, headway_secs) start
+					generate_series(start_time, end_time, headway_secs) freq_start
 				from gtfs_frequencies
 			) freq on freq.trip_id = gtfs_trips.id`).
 		Where(
