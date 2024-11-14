@@ -78,9 +78,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		"gtfs_trips.id AS trip_id",
 		"gtfs_trips.feed_version_id",
 		"sts.stop_id",
-		// "sts.arrival_time + gtfs_trips.journey_pattern_offset AS arrival_time",
 		"sts.arrival_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.freq_start, 0) AS arrival_time",
-		// "sts.departure_time + gtfs_trips.journey_pattern_offset AS departure_time",
 		"sts.departure_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.freq_start, 0) AS departure_time",
 		"sts.stop_sequence",
 		"sts.shape_dist_traveled",
@@ -107,6 +105,12 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 				sts2.trip_id = t2.id 
 				AND sts2.feed_version_id = t2.feed_version_id
 			) trip_stop_sequence on true`).
+		JoinClause(`left join lateral (
+				select
+					generate_series(start_time, end_time, headway_secs) freq_start
+				from gtfs_frequencies
+				where gtfs_frequencies.trip_id = gtfs_trips.id
+			) freq on true`).
 		JoinClause(`join (
 			SELECT
 				id
@@ -150,18 +154,11 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			fvids,
 			serviceDate,
 			fvids).
-		JoinClause(`left join (
-				select 
-					trip_id,
-					feed_version_id,
-					generate_series(start_time, end_time, headway_secs) freq_start
-				from gtfs_frequencies
-			) freq on freq.trip_id = gtfs_trips.id AND freq.feed_version_id = gtfs_trips.feed_version_id`).
 		Where(
 			In("sts.stop_id", sids),
 			In("sts.feed_version_id", fvids),
 		).
-		OrderBy("sts.departure_time + gtfs_trips.journey_pattern_offset", "sts.trip_id") // base + offset
+		OrderBy("sts.departure_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.freq_start, 0)", "sts.trip_id") // base + offset
 
 	if where != nil {
 		if where.ExcludeFirst != nil && *where.ExcludeFirst {
@@ -203,10 +200,10 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			where.EndTime = ptr(where.End.Int())
 		}
 		if where.StartTime != nil {
-			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": *where.StartTime})
+			q = q.Where(sq.GtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.freq_start, 0)": *where.StartTime})
 		}
 		if where.EndTime != nil {
-			q = q.Where(sq.LtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset": *where.EndTime})
+			q = q.Where(sq.LtOrEq{"sts.departure_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.freq_start, 0)": *where.EndTime})
 		}
 	}
 	return q
