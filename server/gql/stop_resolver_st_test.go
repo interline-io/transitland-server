@@ -418,6 +418,16 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 func TestStopResolver_StopTimes_Frequencies(t *testing.T) {
 	testcases := []testcaseWithClock{
 		{
+			// Verified; 6:00:00 -> 22:00:00, 1800 headway_secs
+			testcase: testcase{
+				name:         "frequencies",
+				query:        `query{ stops(where:{feed_version_sha1: "43e2278aa272879c79460582152b04e7487f0493", stop_id:"STAGECOACH"}) { stop_times(where:{service_date:"2007-01-02", route_onestop_ids: ["r-9qscy-30"]}) {departure_time}}}`,
+				selector:     "stops.0.stop_times.#.departure_time",
+				selectExpect: []string{"06:00:00", "06:30:00", "07:00:00", "07:30:00", "08:00:00", "08:30:00", "09:00:00", "09:30:00", "10:00:00", "10:30:00", "11:00:00", "11:30:00", "12:00:00", "12:30:00", "13:00:00", "13:30:00", "14:00:00", "14:30:00", "15:00:00", "15:30:00", "16:00:00", "16:30:00", "17:00:00", "17:30:00", "18:00:00", "18:30:00", "19:00:00", "19:30:00", "20:00:00", "20:30:00", "21:00:00", "21:30:00", "22:00:00"},
+			},
+		},
+		{
+			// Verified; multiple frequencies over course of day
 			testcase: testcase{
 				name:         "frequencies",
 				query:        `query{ stops(where:{feed_version_sha1: "43e2278aa272879c79460582152b04e7487f0493", stop_id:"NADAV"}) { stop_times(where:{service_date:"2007-01-02"}) {departure_time}}}`,

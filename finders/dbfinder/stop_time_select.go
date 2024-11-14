@@ -99,9 +99,9 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id and sts.feed_version_id = t2.feed_version_id").
 		JoinClause(`join lateral (
 			select 
-				min(departure_time) first_departure_time,
-				min(stop_sequence), 
-				max(stop_sequence) max 
+				min(sts2.departure_time) first_departure_time,
+				min(sts2.stop_sequence), 
+				max(sts2.stop_sequence) max 
 			from gtfs_stop_times sts2 
 			where 
 				sts2.trip_id = t2.id 
@@ -126,7 +126,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 				END)
 				AND feed_version_id = ANY(?)
 			UNION
-			SELect
+			SELECT
 				service_id as id
 			FROM
 				gtfs_calendar_dates
@@ -153,9 +153,10 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		JoinClause(`left join (
 				select 
 					trip_id,
+					feed_version_id,
 					generate_series(start_time, end_time, headway_secs) freq_start
 				from gtfs_frequencies
-			) freq on freq.trip_id = gtfs_trips.id`).
+			) freq on freq.trip_id = gtfs_trips.id AND freq.feed_version_id = gtfs_trips.feed_version_id`).
 		Where(
 			In("sts.stop_id", sids),
 			In("sts.feed_version_id", fvids),
