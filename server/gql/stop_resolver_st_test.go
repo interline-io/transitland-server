@@ -415,6 +415,28 @@ func TestStopResolver_StopTimes_Next(t *testing.T) {
 	}
 }
 
+func TestStopResolver_StopTimes_Frequencies(t *testing.T) {
+	testcases := []testcaseWithClock{
+		{
+			testcase: testcase{
+				name:         "frequencies",
+				query:        `query{ stops(where:{feed_version_sha1: "43e2278aa272879c79460582152b04e7487f0493", stop_id:"NADAV"}) { stop_times(where:{service_date:"2007-01-02"}) {arrival_time}}}`,
+				selector:     "stops.0.stop_times.#.arrival_time",
+				selectExpect: []string{"06:12:00", "06:12:00", "06:42:00", "06:42:00", "07:12:00", "07:12:00", "07:42:00", "07:42:00", "08:12:00", "08:12:00", "08:22:00", "08:22:00", "08:32:00", "08:32:00", "08:42:00", "08:42:00", "08:52:00", "08:52:00", "09:02:00", "09:02:00", "09:12:00", "09:12:00", "09:22:00", "09:22:00", "09:32:00", "09:32:00", "09:42:00", "09:42:00", "09:52:00", "09:52:00", "10:02:00", "10:02:00", "10:12:00", "10:12:00", "10:42:00", "10:42:00", "11:12:00", "11:12:00", "11:42:00", "12:12:00", "12:42:00", "13:12:00", "13:42:00", "14:12:00", "14:42:00", "14:42:00", "15:12:00", "15:12:00", "15:42:00", "15:42:00", "16:12:00", "16:12:00", "16:22:00", "16:22:00", "16:32:00", "16:32:00", "16:42:00", "16:42:00", "16:52:00", "16:52:00", "17:02:00", "17:02:00", "17:12:00", "17:12:00", "17:22:00", "17:22:00", "17:32:00", "17:32:00", "17:42:00", "17:42:00", "17:52:00", "17:52:00", "18:02:00", "18:02:00", "18:12:00", "18:12:00", "18:22:00", "18:22:00", "18:32:00", "18:32:00", "18:42:00", "18:42:00", "18:52:00", "18:52:00", "19:02:00", "19:02:00", "19:12:00", "19:12:00", "19:42:00", "19:42:00", "20:12:00", "20:12:00", "20:42:00", "20:42:00", "21:12:00", "21:12:00", "21:42:00", "21:42:00", "22:12:00", "22:12:00"},
+			},
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, _ := newTestClientWithOpts(t, testconfig.Options{
+				WhenUtc: tc.whenUtc,
+				RTJsons: testconfig.DefaultRTJson(),
+			})
+			queryTestcase(t, c, tc.testcase)
+		})
+	}
+}
+
 func TestStopResolver_StopTimes_RelativeDates(t *testing.T) {
 	q := `query($stop_id:String!,$relative_date:RelativeDate,$next:Int,$start:Seconds,$end:Seconds,$ed:Boolean){ stops(where:{stop_id:$stop_id}) { stop_times(where:{relative_date:$relative_date, start:$start, end:$end, next:$next use_service_window:$ed}) {trip { id trip_id } date service_date arrival_time}}}`
 	testcases := []testcaseWithClock{
