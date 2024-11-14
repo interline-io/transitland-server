@@ -78,8 +78,6 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		"gtfs_trips.id AS trip_id",
 		"gtfs_trips.feed_version_id",
 		"sts.stop_id",
-		"sts.arrival_time + gtfs_trips.journey_pattern_offset AS arrival_time",
-		"sts.departure_time + gtfs_trips.journey_pattern_offset AS departure_time",
 		// "sts.arrival_time + gtfs_trips.journey_pattern_offset AS arrival_time",
 		"sts.arrival_time + gtfs_trips.journey_pattern_offset + coalesce(-trip_stop_sequence.first_departure_time + freq.start, 0) AS arrival_time",
 		// "sts.departure_time + gtfs_trips.journey_pattern_offset AS departure_time",
