@@ -107,12 +107,6 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 				sts2.trip_id = t2.id 
 				AND sts2.feed_version_id = t2.feed_version_id
 			) trip_stop_sequence on true`).
-		JoinClause(`left join (
-			select 
-				trip_id,
-				generate_series(start_time, end_time, headway_secs) start
-			from gtfs_frequencies
-		) freq on freq.trip_id = gtfs_trips.id`).
 		JoinClause(`join (
 			SELECT
 				id
@@ -156,6 +150,12 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			fvids,
 			serviceDate,
 			fvids).
+		JoinClause(`left join (
+				select 
+					trip_id,
+					generate_series(start_time, end_time, headway_secs) start
+				from gtfs_frequencies
+			) freq on freq.trip_id = gtfs_trips.id`).
 		Where(
 			In("sts.stop_id", sids),
 			In("sts.feed_version_id", fvids),
