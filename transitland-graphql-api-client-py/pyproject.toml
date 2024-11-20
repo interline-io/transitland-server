@@ -1,0 +1,5 @@
+[tool.ariadne-codegen]
+schema_path = "../schema/"
+queries_path = "../server/rest/feed_request.gql"
+remote_schema_headers = { apikey = "$TRANSITLAND_API_KEY" }
+target_package_name = "transitland_graphql_api_client_py"

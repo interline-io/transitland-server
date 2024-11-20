@@ -1,4 +1,4 @@
-query($limit: Int, $ids: [Int!], $after: Int, $where: FeedFilter) {
+query GetFeeds($limit: Int, $ids: [Int!], $after: Int, $where: FeedFilter) {
 	feeds(limit: $limit, ids: $ids, after: $after, where: $where) {
 	  id
 	  spec
