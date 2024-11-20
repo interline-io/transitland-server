@@ -18,10 +18,10 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
-	github.com/interline-io/transitland-dbutil v0.0.0-20241007223837-7564820963d3
-	github.com/interline-io/transitland-jobs v0.0.0-20241007224018-cfcf2ea0fd72
-	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20241116001400-c8b81c8236bd
-	github.com/interline-io/transitland-mw v0.0.0-20241007223948-3ff905d6e27e
+	github.com/interline-io/transitland-dbutil v0.0.0-20241120224434-2e3739fc7cae
+	github.com/interline-io/transitland-jobs v0.0.0-20241120224642-53ba60bc1639
+	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20241120224457-6fef57545eec
+	github.com/interline-io/transitland-mw v0.0.0-20241120224607-1a0e8e642494
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
