@@ -2,10 +2,12 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/interline-io/transitland-server/internal/directions"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/authn"
 )
 
 // AutoTrafficMode represents the traffic mode for auto routing
@@ -23,16 +25,21 @@ type EtaRequest struct {
 	ToLat           float64         `json:"tolat,string"`
 	ToLon           float64         `json:"tolon,string"`
 	Mode            string          `json:"mode"`
-	DepartAt        string          `json:"departure"`
+	DepartAtDate    string          `json:"depart_at_date"`
+	DepartAtTime    string          `json:"depart_at_time"`
 	AutoTrafficMode AutoTrafficMode `json:"auto_traffic_mode"`
 	Date            string          `json:"date"`
 	Time            string          `json:"time"`
 	WithCursor
 }
 
-func (r *EtaRequest) SetDateTime(departAt time.Time) {
-	r.Date = departAt.Format("2006-01-02")
-	r.Time = departAt.Format("15:04:05")
+func (r *EtaRequest) SetDepartureDateTime(departAt *time.Time) {
+	now := time.Now()
+	if departAt == nil {
+		departAt = &now
+	}
+	r.DepartAtDate = departAt.Format("2006-01-02")
+	r.DepartAtTime = departAt.Format("15:04:05")
 }
 
 func (r *EtaRequest) Query(ctx context.Context) (string, map[string]interface{}) {
@@ -40,14 +47,21 @@ func (r *EtaRequest) Query(ctx context.Context) (string, map[string]interface{})
 	vars["from"] = hw{"lat": r.FromLat, "lon": r.FromLon}
 	vars["to"] = hw{"lat": r.ToLat, "lon": r.ToLon}
 
-	// Parse departure time or use current time
-	departAt := time.Now()
-	if r.DepartAt != "" {
-		if t, err := time.Parse(time.RFC3339, r.DepartAt); err == nil {
-			departAt = t
-		}
+	// Check if user has tl_pro role for live traffic
+	user := authn.ForContext(ctx)
+	if user == nil || !user.HasRole("tl_pro") {
+		r.AutoTrafficMode = SpeedLimits
 	}
-	r.SetDateTime(departAt)
+
+	// Set default AutoTrafficMode if not provided
+	if r.AutoTrafficMode == "" {
+		r.AutoTrafficMode = SpeedLimits
+	}
+
+	// Set departure date/time, defaulting to current time if not specified
+	r.SetDepartureDateTime(r.DepartAt)
+	vars["depart_at_date"] = r.DepartAtDate
+	vars["depart_at_time"] = r.DepartAtTime
 
 	// Handle mode selection
 	modes := []model.StepMode{model.StepModeAuto, model.StepModeBicycle, model.StepModeWalk, model.StepModeTransit}
@@ -64,19 +78,14 @@ func (r *EtaRequest) Query(ctx context.Context) (string, map[string]interface{})
 		}
 	}
 
-	// Set default AutoTrafficMode if not provided
-	if r.AutoTrafficMode == "" {
-		r.AutoTrafficMode = SpeedLimits
-	}
-
 	// Build response
 	response := make(map[string]interface{})
 	for _, mode := range modes {
 		req := model.DirectionRequest{
-			From:     &model.WaypointInput{Lat: r.FromLat, Lon: r.FromLon},
-			To:       &model.WaypointInput{Lat: r.ToLat, Lon: r.ToLon},
-			Mode:     mode,
-			DepartAt: &departAt,
+				From:     &model.WaypointInput{Lat: r.FromLat, Lon: r.FromLon},
+				To:       &model.WaypointInput{Lat: r.ToLat, Lon: r.ToLon},
+				Mode:     mode,
+				DepartAt: &r.DepartAtTime,
 		}
 
 		var dir *model.Directions
