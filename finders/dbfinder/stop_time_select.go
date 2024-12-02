@@ -137,22 +137,21 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		Join("gtfs_trips base_trip ON base_trip.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = base_trip.feed_version_id").
 		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
 		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
+		JoinClause(`left join lateral (
+			select
+				generate_series(start_time, end_time, headway_secs) freq_start
+			from gtfs_frequencies
+			where gtfs_frequencies.trip_id = gtfs_trips.id
+			) freq on true`).
 		JoinClause(`join lateral (
 			select 
 				min(sts2.departure_time) first_departure_time,
-				min(sts2.stop_sequence), 
-				max(sts2.stop_sequence) max 
+				min(sts2.stop_sequence) stop_sequence_min, 
+				max(sts2.stop_sequence) stop_sequence_max 
 			from gtfs_stop_times sts2 
 			where 
-				sts2.trip_id = base_trip.id 
-				AND sts2.feed_version_id = base_trip.feed_version_id
+				sts2.trip_id = base_trip.id and sts2.feed_version_id = base_trip.feed_version_id
 			) trip_stop_sequence on true`).
-		JoinClause(`left join lateral (
-				select
-					generate_series(start_time, end_time, headway_secs) freq_start
-				from gtfs_frequencies
-				where gtfs_frequencies.trip_id = gtfs_trips.id
-			) freq on true`).
 		JoinClause(`join lateral (
 			select 
 				sts.*,
@@ -175,10 +174,10 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 
 	if where != nil {
 		if where.ExcludeFirst != nil && *where.ExcludeFirst {
-			q = q.Where("sts.stop_sequence > trip_stop_sequence.min")
+			q = q.Where("sts.stop_sequence > trip_stop_sequence.stop_sequence_min")
 		}
 		if where.ExcludeLast != nil && *where.ExcludeLast {
-			q = q.Where("sts.stop_sequence < trip_stop_sequence.max")
+			q = q.Where("sts.stop_sequence < trip_stop_sequence.stop_sequence_max")
 		}
 		if len(where.RouteOnestopIds) > 0 {
 			if where.AllowPreviousRouteOnestopIds != nil && *where.AllowPreviousRouteOnestopIds {
