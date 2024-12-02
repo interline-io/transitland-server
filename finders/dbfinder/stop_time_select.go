@@ -91,9 +91,6 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 		"sts.continuous_drop_off",
 	).
 		From("gtfs_trips").
-		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
-		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
-		Join("gtfs_trips base_trip ON base_trip.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = base_trip.feed_version_id").
 		JoinClause(`join (
 			SELECT
 				id
@@ -137,13 +134,9 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 			fvids,
 			serviceDate,
 			fvids).
-		// Join("gtfs_stop_times sts ON sts.trip_id = base_trip.id and sts.feed_version_id = base_trip.feed_version_id").
-		JoinClause(`left join lateral (
-				select
-					generate_series(start_time, end_time, headway_secs) freq_start
-				from gtfs_frequencies
-				where gtfs_frequencies.trip_id = gtfs_trips.id
-			) freq on true`).
+		Join("gtfs_trips base_trip ON base_trip.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = base_trip.feed_version_id").
+		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
+		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
 		JoinClause(`join lateral (
 			select 
 				min(sts2.departure_time) first_departure_time,
@@ -154,6 +147,12 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 				sts2.trip_id = base_trip.id 
 				AND sts2.feed_version_id = base_trip.feed_version_id
 			) trip_stop_sequence on true`).
+		JoinClause(`left join lateral (
+				select
+					generate_series(start_time, end_time, headway_secs) freq_start
+				from gtfs_frequencies
+				where gtfs_frequencies.trip_id = gtfs_trips.id
+			) freq on true`).
 		JoinClause(`join lateral (
 			select 
 				sts.*,
@@ -165,7 +164,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 					- trip_stop_sequence.first_departure_time + freq.freq_start,
 					0
 				) AS departure_time_freq
-			from gtfs_stop_times sts 
+			from gtfs_stop_times sts
 			where sts.trip_id = base_trip.id and sts.feed_version_id = base_trip.feed_version_id		
 			) sts on true`).
 		Where(
