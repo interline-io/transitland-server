@@ -149,8 +149,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 				min(sts2.stop_sequence) stop_sequence_min, 
 				max(sts2.stop_sequence) stop_sequence_max 
 			from gtfs_stop_times sts2 
-			where 
-				sts2.trip_id = base_trip.id and sts2.feed_version_id = base_trip.feed_version_id
+			where sts2.trip_id = base_trip.id and sts2.feed_version_id = base_trip.feed_version_id
 			) trip_stop_sequence on true`).
 		JoinClause(`join lateral (
 			select 
