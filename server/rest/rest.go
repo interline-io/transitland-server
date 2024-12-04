@@ -42,6 +42,7 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	stopHandler := makeHandler(graphqlHandler, "stops", func() apiHandler { return &StopRequest{} })
 	stopDepartureHandler := makeHandler(graphqlHandler, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
 	operatorHandler := makeHandler(graphqlHandler, "operators", func() apiHandler { return &OperatorRequest{} })
+	etaHandler := makeHandler(graphqlHandler, "etas", func() apiHandler { return &EtaRequest{} })
 
 	r.HandleFunc("/feeds.{format}", feedHandler)
 	r.HandleFunc("/feeds", feedHandler)
@@ -86,6 +87,9 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	r.HandleFunc("/operators", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}.{format}", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}", operatorHandler)
+
+	r.HandleFunc("/etas.{format}", etaHandler)
+	r.HandleFunc("/etas", etaHandler)
 
 	return r, nil
 }
