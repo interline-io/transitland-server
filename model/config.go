@@ -10,19 +10,21 @@ import (
 )
 
 type Config struct {
-	Finder             Finder
-	RTFinder           RTFinder
-	GbfsFinder         GbfsFinder
-	Checker            Checker
-	Actions            Actions
-	JobQueue           jobs.JobQueue
-	Clock              clock.Clock
-	Secrets            []dmfr.Secret
-	ValidateLargeFiles bool
-	DisableImage       bool
-	RestPrefix         string
-	Storage            string
-	RTStorage          string
+	Finder                  Finder
+	RTFinder                RTFinder
+	GbfsFinder              GbfsFinder
+	Checker                 Checker
+	Actions                 Actions
+	JobQueue                jobs.JobQueue
+	Clock                   clock.Clock
+	Secrets                 []dmfr.Secret
+	ValidateLargeFiles      bool
+	DisableImage            bool
+	RestPrefix              string
+	Storage                 string
+	RTStorage               string
+	LoaderBatchSize         int
+	LoaderStopTimeBatchSize int
 }
 
 var finderCtxKey = &contextKey{"finderConfig"}

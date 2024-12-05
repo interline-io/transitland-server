@@ -68,18 +68,20 @@ func main() {
 }
 
 type ServerCommand struct {
-	Timeout            int
-	LongQueryDuration  int
-	Port               string
-	RestPrefix         string
-	LoadAdmins         bool
-	ValidateLargeFiles bool
-	SecretsFile        string
-	Storage            string
-	RTStorage          string
-	DBURL              string
-	RedisURL           string
-	secrets            []dmfr.Secret
+	Timeout                 int
+	LongQueryDuration       int
+	Port                    string
+	RestPrefix              string
+	LoadAdmins              bool
+	ValidateLargeFiles      bool
+	LoaderBatchSize         int
+	LoaderStopTimeBatchSize int
+	SecretsFile             string
+	Storage                 string
+	RTStorage               string
+	DBURL                   string
+	RedisURL                string
+	secrets                 []dmfr.Secret
 }
 
 func (cmd *ServerCommand) HelpDesc() (string, string) {
@@ -102,6 +104,9 @@ func (cmd *ServerCommand) AddFlags(fl *pflag.FlagSet) {
 	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
 	fl.IntVar(&cmd.LongQueryDuration, "long-query", 1000, "Log queries over this duration (ms)")
 	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
+	fl.IntVar(&cmd.LoaderBatchSize, "loader-batch-size", 100, "GraphQL Loader batch size")
+	fl.IntVar(&cmd.LoaderStopTimeBatchSize, "loader-stop-time-batch-size", 1, "GraphQL Loader batch size for StopTimes")
+
 }
 
 func (cmd *ServerCommand) Parse(args []string) error {
@@ -168,14 +173,16 @@ func (cmd *ServerCommand) Run() error {
 
 	// Setup config
 	cfg := model.Config{
-		Finder:             dbFinder,
-		RTFinder:           rtFinder,
-		GbfsFinder:         gbfsFinder,
-		Secrets:            cmd.secrets,
-		Storage:            cmd.Storage,
-		RTStorage:          cmd.RTStorage,
-		ValidateLargeFiles: cmd.ValidateLargeFiles,
-		RestPrefix:         cmd.RestPrefix,
+		Finder:                  dbFinder,
+		RTFinder:                rtFinder,
+		GbfsFinder:              gbfsFinder,
+		Secrets:                 cmd.secrets,
+		Storage:                 cmd.Storage,
+		RTStorage:               cmd.RTStorage,
+		ValidateLargeFiles:      cmd.ValidateLargeFiles,
+		RestPrefix:              cmd.RestPrefix,
+		LoaderBatchSize:         cmd.LoaderBatchSize,
+		LoaderStopTimeBatchSize: cmd.LoaderStopTimeBatchSize,
 	}
 
 	// Setup router
