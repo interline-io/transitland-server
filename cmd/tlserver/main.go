@@ -173,14 +173,16 @@ func (cmd *ServerCommand) Run() error {
 
 	// Setup config
 	cfg := model.Config{
-		Finder:             dbFinder,
-		RTFinder:           rtFinder,
-		GbfsFinder:         gbfsFinder,
-		Secrets:            cmd.secrets,
-		Storage:            cmd.Storage,
-		RTStorage:          cmd.RTStorage,
-		ValidateLargeFiles: cmd.ValidateLargeFiles,
-		RestPrefix:         cmd.RestPrefix,
+		Finder:                  dbFinder,
+		RTFinder:                rtFinder,
+		GbfsFinder:              gbfsFinder,
+		Secrets:                 cmd.secrets,
+		Storage:                 cmd.Storage,
+		RTStorage:               cmd.RTStorage,
+		ValidateLargeFiles:      cmd.ValidateLargeFiles,
+		RestPrefix:              cmd.RestPrefix,
+		LoaderBatchSize:         cmd.LoaderBatchSize,
+		LoaderStopTimeBatchSize: cmd.LoaderStopTimeBatchSize,
 	}
 
 	// Setup router
