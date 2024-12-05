@@ -17,7 +17,7 @@ type ctxKey string
 const (
 	loadersKey = ctxKey("dataloaders")
 	waitTime   = 2 * time.Millisecond
-	maxBatch   = 1_000
+	maxBatch   = 100
 )
 
 // Loaders wrap your data loaders to inject via middleware
@@ -143,7 +143,7 @@ func NewLoaders(dbf model.Finder) *Loaders {
 		StopsByLevelID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByLevelID),
 		StopsByParentStopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByParentStopID),
 		StopsByRouteID:                          withWaitAndCapacity(waitTime, maxBatch, dbf.StopsByRouteID),
-		StopTimesByStopID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.StopTimesByStopID),
+		StopTimesByStopID:                       withWaitAndCapacity(waitTime, 1, dbf.StopTimesByStopID),
 		StopTimesByTripID:                       withWaitAndCapacity(waitTime, maxBatch, dbf.StopTimesByTripID),
 		TargetStopsByStopID:                     withWaitAndCapacity(waitTime, maxBatch, dbf.TargetStopsByStopID),
 		TripsByFeedVersionID:                    withWaitAndCapacity(waitTime, maxBatch, dbf.TripsByFeedVersionID),
