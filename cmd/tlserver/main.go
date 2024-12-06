@@ -106,7 +106,6 @@ func (cmd *ServerCommand) AddFlags(fl *pflag.FlagSet) {
 	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
 	fl.IntVar(&cmd.LoaderBatchSize, "loader-batch-size", 100, "GraphQL Loader batch size")
 	fl.IntVar(&cmd.LoaderStopTimeBatchSize, "loader-stop-time-batch-size", 1, "GraphQL Loader batch size for StopTimes")
-
 }
 
 func (cmd *ServerCommand) Parse(args []string) error {
