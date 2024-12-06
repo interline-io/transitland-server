@@ -36,8 +36,8 @@ func NewServiceWindowCache(db sqlx.Ext) *ServiceWindowCache {
 
 func (f *ServiceWindowCache) Get(ctx context.Context, fvid int) (ServiceWindow, bool, error) {
 	f.lock.Lock()
+	defer f.lock.Unlock()
 	a, ok := f.fvslWindows[fvid]
-	f.lock.Unlock()
 	if ok {
 		return a, ok, nil
 	}
@@ -68,9 +68,7 @@ func (f *ServiceWindowCache) Get(ctx context.Context, fvid int) (ServiceWindow, 
 	}
 
 	// Add to cache
-	f.lock.Lock()
 	f.fvslWindows[fvid] = a
-	f.lock.Unlock()
 	return a, true, err
 }
 
