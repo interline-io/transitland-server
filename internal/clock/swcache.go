@@ -68,7 +68,9 @@ func (f *ServiceWindowCache) Get(ctx context.Context, fvid int) (ServiceWindow, 
 	}
 
 	// Add to cache
+	f.lock.Lock()
 	f.fvslWindows[fvid] = a
+	f.lock.Unlock()
 	return a, true, err
 }
 
