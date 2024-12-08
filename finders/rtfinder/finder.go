@@ -264,7 +264,7 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 		// Matched on trip, but no match on stop sequence or stop_id
 		return &model.RTStopTimeUpdate{TripUpdate: rtTrip, LastDelay: copyPtr(lastDelay)}, true
 	}
-	log.Trace().Str("trip_id", t.TripID.Val).Int("seq", seq).Msgf("no stop time update found")
+	// log.Trace().Str("trip_id", t.TripID.Val).Int("seq", seq).Msgf("no stop time update found")
 	return nil, false
 }
 
