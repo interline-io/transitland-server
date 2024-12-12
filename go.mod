@@ -17,11 +17,11 @@ require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
-	github.com/interline-io/transitland-dbutil v0.0.0-20241211003846-754ca2a37d9d
-	github.com/interline-io/transitland-jobs v0.0.0-20241211004034-cf0f5587b01d
-	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20241212015927-9ee6e945325d
-	github.com/interline-io/transitland-mw v0.0.0-20241211003943-b546af52d409
+	github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71
+	github.com/interline-io/transitland-dbutil v0.0.0-20241212203507-15a69a52c1c4
+	github.com/interline-io/transitland-jobs v0.0.0-20241212203627-25dc585dcf7e
+	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20241212203529-97599f3e6ac2
+	github.com/interline-io/transitland-mw v0.0.0-20241212203557-2e0c0fea3d26
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1

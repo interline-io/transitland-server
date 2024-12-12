@@ -200,7 +200,9 @@ func (cmd *ServerCommand) Run() error {
 	root.Use(usercheck.AdminDefaultMiddleware("admin"))
 
 	// Add logging middleware - must be after auth
-	root.Use(log.LoggingMiddleware(cmd.LongQueryDuration, func(ctx context.Context) string {
+	root.Use(log.RequestIDMiddleware)
+	root.Use(log.RequestIDLoggingMiddleware)
+	root.Use(log.DurationLoggingMiddleware(cmd.LongQueryDuration, func(ctx context.Context) string {
 		if user := authn.ForContext(ctx); user != nil {
 			return user.Name()
 		}
