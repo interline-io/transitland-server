@@ -2,6 +2,7 @@ package clock
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -46,6 +47,9 @@ func (f *ServiceWindowCache) Get(ctx context.Context, fvid int) (ServiceWindow, 
 	fvData, err := f.queryFv(ctx, fvid)
 	if err != nil {
 		return a, false, err
+	}
+	if fvData.Location == nil {
+		return a, false, fmt.Errorf("unable to get cached default timezone for feed version %d", fvid)
 	}
 	a.Location = fvData.Location
 
