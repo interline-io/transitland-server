@@ -12,19 +12,20 @@ import (
 )
 
 func setupGbfs(gbf model.GbfsFinder) error {
+	ctx := context.Background()
 	// Setup
 	sourceFeedId := "gbfs-test"
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("gbfs")})
 	defer ts.Close()
 	opts := gbfs.Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")
-	feeds, _, err := gbfs.Fetch(nil, opts)
+	feeds, _, err := gbfs.Fetch(ctx, nil, opts)
 	if err != nil {
 		return err
 	}
 	for _, feed := range feeds {
 		key := fmt.Sprintf("%s:%s", sourceFeedId, feed.SystemInformation.Language.Val)
-		gbf.AddData(context.Background(), key, feed)
+		gbf.AddData(ctx, key, feed)
 	}
 	return nil
 }

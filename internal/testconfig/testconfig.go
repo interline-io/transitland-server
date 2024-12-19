@@ -111,6 +111,7 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	dbf.Clock = cl
 
 	// Setup RT
+	ctx := context.Background()
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
 	for _, rtj := range opts.RTJsons {
@@ -124,7 +125,7 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := rtf.AddData(key, rtdata); err != nil {
+		if err := rtf.AddData(ctx, key, rtdata); err != nil {
 			t.Fatal(err)
 		}
 	}

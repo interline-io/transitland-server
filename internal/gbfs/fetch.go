@@ -1,6 +1,7 @@
 package gbfs
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/interline-io/log"
@@ -19,7 +20,7 @@ type Result struct {
 	fetch.Result
 }
 
-func Fetch(atx tldb.Adapter, opts Options) ([]GbfsFeed, Result, error) {
+func Fetch(ctx context.Context, atx tldb.Adapter, opts Options) ([]GbfsFeed, Result, error) {
 	result := Result{}
 	var reqOpts []request.RequestOption
 	if opts.AllowFTPFetch {
@@ -48,7 +49,7 @@ func Fetch(atx tldb.Adapter, opts Options) ([]GbfsFeed, Result, error) {
 		if sflang == nil {
 			continue
 		}
-		if feed, err := fetchAll(*sflang); err == nil {
+		if feed, err := fetchAll(ctx, *sflang); err == nil {
 			feeds = append(feeds, feed)
 		}
 	}
@@ -81,7 +82,7 @@ func Fetch(atx tldb.Adapter, opts Options) ([]GbfsFeed, Result, error) {
 	return feeds, result, nil
 }
 
-func fetchAll(sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error) {
+func fetchAll(ctx context.Context, sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error) {
 	ret := GbfsFeed{}
 	var err error
 	for _, v := range sf.Feeds {
@@ -154,7 +155,7 @@ func fetchAll(sf SystemFeeds, reqOpts ...request.RequestOption) (GbfsFeed, error
 			}
 		}
 		if err != nil {
-			log.Info().Err(err).Str("url", v.URL.Val).Msgf("failed to parse %s", v.Name.Val)
+			log.For(ctx).Info().Err(err).Str("url", v.URL.Val).Msgf("failed to parse %s", v.Name.Val)
 		}
 	}
 	return ret, err

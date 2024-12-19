@@ -154,7 +154,7 @@ func (cmd *ServerCommand) Run() error {
 	// Create Finder
 	dbFinder := dbfinder.NewFinder(db)
 	if cmd.LoadAdmins {
-		dbFinder.LoadAdmins()
+		dbFinder.LoadAdmins(context.Background())
 	}
 
 	// Create RTFinder, GbfsFinder

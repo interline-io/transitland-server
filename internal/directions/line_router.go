@@ -1,6 +1,7 @@
 package directions
 
 import (
+	"context"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -23,7 +24,7 @@ type lineRouter struct {
 	Clock clock.Clock
 }
 
-func (h *lineRouter) Request(req model.DirectionRequest) (*model.Directions, error) {
+func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	// Prepare response
 	ret := model.Directions{
 		Origin:      wpiWaypoint(req.From),

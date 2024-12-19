@@ -64,7 +64,7 @@ func newAWSRouter(lc LocationClient, calculator string) *awsRouter {
 	}
 }
 
-func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, error) {
+func (h *awsRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	// Input validation
 	if err := validateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
@@ -111,7 +111,7 @@ func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, erro
 	// Make request
 	res, err := h.locationClient.CalculateRoute(context.TODO(), &input)
 	if err != nil || res.Summary == nil {
-		log.Debug().Err(err).Msg("aws location services error")
+		log.For(ctx).Debug().Err(err).Msg("aws location services error")
 		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
 	}
 

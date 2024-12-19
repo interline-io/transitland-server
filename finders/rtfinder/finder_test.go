@@ -1,6 +1,7 @@
 package rtfinder
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -14,6 +15,7 @@ var (
 )
 
 func testCache(t *testing.T, rtCache Cache) {
+	ctx := context.Background()
 	var topics []string
 	for _, feed := range feeds {
 		topic := fmt.Sprintf("%s-%d", feed, time.Now().UnixNano())
@@ -24,11 +26,11 @@ func testCache(t *testing.T, rtCache Cache) {
 		v := "2.0"
 		ts := uint64(time.Now().UnixNano())
 		rtdata, _ := proto.Marshal(&pb.FeedMessage{Header: &pb.FeedHeader{GtfsRealtimeVersion: &v, Timestamp: &ts}})
-		rtCache.AddData(topic, rtdata)
+		rtCache.AddData(ctx, topic, rtdata)
 	}
 	found := []uint64{}
 	for _, topic := range topics {
-		if a, ok := rtCache.GetSource(topic); ok {
+		if a, ok := rtCache.GetSource(ctx, topic); ok {
 			found = append(found, a.GetTimestamp())
 		}
 	}

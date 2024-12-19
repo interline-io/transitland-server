@@ -43,7 +43,7 @@ func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*mode
 		t := model.Trip{}
 		t.FeedVersionID = obj.FeedVersionID
 		t.TripID.Set(obj.RTTripID)
-		a, err := model.ForContext(ctx).RTFinder.MakeTrip(&t)
+		a, err := model.ForContext(ctx).RTFinder.MakeTrip(ctx, &t)
 		return a, err
 	}
 	return For(ctx).TripsByID.Load(ctx, obj.TripID.Int())()
@@ -51,7 +51,7 @@ func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*mode
 
 func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
 	// Lookup timezone
-	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(obj.StopID.Int(), "")
+	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(ctx, obj.StopID.Int(), "")
 	if !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
@@ -72,7 +72,7 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 
 func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
 	// Lookup timezone
-	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(obj.StopID.Int(), "")
+	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(ctx, obj.StopID.Int(), "")
 	if !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
