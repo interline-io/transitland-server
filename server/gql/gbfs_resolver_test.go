@@ -11,8 +11,7 @@ import (
 	"github.com/interline-io/transitland-server/testdata"
 )
 
-func setupGbfs(gbf model.GbfsFinder) error {
-	ctx := context.Background()
+func setupGbfs(ctx context.Context, gbf model.GbfsFinder) error {
 	// Setup
 	sourceFeedId := "gbfs-test"
 	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("gbfs")})
@@ -79,7 +78,7 @@ func TestGbfsBikeResolver(t *testing.T) {
 		},
 	}
 	c, cfg := newTestClient(t)
-	setupGbfs(cfg.GbfsFinder)
+	setupGbfs(context.Background(), cfg.GbfsFinder)
 	queryTestcases(t, c, testcases)
 }
 
@@ -208,6 +207,6 @@ func TestGbfsStationResolver(t *testing.T) {
 		},
 	}
 	c, cfg := newTestClient(t)
-	setupGbfs(cfg.GbfsFinder)
+	setupGbfs(context.Background(), cfg.GbfsFinder)
 	queryTestcases(t, c, testcases)
 }

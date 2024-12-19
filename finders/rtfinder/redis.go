@@ -34,10 +34,11 @@ type RedisCache struct {
 }
 
 func NewRedisCache(client *redis.Client) *RedisCache {
+	ctx := context.Background()
 	f := RedisCache{
 		client:    client,
 		listeners: map[string]*listener{},
-		ctx:       context.Background(),
+		ctx:       ctx,
 	}
 	return &f
 }

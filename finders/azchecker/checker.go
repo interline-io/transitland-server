@@ -91,7 +91,7 @@ type Checker struct {
 	authz.UnsafeCheckerServer
 }
 
-func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
+func NewCheckerFromConfig(ctx context.Context, cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
 	var userClient UserProvider
 	userClient = NewMockUserProvider()
 	var fgaClient FGAProvider
@@ -117,11 +117,11 @@ func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
 		// Create test FGA environment
 		if cfg.FGALoadModelFile != "" {
 			if cfg.FGAStoreID == "" {
-				if _, err := fgac.CreateStore(context.Background(), "test"); err != nil {
+				if _, err := fgac.CreateStore(ctx, "test"); err != nil {
 					return nil, err
 				}
 			}
-			if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
+			if _, err := fgac.CreateModel(ctx, cfg.FGALoadModelFile); err != nil {
 				return nil, err
 			}
 		}
@@ -134,7 +134,7 @@ func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
 			if err != nil {
 				return nil, err
 			}
-			if err := fgaClient.WriteTuple(context.Background(), ltk); err != nil {
+			if err := fgaClient.WriteTuple(ctx, ltk); err != nil {
 				return nil, err
 			}
 		}

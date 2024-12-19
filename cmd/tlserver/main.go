@@ -131,6 +131,7 @@ func (cmd *ServerCommand) Parse(args []string) error {
 }
 
 func (cmd *ServerCommand) Run() error {
+	ctx := context.Background()
 	// Open database
 	var db sqlx.Ext
 	dbx, err := dbutil.OpenDB(cmd.DBURL)
@@ -154,7 +155,7 @@ func (cmd *ServerCommand) Run() error {
 	// Create Finder
 	dbFinder := dbfinder.NewFinder(db)
 	if cmd.LoadAdmins {
-		dbFinder.LoadAdmins(context.Background())
+		dbFinder.LoadAdmins(ctx)
 	}
 
 	// Create RTFinder, GbfsFinder

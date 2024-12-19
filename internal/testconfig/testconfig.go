@@ -43,9 +43,10 @@ func Config(t testing.TB, opts Options) model.Config {
 }
 
 func ConfigTx(t testing.TB, opts Options, cb func(model.Config) error) {
+	ctx := context.Background()
 	// Start Txn
 	db := testutil.MustOpenTestDB(t)
-	tx := db.MustBeginTx(context.Background(), nil)
+	tx := db.MustBeginTx(ctx, nil)
 	defer tx.Rollback()
 
 	// Get finders
@@ -81,6 +82,7 @@ func DefaultRTJson() []RTJsonFile {
 }
 
 func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
+	ctx := context.Background()
 	// Default time
 	if opts.WhenUtc == "" {
 		opts.WhenUtc = "2022-09-01T00:00:00Z"
@@ -100,7 +102,7 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 			FGALoadModelFile: opts.FGAModelFile,
 			FGALoadTestData:  opts.FGAModelTuples,
 		}
-		checker, err = azchecker.NewCheckerFromConfig(checkerCfg, db)
+		checker, err = azchecker.NewCheckerFromConfig(ctx, checkerCfg, db)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -111,7 +113,6 @@ func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
 	dbf.Clock = cl
 
 	// Setup RT
-	ctx := context.Background()
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
 	for _, rtj := range opts.RTJsons {
