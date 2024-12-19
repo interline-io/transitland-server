@@ -1,6 +1,7 @@
 package rtfinder
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -15,9 +16,9 @@ import (
 
 // Cache provides a method for looking up and listening for changed RT data
 type Cache interface {
-	AddFeedMessage(string, *pb.FeedMessage) error
-	AddData(string, []byte) error
-	GetSource(string) (*Source, bool)
+	AddFeedMessage(context.Context, string, *pb.FeedMessage) error
+	AddData(context.Context, string, []byte) error
+	GetSource(context.Context, string) (*Source, bool)
 	Close() error
 }
 
@@ -37,34 +38,34 @@ func NewFinder(cache Cache, db sqlx.Ext) *Finder {
 	}
 }
 
-func (f *Finder) AddData(topic string, data []byte) error {
-	return f.cache.AddData(topic, data)
+func (f *Finder) AddData(ctx context.Context, topic string, data []byte) error {
+	return f.cache.AddData(ctx, topic, data)
 }
 
-func (f *Finder) GetGtfsTripID(id int) (string, bool) {
+func (f *Finder) GetGtfsTripID(ctx context.Context, id int) (string, bool) {
 	return f.lc.GetGtfsTripID(id)
 }
 
-func (f *Finder) StopTimezone(id int, known string) (*time.Location, bool) {
-	return f.lc.StopTimezone(id, known)
+func (f *Finder) StopTimezone(ctx context.Context, id int, known string) (*time.Location, bool) {
+	return f.lc.StopTimezone(ctx, id, known)
 }
 
-func (f *Finder) FindTrip(t *model.Trip) *pb.TripUpdate {
+func (f *Finder) FindTrip(ctx context.Context, t *model.Trip) *pb.TripUpdate {
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
-		if a, ok := f.getTrip(topic, t.TripID.Val); ok {
+		if a, ok := f.getTrip(ctx, topic, t.TripID.Val); ok {
 			return a
 		}
 	}
 	return nil
 }
 
-func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*model.Alert {
+func (f *Finder) FindAlertsForTrip(ctx context.Context, t *model.Trip, limit *int, active *bool) []*model.Alert {
 	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
-		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
+		a, ok := f.cache.GetSource(ctx, getTopicKey(topic, "realtime_alerts"))
 		if a == nil || !ok {
 			return foundAlerts
 		}
@@ -94,12 +95,12 @@ func (f *Finder) FindAlertsForTrip(t *model.Trip, limit *int, active *bool) []*m
 	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []*model.Alert {
+func (f *Finder) FindAlertsForRoute(ctx context.Context, t *model.Route, limit *int, active *bool) []*model.Alert {
 	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
-		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
+		a, ok := f.cache.GetSource(ctx, getTopicKey(topic, "realtime_alerts"))
 		if a == nil || !ok {
 			continue
 		}
@@ -129,21 +130,21 @@ func (f *Finder) FindAlertsForRoute(t *model.Route, limit *int, active *bool) []
 	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *Finder) GetMessage(topic string, topicKey string) (*pb.FeedMessage, bool) {
+func (f *Finder) GetMessage(ctx context.Context, topic string, topicKey string) (*pb.FeedMessage, bool) {
 	tk := getTopicKey(topic, topicKey)
-	a, ok := f.cache.GetSource(tk)
+	a, ok := f.cache.GetSource(ctx, tk)
 	if a != nil && ok {
 		return a.msg, ok
 	}
 	return nil, false
 }
 
-func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) []*model.Alert {
+func (f *Finder) FindAlertsForAgency(ctx context.Context, t *model.Agency, limit *int, active *bool) []*model.Alert {
 	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
-		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
+		a, ok := f.cache.GetSource(ctx, getTopicKey(topic, "realtime_alerts"))
 		if a == nil || !ok {
 			continue
 		}
@@ -173,12 +174,12 @@ func (f *Finder) FindAlertsForAgency(t *model.Agency, limit *int, active *bool) 
 	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*model.Alert {
+func (f *Finder) FindAlertsForStop(ctx context.Context, t *model.Stop, limit *int, active *bool) []*model.Alert {
 	foundAlerts := []*model.Alert{}
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	tnow := f.Clock.Now()
 	for _, topic := range topics {
-		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_alerts"))
+		a, ok := f.cache.GetSource(ctx, getTopicKey(topic, "realtime_alerts"))
 		if a == nil || !ok {
 			continue
 		}
@@ -208,21 +209,21 @@ func (f *Finder) FindAlertsForStop(t *model.Stop, limit *int, active *bool) []*m
 	return limitAlerts(foundAlerts, limit)
 }
 
-func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.RTStopTimeUpdate, bool) {
+func (f *Finder) FindStopTimeUpdate(ctx context.Context, t *model.Trip, st *model.StopTime) (*model.RTStopTimeUpdate, bool) {
 	tid := t.TripID
 	seq := st.StopSequence.Int()
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	// Attempt to match on stop sequence
 	for _, topic := range topics {
 		// Match on trip
-		rtTrip, rtok := f.getTrip(topic, tid.Val)
+		rtTrip, rtok := f.getTrip(ctx, topic, tid.Val)
 		if !rtok {
 			continue
 		}
 		// Match on stop sequence
 		for _, ste := range rtTrip.StopTimeUpdate {
 			if int(ste.GetStopSequence()) == seq {
-				log.Trace().Str("trip_id", t.TripID.Val).Int("seq", seq).Msgf("found stop time update on trip_id/stop_sequence")
+				log.For(ctx).Trace().Str("trip_id", t.TripID.Val).Int("seq", seq).Msgf("found stop time update on trip_id/stop_sequence")
 				return &model.RTStopTimeUpdate{TripUpdate: rtTrip, StopTimeUpdate: ste}, true
 			}
 		}
@@ -230,7 +231,7 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 	// Attempt to match on stop id
 	for _, topic := range topics {
 		// Match on trip
-		rtTrip, rtok := f.getTrip(topic, tid.Val)
+		rtTrip, rtok := f.getTrip(ctx, topic, tid.Val)
 		if !rtok {
 			continue
 		}
@@ -257,24 +258,24 @@ func (f *Finder) FindStopTimeUpdate(t *model.Trip, st *model.StopTime) (*model.R
 				lastDelay = ste.Departure.Delay
 			}
 			if sid == ste.GetStopId() {
-				log.Trace().Str("trip_id", t.TripID.Val).Str("stop_id", sid).Msgf("found stop time update on trip_id/stop_id")
+				log.For(ctx).Trace().Str("trip_id", t.TripID.Val).Str("stop_id", sid).Msgf("found stop time update on trip_id/stop_id")
 				return &model.RTStopTimeUpdate{TripUpdate: rtTrip, StopTimeUpdate: ste, LastDelay: copyPtr(lastDelay)}, true
 			}
 		}
 		// Matched on trip, but no match on stop sequence or stop_id
 		return &model.RTStopTimeUpdate{TripUpdate: rtTrip, LastDelay: copyPtr(lastDelay)}, true
 	}
-	// log.Trace().Str("trip_id", t.TripID.Val).Int("seq", seq).Msgf("no stop time update found")
+	// log.For(ctx).Trace().Str("trip_id", t.TripID.Val).Int("seq", seq).Msgf("no stop time update found")
 	return nil, false
 }
 
 // TODO: put this method on consumer and wrap, as with GetTrip
-func (f *Finder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
+func (f *Finder) GetAddedTripsForStop(ctx context.Context, t *model.Stop) []*pb.TripUpdate {
 	sid := t.StopID
 	var ret []*pb.TripUpdate
 	topics, _ := f.lc.GetFeedVersionRTFeeds(t.FeedVersionID)
 	for _, topic := range topics {
-		a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_trip_updates"))
+		a, ok := f.cache.GetSource(ctx, getTopicKey(topic, "realtime_trip_updates"))
 		if !ok {
 			continue
 		}
@@ -294,12 +295,12 @@ func (f *Finder) GetAddedTripsForStop(t *model.Stop) []*pb.TripUpdate {
 	return ret
 }
 
-func (f *Finder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
+func (f *Finder) MakeTrip(ctx context.Context, obj *model.Trip) (*model.Trip, error) {
 	t := model.Trip{}
 	t.FeedVersionID = obj.FeedVersionID
 	t.TripID = obj.TripID
 	t.RTTripID = obj.RTTripID
-	if rtTrip := f.FindTrip(&t); rtTrip != nil {
+	if rtTrip := f.FindTrip(ctx, &t); rtTrip != nil {
 		rtt := rtTrip.Trip
 		rid, ok := f.lc.GetRouteID(obj.FeedVersionID, rtt.GetRouteId())
 		if !ok {
@@ -312,11 +313,11 @@ func (f *Finder) MakeTrip(obj *model.Trip) (*model.Trip, error) {
 	return nil, errors.New("not found")
 }
 
-func (f *Finder) getTrip(topic string, tid string) (*pb.TripUpdate, bool) {
+func (f *Finder) getTrip(ctx context.Context, topic string, tid string) (*pb.TripUpdate, bool) {
 	if tid == "" {
 		return nil, false
 	}
-	a, ok := f.cache.GetSource(getTopicKey(topic, "realtime_trip_updates"))
+	a, ok := f.cache.GetSource(ctx, getTopicKey(topic, "realtime_trip_updates"))
 	if !ok {
 		return nil, false
 	}

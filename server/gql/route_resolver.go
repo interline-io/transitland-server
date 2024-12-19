@@ -73,7 +73,7 @@ func (r *routeResolver) RouteStopBuffer(ctx context.Context, obj *model.Route, r
 }
 
 func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route, active *bool, limit *int) ([]*model.Alert, error) {
-	return model.ForContext(ctx).RTFinder.FindAlertsForRoute(obj, checkLimit(limit), active), nil
+	return model.ForContext(ctx).RTFinder.FindAlertsForRoute(ctx, obj, checkLimit(limit), active), nil
 }
 
 func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error) {

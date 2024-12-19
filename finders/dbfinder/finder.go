@@ -37,10 +37,10 @@ func (f *Finder) DBX() sqlx.Ext {
 	return f.db
 }
 
-func (f *Finder) LoadAdmins() error {
-	log.Trace().Msg("loading admins")
+func (f *Finder) LoadAdmins(ctx context.Context) error {
+	log.For(ctx).Trace().Msg("loading admins")
 	adminCache := newAdminCache()
-	if err := adminCache.LoadAdmins(context.Background(), f.db); err != nil {
+	if err := adminCache.LoadAdmins(ctx, f.db); err != nil {
 		return err
 	}
 	f.adminCache = adminCache
@@ -1729,7 +1729,7 @@ func logErr(ctx context.Context, err error) error {
 	if ctx.Err() == context.Canceled {
 		return nil
 	}
-	log.Error().Err(err).Msg("query failed")
+	log.For(ctx).Error().Err(err).Msg("query failed")
 	return errors.New("database error")
 }
 
@@ -1738,7 +1738,7 @@ func logExtendErr(ctx context.Context, size int, err error) []error {
 	if ctx.Err() == context.Canceled {
 		return errs
 	}
-	log.Error().Err(err).Msg("query failed")
+	log.For(ctx).Error().Err(err).Msg("query failed")
 	for i := 0; i < len(errs); i++ {
 		errs[i] = errors.New("database error")
 	}
@@ -1768,7 +1768,7 @@ func arrangeBy[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
 // 		if ok {
 // 			ret[idx] = a
 // 		} else {
-// 			log.Error().Any("keys", keys).Any("key", key).Int("idx", idx).Any("ents", ents).Msg("no value for key")
+// 			log.For(ctx).Error().Any("keys", keys).Any("key", key).Int("idx", idx).Any("ents", ents).Msg("no value for key")
 // 			debug.PrintStack()
 // 		}
 // 	}

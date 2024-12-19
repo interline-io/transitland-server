@@ -215,13 +215,13 @@ func TestStopRequest_AdminCache(t *testing.T) {
 		expectSelect: []string{"California"},
 	}
 	type canLoadAdmins interface {
-		LoadAdmins() error
+		LoadAdmins(context.Context) error
 	}
 	cfg := testconfig.Config(t, testconfig.Options{})
 	if v, ok := cfg.Finder.(canLoadAdmins); !ok {
 		t.Fatal("finder cant load admins")
 	} else {
-		if err := v.LoadAdmins(); err != nil {
+		if err := v.LoadAdmins(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 	}

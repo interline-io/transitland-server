@@ -2,6 +2,7 @@ package directions
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -55,7 +56,7 @@ func newValhallaRouter(client *http.Client, endpoint string, apikey string) *val
 	}
 }
 
-func (h *valhallaRouter) Request(req model.DirectionRequest) (*model.Directions, error) {
+func (h *valhallaRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	if err := validateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
 	}
@@ -86,9 +87,9 @@ func (h *valhallaRouter) Request(req model.DirectionRequest) (*model.Directions,
 	departAt = departAt.In(time.UTC)
 
 	// Make request
-	res, err := makeValRequest(input, h.client, h.endpoint, h.apikey)
+	res, err := makeValRequest(ctx, input, h.client, h.endpoint, h.apikey)
 	if err != nil || len(res.Trip.Legs) == 0 {
-		log.Error().Err(err).Msg("valhalla router failed to calculate route")
+		log.For(ctx).Error().Err(err).Msg("valhalla router failed to calculate route")
 		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
 	}
 	// Prepare response
@@ -100,7 +101,7 @@ func (h *valhallaRouter) Request(req model.DirectionRequest) (*model.Directions,
 	return ret, nil
 }
 
-func makeValRequest(req valhallaRequest, client *http.Client, endpoint string, apikey string) (*valhallaResponse, error) {
+func makeValRequest(ctx context.Context, req valhallaRequest, client *http.Client, endpoint string, apikey string) (*valhallaResponse, error) {
 	reqUrl := fmt.Sprintf("%s/route", endpoint)
 	hreq, err := http.NewRequest("GET", reqUrl, nil)
 	if err != nil {
@@ -112,7 +113,7 @@ func makeValRequest(req valhallaRequest, client *http.Client, endpoint string, a
 	}
 	hreq.Body = io.NopCloser(bytes.NewReader(reqJson))
 	hreq.Header.Add("api_key", apikey)
-	log.Debug().Str("url", hreq.URL.String()).Str("body", string(reqJson)).Msg("valhalla request")
+	log.For(ctx).Debug().Str("url", hreq.URL.String()).Str("body", string(reqJson)).Msg("valhalla request")
 	resp, err := client.Do(hreq)
 	if err != nil {
 		return nil, err

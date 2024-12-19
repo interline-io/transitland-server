@@ -1,6 +1,7 @@
 package rtfinder
 
 import (
+	"context"
 	"sync"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
@@ -17,7 +18,7 @@ func NewLocalCache() *LocalCache {
 	}
 }
 
-func (f *LocalCache) GetSource(topic string) (*Source, bool) {
+func (f *LocalCache) GetSource(ctx context.Context, topic string) (*Source, bool) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	a, ok := f.sources[topic]
@@ -27,11 +28,11 @@ func (f *LocalCache) GetSource(topic string) (*Source, bool) {
 	return nil, false
 }
 
-func (f *LocalCache) AddFeedMessage(topic string, rtmsg *pb.FeedMessage) error {
+func (f *LocalCache) AddFeedMessage(ctx context.Context, topic string, rtmsg *pb.FeedMessage) error {
 	return nil
 }
 
-func (f *LocalCache) AddData(topic string, data []byte) error {
+func (f *LocalCache) AddData(ctx context.Context, topic string, data []byte) error {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	s, ok := f.sources[topic]
@@ -39,7 +40,7 @@ func (f *LocalCache) AddData(topic string, data []byte) error {
 		s, _ = NewSource(topic)
 		f.sources[topic] = s
 	}
-	return s.process(data)
+	return s.process(ctx, data)
 }
 
 func (f *LocalCache) Close() error {

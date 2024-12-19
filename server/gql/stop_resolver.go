@@ -112,14 +112,14 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 	for _, st := range sts {
 		ft := model.Trip{}
 		ft.FeedVersionID = obj.FeedVersionID
-		tripId, _ := model.ForContext(ctx).RTFinder.GetGtfsTripID(st.TripID.Int())
+		tripId, _ := model.ForContext(ctx).RTFinder.GetGtfsTripID(ctx, st.TripID.Int())
 		ft.TripID.Set(tripId) // TODO!
-		if ste, ok := model.ForContext(ctx).RTFinder.FindStopTimeUpdate(&ft, st); ok {
+		if ste, ok := model.ForContext(ctx).RTFinder.FindStopTimeUpdate(ctx, &ft, st); ok {
 			st.RTStopTimeUpdate = ste
 		}
 	}
 	// Handle added trips; these must specify stop_id in StopTimeUpdates
-	for _, rtTrip := range model.ForContext(ctx).RTFinder.GetAddedTripsForStop(obj) {
+	for _, rtTrip := range model.ForContext(ctx).RTFinder.GetAddedTripsForStop(ctx, obj) {
 		for _, stu := range rtTrip.StopTimeUpdate {
 			if stu.GetStopId() != obj.StopID.Val {
 				continue
@@ -148,7 +148,7 @@ func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit 
 }
 
 func (r *stopResolver) Alerts(ctx context.Context, obj *model.Stop, active *bool, limit *int) ([]*model.Alert, error) {
-	rtAlerts := model.ForContext(ctx).RTFinder.FindAlertsForStop(obj, checkLimit(limit), active)
+	rtAlerts := model.ForContext(ctx).RTFinder.FindAlertsForStop(ctx, obj, checkLimit(limit), active)
 	return rtAlerts, nil
 }
 
@@ -170,7 +170,7 @@ func (r *stopResolver) Directions(ctx context.Context, obj *model.Stop, from *mo
 	if mode != nil {
 		p.Mode = *mode
 	}
-	return directions.HandleRequest("", p)
+	return directions.HandleRequest(ctx, "", p)
 }
 
 func (r *stopResolver) NearbyStops(ctx context.Context, obj *model.Stop, limit *int, radius *float64) ([]*model.Stop, error) {

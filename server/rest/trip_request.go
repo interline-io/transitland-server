@@ -162,7 +162,7 @@ func (r TripRequest) Query(ctx context.Context) (string, map[string]interface{})
 }
 
 // ProcessGeoJSON .
-func (r TripRequest) ProcessGeoJSON(response map[string]interface{}) error {
+func (r TripRequest) ProcessGeoJSON(ctx context.Context, response map[string]interface{}) error {
 	entities, ok := response[r.ResponseKey()].([]interface{})
 	if ok {
 		for _, feature := range entities {
@@ -173,7 +173,7 @@ func (r TripRequest) ProcessGeoJSON(response map[string]interface{}) error {
 			}
 		}
 	}
-	return processGeoJSON(r, response)
+	return processGeoJSON(ctx, r, response)
 }
 
 ///////////

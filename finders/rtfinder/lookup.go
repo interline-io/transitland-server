@@ -1,6 +1,7 @@
 package rtfinder
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -97,26 +98,26 @@ func (f *lookupCache) GetFeedVersionRTFeeds(id int) ([]string, bool) {
 }
 
 // StopTimezone looks up the timezone for a stop
-func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) {
+func (f *lookupCache) StopTimezone(ctx context.Context, id int, known string) (*time.Location, bool) {
 	// Need to lock while looking up or setting.
 	f.rtLookupLock.Lock()
 	defer f.rtLookupLock.Unlock()
 
 	// If a timezone is provided, save it and return immediately
 	if known != "" {
-		log.Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
+		log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
 		return f.tzCache.Add(id, known)
 	}
 
 	// Check the cache
 	if loc, ok := f.tzCache.Get(id); ok {
-		log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
+		log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
 		return loc, ok
 	} else {
-		log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: timezone not in cache")
+		log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: timezone not in cache")
 	}
 	if id == 0 {
-		log.Trace().Int("stop_id", id).Msg("tz: lookup failed, cant find timezone for stops with id=0 unless speciifed explicitly")
+		log.For(ctx).Trace().Int("stop_id", id).Msg("tz: lookup failed, cant find timezone for stops with id=0 unless speciifed explicitly")
 		return nil, false
 	}
 	// Otherwise lookup the timezone
@@ -134,11 +135,11 @@ func (f *lookupCache) StopTimezone(id int, known string) (*time.Location, bool) 
 		limit 1`
 	tz := ""
 	if err := sqlx.Get(f.db, &tz, q, id); err != nil {
-		log.Error().Err(err).Int("stop_id", id).Str("known", known).Msg("tz: lookup failed")
+		log.For(ctx).Error().Err(err).Int("stop_id", id).Str("known", known).Msg("tz: lookup failed")
 		return nil, false
 	}
 	loc, ok := f.tzCache.Add(id, tz)
-	log.Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: lookup successful")
+	log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: lookup successful")
 	return loc, ok
 }
 

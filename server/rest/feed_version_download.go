@@ -67,7 +67,7 @@ func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r 
 
 	// Check if we have data
 	rtf := model.ForContext(ctx).RTFinder
-	rtMsg, ok := rtf.GetMessage(key, rtType)
+	rtMsg, ok := rtf.GetMessage(ctx, key, rtType)
 	if ok && rtMsg != nil {
 		found = true
 	}

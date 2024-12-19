@@ -104,7 +104,7 @@ type apiHandler interface {
 
 // A type that can generate a GeoJSON response.
 type canProcessGeoJSON interface {
-	ProcessGeoJSON(map[string]interface{}) error
+	ProcessGeoJSON(context.Context, map[string]interface{}) error
 }
 
 // A type that defines if meta should be included or not
@@ -235,12 +235,12 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 		// Use json marshal/unmarshal to convert string params to correct types
 		s, err := json.Marshal(opts)
 		if err != nil {
-			log.Error().Err(err).Msg("failed to marshal request params")
+			log.For(ctx).Error().Err(err).Msg("failed to marshal request params")
 			util.WriteJsonError(w, "parameter error", http.StatusInternalServerError)
 			return
 		}
 		if err := json.Unmarshal(s, handler); err != nil {
-			log.Error().Err(err).Msg("failed to unmarshal request params")
+			log.For(ctx).Error().Err(err).Msg("failed to unmarshal request params")
 			util.WriteJsonError(w, "parameter error", http.StatusInternalServerError)
 			return
 		}
@@ -264,7 +264,7 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 		// Cache image response
 		if format == "png" && localFileCache != nil {
 			if err := localFileCache.Put(urlkey, bytes.NewReader(response)); err != nil {
-				log.Error().Err(err).Msgf("file cache error")
+				log.For(ctx).Error().Err(err).Msgf("file cache error")
 			}
 		}
 	}
@@ -277,7 +277,7 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 	response, err := makeGraphQLRequest(ctx, graphqlHandler, query, vars)
 	if err != nil {
 		vjson, _ := json.Marshal(vars)
-		log.Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msgf("graphql request failed")
+		log.For(ctx).Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msgf("graphql request failed")
 		return nil, err
 	}
 
@@ -288,7 +288,7 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 	}
 	if addMeta {
 		if lastId, nextPage, err := getAfterID(ent, response); err != nil {
-			log.Error().Err(err).Msg("pagination failed to get max entity id")
+			log.For(ctx).Error().Err(err).Msg("pagination failed to get max entity id")
 		} else if nextPage && lastId > 0 {
 			meta := hw{"after": lastId}
 			if u != nil {
@@ -308,11 +308,11 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 	if format == "geojson" || format == "geojsonl" || format == "png" {
 		// TODO: Don't process response in-place.
 		if v, ok := ent.(canProcessGeoJSON); ok {
-			if err := v.ProcessGeoJSON(response); err != nil {
+			if err := v.ProcessGeoJSON(ctx, response); err != nil {
 				return nil, err
 			}
 		} else {
-			if err := processGeoJSON(ent, response); err != nil {
+			if err := processGeoJSON(ctx, ent, response); err != nil {
 				return nil, err
 			}
 		}
@@ -323,7 +323,7 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 			if err != nil {
 				return nil, err
 			}
-			return renderMap(b, 800, 800)
+			return renderMap(ctx, b, 800, 800)
 		}
 	}
 	return json.Marshal(response)

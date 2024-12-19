@@ -198,7 +198,7 @@ func unwrapResult[
 	x := func(ctx context.Context, ps []ParamT) []*dataloader.Result[T] {
 		a, errs := cb(ctx, ps)
 		if len(a) != len(ps) {
-			log.Trace().Msgf("error in dataloader, result len %d did not match param length %d", len(a), len(ps))
+			log.For(ctx).Trace().Msgf("error in dataloader, result len %d did not match param length %d", len(a), len(ps))
 			return nil
 		}
 		ret := make([]*dataloader.Result[T], len(ps))

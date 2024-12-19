@@ -52,7 +52,7 @@ func makeTestMockRouter(tr http.RoundTripper) (*awsRouter, error) {
 // Regenerate results
 // func makeTestAwsRouter(tr http.RoundTripper) (*awsRouter, error) {
 // 	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
-// 	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
+// 	cfg, err := awsconfig.LoadDefaultConfig(context.Background())
 // 	if err != nil {
 // 		return nil, err
 // 	}

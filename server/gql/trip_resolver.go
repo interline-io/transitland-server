@@ -43,7 +43,7 @@ func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *in
 		Where:         where,
 	})()
 	for _, st := range sts {
-		if ste, ok := model.ForContext(ctx).RTFinder.FindStopTimeUpdate(obj, st); ok {
+		if ste, ok := model.ForContext(ctx).RTFinder.FindStopTimeUpdate(ctx, obj, st); ok {
 			st.RTStopTimeUpdate = ste
 		}
 	}
@@ -55,7 +55,7 @@ func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
-	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil {
+	if rtt := model.ForContext(ctx).RTFinder.FindTrip(ctx, obj); rtt != nil {
 		// If TripUpdate TripDescriptor has schedule relationship, use that
 		if rtt.Trip != nil && rtt.Trip.ScheduleRelationship != nil {
 			sr := rtt.Trip.ScheduleRelationship.String()
@@ -68,7 +68,7 @@ func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip
 }
 
 func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Time, error) {
-	if rtt := model.ForContext(ctx).RTFinder.FindTrip(obj); rtt != nil {
+	if rtt := model.ForContext(ctx).RTFinder.FindTrip(ctx, obj); rtt != nil {
 		t := time.Unix(int64(rtt.GetTimestamp()), 0).In(time.UTC)
 		return &t, nil
 	}
@@ -76,6 +76,6 @@ func (r *tripResolver) Timestamp(ctx context.Context, obj *model.Trip) (*time.Ti
 }
 
 func (r *tripResolver) Alerts(ctx context.Context, obj *model.Trip, active *bool, limit *int) ([]*model.Alert, error) {
-	rtAlerts := model.ForContext(ctx).RTFinder.FindAlertsForTrip(obj, checkLimit(limit), active)
+	rtAlerts := model.ForContext(ctx).RTFinder.FindAlertsForTrip(ctx, obj, checkLimit(limit), active)
 	return rtAlerts, nil
 }

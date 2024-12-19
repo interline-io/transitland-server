@@ -131,7 +131,7 @@ func (r StopRequest) Query(ctx context.Context) (string, map[string]any) {
 
 	user := authn.ForContext(ctx)
 	if user == nil || (!user.HasRole("tl_pro") && r.IncludeRoutes) {
-		log.Trace().Msg("setting include_routes = false")
+		log.For(ctx).Trace().Msg("setting include_routes = false")
 		r.IncludeRoutes = false
 	}
 

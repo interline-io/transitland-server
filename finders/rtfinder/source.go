@@ -1,6 +1,8 @@
 package rtfinder
 
 import (
+	"context"
+
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"google.golang.org/protobuf/proto"
@@ -33,7 +35,7 @@ func (f *Source) GetTrip(tid string) (*pb.TripUpdate, bool) {
 	return nil, false
 }
 
-func (f *Source) processMessage(rtmsg *pb.FeedMessage) error {
+func (f *Source) processMessage(ctx context.Context, rtmsg *pb.FeedMessage) error {
 	f.msg = rtmsg
 	defaultTimestamp := rtmsg.GetHeader().GetTimestamp()
 	a := map[string]*pb.TripUpdate{}
@@ -52,20 +54,20 @@ func (f *Source) processMessage(rtmsg *pb.FeedMessage) error {
 		}
 		// todo: vehicle positions...
 	}
-	log.Trace().Str("feed_id", f.feed).Int("trip_updates", len(a)).Int("alerts", len(alerts)).Msg("rtsource: processed data")
+	log.For(ctx).Trace().Str("feed_id", f.feed).Int("trip_updates", len(a)).Int("alerts", len(alerts)).Msg("rtsource: processed data")
 	f.entityByTrip = a
 	f.alerts = alerts
 	return nil
 }
 
-func (f *Source) process(rtdata []byte) error {
+func (f *Source) process(ctx context.Context, rtdata []byte) error {
 	if len(rtdata) == 0 {
-		log.Trace().Str("feed_id", f.feed).Msg("rtsource: no data to process")
+		log.For(ctx).Trace().Str("feed_id", f.feed).Msg("rtsource: no data to process")
 		return nil
 	}
 	rtmsg := pb.FeedMessage{}
 	if err := proto.Unmarshal(rtdata, &rtmsg); err != nil {
 		return err
 	}
-	return f.processMessage(&rtmsg)
+	return f.processMessage(ctx, &rtmsg)
 }
