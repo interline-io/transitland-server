@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/request"
 	"github.com/interline-io/transitland-mw/meters"
@@ -239,6 +240,7 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 	ctx := r.Context()
 	store, err := request.GetStore(storage)
 	if err != nil {
+		log.For(ctx).Error().Err(err).Msg("failed to access file; could not get from storage")
 		util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 		return
 	}
@@ -246,6 +248,7 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 	if v, ok := store.(request.Presigner); ok {
 		signedUrl, err := v.CreateSignedUrl(ctx, fvkey, downloadKey, dmfr.Secret{})
 		if err != nil {
+			log.For(ctx).Error().Err(err).Msg("failed to access file; could not presign")
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 			return
 		}
@@ -254,10 +257,12 @@ func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fv
 	} else {
 		rdr, _, err := store.Download(ctx, fvkey, dmfr.Secret{}, dmfr.FeedAuthorization{})
 		if err != nil {
+			log.For(ctx).Error().Err(err).Msg("failed to access file; not authorized")
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 			return
 		}
 		if _, err := io.Copy(w, rdr); err != nil {
+			log.For(ctx).Error().Err(err).Msg("failed to access file; failed to copy to client")
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
 		}
 	}
