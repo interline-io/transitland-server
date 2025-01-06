@@ -129,7 +129,7 @@ func NewCheckerFromConfig(ctx context.Context, cfg CheckerConfig, db sqlx.Ext) (
 		for _, tk := range cfg.FGALoadTestData {
 			ltk, found, err := ekLookup(db, tk)
 			if !found {
-				log.Info().Msgf("warning, tuple entities not found in database: %s", tk.String())
+				log.For(ctx).Info().Msgf("warning, tuple entities not found in database: %s", tk.String())
 			}
 			if err != nil {
 				return nil, err
