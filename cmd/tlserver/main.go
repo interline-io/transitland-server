@@ -131,6 +131,7 @@ func (cmd *ServerCommand) Parse(args []string) error {
 }
 
 func (cmd *ServerCommand) Run() error {
+	ctx := context.Background()
 	// Open database
 	var db sqlx.Ext
 	dbx, err := dbutil.OpenDB(cmd.DBURL)
@@ -154,7 +155,7 @@ func (cmd *ServerCommand) Run() error {
 	// Create Finder
 	dbFinder := dbfinder.NewFinder(db)
 	if cmd.LoadAdmins {
-		dbFinder.LoadAdmins()
+		dbFinder.LoadAdmins(ctx)
 	}
 
 	// Create RTFinder, GbfsFinder
@@ -246,7 +247,7 @@ func (cmd *ServerCommand) Run() error {
 	// Start server
 	timeOut := time.Duration(cmd.Timeout) * time.Second
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
-	log.Infof("Listening on: %s", addr)
+	log.For(ctx).Info().Msgf("Listening on: %s", addr)
 	srv := &http.Server{
 		Handler:      http.TimeoutHandler(root, timeOut, "timeout"),
 		Addr:         addr,

@@ -1,6 +1,7 @@
 package directions
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -11,7 +12,7 @@ import (
 )
 
 type Handler interface {
-	Request(model.DirectionRequest) (*model.Directions, error)
+	Request(context.Context, model.DirectionRequest) (*model.Directions, error)
 }
 
 type handlerFunc func() Handler
@@ -37,7 +38,7 @@ func getHandler(name string) (handlerFunc, bool) {
 	return a, ok
 }
 
-func HandleRequest(pref string, req model.DirectionRequest) (*model.Directions, error) {
+func HandleRequest(ctx context.Context, pref string, req model.DirectionRequest) (*model.Directions, error) {
 	var handler Handler
 	handler = &lineRouter{}
 	// Default to walking
@@ -60,10 +61,10 @@ func HandleRequest(pref string, req model.DirectionRequest) (*model.Directions, 
 	if hf, ok := getHandler(pref); ok {
 		handler = hf()
 	}
-	h, err := handler.Request(req)
-	a := log.Trace()
+	h, err := handler.Request(ctx, req)
+	a := log.For(ctx).Trace()
 	if err != nil {
-		a = log.Error().Err(err)
+		a = log.For(ctx).Error().Err(err)
 	}
 	a = a.Str("mode", req.Mode.String()).
 		Str("handler", pref).

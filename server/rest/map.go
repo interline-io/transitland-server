@@ -2,6 +2,7 @@ package rest
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"image/color"
 	"image/png"
@@ -19,14 +20,14 @@ const CIRCLESIZE = 10
 // CIRCLEWIDTH .
 const CIRCLEWIDTH = 5
 
-func renderMap(data []byte, width int, height int) ([]byte, error) {
+func renderMap(ctx context.Context, data []byte, width int, height int) ([]byte, error) {
 	fc := geojson.FeatureCollection{}
 	if err := fc.UnmarshalJSON(data); err != nil {
 		return nil, err
 	}
-	ctx := sm.NewContext()
-	ctx.SetSize(width, height)
-	ctx.SetTileProvider(sm.NewTileProviderCartoLight())
+	mapctx := sm.NewContext()
+	mapctx.SetSize(width, height)
+	mapctx.SetTileProvider(sm.NewTileProviderCartoLight())
 
 	// Excuse this enormously ugly block of type checks.
 	stops := map[int]bool{}
@@ -67,7 +68,7 @@ func renderMap(data []byte, width int, height int) ([]byte, error) {
 			for _, coord := range g.Coords() {
 				positions = append(positions, s2.LatLngFromDegrees(coord.Y(), coord.X()))
 			}
-			ctx.AddPath(sm.NewPath(positions, color.RGBA{0x1c, 0x96, 0xd6, 0xff}, 4.0)) // #1c96d6
+			mapctx.AddPath(sm.NewPath(positions, color.RGBA{0x1c, 0x96, 0xd6, 0xff}, 4.0)) // #1c96d6
 		} else if g, ok := feature.Geometry.(*geom.MultiLineString); ok {
 			for i := 0; i < g.NumLineStrings(); i++ {
 				ls := g.LineString(i)
@@ -75,15 +76,15 @@ func renderMap(data []byte, width int, height int) ([]byte, error) {
 				for _, coord := range ls.Coords() {
 					positions = append(positions, s2.LatLngFromDegrees(coord.Y(), coord.X()))
 				}
-				ctx.AddPath(sm.NewPath(positions, color.RGBA{0x1c, 0x96, 0xd6, 0xff}, 4.0)) // #1c96d6
+				mapctx.AddPath(sm.NewPath(positions, color.RGBA{0x1c, 0x96, 0xd6, 0xff}, 4.0)) // #1c96d6
 			}
 		} else if g, ok := feature.Geometry.(*geom.Point); ok {
-			ctx.AddCircle(sm.NewCircle(s2.LatLngFromDegrees(g.Coords().Y(), g.Coords().X()), color.RGBA{0xff, 0x00, 0x00, 0xff}, color.RGBA{0xff, 0x00, 0x00, 0xff}, CIRCLESIZE, CIRCLEWIDTH))
+			mapctx.AddCircle(sm.NewCircle(s2.LatLngFromDegrees(g.Coords().Y(), g.Coords().X()), color.RGBA{0xff, 0x00, 0x00, 0xff}, color.RGBA{0xff, 0x00, 0x00, 0xff}, CIRCLESIZE, CIRCLEWIDTH))
 		} else {
-			log.Info().Msgf("can not draw geom type: %T", feature.Geometry)
+			log.For(ctx).Info().Msgf("can not draw geom type: %T", feature.Geometry)
 		}
 	}
-	img, err := ctx.Render()
+	img, err := mapctx.Render()
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func renderMap(data []byte, width int, height int) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-func processGeoJSON(ent apiHandler, response map[string]interface{}) error {
+func processGeoJSON(ctx context.Context, ent apiHandler, response map[string]interface{}) error {
 	fkey := ""
 	if v, ok := ent.(hasResponseKey); ok {
 		fkey = v.ResponseKey()
@@ -107,7 +108,7 @@ func processGeoJSON(ent apiHandler, response map[string]interface{}) error {
 	for _, feature := range entities {
 		f, ok := feature.(map[string]interface{})
 		if !ok {
-			log.Infof("feature not map[string]any, skipping")
+			log.For(ctx).Info().Msg("feature not map[string]any, skipping")
 			continue
 		}
 		geometry := f["geometry"]

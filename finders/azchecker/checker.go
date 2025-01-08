@@ -91,7 +91,7 @@ type Checker struct {
 	authz.UnsafeCheckerServer
 }
 
-func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
+func NewCheckerFromConfig(ctx context.Context, cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
 	var userClient UserProvider
 	userClient = NewMockUserProvider()
 	var fgaClient FGAProvider
@@ -117,11 +117,11 @@ func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
 		// Create test FGA environment
 		if cfg.FGALoadModelFile != "" {
 			if cfg.FGAStoreID == "" {
-				if _, err := fgac.CreateStore(context.Background(), "test"); err != nil {
+				if _, err := fgac.CreateStore(ctx, "test"); err != nil {
 					return nil, err
 				}
 			}
-			if _, err := fgac.CreateModel(context.Background(), cfg.FGALoadModelFile); err != nil {
+			if _, err := fgac.CreateModel(ctx, cfg.FGALoadModelFile); err != nil {
 				return nil, err
 			}
 		}
@@ -129,12 +129,12 @@ func NewCheckerFromConfig(cfg CheckerConfig, db sqlx.Ext) (*Checker, error) {
 		for _, tk := range cfg.FGALoadTestData {
 			ltk, found, err := ekLookup(db, tk)
 			if !found {
-				log.Info().Msgf("warning, tuple entities not found in database: %s", tk.String())
+				log.For(ctx).Info().Msgf("warning, tuple entities not found in database: %s", tk.String())
 			}
 			if err != nil {
 				return nil, err
 			}
-			if err := fgaClient.WriteTuple(context.Background(), ltk); err != nil {
+			if err := fgaClient.WriteTuple(ctx, ltk); err != nil {
 				return nil, err
 			}
 		}
@@ -340,7 +340,7 @@ func (c *Checker) TenantSave(ctx context.Context, req *authz.TenantSaveRequest) 
 		return nil, ErrUnauthorized
 	}
 	newName := t.GetName()
-	log.Trace().Str("tenantName", newName).Int64("id", tenantId).Msg("TenantSave")
+	log.For(ctx).Trace().Str("tenantName", newName).Int64("id", tenantId).Msg("TenantSave")
 	_, err := sq.StatementBuilder.
 		RunWith(c.db).
 		PlaceholderFormat(sq.Dollar).
@@ -360,7 +360,7 @@ func (c *Checker) TenantAddPermission(ctx context.Context, req *authz.TenantModi
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(TenantType, tenantId))
-	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantAddPermission")
+	log.For(ctx).Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantAddPermission")
 	return &authz.TenantSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, MemberRelation, AdminRelation)
 }
 
@@ -372,7 +372,7 @@ func (c *Checker) TenantRemovePermission(ctx context.Context, req *authz.TenantM
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(TenantType, tenantId))
-	log.Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantRemovePermission")
+	log.For(ctx).Trace().Str("tk", tk.String()).Int64("id", tenantId).Msg("TenantRemovePermission")
 	return &authz.TenantSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
@@ -388,7 +388,7 @@ func (c *Checker) TenantCreateGroup(ctx context.Context, req *authz.TenantCreate
 	} else if !check.Actions.CanCreateOrg {
 		return nil, ErrUnauthorized
 	}
-	log.Trace().Str("groupName", groupName).Int64("id", tenantId).Msg("TenantCreateGroup")
+	log.For(ctx).Trace().Str("groupName", groupName).Int64("id", tenantId).Msg("TenantCreateGroup")
 	groupId := int64(0)
 	err := sq.StatementBuilder.
 		RunWith(c.db).
@@ -495,7 +495,7 @@ func (c *Checker) GroupSave(ctx context.Context, req *authz.GroupSaveRequest) (*
 	} else if !check.Actions.CanEdit {
 		return nil, ErrUnauthorized
 	}
-	log.Trace().Str("groupName", newName).Int64("id", groupId).Msg("GroupSave")
+	log.For(ctx).Trace().Str("groupName", newName).Int64("id", groupId).Msg("GroupSave")
 	_, err := sq.StatementBuilder.
 		RunWith(c.db).
 		PlaceholderFormat(sq.Dollar).
@@ -515,7 +515,7 @@ func (c *Checker) GroupAddPermission(ctx context.Context, req *authz.GroupModify
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(GroupType, groupId))
-	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupAddPermission")
+	log.For(ctx).Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupAddPermission")
 	return &authz.GroupSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, ViewerRelation, EditorRelation, ManagerRelation)
 }
 
@@ -527,7 +527,7 @@ func (c *Checker) GroupRemovePermission(ctx context.Context, req *authz.GroupMod
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(GroupType, groupId))
-	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupRemovePermission")
+	log.For(ctx).Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupRemovePermission")
 	return &authz.GroupSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
@@ -540,7 +540,7 @@ func (c *Checker) GroupSetTenant(ctx context.Context, req *authz.GroupSetTenantR
 		return nil, ErrUnauthorized
 	}
 	tk := authz.NewTupleKey().WithSubjectID(TenantType, newTenantId).WithObjectID(GroupType, groupId).WithRelation(ParentRelation)
-	log.Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupSetTenant")
+	log.For(ctx).Trace().Str("tk", tk.String()).Int64("id", groupId).Msg("GroupSetTenant")
 	return &authz.GroupSetTenantResponse{}, c.fgaClient.SetExclusiveRelation(ctx, tk)
 }
 
@@ -611,7 +611,7 @@ func (c *Checker) FeedSetGroup(ctx context.Context, req *authz.FeedSetGroupReque
 		return nil, ErrUnauthorized
 	}
 	tk := authz.NewTupleKey().WithSubjectID(GroupType, newGroup).WithObjectID(FeedType, feedId).WithRelation(ParentRelation)
-	log.Trace().Str("tk", tk.String()).Int64("id", feedId).Msg("FeedSetGroup")
+	log.For(ctx).Trace().Str("tk", tk.String()).Int64("id", feedId).Msg("FeedSetGroup")
 	return &authz.FeedSaveResponse{}, c.fgaClient.SetExclusiveRelation(ctx, tk)
 }
 
@@ -698,7 +698,7 @@ func (c *Checker) FeedVersionAddPermission(ctx context.Context, req *authz.FeedV
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(FeedVersionType, fvid))
-	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionAddPermission")
+	log.For(ctx).Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionAddPermission")
 	return &authz.FeedVersionSaveResponse{}, c.fgaClient.SetExclusiveSubjectRelation(ctx, tk, ViewerRelation, EditorRelation, ManagerRelation)
 }
 
@@ -710,7 +710,7 @@ func (c *Checker) FeedVersionRemovePermission(ctx context.Context, req *authz.Fe
 		return nil, ErrUnauthorized
 	}
 	tk := req.GetEntityRelation().WithObject(newEntityID(FeedVersionType, fvid))
-	log.Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionRemovePermission")
+	log.For(ctx).Trace().Str("tk", tk.String()).Int64("id", fvid).Msg("FeedVersionRemovePermission")
 	return &authz.FeedVersionSaveResponse{}, c.fgaClient.DeleteTuple(ctx, tk)
 }
 
@@ -791,12 +791,12 @@ func (c *Checker) checkAction(ctx context.Context, checkAction Action, obj Entit
 	}
 	userName := checkUser.ID()
 	if c.checkGlobalAdmin(checkUser) {
-		log.Debug().Str("check_user", userName).Str("obj", obj.String()).Str("check_action", checkAction.String()).Msg("global admin action")
+		log.For(ctx).Debug().Str("check_user", userName).Str("obj", obj.String()).Str("check_action", checkAction.String()).Msg("global admin action")
 		return true, nil
 	}
 	checkTk := authz.NewTupleKey().WithUser(userName).WithObject(obj.Type, obj.Name).WithAction(checkAction)
 	ret, err := c.fgaClient.Check(ctx, checkTk, ctxtk...)
-	log.Trace().Str("tk", checkTk.String()).Bool("result", ret).Err(err).Msg("checkAction")
+	log.For(ctx).Trace().Str("tk", checkTk.String()).Bool("result", ret).Err(err).Msg("checkAction")
 	return ret, err
 }
 
@@ -853,7 +853,7 @@ func getEntities[T hasId](ctx context.Context, db sqlx.Ext, ids []int64, table s
 	var t []T
 	q := sq.StatementBuilder.Select(cols...).From(table).Where(sq.Eq{"id": ids})
 	if err := dbutil.Select(ctx, db, q, &t); err != nil {
-		log.Trace().Err(err)
+		log.For(ctx).Trace().Err(err)
 		return nil, err
 	}
 	if err := checkIds(t, ids); err != nil {

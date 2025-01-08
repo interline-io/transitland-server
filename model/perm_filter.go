@@ -31,7 +31,7 @@ var pfCtxKey = &contextKey{"permFilter"}
 
 func PermsForContext(ctx context.Context) *PermFilter {
 	raw, ok := ctx.Value(pfCtxKey).(*PermFilter)
-	log.Trace().Msgf("PermsForContext: %#v", raw)
+	log.For(ctx).Trace().Msgf("PermsForContext: %#v", raw)
 	if !ok {
 		return &PermFilter{}
 	}
@@ -43,7 +43,7 @@ func WithPerms(ctx context.Context, checker Checker) context.Context {
 	if err != nil {
 		panic(err)
 	}
-	log.Trace().Msgf("WithPerms: %#v", pf)
+	log.For(ctx).Trace().Msgf("WithPerms: %#v", pf)
 	r := context.WithValue(ctx, pfCtxKey, pf)
 	return r
 }
@@ -65,7 +65,7 @@ type canCheckGlobalAdmin interface {
 func checkActive(ctx context.Context, checker Checker) (*PermFilter, error) {
 	active := &PermFilter{}
 	if checker == nil {
-		log.Trace().Msg("checkActive: no checker")
+		log.For(ctx).Trace().Msg("checkActive: no checker")
 		return active, nil
 	}
 
