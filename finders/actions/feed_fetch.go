@@ -65,7 +65,7 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 	mr := model.FeedVersionFetchResult{}
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
-		fr, err := fetch.StaticFetch(atx, fetchOpts)
+		fr, err := fetch.StaticFetch(ctx, atx, fetchOpts)
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 	var rtMsg *pb.FeedMessage
 	var fetchErr error
 	if err := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
-		fr, err := fetch.RTFetch(atx, fetchOpts)
+		fr, err := fetch.RTFetch(ctx, atx, fetchOpts)
 		if err != nil {
 			return err
 		}

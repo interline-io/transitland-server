@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/internal/gbfs"
-
-	"github.com/jmoiron/sqlx"
 )
 
 // Finder provides all necessary database methods
@@ -37,7 +36,7 @@ type EntityFinder interface {
 	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (*ServiceWindow, error)
-	DBX() sqlx.Ext // escape hatch, for now
+	DBX() tldb.Ext // escape hatch, for now
 }
 
 type EntityMutator interface {

@@ -8,9 +8,9 @@ import (
 
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/rt/pb"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
 // Cache provides a method for looking up and listening for changed RT data
@@ -29,7 +29,7 @@ type Finder struct {
 	lc    *lookupCache
 }
 
-func NewFinder(cache Cache, db sqlx.Ext) *Finder {
+func NewFinder(cache Cache, db tldb.Ext) *Finder {
 	return &Finder{
 		Clock: &clock.Real{},
 		cache: cache,

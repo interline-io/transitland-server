@@ -34,7 +34,7 @@ func TestStopCreate(t *testing.T) {
 		checkEnt := gtfs.Stop{}
 		checkEnt.ID = eid
 		atx := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
-		if err := atx.Find(&checkEnt); err != nil {
+		if err := atx.Find(ctx, &checkEnt); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, stopInput.StopID, &checkEnt.StopID.Val)
@@ -69,7 +69,7 @@ func TestStopUpdate(t *testing.T) {
 		checkEnt := gtfs.Stop{}
 		checkEnt.ID = eid
 		atx := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
-		if err := atx.Find(&checkEnt); err != nil {
+		if err := atx.Find(ctx, &checkEnt); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, stopUpdate.StopID, &checkEnt.StopID.Val)

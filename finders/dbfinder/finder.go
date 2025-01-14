@@ -9,23 +9,23 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
 ////////
 
 type Finder struct {
 	Clock      clock.Clock
-	db         sqlx.Ext
+	db         tldb.Ext
 	adminCache *adminCache
 	fvslCache  *clock.ServiceWindowCache
 }
 
-func NewFinder(db sqlx.Ext) *Finder {
+func NewFinder(db tldb.Ext) *Finder {
 	finder := &Finder{
 		db:        db,
 		fvslCache: clock.NewServiceWindowCache(db),
@@ -33,7 +33,7 @@ func NewFinder(db sqlx.Ext) *Finder {
 	return finder
 }
 
-func (f *Finder) DBX() sqlx.Ext {
+func (f *Finder) DBX() tldb.Ext {
 	return f.db
 }
 

@@ -222,7 +222,7 @@ func createUpdateEnt[T hasTableName](
 	// Update or create?
 	if update {
 		baseEnt.SetID(*entId)
-		if err := atx.Find(baseEnt); err != nil {
+		if err := atx.Find(ctx, baseEnt); err != nil {
 			return 0, err
 		}
 	} else if fvid != nil {
@@ -250,9 +250,9 @@ func createUpdateEnt[T hasTableName](
 	err = nil
 	if update {
 		retId = baseEnt.GetID()
-		err = atx.Update(baseEnt, cols...)
+		err = atx.Update(ctx, baseEnt, cols...)
 	} else {
-		retId, err = atx.Insert(baseEnt)
+		retId, err = atx.Insert(ctx, baseEnt)
 	}
 	if err != nil {
 		return 0, err

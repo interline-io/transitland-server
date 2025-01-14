@@ -21,7 +21,6 @@ import (
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/testdata"
-	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -80,7 +79,7 @@ func DefaultRTJson() []RTJsonFile {
 	}
 }
 
-func newTestConfig(t testing.TB, db sqlx.Ext, opts Options) model.Config {
+func newTestConfig(t testing.TB, db tldb.Ext, opts Options) model.Config {
 	// Default time
 	if opts.WhenUtc == "" {
 		opts.WhenUtc = "2022-09-01T00:00:00Z"
