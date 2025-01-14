@@ -20,8 +20,8 @@ require (
 	github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71
 	github.com/interline-io/transitland-dbutil v0.0.0-20241212203507-15a69a52c1c4
 	github.com/interline-io/transitland-jobs v0.0.0-20241212203627-25dc585dcf7e
-	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20241221023216-8a59b5c6d534
-	github.com/interline-io/transitland-mw v0.0.0-20241212203557-2e0c0fea3d26
+	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250114204131-f367913b54e8
+	github.com/interline-io/transitland-mw v0.0.0-20250110005713-3ae756e06fec
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
@@ -91,7 +91,7 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -119,7 +119,7 @@ require (
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -132,7 +132,7 @@ require (
 // Fork to allow exporting x- extensions
 replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17
 
-replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
 // replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/transitland-jobs => /Users/irees/src/interline-io/transitland-jobs
