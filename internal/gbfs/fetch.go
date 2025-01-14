@@ -74,7 +74,7 @@ func Fetch(ctx context.Context, atx tldb.Adapter, opts Options) ([]GbfsFeed, Res
 			tlfetch.Success = false
 			tlfetch.FetchError.Set(result.FetchError.Error())
 		}
-		if _, err := atx.Insert(&tlfetch); err != nil {
+		if _, err := atx.Insert(context.TODO(), &tlfetch); err != nil {
 			return nil, result, err
 		}
 	}
@@ -162,7 +162,8 @@ func fetchAll(ctx context.Context, sf SystemFeeds, reqOpts ...request.RequestOpt
 }
 
 func fetchUnmarshal(url string, ent any, reqOpts ...request.RequestOption) (request.FetchResponse, error) {
-	fr, err := request.AuthenticatedRequest(url, reqOpts...)
+	ctx := context.TODO()
+	fr, err := request.AuthenticatedRequest(ctx, url, reqOpts...)
 	if err != nil {
 		return fr, err
 	}

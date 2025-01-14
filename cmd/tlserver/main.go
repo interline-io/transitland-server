@@ -32,7 +32,6 @@ import (
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/playground"
 	"github.com/interline-io/transitland-server/server/rest"
-	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -130,10 +129,9 @@ func (cmd *ServerCommand) Parse(args []string) error {
 	return nil
 }
 
-func (cmd *ServerCommand) Run() error {
-	ctx := context.Background()
+func (cmd *ServerCommand) Run(ctx context.Context) error {
 	// Open database
-	var db sqlx.Ext
+	var db tldb.Ext
 	dbx, err := dbutil.OpenDB(cmd.DBURL)
 	if err != nil {
 		return err
@@ -301,7 +299,7 @@ func (cmd *versionCommand) Parse(args []string) error {
 	return nil
 }
 
-func (cmd *versionCommand) Run() error {
+func (cmd *versionCommand) Run(context.Context) error {
 	vi := getVersion()
 	log.Print("transitland-server version: %s", vi.Tag)
 	log.Print("transitland-server commit: https://github.com/interline-io/transitland-server/commit/%s (time: %s)", vi.Commit, vi.CommitTime)
