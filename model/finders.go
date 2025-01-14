@@ -129,19 +129,19 @@ type EntityLoader interface {
 
 // RTFinder manages and looks up RT data
 type RTFinder interface {
-	AddData(string, []byte) error
-	FindTrip(t *Trip) *pb.TripUpdate
-	MakeTrip(t *Trip) (*Trip, error)
-	FindAlertsForTrip(*Trip, *int, *bool) []*Alert
-	FindAlertsForStop(*Stop, *int, *bool) []*Alert
-	FindAlertsForRoute(*Route, *int, *bool) []*Alert
-	FindAlertsForAgency(*Agency, *int, *bool) []*Alert
-	GetAddedTripsForStop(*Stop) []*pb.TripUpdate
-	FindStopTimeUpdate(*Trip, *StopTime) (*RTStopTimeUpdate, bool)
+	AddData(context.Context, string, []byte) error
+	FindTrip(context.Context, *Trip) *pb.TripUpdate
+	MakeTrip(context.Context, *Trip) (*Trip, error)
+	FindAlertsForTrip(context.Context, *Trip, *int, *bool) []*Alert
+	FindAlertsForStop(context.Context, *Stop, *int, *bool) []*Alert
+	FindAlertsForRoute(context.Context, *Route, *int, *bool) []*Alert
+	FindAlertsForAgency(context.Context, *Agency, *int, *bool) []*Alert
+	GetAddedTripsForStop(context.Context, *Stop) []*pb.TripUpdate
+	FindStopTimeUpdate(context.Context, *Trip, *StopTime) (*RTStopTimeUpdate, bool)
 	// lookup cache methods
-	StopTimezone(int, string) (*time.Location, bool)
-	GetGtfsTripID(int) (string, bool)
-	GetMessage(string, string) (*pb.FeedMessage, bool)
+	StopTimezone(context.Context, int, string) (*time.Location, bool)
+	GetGtfsTripID(context.Context, int) (string, bool)
+	GetMessage(context.Context, string, string) (*pb.FeedMessage, bool)
 }
 
 // GbfsFinder manages and looks up GBFS data

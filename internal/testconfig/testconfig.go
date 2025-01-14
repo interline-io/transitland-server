@@ -37,18 +37,20 @@ type Options struct {
 }
 
 func Config(t testing.TB, opts Options) model.Config {
+	ctx := context.Background()
 	db := testutil.MustOpenTestDB(t)
-	return newTestConfig(t, &tldb.QueryLogger{Ext: db}, opts)
+	return newTestConfig(t, ctx, &tldb.QueryLogger{Ext: db}, opts)
 }
 
 func ConfigTx(t testing.TB, opts Options, cb func(model.Config) error) {
+	ctx := context.Background()
 	// Start Txn
 	db := testutil.MustOpenTestDB(t)
-	tx := db.MustBeginTx(context.Background(), nil)
+	tx := db.MustBeginTx(ctx, nil)
 	defer tx.Rollback()
 
 	// Get finders
-	testEnv := newTestConfig(t, &tldb.QueryLogger{Ext: tx}, opts)
+	testEnv := newTestConfig(t, ctx, &tldb.QueryLogger{Ext: tx}, opts)
 
 	// Commit or rollback
 	if err := cb(testEnv); err != nil {
@@ -79,7 +81,7 @@ func DefaultRTJson() []RTJsonFile {
 	}
 }
 
-func newTestConfig(t testing.TB, db tldb.Ext, opts Options) model.Config {
+func newTestConfig(t testing.TB, ctx context.Context, db tldb.Ext, opts Options) model.Config {
 	// Default time
 	if opts.WhenUtc == "" {
 		opts.WhenUtc = "2022-09-01T00:00:00Z"
@@ -99,7 +101,7 @@ func newTestConfig(t testing.TB, db tldb.Ext, opts Options) model.Config {
 			FGALoadModelFile: opts.FGAModelFile,
 			FGALoadTestData:  opts.FGAModelTuples,
 		}
-		checker, err = azchecker.NewCheckerFromConfig(checkerCfg, db)
+		checker, err = azchecker.NewCheckerFromConfig(ctx, checkerCfg, db)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -123,7 +125,7 @@ func newTestConfig(t testing.TB, db tldb.Ext, opts Options) model.Config {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := rtf.AddData(key, rtdata); err != nil {
+		if err := rtf.AddData(ctx, key, rtdata); err != nil {
 			t.Fatal(err)
 		}
 	}

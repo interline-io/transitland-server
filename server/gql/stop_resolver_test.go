@@ -31,13 +31,13 @@ func TestStopResolver_License(t *testing.T) {
 
 func TestStopResolver_AdminCache(t *testing.T) {
 	type canLoadAdmins interface {
-		LoadAdmins() error
+		LoadAdmins(context.Context) error
 	}
 	c, cfg := newTestClient(t)
 	if v, ok := cfg.Finder.(canLoadAdmins); !ok {
 		t.Fatal("finder cant load admins")
 	} else {
-		if err := v.LoadAdmins(); err != nil {
+		if err := v.LoadAdmins(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 	}

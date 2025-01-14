@@ -34,21 +34,22 @@ type RedisCache struct {
 }
 
 func NewRedisCache(client *redis.Client) *RedisCache {
+	ctx := context.Background()
 	f := RedisCache{
 		client:    client,
 		listeners: map[string]*listener{},
-		ctx:       context.Background(),
+		ctx:       ctx,
 	}
 	return &f
 }
 
-func (f *RedisCache) GetSource(topic string) (*Source, bool) {
+func (f *RedisCache) GetSource(ctx context.Context, topic string) (*Source, bool) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	if a, ok := f.listeners[topic]; ok {
 		return a.source, true
 	}
-	a, err := f.startListener(topic)
+	a, err := f.startListener(ctx, topic)
 	if err != nil {
 		return nil, false
 	}
@@ -56,11 +57,11 @@ func (f *RedisCache) GetSource(topic string) (*Source, bool) {
 	return a.source, true
 }
 
-func (f *RedisCache) AddFeedMessage(topic string, rtmsg *pb.FeedMessage) error {
+func (f *RedisCache) AddFeedMessage(ctx context.Context, topic string, rtmsg *pb.FeedMessage) error {
 	return nil
 }
 
-func (f *RedisCache) AddData(topic string, data []byte) error {
+func (f *RedisCache) AddData(ctx context.Context, topic string, data []byte) error {
 	rctx, cc := context.WithTimeout(f.ctx, 5*time.Second)
 	defer cc()
 	// Set last seen value with 5 min ttl
@@ -71,7 +72,7 @@ func (f *RedisCache) AddData(topic string, data []byte) error {
 	if err := f.client.Publish(rctx, subKey(topic), data).Err(); err != nil {
 		return err
 	}
-	log.Trace().Str("topic", topic).Int("bytes", len(data)).Msg("cache: added data")
+	log.For(ctx).Trace().Str("topic", topic).Int("bytes", len(data)).Msg("cache: added data")
 	return nil
 }
 
@@ -93,7 +94,7 @@ func subKey(topic string) string {
 	return fmt.Sprintf("rtfetch:sub:%s", topic)
 }
 
-func (f *RedisCache) startListener(topic string) (*listener, error) {
+func (f *RedisCache) startListener(ctx context.Context, topic string) (*listener, error) {
 	// Create new source
 	s, err := NewSource(topic)
 	if err != nil {
@@ -106,14 +107,14 @@ func (f *RedisCache) startListener(topic string) (*listener, error) {
 		defer sub.Close()
 		subch := sub.Channel()
 		for rmsg := range subch {
-			if err := s.process([]byte(rmsg.Payload)); err != nil {
-				log.Error().Err(err).Str("topic", topic).Int("bytes", len(rmsg.Payload)).Msg("cache: error processing update")
+			if err := s.process(ctx, []byte(rmsg.Payload)); err != nil {
+				log.For(ctx).Error().Err(err).Str("topic", topic).Int("bytes", len(rmsg.Payload)).Msg("cache: error processing update")
 			} else {
-				log.Trace().Str("topic", topic).Int("bytes", len(rmsg.Payload)).Msg("cache: processed update")
+				log.For(ctx).Trace().Str("topic", topic).Int("bytes", len(rmsg.Payload)).Msg("cache: processed update")
 			}
 		}
 	}(f.client, topic, ls)
-	log.Trace().Str("topic", topic).Msgf("cache: listener created")
+	log.For(ctx).Trace().Str("topic", topic).Msgf("cache: listener created")
 	// get the first message
 	rctx, cc := context.WithTimeout(f.ctx, 1*time.Second)
 	defer cc()
@@ -122,10 +123,10 @@ func (f *RedisCache) startListener(topic string) (*listener, error) {
 		// ok
 	} else if err != nil {
 		// also ok, hope we get data on future updates
-		log.Error().Err(err).Str("topic", topic).Msg("cache: error getting last data for topic")
+		log.For(ctx).Error().Err(err).Str("topic", topic).Msg("cache: error getting last data for topic")
 	} else {
 		lb, _ := lastData.Bytes()
-		s.process(lb)
+		s.process(ctx, lb)
 	}
 	return ls, nil
 }

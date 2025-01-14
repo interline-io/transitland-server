@@ -10,12 +10,13 @@ import (
 )
 
 func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
+	ctx := context.Background()
 	db := testutil.MustOpenTestDB(t)
 	dbf := NewFinder(&tldb.QueryLogger{Ext: db})
 	testFinder := dbf
 
 	fvm := map[string]int{}
-	fvs, err := testFinder.FindFeedVersions(context.TODO(), nil, nil, nil, nil)
+	fvs, err := testFinder.FindFeedVersions(ctx, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +54,7 @@ func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			fvsw, err := testFinder.FindFeedVersionServiceWindow(context.TODO(), tc.fvid)
+			fvsw, err := testFinder.FindFeedVersionServiceWindow(ctx, tc.fvid)
 			start, end, best := fvsw.StartDate, fvsw.EndDate, fvsw.FallbackWeek
 			if err != nil {
 				t.Fatal(err)

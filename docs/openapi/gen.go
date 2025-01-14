@@ -68,6 +68,7 @@ func GenerateOpenAPI() (*oa.T, error) {
 }
 
 func main() {
+	ctx := context.Background()
 	args := os.Args
 	if len(args) != 2 {
 		exit(errors.New("output file required"))
@@ -91,7 +92,7 @@ func main() {
 		exit(err)
 	}
 	var validationOpts []oa.ValidationOption
-	if err := schema.Validate(context.Background(), validationOpts...); err != nil {
+	if err := schema.Validate(ctx, validationOpts...); err != nil {
 		exit(err)
 	}
 

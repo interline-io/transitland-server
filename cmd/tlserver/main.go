@@ -153,7 +153,7 @@ func (cmd *ServerCommand) Run(ctx context.Context) error {
 	// Create Finder
 	dbFinder := dbfinder.NewFinder(db)
 	if cmd.LoadAdmins {
-		dbFinder.LoadAdmins()
+		dbFinder.LoadAdmins(ctx)
 	}
 
 	// Create RTFinder, GbfsFinder
@@ -245,7 +245,7 @@ func (cmd *ServerCommand) Run(ctx context.Context) error {
 	// Start server
 	timeOut := time.Duration(cmd.Timeout) * time.Second
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
-	log.Infof("Listening on: %s", addr)
+	log.For(ctx).Info().Msgf("Listening on: %s", addr)
 	srv := &http.Server{
 		Handler:      http.TimeoutHandler(root, timeOut, "timeout"),
 		Addr:         addr,

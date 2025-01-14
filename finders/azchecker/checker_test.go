@@ -1805,6 +1805,7 @@ func checkActionsToMap(v []Action) map[string]bool {
 }
 
 func newTestChecker(t testing.TB, url string, testData []testCase) *Checker {
+	ctx := context.Background()
 	dbx := testutil.MustOpenTestDB(t)
 	cfg := CheckerConfig{
 		FGAEndpoint:      url,
@@ -1812,14 +1813,14 @@ func newTestChecker(t testing.TB, url string, testData []testCase) *Checker {
 		GlobalAdmin:      "global_admin",
 	}
 
-	checker, err := NewCheckerFromConfig(cfg, dbx)
+	checker, err := NewCheckerFromConfig(ctx, cfg, dbx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Add test data
 	for _, tc := range testData {
-		if err := checker.fgaClient.WriteTuple(context.Background(), dbTupleLookup(t, dbx, tc.TupleKey())); err != nil {
+		if err := checker.fgaClient.WriteTuple(ctx, dbTupleLookup(t, dbx, tc.TupleKey())); err != nil {
 			t.Fatal(err)
 		}
 	}
