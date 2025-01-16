@@ -22,12 +22,13 @@ type LocationClient interface {
 }
 
 func init() {
+	ctx := context.Background()
 	// Get AWS config and register handler factory
 	cn := os.Getenv("TL_AWS_LOCATION_CALCULATOR")
 	if cn == "" {
 		return
 	}
-	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
+	cfg, err := awsconfig.LoadDefaultConfig(ctx)
 	if err != nil {
 		return
 	}
@@ -64,7 +65,7 @@ func newAWSRouter(lc LocationClient, calculator string) *awsRouter {
 	}
 }
 
-func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, error) {
+func (h *awsRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	// Input validation
 	if err := validateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
@@ -109,9 +110,9 @@ func (h *awsRouter) Request(req model.DirectionRequest) (*model.Directions, erro
 	departAt = departAt.In(time.UTC)
 
 	// Make request
-	res, err := h.locationClient.CalculateRoute(context.TODO(), &input)
+	res, err := h.locationClient.CalculateRoute(ctx, &input)
 	if err != nil || res.Summary == nil {
-		log.Debug().Err(err).Msg("aws location services error")
+		log.For(ctx).Debug().Err(err).Msg("aws location services error")
 		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
 	}
 

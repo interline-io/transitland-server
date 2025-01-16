@@ -32,7 +32,6 @@ import (
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/playground"
 	"github.com/interline-io/transitland-server/server/rest"
-	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -68,18 +67,20 @@ func main() {
 }
 
 type ServerCommand struct {
-	Timeout            int
-	LongQueryDuration  int
-	Port               string
-	RestPrefix         string
-	LoadAdmins         bool
-	ValidateLargeFiles bool
-	SecretsFile        string
-	Storage            string
-	RTStorage          string
-	DBURL              string
-	RedisURL           string
-	secrets            []dmfr.Secret
+	Timeout                 int
+	LongQueryDuration       int
+	Port                    string
+	RestPrefix              string
+	LoadAdmins              bool
+	ValidateLargeFiles      bool
+	LoaderBatchSize         int
+	LoaderStopTimeBatchSize int
+	SecretsFile             string
+	Storage                 string
+	RTStorage               string
+	DBURL                   string
+	RedisURL                string
+	secrets                 []dmfr.Secret
 }
 
 func (cmd *ServerCommand) HelpDesc() (string, string) {
@@ -102,6 +103,8 @@ func (cmd *ServerCommand) AddFlags(fl *pflag.FlagSet) {
 	fl.IntVar(&cmd.Timeout, "timeout", 60, "")
 	fl.IntVar(&cmd.LongQueryDuration, "long-query", 1000, "Log queries over this duration (ms)")
 	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
+	fl.IntVar(&cmd.LoaderBatchSize, "loader-batch-size", 100, "GraphQL Loader batch size")
+	fl.IntVar(&cmd.LoaderStopTimeBatchSize, "loader-stop-time-batch-size", 1, "GraphQL Loader batch size for StopTimes")
 }
 
 func (cmd *ServerCommand) Parse(args []string) error {
@@ -126,9 +129,9 @@ func (cmd *ServerCommand) Parse(args []string) error {
 	return nil
 }
 
-func (cmd *ServerCommand) Run() error {
+func (cmd *ServerCommand) Run(ctx context.Context) error {
 	// Open database
-	var db sqlx.Ext
+	var db tldb.Ext
 	dbx, err := dbutil.OpenDB(cmd.DBURL)
 	if err != nil {
 		return err
@@ -150,7 +153,7 @@ func (cmd *ServerCommand) Run() error {
 	// Create Finder
 	dbFinder := dbfinder.NewFinder(db)
 	if cmd.LoadAdmins {
-		dbFinder.LoadAdmins()
+		dbFinder.LoadAdmins(ctx)
 	}
 
 	// Create RTFinder, GbfsFinder
@@ -168,14 +171,16 @@ func (cmd *ServerCommand) Run() error {
 
 	// Setup config
 	cfg := model.Config{
-		Finder:             dbFinder,
-		RTFinder:           rtFinder,
-		GbfsFinder:         gbfsFinder,
-		Secrets:            cmd.secrets,
-		Storage:            cmd.Storage,
-		RTStorage:          cmd.RTStorage,
-		ValidateLargeFiles: cmd.ValidateLargeFiles,
-		RestPrefix:         cmd.RestPrefix,
+		Finder:                  dbFinder,
+		RTFinder:                rtFinder,
+		GbfsFinder:              gbfsFinder,
+		Secrets:                 cmd.secrets,
+		Storage:                 cmd.Storage,
+		RTStorage:               cmd.RTStorage,
+		ValidateLargeFiles:      cmd.ValidateLargeFiles,
+		RestPrefix:              cmd.RestPrefix,
+		LoaderBatchSize:         cmd.LoaderBatchSize,
+		LoaderStopTimeBatchSize: cmd.LoaderStopTimeBatchSize,
 	}
 
 	// Setup router
@@ -194,7 +199,9 @@ func (cmd *ServerCommand) Run() error {
 	root.Use(usercheck.AdminDefaultMiddleware("admin"))
 
 	// Add logging middleware - must be after auth
-	root.Use(log.LoggingMiddleware(cmd.LongQueryDuration, func(ctx context.Context) string {
+	root.Use(log.RequestIDMiddleware)
+	root.Use(log.RequestIDLoggingMiddleware)
+	root.Use(log.DurationLoggingMiddleware(cmd.LongQueryDuration, func(ctx context.Context) string {
 		if user := authn.ForContext(ctx); user != nil {
 			return user.Name()
 		}
@@ -238,7 +245,7 @@ func (cmd *ServerCommand) Run() error {
 	// Start server
 	timeOut := time.Duration(cmd.Timeout) * time.Second
 	addr := fmt.Sprintf("%s:%s", "0.0.0.0", cmd.Port)
-	log.Infof("Listening on: %s", addr)
+	log.For(ctx).Info().Msgf("Listening on: %s", addr)
 	srv := &http.Server{
 		Handler:      http.TimeoutHandler(root, timeOut, "timeout"),
 		Addr:         addr,
@@ -292,7 +299,7 @@ func (cmd *versionCommand) Parse(args []string) error {
 	return nil
 }
 
-func (cmd *versionCommand) Run() error {
+func (cmd *versionCommand) Run(context.Context) error {
 	vi := getVersion()
 	log.Print("transitland-server version: %s", vi.Tag)
 	log.Print("transitland-server commit: https://github.com/interline-io/transitland-server/commit/%s (time: %s)", vi.Commit, vi.CommitTime)

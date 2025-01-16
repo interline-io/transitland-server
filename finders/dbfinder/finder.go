@@ -9,23 +9,23 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
+	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
-	"github.com/jmoiron/sqlx"
 )
 
 ////////
 
 type Finder struct {
 	Clock      clock.Clock
-	db         sqlx.Ext
+	db         tldb.Ext
 	adminCache *adminCache
 	fvslCache  *clock.ServiceWindowCache
 }
 
-func NewFinder(db sqlx.Ext) *Finder {
+func NewFinder(db tldb.Ext) *Finder {
 	finder := &Finder{
 		db:        db,
 		fvslCache: clock.NewServiceWindowCache(db),
@@ -33,14 +33,14 @@ func NewFinder(db sqlx.Ext) *Finder {
 	return finder
 }
 
-func (f *Finder) DBX() sqlx.Ext {
+func (f *Finder) DBX() tldb.Ext {
 	return f.db
 }
 
-func (f *Finder) LoadAdmins() error {
-	log.Trace().Msg("loading admins")
+func (f *Finder) LoadAdmins(ctx context.Context) error {
+	log.For(ctx).Trace().Msg("loading admins")
 	adminCache := newAdminCache()
-	if err := adminCache.LoadAdmins(context.Background(), f.db); err != nil {
+	if err := adminCache.LoadAdmins(ctx, f.db); err != nil {
 		return err
 	}
 	f.adminCache = adminCache
@@ -152,6 +152,9 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 
 func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*model.ServiceWindow, error) {
 	a, _, err := f.fvslCache.Get(ctx, fvid)
+	if err != nil {
+		return nil, err
+	}
 	// Get local time
 	nowLocal := time.Now().In(a.Location)
 	if model.ForContext(ctx).Clock != nil {
@@ -1726,7 +1729,7 @@ func logErr(ctx context.Context, err error) error {
 	if ctx.Err() == context.Canceled {
 		return nil
 	}
-	log.Error().Err(err).Msg("query failed")
+	log.For(ctx).Error().Err(err).Msg("query failed")
 	return errors.New("database error")
 }
 
@@ -1735,7 +1738,7 @@ func logExtendErr(ctx context.Context, size int, err error) []error {
 	if ctx.Err() == context.Canceled {
 		return errs
 	}
-	log.Error().Err(err).Msg("query failed")
+	log.For(ctx).Error().Err(err).Msg("query failed")
 	for i := 0; i < len(errs); i++ {
 		errs[i] = errors.New("database error")
 	}
@@ -1765,7 +1768,7 @@ func arrangeBy[K comparable, T any](keys []K, ents []T, cb func(T) K) []T {
 // 		if ok {
 // 			ret[idx] = a
 // 		} else {
-// 			log.Error().Any("keys", keys).Any("key", key).Int("idx", idx).Any("ents", ents).Msg("no value for key")
+// 			log.For(ctx).Error().Any("keys", keys).Any("key", key).Int("idx", idx).Any("ents", ents).Msg("no value for key")
 // 			debug.PrintStack()
 // 		}
 // 	}

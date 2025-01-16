@@ -37,7 +37,7 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 		},
 	}
 	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
-	fr, fe := importer.MainImportFeedVersion(db, opts)
+	fr, fe := importer.MainImportFeedVersion(ctx, db, opts)
 	if fe != nil {
 		return nil, fe
 	}
@@ -54,7 +54,7 @@ func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimp
 	}
 	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
-		return importer.UnimportFeedVersion(atx, fvid, nil)
+		return importer.UnimportFeedVersion(ctx, atx, fvid, nil)
 	}); err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func FeedVersionUpdate(ctx context.Context, values model.FeedVersionSetInput) (i
 		} else {
 			fv.Description.Valid = false
 		}
-		return atx.Update(&fv, cols...)
+		return atx.Update(ctx, &fv, cols...)
 	})
 	if err != nil {
 		return 0, err
@@ -183,7 +183,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 		result.FailureReason = strptr("Could not validate file")
 		return &result, nil
 	}
-	r, err := vt.Validate()
+	r, err := vt.Validate(ctx)
 	if err != nil {
 		result.FailureReason = strptr("Could not validate file")
 		return &result, nil

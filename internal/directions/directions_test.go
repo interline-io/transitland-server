@@ -1,6 +1,7 @@
 package directions
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"testing"
@@ -38,7 +39,7 @@ type testCase struct {
 }
 
 func testHandler(t *testing.T, h Handler, tc testCase) *model.Directions {
-	ret, err := h.Request(tc.req)
+	ret, err := h.Request(context.Background(), tc.req)
 	if err != nil {
 		t.Fatal(err)
 	}

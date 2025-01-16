@@ -17,11 +17,11 @@ require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
-	github.com/interline-io/log v0.0.0-20240613202707-4e3adcc06d2d
-	github.com/interline-io/transitland-dbutil v0.0.0-20241120224434-2e3739fc7cae
-	github.com/interline-io/transitland-jobs v0.0.0-20241120224642-53ba60bc1639
-	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20241122235913-ead2c9be1aa9
-	github.com/interline-io/transitland-mw v0.0.0-20241120224607-1a0e8e642494
+	github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71
+	github.com/interline-io/transitland-dbutil v0.0.0-20241212203507-15a69a52c1c4
+	github.com/interline-io/transitland-jobs v0.0.0-20241212203627-25dc585dcf7e
+	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250114221237-5ecf97c1b62a
+	github.com/interline-io/transitland-mw v0.0.0-20250110005713-3ae756e06fec
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
@@ -91,7 +91,7 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -113,14 +113,14 @@ require (
 	github.com/twpayne/go-polyline v1.1.1 // indirect
 	github.com/urfave/cli/v2 v2.27.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/text v0.18.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect

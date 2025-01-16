@@ -156,7 +156,7 @@ func (r FeedRequest) Query(ctx context.Context) (string, map[string]interface{})
 }
 
 // ProcessGeoJSON .
-func (r FeedRequest) ProcessGeoJSON(response map[string]interface{}) error {
+func (r FeedRequest) ProcessGeoJSON(ctx context.Context, response map[string]interface{}) error {
 	// This is not ideal. Use gjson?
 	entities, ok := response[r.ResponseKey()].([]interface{})
 	if ok {
@@ -171,7 +171,7 @@ func (r FeedRequest) ProcessGeoJSON(response map[string]interface{}) error {
 			}
 		}
 	}
-	return processGeoJSON(r, response)
+	return processGeoJSON(ctx, r, response)
 }
 
 func checkFeedSpecFilterValue(v string) string {

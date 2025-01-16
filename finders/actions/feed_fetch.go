@@ -65,7 +65,7 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 	mr := model.FeedVersionFetchResult{}
 	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
-		fr, err := fetch.StaticFetch(atx, fetchOpts)
+		fr, err := fetch.StaticFetch(ctx, atx, fetchOpts)
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 	var rtMsg *pb.FeedMessage
 	var fetchErr error
 	if err := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
-		fr, err := fetch.RTFetch(atx, fetchOpts)
+		fr, err := fetch.RTFetch(ctx, atx, fetchOpts)
 		if err != nil {
 			return err
 		}
@@ -129,19 +129,18 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 		return errors.New("invalid rt data")
 	}
 	key := fmt.Sprintf("rtdata:%s:%s", target, urlType)
-	return cfg.RTFinder.AddData(key, rtdata)
+	return cfg.RTFinder.AddData(ctx, key, rtdata)
 }
 
 func GbfsFetch(ctx context.Context, feedId string, feedUrl string) error {
 	cfg := model.ForContext(ctx)
-	log := log.For(ctx)
 	gfeeds, err := cfg.Finder.FindFeeds(ctx, nil, nil, nil, &model.FeedFilter{OnestopID: &feedId})
 	if err != nil {
-		log.Error().Err(err).Msg("gbfs-fetch: error loading source feed")
+		log.For(ctx).Error().Err(err).Msg("gbfs-fetch: error loading source feed")
 		return err
 	}
 	if len(gfeeds) == 0 {
-		log.Error().Err(err).Msg("gbfs-fetch: source feed not found")
+		log.For(ctx).Error().Err(err).Msg("gbfs-fetch: source feed not found")
 		return errors.New("feed not found")
 	}
 
@@ -155,6 +154,7 @@ func GbfsFetch(ctx context.Context, feedId string, feedUrl string) error {
 		opts.FeedURL = feedUrl
 	}
 	feeds, result, err := gbfs.Fetch(
+		ctx,
 		tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()),
 		opts,
 	)
