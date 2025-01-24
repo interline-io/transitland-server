@@ -50,7 +50,7 @@ func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				if dow < 0 {
 					dow = 6
 				}
-				where.ServiceDate = tzTruncate(fvsw.FallbackWeek.AddDate(0, 0, dow), fvsw.Location)
+				where.ServiceDate = tzTruncate(fvsw.FallbackWeek.AddDate(0, 0, dow), fvsw.NowLocal.Location())
 			}
 		}
 	}

@@ -52,7 +52,7 @@ func (r *stopTimeResolver) Trip(ctx context.Context, obj *model.StopTime) (*mode
 func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
 	// Lookup timezone
 	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(ctx, obj.StopID.Int(), "")
-	if !ok {
+	if loc == nil || !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
 	// Create arrival; fallback to RT departure if arrival is not present
@@ -73,7 +73,7 @@ func (r *stopTimeResolver) Arrival(ctx context.Context, obj *model.StopTime) (*m
 func (r *stopTimeResolver) Departure(ctx context.Context, obj *model.StopTime) (*model.StopTimeEvent, error) {
 	// Lookup timezone
 	loc, ok := model.ForContext(ctx).RTFinder.StopTimezone(ctx, obj.StopID.Int(), "")
-	if !ok {
+	if loc == nil || !ok {
 		return nil, errors.New("timezone not available for stop")
 	}
 	// Create departure; fallback to RT arrival if departure is not present

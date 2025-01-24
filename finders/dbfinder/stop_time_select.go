@@ -236,12 +236,11 @@ func StopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow
 
 	// Further processing of the StopTimeFilter
 	if where != nil {
-		var loc *time.Location
 		var nowLocal time.Time
 		if fvsw != nil {
-			loc = fvsw.Location
 			nowLocal = fvsw.NowLocal
 		}
+		loc := nowLocal.Location()
 
 		// Set ServiceDate to local timezone
 		// ServiceDate is a strict GTFS calendar date

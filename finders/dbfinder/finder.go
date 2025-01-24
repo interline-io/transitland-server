@@ -166,7 +166,6 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*m
 		StartDate:    a.StartDate,
 		EndDate:      a.EndDate,
 		FallbackWeek: a.FallbackWeek,
-		Location:     a.Location,
 	}
 	return ret, err
 }

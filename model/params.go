@@ -14,7 +14,6 @@ type ServiceWindow struct {
 	StartDate    time.Time
 	EndDate      time.Time
 	FallbackWeek time.Time
-	Location     *time.Location
 }
 
 type StopPlaceParam struct {

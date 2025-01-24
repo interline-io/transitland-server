@@ -3,12 +3,12 @@ package dbfinder
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -35,6 +35,10 @@ func kebabize(a string) string {
 }
 
 func tzTruncate(s time.Time, loc *time.Location) *tt.Date {
+	if loc == nil {
+		log.Error().Msg("tzTruncate: loc is nil, set to UTC")
+		loc = time.UTC
+	}
 	return ptr(tt.NewDate(time.Date(s.Year(), s.Month(), s.Day(), 0, 0, 0, 0, loc)))
 }
 
@@ -60,11 +64,6 @@ func checkFloat(v *float64, min float64, max float64) float64 {
 		return max
 	}
 	return *v
-}
-
-func atoi(v string) int {
-	a, _ := strconv.Atoi(v)
-	return a
 }
 
 // unicode aware remove all non-alphanumeric characters
