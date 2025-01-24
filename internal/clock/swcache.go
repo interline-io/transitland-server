@@ -23,19 +23,19 @@ type ServiceWindow struct {
 type ServiceWindowCache struct {
 	db          sqlx.Ext
 	lock        sync.Mutex
-	fvslWindows map[int]ServiceWindow
+	fvslWindows map[int]*ServiceWindow
 	tzCache     *tzcache.Cache[int]
 }
 
 func NewServiceWindowCache(db sqlx.Ext) *ServiceWindowCache {
 	return &ServiceWindowCache{
 		db:          db,
-		fvslWindows: map[int]ServiceWindow{},
+		fvslWindows: map[int]*ServiceWindow{},
 		tzCache:     tzcache.NewCache[int](),
 	}
 }
 
-func (f *ServiceWindowCache) Get(ctx context.Context, fvid int) (ServiceWindow, bool, error) {
+func (f *ServiceWindowCache) Get(ctx context.Context, fvid int) (*ServiceWindow, bool, error) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	a, ok := f.fvslWindows[fvid]

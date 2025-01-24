@@ -155,6 +155,9 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*m
 	if err != nil {
 		return nil, err
 	}
+	if a == nil {
+		return nil, errors.New("no service window found")
+	}
 	// Get local time
 	nowLocal := time.Now().In(a.Location)
 	if model.ForContext(ctx).Clock != nil {
