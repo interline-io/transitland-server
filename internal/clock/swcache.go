@@ -51,6 +51,8 @@ func (f *ServiceWindowCache) Get(ctx context.Context, fvid int) (*ServiceWindow,
 	if fvData.Location == nil {
 		return a, false, fmt.Errorf("unable to get cached default timezone for feed version %d", fvid)
 	}
+
+	a = &ServiceWindow{}
 	a.Location = fvData.Location
 
 	// Get fallback week from FVSL data
