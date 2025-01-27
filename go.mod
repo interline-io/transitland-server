@@ -20,8 +20,8 @@ require (
 	github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71
 	github.com/interline-io/transitland-dbutil v0.0.0-20250121190919-c9e6032c7c54
 	github.com/interline-io/transitland-jobs v0.0.0-20250121191053-6f38e47f339b
-	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250121190946-68f0d25bfc45
-	github.com/interline-io/transitland-mw v0.0.0-20250121191023-be528929c108
+	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250122223933-d12b10fd4a80
+	github.com/interline-io/transitland-mw v0.0.0-20250127215319-89cd48845668
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
@@ -116,7 +116,7 @@ require (
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
-	golang.org/x/net v0.29.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect

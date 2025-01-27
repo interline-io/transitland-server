@@ -156,10 +156,10 @@ github.com/interline-io/transitland-dbutil v0.0.0-20250121190919-c9e6032c7c54 h1
 github.com/interline-io/transitland-dbutil v0.0.0-20250121190919-c9e6032c7c54/go.mod h1:SufMDe2L4GYp5dPgZ0I0D+Ag3qZ/q6eAAMcQqopPUms=
 github.com/interline-io/transitland-jobs v0.0.0-20250121191053-6f38e47f339b h1:P0hQahtmqI4vP6Thig6VAe8E3502cCuyZlPw6uRjN+4=
 github.com/interline-io/transitland-jobs v0.0.0-20250121191053-6f38e47f339b/go.mod h1:rbz66LgN8VVt0UG69Z0tJEL8I5znuI4FMyYQbqnkQlc=
-github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250121190946-68f0d25bfc45 h1:EZe7P+KlkrldOTRMFkuYLJzRFiSx1SRVRUsaFzireMk=
-github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250121190946-68f0d25bfc45/go.mod h1:dqgno8whpfypMvC1Vbl3/8+7jApnMDmF1gbeufgKHc8=
-github.com/interline-io/transitland-mw v0.0.0-20250121191023-be528929c108 h1:GoeSyxwR8yg/b8hnb2AZsPN61MIuYHcHe+ShMwoqun8=
-github.com/interline-io/transitland-mw v0.0.0-20250121191023-be528929c108/go.mod h1:UucNdxJVKz6hwjlTTMAPnGDBBbld4q6eTHQuYrtUFAk=
+github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250122223933-d12b10fd4a80 h1:ff3s18jCWbS3uFH5k89c2ZS4STsKWOzSH/Y6b5ghng4=
+github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250122223933-d12b10fd4a80/go.mod h1:ZK2GIFc/GIvd3dp3nXDS4Gv8Indzi5oOPcbXYJVls7w=
+github.com/interline-io/transitland-mw v0.0.0-20250127215319-89cd48845668 h1:6zXTWQTTtQXiPAwJdFMst7SmIvgmriTqsGK+0NDHJ/k=
+github.com/interline-io/transitland-mw v0.0.0-20250127215319-89cd48845668/go.mod h1:UucNdxJVKz6hwjlTTMAPnGDBBbld4q6eTHQuYrtUFAk=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
 github.com/invopop/yaml v0.3.1/go.mod h1:PMOp3nn4/12yEZUFfmOuNHJsZToEEOwoWsT+D81KkeA=
 github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17 h1:8r3a8+gGbNCrB+sF5BhzOUU5N7vo7vbwz1MGmYoq5TI=
@@ -325,8 +325,8 @@ golang.org/x/net v0.0.0-20210614182718-04defd469f4e/go.mod h1:9nx3DQGgdP8bBQD5qx
 golang.org/x/net v0.0.0-20220722155237-a158d28d115b/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
 golang.org/x/net v0.1.0/go.mod h1:Cx3nUiGt4eDBEyega/BKRp+/AlGL8hYe7U9odMt2Cco=
 golang.org/x/net v0.6.0/go.mod h1:2Tu9+aMcznHK/AK1HMvgo6xiTLG5rD5rZLDS+rp2Bjs=
-golang.org/x/net v0.29.0 h1:5ORfpBpCs4HzDYoodCDBbwHzdR5UrLBZ3sOnUJmFoHo=
-golang.org/x/net v0.29.0/go.mod h1:gLkgy8jTGERgjzMic6DS9+SP0ajcu6Xu3Orq/SpETg0=
+golang.org/x/net v0.33.0 h1:74SYHlV8BIgHIFC/LrYkOGIwL19eTYXQ5wc6TBuO36I=
+golang.org/x/net v0.33.0/go.mod h1:HXLR5J+9DxmrqMwG9qjGCxZ+zKXxBru04zlTvWlWuN4=
 golang.org/x/oauth2 v0.15.0 h1:s8pnnxNVzjWyrvYdFUQq5llS1PX2zhPXmccZv99h7uQ=
 golang.org/x/oauth2 v0.15.0/go.mod h1:q48ptWNTY5XWf+JNten23lcvHpLJ0ZSxF5ttTHKVCAM=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
