@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-dbutil/testutil"
-	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/tldb/querylogger"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFinder_FindFeedVersionServiceWindow(t *testing.T) {
 	ctx := context.Background()
 	db := testutil.MustOpenTestDB(t)
-	dbf := NewFinder(&tldb.QueryLogger{Ext: db})
+	dbf := NewFinder(&querylogger.QueryLogger{Ext: db})
 	testFinder := dbf
 
 	fvm := map[string]int{}

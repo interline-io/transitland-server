@@ -12,6 +12,7 @@ import (
 	localjobs "github.com/interline-io/transitland-jobs/local"
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/tldb/querylogger"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/finders/actions"
 	"github.com/interline-io/transitland-server/finders/azchecker"
@@ -39,7 +40,7 @@ type Options struct {
 func Config(t testing.TB, opts Options) model.Config {
 	ctx := context.Background()
 	db := testutil.MustOpenTestDB(t)
-	return newTestConfig(t, ctx, &tldb.QueryLogger{Ext: db}, opts)
+	return newTestConfig(t, ctx, &querylogger.QueryLogger{Ext: db}, opts)
 }
 
 func ConfigTx(t testing.TB, opts Options, cb func(model.Config) error) {
@@ -50,7 +51,7 @@ func ConfigTx(t testing.TB, opts Options, cb func(model.Config) error) {
 	defer tx.Rollback()
 
 	// Get finders
-	testEnv := newTestConfig(t, ctx, &tldb.QueryLogger{Ext: tx}, opts)
+	testEnv := newTestConfig(t, ctx, &querylogger.QueryLogger{Ext: tx}, opts)
 
 	// Commit or rollback
 	if err := cb(testEnv); err != nil {
