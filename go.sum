@@ -158,8 +158,8 @@ github.com/interline-io/transitland-jobs v0.0.0-20250121191053-6f38e47f339b h1:P
 github.com/interline-io/transitland-jobs v0.0.0-20250121191053-6f38e47f339b/go.mod h1:rbz66LgN8VVt0UG69Z0tJEL8I5znuI4FMyYQbqnkQlc=
 github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250122223933-d12b10fd4a80 h1:ff3s18jCWbS3uFH5k89c2ZS4STsKWOzSH/Y6b5ghng4=
 github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250122223933-d12b10fd4a80/go.mod h1:ZK2GIFc/GIvd3dp3nXDS4Gv8Indzi5oOPcbXYJVls7w=
-github.com/interline-io/transitland-mw v0.0.0-20250128234928-3f7bb1e2778b h1:/QrbqKvvtax3fXLqTViMVygDHIvqgQHpL/3/0HAtrOo=
-github.com/interline-io/transitland-mw v0.0.0-20250128234928-3f7bb1e2778b/go.mod h1:KdiPm2k8Quf6N2D5lqBR5cAbgEFR3bjtJvWytUMdxbg=
+github.com/interline-io/transitland-mw v0.0.0-20250129012720-b8529e947810 h1:sogZDXhJPBaiaInyf20qab9kT0KGjz00gVQ3elEhdsA=
+github.com/interline-io/transitland-mw v0.0.0-20250129012720-b8529e947810/go.mod h1:KdiPm2k8Quf6N2D5lqBR5cAbgEFR3bjtJvWytUMdxbg=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
 github.com/invopop/yaml v0.3.1/go.mod h1:PMOp3nn4/12yEZUFfmOuNHJsZToEEOwoWsT+D81KkeA=
 github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17 h1:8r3a8+gGbNCrB+sF5BhzOUU5N7vo7vbwz1MGmYoq5TI=
