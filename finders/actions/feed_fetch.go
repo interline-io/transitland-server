@@ -13,6 +13,7 @@ import (
 	"github.com/interline-io/transitland-lib/fetch"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/tldb/postgres"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/internal/gbfs"
@@ -63,7 +64,7 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 
 	// Make request
 	mr := model.FeedVersionFetchResult{}
-	db := tldb.NewPostgresAdapterFromDBX(dbf.DBX())
+	db := postgres.NewPostgresAdapterFromDBX(dbf.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
 		fr, err := fetch.StaticFetch(ctx, atx, fetchOpts)
 		if err != nil {
@@ -108,7 +109,7 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 	// Make request
 	var rtMsg *pb.FeedMessage
 	var fetchErr error
-	if err := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
+	if err := postgres.NewPostgresAdapterFromDBX(cfg.Finder.DBX()).Tx(func(atx tldb.Adapter) error {
 		fr, err := fetch.RTFetch(ctx, atx, fetchOpts)
 		if err != nil {
 			return err
@@ -155,7 +156,7 @@ func GbfsFetch(ctx context.Context, feedId string, feedUrl string) error {
 	}
 	feeds, result, err := gbfs.Fetch(
 		ctx,
-		tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX()),
+		postgres.NewPostgresAdapterFromDBX(cfg.Finder.DBX()),
 		opts,
 	)
 	if err != nil {

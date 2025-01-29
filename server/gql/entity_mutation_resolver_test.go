@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/gtfs"
-	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/tldb/postgres"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
@@ -33,7 +33,7 @@ func TestStopCreate(t *testing.T) {
 		}
 		checkEnt := gtfs.Stop{}
 		checkEnt.ID = eid
-		atx := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+		atx := postgres.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 		if err := atx.Find(ctx, &checkEnt); err != nil {
 			t.Fatal(err)
 		}
@@ -68,7 +68,7 @@ func TestStopUpdate(t *testing.T) {
 		}
 		checkEnt := gtfs.Stop{}
 		checkEnt.ID = eid
-		atx := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+		atx := postgres.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 		if err := atx.Find(ctx, &checkEnt); err != nil {
 			t.Fatal(err)
 		}

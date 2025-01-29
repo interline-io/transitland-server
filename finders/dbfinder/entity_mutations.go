@@ -8,6 +8,7 @@ import (
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/gtfs"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/tldb/postgres"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
@@ -204,7 +205,7 @@ func fvint(fvi *model.FeedVersionInput) *int {
 }
 
 func toAtx(ctx context.Context) tldb.Adapter {
-	return tldb.NewPostgresAdapterFromDBX(model.ForContext(ctx).Finder.DBX())
+	return postgres.NewPostgresAdapterFromDBX(model.ForContext(ctx).Finder.DBX())
 }
 
 // ensure we have edit rights to fvid

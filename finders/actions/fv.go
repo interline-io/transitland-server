@@ -14,6 +14,7 @@ import (
 	"github.com/interline-io/transitland-lib/importer"
 	"github.com/interline-io/transitland-lib/tlcsv"
 	"github.com/interline-io/transitland-lib/tldb"
+	"github.com/interline-io/transitland-lib/tldb/postgres"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-lib/validator"
 	"github.com/interline-io/transitland-mw/auth/authz"
@@ -36,7 +37,7 @@ func FeedVersionImport(ctx context.Context, fvid int) (*model.FeedVersionImportR
 			SimplifyShapes:             5.0,
 		},
 	}
-	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+	db := postgres.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 	fr, fe := importer.MainImportFeedVersion(ctx, db, opts)
 	if fe != nil {
 		return nil, fe
@@ -52,7 +53,7 @@ func FeedVersionUnimport(ctx context.Context, fvid int) (*model.FeedVersionUnimp
 	if err := checkFeedEdit(ctx, fvid); err != nil {
 		return nil, err
 	}
-	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+	db := postgres.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 	if err := db.Tx(func(atx tldb.Adapter) error {
 		return importer.UnimportFeedVersion(ctx, atx, fvid, nil)
 	}); err != nil {
@@ -74,7 +75,7 @@ func FeedVersionUpdate(ctx context.Context, values model.FeedVersionSetInput) (i
 		return 0, err
 	}
 
-	db := tldb.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
+	db := postgres.NewPostgresAdapterFromDBX(cfg.Finder.DBX())
 	err := db.Tx(func(atx tldb.Adapter) error {
 		fv := dmfr.FeedVersion{}
 		fv.ID = fvid

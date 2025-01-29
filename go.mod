@@ -20,7 +20,7 @@ require (
 	github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71
 	github.com/interline-io/transitland-dbutil v0.0.0-20250121190919-c9e6032c7c54
 	github.com/interline-io/transitland-jobs v0.0.0-20250121191053-6f38e47f339b
-	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250122223933-d12b10fd4a80
+	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250129092805-53d4ad222242
 	github.com/interline-io/transitland-mw v0.0.0-20250129014119-e74bee07e051
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
@@ -93,7 +93,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mmcloughlin/geohash v0.10.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
