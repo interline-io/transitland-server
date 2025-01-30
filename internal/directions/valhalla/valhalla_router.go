@@ -1,4 +1,4 @@
-package directions
+package valhalla
 
 import (
 	"bytes"
@@ -16,6 +16,7 @@ import (
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/internal/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -31,7 +32,7 @@ func init() {
 	if os.Getenv("TL_DIRECTIONS_ENABLE_CACHE") != "" {
 		client.Transport = httpcache.NewCache(nil, nil, httpcache.NewTTLCache(16*1024, 24*time.Hour))
 	}
-	if err := RegisterRouter("valhalla", func() Handler {
+	if err := directions.RegisterRouter("valhalla", func() directions.Handler {
 		return newValhallaRouter(client, endpoint, apikey)
 	}); err != nil {
 		panic(err)
@@ -57,7 +58,7 @@ func newValhallaRouter(client *http.Client, endpoint string, apikey string) *val
 }
 
 func (h *valhallaRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
-	if err := ValidateDirectionRequest(req); err != nil {
+	if err := directions.ValidateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
 	}
 
@@ -223,4 +224,15 @@ func valDuration(t float64) *model.Duration {
 func valDistance(v float64, units string) *model.Distance {
 	_ = units
 	return &model.Distance{Distance: v, Units: model.DistanceUnitKilometers}
+}
+
+func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
+	if w == nil {
+		return nil
+	}
+	return &model.Waypoint{
+		Lon:  w.Lon,
+		Lat:  w.Lat,
+		Name: w.Name,
+	}
 }

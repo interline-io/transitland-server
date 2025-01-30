@@ -1,4 +1,4 @@
-package directions
+package awsrouter
 
 import (
 	"context"
@@ -14,6 +14,7 @@ import (
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/internal/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -44,7 +45,7 @@ func init() {
 	}
 	cfg.HTTPClient = client
 	lc := location.NewFromConfig(cfg)
-	if err := RegisterRouter("aws", func() Handler {
+	if err := directions.RegisterRouter("aws", func() directions.Handler {
 		return newAWSRouter(lc, cn)
 	}); err != nil {
 		panic(err)
@@ -67,7 +68,7 @@ func newAWSRouter(lc LocationClient, calculator string) *awsRouter {
 
 func (h *awsRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	// Input validation
-	if err := ValidateDirectionRequest(req); err != nil {
+	if err := directions.ValidateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
 	}
 
@@ -233,4 +234,15 @@ func awsDistance(v *float64, units types.DistanceUnit) *model.Distance {
 	}
 	r.Distance = *v
 	return &r
+}
+
+func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
+	if w == nil {
+		return nil
+	}
+	return &model.Waypoint{
+		Lon:  w.Lon,
+		Lat:  w.Lat,
+		Name: w.Name,
+	}
 }

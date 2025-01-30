@@ -40,7 +40,6 @@ func getHandler(name string) (handlerFunc, bool) {
 
 func HandleRequest(ctx context.Context, pref string, req model.DirectionRequest) (*model.Directions, error) {
 	var handler Handler
-	handler = &lineRouter{}
 	// Default to walking
 	if !req.Mode.IsValid() {
 		req.Mode = model.StepModeWalk

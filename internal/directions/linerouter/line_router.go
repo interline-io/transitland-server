@@ -1,4 +1,4 @@
-package directions
+package linerouter
 
 import (
 	"context"
@@ -8,11 +8,12 @@ import (
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/internal/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
 func init() {
-	if err := RegisterRouter("line", func() Handler {
+	if err := directions.RegisterRouter("line", func() directions.Handler {
 		return &lineRouter{}
 	}); err != nil {
 		panic(err)
@@ -32,7 +33,7 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 		Success:     true,
 		Exception:   nil,
 	}
-	if err := ValidateDirectionRequest(req); err != nil {
+	if err := directions.ValidateDirectionRequest(req); err != nil {
 		ret.Success = false
 		ret.Exception = aws.String("invalid input")
 		return &ret, nil
@@ -101,4 +102,24 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 		ret.Itineraries = append(ret.Itineraries, &itin)
 	}
 	return &ret, nil
+}
+
+func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
+	if w == nil {
+		return nil
+	}
+	return &model.Waypoint{
+		Lon:  w.Lon,
+		Lat:  w.Lat,
+		Name: w.Name,
+	}
+}
+
+func valDuration(t float64) *model.Duration {
+	return &model.Duration{Duration: float64(t), Units: model.DurationUnitSeconds}
+}
+
+func valDistance(v float64, units string) *model.Distance {
+	_ = units
+	return &model.Distance{Distance: v, Units: model.DistanceUnitKilometers}
 }

@@ -1,0 +1,541 @@
+{
+    "plan": {
+      "date": 1738169640000,
+      "from": {
+        "lat": 37.75254,
+        "lon": -122.19835,
+        "name": "Origin"
+      },
+      "to": {
+        "lat": 37.79014,
+        "lon": -122.39645,
+        "name": "Destination"
+      },
+      "itineraries": [
+        {
+          "duration": 1933,
+          "distance": 20439.683049213174,
+          "startTime": 1738170254000,
+          "endTime": 1738172187000,
+          "walkTime": 673,
+          "walkDistance": 851.296811369373,
+          "transitTime": 1260,
+          "transitDistance": 19588.3862378438,
+          "waitingTime": 0,
+          "transfers": 0,
+          "legs": [
+            {
+              "startTime": 1738170254000,
+              "endTime": 1738170480000,
+              "distance": 350.48416205397297,
+              "duration": 226,
+              "mode": "WALK",
+              "transitLeg": false,
+              "from": {
+                "lat": 37.75254,
+                "lon": -122.19835,
+                "name": "",
+                "departure": 1738170254000
+              },
+              "to": {
+                "lat": 37.75354,
+                "lon": -122.19673,
+                "name": "Coliseum",
+                "departure": 1738170480000,
+                "stopId": "COLS",
+                "stopCode": "COLS",
+                "stopOnestopId": "s-9q9ng2g43c-coliseum"
+              },
+              "steps": [],
+              "legGeometry": {
+                "points": "kpleFtzyhVc@aOcD|D",
+                "length": 3
+              }
+            },
+            {
+              "startTime": 1738170480000,
+              "endTime": 1738171740000,
+              "distance": 19588.3862378438,
+              "duration": 1260,
+              "mode": "RAIL",
+              "transitLeg": true,
+              "from": {
+                "lat": 37.75354,
+                "lon": -122.19673,
+                "name": "Coliseum",
+                "departure": 1738170480000,
+                "stopId": "COLS",
+                "stopCode": "COLS",
+                "stopIndex": 9,
+                "stopSequence": 9,
+                "stopOnestopId": "s-9q9ng2g43c-coliseum"
+              },
+              "to": {
+                "lat": 37.79269,
+                "lon": -122.39704,
+                "name": "Embarcadero",
+                "departure": 1738171740000,
+                "stopId": "EMBR",
+                "stopCode": "EMBR",
+                "stopIndex": 13,
+                "stopSequence": 13,
+                "stopOnestopId": "s-9q8yyzcnqk-embarcadero"
+              },
+              "steps": [],
+              "intermediateStops": [
+                {
+                  "lat": 37.77484,
+                  "lon": -122.22408,
+                  "name": "Fruitvale",
+                  "departure": 1738170720000,
+                  "stopId": "FTVL",
+                  "stopCode": "FTVL",
+                  "stopIndex": 10,
+                  "stopSequence": 10,
+                  "stopOnestopId": "s-9q9nfsxnks-fruitvale"
+                },
+                {
+                  "lat": 37.79736,
+                  "lon": -122.26523,
+                  "name": "Lake Merritt",
+                  "departure": 1738170960000,
+                  "stopId": "LAKE",
+                  "stopCode": "LAKE",
+                  "stopIndex": 11,
+                  "stopSequence": 11,
+                  "stopOnestopId": "s-9q9p1bc1td-lakemerritt"
+                },
+                {
+                  "lat": 37.80492,
+                  "lon": -122.29514,
+                  "name": "West Oakland",
+                  "departure": 1738171320000,
+                  "stopId": "WOAK",
+                  "stopCode": "WOAK",
+                  "stopIndex": 12,
+                  "stopSequence": 12,
+                  "stopOnestopId": "s-9q9p145mse-westoakland"
+                }
+              ],
+              "legGeometry": {
+                "points": "wvleFlpyhVa@f@oA|AoA~AmA~AoA|AsAzAoAzAoA|AqA~AmA|AoA~AoA|AoA~AoA|AoA~AoA~AoA|AmA~AoA~AoA|AoA~AmA~AoA~AoA|AmA~AoA~AoA~AmA~AoA~AoA|AoA~AoA|AqA|AqAzAqAxAuAtAwArAuArAwArAuAtAuAtAqA|AmA`BgAdBcAlB_AnBy@tBw@tBw@vBw@tBy@tB{@rB}@pB_AnBaAnB_AnBaAlB_AnBaAnB_ApB}@pB{@rBy@rB{@rBy@tB{@rB{@rB}@pB_AnBeAhBiAfBkA`BoA`BmA~AkAbBgAfBeAhBcAlBaAlBaAlBaAlBaAnBaAlBaAnB_AnB}@pB{@rBy@rBy@tBy@vBw@tBy@rBy@tBw@vBw@vBs@vBu@xBs@xBs@xBs@xBs@xBs@vBs@xBs@zBo@zBk@|Bg@`Cg@~Bg@`Ci@|Bo@|Bs@xBy@tB}@pBaAlBgAhBiAdBkA`BmA`BmA`BmA~AmA`BkAdBgAfBcAjB_AnB_ApB}@pB}@pB}@pB_ApB}@pB{@rBu@vBs@xBq@xBm@|Be@`CWfCMfCDhCb@`Cz@pBhAfBdAhBj@|BFhCGhCQhCe@~Bw@vB}@pBy@rBy@tBy@tBw@vBu@vBw@vBq@xBk@|Be@bC_@bC]bC]dC[dC]bC_@dC]bCc@bCi@~Bm@zBq@zBq@zBq@xBq@zBq@zBo@zBs@xBq@zBo@zBk@|Bc@`Ca@dC]bC]dC]bC]dC[dC]bC[dC]dC[dCWdCWfCQfCQhCOfCOhCMfCMhCMhCMfCGhCOhCMhCKfCMhCKhCMfCMhCMhCMfCMhCKhCMhCKfCKhCKhCMhCKhCMfCKhCIhCGhCGhCEhCEhCAjCAhC@hCDhCDhCDhCFhCFhCHhCJhCJhCLhCLfCPhCPfCPfCTfCTfCVfCTdCVfCTfCVdCVfCTfCVdCTfCVfCVdCTfCVfCVdCTfCVfCTdCVfCTfCVdCVfCTfCVdCTfCVfCTdCVfCVfCTdCVfCVfCTdCVfCTfCVdCVfCTfCTdCVfCTfCVdCVfCVfCVdCVfCXdCXdC\\dC`@bCb@`Cf@~Bh@~Bl@|Bn@zBt@xBt@vBt@xBr@vBt@xBr@vBt@xBt@vBt@xBr@vBt@xBt@vBt@xBr@vBt@xBt@vBt@xBr@vBt@vBt@xBt@vBt@vBt@vBv@vBv@vBv@tBv@tB|@rB`AlBfAfBjAbBlA`Bz@jA",
+                "length": 333
+              },
+              "agencyId": "BA",
+              "agencyName": "Bay Area Rapid Transit",
+              "routeShortName": "Green-S",
+              "routeLongName": "Berryessa/North San Jose to Daly City",
+              "routeType": 1,
+              "routeId": "BA:Green-S",
+              "routeColor": "339933",
+              "routeTextColor": "FFFFFF",
+              "routeOnestopId": "r-9q9-green~s",
+              "tripId": "BA:1682880",
+              "headsign": "Daly City",
+              "block_id": "",
+              "feedId": "f-sf~bay~area~rg",
+              "feedVersionSha1": "d6b5e06c9b75be2deba6d97e5a7f9798df152eb5"
+            },
+            {
+              "startTime": 1738171740000,
+              "endTime": 1738172187000,
+              "distance": 500.8126493154001,
+              "duration": 447,
+              "mode": "WALK",
+              "transitLeg": false,
+              "from": {
+                "lat": 37.79269,
+                "lon": -122.39704,
+                "name": "Embarcadero",
+                "departure": 1738171740000,
+                "stopId": "EMBR",
+                "stopCode": "EMBR",
+                "stopOnestopId": "s-9q8yyzcnqk-embarcadero"
+              },
+              "to": {
+                "lat": 37.79014,
+                "lon": -122.39645,
+                "name": "",
+                "departure": 1738172187000
+              },
+              "steps": [],
+              "legGeometry": {
+                "points": "ikteFnt`jV????CBX`@??L?D?FIFH@BJL??|@qAdAwA|@mAV_@NQLS`AqANQ??HJBBLPhB`BDDBEDGLPLP????eArA",
+                "length": 34
+              }
+            }
+          ]
+        },
+        {
+          "duration": 1972,
+          "distance": 20405.46830995853,
+          "startTime": 1738170254000,
+          "endTime": 1738172226000,
+          "walkTime": 592,
+          "walkDistance": 817.0820721147312,
+          "transitTime": 1260,
+          "transitDistance": 19588.3862378438,
+          "waitingTime": 120,
+          "transfers": 1,
+          "legs": [
+            {
+              "startTime": 1738170254000,
+              "endTime": 1738170480000,
+              "distance": 350.48416205397297,
+              "duration": 226,
+              "mode": "WALK",
+              "transitLeg": false,
+              "from": {
+                "lat": 37.75254,
+                "lon": -122.19835,
+                "name": "",
+                "departure": 1738170254000
+              },
+              "to": {
+                "lat": 37.75354,
+                "lon": -122.19673,
+                "name": "Coliseum",
+                "departure": 1738170480000,
+                "stopId": "COLS",
+                "stopCode": "COLS",
+                "stopOnestopId": "s-9q9ng2g43c-coliseum"
+              },
+              "steps": [],
+              "legGeometry": {
+                "points": "kpleFtzyhVc@aOcD|D",
+                "length": 3
+              }
+            },
+            {
+              "startTime": 1738170480000,
+              "endTime": 1738171320000,
+              "distance": 10532.480667181426,
+              "duration": 840,
+              "mode": "RAIL",
+              "transitLeg": true,
+              "from": {
+                "lat": 37.75354,
+                "lon": -122.19673,
+                "name": "Coliseum",
+                "departure": 1738170480000,
+                "stopId": "COLS",
+                "stopCode": "COLS",
+                "stopIndex": 9,
+                "stopSequence": 9,
+                "stopOnestopId": "s-9q9ng2g43c-coliseum"
+              },
+              "to": {
+                "lat": 37.80492,
+                "lon": -122.29514,
+                "name": "West Oakland",
+                "departure": 1738171320000,
+                "stopId": "WOAK",
+                "stopCode": "WOAK",
+                "stopIndex": 12,
+                "stopSequence": 12,
+                "stopOnestopId": "s-9q9p145mse-westoakland"
+              },
+              "steps": [],
+              "intermediateStops": [
+                {
+                  "lat": 37.77484,
+                  "lon": -122.22408,
+                  "name": "Fruitvale",
+                  "departure": 1738170720000,
+                  "stopId": "FTVL",
+                  "stopCode": "FTVL",
+                  "stopIndex": 10,
+                  "stopSequence": 10,
+                  "stopOnestopId": "s-9q9nfsxnks-fruitvale"
+                },
+                {
+                  "lat": 37.79736,
+                  "lon": -122.26523,
+                  "name": "Lake Merritt",
+                  "departure": 1738170960000,
+                  "stopId": "LAKE",
+                  "stopCode": "LAKE",
+                  "stopIndex": 11,
+                  "stopSequence": 11,
+                  "stopOnestopId": "s-9q9p1bc1td-lakemerritt"
+                }
+              ],
+              "legGeometry": {
+                "points": "wvleFlpyhVa@f@oA|AoA~AmA~AoA|AsAzAoAzAoA|AqA~AmA|AoA~AoA|AoA~AoA|AoA~AoA~AoA|AmA~AoA~AoA|AoA~AmA~AoA~AoA|AmA~AoA~AoA~AmA~AoA~AoA|AoA~AoA|AqA|AqAzAqAxAuAtAwArAuArAwArAuAtAuAtAqA|AmA`BgAdBcAlB_AnBy@tBw@tBw@vBw@tBy@tB{@rB}@pB_AnBaAnB_AnBaAlB_AnBaAnB_ApB}@pB{@rBy@rB{@rBy@tB{@rB{@rB}@pB_AnBeAhBiAfBkA`BoA`BmA~AkAbBgAfBeAhBcAlBaAlBaAlBaAlBaAnBaAlBaAnB_AnB}@pB{@rBy@rBy@tBy@vBw@tBy@rBy@tBw@vBw@vBs@vBu@xBs@xBs@xBs@xBs@xBs@vBs@xBs@zBo@zBk@|Bg@`Cg@~Bg@`Ci@|Bo@|Bs@xBy@tB}@pBaAlBgAhBiAdBkA`BmA`BmA`BmA~AmA`BkAdBgAfBcAjB_AnB_ApB}@pB}@pB}@pB_ApB}@pB{@rBu@vBs@xBq@xBm@|Be@`CWfCMfCDhCb@`Cz@pBhAfBdAhBj@|BFhCGhCQhCe@~Bw@vB}@pBy@rBy@tBy@tBw@vBu@vBw@vBq@xBk@|Be@bC_@bC]bC]dC[dC]bC_@dC]bCc@bCi@~Bm@zBq@zBq@zBq@xBq@zBq@zBe@bB",
+                "length": 178
+              },
+              "agencyId": "BA",
+              "agencyName": "Bay Area Rapid Transit",
+              "routeShortName": "Green-S",
+              "routeLongName": "Berryessa/North San Jose to Daly City",
+              "routeType": 1,
+              "routeId": "BA:Green-S",
+              "routeColor": "339933",
+              "routeTextColor": "FFFFFF",
+              "routeOnestopId": "r-9q9-green~s",
+              "tripId": "BA:1682880",
+              "headsign": "Daly City",
+              "block_id": "",
+              "feedId": "f-sf~bay~area~rg",
+              "feedVersionSha1": "d6b5e06c9b75be2deba6d97e5a7f9798df152eb5"
+            },
+            {
+              "startTime": 1738171440000,
+              "endTime": 1738171860000,
+              "distance": 9055.905570662371,
+              "duration": 420,
+              "mode": "RAIL",
+              "transitLeg": true,
+              "from": {
+                "lat": 37.80492,
+                "lon": -122.29514,
+                "name": "West Oakland",
+                "departure": 1738171440000,
+                "stopId": "WOAK",
+                "stopCode": "WOAK",
+                "stopIndex": 11,
+                "stopSequence": 11,
+                "stopOnestopId": "s-9q9p145mse-westoakland"
+              },
+              "to": {
+                "lat": 37.79269,
+                "lon": -122.39704,
+                "name": "Embarcadero",
+                "departure": 1738171860000,
+                "stopId": "EMBR",
+                "stopCode": "EMBR",
+                "stopIndex": 12,
+                "stopSequence": 12,
+                "stopOnestopId": "s-9q8yyzcnqk-embarcadero"
+              },
+              "steps": [],
+              "intermediateStops": [
+                {
+                  "lat": 37.80492,
+                  "lon": -122.29514,
+                  "name": "West Oakland",
+                  "departure": 1738171440000,
+                  "stopId": "WOAK",
+                  "stopCode": "WOAK",
+                  "stopIndex": 11,
+                  "stopSequence": 11,
+                  "stopOnestopId": "s-9q9p145mse-westoakland"
+                },
+                {
+                  "lat": 37.79269,
+                  "lon": -122.39704,
+                  "name": "Embarcadero",
+                  "departure": 1738171860000,
+                  "stopId": "EMBR",
+                  "stopCode": "EMBR",
+                  "stopIndex": 12,
+                  "stopSequence": 12,
+                  "stopOnestopId": "s-9q8yyzcnqk-embarcadero"
+                }
+              ],
+              "legGeometry": {
+                "points": "qwveFtwliVMd@s@xBq@zBm@zBk@~Bc@`C_@bC_@dC]bC]dC[dC]bC]dC[dC[dC[dCYdCUfCSfCOhCOfCOhCMfCMhCMhCMfCGhCMhCMhCMfCKhCMhCMfCMhCMhCMfCKhCMhCKhCMfCKhCKhCMhCKfCMhCIhCIhCIhCGhCEhCChCCjC?hCBhCBhCDhCDhCFhCHhCHhCHhCLhCLhCLfCPhCPfCRfCRfCTfCVdCVfCTfCVdCTfCVfCTdCVfCVfCTdCVfCVfCTdCVfCVfCTdCVfCTfCVdCTfCVfCVdCTfCVfCTfCVdCTfCVfCVdCVfCTdCVfCTfCVdCTfCVfCTfCVdCTfCVfCTdCVfCVfCVdCXdCVfCZdC\\bC`@bCd@`Cf@`Ch@~Bl@zBn@zBt@xBt@vBt@xBr@vBt@xBt@vBr@xBt@vBt@xBt@vBr@xBt@vBt@xBt@vBr@xBt@vBt@xBr@vBt@vBt@xBt@vBt@vBv@vBt@vBv@vBv@tBx@tBz@rBbAjBhAfBjAbBlA`Bp@~@",
+                "length": 157
+              },
+              "agencyId": "BA",
+              "agencyName": "Bay Area Rapid Transit",
+              "routeShortName": "Yellow-S",
+              "routeLongName": "Antioch to SFIA/Millbrae",
+              "routeType": 1,
+              "routeId": "BA:Yellow-S",
+              "routeColor": "FFFF33",
+              "routeTextColor": "000000",
+              "routeOnestopId": "r-9q9-yellow~s",
+              "tripId": "BA:1682404",
+              "headsign": "San Francisco International Airport",
+              "block_id": "",
+              "feedId": "f-sf~bay~area~rg",
+              "feedVersionSha1": "d6b5e06c9b75be2deba6d97e5a7f9798df152eb5"
+            },
+            {
+              "startTime": 1738171860000,
+              "endTime": 1738172226000,
+              "distance": 466.59791006075824,
+              "duration": 366,
+              "mode": "WALK",
+              "transitLeg": false,
+              "from": {
+                "lat": 37.79269,
+                "lon": -122.39704,
+                "name": "Embarcadero",
+                "departure": 1738171860000,
+                "stopId": "EMBR",
+                "stopCode": "EMBR",
+                "stopOnestopId": "s-9q8yyzcnqk-embarcadero"
+              },
+              "to": {
+                "lat": 37.79014,
+                "lon": -122.39645,
+                "name": "",
+                "departure": 1738172226000
+              },
+              "steps": [],
+              "legGeometry": {
+                "points": "ikteFnt`jV????CBX`@??L?D?FIFH@BJL??|@qAdAwA|@mAV_@NQLS`AqANQ??HJBBBEn@TDGAA??d@|E",
+                "length": 30
+              }
+            }
+          ]
+        },
+        {
+          "duration": 1933,
+          "distance": 20439.683049213174,
+          "startTime": 1738170674000,
+          "endTime": 1738172607000,
+          "walkTime": 673,
+          "walkDistance": 851.296811369373,
+          "transitTime": 1260,
+          "transitDistance": 19588.3862378438,
+          "waitingTime": 0,
+          "transfers": 0,
+          "legs": [
+            {
+              "startTime": 1738170674000,
+              "endTime": 1738170900000,
+              "distance": 350.48416205397297,
+              "duration": 226,
+              "mode": "WALK",
+              "transitLeg": false,
+              "from": {
+                "lat": 37.75254,
+                "lon": -122.19835,
+                "name": "",
+                "departure": 1738170674000
+              },
+              "to": {
+                "lat": 37.75354,
+                "lon": -122.19673,
+                "name": "Coliseum",
+                "departure": 1738170900000,
+                "stopId": "COLS",
+                "stopCode": "COLS",
+                "stopOnestopId": "s-9q9ng2g43c-coliseum"
+              },
+              "steps": [],
+              "legGeometry": {
+                "points": "kpleFtzyhVc@aOcD|D",
+                "length": 3
+              }
+            },
+            {
+              "startTime": 1738170900000,
+              "endTime": 1738172160000,
+              "distance": 19588.3862378438,
+              "duration": 1260,
+              "mode": "RAIL",
+              "transitLeg": true,
+              "from": {
+                "lat": 37.75354,
+                "lon": -122.19673,
+                "name": "Coliseum",
+                "departure": 1738170900000,
+                "stopId": "COLS",
+                "stopCode": "COLS",
+                "stopIndex": 5,
+                "stopSequence": 5,
+                "stopOnestopId": "s-9q9ng2g43c-coliseum"
+              },
+              "to": {
+                "lat": 37.79269,
+                "lon": -122.39704,
+                "name": "Embarcadero",
+                "departure": 1738172160000,
+                "stopId": "EMBR",
+                "stopCode": "EMBR",
+                "stopIndex": 9,
+                "stopSequence": 9,
+                "stopOnestopId": "s-9q8yyzcnqk-embarcadero"
+              },
+              "steps": [],
+              "intermediateStops": [
+                {
+                  "lat": 37.77484,
+                  "lon": -122.22408,
+                  "name": "Fruitvale",
+                  "departure": 1738171140000,
+                  "stopId": "FTVL",
+                  "stopCode": "FTVL",
+                  "stopIndex": 6,
+                  "stopSequence": 6,
+                  "stopOnestopId": "s-9q9nfsxnks-fruitvale"
+                },
+                {
+                  "lat": 37.79736,
+                  "lon": -122.26523,
+                  "name": "Lake Merritt",
+                  "departure": 1738171380000,
+                  "stopId": "LAKE",
+                  "stopCode": "LAKE",
+                  "stopIndex": 7,
+                  "stopSequence": 7,
+                  "stopOnestopId": "s-9q9p1bc1td-lakemerritt"
+                },
+                {
+                  "lat": 37.80492,
+                  "lon": -122.29514,
+                  "name": "West Oakland",
+                  "departure": 1738171740000,
+                  "stopId": "WOAK",
+                  "stopCode": "WOAK",
+                  "stopIndex": 8,
+                  "stopSequence": 8,
+                  "stopOnestopId": "s-9q9p145mse-westoakland"
+                }
+              ],
+              "legGeometry": {
+                "points": "yvleFlpyhVmA|AoA|AmA~AoA~AqAzAqAzAoA|AoA|AoA~AoA|AoA~AoA|AoA~AoA~AoA|AoA~AmA~AoA|AoA~AoA~AoA|AmA~AoA~AmA~AoA~AoA~AmA~AoA|AoA~AoA~AoA|AoA|AqAzAqAzAuAvAuArAwArAwArAuArAuAvAsAxAmA~AkAbBeAhB_AnB}@rBw@tBw@tBw@vBw@tB{@tB}@pB_AnB_AnB_AnBaAnBaAlB_AnB_AnB}@pB}@rB{@rBy@rBy@tB{@rB{@rB{@rB_AnBcAlBgAfBkAbBmA`BmA~AmAbBiAbBeAhBcAlBcAlBaAjBaAnBaAlBaAlBaAnB_AnB_AnB}@rBy@rBy@tBy@tBw@tBy@tBy@tBw@tBw@vBu@vBs@xBu@xBs@xBs@xBs@xBs@vBs@xBs@xBq@zBm@|Bi@~Be@`Cg@~Bi@~Bk@|Bs@zBu@vB{@pBaAnBcAjBiAfBkAbBkA`BmA`BoA~AkA`BmAbBiAdBeAjB_AlB_AnB_ApB}@pB}@rB}@nB_ApB{@rBy@tBs@xBq@xBq@zBi@~B[bCQhCEhCTdCr@xBdAhBhAdBv@tBVfCChCKhC[bCq@zB}@pB{@rBy@tBy@tBw@vBw@tBu@vBu@xBm@zBg@`Ca@bC]bC]dC]bC]dC]dC_@bC_@bCe@`Cm@|Bo@zBq@zBq@xBq@zBq@zBq@xBq@zBs@xBo@zBm@|Bg@`Ca@`C]dC_@bC]dC[dC]bC]dC[dC]dC[bCYfCWdCSfCQfCQhCOfCMhCMhCMfCMhCIhCKhCOfCMhCKhCKfCMhCMhCMfCMhCMhCKhCMfCKhCKhCMhCKfCMhCKhCKhCKhCIhCGhCEhCEhCChCAhC?hCDjCBhCDhCFhCFhCHhCHhCJhCLfCLhCNhCPfCPfCRfCTfCVfCTdCVfCTfCVdCVfCTfCVdCTfCVfCVdCTfCVfCTdCVfCVfCTdCVfCVfCTdCVfCTfCVdCTfCVfCVdCTfCVfCTdCVfCVfCTdCVfCTfCVdCVfCTfCVdCTfCTfCVfCVdCTfCXdCVfCVdCXfC\\bC^dC`@`Cd@`Ch@~Bj@|Bn@|Bp@xBt@xBt@vBt@vBt@xBr@xBt@vBt@vBr@xBt@xBt@vBt@vBr@xBt@vBt@xBr@vBt@xBt@vBt@xBt@vBt@vBt@vBt@xBt@vBv@vBv@tBv@tBz@tB|@nBfAhBhAdBjAbBlA~ANR",
+                "length": 333
+              },
+              "agencyId": "BA",
+              "agencyName": "Bay Area Rapid Transit",
+              "routeShortName": "Blue-S",
+              "routeLongName": "Dublin/Pleasanton to Daly City",
+              "routeType": 1,
+              "routeId": "BA:Blue-S",
+              "routeColor": "0099CC",
+              "routeTextColor": "FFFFFF",
+              "routeOnestopId": "r-9q9n-blue~s",
+              "tripId": "BA:1682979",
+              "headsign": "Daly City",
+              "block_id": "",
+              "feedId": "f-sf~bay~area~rg",
+              "feedVersionSha1": "d6b5e06c9b75be2deba6d97e5a7f9798df152eb5"
+            },
+            {
+              "startTime": 1738172160000,
+              "endTime": 1738172607000,
+              "distance": 500.8126493154001,
+              "duration": 447,
+              "mode": "WALK",
+              "transitLeg": false,
+              "from": {
+                "lat": 37.79269,
+                "lon": -122.39704,
+                "name": "Embarcadero",
+                "departure": 1738172160000,
+                "stopId": "EMBR",
+                "stopCode": "EMBR",
+                "stopOnestopId": "s-9q8yyzcnqk-embarcadero"
+              },
+              "to": {
+                "lat": 37.79014,
+                "lon": -122.39645,
+                "name": "",
+                "departure": 1738172607000
+              },
+              "steps": [],
+              "legGeometry": {
+                "points": "ikteFnt`jV????CBX`@??L?D?FIFH@BJL??|@qAdAwA|@mAV_@NQLS`AqANQ??HJBBLPhB`BDDBEDGLPLP????eArA",
+                "length": 34
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
