@@ -14,18 +14,18 @@ import (
 
 func init() {
 	if err := directions.RegisterRouter("line", func() directions.Handler {
-		return &lineRouter{}
+		return &Router{}
 	}); err != nil {
 		panic(err)
 	}
 }
 
-// lineRouter is a simple point-to-point handler for testing purposes
-type lineRouter struct {
+// Router is a simple point-to-point handler for testing purposes
+type Router struct {
 	Clock clock.Clock
 }
 
-func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
+func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	// Prepare response
 	ret := model.Directions{
 		Origin:      wpiWaypoint(req.From),
@@ -67,8 +67,8 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 
 	// Create itinerary summary
 	itin := model.Itinerary{}
-	itin.Duration = valDuration(duration)
-	itin.Distance = valDistance(distance, "")
+	itin.Duration = makeDuration(duration)
+	itin.Distance = makeDistance(distance, "")
 	itin.StartTime = departAt
 	itin.EndTime = departAt.Add(time.Duration(duration) * time.Second)
 
@@ -80,16 +80,16 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 
 	// Create legs and steps for itinerary
 	step := model.Step{}
-	step.Duration = valDuration(duration)
-	step.Distance = valDistance(distance, "")
+	step.Duration = makeDuration(duration)
+	step.Distance = makeDistance(distance, "")
 	step.StartTime = departAt
 	step.EndTime = departAt.Add(time.Duration(duration) * time.Second)
 	step.GeometryOffset = 0
 
 	leg := model.Leg{}
 	leg.Steps = append(leg.Steps, &step)
-	leg.Duration = valDuration(duration)
-	leg.Distance = valDistance(distance, "")
+	leg.Duration = makeDuration(duration)
+	leg.Distance = makeDistance(distance, "")
 	leg.StartTime = departAt
 	leg.EndTime = departAt.Add(time.Duration(duration) * time.Second)
 	leg.Geometry = tt.NewLineStringFromFlatCoords([]float64{
@@ -115,11 +115,11 @@ func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
 	}
 }
 
-func valDuration(t float64) *model.Duration {
+func makeDuration(t float64) *model.Duration {
 	return &model.Duration{Duration: float64(t), Units: model.DurationUnitSeconds}
 }
 
-func valDistance(v float64, units string) *model.Distance {
+func makeDistance(v float64, units string) *model.Distance {
 	_ = units
 	return &model.Distance{Distance: v, Units: model.DistanceUnitKilometers}
 }

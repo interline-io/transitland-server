@@ -46,27 +46,27 @@ func init() {
 	cfg.HTTPClient = client
 	lc := location.NewFromConfig(cfg)
 	if err := directions.RegisterRouter("aws", func() directions.Handler {
-		return newAWSRouter(lc, cn)
+		return NewRouter(lc, cn)
 	}); err != nil {
 		panic(err)
 	}
 }
 
-type awsRouter struct {
+type Router struct {
 	CalculatorName string
 	Clock          clock.Clock
 	locationClient LocationClient
 }
 
-func newAWSRouter(lc LocationClient, calculator string) *awsRouter {
-	return &awsRouter{
+func NewRouter(lc LocationClient, calculator string) *Router {
+	return &Router{
 		CalculatorName: calculator,
 		Clock:          &clock.Real{},
 		locationClient: lc,
 	}
 }
 
-func (h *awsRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
+func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	// Input validation
 	if err := directions.ValidateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
@@ -118,7 +118,7 @@ func (h *awsRouter) Request(ctx context.Context, req model.DirectionRequest) (*m
 	}
 
 	// Prepare response
-	ret := makeAwsResponse(res, departAt)
+	ret := makeDirections(res, departAt)
 	ret.Origin = wpiWaypoint(req.From)
 	ret.Destination = wpiWaypoint(req.To)
 	ret.Success = true
@@ -126,13 +126,13 @@ func (h *awsRouter) Request(ctx context.Context, req model.DirectionRequest) (*m
 	return ret, nil
 }
 
-func makeAwsResponse(res *location.CalculateRouteOutput, departAt time.Time) *model.Directions {
+func makeDirections(res *location.CalculateRouteOutput, departAt time.Time) *model.Directions {
 	// Create itinerary summary
 	ret := model.Directions{}
 	itin := model.Itinerary{}
 	distUnits := res.Summary.DistanceUnit
-	itin.Duration = awsDuration(res.Summary.DurationSeconds)
-	itin.Distance = awsDistance(res.Summary.Distance, distUnits)
+	itin.Duration = makeDuration(res.Summary.DurationSeconds)
+	itin.Distance = makeDistance(res.Summary.Distance, distUnits)
 	itin.StartTime = departAt
 	if res.Summary.DurationSeconds != nil {
 		itin.EndTime = departAt.Add(time.Duration(*res.Summary.DurationSeconds) * time.Second)
@@ -154,8 +154,8 @@ func makeAwsResponse(res *location.CalculateRouteOutput, departAt time.Time) *mo
 		prevStepDepartAt := prevLegDepartAt
 		for _, awsstep := range awsleg.Steps {
 			step := model.Step{}
-			step.Duration = awsDuration(awsstep.DurationSeconds)
-			step.Distance = awsDistance(awsstep.Distance, distUnits)
+			step.Duration = makeDuration(awsstep.DurationSeconds)
+			step.Distance = makeDistance(awsstep.Distance, distUnits)
 			step.StartTime = prevStepDepartAt
 			step.EndTime = prevStepDepartAt.Add(time.Duration(*awsstep.DurationSeconds) * time.Second)
 			step.To = awsWaypoint(awsstep.EndPosition)
@@ -163,8 +163,8 @@ func makeAwsResponse(res *location.CalculateRouteOutput, departAt time.Time) *mo
 			prevStepDepartAt = step.EndTime
 			leg.Steps = append(leg.Steps, &step)
 		}
-		leg.Duration = awsDuration(awsleg.DurationSeconds)
-		leg.Distance = awsDistance(awsleg.Distance, distUnits)
+		leg.Duration = makeDuration(awsleg.DurationSeconds)
+		leg.Distance = makeDistance(awsleg.Distance, distUnits)
 		leg.StartTime = prevLegDepartAt
 		leg.EndTime = prevLegDepartAt.Add(time.Duration(*awsleg.DurationSeconds) * time.Second)
 		leg.From = awsWaypoint(awsleg.StartPosition)
@@ -208,7 +208,7 @@ func awsWaypoint(v []float64) *model.Waypoint {
 	}
 }
 
-func awsDuration(v *float64) *model.Duration {
+func makeDuration(v *float64) *model.Duration {
 	if v == nil {
 		return nil
 	}
@@ -219,7 +219,7 @@ func awsDuration(v *float64) *model.Duration {
 	return &r
 }
 
-func awsDistance(v *float64, units types.DistanceUnit) *model.Distance {
+func makeDistance(v *float64, units types.DistanceUnit) *model.Distance {
 	if v == nil || units == "" {
 		return nil
 	}

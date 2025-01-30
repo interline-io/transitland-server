@@ -1,4 +1,4 @@
-package valhalla
+package tlrouter
 
 import (
 	"net/http"
@@ -12,8 +12,8 @@ import (
 	"github.com/interline-io/transitland-server/testdata"
 )
 
-func TestRouter(t *testing.T) {
-	fdir := testdata.Path("directions/valhalla")
+func Test_tlrouterRouter(t *testing.T) {
+	fdir := testdata.Path("directions/tlrouter")
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
@@ -21,23 +21,6 @@ func TestRouter(t *testing.T) {
 			Success:  true,
 			Duration: 3130,
 			Distance: 4.387,
-			ResJson:  testdata.Path("directions/response/val_ped.json"),
-		},
-		{
-			Name:     "bike",
-			Req:      dt.BasicTests["bike"],
-			Success:  true,
-			Duration: 1132,
-			Distance: 4.912,
-			ResJson:  "",
-		},
-		{
-			Name:     "auto",
-			Req:      dt.BasicTests["auto"],
-			Success:  true,
-			Duration: 1037,
-			Distance: 5.133,
-			ResJson:  "",
 		},
 		{
 			Name:     "transit",
@@ -66,7 +49,7 @@ func TestRouter(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.Name, func(t *testing.T) {
-			recorder := testutil.NewRecorder(filepath.Join(fdir, tc.Name), "directions://valhalla")
+			recorder := testutil.NewRecorder(filepath.Join(fdir, tc.Name), "directions://tlrouter")
 			defer recorder.Stop()
 			h, err := makeTestRouter(recorder)
 			if err != nil {
@@ -78,8 +61,8 @@ func TestRouter(t *testing.T) {
 }
 
 func makeTestRouter(tr http.RoundTripper) (*Router, error) {
-	endpoint := os.Getenv("TL_VALHALLA_ENDPOINT")
-	apikey := os.Getenv("TL_VALHALLA_API_KEY")
+	endpoint := os.Getenv("TL_TLROUTER_ENDPOINT")
+	apikey := os.Getenv("TL_TLROUTER_APIKEY")
 	client := &http.Client{
 		Timeout:   10 * time.Second,
 		Transport: tr,

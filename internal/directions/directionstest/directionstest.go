@@ -16,42 +16,47 @@ var BaseFrom = model.WaypointInput{Lon: -122.401001, Lat: 37.789001}
 var BaseTo = model.WaypointInput{Lon: -122.446999, Lat: 37.782001}
 var BaseTime = time.Unix(1234567890, 0)
 
-var BasicTests = map[string]model.DirectionRequest{
-	"ped": {
-		Mode:     model.StepModeWalk,
-		From:     &BaseFrom,
-		To:       &BaseTo,
-		DepartAt: &BaseTime,
-	},
-	"bike": {
-		Mode:     model.StepModeBicycle,
-		From:     &BaseFrom,
-		To:       &BaseTo,
-		DepartAt: &BaseTime,
-	},
-	"auto": {
-		Mode:     model.StepModeAuto,
-		From:     &BaseFrom,
-		To:       &BaseTo,
-		DepartAt: &BaseTime,
-	},
-	"transit": {
-		Mode:     model.StepModeTransit,
-		From:     &BaseFrom,
-		To:       &BaseTo,
-		DepartAt: &BaseTime,
-	},
-	"no_dest_fail": {
-		Mode:     model.StepModeWalk,
-		From:     &BaseFrom,
-		DepartAt: &BaseTime,
-	},
-	"no_routable_dest_fail": {
-		Mode:     model.StepModeWalk,
-		From:     &BaseFrom,
-		To:       &model.WaypointInput{Lon: -123.54949951171876, Lat: 37.703380457832374},
-		DepartAt: &BaseTime,
-	},
+var BasicTests = MakeBasicTests()
+
+func MakeBasicTests() map[string]model.DirectionRequest {
+	m := map[string]model.DirectionRequest{
+		"ped": {
+			Mode:     model.StepModeWalk,
+			From:     &BaseFrom,
+			To:       &BaseTo,
+			DepartAt: &BaseTime,
+		},
+		"bike": {
+			Mode:     model.StepModeBicycle,
+			From:     &BaseFrom,
+			To:       &BaseTo,
+			DepartAt: &BaseTime,
+		},
+		"auto": {
+			Mode:     model.StepModeAuto,
+			From:     &BaseFrom,
+			To:       &BaseTo,
+			DepartAt: &BaseTime,
+		},
+		"transit": {
+			Mode:     model.StepModeTransit,
+			From:     &BaseFrom,
+			To:       &BaseTo,
+			DepartAt: &BaseTime,
+		},
+		"no_dest_fail": {
+			Mode:     model.StepModeWalk,
+			From:     &BaseFrom,
+			DepartAt: &BaseTime,
+		},
+		"no_routable_dest_fail": {
+			Mode:     model.StepModeWalk,
+			From:     &BaseFrom,
+			To:       &model.WaypointInput{Lon: -123.54949951171876, Lat: 37.703380457832374},
+			DepartAt: &BaseTime,
+		},
+	}
+	return m
 }
 
 type TestCase struct {

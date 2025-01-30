@@ -29,39 +29,39 @@ func init() {
 		Timeout: 1 * time.Second,
 	}
 	if err := directions.RegisterRouter("tlrouter", func() directions.Handler {
-		return newTlrouterRouter(client, endpoint, apikey)
+		return NewRouter(client, endpoint, apikey)
 	}); err != nil {
 		panic(err)
 	}
 }
 
-type tlrouterRouter struct {
+type Router struct {
 	Clock    clock.Clock
 	client   *http.Client
 	endpoint string
 	apikey   string
 }
 
-func newTlrouterRouter(client *http.Client, endpoint string, apikey string) *tlrouterRouter {
+func NewRouter(client *http.Client, endpoint string, apikey string) *Router {
 	if client == nil {
 		client = http.DefaultClient
 	}
-	return &tlrouterRouter{
+	return &Router{
 		client:   client,
 		endpoint: endpoint,
 		apikey:   apikey,
 	}
 }
 
-func (h *tlrouterRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
+func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	if err := directions.ValidateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
 	}
 
 	// Prepare request
-	input := tlrouterRequest{}
-	input.FromPlace = tlrouterLocation{Lat: req.From.Lat, Lon: req.From.Lon}
-	input.ToPlace = tlrouterLocation{Lat: req.To.Lat, Lon: req.To.Lon}
+	input := Request{}
+	input.FromPlace = RequestLocation{Lat: req.From.Lat, Lon: req.From.Lon}
+	input.ToPlace = RequestLocation{Lat: req.To.Lat, Lon: req.To.Lon}
 	if req.Mode == model.StepModeTransit {
 		input.Mode = "TRANSIT,WALK"
 	} else if req.Mode == model.StepModeBicycle {
@@ -86,13 +86,13 @@ func (h *tlrouterRouter) Request(ctx context.Context, req model.DirectionRequest
 	input.Date = departAt.Format("2006-01-02")
 
 	// Make request
-	res, err := makeTlrouterRequest(ctx, input, h.client, h.endpoint, h.apikey)
+	res, err := makeRequest(ctx, input, h.client, h.endpoint, h.apikey)
 	if err != nil || len(res.Plan.Itineraries) == 0 {
 		log.For(ctx).Error().Err(err).Msg("tlrouter: failed to calculate route")
 		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
 	}
 	// Prepare response
-	ret := makeTlrouterDirections(res, departAt)
+	ret := makeDirections(res, departAt)
 	ret.Origin = wpiWaypoint(req.From)
 	ret.Destination = wpiWaypoint(req.To)
 	ret.Success = true
@@ -100,7 +100,7 @@ func (h *tlrouterRouter) Request(ctx context.Context, req model.DirectionRequest
 	return ret, nil
 }
 
-func makeTlrouterRequest(ctx context.Context, req tlrouterRequest, client *http.Client, endpoint string, apikey string) (*PlanResponse, error) {
+func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint string, apikey string) (*PlanResponse, error) {
 	reqUrl := fmt.Sprintf("%s/route", endpoint)
 	hreq, err := http.NewRequest("GET", reqUrl, nil)
 	if err != nil {
@@ -131,7 +131,7 @@ func makeTlrouterRequest(ctx context.Context, req tlrouterRequest, client *http.
 	return &res, nil
 }
 
-func makeTlrouterDirections(res *PlanResponse, departAt time.Time) *model.Directions {
+func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 	// Map PlanResponse to Directions
 	ret := model.Directions{}
 	ret.DataSource = aws.String("OSM, Transitland")
@@ -139,8 +139,8 @@ func makeTlrouterDirections(res *PlanResponse, departAt time.Time) *model.Direct
 		itin := model.Itinerary{}
 		itin.From = &model.Waypoint{Lon: res.Plan.From.Lon, Lat: res.Plan.From.Lat, Name: aws.String(res.Plan.From.Name)}
 		itin.To = &model.Waypoint{Lon: res.Plan.To.Lon, Lat: res.Plan.To.Lat, Name: aws.String(res.Plan.To.Name)}
-		itin.Duration = tlrouterDuration(float64(vitin.Duration))
-		itin.Distance = tlrouterDistance(vitin.Distance, "m")
+		itin.Duration = makeDuration(float64(vitin.Duration))
+		itin.Distance = makeDistance(vitin.Distance, "m")
 		itin.StartTime = departAt
 		itin.EndTime = departAt.Add(time.Duration(vitin.StartTime) * time.Millisecond)
 
@@ -155,8 +155,8 @@ func makeTlrouterDirections(res *PlanResponse, departAt time.Time) *model.Direct
 				prevStepDepartAt = step.EndTime
 				leg.Steps = append(leg.Steps, &step)
 			}
-			leg.Duration = tlrouterDuration(float64(vleg.StartTime))
-			leg.Distance = tlrouterDistance(vleg.Distance, "m")
+			leg.Duration = makeDuration(float64(vleg.StartTime))
+			leg.Distance = makeDistance(vleg.Distance, "m")
 			leg.StartTime = prevLegDepartAt
 			leg.EndTime = prevLegDepartAt.Add(time.Duration(vleg.StartTime) * time.Millisecond)
 			prevLegDepartAt = leg.EndTime
@@ -179,12 +179,12 @@ func makeTlrouterDirections(res *PlanResponse, departAt time.Time) *model.Direct
 	return &ret
 }
 
-type tlrouterRequest struct {
+type Request struct {
 	// Required options
-	FromPlace tlrouterLocation `json:"fromPlace"`
-	ToPlace   tlrouterLocation `json:"toPlace"`
-	Time      string           `json:"time"`
-	Date      string           `json:"date"`
+	FromPlace RequestLocation `json:"fromPlace"`
+	ToPlace   RequestLocation `json:"toPlace"`
+	Time      string          `json:"time"`
+	Date      string          `json:"date"`
 
 	// Advanced options
 	MaxItineraries      int     `json:"maxItineraries"`
@@ -197,7 +197,7 @@ type tlrouterRequest struct {
 	TransferTimePenalty int     `json:"transferTimePenalty"`
 }
 
-type tlrouterLocation struct {
+type RequestLocation struct {
 	Lat float64 `json:"lat"`
 	Lon float64 `json:"lon"`
 }
@@ -213,11 +213,11 @@ func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
 	}
 }
 
-func tlrouterDuration(t float64) *model.Duration {
+func makeDuration(t float64) *model.Duration {
 	return &model.Duration{Duration: float64(t), Units: model.DurationUnitSeconds}
 }
 
-func tlrouterDistance(v float64, units string) *model.Distance {
+func makeDistance(v float64, units string) *model.Distance {
 	_ = units
 	return &model.Distance{Distance: v, Units: model.DistanceUnitKilometers}
 }

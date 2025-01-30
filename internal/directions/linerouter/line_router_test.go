@@ -7,7 +7,7 @@ import (
 	"github.com/interline-io/transitland-server/testdata"
 )
 
-func Test_lineRouter(t *testing.T) {
+func TestRouter(t *testing.T) {
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
@@ -52,7 +52,7 @@ func Test_lineRouter(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.Name, func(t *testing.T) {
-			h := &lineRouter{}
+			h := &Router{}
 			dt.HandlerTest(t, h, tc)
 		})
 	}

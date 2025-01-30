@@ -16,7 +16,7 @@ import (
 	"github.com/interline-io/transitland-server/testdata"
 )
 
-func Test_awsRouter(t *testing.T) {
+func TestRouter(t *testing.T) {
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
@@ -81,7 +81,7 @@ func Test_awsRouter(t *testing.T) {
 }
 
 // Mock reader
-func makeTestMockRouter(tr http.RoundTripper) (*awsRouter, error) {
+func makeTestMockRouter(tr http.RoundTripper) (*Router, error) {
 	// Use custom client/transport
 	cn := ""
 	lc := &mockLocationClient{
@@ -89,7 +89,7 @@ func makeTestMockRouter(tr http.RoundTripper) (*awsRouter, error) {
 			Transport: tr,
 		},
 	}
-	return newAWSRouter(lc, cn), nil
+	return NewRouter(lc, cn), nil
 }
 
 // Regenerate results
