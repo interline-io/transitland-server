@@ -82,7 +82,7 @@ func HandleRequest(ctx context.Context, pref string, req model.DirectionRequest)
 	return h, err
 }
 
-func validateDirectionRequest(req model.DirectionRequest) error {
+func ValidateDirectionRequest(req model.DirectionRequest) error {
 	if req.From == nil || req.To == nil {
 		return errors.New("from and to waypoints required")
 	}

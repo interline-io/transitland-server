@@ -67,7 +67,7 @@ func newAWSRouter(lc LocationClient, calculator string) *awsRouter {
 
 func (h *awsRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	// Input validation
-	if err := validateDirectionRequest(req); err != nil {
+	if err := ValidateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
 	}
 

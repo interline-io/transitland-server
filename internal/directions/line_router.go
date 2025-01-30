@@ -32,7 +32,7 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 		Success:     true,
 		Exception:   nil,
 	}
-	if err := validateDirectionRequest(req); err != nil {
+	if err := ValidateDirectionRequest(req); err != nil {
 		ret.Success = false
 		ret.Exception = aws.String("invalid input")
 		return &ret, nil

@@ -57,7 +57,7 @@ func newValhallaRouter(client *http.Client, endpoint string, apikey string) *val
 }
 
 func (h *valhallaRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
-	if err := validateDirectionRequest(req); err != nil {
+	if err := ValidateDirectionRequest(req); err != nil {
 		return &model.Directions{Success: false, Exception: aws.String("invalid input")}, nil
 	}
 
