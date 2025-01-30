@@ -1,0 +1,15 @@
+---
+version: 1
+interactions:
+    - request:
+        body: ""
+        form: {}
+        headers: {}
+        url: https://transit.land/api/v2/routing/otp/plan?date=2025-01-30&fromPlace=37.789001%2C-122.401001&includeWalkingItinerary=true&mode=WALK&time=01%3A28%3A51&toPlace=37.703380%2C-123.549500&useFallbackDates=true
+        method: GET
+      response:
+        body: '{"plan":{"date":1738229331000,"from":{"lat":37.789001,"lon":-122.401001,"name":"Origin"},"to":{"lat":37.70338,"lon":-123.5495,"name":"Destination"},"itineraries":[{"duration":101429,"distance":101429.2800855029,"startTime":1738229331000,"endTime":1738330760000,"walkTime":101429,"walkDistance":0,"transitTime":0,"transitDistance":0,"waitingTime":0,"transfers":0,"legs":[{"startTime":1738229331000,"endTime":1738330760000,"distance":101429.2800855029,"duration":101429,"mode":"WALK","transitLeg":false,"from":{"lat":37.789001,"lon":-122.401001,"name":""},"to":{"lat":37.70338,"lon":-123.5495,"name":""},"steps":[],"legGeometry":{"points":"gtseFfmajVbvObi_F","length":2}}]}]}}'
+        headers: {}
+        status: 200 OK
+        code: 200
+        duration: 1.11934202s

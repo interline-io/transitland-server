@@ -13,14 +13,15 @@ import (
 )
 
 func Test_tlrouterRouter(t *testing.T) {
+	BaseTime := time.Unix(1738200531, 0)
 	fdir := testdata.Path("directions/tlrouter")
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
 			Req:      dt.BasicTests["ped"],
 			Success:  true,
-			Duration: 3130,
-			Distance: 4.387,
+			Duration: 1289,
+			Distance: 4.4618,
 		},
 		{
 			Name:     "transit",
@@ -49,12 +50,13 @@ func Test_tlrouterRouter(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.Name, func(t *testing.T) {
-			recorder := testutil.NewRecorder(filepath.Join(fdir, tc.Name), "directions://tlrouter")
+			recorder := testutil.NewRecorder(filepath.Join(fdir, tc.Name), "")
 			defer recorder.Stop()
 			h, err := makeTestRouter(recorder)
 			if err != nil {
 				t.Fatal(err)
 			}
+			tc.Req.DepartAt = &BaseTime
 			dt.HandlerTest(t, h, tc)
 		})
 	}

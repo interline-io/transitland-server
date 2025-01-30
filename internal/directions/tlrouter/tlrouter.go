@@ -1,13 +1,13 @@
 package tlrouter
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -101,32 +101,48 @@ func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*mode
 }
 
 func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint string, apikey string) (*PlanResponse, error) {
-	reqUrl := fmt.Sprintf("%s/route", endpoint)
+	req.useFallbackDates = true
+	parsedUrl, err := url.Parse(fmt.Sprintf("%s/plan", endpoint))
+	if err != nil {
+		return nil, err
+	}
+	q := parsedUrl.Query()
+	q.Add("fromPlace", fmt.Sprintf("%f,%f", req.FromPlace.Lat, req.FromPlace.Lon))
+	q.Add("toPlace", fmt.Sprintf("%f,%f", req.ToPlace.Lat, req.ToPlace.Lon))
+	q.Add("time", req.Time)
+	q.Add("date", req.Date)
+	q.Add("mode", req.Mode)
+	q.Add("includeWalkingItinerary", "true")
+	if req.useFallbackDates {
+		q.Add("useFallbackDates", "true")
+	}
+	parsedUrl.RawQuery = q.Encode()
+	reqUrl := parsedUrl.String()
+
+	fmt.Println("reqUrl:", reqUrl)
+
+	// Make request
 	hreq, err := http.NewRequest("GET", reqUrl, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("failed to create request"), err)
 	}
-	reqJson, err := json.Marshal(req)
-	if err != nil {
-		return nil, err
-	}
-	hreq.Body = io.NopCloser(bytes.NewReader(reqJson))
+
 	hreq.Header.Add("api_key", apikey)
 	log.TraceCheck(func() {
-		log.For(ctx).Trace().Str("url", hreq.URL.String()).Str("body", string(reqJson)).Msg("tlrouter: request")
+		log.For(ctx).Trace().Str("url", hreq.URL.String()).Msg("tlrouter: request")
 	})
 	resp, err := client.Do(hreq)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("request failed"), err)
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("failed to read response"), err)
 	}
 	res := PlanResponse{}
 	if err := json.Unmarshal(body, &res); err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("failed to read response as JSON"), err)
 	}
 	return &res, nil
 }
@@ -195,6 +211,14 @@ type Request struct {
 	MaxK                int     `json:"maxK"`
 	MaxTripTime         int     `json:"maxTripTime"`
 	TransferTimePenalty int     `json:"transferTimePenalty"`
+
+	// Fallbacks
+	useFallbackDates         bool `json:"useFallbackDates"`
+	includeWalkingItinerary  bool `json:"includeWalkingItinerary"`
+	fallbackWalkingItinerary bool `json:"fallbackWalkingItinerary"`
+	allowWalkingItinerary    bool `json:"allowWalkingItinerary"`
+	includeEarliestArrivals  bool `json:"includeEarliestArrivals"`
+	useTargetStopPruining    bool `json:"useTargetStopPruining"`
 }
 
 type RequestLocation struct {
@@ -219,7 +243,7 @@ func makeDuration(t float64) *model.Duration {
 
 func makeDistance(v float64, units string) *model.Distance {
 	_ = units
-	return &model.Distance{Distance: v, Units: model.DistanceUnitKilometers}
+	return &model.Distance{Distance: v / 1000.0, Units: model.DistanceUnitKilometers}
 }
 
 // Generated from example.json
