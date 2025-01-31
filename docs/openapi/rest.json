@@ -2260,8 +2260,14 @@
                               },
                               "static_planned": {
                                 "description": "URLs for static feeds that represent service planned for upcoming dates. Typically used to represent calendar/service changes that will take effect few weeks or months in the future",
+                                "items": {
+                                  "type": "object",
+                                  "x-graphql-type": "String",
+                                  "x-order": 17
+                                },
                                 "title": "static_planned",
-                                "type": "string",
+                                "type": "array",
+                                "x-graphql-type": "String",
                                 "x-order": 17
                               }
                             },
