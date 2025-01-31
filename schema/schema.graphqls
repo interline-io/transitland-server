@@ -255,7 +255,7 @@ type FeedUrls {
   "URLs for static feeds that represent past service that is no longer in effect "
   static_historic: [String!]!
   "URLs for static feeds that represent service planned for upcoming dates. Typically used to represent calendar/service changes that will take effect few weeks or months in the future"
-  static_planned: String!
+  static_planned: [String!]!
   "URL for GTFS-RT VehiclePosition messages"
   realtime_vehicle_positions: String!
   "URL for GTFS-RT TripUpdate messages"
