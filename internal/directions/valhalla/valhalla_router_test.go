@@ -13,11 +13,12 @@ import (
 )
 
 func TestRouter(t *testing.T) {
+	bt := dt.MakeBasicTests()
 	fdir := testdata.Path("directions/valhalla")
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
-			Req:      dt.BasicTests["ped"],
+			Req:      bt["ped"],
 			Success:  true,
 			Duration: 3130,
 			Distance: 4.387,
@@ -25,7 +26,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "bike",
-			Req:      dt.BasicTests["bike"],
+			Req:      bt["bike"],
 			Success:  true,
 			Duration: 1132,
 			Distance: 4.912,
@@ -33,7 +34,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "auto",
-			Req:      dt.BasicTests["auto"],
+			Req:      bt["auto"],
 			Success:  true,
 			Duration: 1037,
 			Distance: 5.133,
@@ -41,7 +42,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "transit",
-			Req:      dt.BasicTests["transit"],
+			Req:      bt["transit"],
 			Success:  false,
 			Duration: 0,
 			Distance: 0,
@@ -49,7 +50,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "no_dest_fail",
-			Req:      dt.BasicTests["no_dest_fail"],
+			Req:      bt["no_dest_fail"],
 			Success:  false,
 			Duration: 0,
 			Distance: 0,
@@ -57,7 +58,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "no_routable_dest_fail",
-			Req:      dt.BasicTests["no_routable_dest_fail"],
+			Req:      bt["no_routable_dest_fail"],
 			Success:  false,
 			Duration: 0,
 			Distance: 0,
@@ -78,8 +79,8 @@ func TestRouter(t *testing.T) {
 }
 
 func makeTestRouter(tr http.RoundTripper) (*Router, error) {
-	endpoint := os.Getenv("TL_VALHALLA_ENDPOINT")
-	apikey := os.Getenv("TL_VALHALLA_API_KEY")
+	endpoint := os.Getenv("TL_TEST_VALHALLA_ENDPOINT")
+	apikey := os.Getenv("TL_TEST_VALHALLA_API_KEY")
 	client := &http.Client{
 		Timeout:   10 * time.Second,
 		Transport: tr,

@@ -3,7 +3,6 @@ package directionstest
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -16,8 +15,6 @@ import (
 var BaseFrom = model.WaypointInput{Lon: -122.401001, Lat: 37.789001}
 var BaseTo = model.WaypointInput{Lon: -122.446999, Lat: 37.782001}
 var BaseTime = time.Unix(1234567890, 0)
-
-var BasicTests = MakeBasicTests()
 
 func MakeBasicTests() map[string]model.DirectionRequest {
 	m := map[string]model.DirectionRequest{
@@ -77,8 +74,6 @@ func HandlerTest(t *testing.T, h directions.Handler, tc TestCase) *model.Directi
 	if ret.Success != tc.Success {
 		t.Errorf("got success '%t', expected '%t'", ret.Success, tc.Success)
 	} else if ret.Success {
-		fmt.Println("dur:", ret.Duration.Duration, "dist:", ret.Distance.Distance)
-		fmt.Println("expected dur:", tc.Duration, "dist:", tc.Distance)
 		assert.InDelta(t, ret.Duration.Duration, tc.Duration, 1.0, "duration")
 		assert.InDelta(t, ret.Distance.Distance, tc.Distance, 1.0, "distance")
 	}

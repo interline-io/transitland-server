@@ -17,10 +17,12 @@ import (
 )
 
 func TestRouter(t *testing.T) {
+	bt := dt.MakeBasicTests()
+
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
-			Req:      dt.BasicTests["ped"],
+			Req:      bt["ped"],
 			Success:  true,
 			Duration: 4215,
 			Distance: 4.100,
@@ -28,7 +30,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "bike",
-			Req:      dt.BasicTests["bike"],
+			Req:      bt["bike"],
 			Success:  false,
 			Duration: 0,
 			Distance: 0,
@@ -36,7 +38,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "auto",
-			Req:      dt.BasicTests["auto"],
+			Req:      bt["auto"],
 			Success:  true,
 			Duration: 671,
 			Distance: 5.452,
@@ -52,7 +54,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "no_dest_fail",
-			Req:      dt.BasicTests["no_dest_fail"],
+			Req:      bt["no_dest_fail"],
 			Success:  false,
 			Duration: 0,
 			Distance: 0,
@@ -60,7 +62,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			Name:     "no_routable_dest_fail",
-			Req:      dt.BasicTests["no_routable_dest_fail"],
+			Req:      bt["no_routable_dest_fail"],
 			Success:  false,
 			Duration: 0,
 			Distance: 0,

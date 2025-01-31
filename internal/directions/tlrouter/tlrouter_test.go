@@ -12,59 +12,53 @@ import (
 	"github.com/interline-io/transitland-server/testdata"
 )
 
-func Test_tlrouterRouter(t *testing.T) {
-	BaseTime := time.Unix(1738200531, 0)
+func TestRouter(t *testing.T) {
+	bt := dt.MakeBasicTests()
+	baseTime := time.Unix(1738200531, 0)
 	fdir := testdata.Path("directions/tlrouter")
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
-			Req:      dt.BasicTests["ped"],
+			Req:      bt["ped"],
 			Success:  true,
 			Duration: 1289,
 			Distance: 4.4618,
 		},
 		{
+			Name:    "auto",
+			Req:     bt["auto"],
+			Success: false,
+		},
+		{
 			Name:     "transit",
-			Req:      dt.BasicTests["transit"],
-			Success:  false,
-			Duration: 0,
-			Distance: 0,
-			ResJson:  "",
+			Req:      bt["transit"],
+			Success:  true,
+			Duration: 1289,
+			Distance: 4.4618,
 		},
 		{
-			Name:     "no_dest_fail",
-			Req:      dt.BasicTests["no_dest_fail"],
-			Success:  false,
-			Duration: 0,
-			Distance: 0,
-			ResJson:  "",
-		},
-		{
-			Name:     "no_routable_dest_fail",
-			Req:      dt.BasicTests["no_routable_dest_fail"],
-			Success:  false,
-			Duration: 0,
-			Distance: 0,
-			ResJson:  "",
+			Name:    "no_dest_fail",
+			Req:     bt["no_dest_fail"],
+			Success: false,
 		},
 	}
 	for _, tc := range tcs {
 		t.Run(tc.Name, func(t *testing.T) {
-			recorder := testutil.NewRecorder(filepath.Join(fdir, tc.Name), "")
+			recorder := testutil.NewRecorder(filepath.Join(fdir, tc.Name), "directions://tlrouter")
 			defer recorder.Stop()
 			h, err := makeTestRouter(recorder)
 			if err != nil {
 				t.Fatal(err)
 			}
-			tc.Req.DepartAt = &BaseTime
+			tc.Req.DepartAt = &baseTime
 			dt.HandlerTest(t, h, tc)
 		})
 	}
 }
 
 func makeTestRouter(tr http.RoundTripper) (*Router, error) {
-	endpoint := os.Getenv("TL_TLROUTER_ENDPOINT")
-	apikey := os.Getenv("TL_TLROUTER_APIKEY")
+	endpoint := os.Getenv("TL_TEST_TLROUTER_ENDPOINT")
+	apikey := os.Getenv("TL_TEST_TLROUTER_APIKEY")
 	client := &http.Client{
 		Timeout:   10 * time.Second,
 		Transport: tr,

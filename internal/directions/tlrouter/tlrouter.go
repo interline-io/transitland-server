@@ -1,6 +1,7 @@
 package tlrouter
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tt"
+	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/internal/directions"
 	"github.com/interline-io/transitland-server/model"
@@ -27,6 +29,9 @@ func init() {
 	}
 	client := &http.Client{
 		Timeout: 1 * time.Second,
+	}
+	if os.Getenv("TL_DIRECTIONS_ENABLE_CACHE") != "" {
+		client.Transport = httpcache.NewCache(nil, nil, httpcache.NewTTLCache(16*1024, 24*time.Hour))
 	}
 	if err := directions.RegisterRouter("tlrouter", func() directions.Handler {
 		return NewRouter(client, endpoint, apikey)
@@ -119,10 +124,10 @@ func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint
 	parsedUrl.RawQuery = q.Encode()
 	reqUrl := parsedUrl.String()
 
-	fmt.Println("reqUrl:", reqUrl)
+	reqJson, _ := json.Marshal(req)
 
 	// Make request
-	hreq, err := http.NewRequest("GET", reqUrl, nil)
+	hreq, err := http.NewRequest("GET", reqUrl, bytes.NewReader(reqJson))
 	if err != nil {
 		return nil, errors.Join(errors.New("failed to create request"), err)
 	}
