@@ -7520,7 +7520,7 @@ type FeedUrls {
   "URLs for static feeds that represent past service that is no longer in effect "
   static_historic: [String!]!
   "URLs for static feeds that represent service planned for upcoming dates. Typically used to represent calendar/service changes that will take effect few weeks or months in the future"
-  static_planned: String!
+  static_planned: [String!]!
   "URL for GTFS-RT VehiclePosition messages"
   realtime_vehicle_positions: String!
   "URL for GTFS-RT TripUpdate messages"
@@ -20196,9 +20196,9 @@ func (ec *executionContext) _FeedUrls_static_planned(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FeedUrls_static_planned(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
