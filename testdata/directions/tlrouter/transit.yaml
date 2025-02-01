@@ -2,7 +2,7 @@
 version: 1
 interactions:
     - request:
-        body: '{"fromPlace":{"lat":37.789001,"lon":-122.401001},"toPlace":{"lat":37.782001,"lon":-122.446999},"time":"01:28:51","date":"2025-01-30","maxItineraries":0,"mode":"TRANSIT,WALK","arriveBy":false,"maxWalkingDistance":0,"walkingSpeed":0,"maxK":0,"maxTripTime":0,"transferTimePenalty":0}'
+        body: '{"fromPlace":{"lat":37.789001,"lon":-122.401001},"toPlace":{"lat":37.782001,"lon":-122.446999},"time":"01:28:51","date":"2025-01-30","maxItineraries":0,"mode":"TRANSIT","arriveBy":false,"maxWalkingDistance":0,"walkingSpeed":0,"maxK":0,"maxTripTime":0,"transferTimePenalty":0}'
         form: {}
         headers: {}
         url: directions://tlrouter
@@ -12,4 +12,4 @@ interactions:
         headers: {}
         status: 200 OK
         code: 200
-        duration: 2.884885645s
+        duration: 100ms

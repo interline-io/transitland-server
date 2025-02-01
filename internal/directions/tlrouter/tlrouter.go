@@ -68,7 +68,7 @@ func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*mode
 	input.FromPlace = RequestLocation{Lat: req.From.Lat, Lon: req.From.Lon}
 	input.ToPlace = RequestLocation{Lat: req.To.Lat, Lon: req.To.Lon}
 	if req.Mode == model.StepModeTransit {
-		input.Mode = "TRANSIT,WALK"
+		input.Mode = "TRANSIT"
 	} else if req.Mode == model.StepModeBicycle {
 		input.Mode = "BICYCLE"
 	} else if req.Mode == model.StepModeWalk {
@@ -152,6 +152,45 @@ func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint
 	return &res, nil
 }
 
+func maybeString(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return ""
+}
+
+func legLocationToWaypoint(v LegLocation) *model.Waypoint {
+	wp := model.Waypoint{
+		Lon:  v.Lon,
+		Lat:  v.Lat,
+		Name: aws.String(v.Name),
+	}
+	if v.StopId != "" {
+		wps := model.WaypointStop{}
+		wps.StopID = v.StopId
+		wps.StopName = v.Name
+		wps.StopCode = v.StopCode
+		wps.StopOnestopID = v.StopOnestopId
+		wp.Stop = &wps
+	}
+	return &wp
+}
+
+func legLocationToWaypointDeparture(v Stop) *model.WaypointDeparture {
+	wp := model.WaypointDeparture{
+		Lon: v.Lon,
+		Lat: v.Lat,
+	}
+	wp.StopID = v.StopId
+	wp.StopName = v.Name
+	wp.StopCode = v.StopCode
+	wp.StopOnestopID = v.StopOnestopId
+	wp.Departure = time.Unix(0, v.Departure*int64(time.Millisecond))
+	wp.StopIndex = aws.Int(v.StopIndex)
+	wp.StopSequence = aws.Int(v.StopSequence)
+	return &wp
+}
+
 func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 	// Map PlanResponse to Directions
 	ret := model.Directions{}
@@ -169,6 +208,51 @@ func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 		prevLegDepartAt := departAt
 		for _, vleg := range vitin.Legs {
 			leg := model.Leg{}
+
+			// Setup leg
+			var sm model.StepMode
+			switch vleg.Mode {
+			case "BICYCLE":
+				sm = model.StepMode(model.StepModeBicycle.String())
+			case "TRANSIT":
+				sm = model.StepMode(model.StepModeTransit.String())
+			default:
+				sm = model.StepMode(model.StepModeWalk.String())
+			}
+			leg.Mode = &sm
+			leg.From = legLocationToWaypoint(vleg.From)
+			leg.To = legLocationToWaypoint(vleg.To)
+			if vleg.Mode == "TRANSIT" {
+				leg.Trip = &model.LegTrip{
+					TripID:          vleg.TripId,
+					TripShortName:   vleg.RouteShortName,
+					Headsign:        vleg.Headsign,
+					FeedID:          vleg.FeedId,
+					FeedVersionSha1: vleg.FeedVersionSha1,
+					// BlockID todo
+					Route: &model.LegRoute{
+						RouteID:        vleg.RouteId,
+						RouteShortName: vleg.RouteShortName,
+						RouteLongName:  vleg.RouteLongName,
+						RouteType:      vleg.RouteType,
+						RouteColor:     aws.String(vleg.RouteColor),
+						RouteTextColor: aws.String(vleg.RouteTextColor),
+						RouteOnestopID: vleg.RouteOnestopId,
+						Agency: &model.LegRouteAgency{
+							AgencyID:        vleg.AgencyId,
+							AgencyName:      vleg.AgencyName,
+							AgencyOnestopID: "", // TODO: vleg.AgencyOnestopId,
+						},
+					},
+				}
+				// Process stops
+				for _, vstop := range vleg.IntermediateStops {
+					_ = vstop
+					leg.Stops = append(leg.Stops, legLocationToWaypointDeparture(vstop))
+				}
+			}
+
+			// Process steps
 			prevStepDepartAt := prevLegDepartAt
 			for _, vstep := range vleg.Steps {
 				_ = vstep
@@ -176,14 +260,18 @@ func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 				prevStepDepartAt = step.EndTime
 				leg.Steps = append(leg.Steps, &step)
 			}
+
 			leg.Duration = makeDuration(float64(vleg.StartTime))
 			leg.Distance = makeDistance(vleg.Distance, "m")
 			leg.StartTime = prevLegDepartAt
 			leg.EndTime = prevLegDepartAt.Add(time.Duration(vleg.StartTime) * time.Millisecond)
 			prevLegDepartAt = leg.EndTime
 			_ = prevStepDepartAt
-			leg.Geometry = tt.NewLineStringFromFlatCoords([]float64{})
+
 			// TODO: decode points
+			leg.Geometry = tt.NewLineStringFromFlatCoords([]float64{})
+
+			// Append leg
 			itin.Legs = append(itin.Legs, &leg)
 		}
 		if len(itin.Legs) > 0 {

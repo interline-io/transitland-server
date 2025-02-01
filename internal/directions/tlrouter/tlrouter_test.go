@@ -21,7 +21,7 @@ func TestRouter(t *testing.T) {
 			Name:     "ped",
 			Req:      bt["ped"],
 			Success:  true,
-			Duration: 1289,
+			Duration: 4116,
 			Distance: 4.4618,
 		},
 		{

@@ -639,9 +639,39 @@ type ComplexityRoot struct {
 		EndTime   func(childComplexity int) int
 		From      func(childComplexity int) int
 		Geometry  func(childComplexity int) int
+		Mode      func(childComplexity int) int
 		StartTime func(childComplexity int) int
 		Steps     func(childComplexity int) int
+		Stops     func(childComplexity int) int
 		To        func(childComplexity int) int
+		Trip      func(childComplexity int) int
+	}
+
+	LegRoute struct {
+		Agency         func(childComplexity int) int
+		RouteColor     func(childComplexity int) int
+		RouteID        func(childComplexity int) int
+		RouteLongName  func(childComplexity int) int
+		RouteName      func(childComplexity int) int
+		RouteOnestopID func(childComplexity int) int
+		RouteShortName func(childComplexity int) int
+		RouteTextColor func(childComplexity int) int
+		RouteType      func(childComplexity int) int
+	}
+
+	LegRouteAgency struct {
+		AgencyID        func(childComplexity int) int
+		AgencyName      func(childComplexity int) int
+		AgencyOnestopID func(childComplexity int) int
+	}
+
+	LegTrip struct {
+		FeedID          func(childComplexity int) int
+		FeedVersionSha1 func(childComplexity int) int
+		Headsign        func(childComplexity int) int
+		Route           func(childComplexity int) int
+		TripID          func(childComplexity int) int
+		TripShortName   func(childComplexity int) int
 	}
 
 	Level struct {
@@ -1072,6 +1102,29 @@ type ComplexityRoot struct {
 		Lat  func(childComplexity int) int
 		Lon  func(childComplexity int) int
 		Name func(childComplexity int) int
+		Stop func(childComplexity int) int
+	}
+
+	WaypointDeparture struct {
+		Departure     func(childComplexity int) int
+		Lat           func(childComplexity int) int
+		Lon           func(childComplexity int) int
+		StopCode      func(childComplexity int) int
+		StopID        func(childComplexity int) int
+		StopIndex     func(childComplexity int) int
+		StopName      func(childComplexity int) int
+		StopOnestopID func(childComplexity int) int
+		StopSequence  func(childComplexity int) int
+	}
+
+	WaypointStop struct {
+		Departure     func(childComplexity int) int
+		Lat           func(childComplexity int) int
+		Lon           func(childComplexity int) int
+		StopCode      func(childComplexity int) int
+		StopID        func(childComplexity int) int
+		StopName      func(childComplexity int) int
+		StopOnestopID func(childComplexity int) int
 	}
 }
 
@@ -4183,6 +4236,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Leg.Geometry(childComplexity), true
 
+	case "Leg.mode":
+		if e.complexity.Leg.Mode == nil {
+			break
+		}
+
+		return e.complexity.Leg.Mode(childComplexity), true
+
 	case "Leg.start_time":
 		if e.complexity.Leg.StartTime == nil {
 			break
@@ -4197,12 +4257,152 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Leg.Steps(childComplexity), true
 
+	case "Leg.stops":
+		if e.complexity.Leg.Stops == nil {
+			break
+		}
+
+		return e.complexity.Leg.Stops(childComplexity), true
+
 	case "Leg.to":
 		if e.complexity.Leg.To == nil {
 			break
 		}
 
 		return e.complexity.Leg.To(childComplexity), true
+
+	case "Leg.trip":
+		if e.complexity.Leg.Trip == nil {
+			break
+		}
+
+		return e.complexity.Leg.Trip(childComplexity), true
+
+	case "LegRoute.agency":
+		if e.complexity.LegRoute.Agency == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.Agency(childComplexity), true
+
+	case "LegRoute.route_color":
+		if e.complexity.LegRoute.RouteColor == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.RouteColor(childComplexity), true
+
+	case "LegRoute.route_id":
+		if e.complexity.LegRoute.RouteID == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.RouteID(childComplexity), true
+
+	case "LegRoute.route_long_name":
+		if e.complexity.LegRoute.RouteLongName == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.RouteLongName(childComplexity), true
+
+	case "LegRoute.route_name":
+		if e.complexity.LegRoute.RouteName == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.RouteName(childComplexity), true
+
+	case "LegRoute.route_onestop_id":
+		if e.complexity.LegRoute.RouteOnestopID == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.RouteOnestopID(childComplexity), true
+
+	case "LegRoute.route_short_name":
+		if e.complexity.LegRoute.RouteShortName == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.RouteShortName(childComplexity), true
+
+	case "LegRoute.route_text_color":
+		if e.complexity.LegRoute.RouteTextColor == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.RouteTextColor(childComplexity), true
+
+	case "LegRoute.route_type":
+		if e.complexity.LegRoute.RouteType == nil {
+			break
+		}
+
+		return e.complexity.LegRoute.RouteType(childComplexity), true
+
+	case "LegRouteAgency.agency_id":
+		if e.complexity.LegRouteAgency.AgencyID == nil {
+			break
+		}
+
+		return e.complexity.LegRouteAgency.AgencyID(childComplexity), true
+
+	case "LegRouteAgency.agency_name":
+		if e.complexity.LegRouteAgency.AgencyName == nil {
+			break
+		}
+
+		return e.complexity.LegRouteAgency.AgencyName(childComplexity), true
+
+	case "LegRouteAgency.agency_onestop_id":
+		if e.complexity.LegRouteAgency.AgencyOnestopID == nil {
+			break
+		}
+
+		return e.complexity.LegRouteAgency.AgencyOnestopID(childComplexity), true
+
+	case "LegTrip.feed_id":
+		if e.complexity.LegTrip.FeedID == nil {
+			break
+		}
+
+		return e.complexity.LegTrip.FeedID(childComplexity), true
+
+	case "LegTrip.feed_version_sha1":
+		if e.complexity.LegTrip.FeedVersionSha1 == nil {
+			break
+		}
+
+		return e.complexity.LegTrip.FeedVersionSha1(childComplexity), true
+
+	case "LegTrip.headsign":
+		if e.complexity.LegTrip.Headsign == nil {
+			break
+		}
+
+		return e.complexity.LegTrip.Headsign(childComplexity), true
+
+	case "LegTrip.route":
+		if e.complexity.LegTrip.Route == nil {
+			break
+		}
+
+		return e.complexity.LegTrip.Route(childComplexity), true
+
+	case "LegTrip.trip_id":
+		if e.complexity.LegTrip.TripID == nil {
+			break
+		}
+
+		return e.complexity.LegTrip.TripID(childComplexity), true
+
+	case "LegTrip.trip_short_name":
+		if e.complexity.LegTrip.TripShortName == nil {
+			break
+		}
+
+		return e.complexity.LegTrip.TripShortName(childComplexity), true
 
 	case "Level.geometry":
 		if e.complexity.Level.Geometry == nil {
@@ -6768,6 +6968,125 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Waypoint.Name(childComplexity), true
 
+	case "Waypoint.stop":
+		if e.complexity.Waypoint.Stop == nil {
+			break
+		}
+
+		return e.complexity.Waypoint.Stop(childComplexity), true
+
+	case "WaypointDeparture.departure":
+		if e.complexity.WaypointDeparture.Departure == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.Departure(childComplexity), true
+
+	case "WaypointDeparture.lat":
+		if e.complexity.WaypointDeparture.Lat == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.Lat(childComplexity), true
+
+	case "WaypointDeparture.lon":
+		if e.complexity.WaypointDeparture.Lon == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.Lon(childComplexity), true
+
+	case "WaypointDeparture.stop_code":
+		if e.complexity.WaypointDeparture.StopCode == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.StopCode(childComplexity), true
+
+	case "WaypointDeparture.stop_id":
+		if e.complexity.WaypointDeparture.StopID == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.StopID(childComplexity), true
+
+	case "WaypointDeparture.stop_index":
+		if e.complexity.WaypointDeparture.StopIndex == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.StopIndex(childComplexity), true
+
+	case "WaypointDeparture.stop_name":
+		if e.complexity.WaypointDeparture.StopName == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.StopName(childComplexity), true
+
+	case "WaypointDeparture.stop_onestop_id":
+		if e.complexity.WaypointDeparture.StopOnestopID == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.StopOnestopID(childComplexity), true
+
+	case "WaypointDeparture.stop_sequence":
+		if e.complexity.WaypointDeparture.StopSequence == nil {
+			break
+		}
+
+		return e.complexity.WaypointDeparture.StopSequence(childComplexity), true
+
+	case "WaypointStop.departure":
+		if e.complexity.WaypointStop.Departure == nil {
+			break
+		}
+
+		return e.complexity.WaypointStop.Departure(childComplexity), true
+
+	case "WaypointStop.lat":
+		if e.complexity.WaypointStop.Lat == nil {
+			break
+		}
+
+		return e.complexity.WaypointStop.Lat(childComplexity), true
+
+	case "WaypointStop.lon":
+		if e.complexity.WaypointStop.Lon == nil {
+			break
+		}
+
+		return e.complexity.WaypointStop.Lon(childComplexity), true
+
+	case "WaypointStop.stop_code":
+		if e.complexity.WaypointStop.StopCode == nil {
+			break
+		}
+
+		return e.complexity.WaypointStop.StopCode(childComplexity), true
+
+	case "WaypointStop.stop_id":
+		if e.complexity.WaypointStop.StopID == nil {
+			break
+		}
+
+		return e.complexity.WaypointStop.StopID(childComplexity), true
+
+	case "WaypointStop.stop_name":
+		if e.complexity.WaypointStop.StopName == nil {
+			break
+		}
+
+		return e.complexity.WaypointStop.StopName(childComplexity), true
+
+	case "WaypointStop.stop_onestop_id":
+		if e.complexity.WaypointStop.StopOnestopID == nil {
+			break
+		}
+
+		return e.complexity.WaypointStop.StopOnestopID(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -6926,6 +7245,56 @@ type Waypoint {
   lon: Float!
   lat: Float!
   name: String
+  stop: WaypointStop
+}
+
+type WaypointStop {
+  lon: Float!
+  lat: Float!
+  departure: Time!
+  stop_id: String!
+  stop_name: String!
+  stop_code: String!
+  stop_onestop_id: String!
+}
+
+type WaypointDeparture {
+  lon: Float!
+  lat: Float!
+  departure: Time!
+  stop_id: String!
+  stop_name: String!
+  stop_code: String!
+  stop_onestop_id: String!
+  stop_index: Int
+  stop_sequence: Int
+}
+
+type LegTrip {
+  trip_id: String!
+  trip_short_name: String!
+  headsign: String!
+  feed_id: String!
+  feed_version_sha1: String!
+  route: LegRoute!
+}
+
+type LegRoute {
+  route_id: String!
+  route_name: String!
+  route_short_name: String!
+  route_long_name: String!
+  route_onestop_id: String!
+  route_type: Int!
+  route_color: String
+  route_text_color: String
+  agency: LegRouteAgency!
+}
+
+type LegRouteAgency {
+  agency_id: String!
+  agency_name: String!
+  agency_onestop_id: String!
 }
 
 type Directions {
@@ -6962,8 +7331,11 @@ type Leg {
   end_time: Time!
   from: Waypoint
   to: Waypoint
+  mode: StepMode
   steps: [Step!]
+  stops: [WaypointDeparture!]
   geometry: LineString!
+  trip: LegTrip
 }
 
 type Step {
@@ -17321,6 +17693,8 @@ func (ec *executionContext) fieldContext_Directions_origin(_ context.Context, fi
 				return ec.fieldContext_Waypoint_lat(ctx, field)
 			case "name":
 				return ec.fieldContext_Waypoint_name(ctx, field)
+			case "stop":
+				return ec.fieldContext_Waypoint_stop(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Waypoint", field.Name)
 		},
@@ -17370,6 +17744,8 @@ func (ec *executionContext) fieldContext_Directions_destination(_ context.Contex
 				return ec.fieldContext_Waypoint_lat(ctx, field)
 			case "name":
 				return ec.fieldContext_Waypoint_name(ctx, field)
+			case "stop":
+				return ec.fieldContext_Waypoint_stop(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Waypoint", field.Name)
 		},
@@ -32016,6 +32392,8 @@ func (ec *executionContext) fieldContext_Itinerary_from(_ context.Context, field
 				return ec.fieldContext_Waypoint_lat(ctx, field)
 			case "name":
 				return ec.fieldContext_Waypoint_name(ctx, field)
+			case "stop":
+				return ec.fieldContext_Waypoint_stop(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Waypoint", field.Name)
 		},
@@ -32068,6 +32446,8 @@ func (ec *executionContext) fieldContext_Itinerary_to(_ context.Context, field g
 				return ec.fieldContext_Waypoint_lat(ctx, field)
 			case "name":
 				return ec.fieldContext_Waypoint_name(ctx, field)
+			case "stop":
+				return ec.fieldContext_Waypoint_stop(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Waypoint", field.Name)
 		},
@@ -32123,10 +32503,16 @@ func (ec *executionContext) fieldContext_Itinerary_legs(_ context.Context, field
 				return ec.fieldContext_Leg_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Leg_to(ctx, field)
+			case "mode":
+				return ec.fieldContext_Leg_mode(ctx, field)
 			case "steps":
 				return ec.fieldContext_Leg_steps(ctx, field)
+			case "stops":
+				return ec.fieldContext_Leg_stops(ctx, field)
 			case "geometry":
 				return ec.fieldContext_Leg_geometry(ctx, field)
+			case "trip":
+				return ec.fieldContext_Leg_trip(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Leg", field.Name)
 		},
@@ -32364,6 +32750,8 @@ func (ec *executionContext) fieldContext_Leg_from(_ context.Context, field graph
 				return ec.fieldContext_Waypoint_lat(ctx, field)
 			case "name":
 				return ec.fieldContext_Waypoint_name(ctx, field)
+			case "stop":
+				return ec.fieldContext_Waypoint_stop(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Waypoint", field.Name)
 		},
@@ -32413,8 +32801,51 @@ func (ec *executionContext) fieldContext_Leg_to(_ context.Context, field graphql
 				return ec.fieldContext_Waypoint_lat(ctx, field)
 			case "name":
 				return ec.fieldContext_Waypoint_name(ctx, field)
+			case "stop":
+				return ec.fieldContext_Waypoint_stop(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Waypoint", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Leg_mode(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Leg_mode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Mode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StepMode)
+	fc.Result = res
+	return ec.marshalOStepMode2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStepMode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Leg_mode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type StepMode does not have child fields")
 		},
 	}
 	return fc, nil
@@ -32479,6 +32910,67 @@ func (ec *executionContext) fieldContext_Leg_steps(_ context.Context, field grap
 	return fc, nil
 }
 
+func (ec *executionContext) _Leg_stops(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Leg_stops(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Stops, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.WaypointDeparture)
+	fc.Result = res
+	return ec.marshalOWaypointDeparture2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointDepartureᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Leg_stops(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "lon":
+				return ec.fieldContext_WaypointDeparture_lon(ctx, field)
+			case "lat":
+				return ec.fieldContext_WaypointDeparture_lat(ctx, field)
+			case "departure":
+				return ec.fieldContext_WaypointDeparture_departure(ctx, field)
+			case "stop_id":
+				return ec.fieldContext_WaypointDeparture_stop_id(ctx, field)
+			case "stop_name":
+				return ec.fieldContext_WaypointDeparture_stop_name(ctx, field)
+			case "stop_code":
+				return ec.fieldContext_WaypointDeparture_stop_code(ctx, field)
+			case "stop_onestop_id":
+				return ec.fieldContext_WaypointDeparture_stop_onestop_id(ctx, field)
+			case "stop_index":
+				return ec.fieldContext_WaypointDeparture_stop_index(ctx, field)
+			case "stop_sequence":
+				return ec.fieldContext_WaypointDeparture_stop_sequence(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WaypointDeparture", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Leg_geometry(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Leg_geometry(ctx, field)
 	if err != nil {
@@ -32518,6 +33010,875 @@ func (ec *executionContext) fieldContext_Leg_geometry(_ context.Context, field g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type LineString does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Leg_trip(ctx context.Context, field graphql.CollectedField, obj *model.Leg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Leg_trip(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Trip, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.LegTrip)
+	fc.Result = res
+	return ec.marshalOLegTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegTrip(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Leg_trip(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Leg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "trip_id":
+				return ec.fieldContext_LegTrip_trip_id(ctx, field)
+			case "trip_short_name":
+				return ec.fieldContext_LegTrip_trip_short_name(ctx, field)
+			case "headsign":
+				return ec.fieldContext_LegTrip_headsign(ctx, field)
+			case "feed_id":
+				return ec.fieldContext_LegTrip_feed_id(ctx, field)
+			case "feed_version_sha1":
+				return ec.fieldContext_LegTrip_feed_version_sha1(ctx, field)
+			case "route":
+				return ec.fieldContext_LegTrip_route(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LegTrip", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_route_id(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_route_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_route_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_route_name(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_route_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_route_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_route_short_name(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_route_short_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteShortName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_route_short_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_route_long_name(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_route_long_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteLongName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_route_long_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_route_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_route_onestop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteOnestopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_route_onestop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_route_type(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_route_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_route_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_route_color(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_route_color(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteColor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_route_color(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_route_text_color(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_route_text_color(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RouteTextColor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_route_text_color(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRoute_agency(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRoute_agency(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Agency, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.LegRouteAgency)
+	fc.Result = res
+	return ec.marshalNLegRouteAgency2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegRouteAgency(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRoute_agency(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRoute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "agency_id":
+				return ec.fieldContext_LegRouteAgency_agency_id(ctx, field)
+			case "agency_name":
+				return ec.fieldContext_LegRouteAgency_agency_name(ctx, field)
+			case "agency_onestop_id":
+				return ec.fieldContext_LegRouteAgency_agency_onestop_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LegRouteAgency", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRouteAgency_agency_id(ctx context.Context, field graphql.CollectedField, obj *model.LegRouteAgency) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRouteAgency_agency_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AgencyID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRouteAgency_agency_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRouteAgency",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRouteAgency_agency_name(ctx context.Context, field graphql.CollectedField, obj *model.LegRouteAgency) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRouteAgency_agency_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AgencyName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRouteAgency_agency_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRouteAgency",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegRouteAgency_agency_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.LegRouteAgency) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegRouteAgency_agency_onestop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AgencyOnestopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegRouteAgency_agency_onestop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegRouteAgency",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegTrip_trip_id(ctx context.Context, field graphql.CollectedField, obj *model.LegTrip) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegTrip_trip_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TripID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegTrip_trip_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegTrip",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegTrip_trip_short_name(ctx context.Context, field graphql.CollectedField, obj *model.LegTrip) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegTrip_trip_short_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TripShortName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegTrip_trip_short_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegTrip",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegTrip_headsign(ctx context.Context, field graphql.CollectedField, obj *model.LegTrip) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegTrip_headsign(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Headsign, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegTrip_headsign(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegTrip",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegTrip_feed_id(ctx context.Context, field graphql.CollectedField, obj *model.LegTrip) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegTrip_feed_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegTrip_feed_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegTrip",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegTrip_feed_version_sha1(ctx context.Context, field graphql.CollectedField, obj *model.LegTrip) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegTrip_feed_version_sha1(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeedVersionSha1, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegTrip_feed_version_sha1(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegTrip",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LegTrip_route(ctx context.Context, field graphql.CollectedField, obj *model.LegTrip) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LegTrip_route(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Route, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.LegRoute)
+	fc.Result = res
+	return ec.marshalNLegRoute2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegRoute(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LegTrip_route(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LegTrip",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "route_id":
+				return ec.fieldContext_LegRoute_route_id(ctx, field)
+			case "route_name":
+				return ec.fieldContext_LegRoute_route_name(ctx, field)
+			case "route_short_name":
+				return ec.fieldContext_LegRoute_route_short_name(ctx, field)
+			case "route_long_name":
+				return ec.fieldContext_LegRoute_route_long_name(ctx, field)
+			case "route_onestop_id":
+				return ec.fieldContext_LegRoute_route_onestop_id(ctx, field)
+			case "route_type":
+				return ec.fieldContext_LegRoute_route_type(ctx, field)
+			case "route_color":
+				return ec.fieldContext_LegRoute_route_color(ctx, field)
+			case "route_text_color":
+				return ec.fieldContext_LegRoute_route_text_color(ctx, field)
+			case "agency":
+				return ec.fieldContext_LegRoute_agency(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LegRoute", field.Name)
 		},
 	}
 	return fc, nil
@@ -41592,6 +42953,8 @@ func (ec *executionContext) fieldContext_Step_to(_ context.Context, field graphq
 				return ec.fieldContext_Waypoint_lat(ctx, field)
 			case "name":
 				return ec.fieldContext_Waypoint_name(ctx, field)
+			case "stop":
+				return ec.fieldContext_Waypoint_stop(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Waypoint", field.Name)
 		},
@@ -50251,6 +51614,761 @@ func (ec *executionContext) fieldContext_Waypoint_name(_ context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Waypoint_stop(ctx context.Context, field graphql.CollectedField, obj *model.Waypoint) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Waypoint_stop(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Stop, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.WaypointStop)
+	fc.Result = res
+	return ec.marshalOWaypointStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointStop(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Waypoint_stop(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Waypoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "lon":
+				return ec.fieldContext_WaypointStop_lon(ctx, field)
+			case "lat":
+				return ec.fieldContext_WaypointStop_lat(ctx, field)
+			case "departure":
+				return ec.fieldContext_WaypointStop_departure(ctx, field)
+			case "stop_id":
+				return ec.fieldContext_WaypointStop_stop_id(ctx, field)
+			case "stop_name":
+				return ec.fieldContext_WaypointStop_stop_name(ctx, field)
+			case "stop_code":
+				return ec.fieldContext_WaypointStop_stop_code(ctx, field)
+			case "stop_onestop_id":
+				return ec.fieldContext_WaypointStop_stop_onestop_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WaypointStop", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_lon(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_lon(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_lon(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_lat(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_lat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lat, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_lat(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_departure(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_departure(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Departure, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_departure(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_stop_id(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_stop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_stop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_stop_name(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_stop_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_stop_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_stop_code(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_stop_code(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_stop_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_stop_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_stop_onestop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopOnestopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_stop_onestop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_stop_index(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_stop_index(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopIndex, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_stop_index(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointDeparture_stop_sequence(ctx context.Context, field graphql.CollectedField, obj *model.WaypointDeparture) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointDeparture_stop_sequence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopSequence, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointDeparture_stop_sequence(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointDeparture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointStop_lon(ctx context.Context, field graphql.CollectedField, obj *model.WaypointStop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointStop_lon(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointStop_lon(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointStop",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointStop_lat(ctx context.Context, field graphql.CollectedField, obj *model.WaypointStop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointStop_lat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lat, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointStop_lat(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointStop",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointStop_departure(ctx context.Context, field graphql.CollectedField, obj *model.WaypointStop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointStop_departure(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Departure, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointStop_departure(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointStop",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointStop_stop_id(ctx context.Context, field graphql.CollectedField, obj *model.WaypointStop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointStop_stop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointStop_stop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointStop",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointStop_stop_name(ctx context.Context, field graphql.CollectedField, obj *model.WaypointStop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointStop_stop_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointStop_stop_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointStop",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointStop_stop_code(ctx context.Context, field graphql.CollectedField, obj *model.WaypointStop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointStop_stop_code(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointStop_stop_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointStop",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaypointStop_stop_onestop_id(ctx context.Context, field graphql.CollectedField, obj *model.WaypointStop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WaypointStop_stop_onestop_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StopOnestopID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WaypointStop_stop_onestop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaypointStop",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_name(ctx, field)
 	if err != nil {
@@ -58486,10 +60604,202 @@ func (ec *executionContext) _Leg(ctx context.Context, sel ast.SelectionSet, obj 
 			out.Values[i] = ec._Leg_from(ctx, field, obj)
 		case "to":
 			out.Values[i] = ec._Leg_to(ctx, field, obj)
+		case "mode":
+			out.Values[i] = ec._Leg_mode(ctx, field, obj)
 		case "steps":
 			out.Values[i] = ec._Leg_steps(ctx, field, obj)
+		case "stops":
+			out.Values[i] = ec._Leg_stops(ctx, field, obj)
 		case "geometry":
 			out.Values[i] = ec._Leg_geometry(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "trip":
+			out.Values[i] = ec._Leg_trip(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var legRouteImplementors = []string{"LegRoute"}
+
+func (ec *executionContext) _LegRoute(ctx context.Context, sel ast.SelectionSet, obj *model.LegRoute) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, legRouteImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LegRoute")
+		case "route_id":
+			out.Values[i] = ec._LegRoute_route_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "route_name":
+			out.Values[i] = ec._LegRoute_route_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "route_short_name":
+			out.Values[i] = ec._LegRoute_route_short_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "route_long_name":
+			out.Values[i] = ec._LegRoute_route_long_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "route_onestop_id":
+			out.Values[i] = ec._LegRoute_route_onestop_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "route_type":
+			out.Values[i] = ec._LegRoute_route_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "route_color":
+			out.Values[i] = ec._LegRoute_route_color(ctx, field, obj)
+		case "route_text_color":
+			out.Values[i] = ec._LegRoute_route_text_color(ctx, field, obj)
+		case "agency":
+			out.Values[i] = ec._LegRoute_agency(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var legRouteAgencyImplementors = []string{"LegRouteAgency"}
+
+func (ec *executionContext) _LegRouteAgency(ctx context.Context, sel ast.SelectionSet, obj *model.LegRouteAgency) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, legRouteAgencyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LegRouteAgency")
+		case "agency_id":
+			out.Values[i] = ec._LegRouteAgency_agency_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "agency_name":
+			out.Values[i] = ec._LegRouteAgency_agency_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "agency_onestop_id":
+			out.Values[i] = ec._LegRouteAgency_agency_onestop_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var legTripImplementors = []string{"LegTrip"}
+
+func (ec *executionContext) _LegTrip(ctx context.Context, sel ast.SelectionSet, obj *model.LegTrip) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, legTripImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LegTrip")
+		case "trip_id":
+			out.Values[i] = ec._LegTrip_trip_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "trip_short_name":
+			out.Values[i] = ec._LegTrip_trip_short_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "headsign":
+			out.Values[i] = ec._LegTrip_headsign(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "feed_id":
+			out.Values[i] = ec._LegTrip_feed_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "feed_version_sha1":
+			out.Values[i] = ec._LegTrip_feed_version_sha1(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "route":
+			out.Values[i] = ec._LegTrip_route(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -63150,6 +65460,150 @@ func (ec *executionContext) _Waypoint(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "name":
 			out.Values[i] = ec._Waypoint_name(ctx, field, obj)
+		case "stop":
+			out.Values[i] = ec._Waypoint_stop(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var waypointDepartureImplementors = []string{"WaypointDeparture"}
+
+func (ec *executionContext) _WaypointDeparture(ctx context.Context, sel ast.SelectionSet, obj *model.WaypointDeparture) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, waypointDepartureImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WaypointDeparture")
+		case "lon":
+			out.Values[i] = ec._WaypointDeparture_lon(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lat":
+			out.Values[i] = ec._WaypointDeparture_lat(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "departure":
+			out.Values[i] = ec._WaypointDeparture_departure(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_id":
+			out.Values[i] = ec._WaypointDeparture_stop_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_name":
+			out.Values[i] = ec._WaypointDeparture_stop_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_code":
+			out.Values[i] = ec._WaypointDeparture_stop_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_onestop_id":
+			out.Values[i] = ec._WaypointDeparture_stop_onestop_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_index":
+			out.Values[i] = ec._WaypointDeparture_stop_index(ctx, field, obj)
+		case "stop_sequence":
+			out.Values[i] = ec._WaypointDeparture_stop_sequence(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var waypointStopImplementors = []string{"WaypointStop"}
+
+func (ec *executionContext) _WaypointStop(ctx context.Context, sel ast.SelectionSet, obj *model.WaypointStop) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, waypointStopImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WaypointStop")
+		case "lon":
+			out.Values[i] = ec._WaypointStop_lon(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lat":
+			out.Values[i] = ec._WaypointStop_lat(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "departure":
+			out.Values[i] = ec._WaypointStop_departure(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_id":
+			out.Values[i] = ec._WaypointStop_stop_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_name":
+			out.Values[i] = ec._WaypointStop_stop_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_code":
+			out.Values[i] = ec._WaypointStop_stop_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stop_onestop_id":
+			out.Values[i] = ec._WaypointStop_stop_onestop_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -64483,6 +66937,26 @@ func (ec *executionContext) marshalNLeg2ᚖgithubᚗcomᚋinterlineᚑioᚋtrans
 	return ec._Leg(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNLegRoute2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegRoute(ctx context.Context, sel ast.SelectionSet, v *model.LegRoute) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LegRoute(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLegRouteAgency2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegRouteAgency(ctx context.Context, sel ast.SelectionSet, v *model.LegRouteAgency) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LegRouteAgency(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNLevel2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx context.Context, sel ast.SelectionSet, v model.Level) graphql.Marshaler {
 	return ec._Level(ctx, sel, &v)
 }
@@ -65591,6 +68065,16 @@ func (ec *executionContext) marshalNWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 		return graphql.Null
 	}
 	return ec._Waypoint(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNWaypointDeparture2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointDeparture(ctx context.Context, sel ast.SelectionSet, v *model.WaypointDeparture) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._WaypointDeparture(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNWaypointInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointInput(ctx context.Context, v interface{}) (*model.WaypointInput, error) {
@@ -67445,6 +69929,13 @@ func (ec *executionContext) marshalOLeg2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtr
 	return ret
 }
 
+func (ec *executionContext) marshalOLegTrip2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLegTrip(ctx context.Context, sel ast.SelectionSet, v *model.LegTrip) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._LegTrip(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLevel(ctx context.Context, sel ast.SelectionSet, v *model.Level) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -68642,12 +71133,66 @@ func (ec *executionContext) marshalOWaypoint2ᚖgithubᚗcomᚋinterlineᚑioᚋ
 	return ec._Waypoint(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOWaypointDeparture2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointDepartureᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WaypointDeparture) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWaypointDeparture2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointDeparture(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOWaypointInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointInput(ctx context.Context, v interface{}) (*model.WaypointInput, error) {
 	if v == nil {
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputWaypointInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOWaypointStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐWaypointStop(ctx context.Context, sel ast.SelectionSet, v *model.WaypointStop) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._WaypointStop(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

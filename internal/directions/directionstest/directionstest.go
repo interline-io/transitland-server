@@ -78,11 +78,13 @@ func HandlerTest(t *testing.T, h directions.Handler, tc TestCase) *model.Directi
 		assert.InDelta(t, ret.Distance.Distance, tc.Distance, 1.0, "distance")
 	}
 	_ = time.Now()
+	resJson, err := json.MarshalIndent(ret, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("response:", string(resJson))
+
 	if tc.ResJson != "" {
-		resJson, err := json.Marshal(ret)
-		if err != nil {
-			t.Fatal(err)
-		}
 		a, err := ioutil.ReadFile(tc.ResJson)
 		if err != nil {
 			t.Fatal(err)
