@@ -167,6 +167,8 @@ func legLocationToWaypoint(v LegLocation) *model.Waypoint {
 	}
 	if v.StopId != "" {
 		wps := model.WaypointStop{}
+		wps.Lat = v.Lat
+		wps.Lon = v.Lon
 		wps.StopID = v.StopId
 		wps.StopName = v.Name
 		wps.StopCode = v.StopCode
@@ -176,16 +178,29 @@ func legLocationToWaypoint(v LegLocation) *model.Waypoint {
 	return &wp
 }
 
-func legLocationToWaypointDeparture(v Stop) *model.WaypointDeparture {
-	wp := model.WaypointDeparture{
-		Lon: v.Lon,
-		Lat: v.Lat,
-	}
+func legLocationToWaypointDeparture(v LegLocation) *model.WaypointDeparture {
+	wp := model.WaypointDeparture{}
+	wp.Lat = v.Lat
+	wp.Lon = v.Lon
 	wp.StopID = v.StopId
 	wp.StopName = v.Name
 	wp.StopCode = v.StopCode
 	wp.StopOnestopID = v.StopOnestopId
-	wp.Departure = time.Unix(0, v.Departure*int64(time.Millisecond))
+	wp.Departure = time.Unix(v.Departure, 0)
+	wp.StopIndex = aws.Int(v.StopIndex)
+	wp.StopSequence = aws.Int(v.StopSequence)
+	return &wp
+}
+
+func stopToWaypointDeparture(v Stop) *model.WaypointDeparture {
+	wp := model.WaypointDeparture{}
+	wp.Lat = v.Lat
+	wp.Lon = v.Lon
+	wp.StopID = v.StopId
+	wp.StopName = v.Name
+	wp.StopCode = v.StopCode
+	wp.StopOnestopID = v.StopOnestopId
+	wp.Departure = time.Unix(v.Departure, 0)
 	wp.StopIndex = aws.Int(v.StopIndex)
 	wp.StopSequence = aws.Int(v.StopSequence)
 	return &wp
@@ -222,6 +237,8 @@ func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 			leg.Mode = &sm
 			leg.From = legLocationToWaypoint(vleg.From)
 			leg.To = legLocationToWaypoint(vleg.To)
+
+			// Process transit trip
 			if vleg.Mode == "TRANSIT" {
 				leg.Trip = &model.LegTrip{
 					TripID:          vleg.TripId,
@@ -246,10 +263,11 @@ func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 					},
 				}
 				// Process stops
+				leg.Stops = append(leg.Stops, legLocationToWaypointDeparture(vleg.From))
 				for _, vstop := range vleg.IntermediateStops {
-					_ = vstop
-					leg.Stops = append(leg.Stops, legLocationToWaypointDeparture(vstop))
+					leg.Stops = append(leg.Stops, stopToWaypointDeparture(vstop))
 				}
+				leg.Stops = append(leg.Stops, legLocationToWaypointDeparture(vleg.To))
 			}
 
 			// Process steps
