@@ -46,16 +46,16 @@ func HandleRequest(ctx context.Context, pref string, req model.DirectionRequest)
 
 	switch req.Mode {
 	case model.StepModeLine:
-		pref = "line"
+		pref = os.Getenv("TL_ROUTER_LINE")
 	case model.StepModeTransit:
-		pref = "tlrouter"
+		pref = os.Getenv("TL_ROUTER_TRANSIT")
 	case model.StepModeWalk:
-		pref = "valhalla"
+		pref = os.Getenv("TL_ROUTER_WALK")
 	case model.StepModeAuto:
 		// Realtime auto requires aws
-		pref = "valhalla"
+		pref = os.Getenv("TL_ROUTER_AUTO")
 		if req.DepartAt == nil {
-			pref = "aws"
+			pref = os.Getenv("TL_ROUTER_TRAFFIC")
 		}
 	}
 
@@ -64,13 +64,13 @@ func HandleRequest(ctx context.Context, pref string, req model.DirectionRequest)
 	var handler Handler
 	if hf, ok := getHandler(pref); ok {
 		handler = hf()
-	} else if hf, ok := getHandler(os.Getenv("TL_DEFAULT_ROUTER")); ok {
+	} else if hf, ok := getHandler(os.Getenv("TL_ROUTER_DEFAULT")); ok {
 		handler = hf()
 	}
 
 	// If no handler found, return an error
 	if handler == nil {
-		a := "unsupported routing preference"
+		a := "no routing handler found for mode"
 		return &model.Directions{Success: false, Exception: &a}, nil
 	}
 
