@@ -1,4 +1,4 @@
-package directions
+package linerouter
 
 import (
 	"context"
@@ -8,23 +8,24 @@ import (
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/internal/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
 func init() {
-	if err := RegisterRouter("line", func() Handler {
-		return &lineRouter{}
+	if err := directions.RegisterRouter("line", func() directions.Handler {
+		return &Router{}
 	}); err != nil {
 		panic(err)
 	}
 }
 
-// lineRouter is a simple point-to-point handler for testing purposes
-type lineRouter struct {
+// Router is a simple point-to-point handler for testing purposes
+type Router struct {
 	Clock clock.Clock
 }
 
-func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
+func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*model.Directions, error) {
 	// Prepare response
 	ret := model.Directions{
 		Origin:      wpiWaypoint(req.From),
@@ -32,7 +33,7 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 		Success:     true,
 		Exception:   nil,
 	}
-	if err := validateDirectionRequest(req); err != nil {
+	if err := directions.ValidateDirectionRequest(req); err != nil {
 		ret.Success = false
 		ret.Exception = aws.String("invalid input")
 		return &ret, nil
@@ -66,8 +67,8 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 
 	// Create itinerary summary
 	itin := model.Itinerary{}
-	itin.Duration = valDuration(duration)
-	itin.Distance = valDistance(distance, "")
+	itin.Duration = makeDuration(duration)
+	itin.Distance = makeDistance(distance, "")
 	itin.StartTime = departAt
 	itin.EndTime = departAt.Add(time.Duration(duration) * time.Second)
 
@@ -79,16 +80,16 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 
 	// Create legs and steps for itinerary
 	step := model.Step{}
-	step.Duration = valDuration(duration)
-	step.Distance = valDistance(distance, "")
+	step.Duration = makeDuration(duration)
+	step.Distance = makeDistance(distance, "")
 	step.StartTime = departAt
 	step.EndTime = departAt.Add(time.Duration(duration) * time.Second)
 	step.GeometryOffset = 0
 
 	leg := model.Leg{}
 	leg.Steps = append(leg.Steps, &step)
-	leg.Duration = valDuration(duration)
-	leg.Distance = valDistance(distance, "")
+	leg.Duration = makeDuration(duration)
+	leg.Distance = makeDistance(distance, "")
 	leg.StartTime = departAt
 	leg.EndTime = departAt.Add(time.Duration(duration) * time.Second)
 	leg.Geometry = tt.NewLineStringFromFlatCoords([]float64{
@@ -101,4 +102,24 @@ func (h *lineRouter) Request(ctx context.Context, req model.DirectionRequest) (*
 		ret.Itineraries = append(ret.Itineraries, &itin)
 	}
 	return &ret, nil
+}
+
+func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
+	if w == nil {
+		return nil
+	}
+	return &model.Waypoint{
+		Lon:  w.Lon,
+		Lat:  w.Lat,
+		Name: w.Name,
+	}
+}
+
+func makeDuration(t float64) *model.Duration {
+	return &model.Duration{Duration: float64(t), Units: model.DurationUnitSeconds}
+}
+
+func makeDistance(v float64, units string) *model.Distance {
+	_ = units
+	return &model.Distance{Distance: v, Units: model.DistanceUnitKilometers}
 }

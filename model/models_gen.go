@@ -378,14 +378,43 @@ type Itinerary struct {
 }
 
 type Leg struct {
-	Duration  *Duration     `json:"duration"`
-	Distance  *Distance     `json:"distance"`
-	StartTime time.Time     `json:"start_time"`
-	EndTime   time.Time     `json:"end_time"`
-	From      *Waypoint     `json:"from,omitempty"`
-	To        *Waypoint     `json:"to,omitempty"`
-	Steps     []*Step       `json:"steps,omitempty"`
-	Geometry  tt.LineString `json:"geometry"`
+	Duration  *Duration            `json:"duration"`
+	Distance  *Distance            `json:"distance"`
+	StartTime time.Time            `json:"start_time"`
+	EndTime   time.Time            `json:"end_time"`
+	From      *Waypoint            `json:"from,omitempty"`
+	To        *Waypoint            `json:"to,omitempty"`
+	Mode      *StepMode            `json:"mode,omitempty"`
+	Steps     []*Step              `json:"steps,omitempty"`
+	Stops     []*WaypointDeparture `json:"stops,omitempty"`
+	Geometry  tt.LineString        `json:"geometry"`
+	Trip      *LegTrip             `json:"trip,omitempty"`
+}
+
+type LegRoute struct {
+	RouteID        string          `json:"route_id"`
+	RouteShortName string          `json:"route_short_name"`
+	RouteLongName  string          `json:"route_long_name"`
+	RouteOnestopID string          `json:"route_onestop_id"`
+	RouteType      int             `json:"route_type"`
+	RouteColor     *string         `json:"route_color,omitempty"`
+	RouteTextColor *string         `json:"route_text_color,omitempty"`
+	Agency         *LegRouteAgency `json:"agency"`
+}
+
+type LegRouteAgency struct {
+	AgencyID        string `json:"agency_id"`
+	AgencyName      string `json:"agency_name"`
+	AgencyOnestopID string `json:"agency_onestop_id"`
+}
+
+type LegTrip struct {
+	TripID          string    `json:"trip_id"`
+	TripShortName   string    `json:"trip_short_name"`
+	Headsign        string    `json:"headsign"`
+	FeedID          string    `json:"feed_id"`
+	FeedVersionSha1 string    `json:"feed_version_sha1"`
+	Route           *LegRoute `json:"route"`
 }
 
 // Update a level entity
@@ -1183,9 +1212,22 @@ type VehiclePosition struct {
 }
 
 type Waypoint struct {
-	Lon  float64 `json:"lon"`
-	Lat  float64 `json:"lat"`
-	Name *string `json:"name,omitempty"`
+	Lon  float64       `json:"lon"`
+	Lat  float64       `json:"lat"`
+	Name *string       `json:"name,omitempty"`
+	Stop *WaypointStop `json:"stop,omitempty"`
+}
+
+type WaypointDeparture struct {
+	Lon           float64   `json:"lon"`
+	Lat           float64   `json:"lat"`
+	Departure     time.Time `json:"departure"`
+	StopID        string    `json:"stop_id"`
+	StopName      string    `json:"stop_name"`
+	StopCode      string    `json:"stop_code"`
+	StopOnestopID string    `json:"stop_onestop_id"`
+	StopIndex     *int      `json:"stop_index,omitempty"`
+	StopSequence  *int      `json:"stop_sequence,omitempty"`
 }
 
 type WaypointInput struct {
@@ -1194,21 +1236,33 @@ type WaypointInput struct {
 	Name *string `json:"name,omitempty"`
 }
 
+type WaypointStop struct {
+	Lon           float64   `json:"lon"`
+	Lat           float64   `json:"lat"`
+	Departure     time.Time `json:"departure"`
+	StopID        string    `json:"stop_id"`
+	StopName      string    `json:"stop_name"`
+	StopCode      string    `json:"stop_code"`
+	StopOnestopID string    `json:"stop_onestop_id"`
+}
+
 type DistanceUnit string
 
 const (
 	DistanceUnitKilometers DistanceUnit = "KILOMETERS"
+	DistanceUnitMeters     DistanceUnit = "METERS"
 	DistanceUnitMiles      DistanceUnit = "MILES"
 )
 
 var AllDistanceUnit = []DistanceUnit{
 	DistanceUnitKilometers,
+	DistanceUnitMeters,
 	DistanceUnitMiles,
 }
 
 func (e DistanceUnit) IsValid() bool {
 	switch e {
-	case DistanceUnitKilometers, DistanceUnitMiles:
+	case DistanceUnitKilometers, DistanceUnitMeters, DistanceUnitMiles:
 		return true
 	}
 	return false

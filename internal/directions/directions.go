@@ -40,7 +40,6 @@ func getHandler(name string) (handlerFunc, bool) {
 
 func HandleRequest(ctx context.Context, pref string, req model.DirectionRequest) (*model.Directions, error) {
 	var handler Handler
-	handler = &lineRouter{}
 	// Default to walking
 	if !req.Mode.IsValid() {
 		req.Mode = model.StepModeWalk
@@ -82,7 +81,7 @@ func HandleRequest(ctx context.Context, pref string, req model.DirectionRequest)
 	return h, err
 }
 
-func validateDirectionRequest(req model.DirectionRequest) error {
+func ValidateDirectionRequest(req model.DirectionRequest) error {
 	if req.From == nil || req.To == nil {
 		return errors.New("from and to waypoints required")
 	}

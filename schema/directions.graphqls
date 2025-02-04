@@ -17,6 +17,55 @@ type Waypoint {
   lon: Float!
   lat: Float!
   name: String
+  stop: WaypointStop
+}
+
+type WaypointStop {
+  lon: Float!
+  lat: Float!
+  departure: Time!
+  stop_id: String!
+  stop_name: String!
+  stop_code: String!
+  stop_onestop_id: String!
+}
+
+type WaypointDeparture {
+  lon: Float!
+  lat: Float!
+  departure: Time!
+  stop_id: String!
+  stop_name: String!
+  stop_code: String!
+  stop_onestop_id: String!
+  stop_index: Int
+  stop_sequence: Int
+}
+
+type LegTrip {
+  trip_id: String!
+  trip_short_name: String!
+  headsign: String!
+  feed_id: String!
+  feed_version_sha1: String!
+  route: LegRoute!
+}
+
+type LegRoute {
+  route_id: String!
+  route_short_name: String!
+  route_long_name: String!
+  route_onestop_id: String!
+  route_type: Int!
+  route_color: String
+  route_text_color: String
+  agency: LegRouteAgency!
+}
+
+type LegRouteAgency {
+  agency_id: String!
+  agency_name: String!
+  agency_onestop_id: String!
 }
 
 type Directions {
@@ -53,8 +102,11 @@ type Leg {
   end_time: Time!
   from: Waypoint
   to: Waypoint
+  mode: StepMode
   steps: [Step!]
+  stops: [WaypointDeparture!]
   geometry: LineString!
+  trip: LegTrip
 }
 
 type Step {
@@ -84,6 +136,7 @@ enum DurationUnit {
 
 enum DistanceUnit {
   KILOMETERS
+  METERS
   MILES
 }
 

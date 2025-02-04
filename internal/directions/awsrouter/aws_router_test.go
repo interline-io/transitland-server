@@ -1,4 +1,4 @@
-package directions
+package awsrouter
 
 import (
 	"bytes"
@@ -11,34 +11,79 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/location"
 	"github.com/interline-io/transitland-dbutil/testutil"
+	dt "github.com/interline-io/transitland-server/internal/directions/directionstest"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/testdata"
 )
 
-func Test_awsRouter(t *testing.T) {
-	tcs := []testCase{
-		{"ped", basicTests["ped"], true, 4215, 4.100, testdata.Path("directions/response/aws_ped.json")},
-		{"bike", basicTests["bike"], false, 0, 0, ""}, // unsupported mode
-		{"auto", basicTests["auto"], true, 671, 5.452, ""},
-		{"depart_now", model.DirectionRequest{Mode: model.StepModeAuto, From: &baseFrom, To: &baseTo, DepartAt: nil}, true, 671, 4.1, ""}, // at LEAST 671s
-		{"no_dest_fail", basicTests["no_dest_fail"], false, 0, 0, ""},
-		{"no_routable_dest_fail", basicTests["no_routable_dest_fail"], false, 0, 0, ""},
+func TestRouter(t *testing.T) {
+	bt := dt.MakeBasicTests()
+
+	tcs := []dt.TestCase{
+		{
+			Name:     "ped",
+			Req:      bt["ped"],
+			Success:  true,
+			Duration: 4215,
+			Distance: 4.100,
+			ResJson:  testdata.Path("directions/response/aws_ped.json"),
+		},
+		{
+			Name:     "bike",
+			Req:      bt["bike"],
+			Success:  false,
+			Duration: 0,
+			Distance: 0,
+			ResJson:  "",
+		},
+		{
+			Name:     "auto",
+			Req:      bt["auto"],
+			Success:  true,
+			Duration: 671,
+			Distance: 5.452,
+			ResJson:  "",
+		},
+		{
+			Name:     "depart_now",
+			Req:      model.DirectionRequest{Mode: model.StepModeAuto, From: &dt.BaseFrom, To: &dt.BaseTo, DepartAt: nil},
+			Success:  true,
+			Duration: 936,
+			Distance: 4.1,
+			ResJson:  "",
+		},
+		{
+			Name:     "no_dest_fail",
+			Req:      bt["no_dest_fail"],
+			Success:  false,
+			Duration: 0,
+			Distance: 0,
+			ResJson:  "",
+		},
+		{
+			Name:     "no_routable_dest_fail",
+			Req:      bt["no_routable_dest_fail"],
+			Success:  false,
+			Duration: 0,
+			Distance: 0,
+			ResJson:  "",
+		},
 	}
 	for _, tc := range tcs {
-		t.Run(tc.name, func(t *testing.T) {
-			recorder := testutil.NewRecorder(filepath.Join(testdata.Path("directions/aws/location"), tc.name), "directions://aws")
+		t.Run(tc.Name, func(t *testing.T) {
+			recorder := testutil.NewRecorder(filepath.Join(testdata.Path("directions/aws/location"), tc.Name), "directions://aws")
 			defer recorder.Stop()
 			h, err := makeTestMockRouter(recorder)
 			if err != nil {
 				t.Fatal(err)
 			}
-			testHandler(t, h, tc)
+			dt.HandlerTest(t, h, tc)
 		})
 	}
 }
 
 // Mock reader
-func makeTestMockRouter(tr http.RoundTripper) (*awsRouter, error) {
+func makeTestMockRouter(tr http.RoundTripper) (*Router, error) {
 	// Use custom client/transport
 	cn := ""
 	lc := &mockLocationClient{
@@ -46,7 +91,7 @@ func makeTestMockRouter(tr http.RoundTripper) (*awsRouter, error) {
 			Transport: tr,
 		},
 	}
-	return newAWSRouter(lc, cn), nil
+	return NewRouter(lc, cn), nil
 }
 
 // Regenerate results
