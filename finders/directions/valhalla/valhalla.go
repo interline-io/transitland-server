@@ -17,6 +17,7 @@ import (
 	"github.com/interline-io/transitland-server/finders/directions"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/twpayne/go-polyline"
 )
 
 func init() {
@@ -165,10 +166,32 @@ func makeDirections(res *Response, departAt time.Time) *model.Directions {
 		leg.Distance = makeDistance(vleg.Summary.Length, res.Units)
 		leg.StartTime = prevLegDepartAt
 		leg.EndTime = prevLegDepartAt.Add(time.Duration(vleg.Summary.Time) * time.Second)
-		// leg.From = awsWaypoint(awsleg.StartPosition)
-		// leg.To = awsWaypoint(awsleg.EndPosition)
+		leg.From = &model.Waypoint{
+			Lon: 0,
+			Lat: 0,
+		}
+		leg.To = &model.Waypoint{
+			Lon: 0,
+			Lat: 0,
+		}
 		prevLegDepartAt = leg.EndTime
-		leg.Geometry = tt.NewLineStringFromFlatCoords([]float64{})
+
+		// Decode shape using custom 1e6 scale
+		shapeDecoder := polyline.Codec{
+			Dim:   2,
+			Scale: 1e6,
+		}
+		flatCoords, _, err := shapeDecoder.DecodeFlatCoords([]float64{}, []byte(vleg.Shape))
+		if err != nil {
+			log.For(context.Background()).Error().Err(err).Msg("failed to decode shape")
+		}
+		var flatCoords3 []float64
+		for i := 0; i < len(flatCoords); i += 2 {
+			flatCoords3 = append(flatCoords3, flatCoords[i+1], flatCoords[i], 0)
+		}
+		leg.Geometry = tt.NewLineStringFromFlatCoords(flatCoords3)
+
+		// Add leg to itinerary
 		itin.Legs = append(itin.Legs, &leg)
 	}
 	if len(itin.Legs) > 0 {
