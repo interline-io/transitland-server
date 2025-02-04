@@ -14,6 +14,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/interline-io/log"
+	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
@@ -76,6 +77,8 @@ func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*mode
 	} else {
 		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
+
+	// Prepare departure time
 	departAt := time.Now().In(time.UTC)
 	if h.Clock != nil {
 		departAt = h.Clock.Now()
@@ -87,8 +90,7 @@ func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*mode
 	}
 	// Ensure we are in UTC
 	departAt = departAt.In(time.UTC)
-	input.Time = departAt.Format("15:04:05")
-	input.Date = departAt.Format("2006-01-02")
+	input.UnixTime = departAt.Unix()
 
 	// Make request
 	res, err := makeRequest(ctx, input, h.client, h.endpoint, h.apikey)
@@ -97,7 +99,7 @@ func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*mode
 		return &model.Directions{Success: false, Exception: aws.String("could not calculate route")}, nil
 	}
 	// Prepare response
-	ret := makeDirections(res, departAt)
+	ret := makeDirections(res)
 	ret.Origin = wpiWaypoint(req.From)
 	ret.Destination = wpiWaypoint(req.To)
 	ret.Success = true
@@ -106,7 +108,6 @@ func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*mode
 }
 
 func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint string, apikey string) (*PlanResponse, error) {
-	req.useFallbackDates = true
 	parsedUrl, err := url.Parse(fmt.Sprintf("%s/plan", endpoint))
 	if err != nil {
 		return nil, err
@@ -114,8 +115,7 @@ func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint
 	q := parsedUrl.Query()
 	q.Add("fromPlace", fmt.Sprintf("%f,%f", req.FromPlace.Lat, req.FromPlace.Lon))
 	q.Add("toPlace", fmt.Sprintf("%f,%f", req.ToPlace.Lat, req.ToPlace.Lon))
-	q.Add("time", req.Time)
-	q.Add("date", req.Date)
+	q.Add("unixTime", fmt.Sprintf("%d", req.UnixTime))
 	q.Add("mode", req.Mode)
 	q.Add("includeWalkingItinerary", "true")
 	if req.useFallbackDates {
@@ -173,40 +173,13 @@ func legLocationToWaypoint(v LegLocation) *model.Waypoint {
 		wps.StopName = v.Name
 		wps.StopCode = v.StopCode
 		wps.StopOnestopID = v.StopOnestopId
+		wps.Departure = otpMs(v.Departure)
 		wp.Stop = &wps
 	}
 	return &wp
 }
 
-func legLocationToWaypointDeparture(v LegLocation) *model.WaypointDeparture {
-	wp := model.WaypointDeparture{}
-	wp.Lat = v.Lat
-	wp.Lon = v.Lon
-	wp.StopID = v.StopId
-	wp.StopName = v.Name
-	wp.StopCode = v.StopCode
-	wp.StopOnestopID = v.StopOnestopId
-	wp.Departure = time.Unix(v.Departure, 0)
-	wp.StopIndex = aws.Int(v.StopIndex)
-	wp.StopSequence = aws.Int(v.StopSequence)
-	return &wp
-}
-
-func stopToWaypointDeparture(v Stop) *model.WaypointDeparture {
-	wp := model.WaypointDeparture{}
-	wp.Lat = v.Lat
-	wp.Lon = v.Lon
-	wp.StopID = v.StopId
-	wp.StopName = v.Name
-	wp.StopCode = v.StopCode
-	wp.StopOnestopID = v.StopOnestopId
-	wp.Departure = time.Unix(v.Departure, 0)
-	wp.StopIndex = aws.Int(v.StopIndex)
-	wp.StopSequence = aws.Int(v.StopSequence)
-	return &wp
-}
-
-func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
+func makeDirections(res *PlanResponse) *model.Directions {
 	// Map PlanResponse to Directions
 	ret := model.Directions{}
 	ret.DataSource = aws.String("OSM, Transitland")
@@ -215,12 +188,13 @@ func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 		itin.From = &model.Waypoint{Lon: res.Plan.From.Lon, Lat: res.Plan.From.Lat, Name: aws.String(res.Plan.From.Name)}
 		itin.To = &model.Waypoint{Lon: res.Plan.To.Lon, Lat: res.Plan.To.Lat, Name: aws.String(res.Plan.To.Name)}
 		itin.Duration = makeDuration(float64(vitin.Duration))
-		itin.Distance = makeDistance(vitin.Distance, "m")
-		itin.StartTime = departAt
-		itin.EndTime = departAt.Add(time.Duration(vitin.StartTime) * time.Millisecond)
+		itin.Distance = makeDistance(vitin.Distance, "km")
+
+		// Convert times
+		itin.StartTime = otpMs(vitin.StartTime)
+		itin.EndTime = otpMs(vitin.EndTime)
 
 		// Create legs for itinerary
-		prevLegDepartAt := departAt
 		for _, vleg := range vitin.Legs {
 			leg := model.Leg{}
 
@@ -239,7 +213,7 @@ func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 			leg.To = legLocationToWaypoint(vleg.To)
 
 			// Process transit trip
-			if vleg.Mode == "TRANSIT" {
+			if vleg.TripId != "" {
 				leg.Trip = &model.LegTrip{
 					TripID:          vleg.TripId,
 					TripShortName:   vleg.RouteShortName,
@@ -271,23 +245,25 @@ func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 			}
 
 			// Process steps
-			prevStepDepartAt := prevLegDepartAt
 			for _, vstep := range vleg.Steps {
 				_ = vstep
 				step := model.Step{}
-				prevStepDepartAt = step.EndTime
 				leg.Steps = append(leg.Steps, &step)
 			}
 
-			leg.Duration = makeDuration(float64(vleg.StartTime))
-			leg.Distance = makeDistance(vleg.Distance, "m")
-			leg.StartTime = prevLegDepartAt
-			leg.EndTime = prevLegDepartAt.Add(time.Duration(vleg.StartTime) * time.Millisecond)
-			prevLegDepartAt = leg.EndTime
-			_ = prevStepDepartAt
+			leg.Duration = makeDuration(float64(vleg.Duration))
+			leg.Distance = makeDistance(vleg.Distance, "km")
+			leg.StartTime = otpMs(vleg.StartTime)
+			leg.EndTime = otpMs(vleg.EndTime)
 
 			// TODO: decode points
-			leg.Geometry = tt.NewLineStringFromFlatCoords([]float64{})
+			if c, err := tlxy.DecodePolyline(vleg.LegGeometry.Points); err == nil {
+				var coords []float64
+				for _, v := range c {
+					coords = append(coords, v.Lon, v.Lat, 0)
+				}
+				leg.Geometry = tt.NewLineStringFromFlatCoords(coords)
+			}
 
 			// Append leg
 			itin.Legs = append(itin.Legs, &leg)
@@ -306,10 +282,43 @@ func makeDirections(res *PlanResponse, departAt time.Time) *model.Directions {
 	return &ret
 }
 
+func legLocationToWaypointDeparture(v LegLocation) *model.WaypointDeparture {
+	wp := model.WaypointDeparture{}
+	wp.Lat = v.Lat
+	wp.Lon = v.Lon
+	wp.StopID = v.StopId
+	wp.StopName = v.Name
+	wp.StopCode = v.StopCode
+	wp.StopOnestopID = v.StopOnestopId
+	wp.Departure = otpMs(v.Departure)
+	wp.StopIndex = aws.Int(v.StopIndex)
+	wp.StopSequence = aws.Int(v.StopSequence)
+	return &wp
+}
+
+func stopToWaypointDeparture(v Stop) *model.WaypointDeparture {
+	wp := model.WaypointDeparture{}
+	wp.Lat = v.Lat
+	wp.Lon = v.Lon
+	wp.StopID = v.StopId
+	wp.StopName = v.Name
+	wp.StopCode = v.StopCode
+	wp.StopOnestopID = v.StopOnestopId
+	wp.Departure = otpMs(v.Departure)
+	wp.StopIndex = aws.Int(v.StopIndex)
+	wp.StopSequence = aws.Int(v.StopSequence)
+	return &wp
+}
+
+func otpMs(v int64) time.Time {
+	return time.Unix(v/1000, 0).In(time.UTC)
+}
+
 type Request struct {
 	// Required options
 	FromPlace RequestLocation `json:"fromPlace"`
 	ToPlace   RequestLocation `json:"toPlace"`
+	UnixTime  int64           `json:"unixTime"`
 	Time      string          `json:"time"`
 	Date      string          `json:"date"`
 
@@ -353,8 +362,11 @@ func makeDuration(t float64) *model.Duration {
 }
 
 func makeDistance(v float64, units string) *model.Distance {
-	_ = units
-	return &model.Distance{Distance: v / 1000.0, Units: model.DistanceUnitKilometers}
+	// Input distance is m
+	if units == "km" {
+		v = v / 1000.0
+	}
+	return &model.Distance{Distance: v, Units: model.DistanceUnitKilometers}
 }
 
 // Generated from example.json

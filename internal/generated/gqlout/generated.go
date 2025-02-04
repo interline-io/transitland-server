@@ -7365,6 +7365,7 @@ enum DurationUnit {
 
 enum DistanceUnit {
   KILOMETERS
+  METERS
   MILES
 }
 

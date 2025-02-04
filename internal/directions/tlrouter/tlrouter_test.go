@@ -14,7 +14,7 @@ import (
 
 func TestRouter(t *testing.T) {
 	bt := dt.MakeBasicTests()
-	baseTime := time.Unix(1738200531, 0)
+	baseTime := time.Unix(1738200531, 0).In(time.UTC)
 	fdir := testdata.Path("directions/tlrouter")
 	tcs := []dt.TestCase{
 		{
@@ -33,7 +33,7 @@ func TestRouter(t *testing.T) {
 			Name:     "transit",
 			Req:      bt["transit"],
 			Success:  true,
-			Duration: 1289,
+			Duration: 1480,
 			Distance: 4.4618,
 		},
 		{

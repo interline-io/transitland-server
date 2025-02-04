@@ -393,7 +393,6 @@ type Leg struct {
 
 type LegRoute struct {
 	RouteID        string          `json:"route_id"`
-	RouteName      string          `json:"route_name"`
 	RouteShortName string          `json:"route_short_name"`
 	RouteLongName  string          `json:"route_long_name"`
 	RouteOnestopID string          `json:"route_onestop_id"`
@@ -1251,17 +1250,19 @@ type DistanceUnit string
 
 const (
 	DistanceUnitKilometers DistanceUnit = "KILOMETERS"
+	DistanceUnitMeters     DistanceUnit = "METERS"
 	DistanceUnitMiles      DistanceUnit = "MILES"
 )
 
 var AllDistanceUnit = []DistanceUnit{
 	DistanceUnitKilometers,
+	DistanceUnitMeters,
 	DistanceUnitMiles,
 }
 
 func (e DistanceUnit) IsValid() bool {
 	switch e {
-	case DistanceUnitKilometers, DistanceUnitMiles:
+	case DistanceUnitKilometers, DistanceUnitMeters, DistanceUnitMiles:
 		return true
 	}
 	return false

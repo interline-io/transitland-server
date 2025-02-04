@@ -48,7 +48,7 @@ func TestRouter(t *testing.T) {
 			Name:     "depart_now",
 			Req:      model.DirectionRequest{Mode: model.StepModeAuto, From: &dt.BaseFrom, To: &dt.BaseTo, DepartAt: nil},
 			Success:  true,
-			Duration: 671,
+			Duration: 936,
 			Distance: 4.1,
 			ResJson:  "",
 		},
