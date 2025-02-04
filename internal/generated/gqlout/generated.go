@@ -652,7 +652,6 @@ type ComplexityRoot struct {
 		RouteColor     func(childComplexity int) int
 		RouteID        func(childComplexity int) int
 		RouteLongName  func(childComplexity int) int
-		RouteName      func(childComplexity int) int
 		RouteOnestopID func(childComplexity int) int
 		RouteShortName func(childComplexity int) int
 		RouteTextColor func(childComplexity int) int
@@ -4306,13 +4305,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LegRoute.RouteLongName(childComplexity), true
 
-	case "LegRoute.route_name":
-		if e.complexity.LegRoute.RouteName == nil {
-			break
-		}
-
-		return e.complexity.LegRoute.RouteName(childComplexity), true
-
 	case "LegRoute.route_onestop_id":
 		if e.complexity.LegRoute.RouteOnestopID == nil {
 			break
@@ -7281,7 +7273,6 @@ type LegTrip {
 
 type LegRoute {
   route_id: String!
-  route_name: String!
   route_short_name: String!
   route_long_name: String!
   route_onestop_id: String!
@@ -33115,50 +33106,6 @@ func (ec *executionContext) fieldContext_LegRoute_route_id(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _LegRoute_route_name(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LegRoute_route_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RouteName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LegRoute_route_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LegRoute",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _LegRoute_route_short_name(ctx context.Context, field graphql.CollectedField, obj *model.LegRoute) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LegRoute_route_short_name(ctx, field)
 	if err != nil {
@@ -33862,8 +33809,6 @@ func (ec *executionContext) fieldContext_LegTrip_route(_ context.Context, field 
 			switch field.Name {
 			case "route_id":
 				return ec.fieldContext_LegRoute_route_id(ctx, field)
-			case "route_name":
-				return ec.fieldContext_LegRoute_route_name(ctx, field)
 			case "route_short_name":
 				return ec.fieldContext_LegRoute_route_short_name(ctx, field)
 			case "route_long_name":
@@ -60654,11 +60599,6 @@ func (ec *executionContext) _LegRoute(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = graphql.MarshalString("LegRoute")
 		case "route_id":
 			out.Values[i] = ec._LegRoute_route_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "route_name":
-			out.Values[i] = ec._LegRoute_route_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
