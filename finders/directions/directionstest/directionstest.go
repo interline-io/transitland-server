@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-server/internal/directions"
+	"github.com/interline-io/transitland-server/finders/directions"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/stretchr/testify/assert"
 )

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/tlxy"
-	"github.com/interline-io/transitland-server/internal/directions"
+	"github.com/interline-io/transitland-server/finders/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
