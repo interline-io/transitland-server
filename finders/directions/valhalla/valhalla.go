@@ -66,15 +66,18 @@ func (h *Router) Request(ctx context.Context, req model.DirectionRequest) (*mode
 	input := Request{}
 	input.Locations = append(input.Locations, RequestLocation{Lon: req.From.Lon, Lat: req.From.Lat})
 	input.Locations = append(input.Locations, RequestLocation{Lon: req.To.Lon, Lat: req.To.Lat})
-	if req.Mode == model.StepModeAuto {
+	switch req.Mode {
+	case model.StepModeAuto:
 		input.Costing = "auto"
-	} else if req.Mode == model.StepModeBicycle {
+	case model.StepModeBicycle:
 		input.Costing = "bicycle"
-	} else if req.Mode == model.StepModeWalk {
+	case model.StepModeWalk, model.StepModeTransit:
 		input.Costing = "pedestrian"
-	} else {
+	default:
 		return &model.Directions{Success: false, Exception: aws.String("unsupported travel mode")}, nil
 	}
+
+	// Prepare time
 	departAt := time.Now().In(time.UTC)
 	if h.Clock != nil {
 		departAt = h.Clock.Now()
@@ -132,14 +135,11 @@ func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint
 }
 
 func makeDirections(res *Response, departAt time.Time) *model.Directions {
-	ret := model.Directions{}
 	// Create itinerary summary
 	itin := model.Itinerary{}
-	itin.Duration = makeDuration(res.Trip.Summary.Time)
-	itin.Distance = makeDistance(res.Trip.Summary.Length, res.Units)
-	itin.StartTime = departAt
-	itin.EndTime = departAt.Add(time.Duration(res.Trip.Summary.Time) * time.Second)
-	// valhalla responses have single itineraries
+
+	// Valhalla responses have single itineraries
+	ret := model.Directions{}
 	ret.Duration = itin.Duration
 	ret.Distance = itin.Distance
 	ret.StartTime = &itin.StartTime
@@ -149,7 +149,44 @@ func makeDirections(res *Response, departAt time.Time) *model.Directions {
 	// Create legs for itinerary
 	prevLegDepartAt := departAt
 	for _, vleg := range res.Trip.Legs {
+		// Decode shape using custom 1e6 scale
+		shapeDecoder := polyline.Codec{
+			Dim:   2,
+			Scale: 1e6,
+		}
+		coords, _, err := shapeDecoder.DecodeCoords([]byte(vleg.Shape))
+		if err != nil {
+			log.For(context.Background()).Error().Err(err).Msg("failed to decode shape")
+			continue
+		}
+		if len(coords) == 0 {
+			log.For(context.Background()).Error().Msg("no coordinates in decoded shape")
+			continue
+		}
+
+		// Process leg
 		leg := model.Leg{}
+		leg.Duration = makeDuration(vleg.Summary.Time)
+		leg.Distance = makeDistance(vleg.Summary.Length, res.Units)
+
+		// Set from/to
+		leg.From = &model.Waypoint{
+			Lat: coords[0][0],
+			Lon: coords[0][1],
+		}
+		leg.To = &model.Waypoint{
+			Lat: coords[len(coords)-1][0],
+			Lon: coords[len(coords)-1][1],
+		}
+
+		// Convert to flat coords
+		var flatCoords3 []float64
+		for _, coord := range coords {
+			flatCoords3 = append(flatCoords3, coord[1], coord[0], 0)
+		}
+		leg.Geometry = tt.NewLineStringFromFlatCoords(flatCoords3)
+
+		// Process steps
 		prevStepDepartAt := prevLegDepartAt
 		for _, vstep := range vleg.Maneuvers {
 			step := model.Step{}
@@ -157,46 +194,30 @@ func makeDirections(res *Response, departAt time.Time) *model.Directions {
 			step.Distance = makeDistance(vstep.Length, res.Units)
 			step.StartTime = prevStepDepartAt
 			step.EndTime = prevStepDepartAt.Add(time.Duration(vstep.Time) * time.Second)
-			// step.To = vstep.
 			step.GeometryOffset = vstep.BeginShapeIndex
 			prevStepDepartAt = step.EndTime
 			leg.Steps = append(leg.Steps, &step)
 		}
-		leg.Duration = makeDuration(vleg.Summary.Time)
-		leg.Distance = makeDistance(vleg.Summary.Length, res.Units)
 		leg.StartTime = prevLegDepartAt
 		leg.EndTime = prevLegDepartAt.Add(time.Duration(vleg.Summary.Time) * time.Second)
-		leg.From = &model.Waypoint{
-			Lon: 0,
-			Lat: 0,
-		}
-		leg.To = &model.Waypoint{
-			Lon: 0,
-			Lat: 0,
-		}
 		prevLegDepartAt = leg.EndTime
-
-		// Decode shape using custom 1e6 scale
-		shapeDecoder := polyline.Codec{
-			Dim:   2,
-			Scale: 1e6,
-		}
-		flatCoords, _, err := shapeDecoder.DecodeFlatCoords([]float64{}, []byte(vleg.Shape))
-		if err != nil {
-			log.For(context.Background()).Error().Err(err).Msg("failed to decode shape")
-		}
-		var flatCoords3 []float64
-		for i := 0; i < len(flatCoords); i += 2 {
-			flatCoords3 = append(flatCoords3, flatCoords[i+1], flatCoords[i], 0)
-		}
-		leg.Geometry = tt.NewLineStringFromFlatCoords(flatCoords3)
 
 		// Add leg to itinerary
 		itin.Legs = append(itin.Legs, &leg)
 	}
-	if len(itin.Legs) > 0 {
-		ret.Itineraries = append(ret.Itineraries, &itin)
+	if len(itin.Legs) == 0 {
+		return &model.Directions{Success: false, Exception: aws.String("no legs in response")}
 	}
+
+	// Add summary
+	itin.Duration = makeDuration(res.Trip.Summary.Time)
+	itin.Distance = makeDistance(res.Trip.Summary.Length, res.Units)
+	itin.StartTime = departAt
+	itin.EndTime = departAt.Add(time.Duration(res.Trip.Summary.Time) * time.Second)
+	itin.From = itin.Legs[0].From
+	itin.To = itin.Legs[0].To
+	ret.Itineraries = append(ret.Itineraries, &itin)
+
 	return &ret
 }
 
@@ -216,8 +237,9 @@ type Response struct {
 }
 
 type Trip struct {
-	Legs    []Leg   `json:"legs"`
-	Summary Summary `json:"summary"`
+	Legs      []Leg             `json:"legs"`
+	Summary   Summary           `json:"summary"`
+	Locations []RequestLocation `json:"locations"`
 }
 
 type Summary struct {
