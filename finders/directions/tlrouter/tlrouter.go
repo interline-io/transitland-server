@@ -17,8 +17,8 @@ import (
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/caches/httpcache"
+	"github.com/interline-io/transitland-server/finders/directions"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/internal/directions"
 	"github.com/interline-io/transitland-server/model"
 )
 
@@ -118,7 +118,7 @@ func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint
 	q.Add("unixTime", fmt.Sprintf("%d", req.UnixTime))
 	q.Add("mode", req.Mode)
 	q.Add("includeWalkingItinerary", "true")
-	if req.useFallbackDates {
+	if req.UseFallbackDates {
 		q.Add("useFallbackDates", "true")
 	}
 	parsedUrl.RawQuery = q.Encode()
@@ -150,13 +150,6 @@ func makeRequest(ctx context.Context, req Request, client *http.Client, endpoint
 		return nil, errors.Join(errors.New("failed to read response as JSON"), err)
 	}
 	return &res, nil
-}
-
-func maybeString(s *string) string {
-	if s != nil {
-		return *s
-	}
-	return ""
 }
 
 func legLocationToWaypoint(v LegLocation) *model.Waypoint {
@@ -333,12 +326,12 @@ type Request struct {
 	TransferTimePenalty int     `json:"transferTimePenalty"`
 
 	// Fallbacks
-	useFallbackDates         bool `json:"useFallbackDates"`
-	includeWalkingItinerary  bool `json:"includeWalkingItinerary"`
-	fallbackWalkingItinerary bool `json:"fallbackWalkingItinerary"`
-	allowWalkingItinerary    bool `json:"allowWalkingItinerary"`
-	includeEarliestArrivals  bool `json:"includeEarliestArrivals"`
-	useTargetStopPruining    bool `json:"useTargetStopPruining"`
+	UseFallbackDates bool `json:"useFallbackDates"`
+	// includeWalkingItinerary  bool `json:"includeWalkingItinerary"`
+	// fallbackWalkingItinerary bool `json:"fallbackWalkingItinerary"`
+	// allowWalkingItinerary    bool `json:"allowWalkingItinerary"`
+	// includeEarliestArrivals  bool `json:"includeEarliestArrivals"`
+	// useTargetStopPruining    bool `json:"useTargetStopPruining"`
 }
 
 type RequestLocation struct {

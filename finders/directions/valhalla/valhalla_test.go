@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-dbutil/testutil"
-	dt "github.com/interline-io/transitland-server/internal/directions/directionstest"
+	dt "github.com/interline-io/transitland-server/finders/directions/directionstest"
 	"github.com/interline-io/transitland-server/testdata"
 )
 

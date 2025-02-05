@@ -39,27 +39,42 @@ func getHandler(name string) (handlerFunc, bool) {
 }
 
 func HandleRequest(ctx context.Context, pref string, req model.DirectionRequest) (*model.Directions, error) {
-	var handler Handler
 	// Default to walking
 	if !req.Mode.IsValid() {
 		req.Mode = model.StepModeWalk
 	}
-	// Always use line
-	if req.Mode == model.StepModeLine {
-		pref = "line"
+
+	switch req.Mode {
+	case model.StepModeLine:
+		pref = os.Getenv("TL_ROUTER_LINE")
+	case model.StepModeTransit:
+		pref = os.Getenv("TL_ROUTER_TRANSIT")
+	case model.StepModeWalk:
+		pref = os.Getenv("TL_ROUTER_WALK")
+	case model.StepModeAuto:
+		// Realtime auto requires aws
+		pref = os.Getenv("TL_ROUTER_AUTO")
+		if req.DepartAt == nil {
+			pref = os.Getenv("TL_ROUTER_TRAFFIC")
+		}
 	}
-	// Realtime auto requires aws
-	if req.Mode == model.StepModeAuto && req.DepartAt == nil {
-		pref = "aws"
-	}
-	// Default
-	if pref == "" {
-		pref = os.Getenv("TL_DEFAULT_ROUTER")
-		// will default to line if invalid or empty
-	}
+
+	// Get the handler
+	// Fallhack to TL_DEFAULT_ROUTER if no handler found
+	var handler Handler
 	if hf, ok := getHandler(pref); ok {
 		handler = hf()
+	} else if hf, ok := getHandler(os.Getenv("TL_ROUTER_DEFAULT")); ok {
+		handler = hf()
 	}
+
+	// If no handler found, return an error
+	if handler == nil {
+		a := "no routing handler found for mode"
+		return &model.Directions{Success: false, Exception: &a}, nil
+	}
+
+	// Call the handler
 	h, err := handler.Request(ctx, req)
 	a := log.For(ctx).Trace()
 	if err != nil {
@@ -86,15 +101,4 @@ func ValidateDirectionRequest(req model.DirectionRequest) error {
 		return errors.New("from and to waypoints required")
 	}
 	return nil
-}
-
-func wpiWaypoint(w *model.WaypointInput) *model.Waypoint {
-	if w == nil {
-		return nil
-	}
-	return &model.Waypoint{
-		Lon:  w.Lon,
-		Lat:  w.Lat,
-		Name: w.Name,
-	}
 }

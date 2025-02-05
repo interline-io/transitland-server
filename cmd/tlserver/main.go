@@ -36,6 +36,15 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	// Import drivers
+	_ "github.com/interline-io/transitland-lib/tldb/postgres"
+
+	// Import routers
+	_ "github.com/interline-io/transitland-server/finders/directions/awsrouter"
+	_ "github.com/interline-io/transitland-server/finders/directions/linerouter"
+	_ "github.com/interline-io/transitland-server/finders/directions/tlrouter"
+	_ "github.com/interline-io/transitland-server/finders/directions/valhalla"
 )
 
 var rootCmd = &cobra.Command{Use: "tlserver"}
