@@ -169,6 +169,22 @@ func makeDirections(res *Response, departAt time.Time) *model.Directions {
 		leg.Duration = makeDuration(vleg.Summary.Time)
 		leg.Distance = makeDistance(vleg.Summary.Length, res.Units)
 
+		if len(vleg.Maneuvers) > 0 {
+			// Set mode
+			var sm model.StepMode
+			switch vleg.Maneuvers[0].TravelMode {
+			case "drive":
+				sm = model.StepModeAuto
+			case "bicycle":
+				sm = model.StepModeBicycle
+			case "pedestrian":
+				sm = model.StepModeWalk
+			default:
+				sm = model.StepModeAuto
+			}
+			leg.Mode = &sm
+		}
+
 		// Set from/to
 		leg.From = &model.Waypoint{
 			Lat: coords[0][0],
