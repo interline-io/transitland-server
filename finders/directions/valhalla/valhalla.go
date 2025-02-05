@@ -232,6 +232,8 @@ func makeDirections(res *Response, departAt time.Time) *model.Directions {
 	itin.EndTime = departAt.Add(time.Duration(res.Trip.Summary.Time) * time.Second)
 	itin.From = itin.Legs[0].From
 	itin.To = itin.Legs[0].To
+	ret.Duration = itin.Duration
+	ret.Distance = itin.Distance
 	ret.Itineraries = append(ret.Itineraries, &itin)
 
 	return &ret

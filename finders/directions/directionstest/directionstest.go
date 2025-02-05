@@ -82,7 +82,7 @@ func HandlerTest(t *testing.T, h directions.Handler, tc TestCase) *model.Directi
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log("response:", string(resJson))
+	// t.Log("response:", string(resJson))
 
 	if tc.ResJson != "" {
 		a, err := ioutil.ReadFile(tc.ResJson)
