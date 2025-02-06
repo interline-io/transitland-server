@@ -2,7 +2,6 @@ package dbfinder
 
 import (
 	"context"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/twpayne/go-geom"
@@ -84,7 +83,6 @@ func (c *adminCache) loadAdmins(ctx context.Context, dbx sqlx.Ext) error {
 
 func (c *adminCache) Check(pt tlxy.Point) (adminCacheItem, bool) {
 	feat, ok := c.index.NearestFeature(pt)
-	fmt.Println("FEAT:", feat, "ok:", ok)
 	if ok == 0 {
 		return adminCacheItem{}, false
 	}
