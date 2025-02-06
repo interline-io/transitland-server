@@ -20,7 +20,7 @@ require (
 	github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71
 	github.com/interline-io/transitland-dbutil v0.0.0-20250205070602-f4cb2fc29f2c
 	github.com/interline-io/transitland-jobs v0.0.0-20250205070706-b9869ea781cc
-	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250205070620-1af6d51e035c
+	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250206034735-4a2055b5cbfa
 	github.com/interline-io/transitland-mw v0.0.0-20250205070646-e39800d66fd8
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
@@ -28,7 +28,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	github.com/tidwall/gjson v1.17.3
-	github.com/tidwall/rtree v1.10.0
 	github.com/twpayne/go-geom v1.5.1
 	github.com/twpayne/go-polyline v1.1.1
 	github.com/vektah/gqlparser/v2 v2.5.17
@@ -108,6 +107,7 @@ require (
 	github.com/tidwall/geoindex v1.7.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/rtree v1.10.0 // indirect
 	github.com/tidwall/tinylru v1.2.1 // indirect
 	github.com/tkrajina/gpxgo v1.1.2 // indirect
 	github.com/urfave/cli/v2 v2.27.4 // indirect

@@ -48,8 +48,10 @@ func getTestCases() []testCase {
 
 func TestAdminCache(t *testing.T) {
 	dbx := testutil.MustOpenTestDB(t)
-	c := newAdminCache()
-	c.LoadAdmins(context.Background(), dbx)
+	c, err := newAdminCache(context.Background(), dbx)
+	if err != nil {
+		t.Fatal(err)
+	}
 	tcs := getTestCases()
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
@@ -84,8 +86,10 @@ func TestAdminCache(t *testing.T) {
 
 func BenchmarkTestAdminCache(b *testing.B) {
 	dbx := testutil.MustOpenTestDB(b)
-	c := newAdminCache()
-	c.LoadAdmins(context.Background(), dbx)
+	c, err := newAdminCache(context.Background(), dbx)
+	if err != nil {
+		b.Fatal(err)
+	}
 	b.ResetTimer()
 	tcs := getTestCases()
 	for _, tc := range tcs {
@@ -101,9 +105,9 @@ func BenchmarkTestAdminCache(b *testing.B) {
 
 func BenchmarkTestAdminCache_LoadAdmins(b *testing.B) {
 	dbx := testutil.MustOpenTestDB(b)
-	c := newAdminCache()
+	c := &adminCache{}
 	for n := 0; n < b.N; n++ {
-		if err := c.LoadAdmins(context.Background(), dbx); err != nil {
+		if err := c.loadAdmins(context.Background(), dbx); err != nil {
 			b.Fatal(err)
 		}
 	}
