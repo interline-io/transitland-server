@@ -105,19 +105,27 @@ func (f *lookupCache) StopTimezone(ctx context.Context, id int, known string) (*
 
 	// If a timezone is provided, save it and return immediately
 	if known != "" {
-		log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
+		log.TraceCheck(func() {
+			log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Msg("tz: using known timezone")
+		})
 		return f.tzCache.Add(id, known)
 	}
 
 	// Check the cache
 	if loc, ok := f.tzCache.Get(id); ok {
-		log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
+		log.TraceCheck(func() {
+			log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: using cached timezone")
+		})
 		return loc, ok
 	} else {
-		log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: timezone not in cache")
+		log.TraceCheck(func() {
+			log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: timezone not in cache")
+		})
 	}
 	if id == 0 {
-		log.For(ctx).Trace().Int("stop_id", id).Msg("tz: lookup failed, cant find timezone for stops with id=0 unless speciifed explicitly")
+		log.TraceCheck(func() {
+			log.For(ctx).Trace().Int("stop_id", id).Msg("tz: lookup failed, cant find timezone for stops with id=0 unless speciifed explicitly")
+		})
 		return nil, false
 	}
 	// Otherwise lookup the timezone
@@ -139,7 +147,9 @@ func (f *lookupCache) StopTimezone(ctx context.Context, id int, known string) (*
 		return nil, false
 	}
 	loc, ok := f.tzCache.Add(id, tz)
-	log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: lookup successful")
+	log.TraceCheck(func() {
+		log.For(ctx).Trace().Int("stop_id", id).Str("known", known).Str("loc", loc.String()).Msg("tz: lookup successful")
+	})
 	return loc, ok
 }
 

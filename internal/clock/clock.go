@@ -1,6 +1,10 @@
 package clock
 
-import "time"
+import (
+	"time"
+
+	"github.com/interline-io/log"
+)
 
 // Allow for time mocking
 type Clock interface {
@@ -26,5 +30,9 @@ func (dc *Mock) Now() time.Time {
 // Helpers
 
 func tzTruncate(s time.Time, loc *time.Location) time.Time {
+	if loc == nil {
+		log.Error().Msg("tzTruncate: loc is nil, set to UTC")
+		loc = time.UTC
+	}
 	return time.Date(s.Year(), s.Month(), s.Day(), 0, 0, 0, 0, loc)
 }

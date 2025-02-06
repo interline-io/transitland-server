@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/model"
 )
@@ -34,6 +35,10 @@ func kebabize(a string) string {
 }
 
 func tzTruncate(s time.Time, loc *time.Location) *tt.Date {
+	if loc == nil {
+		log.Error().Msg("tzTruncate: loc is nil, set to UTC")
+		loc = time.UTC
+	}
 	return ptr(tt.NewDate(time.Date(s.Year(), s.Month(), s.Day(), 0, 0, 0, 0, loc)))
 }
 

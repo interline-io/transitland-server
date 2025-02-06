@@ -152,8 +152,8 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 
 func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*model.ServiceWindow, error) {
 	a, _, err := f.fvslCache.Get(ctx, fvid)
-	if err != nil {
-		return nil, err
+	if err != nil || a == nil || a.Location == nil {
+		return nil, errors.New("no service window found")
 	}
 	// Get local time
 	nowLocal := time.Now().In(a.Location)
@@ -166,7 +166,6 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*m
 		StartDate:    a.StartDate,
 		EndDate:      a.EndDate,
 		FallbackWeek: a.FallbackWeek,
-		Location:     a.Location,
 	}
 	return ret, err
 }
