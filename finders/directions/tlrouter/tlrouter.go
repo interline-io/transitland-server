@@ -250,7 +250,7 @@ func makeDirections(res *PlanResponse) *model.Directions {
 			leg.EndTime = otpMs(vleg.EndTime)
 
 			// TODO: decode points
-			if c, err := tlxy.DecodePolyline(vleg.LegGeometry.Points); err == nil {
+			if c, err := tlxy.DecodePolylineString(vleg.LegGeometry.Points); err == nil {
 				var coords []float64
 				for _, v := range c {
 					coords = append(coords, v.Lon, v.Lat, 0)

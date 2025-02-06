@@ -3,7 +3,6 @@ package dbfinder
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -60,11 +59,6 @@ func checkFloat(v *float64, min float64, max float64) float64 {
 		return max
 	}
 	return *v
-}
-
-func atoi(v string) int {
-	a, _ := strconv.Atoi(v)
-	return a
 }
 
 // unicode aware remove all non-alphanumeric characters

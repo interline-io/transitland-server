@@ -39,11 +39,11 @@ func (f *Finder) DBX() tldb.Ext {
 
 func (f *Finder) LoadAdmins(ctx context.Context) error {
 	log.For(ctx).Trace().Msg("loading admins")
-	adminCache := newAdminCache()
-	if err := adminCache.LoadAdmins(ctx, f.db); err != nil {
+	c, err := newAdminCache(context.Background(), f.db)
+	if err != nil {
 		return err
 	}
-	f.adminCache = adminCache
+	f.adminCache = c
 	return nil
 }
 
