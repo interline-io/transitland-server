@@ -28,8 +28,9 @@ func init() {
 	if endpoint == "" {
 		return
 	}
+	// TODO: configurable timeout
 	client := &http.Client{
-		Timeout: 1 * time.Second,
+		Timeout: 60 * time.Second,
 	}
 	if os.Getenv("TL_DIRECTIONS_ENABLE_CACHE") != "" {
 		client.Transport = httpcache.NewCache(nil, nil, httpcache.NewTTLCache(16*1024, 24*time.Hour))
