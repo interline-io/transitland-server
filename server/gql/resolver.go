@@ -45,12 +45,17 @@ func addMetric(ctx context.Context, resolverName string) {
 	}
 }
 
-func checkGeo(near *model.PointRadius, bbox *model.BoundingBox) error {
-	// We only want to enforce this check on top level resolvers
-	if near != nil && near.Radius > MAX_RADIUS {
+func checkGeo(maxRadius float64, near *model.PointRadius, bbox *model.BoundingBox) error {
+	// No max radius set
+	if maxRadius == 0 {
+		return nil
+	}
+	// Check if radius is too large
+	if near != nil && near.Radius > maxRadius {
 		return errors.New("radius too large")
 	}
-	if bbox != nil && !checkBbox(bbox, MAX_RADIUS*MAX_RADIUS) {
+	// Check if bbox is too large
+	if bbox != nil && !checkBbox(bbox, maxRadius*maxRadius) {
 		return errors.New("bbox too large")
 	}
 	return nil
@@ -58,9 +63,7 @@ func checkGeo(near *model.PointRadius, bbox *model.BoundingBox) error {
 
 func checkBbox(bbox *model.BoundingBox, maxAreaM2 float64) bool {
 	approxDiag := tlxy.DistanceHaversine(tlxy.Point{Lon: bbox.MinLon, Lat: bbox.MinLat}, tlxy.Point{Lon: bbox.MaxLon, Lat: bbox.MaxLat})
-	// fmt.Println("approxDiag:", approxDiag)
 	approxArea := 0.5 * (approxDiag * approxDiag)
-	// fmt.Println("approxArea:", approxArea, "maxAreaM2:", maxAreaM2)
 	return approxArea < maxAreaM2
 }
 

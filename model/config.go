@@ -25,6 +25,7 @@ type Config struct {
 	RTStorage               string
 	LoaderBatchSize         int
 	LoaderStopTimeBatchSize int
+	MaxRadius               float64
 }
 
 var finderCtxKey = &contextKey{"finderConfig"}

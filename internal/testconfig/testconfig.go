@@ -157,5 +157,6 @@ func newTestConfig(t testing.TB, ctx context.Context, db tldb.Ext, opts Options)
 		Clock:      cl,
 		Storage:    opts.Storage,
 		RTStorage:  opts.RTStorage,
+		MaxRadius:  100_000,
 	}
 }
