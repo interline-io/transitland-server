@@ -90,6 +90,7 @@ type ServerCommand struct {
 	RTStorage               string
 	DBURL                   string
 	RedisURL                string
+	MaxRadius               float64
 	secrets                 []dmfr.Secret
 }
 
@@ -115,6 +116,7 @@ func (cmd *ServerCommand) AddFlags(fl *pflag.FlagSet) {
 	fl.BoolVar(&cmd.LoadAdmins, "load-admins", false, "Load admin polygons from database into memory")
 	fl.IntVar(&cmd.LoaderBatchSize, "loader-batch-size", 100, "GraphQL Loader batch size")
 	fl.IntVar(&cmd.LoaderStopTimeBatchSize, "loader-stop-time-batch-size", 1, "GraphQL Loader batch size for StopTimes")
+	fl.Float64Var(&cmd.MaxRadius, "max-radius", 100_000, "Maximum radius for nearby stops")
 }
 
 func (cmd *ServerCommand) Parse(args []string) error {
@@ -191,6 +193,7 @@ func (cmd *ServerCommand) Run(ctx context.Context) error {
 		RestPrefix:              cmd.RestPrefix,
 		LoaderBatchSize:         cmd.LoaderBatchSize,
 		LoaderStopTimeBatchSize: cmd.LoaderStopTimeBatchSize,
+		MaxRadius:               cmd.MaxRadius,
 	}
 
 	// Setup router
