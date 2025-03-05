@@ -3,7 +3,7 @@ package gbfs
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -29,7 +29,7 @@ func (g *TestGbfsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (g *TestGbfsServer) open(host string, path string) ([]byte, error) {
 	if path == "/" || path == "" || path == "/gbfs.json" {
 		sf := SystemFile{}
-		fis, err := ioutil.ReadDir(g.Path)
+		fis, err := os.ReadDir(g.Path)
 		_ = err
 		var sfs SystemFeeds
 		for _, fi := range fis {
@@ -48,5 +48,5 @@ func (g *TestGbfsServer) open(host string, path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(r)
+	return io.ReadAll(r)
 }

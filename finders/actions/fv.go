@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 
@@ -131,7 +130,7 @@ func ValidateUpload(ctx context.Context, src io.Reader, feedURL *string, rturls 
 	if src != nil {
 		// Prepare reader
 		var err error
-		tmpfile, err := ioutil.TempFile("", "validator-upload")
+		tmpfile, err := os.CreateTemp("", "validator-upload")
 		if err != nil {
 			// This should result in a failed request
 			return nil, err
