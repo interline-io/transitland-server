@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -126,7 +126,7 @@ func (mc *mockLocationClient) CalculateRoute(ctx context.Context, params *locati
 	if err != nil {
 		return nil, err
 	}
-	b, _ := ioutil.ReadAll(resp.Body)
+	b, _ := io.ReadAll(resp.Body)
 	a := location.CalculateRouteOutput{}
 	if err := json.Unmarshal(b, &a); err != nil {
 		return nil, err

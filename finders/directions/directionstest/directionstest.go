@@ -3,7 +3,7 @@ package directionstest
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -85,7 +85,7 @@ func HandlerTest(t *testing.T, h directions.Handler, tc TestCase) *model.Directi
 	// t.Log("response:", string(resJson))
 
 	if tc.ResJson != "" {
-		a, err := ioutil.ReadFile(tc.ResJson)
+		a, err := os.ReadFile(tc.ResJson)
 		if err != nil {
 			t.Fatal(err)
 		}

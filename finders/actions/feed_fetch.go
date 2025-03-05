@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -51,7 +50,7 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 
 	// Allow a Reader
 	if feedSrc != nil {
-		tmpfile, err := ioutil.TempFile("", "validator-upload")
+		tmpfile, err := os.CreateTemp("", "validator-upload")
 		if err != nil {
 			return nil, err
 		}

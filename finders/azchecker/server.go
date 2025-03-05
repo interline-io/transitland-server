@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -223,7 +222,7 @@ func checkId(r *http.Request, key string) int64 {
 }
 
 func parseJson(r io.Reader, v any) error {
-	data, err := ioutil.ReadAll(io.LimitReader(r, 1_000_000))
+	data, err := io.ReadAll(io.LimitReader(r, 1_000_000))
 	if err != nil {
 		return err
 	}

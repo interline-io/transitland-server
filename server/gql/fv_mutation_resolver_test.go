@@ -1,9 +1,9 @@
 package gql
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
@@ -18,7 +18,7 @@ import (
 func TestFeedVersionFetchResolver(t *testing.T) {
 	expectFile := testdata.Path("gtfs/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		buf, err := ioutil.ReadFile(expectFile)
+		buf, err := os.ReadFile(expectFile)
 		if err != nil {
 			t.Error(err)
 		}
