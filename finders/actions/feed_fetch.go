@@ -34,16 +34,17 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 	}
 
 	// Prepare
-	fetchOpts := fetch.Options{
-		FeedID:        feed.ID,
-		URLType:       urlType,
-		FeedURL:       feedUrl,
-		Storage:       cfg.Storage,
-		Secrets:       cfg.Secrets,
-		FetchedAt:     time.Now().In(time.UTC),
-		AllowFTPFetch: true,
+	fetchOpts := fetch.StaticFetchOptions{
+		Options: fetch.Options{
+			FeedID:        feed.ID,
+			URLType:       urlType,
+			FeedURL:       feedUrl,
+			Storage:       cfg.Storage,
+			Secrets:       cfg.Secrets,
+			FetchedAt:     time.Now().In(time.UTC),
+			AllowFTPFetch: true,
+		},
 	}
-
 	if user := authn.ForContext(ctx); user != nil {
 		fetchOpts.CreatedBy.Set(user.ID())
 	}
@@ -96,13 +97,15 @@ func RTFetch(ctx context.Context, target string, feedId string, feedUrl string, 
 	}
 
 	// Prepare
-	fetchOpts := fetch.Options{
-		FeedID:    feed.ID,
-		URLType:   urlType,
-		FeedURL:   feedUrl,
-		Storage:   cfg.RTStorage,
-		Secrets:   cfg.Secrets,
-		FetchedAt: time.Now().In(time.UTC),
+	fetchOpts := fetch.RTFetchOptions{
+		Options: fetch.Options{
+			FeedID:    feed.ID,
+			URLType:   urlType,
+			FeedURL:   feedUrl,
+			Storage:   cfg.RTStorage,
+			Secrets:   cfg.Secrets,
+			FetchedAt: time.Now().In(time.UTC),
+		},
 	}
 
 	// Make request

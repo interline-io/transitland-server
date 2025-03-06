@@ -1,6 +1,7 @@
 package gbfs
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 
@@ -163,11 +164,12 @@ func fetchAll(ctx context.Context, sf SystemFeeds, reqOpts ...request.RequestOpt
 
 func fetchUnmarshal(url string, ent any, reqOpts ...request.RequestOption) (request.FetchResponse, error) {
 	ctx := context.TODO()
-	fr, err := request.AuthenticatedRequest(ctx, url, reqOpts...)
+	var out bytes.Buffer
+	fr, err := request.AuthenticatedRequest(ctx, &out, url, reqOpts...)
 	if err != nil {
 		return fr, err
 	}
-	if err := json.Unmarshal(fr.Data, ent); err != nil {
+	if err := json.Unmarshal(out.Bytes(), ent); err != nil {
 		return fr, err
 	}
 	return fr, nil
