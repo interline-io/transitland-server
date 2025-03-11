@@ -20,7 +20,7 @@ require (
 	github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71
 	github.com/interline-io/transitland-dbutil v0.0.0-20250307001118-79c28ac60472
 	github.com/interline-io/transitland-jobs v0.0.0-20250307001354-eddc846d3b1d
-	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250310222740-2d9233ae615e
+	github.com/interline-io/transitland-lib v1.0.0-rc3.0.20250311001658-da47b8726b95
 	github.com/interline-io/transitland-mw v0.0.0-20250307001256-42b2e83e12e3
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.33.0
