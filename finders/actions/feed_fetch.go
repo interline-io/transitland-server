@@ -32,6 +32,9 @@ func StaticFetch(ctx context.Context, feedId string, feedSrc io.Reader, feedUrl 
 	if feed == nil {
 		return nil, nil
 	}
+	if feedUrl == "" {
+		feedUrl = feed.URLs.StaticCurrent
+	}
 
 	// Prepare
 	fetchOpts := fetch.StaticFetchOptions{
