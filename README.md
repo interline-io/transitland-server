@@ -8,6 +8,7 @@
 - [Usage](#usage)
 - [Usage as a web service](#usage-as-a-web-service)
 - [Development](#development)
+- [Optional Configuration for Routers](#optional-configuration-for-routers)
 - [Licenses](#licenses)
 
 
@@ -68,6 +69,24 @@ The "example" server instance configured by the  `tlserver` command runs without
 5. Run all tests with `go test -v ./...`
 
 Test cases generally run within transactions; you do not need to regenerate the fixtures unless you are testing migrations or changes to data import functionality.
+
+### Optional Configuration for Routers
+
+To enable and configure different routing services, you can set the following environment variables:
+
+- **Valhalla Router**:
+  - `TL_VALHALLA_ENDPOINT`: The base URL for the Valhalla routing service.
+  - `TL_VALHALLA_API_KEY`: The API key for accessing the Valhalla service.
+
+- **AWS Router**:
+  - `TL_AWS_ROUTER_ENDPOINT`: The base URL for the AWS routing service.
+  - `TL_AWS_ROUTER_API_KEY`: The API key for accessing the AWS service.
+
+- **Transitland Router**:
+  - `TL_TRANSITLAND_ENDPOINT`: The base URL for the Transitland routing service.
+  - `TL_TRANSITLAND_API_KEY`: The API key for accessing the Transitland service.
+
+These environment variables allow the server to use different routing services for calculating ETAs and directions based on the specified mode and traffic settings.
   
 ## Licenses
 
