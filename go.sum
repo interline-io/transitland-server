@@ -160,10 +160,10 @@ github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71 h1:RI4mfj5B0VPK3X
 github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
 github.com/interline-io/transitland-dbutil v0.0.0-20250307001118-79c28ac60472 h1:YNn9oIe9IJLSTplfZyu7IPJGymUfjzeAU+KVfSmUJZ4=
 github.com/interline-io/transitland-dbutil v0.0.0-20250307001118-79c28ac60472/go.mod h1:9JldmFIn1E+taiWCpsBAptKHwaMvZdIK+UnmbWY7U/U=
-github.com/interline-io/transitland-jobs v0.0.0-20250314000629-0a1a8002566a h1:fAfVXi0jfJfvl+5k1MN8pJJcHoeUUVdIF1rhvU/V9Ag=
-github.com/interline-io/transitland-jobs v0.0.0-20250314000629-0a1a8002566a/go.mod h1:8P0RL4l/jHPaHVkro+v0mA2QwdBtqkoELGE6A+EjFzA=
-github.com/interline-io/transitland-lib v1.0.1-0.20250313233805-69b38955e8dd h1:lgeIFyaVIL5djshoqPHCMJPTDQzchV6MpPDtpI7CAqY=
-github.com/interline-io/transitland-lib v1.0.1-0.20250313233805-69b38955e8dd/go.mod h1:cto+eQmugV2Iq7O1vvS5FGBij63t0EzGsJM7n07WNOE=
+github.com/interline-io/transitland-jobs v0.0.0-20250318225919-afb01c42e600 h1:GGZFuIDLOJKHFbIuVkf25w3ZnupnZg6qClIDVkpPO2s=
+github.com/interline-io/transitland-jobs v0.0.0-20250318225919-afb01c42e600/go.mod h1:8P0RL4l/jHPaHVkro+v0mA2QwdBtqkoELGE6A+EjFzA=
+github.com/interline-io/transitland-lib v1.0.1-0.20250317200928-95d9eb7535b1 h1:S95Lve5I01GD6EDthJ15e2baiszfsqnGdwpDpdUP3L0=
+github.com/interline-io/transitland-lib v1.0.1-0.20250317200928-95d9eb7535b1/go.mod h1:cto+eQmugV2Iq7O1vvS5FGBij63t0EzGsJM7n07WNOE=
 github.com/interline-io/transitland-mw v0.0.0-20250307001256-42b2e83e12e3 h1:e2se+unUcKaUeBLandAm/2s8gpCiuZ4L1HUxFqfVGfM=
 github.com/interline-io/transitland-mw v0.0.0-20250307001256-42b2e83e12e3/go.mod h1:Mfx/XEnqnQNu8Z3iybLPMTJybEnAVWgv/5jqHLPqNvw=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
