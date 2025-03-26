@@ -160,8 +160,8 @@ github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71 h1:RI4mfj5B0VPK3X
 github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
 github.com/interline-io/transitland-dbutil v0.0.0-20250307001118-79c28ac60472 h1:YNn9oIe9IJLSTplfZyu7IPJGymUfjzeAU+KVfSmUJZ4=
 github.com/interline-io/transitland-dbutil v0.0.0-20250307001118-79c28ac60472/go.mod h1:9JldmFIn1E+taiWCpsBAptKHwaMvZdIK+UnmbWY7U/U=
-github.com/interline-io/transitland-jobs v0.0.0-20250318225919-afb01c42e600 h1:GGZFuIDLOJKHFbIuVkf25w3ZnupnZg6qClIDVkpPO2s=
-github.com/interline-io/transitland-jobs v0.0.0-20250318225919-afb01c42e600/go.mod h1:8P0RL4l/jHPaHVkro+v0mA2QwdBtqkoELGE6A+EjFzA=
+github.com/interline-io/transitland-jobs v0.0.0-20250326003901-1f8351c92bec h1:P0oZdJzJGyD/74L/Zv/c/uWqPTZZ6wxn/ReZ6nYaaGY=
+github.com/interline-io/transitland-jobs v0.0.0-20250326003901-1f8351c92bec/go.mod h1:8P0RL4l/jHPaHVkro+v0mA2QwdBtqkoELGE6A+EjFzA=
 github.com/interline-io/transitland-lib v1.0.1-0.20250317200928-95d9eb7535b1 h1:S95Lve5I01GD6EDthJ15e2baiszfsqnGdwpDpdUP3L0=
 github.com/interline-io/transitland-lib v1.0.1-0.20250317200928-95d9eb7535b1/go.mod h1:cto+eQmugV2Iq7O1vvS5FGBij63t0EzGsJM7n07WNOE=
 github.com/interline-io/transitland-mw v0.0.0-20250307001256-42b2e83e12e3 h1:e2se+unUcKaUeBLandAm/2s8gpCiuZ4L1HUxFqfVGfM=
@@ -245,9 +245,9 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rogpeppe/go-internal v1.12.0 h1:exVL4IDcn6na9z1rAb56Vxr+CgyK3nn3O+epU5NdKM8=
 github.com/rogpeppe/go-internal v1.12.0/go.mod h1:E+RYuTGaKKdloAfM02xzb0FW3Paa99yedzYV+kq4uf4=
-github.com/rs/xid v1.5.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
-github.com/rs/zerolog v1.33.0 h1:1cU2KZkvPxNyfgEmhHAz/1A9Bz+llsdYzklWFzgp0r8=
-github.com/rs/zerolog v1.33.0/go.mod h1:/7mN4D5sKwJLZQ2b/znpjC3/GQWY/xaDXUM0kKWRHss=
+github.com/rs/xid v1.6.0/go.mod h1:7XoLgs4eV+QndskICGsho+ADou8ySMSjJKDIan90Nz0=
+github.com/rs/zerolog v1.34.0 h1:k43nTLIwcTVQAncfCw4KZ2VY6ukYoZaBPNOE8txlOeY=
+github.com/rs/zerolog v1.34.0/go.mod h1:bJsvje4Z08ROH4Nhs5iH600c3IkWhwp44iRc54W6wYQ=
 github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sergi/go-diff v1.3.1 h1:xkr+Oxo4BOQKmkn/B9eMK0g5Kg/983T9DqqPHwYqD+8=

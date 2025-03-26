@@ -19,11 +19,11 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20241212203449-4bcff214cd71
 	github.com/interline-io/transitland-dbutil v0.0.0-20250307001118-79c28ac60472
-	github.com/interline-io/transitland-jobs v0.0.0-20250318225919-afb01c42e600
+	github.com/interline-io/transitland-jobs v0.0.0-20250326003901-1f8351c92bec
 	github.com/interline-io/transitland-lib v1.0.1-0.20250317200928-95d9eb7535b1
 	github.com/interline-io/transitland-mw v0.0.0-20250307001256-42b2e83e12e3
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.10.0
