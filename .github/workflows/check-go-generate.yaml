@@ -44,21 +44,59 @@ jobs:
           fi
 
       - name: Comment on PR
-        if: steps.check_changes.outputs.has_changes == 'true'
         uses: actions/github-script@v6
         env:
           DIFF: ${{ env.DIFF }}
         with:
           script: |
-            const body = '## Generated Code Changes Required\n\n' +
-              'The following files need to be regenerated. Please run `go generate ./...` and commit the changes:\n\n' +
-              '```diff\n' +
-              process.env.DIFF +
-              '\n```';
-            await github.rest.issues.createComment({
+            // Find existing comment from this workflow
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: body
             });
-            core.setFailed('Generated code needs to be updated - see PR comments for details');
+            
+            const existingComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' &&
+              comment.body.includes('## Generated Code Changes Required')
+            );
+            
+            if (steps.check_changes.outputs.has_changes === 'true') {
+              // There are changes needed
+              const body = '## Generated Code Changes Required\n\n' +
+                'The following files need to be regenerated. Please run `go generate ./...` and commit the changes:\n\n' +
+                '```diff\n' +
+                process.env.DIFF +
+                '\n```';
+              
+              if (existingComment) {
+                // Update existing comment
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: body
+                });
+              } else {
+                // Create new comment
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: body
+                });
+              }
+              
+              core.setFailed('Generated code needs to be updated - see PR comments for details');
+            } else if (existingComment) {
+              // No changes needed, but there's an existing comment - update it to show success
+              const body = '## Generated Code Check ✅\n\n' +
+                'All generated code is up to date.';
+              
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+            }
