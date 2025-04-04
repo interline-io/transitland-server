@@ -47,6 +47,7 @@ jobs:
         uses: actions/github-script@v6
         env:
           DIFF: ${{ env.DIFF }}
+          HAS_CHANGES: ${{ steps.check_changes.outputs.has_changes }}
         with:
           script: |
             // Find existing comment from this workflow
@@ -61,7 +62,7 @@ jobs:
               comment.body.includes('## Generated Code Changes Required')
             );
             
-            if (steps.check_changes.outputs.has_changes === 'true') {
+            if (process.env.HAS_CHANGES === 'true') {
               // There are changes needed
               const body = '## Generated Code Changes Required\n\n' +
                 'The following files need to be regenerated. Please run `go generate ./...` and commit the changes:\n\n' +
