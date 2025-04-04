@@ -2343,6 +2343,62 @@
         "summary": "Download latest feed version"
       }
     },
+    "/feeds/{feed_key}/download_latest_rt/{rt_type}.{format}": {
+      "get": {
+        "description": "Download the latest snapshot of the specified GTFS Realtime feed, if redistribution is allowed by the source feed's license. Returns 404 if feed or message not found, 401 if redistribution not allowed.",
+        "parameters": [
+          {
+            "description": "Feed lookup key; can be an integer ID or Onestop ID value",
+            "in": "path",
+            "name": "feed_key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "GTFS Realtime message types to download",
+            "in": "path",
+            "name": "rt_type",
+            "required": true,
+            "schema": {
+              "enum": [
+                "alerts",
+                "trip_updates",
+                "vehicle_positions"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Output format (JSON or Protocol Buffers)",
+            "in": "path",
+            "name": "format",
+            "required": true,
+            "schema": {
+              "enum": [
+                "json",
+                "pb"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "data"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "Download latest GTFS Realtime feed data"
+      }
+    },
     "/operators": {
       "get": {
         "parameters": [
