@@ -167,7 +167,7 @@ type FeedVersionDownloadRequest struct {
 func (r FeedVersionDownloadRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path:        "/feed_versions/{feed_version_key}/download",
-		Description: `Download this feed version GTFS zip for this feed, if redistribution is allowd by the source feed's license. Available only using Transitland professional or enterprise plan API keys.`,
+		Description: `Download this feed version GTFS zip for this feed, if redistribution is allowed by the source feed's license. Available only using Transitland professional or enterprise plan API keys.`,
 		Get: RequestOperation{
 			Operation: &oa.Operation{
 				Summary: "Download feed version",
