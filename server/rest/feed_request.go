@@ -192,7 +192,7 @@ type FeedDownloadLatestFeedVersionRequest struct {
 func (r FeedDownloadLatestFeedVersionRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path:        "/feeds/{feed_key}/download_latest_feed_version",
-		Description: `Download the latest feed version GTFS zip for this feed, if redistribution is allowd by the source feed's license`,
+		Description: `Download the latest feed version GTFS zip for this feed, if redistribution is allowed by the source feed's license`,
 		Get: RequestOperation{
 			Operation: &oa.Operation{
 				Summary: "Download latest feed version",

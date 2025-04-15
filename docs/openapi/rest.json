@@ -1727,7 +1727,7 @@
     },
     "/feed_versions/{feed_version_key}/download": {
       "get": {
-        "description": "Download this feed version GTFS zip for this feed, if redistribution is allowd by the source feed's license. Available only using Transitland professional or enterprise plan API keys.",
+        "description": "Download this feed version GTFS zip for this feed, if redistribution is allowed by the source feed's license. Available only using Transitland professional or enterprise plan API keys.",
         "parameters": [
           {
             "description": "Feed version lookup key; can be an integer ID or a SHA1 value",
@@ -2316,7 +2316,7 @@
     },
     "/feeds/{feed_key}/download_latest_feed_version": {
       "get": {
-        "description": "Download the latest feed version GTFS zip for this feed, if redistribution is allowd by the source feed's license",
+        "description": "Download the latest feed version GTFS zip for this feed, if redistribution is allowed by the source feed's license",
         "parameters": [
           {
             "description": "Feed lookup key; can be an integer ID or Onestop ID value",
