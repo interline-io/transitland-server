@@ -19,6 +19,7 @@ import (
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/rs/zerolog"
 )
 
 // DEFAULTLIMIT is the default API limit
@@ -207,6 +208,11 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 			}
 		}
 
+		// Add endpoint info to context for logging
+		if info, ok := handler.(interface{ RequestInfo() RequestInfo }); ok {
+			ctx = context.WithValue(ctx, "endpoint_info", info.RequestInfo())
+		}
+
 		// Metrics
 		if apiMeter := meters.ForContext(ctx); apiMeter != nil {
 			apiMeter.AddDimension("rest", "handler", handlerName)
@@ -277,7 +283,7 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 	response, err := makeGraphQLRequest(ctx, graphqlHandler, query, vars)
 	if err != nil {
 		vjson, _ := json.Marshal(vars)
-		log.For(ctx).Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msgf("graphql request failed")
+		logWithEndpointPath(ctx).Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msg("graphql request failed")
 		return nil, err
 	}
 
@@ -288,7 +294,7 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 	}
 	if addMeta {
 		if lastId, nextPage, err := getAfterID(ent, response); err != nil {
-			log.For(ctx).Error().Err(err).Msg("pagination failed to get max entity id")
+			logWithEndpointPath(ctx).Error().Err(err).Msg("pagination failed to get max entity id")
 		} else if nextPage && lastId > 0 {
 			meta := hw{"after": lastId}
 			if u != nil {
@@ -473,4 +479,28 @@ func (bbox *restBbox) AsJson() map[string]any {
 		"max_lon": bbox.MaxLon,
 		"max_lat": bbox.MaxLat,
 	}
+}
+
+type contextKey string
+
+const endpointInfoKey = contextKey("endpoint_info")
+
+func getEndpointInfo(ctx context.Context) *RequestInfo {
+	if v := ctx.Value(endpointInfoKey); v != nil {
+		if info, ok := v.(RequestInfo); ok {
+			return &info
+		}
+	}
+	return nil
+}
+
+// logWithEndpointPath returns a logger with the endpoint path set
+// TODO: instead of referencing zerolog, reference interline-io/log
+func logWithEndpointPath(ctx context.Context) *zerolog.Logger {
+	l := log.For(ctx)
+	if info := getEndpointInfo(ctx); info != nil {
+		logger := l.With().Str("endpoint_path", info.Path).Logger()
+		return &logger
+	}
+	return l
 }
