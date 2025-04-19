@@ -1,6 +1,6 @@
 module github.com/interline-io/transitland-server
 
-go 1.23.0
+go 1.24.2
 
 require (
 	github.com/99designs/gqlgen v0.17.55
@@ -138,3 +138,5 @@ replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-202
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/transitland-jobs => /Users/irees/src/interline-io/transitland-jobs
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
+
+tool github.com/99designs/gqlgen
