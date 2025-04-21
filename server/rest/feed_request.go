@@ -214,3 +214,76 @@ func (r FeedDownloadLatestFeedVersionRequest) RequestInfo() RequestInfo {
 func (r FeedDownloadLatestFeedVersionRequest) Query(ctx context.Context) (string, map[string]interface{}) {
 	return "", nil
 }
+
+// Currently this exists only for OpenAPI documentation
+type FeedDownloadRtRequest struct {
+}
+
+func (r FeedDownloadRtRequest) RequestInfo() RequestInfo {
+	successDesc := "Success"
+	unauthorizedDesc := "Not authorized - feed redistribution not allowed"
+	notFoundDesc := "Not found - feed or real-time message not found"
+
+	return RequestInfo{
+		Path:        "/feeds/{feed_key}/download_latest_rt/{rt_type}.{format}",
+		Description: `Download the latest snapshot of the specified GTFS Realtime feed, if redistribution is allowed by the source feed's license. Returns 404 if feed or message not found, 401 if redistribution not allowed.`,
+		Get: RequestOperation{
+			Operation: &oa.Operation{
+				Summary: "Download latest GTFS Realtime feed data",
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "feed_key",
+						In:          "path",
+						Required:    true,
+						Description: `Feed lookup key; can be an integer ID or Onestop ID value`,
+						Schema:      newSRVal("string", "", nil),
+					}},
+					&pref{Value: &param{
+						Name:        "rt_type",
+						In:          "path",
+						Required:    true,
+						Description: `GTFS Realtime message types to download`,
+						Schema:      newSRVal("string", "", []any{"alerts", "trip_updates", "vehicle_positions"}),
+					}},
+					&pref{Value: &param{
+						Name:        "format",
+						In:          "path",
+						Required:    true,
+						Description: `Output format (JSON or Protocol Buffers)`,
+						Schema:      newSRVal("string", "", []any{"json", "pb"}),
+					}},
+				},
+				Responses: oa.NewResponses(
+					oa.WithStatus(200, &oa.ResponseRef{
+						Value: &oa.Response{
+							Description: &successDesc,
+							Content: oa.Content{
+								"application/json": &oa.MediaType{
+									Schema: newSRVal("object", "", nil),
+								},
+								"application/octet-stream": &oa.MediaType{
+									Schema: newSRVal("string", "binary", nil),
+								},
+							},
+						},
+					}),
+					oa.WithStatus(401, &oa.ResponseRef{
+						Value: &oa.Response{
+							Description: &unauthorizedDesc,
+						},
+					}),
+					oa.WithStatus(404, &oa.ResponseRef{
+						Value: &oa.Response{
+							Description: &notFoundDesc,
+						},
+					}),
+				),
+			},
+		},
+	}
+}
+
+// Query returns a GraphQL query string and variables.
+func (r FeedDownloadRtRequest) Query(ctx context.Context) (string, map[string]interface{}) {
+	return "", nil
+}
