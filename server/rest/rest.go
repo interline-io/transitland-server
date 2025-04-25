@@ -19,6 +19,7 @@ import (
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/rs/zerolog"
 )
 
 // DEFAULTLIMIT is the default API limit
@@ -197,6 +198,14 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 		handler := f()
 		opts := queryToMap(r.URL.Query())
 
+		// Add endpoint info to context for logging
+		if info, ok := handler.(interface{ RequestInfo() RequestInfo }); ok {
+			endpointPath := info.RequestInfo().Path
+			zerolog.Ctx(ctx).UpdateContext(func(c zerolog.Context) zerolog.Context {
+				return c.Str("endpoint_path", endpointPath)
+			})
+		}
+
 		// Extract URL params from request
 		if rctx := chi.RouteContext(ctx); rctx != nil {
 			for _, k := range rctx.URLParams.Keys {
@@ -277,7 +286,7 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 	response, err := makeGraphQLRequest(ctx, graphqlHandler, query, vars)
 	if err != nil {
 		vjson, _ := json.Marshal(vars)
-		log.For(ctx).Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msgf("graphql request failed")
+		log.For(ctx).Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msg("graphql request failed")
 		return nil, err
 	}
 
