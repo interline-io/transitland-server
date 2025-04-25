@@ -198,6 +198,14 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 		handler := f()
 		opts := queryToMap(r.URL.Query())
 
+		// Add endpoint info to context for logging
+		if info, ok := handler.(interface{ RequestInfo() RequestInfo }); ok {
+			endpointPath := info.RequestInfo().Path
+			zerolog.Ctx(ctx).UpdateContext(func(c zerolog.Context) zerolog.Context {
+				return c.Str("endpoint_path", endpointPath)
+			})
+		}
+
 		// Extract URL params from request
 		if rctx := chi.RouteContext(ctx); rctx != nil {
 			for _, k := range rctx.URLParams.Keys {
@@ -206,11 +214,6 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 				}
 				opts[k] = rctx.URLParam(k)
 			}
-		}
-
-		// Add endpoint info to context for logging
-		if info, ok := handler.(interface{ RequestInfo() RequestInfo }); ok {
-			ctx = context.WithValue(ctx, "endpoint_info", info.RequestInfo())
 		}
 
 		// Metrics
@@ -283,7 +286,7 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 	response, err := makeGraphQLRequest(ctx, graphqlHandler, query, vars)
 	if err != nil {
 		vjson, _ := json.Marshal(vars)
-		logWithEndpointPath(ctx).Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msg("graphql request failed")
+		log.For(ctx).Error().Err(err).Str("query", query).Str("vars", string(vjson)).Msg("graphql request failed")
 		return nil, err
 	}
 
@@ -294,7 +297,7 @@ func makeRequest(ctx context.Context, graphqlHandler http.Handler, ent apiHandle
 	}
 	if addMeta {
 		if lastId, nextPage, err := getAfterID(ent, response); err != nil {
-			logWithEndpointPath(ctx).Error().Err(err).Msg("pagination failed to get max entity id")
+			log.For(ctx).Error().Err(err).Msg("pagination failed to get max entity id")
 		} else if nextPage && lastId > 0 {
 			meta := hw{"after": lastId}
 			if u != nil {
@@ -479,28 +482,4 @@ func (bbox *restBbox) AsJson() map[string]any {
 		"max_lon": bbox.MaxLon,
 		"max_lat": bbox.MaxLat,
 	}
-}
-
-type contextKey string
-
-const endpointInfoKey = contextKey("endpoint_info")
-
-func getEndpointInfo(ctx context.Context) *RequestInfo {
-	if v := ctx.Value(endpointInfoKey); v != nil {
-		if info, ok := v.(RequestInfo); ok {
-			return &info
-		}
-	}
-	return nil
-}
-
-// logWithEndpointPath returns a logger with the endpoint path set
-// TODO: instead of referencing zerolog, reference interline-io/log
-func logWithEndpointPath(ctx context.Context) *zerolog.Logger {
-	l := log.For(ctx)
-	if info := getEndpointInfo(ctx); info != nil {
-		logger := l.With().Str("endpoint_path", info.Path).Logger()
-		return &logger
-	}
-	return l
 }
