@@ -50,6 +50,7 @@ func GenerateOpenAPI() (*oa.T, error) {
 		&rest.StopDepartureRequest{},
 		&rest.FeedVersionDownloadRequest{},
 		&rest.FeedDownloadLatestFeedVersionRequest{},
+		&rest.FeedDownloadRtRequest{},
 	}
 	for _, handler := range handlers {
 		requestInfo := handler.RequestInfo()
