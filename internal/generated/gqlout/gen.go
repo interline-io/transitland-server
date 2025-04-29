@@ -1,3 +1,3 @@
-//go:generate go run github.com/99designs/gqlgen@v0.17.72 generate
+//go:generate go tool github.com/99designs/gqlgen generate
 
 package gqlout
