@@ -12,6 +12,8 @@ import (
 	"net/http/pprof"
 	"os"
 
+	_ "time/tzdata"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-redis/redis/v8"
