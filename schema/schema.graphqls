@@ -1983,6 +1983,13 @@ input StopSetInput {
   parent: StopSetInput
   "Set stop level to this level"
   level: LevelSetInput
+  "Set or update external reference for this stop"
+  external_reference: StopExternalReferenceSetInput
+}
+
+input StopExternalReferenceSetInput {
+  target_feed_onestop_id: String
+  target_stop_id: String
 }
 
 """Update a level entity"""

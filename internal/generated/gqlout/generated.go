@@ -7113,6 +7113,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSegmentFilter,
 		ec.unmarshalInputSegmentPatternFilter,
 		ec.unmarshalInputServiceCoversFilter,
+		ec.unmarshalInputStopExternalReferenceSetInput,
 		ec.unmarshalInputStopFilter,
 		ec.unmarshalInputStopObservationFilter,
 		ec.unmarshalInputStopSetInput,
@@ -9612,6 +9613,13 @@ input StopSetInput {
   parent: StopSetInput
   "Set stop level to this level"
   level: LevelSetInput
+  "Set or update external reference for this stop"
+  external_reference: StopExternalReferenceSetInput
+}
+
+input StopExternalReferenceSetInput {
+  target_feed_onestop_id: String
+  target_stop_id: String
 }
 
 """Update a level entity"""
@@ -55217,6 +55225,40 @@ func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputStopExternalReferenceSetInput(ctx context.Context, obj any) (model.StopExternalReferenceSetInput, error) {
+	var it model.StopExternalReferenceSetInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"target_feed_onestop_id", "target_stop_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "target_feed_onestop_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target_feed_onestop_id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TargetFeedOnestopID = data
+		case "target_stop_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target_stop_id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TargetStopID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj any) (model.StopFilter, error) {
 	var it model.StopFilter
 	asMap := map[string]any{}
@@ -55411,7 +55453,7 @@ func (ec *executionContext) unmarshalInputStopSetInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "feed_version", "location_type", "stop_code", "stop_desc", "stop_id", "stop_name", "stop_timezone", "stop_url", "wheelchair_boarding", "zone_id", "platform_code", "tts_stop_name", "geometry", "parent", "level"}
+	fieldsInOrder := [...]string{"id", "feed_version", "location_type", "stop_code", "stop_desc", "stop_id", "stop_name", "stop_timezone", "stop_url", "wheelchair_boarding", "zone_id", "platform_code", "tts_stop_name", "geometry", "parent", "level", "external_reference"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -55530,6 +55572,13 @@ func (ec *executionContext) unmarshalInputStopSetInput(ctx context.Context, obj 
 				return it, err
 			}
 			it.Level = data
+		case "external_reference":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("external_reference"))
+			data, err := ec.unmarshalOStopExternalReferenceSetInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopExternalReferenceSetInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExternalReference = data
 		}
 	}
 
@@ -70265,6 +70314,14 @@ func (ec *executionContext) marshalOStopExternalReference2ᚖgithubᚗcomᚋinte
 		return graphql.Null
 	}
 	return ec._StopExternalReference(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOStopExternalReferenceSetInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopExternalReferenceSetInput(ctx context.Context, v any) (*model.StopExternalReferenceSetInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStopExternalReferenceSetInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOStopFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopFilter(ctx context.Context, v any) (*model.StopFilter, error) {

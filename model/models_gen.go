@@ -833,6 +833,11 @@ type StopExternalReference struct {
 	TargetActiveStop *Stop `json:"target_active_stop,omitempty"`
 }
 
+type StopExternalReferenceSetInput struct {
+	TargetFeedOnestopID *string `json:"target_feed_onestop_id,omitempty"`
+	TargetStopID        *string `json:"target_stop_id,omitempty"`
+}
+
 // Search options for stops
 type StopFilter struct {
 	// Search for stops with this OnestopID
@@ -961,6 +966,8 @@ type StopSetInput struct {
 	Parent *StopSetInput `json:"parent,omitempty"`
 	// Set stop level to this level
 	Level *LevelSetInput `json:"level,omitempty"`
+	// Set or update external reference for this stop
+	ExternalReference *StopExternalReferenceSetInput `json:"external_reference,omitempty"`
 }
 
 // StopTimeEvent combines scheduled arrival/departure data with data sourced from GTFS-RT
