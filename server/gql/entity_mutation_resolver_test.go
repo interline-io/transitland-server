@@ -11,6 +11,7 @@ import (
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,6 +41,39 @@ func TestStopCreate(t *testing.T) {
 		assert.Equal(t, stopInput.StopID, &checkEnt.StopID.Val)
 		assert.Equal(t, stopInput.StopName, &checkEnt.StopName.Val)
 		assert.Equal(t, stopInput.Geometry.FlatCoords(), checkEnt.Geometry.FlatCoords())
+	})
+}
+
+func TestStopReferenceCreate(t *testing.T) {
+	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
+		finder := cfg.Finder
+		ctx := model.WithConfig(context.Background(), cfg)
+		fv := model.FeedVersionInput{ID: toPtr(1)}
+		stopInput := model.StopSetInput{
+			FeedVersion: &fv,
+			StopID:      toPtr(fmt.Sprintf("%d", time.Now().UnixNano())),
+			StopName:    toPtr("hello"),
+			Geometry:    toPtr(tt.NewPoint(-122.271604, 37.803664)),
+			ExternalReference: &model.StopExternalReferenceSetInput{
+				TargetFeedOnestopID: toPtr("abc"),
+				TargetStopID:        toPtr("def"),
+			},
+		}
+		eid, err := finder.StopCreate(ctx, stopInput)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ret := struct {
+			ID                  int
+			TargetStopID        string
+			TargetFeedOnestopID string
+		}{}
+		if err := sqlx.GetContext(ctx, cfg.Finder.DBX(), &ret, `select * from tl_stop_external_references where id = $1`, eid); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, eid, ret.ID)
+		assert.Equal(t, "abc", ret.TargetFeedOnestopID)
+		assert.Equal(t, "def", ret.TargetStopID)
 	})
 }
 

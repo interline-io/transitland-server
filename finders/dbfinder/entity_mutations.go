@@ -3,6 +3,7 @@ package dbfinder
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
@@ -35,7 +36,7 @@ func (f *Finder) StopDelete(ctx context.Context, id int) error {
 }
 
 func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error) {
-	return createUpdateEnt(
+	stopId, err := createUpdateEnt(
 		ctx,
 		input.ID,
 		fvint(input.FeedVersion),
@@ -66,9 +67,46 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 			}
 			// Set some defaults
 			ent.LocationType.OrSet(0)
-
 			return cols, nil
 		})
+	if refInput := input.ExternalReference; refInput != nil {
+		if err := createUpdateEntStopExternalReference(ctx, stopId, fvint(input.FeedVersion), refInput); err != nil {
+			return stopId, fmt.Errorf("failed to create/update stop external reference: %w", err)
+		}
+	}
+	return stopId, err
+}
+
+func createUpdateEntStopExternalReference(
+	ctx context.Context,
+	stopId int,
+	fvid *int,
+	refInput *model.StopExternalReferenceSetInput,
+) error {
+	q := `
+	MERGE INTO tl_stop_external_references AS tbl
+	USING
+		(VALUES ($1::bigint, $2::bigint, $3, $4, $5::bool)) AS vals (id, feed_version_id, target_feed_onestop_id, target_stop_id, inactive)
+	ON tbl.id = vals.id
+	WHEN matched THEN UPDATE SET
+		target_feed_onestop_id = vals.target_feed_onestop_id,
+		target_stop_id = vals.target_stop_id,
+		inactive = vals.inactive
+	WHEN NOT matched THEN
+		INSERT (id, feed_version_id, target_feed_onestop_id, target_stop_id, inactive)
+		VALUES (vals.id, vals.feed_version_id, vals.target_feed_onestop_id, vals.target_stop_id, vals.inactive);`
+	if _, err := toAtx(ctx).DBX().ExecContext(
+		ctx,
+		q,
+		stopId,
+		fvid,
+		refInput.TargetFeedOnestopID,
+		refInput.TargetStopID,
+		false,
+	); err != nil {
+		return err
+	}
+	return nil
 }
 
 ///////////
@@ -223,6 +261,8 @@ func createUpdateEnt[T hasTableName](
 
 	// Update or create?
 	if update {
+		// Load the ent and get the feed version ID
+		// Do not use the provided fvid value
 		baseEnt.SetID(*entId)
 		if err := atx.Find(ctx, baseEnt); err != nil {
 			return 0, err
@@ -260,7 +300,6 @@ func createUpdateEnt[T hasTableName](
 		return 0, err
 	}
 	return retId, nil
-
 }
 
 // ensure we have edit rights to fvid
