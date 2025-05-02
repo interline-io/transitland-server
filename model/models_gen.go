@@ -285,6 +285,8 @@ type FeedVersionFetchResult struct {
 
 // Search options for feed versions
 type FeedVersionFilter struct {
+	// Restrict to specific ids
+	Ids []int `json:"ids,omitempty"`
 	// Search for feed versions with the specified import status
 	ImportStatus *ImportStatus `json:"import_status,omitempty"`
 	// Search for feed versions with this feed OnestopID

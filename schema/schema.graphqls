@@ -1482,6 +1482,8 @@ input ValidationReportFilter {
 
 """Search options for feed versions"""
 input FeedVersionFilter {
+  "Restrict to specific ids"
+  ids: [Int!]
   "Search for feed versions with the specified import status"
   import_status: ImportStatus
   "Search for feed versions with this feed OnestopID"

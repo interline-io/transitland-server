@@ -9111,6 +9111,8 @@ input ValidationReportFilter {
 
 """Search options for feed versions"""
 input FeedVersionFilter {
+  "Restrict to specific ids"
+  ids: [Int!]
   "Search for feed versions with the specified import status"
   import_status: ImportStatus
   "Search for feed versions with this feed OnestopID"
@@ -54231,13 +54233,20 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "file", "feed_ids", "covers", "bbox", "within", "near"}
+	fieldsInOrder := [...]string{"ids", "import_status", "feed_onestop_id", "sha1", "file", "feed_ids", "covers", "bbox", "within", "near"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "ids":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ids"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Ids = data
 		case "import_status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("import_status"))
 			data, err := ec.unmarshalOImportStatus2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐImportStatus(ctx, v)
