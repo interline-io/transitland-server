@@ -200,6 +200,9 @@ models:
     fields:
       target_active_stop:
         resolver: true
+    extraFields:
+      StopID:
+        type: int
   ValidationReport:
     extraFields:
       FeedVersionID:

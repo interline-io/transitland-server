@@ -8,16 +8,16 @@ insert into ext_plus_route_attributes(route_id,feed_version_id,category,subcateg
 );
 
 -- working stop ref
-insert into tl_stop_external_references(id,feed_version_id,target_feed_onestop_id,target_stop_id) values (
-    (select s.id from gtfs_stops s join feed_states fs using(feed_version_id) join current_feeds cf on cf.id = fs.feed_id where cf.onestop_id = 'BA' and stop_id = 'FTVL'),
+insert into tl_stop_external_references(stop_id,feed_version_id,target_feed_onestop_id,target_stop_id) values (
+    (select s.id as stop_id from gtfs_stops s join feed_states fs using(feed_version_id) join current_feeds cf on cf.id = fs.feed_id where cf.onestop_id = 'BA' and stop_id = 'FTVL'),
     (select s.feed_version_id from gtfs_stops s join feed_states fs using(feed_version_id) join current_feeds cf on cf.id = fs.feed_id where cf.onestop_id = 'BA' and stop_id = 'FTVL'),    
     'CT',
     '70041'
 );
 
 -- broken stop ref
-insert into tl_stop_external_references(id,feed_version_id,target_feed_onestop_id,target_stop_id) values (
-    (select s.id from gtfs_stops s join feed_states fs using(feed_version_id) join current_feeds cf on cf.id = fs.feed_id where cf.onestop_id = 'BA' and stop_id = 'POWL'),
+insert into tl_stop_external_references(stop_id,feed_version_id,target_feed_onestop_id,target_stop_id) values (
+    (select s.id as stop_id from gtfs_stops s join feed_states fs using(feed_version_id) join current_feeds cf on cf.id = fs.feed_id where cf.onestop_id = 'BA' and stop_id = 'POWL'),
     (select s.feed_version_id from gtfs_stops s join feed_states fs using(feed_version_id) join current_feeds cf on cf.id = fs.feed_id where cf.onestop_id = 'BA' and stop_id = 'POWL'),
     'CT',
     'missing'

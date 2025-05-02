@@ -250,11 +250,11 @@ func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []err
 
 func (f *Finder) StopExternalReferencesByStopID(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
 	var ents []*model.StopExternalReference
-	q := sq.StatementBuilder.Select("*").From("tl_stop_external_references").Where(In("id", ids))
+	q := sq.StatementBuilder.Select("*").From("tl_stop_external_references").Where(In("stop_id", ids))
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, []error{err}
 	}
-	return arrangeBy(ids, ents, func(ent *model.StopExternalReference) int { return ent.ID }), nil
+	return arrangeBy(ids, ents, func(ent *model.StopExternalReference) int { return ent.StopID }), nil
 }
 
 func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.StopObservationParam) ([][]*model.StopObservation, []error) {
@@ -958,10 +958,10 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 	}
 	var qents []*qlookup
 	q := sq.
-		Select("t.*", "tlse.id as source_id").
+		Select("t.*", "tlse.stop_id as source_id").
 		FromSelect(StopSelect(nil, nil, nil, true, f.PermFilter(ctx), nil), "t").
 		Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id").
-		Where(In("tlse.id", ids))
+		Where(In("tlse.stop_id", ids))
 	if err := dbutil.Select(ctx,
 		f.db,
 		q,

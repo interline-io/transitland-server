@@ -831,6 +831,7 @@ type StopExternalReference struct {
 	Inactive *bool `json:"inactive,omitempty"`
 	// Resolved target stop, if matched and available
 	TargetActiveStop *Stop `json:"target_active_stop,omitempty"`
+	StopID           int   `json:"-"`
 }
 
 type StopExternalReferenceSetInput struct {
