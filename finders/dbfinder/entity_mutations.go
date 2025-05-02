@@ -180,6 +180,7 @@ type canScan interface {
 }
 
 func scanCol[T any, PT *T](val canScan, inval PT, colname string, cols []string) []string {
+	val.Scan(nil) // reset value
 	if inval != nil {
 		if err := val.Scan(*inval); err != nil {
 			panic(err)
