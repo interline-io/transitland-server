@@ -44809,9 +44809,9 @@ func (ec *executionContext) _StopExternalReference_target_feed_onestop_id(ctx co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopExternalReference_target_feed_onestop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44850,9 +44850,9 @@ func (ec *executionContext) _StopExternalReference_target_stop_id(ctx context.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopExternalReference_target_stop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44891,9 +44891,9 @@ func (ec *executionContext) _StopExternalReference_inactive(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(tt.Bool)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐBool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopExternalReference_inactive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -68176,6 +68176,16 @@ func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (
 func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	res := graphql.MarshalBoolean(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐBool(ctx context.Context, v any) (tt.Bool, error) {
+	var res tt.Bool
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐBool(ctx context.Context, sel ast.SelectionSet, v tt.Bool) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v any) (*bool, error) {

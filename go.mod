@@ -20,7 +20,7 @@ require (
 	github.com/interline-io/log v0.0.0-20250425230611-851ec713ec98
 	github.com/interline-io/transitland-dbutil v0.0.0-20250425231011-bc1a790f47e7
 	github.com/interline-io/transitland-jobs v0.0.0-20250425231141-e24b78a34acd
-	github.com/interline-io/transitland-lib v1.1.1-0.20250430180210-c9f0ebe90011
+	github.com/interline-io/transitland-lib v1.1.1-0.20250503022554-81a6244bec0a
 	github.com/interline-io/transitland-mw v0.0.0-20250425231104-9eb0348d3ca1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.34.0
@@ -133,7 +133,7 @@ require (
 // Fork to allow exporting x- extensions
 replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17
 
-replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
 // replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 // replace github.com/interline-io/transitland-jobs => /Users/irees/src/interline-io/transitland-jobs
