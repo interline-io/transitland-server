@@ -13,6 +13,7 @@ import (
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/jmoiron/sqlx"
 )
 
 func (f *Finder) StopCreate(ctx context.Context, input model.StopSetInput) (int, error) {
@@ -30,9 +31,12 @@ func (f *Finder) StopUpdate(ctx context.Context, input model.StopSetInput) (int,
 }
 
 func (f *Finder) StopDelete(ctx context.Context, id int) error {
+	dels := []deleteRef{
+		{ID: id, TableName: "tl_stop_external_references", ColumnName: "stop_id"},
+	}
 	ent := gtfs.Stop{}
 	ent.ID = id
-	return deleteEnt(ctx, &ent)
+	return deleteEnt(ctx, &ent, dels...)
 }
 
 func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error) {
@@ -58,10 +62,12 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 				cols = checkCol(&ent.Geometry, input.Geometry, "geometry", cols)
 			}
 			if v := input.Parent; v != nil {
+				ent.ParentStation.Scan(nil)
 				cols = append(cols, "parent_station")
 				scanCol(&ent.ParentStation, v.ID, "parent_station", cols)
 			}
 			if v := input.Level; v != nil {
+				ent.LevelID.Scan(nil)
 				cols = append(cols, "level_id")
 				scanCol(&ent.LevelID, v.ID, "level_id", cols)
 			}
@@ -69,44 +75,43 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 			ent.LocationType.OrSet(0)
 			return cols, nil
 		})
+	if err != nil {
+		return 0, err
+	}
+
 	if refInput := input.ExternalReference; refInput != nil {
-		if err := createUpdateEntStopExternalReference(ctx, stopId, fvint(input.FeedVersion), refInput); err != nil {
-			return stopId, fmt.Errorf("failed to create/update stop external reference: %w", err)
+		// Check if we have an existing stop external reference for this stop
+		var stopRefCheck model.StopExternalReference
+		var fvidCheck *int
+		sqlx.GetContext(ctx, toAtx(ctx).DBX(), &stopRefCheck, `select id from tl_stop_external_references where stop_id = $1`, stopId)
+		sqlx.GetContext(ctx, toAtx(ctx).DBX(), &fvidCheck, `select feed_version_id from gtfs_stops where id = $1`, stopId)
+		if refInput.TargetFeedOnestopID == nil {
+			// Delete
+			if err := deleteEnt(ctx, &stopRefCheck); err != nil {
+				return 0, fmt.Errorf("failed to delete stop external reference for stop %d: %w", stopId, err)
+			}
+		} else {
+			// Update using normal method
+			if _, err := createUpdateEnt(
+				ctx,
+				&stopRefCheck.ID,
+				fvidCheck,
+				&model.StopExternalReference{},
+				func(ent *model.StopExternalReference) ([]string, error) {
+					var cols []string
+					ent.StopID.SetInt(stopId)
+					cols = scanCol(&ent.StopID, &stopId, "stop_id", cols)
+					cols = scanCol(&ent.TargetFeedOnestopID, refInput.TargetFeedOnestopID, "target_feed_onestop_id", cols)
+					cols = scanCol(&ent.TargetStopID, refInput.TargetStopID, "target_stop_id", cols)
+					// cols = scanCol(&ent.Inactive, refInput.Inactive, "inactive", cols)
+					return cols, nil
+				},
+			); err != nil {
+				return 0, fmt.Errorf("failed to create or update stop external reference for stop %d: %w", stopId, err)
+			}
 		}
 	}
 	return stopId, err
-}
-
-func createUpdateEntStopExternalReference(
-	ctx context.Context,
-	stopId int,
-	fvid *int,
-	refInput *model.StopExternalReferenceSetInput,
-) error {
-	q := `
-	MERGE INTO tl_stop_external_references AS tbl
-	USING
-		(VALUES ($1::bigint, $2::bigint, $3, $4, $5::bool)) AS vals (id, feed_version_id, target_feed_onestop_id, target_stop_id, inactive)
-	ON tbl.id = vals.id
-	WHEN matched THEN UPDATE SET
-		target_feed_onestop_id = vals.target_feed_onestop_id,
-		target_stop_id = vals.target_stop_id,
-		inactive = vals.inactive
-	WHEN NOT matched THEN
-		INSERT (id, feed_version_id, target_feed_onestop_id, target_stop_id, inactive)
-		VALUES (vals.id, vals.feed_version_id, vals.target_feed_onestop_id, vals.target_stop_id, vals.inactive);`
-	if _, err := toAtx(ctx).DBX().ExecContext(
-		ctx,
-		q,
-		stopId,
-		fvid,
-		refInput.TargetFeedOnestopID,
-		refInput.TargetStopID,
-		false,
-	); err != nil {
-		return err
-	}
-	return nil
 }
 
 ///////////
@@ -218,7 +223,6 @@ type canScan interface {
 }
 
 func scanCol[T any, PT *T](val canScan, inval PT, colname string, cols []string) []string {
-	val.Scan(nil) // reset value
 	if inval != nil {
 		if err := val.Scan(*inval); err != nil {
 			panic(err)
@@ -279,10 +283,12 @@ func createUpdateEnt[T hasTableName](
 	}
 
 	// Update columns
+	fmt.Printf("update %v baseEnt %#v\n", update, baseEnt)
 	cols, err := updateFunc(baseEnt)
 	if err != nil {
 		return 0, err
 	}
+	fmt.Printf("baseEnd after update: %#v\n", baseEnt)
 
 	// Validate
 	if errs := tt.CheckErrors(baseEnt); len(errs) > 0 {
@@ -302,8 +308,14 @@ func createUpdateEnt[T hasTableName](
 	return retId, nil
 }
 
+type deleteRef struct {
+	ID         int
+	TableName  string
+	ColumnName string
+}
+
 // ensure we have edit rights to fvid
-func deleteEnt(ctx context.Context, ent hasTableName) error {
+func deleteEnt(ctx context.Context, ent hasTableName, deleteRefs ...deleteRef) error {
 	// Get fvid
 	entId := ent.GetID()
 	fvid := ent.GetFeedVersionID()
@@ -325,10 +337,15 @@ func deleteEnt(ctx context.Context, ent hasTableName) error {
 		return err
 	}
 
-	// Perform deletion
-	// TODO: use dbutil.Delete
-	atx := toAtx(ctx)
-	_, err := atx.Sqrl().Delete(ent.TableName()).Where(sq.Eq{"id": entId}).Exec()
+	// Delete references
+	for _, ref := range deleteRefs {
+		if _, err := toAtx(ctx).Sqrl().Delete(ref.TableName).Where(sq.Eq{ref.ColumnName: entId}).Exec(); err != nil {
+			return fmt.Errorf("failed to delete %s %d from %s: %w", ref.ColumnName, entId, ref.TableName, err)
+		}
+	}
+
+	// Delete entity
+	_, err := toAtx(ctx).Sqrl().Delete(ent.TableName()).Where(sq.Eq{"id": entId}).Exec()
 	return err
 }
 

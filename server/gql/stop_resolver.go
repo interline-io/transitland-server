@@ -187,5 +187,5 @@ type stopExternalReferenceResolver struct {
 }
 
 func (r *stopExternalReferenceResolver) TargetActiveStop(ctx context.Context, obj *model.StopExternalReference) (*model.Stop, error) {
-	return For(ctx).TargetStopsByStopID.Load(ctx, obj.StopID)()
+	return For(ctx).TargetStopsByStopID.Load(ctx, obj.StopID.Int())()
 }

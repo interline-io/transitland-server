@@ -196,13 +196,6 @@ models:
       AgencyIDs:
         type: "github.com/interline-io/transitland-lib/tt.Ints"
         overrideTags: db:"agency_ids"
-  StopExternalReference:
-    fields:
-      target_active_stop:
-        resolver: true
-    extraFields:
-      StopID:
-        type: int
   ValidationReport:
     extraFields:
       FeedVersionID:

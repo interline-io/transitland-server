@@ -27,6 +27,10 @@ type FeedAuthorization struct {
 	dmfr.FeedAuthorization
 }
 
+type StopExternalReference struct {
+	dmfr.StopExternalReference
+}
+
 type Agency struct {
 	OnestopID       string      `json:"onestop_id"`
 	FeedOnestopID   string      `json:"feed_onestop_id"`

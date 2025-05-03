@@ -254,7 +254,7 @@ func (f *Finder) StopExternalReferencesByStopID(ctx context.Context, ids []int) 
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, []error{err}
 	}
-	return arrangeBy(ids, ents, func(ent *model.StopExternalReference) int { return ent.StopID }), nil
+	return arrangeBy(ids, ents, func(ent *model.StopExternalReference) int { return ent.StopID.Int() }), nil
 }
 
 func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.StopObservationParam) ([][]*model.StopObservation, []error) {

@@ -819,21 +819,6 @@ type Step struct {
 	GeometryOffset int       `json:"geometry_offset"`
 }
 
-// Additional metadata for a stop to reference an externally defined stop
-type StopExternalReference struct {
-	// Internal integer ID
-	ID int `json:"id"`
-	// Target stop's feed OnestopID
-	TargetFeedOnestopID *string `json:"target_feed_onestop_id,omitempty"`
-	// Target stop's stop_id
-	TargetStopID *string `json:"target_stop_id,omitempty"`
-	// Is this reference active
-	Inactive *bool `json:"inactive,omitempty"`
-	// Resolved target stop, if matched and available
-	TargetActiveStop *Stop `json:"target_active_stop,omitempty"`
-	StopID           int   `json:"-"`
-}
-
 type StopExternalReferenceSetInput struct {
 	TargetFeedOnestopID *string `json:"target_feed_onestop_id,omitempty"`
 	TargetStopID        *string `json:"target_stop_id,omitempty"`
