@@ -78,19 +78,13 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 	if err != nil {
 		return 0, err
 	}
-
 	if refInput := input.ExternalReference; refInput != nil {
 		// Check if we have an existing stop external reference for this stop
 		var stopRefCheck model.StopExternalReference
 		var fvidCheck *int
 		sqlx.GetContext(ctx, toAtx(ctx).DBX(), &stopRefCheck, `select id from tl_stop_external_references where stop_id = $1`, stopId)
 		sqlx.GetContext(ctx, toAtx(ctx).DBX(), &fvidCheck, `select feed_version_id from gtfs_stops where id = $1`, stopId)
-		if refInput.TargetFeedOnestopID == nil {
-			// Delete
-			if err := deleteEnt(ctx, &stopRefCheck); err != nil {
-				return 0, fmt.Errorf("failed to delete stop external reference for stop %d: %w", stopId, err)
-			}
-		} else {
+		if refInput.TargetFeedOnestopID != nil {
 			// Update using normal method
 			if _, err := createUpdateEnt(
 				ctx,
@@ -108,6 +102,11 @@ func createUpdateStop(ctx context.Context, input model.StopSetInput) (int, error
 				},
 			); err != nil {
 				return 0, fmt.Errorf("failed to create or update stop external reference for stop %d: %w", stopId, err)
+			}
+		} else if stopRefCheck.ID > 0 {
+			// Delete
+			if err := deleteEnt(ctx, &stopRefCheck); err != nil {
+				return 0, fmt.Errorf("failed to delete stop external reference for stop %d: %w", stopId, err)
 			}
 		}
 	}
