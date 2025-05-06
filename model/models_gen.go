@@ -285,6 +285,8 @@ type FeedVersionFetchResult struct {
 
 // Search options for feed versions
 type FeedVersionFilter struct {
+	// Restrict to specific ids
+	Ids []int `json:"ids,omitempty"`
 	// Search for feed versions with the specified import status
 	ImportStatus *ImportStatus `json:"import_status,omitempty"`
 	// Search for feed versions with this feed OnestopID
@@ -817,18 +819,9 @@ type Step struct {
 	GeometryOffset int       `json:"geometry_offset"`
 }
 
-// Additional metadata for a stop to reference an externally defined stop
-type StopExternalReference struct {
-	// Internal integer ID
-	ID int `json:"id"`
-	// Target stop's feed OnestopID
+type StopExternalReferenceSetInput struct {
 	TargetFeedOnestopID *string `json:"target_feed_onestop_id,omitempty"`
-	// Target stop's stop_id
-	TargetStopID *string `json:"target_stop_id,omitempty"`
-	// Is this reference active
-	Inactive *bool `json:"inactive,omitempty"`
-	// Resolved target stop, if matched and available
-	TargetActiveStop *Stop `json:"target_active_stop,omitempty"`
+	TargetStopID        *string `json:"target_stop_id,omitempty"`
 }
 
 // Search options for stops
@@ -959,6 +952,8 @@ type StopSetInput struct {
 	Parent *StopSetInput `json:"parent,omitempty"`
 	// Set stop level to this level
 	Level *LevelSetInput `json:"level,omitempty"`
+	// Set or update external reference for this stop
+	ExternalReference *StopExternalReferenceSetInput `json:"external_reference,omitempty"`
 }
 
 // StopTimeEvent combines scheduled arrival/departure data with data sourced from GTFS-RT

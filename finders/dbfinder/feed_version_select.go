@@ -41,6 +41,9 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 		if where.FeedOnestopID != nil {
 			q = q.Where(sq.Eq{"current_feeds.onestop_id": *where.FeedOnestopID})
 		}
+		if len(where.Ids) > 0 {
+			ids = append(ids, where.Ids...)
+		}
 
 		// Spatial
 		if where.Bbox != nil || where.Within != nil || where.Near != nil {

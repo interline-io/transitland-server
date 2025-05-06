@@ -1482,6 +1482,8 @@ input ValidationReportFilter {
 
 """Search options for feed versions"""
 input FeedVersionFilter {
+  "Restrict to specific ids"
+  ids: [Int!]
   "Search for feed versions with the specified import status"
   import_status: ImportStatus
   "Search for feed versions with this feed OnestopID"
@@ -1981,6 +1983,13 @@ input StopSetInput {
   parent: StopSetInput
   "Set stop level to this level"
   level: LevelSetInput
+  "Set or update external reference for this stop"
+  external_reference: StopExternalReferenceSetInput
+}
+
+input StopExternalReferenceSetInput {
+  target_feed_onestop_id: String
+  target_stop_id: String
 }
 
 """Update a level entity"""

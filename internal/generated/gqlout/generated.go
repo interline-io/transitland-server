@@ -7113,6 +7113,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSegmentFilter,
 		ec.unmarshalInputSegmentPatternFilter,
 		ec.unmarshalInputServiceCoversFilter,
+		ec.unmarshalInputStopExternalReferenceSetInput,
 		ec.unmarshalInputStopFilter,
 		ec.unmarshalInputStopObservationFilter,
 		ec.unmarshalInputStopSetInput,
@@ -9111,6 +9112,8 @@ input ValidationReportFilter {
 
 """Search options for feed versions"""
 input FeedVersionFilter {
+  "Restrict to specific ids"
+  ids: [Int!]
   "Search for feed versions with the specified import status"
   import_status: ImportStatus
   "Search for feed versions with this feed OnestopID"
@@ -9610,6 +9613,13 @@ input StopSetInput {
   parent: StopSetInput
   "Set stop level to this level"
   level: LevelSetInput
+  "Set or update external reference for this stop"
+  external_reference: StopExternalReferenceSetInput
+}
+
+input StopExternalReferenceSetInput {
+  target_feed_onestop_id: String
+  target_stop_id: String
 }
 
 """Update a level entity"""
@@ -44799,9 +44809,9 @@ func (ec *executionContext) _StopExternalReference_target_feed_onestop_id(ctx co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopExternalReference_target_feed_onestop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44840,9 +44850,9 @@ func (ec *executionContext) _StopExternalReference_target_stop_id(ctx context.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(tt.String)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopExternalReference_target_stop_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44881,9 +44891,9 @@ func (ec *executionContext) _StopExternalReference_inactive(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(tt.Bool)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐBool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StopExternalReference_inactive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -54231,13 +54241,20 @@ func (ec *executionContext) unmarshalInputFeedVersionFilter(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"import_status", "feed_onestop_id", "sha1", "file", "feed_ids", "covers", "bbox", "within", "near"}
+	fieldsInOrder := [...]string{"ids", "import_status", "feed_onestop_id", "sha1", "file", "feed_ids", "covers", "bbox", "within", "near"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "ids":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ids"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Ids = data
 		case "import_status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("import_status"))
 			data, err := ec.unmarshalOImportStatus2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐImportStatus(ctx, v)
@@ -55208,6 +55225,40 @@ func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputStopExternalReferenceSetInput(ctx context.Context, obj any) (model.StopExternalReferenceSetInput, error) {
+	var it model.StopExternalReferenceSetInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"target_feed_onestop_id", "target_stop_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "target_feed_onestop_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target_feed_onestop_id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TargetFeedOnestopID = data
+		case "target_stop_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target_stop_id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TargetStopID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj any) (model.StopFilter, error) {
 	var it model.StopFilter
 	asMap := map[string]any{}
@@ -55402,7 +55453,7 @@ func (ec *executionContext) unmarshalInputStopSetInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "feed_version", "location_type", "stop_code", "stop_desc", "stop_id", "stop_name", "stop_timezone", "stop_url", "wheelchair_boarding", "zone_id", "platform_code", "tts_stop_name", "geometry", "parent", "level"}
+	fieldsInOrder := [...]string{"id", "feed_version", "location_type", "stop_code", "stop_desc", "stop_id", "stop_name", "stop_timezone", "stop_url", "wheelchair_boarding", "zone_id", "platform_code", "tts_stop_name", "geometry", "parent", "level", "external_reference"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -55521,6 +55572,13 @@ func (ec *executionContext) unmarshalInputStopSetInput(ctx context.Context, obj 
 				return it, err
 			}
 			it.Level = data
+		case "external_reference":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("external_reference"))
+			data, err := ec.unmarshalOStopExternalReferenceSetInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopExternalReferenceSetInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExternalReference = data
 		}
 	}
 
@@ -68120,6 +68178,16 @@ func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐBool(ctx context.Context, v any) (tt.Bool, error) {
+	var res tt.Bool
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBoolean2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐBool(ctx context.Context, sel ast.SelectionSet, v tt.Bool) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v any) (*bool, error) {
 	if v == nil {
 		return nil, nil
@@ -70256,6 +70324,14 @@ func (ec *executionContext) marshalOStopExternalReference2ᚖgithubᚗcomᚋinte
 		return graphql.Null
 	}
 	return ec._StopExternalReference(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOStopExternalReferenceSetInput2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopExternalReferenceSetInput(ctx context.Context, v any) (*model.StopExternalReferenceSetInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStopExternalReferenceSetInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOStopFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopFilter(ctx context.Context, v any) (*model.StopFilter, error) {
