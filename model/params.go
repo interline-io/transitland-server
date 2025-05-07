@@ -185,6 +185,11 @@ type CensusFieldParam struct {
 	TableID int
 }
 
+type CensusSourceParam struct {
+	DatasetID int
+	Limit     *int
+}
+
 type RouteStopBufferParam struct {
 	EntityID int
 	Radius   *float64

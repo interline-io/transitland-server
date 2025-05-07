@@ -90,7 +90,7 @@ type Query {
   "Current user metadata"
   me: Me!
   """Census datasets"""
-  census_datasets(limit: Int, after: Int, ids: [Int!]): [CensusDataset!]
+  census_datasets(limit: Int, after: Int, ids: [Int!], where: CensusDatasetFilter): [CensusDataset!]
 }
 
 # Root mutation
@@ -1824,6 +1824,14 @@ input TripFilter {
   feed_version_sha1: String
   "Search for trips with this feed OnestopID"
   feed_onestop_id: String
+}
+
+"""Search options for census datasets"""
+input CensusDatasetFilter {
+  "Search for datasets with this name"
+  dataset_name: String
+  "Search for datasets matching this string"
+  search: String
 }
 
 """Search options for census geographies"""

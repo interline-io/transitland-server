@@ -220,6 +220,10 @@ models:
         resolver: true
       tables:
         resolver: true
+  CensusSource:
+    extraFields:
+      DatasetID:
+        type: int
   CensusGeography:
     fields:
       values:

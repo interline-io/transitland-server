@@ -18,8 +18,7 @@ func (r *censusDatasetResolver) Geographies(ctx context.Context, obj *model.Cens
 }
 
 func (r *censusDatasetResolver) Sources(ctx context.Context, obj *model.CensusDataset) (ents []*model.CensusSource, err error) {
-	fmt.Println("CensusDatasetResolver.Sources")
-	return nil, nil
+	return For(ctx).CensusSourcesByDatasetID.Load(ctx, model.CensusSourceParam{DatasetID: obj.ID})()
 }
 
 func (r *censusDatasetResolver) Tables(ctx context.Context, obj *model.CensusDataset, limit *int) (ents []*model.CensusTable, err error) {
