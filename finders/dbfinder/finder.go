@@ -136,6 +136,15 @@ func (f *Finder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor
 	return ents, nil
 }
 
+func (f *Finder) FindCensusDatasets(ctx context.Context, limit *int, after *model.Cursor, ids []int) ([]*model.CensusDataset, error) {
+	var ents []*model.CensusDataset
+	q := sq.Select("*").From("tl_census_datasets")
+	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
+		return nil, logErr(ctx, err)
+	}
+	return ents, nil
+}
+
 func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBufferParam) ([]*model.RouteStopBuffer, error) {
 	if param == nil {
 		return nil, nil

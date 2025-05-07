@@ -89,6 +89,8 @@ type Query {
   docks(limit: Int, where: GbfsDockRequest): [GbfsStationInformation!]
   "Current user metadata"
   me: Me!
+  """Census datasets"""
+  census_datasets(limit: Int, after: Int, ids: [Int!]): [CensusDataset!]
 }
 
 # Root mutation
@@ -1087,6 +1089,40 @@ type RouteAttribute {
 }
 
 # Census entities
+
+type CensusDataset {
+  "Internal integer ID"
+  id: Int!
+  "Dataset name, e.g. acsdt5y2022"
+  dataset_name: String!
+  "Dataset url"
+  url: Url
+  "Minimum year of data in this dataset"
+  year_min: Int!
+  "Maximum year of data in this dataset"
+  year_max: Int!
+  # Sources in this dataset
+  sources: [CensusSource!]
+  # Census geographies in this dataset
+  geographies(limit: Int): [CensusGeography!]
+  # Census tables in this dataset
+  tables(limit: Int): [CensusTable!]
+}
+
+type CensusSource {
+  "Internal integer ID"
+  id: Int!
+  "Source name, e.g. tl_2024_01_tract.zip"
+  source_name: String!
+  "Source url"
+  url: Url!
+  "Source checksum"
+  sha1: String!
+  # Census geographies in this source
+  geographies(limit: Int): [CensusGeography!]
+  # Census tables in this source
+  tables(limit: Int): [CensusTable!]
+}
 
 """Census geography data"""
 type CensusGeography {

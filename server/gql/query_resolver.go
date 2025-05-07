@@ -121,3 +121,8 @@ func (r *queryResolver) Places(ctx context.Context, limit *int, after *int, leve
 	cfg := model.ForContext(ctx)
 	return cfg.Finder.FindPlaces(ctx, checkLimit(limit), checkCursor(after), nil, level, where)
 }
+
+func (r *queryResolver) CensusDatasets(ctx context.Context, limit *int, after *int, ids []int) ([]*model.CensusDataset, error) {
+	cfg := model.ForContext(ctx)
+	return cfg.Finder.FindCensusDatasets(ctx, checkLimit(limit), checkCursor(after), nil)
+}

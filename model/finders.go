@@ -34,6 +34,7 @@ type EntityFinder interface {
 	FindFeeds(context.Context, *int, *Cursor, []int, *FeedFilter) ([]*Feed, error)
 	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
 	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)
+	FindCensusDatasets(context.Context, *int, *Cursor, []int) ([]*CensusDataset, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (*ServiceWindow, error)
 	DBX() tldb.Ext // escape hatch, for now

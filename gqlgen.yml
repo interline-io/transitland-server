@@ -212,6 +212,14 @@ models:
         type: int
       ValidationReportErrorGroupID:
         type: int
+  CensusDataset:
+    fields:
+      sources:
+        resolver: true
+      geographies:
+        resolver: true
+      tables:
+        resolver: true
   CensusGeography:
     fields:
       values:
