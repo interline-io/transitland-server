@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -132,6 +133,15 @@ func (f *Finder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor
 	q := PlaceSelect(limit, after, ids, level, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, err
+	}
+	return ents, nil
+}
+
+func (f *Finder) FindCensusDatasets(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.CensusDatasetFilter) ([]*model.CensusDataset, error) {
+	var ents []*model.CensusDataset
+	q := CensusDatasetSelect(limit, after, ids, where)
+	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
+		return nil, logErr(ctx, err)
 	}
 	return ents, nil
 }
@@ -1689,6 +1699,34 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 		},
 		func(ent *model.CensusValue) string {
 			return ent.Geoid
+		},
+	)
+}
+
+func (f *Finder) CensusSourcesByDatasetID(ctx context.Context, params []model.CensusSourceParam) ([][]*model.CensusSource, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.CensusSourceParam) (int, *model.CensusSourceParam, *int) {
+			return p.DatasetID, nil, p.Limit
+		},
+		func(keys []int, where *model.CensusSourceParam, limit *int) (ents []*model.CensusSource, err error) {
+			fmt.Println("KEYS:", keys)
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelectOrder("tl_census_sources", limit, nil, nil, "id"),
+					"tl_census_datasets",
+					"id",
+					"tl_census_sources",
+					"dataset_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.CensusSource) int {
+			return ent.DatasetID
 		},
 	)
 }

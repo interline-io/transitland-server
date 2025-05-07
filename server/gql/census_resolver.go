@@ -2,12 +2,29 @@ package gql
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/interline-io/transitland-server/model"
 )
 
 ////////////////////////// CENSUS RESOLVERS
+
+type censusDatasetResolver struct{ *Resolver }
+
+func (r *censusDatasetResolver) Geographies(ctx context.Context, obj *model.CensusDataset, limit *int) (ents []*model.CensusGeography, err error) {
+	fmt.Println("CensusDatasetResolver.Geographies")
+	return nil, nil
+}
+
+func (r *censusDatasetResolver) Sources(ctx context.Context, obj *model.CensusDataset) (ents []*model.CensusSource, err error) {
+	return For(ctx).CensusSourcesByDatasetID.Load(ctx, model.CensusSourceParam{DatasetID: obj.ID})()
+}
+
+func (r *censusDatasetResolver) Tables(ctx context.Context, obj *model.CensusDataset, limit *int) (ents []*model.CensusTable, err error) {
+	fmt.Println("CensusDatasetResolver.Tables")
+	return nil, nil
+}
 
 type censusGeographyResolver struct{ *Resolver }
 

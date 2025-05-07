@@ -1,11 +1,27 @@
 package dbfinder
 
 import (
+	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/model"
 )
+
+func CensusDatasetSelect(limit *int, after *model.Cursor, ids []int, where *model.CensusDatasetFilter) sq.SelectBuilder {
+	q := sq.StatementBuilder.
+		Select("*").
+		From("tl_census_datasets")
+	if where != nil {
+		if where.DatasetName != nil {
+			q = q.Where(sq.Eq{"dataset_name": *where.DatasetName})
+		}
+		if where.Search != nil {
+			q = q.Where(sq.Like{"dataset_name": fmt.Sprintf("%%%s%%", *where.Search)})
+		}
+	}
+	return q
+}
 
 func CensusGeographySelect(param *model.CensusGeographyParam, entityIds []int) sq.SelectBuilder {
 	if param.EntityID > 0 {

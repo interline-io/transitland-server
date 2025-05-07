@@ -111,6 +111,30 @@ type CalendarDateFilter struct {
 	ExceptionType *int `json:"exception_type,omitempty"`
 }
 
+type CensusDataset struct {
+	// Internal integer ID
+	ID int `json:"id"`
+	// Dataset name, e.g. acsdt5y2022
+	DatasetName string `json:"dataset_name"`
+	// Dataset url
+	URL *tt.Url `json:"url,omitempty"`
+	// Minimum year of data in this dataset
+	YearMin int `json:"year_min"`
+	// Maximum year of data in this dataset
+	YearMax     int                `json:"year_max"`
+	Sources     []*CensusSource    `json:"sources,omitempty"`
+	Geographies []*CensusGeography `json:"geographies,omitempty"`
+	Tables      []*CensusTable     `json:"tables,omitempty"`
+}
+
+// Search options for census datasets
+type CensusDatasetFilter struct {
+	// Search for datasets with this name
+	DatasetName *string `json:"dataset_name,omitempty"`
+	// Search for datasets matching this string
+	Search *string `json:"search,omitempty"`
+}
+
 type CensusField struct {
 	// Internal integer ID
 	ID int `json:"id"`
@@ -153,6 +177,20 @@ type CensusGeographyFilter struct {
 	Dataset *string  `json:"dataset,omitempty"`
 	Layer   *string  `json:"layer,omitempty"`
 	Radius  *float64 `json:"radius,omitempty"`
+}
+
+type CensusSource struct {
+	// Internal integer ID
+	ID int `json:"id"`
+	// Source name, e.g. tl_2024_01_tract.zip
+	SourceName string `json:"source_name"`
+	// Source url
+	URL tt.Url `json:"url"`
+	// Source checksum
+	Sha1        string             `json:"sha1"`
+	Geographies []*CensusGeography `json:"geographies,omitempty"`
+	Tables      []*CensusTable     `json:"tables,omitempty"`
+	DatasetID   int                `json:"-"`
 }
 
 // Census table metadata

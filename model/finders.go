@@ -34,6 +34,7 @@ type EntityFinder interface {
 	FindFeeds(context.Context, *int, *Cursor, []int, *FeedFilter) ([]*Feed, error)
 	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
 	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)
+	FindCensusDatasets(context.Context, *int, *Cursor, []int, *CensusDatasetFilter) ([]*CensusDataset, error)
 	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (*ServiceWindow, error)
 	DBX() tldb.Ext // escape hatch, for now
@@ -120,6 +121,7 @@ type EntityLoader interface {
 	CensusGeographiesByEntityID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
 	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
 	CensusFieldsByTableID(context.Context, []CensusFieldParam) ([][]*CensusField, []error)
+	CensusSourcesByDatasetID(context.Context, []CensusSourceParam) ([][]*CensusSource, []error)
 
 	// Validation reports
 	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
