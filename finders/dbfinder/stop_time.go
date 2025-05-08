@@ -94,11 +94,6 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 	)
 }
 
-type FVPair struct {
-	EntityID      int
-	FeedVersionID int
-}
-
 func stopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
@@ -433,6 +428,11 @@ func stopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow
 	}
 
 	return whereGroups
+}
+
+type FVPair struct {
+	EntityID      int
+	FeedVersionID int
 }
 
 func pairKeys(spairs []FVPair) ([]int, []int) {
