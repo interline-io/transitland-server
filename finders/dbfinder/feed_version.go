@@ -1,13 +1,211 @@
 package dbfinder
 
 import (
+	"context"
+	"errors"
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
+	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/model"
 )
 
-func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) sq.SelectBuilder {
+func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
+	var ents []*model.FeedVersion
+	if err := dbutil.Select(ctx, f.db, feedVersionSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
+		return nil, logErr(ctx, err)
+	}
+	return ents, nil
+}
+
+func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
+	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.FeedVersion) int { return ent.ID }), nil
+}
+
+func (f *Finder) FeedVersionGtfsImportByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
+	var ents []*model.FeedVersionGtfsImport
+	err := dbutil.Select(ctx,
+		f.db,
+		quickSelect("feed_version_gtfs_imports", nil, nil, nil).Where(In("feed_version_id", ids)),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.FeedVersionGtfsImport) int { return ent.FeedVersionID }), nil
+}
+
+func (f *Finder) FeedVersionServiceWindowByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionServiceWindow, []error) {
+	var ents []*model.FeedVersionServiceWindow
+	err := dbutil.Select(ctx,
+		f.db,
+		quickSelect("feed_version_service_windows", nil, nil, nil).Where(In("feed_version_id", ids)),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.FeedVersionServiceWindow) int { return ent.FeedVersionID }), nil
+}
+
+func (f *Finder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.Polygon, []error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	qents := []*feedVersionGeometry{}
+	if err := dbutil.Select(ctx, f.db, feedVersionGeometrySelect(ids), &qents); err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	group := map[int]*tt.Polygon{}
+	for _, ent := range qents {
+		group[ent.FeedVersionID] = ent.Geometry
+	}
+	ents := make([]*tt.Polygon, len(ids))
+	for i, id := range ids {
+		ents[i] = group[id]
+	}
+	return ents, nil
+}
+
+func (f *Finder) FeedVersionFileInfosByFeedVersionID(ctx context.Context, params []model.FeedVersionFileInfoParam) ([][]*model.FeedVersionFileInfo, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.FeedVersionFileInfoParam) (int, bool, *int) {
+			return p.FeedVersionID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.FeedVersionFileInfo, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelectOrder("feed_version_file_infos", limit, nil, nil, "feed_version_id"),
+					"feed_versions",
+					"id",
+					"feed_version_file_infos",
+					"feed_version_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.FeedVersionFileInfo) int {
+			return ent.FeedVersionID
+		},
+	)
+}
+
+func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVersionParam) ([][]*model.FeedVersion, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.FeedVersionParam) (int, *model.FeedVersionFilter, *int) {
+			return p.FeedID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.FeedVersionFilter, limit *int) ([]*model.FeedVersion, error) {
+			var ents []*model.FeedVersion
+			err := dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					feedVersionSelect(limit, nil, nil, f.PermFilter(ctx), where),
+					"current_feeds",
+					"id",
+					"feed_versions",
+					"feed_id",
+					keys,
+				),
+				&ents,
+			)
+			if err != nil {
+				return nil, err
+			}
+			return ents, nil
+		},
+		func(ent *model.FeedVersion) int {
+			return ent.FeedID
+		},
+	)
+}
+
+func (f *Finder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, params []model.FeedVersionServiceLevelParam) ([][]*model.FeedVersionServiceLevel, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.FeedVersionServiceLevelParam) (int, *model.FeedVersionServiceLevelFilter, *int) {
+			return p.FeedVersionID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.FeedVersionServiceLevelFilter, limit *int) (ents []*model.FeedVersionServiceLevel, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					feedVersionServiceLevelSelect(limit, nil, nil, f.PermFilter(ctx), where),
+					"feed_versions",
+					"id",
+					"feed_version_service_levels",
+					"feed_version_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.FeedVersionServiceLevel) int {
+			return ent.FeedVersionID
+		},
+	)
+}
+
+func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*model.ServiceWindow, error) {
+	a, _, err := f.fvslCache.Get(ctx, fvid)
+	if err != nil || a == nil || a.Location == nil {
+		return nil, errors.New("no service window found")
+	}
+	// Get local time
+	nowLocal := time.Now().In(a.Location)
+	if model.ForContext(ctx).Clock != nil {
+		nowLocal = model.ForContext(ctx).Clock.Now().In(a.Location)
+	}
+	// Copy back to model
+	ret := &model.ServiceWindow{
+		NowLocal:     nowLocal,
+		StartDate:    a.StartDate,
+		EndDate:      a.EndDate,
+		FallbackWeek: a.FallbackWeek,
+	}
+	return ret, err
+}
+
+func (f *Finder) FeedInfosByFeedVersionID(ctx context.Context, params []model.FeedInfoParam) ([][]*model.FeedInfo, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.FeedInfoParam) (int, bool, *int) {
+			return p.FeedVersionID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.FeedInfo, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelectOrder("gtfs_feed_infos", limit, nil, nil, "feed_version_id"),
+					"feed_versions",
+					"id",
+					"gtfs_feed_infos",
+					"feed_version_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.FeedInfo) int {
+			return ent.FeedVersionID
+		},
+	)
+}
+
+func feedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select(
 			"feed_versions.id",
@@ -152,7 +350,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 	return q
 }
 
-func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
+func feedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, _ *model.PermFilter, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select(
 			"feed_version_service_levels.id",
@@ -190,12 +388,12 @@ func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, p
 	return q
 }
 
-type FeedVersionGeometry struct {
+type feedVersionGeometry struct {
 	FeedVersionID int
 	Geometry      *tt.Polygon
 }
 
-func FeedVersionGeometrySelect(ids []int) sq.SelectBuilder {
+func feedVersionGeometrySelect(ids []int) sq.SelectBuilder {
 	return sq.StatementBuilder.
 		Select("feed_version_id", "geometry").
 		From("tl_feed_version_geometries").
