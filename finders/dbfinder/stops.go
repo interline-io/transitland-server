@@ -16,7 +16,7 @@ func (f *Finder) FindStops(ctx context.Context, limit *int, after *model.Cursor,
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := StopSelect(limit, after, ids, active, f.PermFilter(ctx), where)
+	q := stopSelect(limit, after, ids, active, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
@@ -85,7 +85,7 @@ func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) (
 			return p.RouteID, p.Where, p.Limit
 		},
 		func(keys []int, where *model.StopFilter, limit *int) (ents []*qent, err error) {
-			qso := StopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), where)
+			qso := stopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), where)
 			qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(In("route_id", keys)).Column("route_id")
 			err = dbutil.Select(ctx,
 				f.db,
@@ -111,7 +111,7 @@ func (f *Finder) StopsByParentStopID(ctx context.Context, params []model.StopPar
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					StopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
 					"gtfs_stops",
 					"id",
 					"gtfs_stops",
@@ -140,7 +140,7 @@ func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.S
 	var qents []*qlookup
 	q := sq.
 		Select("t.*", "tlse.stop_id as source_id").
-		FromSelect(StopSelect(nil, nil, nil, true, f.PermFilter(ctx), nil), "t").
+		FromSelect(stopSelect(nil, nil, nil, true, f.PermFilter(ctx), nil), "t").
 		Join("tl_stop_external_references tlse on tlse.target_feed_onestop_id = t.feed_onestop_id and tlse.target_stop_id = t.stop_id").
 		Where(In("tlse.stop_id", ids))
 	if err := dbutil.Select(ctx,
@@ -171,7 +171,7 @@ func (f *Finder) StopsByFeedVersionID(ctx context.Context, params []model.StopPa
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					StopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
 					"feed_versions",
 					"id",
 					"gtfs_stops",
@@ -198,7 +198,7 @@ func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) (
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					StopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
 					"gtfs_levels",
 					"id",
 					"gtfs_stops",
@@ -288,7 +288,7 @@ func (f *Finder) stopPlacesByStopIdFallback(ctx context.Context, params []model.
 	return arrangeMap(ids, ents, func(ent result) (int, *model.StopPlace) { return ent.StopID, &ent.StopPlace }), nil
 }
 
-func StopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.StopFilter) sq.SelectBuilder {
+func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.StopFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_stops.id",
 		"gtfs_stops.feed_version_id",

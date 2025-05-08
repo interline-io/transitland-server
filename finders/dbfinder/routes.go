@@ -14,7 +14,7 @@ func (f *Finder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := RouteSelect(limit, after, ids, active, f.PermFilter(ctx), where)
+	q := routeSelect(limit, after, ids, active, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
@@ -26,7 +26,7 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 		return nil, nil
 	}
 	var ents []*model.RouteStopBuffer
-	q := RouteStopBufferSelect(*param)
+	q := routeStopBufferSelect(*param)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
@@ -170,7 +170,7 @@ func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					RouteSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					routeSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
 					"gtfs_agencies",
 					"id",
 					"gtfs_routes",
@@ -197,7 +197,7 @@ func (f *Finder) RoutesByFeedVersionID(ctx context.Context, params []model.Route
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					RouteSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					routeSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
 					"feed_versions",
 					"id",
 					"gtfs_routes",
@@ -254,7 +254,7 @@ func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []e
 	return arrangeBy(ids, ents, func(ent *model.Shape) int { return ent.ID }), nil
 }
 
-func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.RouteFilter) sq.SelectBuilder {
+func routeSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.RouteFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_routes.id",
 		"gtfs_routes.feed_version_id",
@@ -400,7 +400,7 @@ func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 	return q
 }
 
-func RouteStopBufferSelect(param model.RouteStopBufferParam) sq.SelectBuilder {
+func routeStopBufferSelect(param model.RouteStopBufferParam) sq.SelectBuilder {
 	r := checkFloat(param.Radius, 0, 2000.0)
 	q := sq.StatementBuilder.
 		Select(

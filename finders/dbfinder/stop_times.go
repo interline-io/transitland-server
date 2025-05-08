@@ -20,7 +20,7 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 		func(keys []FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
 			err = dbutil.Select(ctx,
 				f.db,
-				StopTimeSelect(keys, nil, where),
+				stopTimeSelect(keys, nil, where),
 				&ents,
 			)
 			return ents, err
@@ -51,7 +51,7 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				return nil, err
 			}
 			// Run separate queries for each possible service day
-			for _, w := range StopTimeFilterExpand(fvwhere.Where, fvsw) {
+			for _, w := range stopTimeFilterExpand(fvwhere.Where, fvsw) {
 				var serviceDate *tt.Date
 				if w != nil && w.ServiceDate != nil {
 					serviceDate = w.ServiceDate
@@ -60,10 +60,10 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 				var q sq.SelectBuilder
 				if serviceDate != nil {
 					// Get stops on a specified day
-					q = StopDeparturesSelect(keys, w)
+					q = stopDeparturesSelect(keys, w)
 				} else {
 					// Otherwise get all stop_times for stop
-					q = StopTimeSelect(nil, keys, nil)
+					q = stopTimeSelect(nil, keys, nil)
 				}
 				// Run query
 				if err := dbutil.Select(ctx,
@@ -99,7 +99,7 @@ type FVPair struct {
 	FeedVersionID int
 }
 
-func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
+func stopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
@@ -151,7 +151,7 @@ func StopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeF
 	return q
 }
 
-func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
+func stopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
 	// Where must already be set for local service date and timezone
 	serviceDate := time.Now()
 	if where != nil && where.ServiceDate != nil {
@@ -306,7 +306,7 @@ func StopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.Selec
 	return q
 }
 
-func StopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow) []*model.StopTimeFilter {
+func stopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow) []*model.StopTimeFilter {
 	// Pre-processing
 	// Convert Start, End to StartTime, EndTime
 	if where != nil {

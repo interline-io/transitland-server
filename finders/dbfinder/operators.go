@@ -11,7 +11,7 @@ import (
 
 func (f *Finder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	var ents []*model.Operator
-	if err := dbutil.Select(ctx, f.db, OperatorSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
+	if err := dbutil.Select(ctx, f.db, operatorSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
@@ -21,7 +21,7 @@ func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Opera
 	var ents []*model.Operator
 	err := dbutil.Select(ctx,
 		f.db,
-		OperatorSelect(nil, nil, ids, f.PermFilter(ctx), nil),
+		operatorSelect(nil, nil, ids, f.PermFilter(ctx), nil),
 		&ents,
 	)
 	if err != nil {
@@ -34,7 +34,7 @@ func (f *Finder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.O
 	var ents []*model.Operator
 	err := dbutil.Select(ctx,
 		f.db,
-		OperatorsByAgencyID(nil, nil, ids),
+		operatorsByAgencyID(nil, nil, ids),
 		&ents,
 	)
 	if err != nil {
@@ -55,7 +55,7 @@ func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorP
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					OperatorSelectBase(true, nil),
+					operatorSelectBase(true, nil),
 					"current_feeds",
 					"id",
 					"coif",
@@ -72,7 +72,7 @@ func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorP
 	)
 }
 
-func OperatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBuilder {
+func operatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select(
 			"coif.id as id",
@@ -184,8 +184,8 @@ func OperatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBui
 	return q
 }
 
-func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int) sq.SelectBuilder {
-	q := OperatorSelectBase(false, nil)
+func operatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int) sq.SelectBuilder {
+	q := operatorSelectBase(false, nil)
 	q = q.
 		Column("a.id as agency_id").
 		Join("feed_states fs on fs.feed_id = current_feeds.id").
@@ -194,8 +194,8 @@ func OperatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int) sq.Se
 	return q
 }
 
-func OperatorSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) sq.SelectBuilder {
-	q := OperatorSelectBase(true, where)
+func operatorSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.OperatorFilter) sq.SelectBuilder {
+	q := operatorSelectBase(true, where)
 	if len(ids) > 0 {
 		q = q.Where(In("coif.id", ids))
 	}

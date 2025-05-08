@@ -25,7 +25,7 @@ func (f *Finder) PathwaysByID(ctx context.Context, ids []int) ([]*model.Pathway,
 	var ents []*model.Pathway
 	err := dbutil.Select(ctx,
 		f.db,
-		PathwaySelect(nil, nil, ids, nil, nil),
+		pathwaySelect(nil, nil, ids, nil, nil),
 		&ents,
 	)
 	if err != nil {
@@ -71,7 +71,7 @@ func (f *Finder) PathwaysByFromStopID(ctx context.Context, params []model.Pathwa
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					PathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
+					pathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
 					"gtfs_stops",
 					"id",
 					"gtfs_pathways",
@@ -98,7 +98,7 @@ func (f *Finder) PathwaysByToStopID(ctx context.Context, params []model.PathwayP
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					PathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
+					pathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
 					"gtfs_stops",
 					"id",
 					"gtfs_pathways",
@@ -115,7 +115,7 @@ func (f *Finder) PathwaysByToStopID(ctx context.Context, params []model.PathwayP
 	)
 }
 
-func PathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.PathwayFilter) sq.SelectBuilder {
+func pathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.PathwayFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select(
 			"gtfs_pathways.id",

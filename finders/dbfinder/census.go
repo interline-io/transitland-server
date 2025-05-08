@@ -12,7 +12,7 @@ import (
 
 func (f *Finder) FindCensusDatasets(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.CensusDatasetFilter) ([]*model.CensusDataset, error) {
 	var ents []*model.CensusDataset
-	q := CensusDatasetSelect(limit, after, ids, where)
+	q := censusDatasetSelect(limit, after, ids, where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
@@ -44,7 +44,7 @@ func (f *Finder) CensusGeographiesByEntityID(ctx context.Context, params []model
 			return p.EntityID, &rp, p.Limit
 		},
 		func(keys []int, where *model.CensusGeographyParam, limit *int) (ents []*model.CensusGeography, err error) {
-			err = dbutil.Select(ctx, f.db, CensusGeographySelect(where, keys), &ents)
+			err = dbutil.Select(ctx, f.db, censusGeographySelect(where, keys), &ents)
 			return ents, err
 		},
 		func(ent *model.CensusGeography) int {
@@ -67,7 +67,7 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 			err = dbutil.Select(
 				ctx,
 				f.db,
-				CensusValueSelect(where, keys),
+				censusValueSelect(where, keys),
 				&ents,
 			)
 			return ents, err
@@ -133,7 +133,7 @@ func (f *Finder) CensusFieldsByTableID(ctx context.Context, params []model.Censu
 	)
 }
 
-func CensusDatasetSelect(limit *int, after *model.Cursor, ids []int, where *model.CensusDatasetFilter) sq.SelectBuilder {
+func censusDatasetSelect(limit *int, after *model.Cursor, ids []int, where *model.CensusDatasetFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("*").
 		From("tl_census_datasets")
@@ -148,7 +148,7 @@ func CensusDatasetSelect(limit *int, after *model.Cursor, ids []int, where *mode
 	return q
 }
 
-func CensusGeographySelect(param *model.CensusGeographyParam, entityIds []int) sq.SelectBuilder {
+func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int) sq.SelectBuilder {
 	if param.EntityID > 0 {
 		entityIds = append(entityIds, param.EntityID)
 	}
@@ -207,7 +207,7 @@ func CensusGeographySelect(param *model.CensusGeographyParam, entityIds []int) s
 	return q
 }
 
-func CensusValueSelect(param *model.CensusValueParam, geoids []string) sq.SelectBuilder {
+func censusValueSelect(param *model.CensusValueParam, geoids []string) sq.SelectBuilder {
 	tnames := sliceToLower(strings.Split(param.TableNames, ","))
 	q := sq.StatementBuilder.
 		Select(

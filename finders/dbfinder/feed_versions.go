@@ -14,7 +14,7 @@ import (
 
 func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	var ents []*model.FeedVersion
-	if err := dbutil.Select(ctx, f.db, FeedVersionSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
+	if err := dbutil.Select(ctx, f.db, feedVersionSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
 	return ents, nil
@@ -58,8 +58,8 @@ func (f *Finder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	qents := []*FeedVersionGeometry{}
-	if err := dbutil.Select(ctx, f.db, FeedVersionGeometrySelect(ids), &qents); err != nil {
+	qents := []*feedVersionGeometry{}
+	if err := dbutil.Select(ctx, f.db, feedVersionGeometrySelect(ids), &qents); err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
 	}
 	group := map[int]*tt.Polygon{}
@@ -111,7 +111,7 @@ func (f *Finder) FeedVersionsByFeedID(ctx context.Context, params []model.FeedVe
 			err := dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					FeedVersionSelect(limit, nil, nil, f.PermFilter(ctx), where),
+					feedVersionSelect(limit, nil, nil, f.PermFilter(ctx), where),
 					"current_feeds",
 					"id",
 					"feed_versions",
@@ -141,7 +141,7 @@ func (f *Finder) FeedVersionServiceLevelsByFeedVersionID(ctx context.Context, pa
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					FeedVersionServiceLevelSelect(limit, nil, nil, f.PermFilter(ctx), where),
+					feedVersionServiceLevelSelect(limit, nil, nil, f.PermFilter(ctx), where),
 					"feed_versions",
 					"id",
 					"feed_version_service_levels",
@@ -205,7 +205,7 @@ func (f *Finder) FeedInfosByFeedVersionID(ctx context.Context, params []model.Fe
 	)
 }
 
-func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) sq.SelectBuilder {
+func feedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select(
 			"feed_versions.id",
@@ -350,7 +350,7 @@ func FeedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *m
 	return q
 }
 
-func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
+func feedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionServiceLevelFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select(
 			"feed_version_service_levels.id",
@@ -388,12 +388,12 @@ func FeedVersionServiceLevelSelect(limit *int, after *model.Cursor, ids []int, p
 	return q
 }
 
-type FeedVersionGeometry struct {
+type feedVersionGeometry struct {
 	FeedVersionID int
 	Geometry      *tt.Polygon
 }
 
-func FeedVersionGeometrySelect(ids []int) sq.SelectBuilder {
+func feedVersionGeometrySelect(ids []int) sq.SelectBuilder {
 	return sq.StatementBuilder.
 		Select("feed_version_id", "geometry").
 		From("tl_feed_version_geometries").

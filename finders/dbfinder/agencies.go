@@ -14,7 +14,7 @@ func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Curs
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
 		active = false
 	}
-	q := AgencySelect(limit, after, ids, active, f.PermFilter(ctx), where)
+	q := agencySelect(limit, after, ids, active, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
@@ -84,7 +84,7 @@ func (f *Finder) AgenciesByFeedVersionID(ctx context.Context, params []model.Age
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					AgencySelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					agencySelect(limit, nil, nil, false, f.PermFilter(ctx), where),
 					"feed_versions",
 					"id",
 					"gtfs_agencies",
@@ -115,7 +115,7 @@ func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyP
 		func(keys []string, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
 			err = dbutil.Select(ctx,
 				f.db,
-				AgencySelect(limit, nil, nil, true, f.PermFilter(ctx), nil).Where(In("coif.resolved_onestop_id", keys)),
+				agencySelect(limit, nil, nil, true, f.PermFilter(ctx), nil).Where(In("coif.resolved_onestop_id", keys)),
 				&ents,
 			)
 			return ents, err
@@ -128,14 +128,14 @@ func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyP
 
 func (f *Finder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {
 	var ents []*model.Place
-	q := PlaceSelect(limit, after, ids, level, f.PermFilter(ctx), where)
+	q := placeSelect(limit, after, ids, level, f.PermFilter(ctx), where)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, err
 	}
 	return ents, nil
 }
 
-func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.AgencyFilter) sq.SelectBuilder {
+func agencySelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.AgencyFilter) sq.SelectBuilder {
 	distinct := false
 	q := sq.StatementBuilder.
 		Select(
@@ -251,8 +251,8 @@ func AgencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 	return q
 }
 
-func PlaceSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) sq.SelectBuilder {
-	// PlaceSelect is limited to active feed versions
+func placeSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) sq.SelectBuilder {
+	// placeSelect is limited to active feed versions
 	var groupKeys []string
 	var selKeys []string
 	// Yucky mapping

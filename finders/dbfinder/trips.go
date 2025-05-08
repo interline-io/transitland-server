@@ -15,7 +15,7 @@ func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor,
 	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) || (where != nil && len(where.RouteIds) > 0) {
 		active = false
 	}
-	q := TripSelect(limit, after, ids, active, f.PermFilter(ctx), where, nil)
+	q := tripSelect(limit, after, ids, active, f.PermFilter(ctx), where, nil)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
@@ -77,7 +77,7 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
+					tripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
 					"gtfs_routes",
 					"id",
 					"gtfs_trips",
@@ -114,7 +114,7 @@ func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripPa
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					TripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
+					tripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
 					"feed_versions",
 					"id",
 					"gtfs_trips",
@@ -131,7 +131,7 @@ func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripPa
 	)
 }
 
-func TripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.TripFilter, fvsw *model.ServiceWindow) sq.SelectBuilder {
+func tripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.TripFilter, fvsw *model.ServiceWindow) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.id",
 		"gtfs_trips.feed_version_id",
