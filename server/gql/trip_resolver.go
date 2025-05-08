@@ -17,26 +17,26 @@ func (r *tripResolver) Cursor(ctx context.Context, obj *model.Trip) (*model.Curs
 }
 
 func (r *tripResolver) Route(ctx context.Context, obj *model.Trip) (*model.Route, error) {
-	return For(ctx).RoutesByID.Load(ctx, obj.RouteID.Int())()
+	return LoaderFor(ctx).RoutesByID.Load(ctx, obj.RouteID.Int())()
 }
 
 func (r *tripResolver) FeedVersion(ctx context.Context, obj *model.Trip) (*model.FeedVersion, error) {
-	return For(ctx).FeedVersionsByID.Load(ctx, obj.FeedVersionID)()
+	return LoaderFor(ctx).FeedVersionsByID.Load(ctx, obj.FeedVersionID)()
 }
 
 func (r *tripResolver) Shape(ctx context.Context, obj *model.Trip) (*model.Shape, error) {
 	if !obj.ShapeID.Valid {
 		return nil, nil
 	}
-	return For(ctx).ShapesByID.Load(ctx, obj.ShapeID.Int())()
+	return LoaderFor(ctx).ShapesByID.Load(ctx, obj.ShapeID.Int())()
 }
 
 func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Calendar, error) {
-	return For(ctx).CalendarsByID.Load(ctx, obj.ServiceID.Int())()
+	return LoaderFor(ctx).CalendarsByID.Load(ctx, obj.ServiceID.Int())()
 }
 
 func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error) {
-	sts, err := For(ctx).StopTimesByTripID.Load(ctx, model.TripStopTimeParam{
+	sts, err := LoaderFor(ctx).StopTimesByTripID.Load(ctx, model.TripStopTimeParam{
 		FeedVersionID: obj.FeedVersionID,
 		TripID:        obj.ID,
 		Limit:         checkLimit(limit),
@@ -51,7 +51,7 @@ func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *in
 }
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {
-	return For(ctx).FrequenciesByTripID.Load(ctx, model.FrequencyParam{TripID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).FrequenciesByTripID.Load(ctx, model.FrequencyParam{TripID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {

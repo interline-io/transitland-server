@@ -180,8 +180,8 @@ func loaderMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// For returns the dataloader for a given context
-func For(ctx context.Context) *Loaders {
+// LoaderFor returns the dataloader for a given context
+func LoaderFor(ctx context.Context) *Loaders {
 	return ctx.Value(loadersKey).(*Loaders)
 }
 
