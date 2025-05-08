@@ -28,12 +28,14 @@ type Loaders struct {
 	AgencyPlacesByAgencyID                                       *dataloader.Loader[model.AgencyPlaceParam, []*model.AgencyPlace]
 	CalendarDatesByServiceID                                     *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
 	CalendarsByID                                                *dataloader.Loader[int, *model.Calendar]
-	CensusGeographiesByEntityID                                  *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
-	CensusTableByID                                              *dataloader.Loader[int, *model.CensusTable]
+	CensusDatasetLayersByDatasetID                               *dataloader.Loader[int, []string]
+	CensusSourceLayersBySourceID                                 *dataloader.Loader[int, []string]
 	CensusFieldsByTableID                                        *dataloader.Loader[model.CensusFieldParam, []*model.CensusField]
-	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
-	CensusSourcesByDatasetID                                     *dataloader.Loader[model.CensusSourceParam, []*model.CensusSource]
 	CensusGeographiesByDatasetID                                 *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
+	CensusGeographiesByEntityID                                  *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
+	CensusSourcesByDatasetID                                     *dataloader.Loader[model.CensusSourceParam, []*model.CensusSource]
+	CensusTableByID                                              *dataloader.Loader[int, *model.CensusTable]
+	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
 	FeedFetchesByFeedID                                          *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
 	FeedInfosByFeedVersionID                                     *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
 	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
@@ -42,10 +44,10 @@ type Loaders struct {
 	FeedVersionFileInfosByFeedVersionID                          *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
 	FeedVersionGeometryByID                                      *dataloader.Loader[int, *tt.Polygon]
 	FeedVersionGtfsImportByFeedVersionID                         *dataloader.Loader[int, *model.FeedVersionGtfsImport]
-	FeedVersionServiceWindowByFeedVersionID                      *dataloader.Loader[int, *model.FeedVersionServiceWindow]
 	FeedVersionsByFeedID                                         *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
 	FeedVersionsByID                                             *dataloader.Loader[int, *model.FeedVersion]
 	FeedVersionServiceLevelsByFeedVersionID                      *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
+	FeedVersionServiceWindowByFeedVersionID                      *dataloader.Loader[int, *model.FeedVersionServiceWindow]
 	FrequenciesByTripID                                          *dataloader.Loader[model.FrequencyParam, []*model.Frequency]
 	LevelsByID                                                   *dataloader.Loader[int, *model.Level]
 	LevelsByParentStationID                                      *dataloader.Loader[model.LevelParam, []*model.Level]
@@ -66,9 +68,9 @@ type Loaders struct {
 	RouteStopsByStopID                                           *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	SegmentPatternsByRouteID                                     *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentPatternsBySegmentID                                   *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
+	SegmentsByFeedVersionID                                      *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	SegmentsByID                                                 *dataloader.Loader[int, *model.Segment]
 	SegmentsByRouteID                                            *dataloader.Loader[model.SegmentParam, []*model.Segment]
-	SegmentsByFeedVersionID                                      *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	ShapesByID                                                   *dataloader.Loader[int, *model.Shape]
 	StopExternalReferencesByStopID                               *dataloader.Loader[int, *model.StopExternalReference]
 	StopObservationsByStopID                                     *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
@@ -104,12 +106,14 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		AgencyPlacesByAgencyID:                  withWaitAndCapacity(waitTime, batchSize, dbf.AgencyPlacesByAgencyID),
 		CalendarDatesByServiceID:                withWaitAndCapacity(waitTime, batchSize, dbf.CalendarDatesByServiceID),
 		CalendarsByID:                           withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
-		CensusGeographiesByEntityID:             withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByEntityID),
-		CensusTableByID:                         withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
+		CensusDatasetLayersByDatasetID:          withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetID),
+		CensusSourceLayersBySourceID:            withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceID),
 		CensusFieldsByTableID:                   withWaitAndCapacity(waitTime, batchSize, dbf.CensusFieldsByTableID),
-		CensusValuesByGeographyID:               withWaitAndCapacity(waitTime, batchSize, dbf.CensusValuesByGeographyID),
-		CensusSourcesByDatasetID:                withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourcesByDatasetID),
 		CensusGeographiesByDatasetID:            withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByDatasetID),
+		CensusGeographiesByEntityID:             withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByEntityID),
+		CensusSourcesByDatasetID:                withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourcesByDatasetID),
+		CensusTableByID:                         withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
+		CensusValuesByGeographyID:               withWaitAndCapacity(waitTime, batchSize, dbf.CensusValuesByGeographyID),
 		FeedFetchesByFeedID:                     withWaitAndCapacity(waitTime, batchSize, dbf.FeedFetchesByFeedID),
 		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedInfosByFeedVersionID),
 		FeedsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),
@@ -118,10 +122,10 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedVersionFileInfosByFeedVersionID:     withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionFileInfosByFeedVersionID),
 		FeedVersionGeometryByID:                 withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGeometryByID),
 		FeedVersionGtfsImportByFeedVersionID:    withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGtfsImportByFeedVersionID),
-		FeedVersionServiceWindowByFeedVersionID: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionID),
 		FeedVersionsByFeedID:                    withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByFeedID),
 		FeedVersionsByID:                        withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByID),
 		FeedVersionServiceLevelsByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionServiceLevelsByFeedVersionID),
+		FeedVersionServiceWindowByFeedVersionID: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionID),
 		FrequenciesByTripID:                     withWaitAndCapacity(waitTime, batchSize, dbf.FrequenciesByTripID),
 		LevelsByID:                              withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByID),
 		LevelsByParentStationID:                 withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByParentStationID),
@@ -142,9 +146,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RouteStopsByStopID:                      withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByStopID),
 		SegmentPatternsByRouteID:                withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
 		SegmentPatternsBySegmentID:              withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsBySegmentID),
+		SegmentsByFeedVersionID:                 withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByFeedVersionID),
 		SegmentsByID:                            withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByID),
 		SegmentsByRouteID:                       withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByRouteID),
-		SegmentsByFeedVersionID:                 withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByFeedVersionID),
 		ShapesByID:                              withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByID),
 		StopExternalReferencesByStopID:          withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopID),
 		StopObservationsByStopID:                withWaitAndCapacity(waitTime, batchSize, dbf.StopObservationsByStopID),

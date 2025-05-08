@@ -82,13 +82,14 @@ func (f *Finder) CensusSourcesByDatasetID(ctx context.Context, params []model.Ce
 	return paramGroupQuery(
 		params,
 		func(p model.CensusSourceParam) (int, *model.CensusSourceParam, *int) {
-			return p.DatasetID, nil, p.Limit
+			return p.DatasetID, &model.CensusSourceParam{Where: p.Where}, p.Limit
 		},
-		func(keys []int, where *model.CensusSourceParam, limit *int) (ents []*model.CensusSource, err error) {
+		func(keys []int, param *model.CensusSourceParam, limit *int) (ents []*model.CensusSource, err error) {
+			q := censusSourceSelect(limit, nil, nil, param.Where)
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
-					quickSelectOrder("tl_census_sources", limit, nil, nil, "id"),
+					q,
 					"tl_census_datasets",
 					"id",
 					"tl_census_sources",
@@ -103,6 +104,55 @@ func (f *Finder) CensusSourcesByDatasetID(ctx context.Context, params []model.Ce
 			return ent.DatasetID
 		},
 	)
+}
+
+func (f *Finder) CensusDatasetLayersByDatasetID(ctx context.Context, ids []int) ([][]string, []error) {
+	var ret [][]string
+	var errs []error
+	for _, id := range ids {
+		var layers []string
+		err := dbutil.Select(ctx,
+			f.db,
+			sq.StatementBuilder.
+				Select("tlcg.layer_name").
+				Distinct().Options("on (tlcg.layer_name)").
+				From("tl_census_datasets tlcd").
+				Join("tl_census_sources tlcs on tlcs.dataset_id = tlcd.id").
+				Join("tl_census_geographies tlcg on tlcg.source_id = tlcs.id").
+				Where(sq.Eq{"tlcd.id": id}),
+			&layers,
+		)
+		if err != nil {
+			errs = append(errs, logErr(ctx, err))
+			continue
+		}
+		ret = append(ret, layers)
+	}
+	return ret, errs
+}
+
+func (f *Finder) CensusSourceLayersBySourceID(ctx context.Context, ids []int) ([][]string, []error) {
+	var ret [][]string
+	var errs []error
+	for _, id := range ids {
+		var layers []string
+		err := dbutil.Select(ctx,
+			f.db,
+			sq.StatementBuilder.
+				Select("tlcg.layer_name").
+				Distinct().Options("on (tlcg.layer_name)").
+				From("tl_census_sources tlcs").
+				Join("tl_census_geographies tlcg on tlcg.source_id = tlcs.id").
+				Where(sq.Eq{"tlcs.id": id}),
+			&layers,
+		)
+		if err != nil {
+			errs = append(errs, logErr(ctx, err))
+			continue
+		}
+		ret = append(ret, layers)
+	}
+	return ret, errs
 }
 
 func (f *Finder) CensusGeographiesByDatasetID(ctx context.Context, params []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
@@ -179,7 +229,17 @@ func censusDatasetSelect(_ *int, _ *model.Cursor, _ []int, where *model.CensusDa
 	return q
 }
 
-func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int, datasetIds []int) sq.SelectBuilder {
+func censusSourceSelect(limit *int, after *model.Cursor, ids []int, where *model.CensusSourceFilter) sq.SelectBuilder {
+	q := quickSelectOrder("tl_census_sources", limit, after, ids, "id")
+	if where != nil {
+		if where.SourceName != nil {
+			q = q.Where(sq.Eq{"source_name": *where.SourceName})
+		}
+	}
+	return q
+}
+
+func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int, _ []int) sq.SelectBuilder {
 	if param.EntityID > 0 {
 		entityIds = append(entityIds, param.EntityID)
 	}

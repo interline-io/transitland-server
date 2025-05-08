@@ -23,10 +23,18 @@ func (r *censusDatasetResolver) Tables(ctx context.Context, obj *model.CensusDat
 	return nil, nil
 }
 
+func (r *censusDatasetResolver) Layers(ctx context.Context, obj *model.CensusDataset) (ret []string, err error) {
+	return LoaderFor(ctx).CensusDatasetLayersByDatasetID.Load(ctx, obj.ID)()
+}
+
 type censusSourceResolver struct{ *Resolver }
 
-func (r *censusSourceResolver) Layers(ctx context.Context, obj *model.CensusSource) (ret []*string, err error) {
-	return ret, err
+func (r *censusSourceResolver) Layers(ctx context.Context, obj *model.CensusSource) (ret []string, err error) {
+	return LoaderFor(ctx).CensusSourceLayersBySourceID.Load(ctx, obj.ID)()
+}
+
+func (r *censusSourceResolver) Geographies(ctx context.Context, obj *model.CensusSource, _ *int) (ret []*model.CensusGeography, err error) {
+	return nil, nil
 }
 
 type censusGeographyResolver struct{ *Resolver }

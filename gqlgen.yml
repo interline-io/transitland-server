@@ -220,9 +220,13 @@ models:
         resolver: true
       tables:
         resolver: true
+      layers:
+        resolver: true
   CensusSource:
     fields:
       layers:
+        resolver: true
+      geographies:
         resolver: true
     extraFields:
       DatasetID:

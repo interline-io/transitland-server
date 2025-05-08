@@ -1107,6 +1107,7 @@ type CensusDataset {
   geographies(limit: Int, where: CensusGeographyFilter): [CensusGeography!]
   # Census tables in this dataset
   tables(limit: Int, where: CensusTableFilter): [CensusTable!]
+  layers: [String!]
 }
 
 type CensusSource {
@@ -1123,7 +1124,7 @@ type CensusSource {
   # Census tables in this source
   tables(limit: Int): [CensusTable!]
   # Layers
-  layers: [String]
+  layers: [String!]
 }
 
 """Census geography data"""
@@ -1849,6 +1850,7 @@ input CensusTableFilter {
 }
 
 input CensusSourceFilter {
+  source_name: String
   search: String
 }
 

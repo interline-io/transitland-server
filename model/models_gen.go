@@ -125,6 +125,7 @@ type CensusDataset struct {
 	Sources     []*CensusSource    `json:"sources,omitempty"`
 	Geographies []*CensusGeography `json:"geographies,omitempty"`
 	Tables      []*CensusTable     `json:"tables,omitempty"`
+	Layers      []string           `json:"layers,omitempty"`
 }
 
 // Search options for census datasets
@@ -192,12 +193,13 @@ type CensusSource struct {
 	Sha1        string             `json:"sha1"`
 	Geographies []*CensusGeography `json:"geographies,omitempty"`
 	Tables      []*CensusTable     `json:"tables,omitempty"`
-	Layers      []*string          `json:"layers,omitempty"`
+	Layers      []string           `json:"layers,omitempty"`
 	DatasetID   int                `json:"-"`
 }
 
 type CensusSourceFilter struct {
-	Search *string `json:"search,omitempty"`
+	SourceName *string `json:"source_name,omitempty"`
+	Search     *string `json:"search,omitempty"`
 }
 
 // Census table metadata

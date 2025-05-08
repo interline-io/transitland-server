@@ -122,6 +122,8 @@ type EntityLoader interface {
 	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
 	CensusFieldsByTableID(context.Context, []CensusFieldParam) ([][]*CensusField, []error)
 	CensusSourcesByDatasetID(context.Context, []CensusSourceParam) ([][]*CensusSource, []error)
+	CensusDatasetLayersByDatasetID(context.Context, []int) ([][]string, []error)
+	CensusSourceLayersBySourceID(context.Context, []int) ([][]string, []error)
 	CensusGeographiesByDatasetID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
 
 	// Validation reports

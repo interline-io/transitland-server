@@ -366,13 +366,6 @@ func limitAlerts(alerts []*model.Alert, limit *int) []*model.Alert {
 	return alerts
 }
 
-func nilor(v *uint64) uint64 {
-	if v == nil {
-		return 0
-	}
-	return *v
-}
-
 func makeAlert(a *pb.Alert) *model.Alert {
 	r := model.Alert{}
 	if a.Cause != nil {
