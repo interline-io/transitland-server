@@ -251,7 +251,7 @@ func agencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 	return q
 }
 
-func placeSelect(limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) sq.SelectBuilder {
+func placeSelect(_ *int, _ *model.Cursor, _ []int, level *model.PlaceAggregationLevel, permFilter *model.PermFilter, where *model.PlaceFilter) sq.SelectBuilder {
 	// placeSelect is limited to active feed versions
 	var groupKeys []string
 	var selKeys []string

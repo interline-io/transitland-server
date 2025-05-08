@@ -133,7 +133,7 @@ func (f *Finder) CensusFieldsByTableID(ctx context.Context, params []model.Censu
 	)
 }
 
-func censusDatasetSelect(limit *int, after *model.Cursor, ids []int, where *model.CensusDatasetFilter) sq.SelectBuilder {
+func censusDatasetSelect(_ *int, _ *model.Cursor, _ []int, where *model.CensusDatasetFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
 		Select("*").
 		From("tl_census_datasets")

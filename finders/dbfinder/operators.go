@@ -184,7 +184,7 @@ func operatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBui
 	return q
 }
 
-func operatorsByAgencyID(limit *int, after *model.Cursor, agencyIds []int) sq.SelectBuilder {
+func operatorsByAgencyID(_ *int, _ *model.Cursor, agencyIds []int) sq.SelectBuilder {
 	q := operatorSelectBase(false, nil)
 	q = q.
 		Column("a.id as agency_id").
