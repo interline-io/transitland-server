@@ -1,9 +1,258 @@
 package dbfinder
 
 import (
+	"context"
+
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-server/model"
 )
+
+func (f *Finder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
+	var ents []*model.Route
+	active := true
+	if len(ids) > 0 || (where != nil && where.FeedVersionSha1 != nil) {
+		active = false
+	}
+	q := RouteSelect(limit, after, ids, active, f.PermFilter(ctx), where)
+	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
+		return nil, logErr(ctx, err)
+	}
+	return ents, nil
+}
+
+func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBufferParam) ([]*model.RouteStopBuffer, error) {
+	if param == nil {
+		return nil, nil
+	}
+	var ents []*model.RouteStopBuffer
+	q := RouteStopBufferSelect(*param)
+	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
+		return nil, logErr(ctx, err)
+	}
+	return ents, nil
+}
+
+func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*model.RouteAttribute, []error) {
+	var ents []*model.RouteAttribute
+	q := sq.StatementBuilder.Select("*").From("ext_plus_route_attributes").Where(In("route_id", ids))
+	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
+		return nil, []error{err}
+	}
+	return arrangeBy(ids, ents, func(ent *model.RouteAttribute) int { return ent.RouteID }), nil
+}
+
+func (f *Finder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
+	ents, err := f.FindRoutes(ctx, nil, nil, ids, nil)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Route) int { return ent.ID }), nil
+}
+
+func (f *Finder) RouteStopsByStopID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.RouteStopParam) (int, bool, *int) {
+			return p.StopID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.RouteStop, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelectOrder("tl_route_stops", limit, nil, nil, "stop_id"),
+					"gtfs_stops",
+					"id",
+					"tl_route_stops",
+					"stop_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.RouteStop) int {
+			return ent.StopID
+		},
+	)
+}
+
+func (f *Finder) RouteHeadwaysByRouteID(ctx context.Context, params []model.RouteHeadwayParam) ([][]*model.RouteHeadway, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.RouteHeadwayParam) (int, bool, *int) {
+			return p.RouteID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.RouteHeadway, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelectOrder("tl_route_headways", limit, nil, nil, "route_id"),
+					"gtfs_routes",
+					"id",
+					"tl_route_headways",
+					"route_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.RouteHeadway) int {
+			return ent.RouteID
+		},
+	)
+}
+
+func (f *Finder) RouteStopPatternsByRouteID(ctx context.Context, params []model.RouteStopPatternParam) ([][]*model.RouteStopPattern, []error) {
+	// TODO: Add limit option in resolver
+	return paramGroupQuery(
+		params,
+		func(p model.RouteStopPatternParam) (int, bool, *int) {
+			return p.RouteID, false, nil
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.RouteStopPattern, err error) {
+			q := sq.StatementBuilder.
+				Select("route_id", "direction_id", "stop_pattern_id", "count(*) as count").
+				From("gtfs_trips").
+				Where(In("route_id", keys)).
+				GroupBy("route_id,direction_id,stop_pattern_id").
+				OrderBy("route_id,count desc").
+				Limit(1000)
+			err = dbutil.Select(ctx,
+				f.db,
+				q,
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.RouteStopPattern) int {
+			return ent.RouteID
+		},
+	)
+}
+
+func (f *Finder) RouteGeometriesByRouteID(ctx context.Context, params []model.RouteGeometryParam) ([][]*model.RouteGeometry, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.RouteGeometryParam) (int, bool, *int) {
+			return p.RouteID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.RouteGeometry, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelectOrder("tl_route_geometries", limit, nil, nil, "route_id"),
+					"gtfs_routes",
+					"id",
+					"tl_route_geometries",
+					"route_id",
+					keys,
+				),
+				&ents,
+			)
+
+			return ents, err
+		},
+		func(ent *model.RouteGeometry) int {
+			return ent.RouteID
+		},
+	)
+}
+
+func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.RouteParam) (int, *model.RouteFilter, *int) {
+			return p.AgencyID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.RouteFilter, limit *int) (ents []*model.Route, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					RouteSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					"gtfs_agencies",
+					"id",
+					"gtfs_routes",
+					"agency_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.Route) int {
+			return ent.AgencyID.Int()
+		},
+	)
+}
+
+func (f *Finder) RoutesByFeedVersionID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.RouteParam) (int, *model.RouteFilter, *int) {
+			return p.FeedVersionID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.RouteFilter, limit *int) (ents []*model.Route, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					RouteSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+					"feed_versions",
+					"id",
+					"gtfs_routes",
+					"feed_version_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.Route) int {
+			return ent.FeedVersionID
+		},
+	)
+}
+
+func (f *Finder) RouteStopsByRouteID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.RouteStopParam) (int, bool, *int) {
+			return p.RouteID, false, p.Limit
+		},
+		func(keys []int, where bool, limit *int) (ents []*model.RouteStop, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					quickSelectOrder("tl_route_stops", limit, nil, nil, "stop_id"),
+					"gtfs_routes",
+					"id",
+					"tl_route_stops",
+					"route_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.RouteStop) int {
+			return ent.RouteID
+		},
+	)
+}
+
+func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []error) {
+	var ents []*model.Shape
+	err := dbutil.Select(ctx,
+		f.db,
+		quickSelect("gtfs_shapes", nil, nil, ids),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Shape) int { return ent.ID }), nil
+}
 
 func RouteSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.RouteFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(

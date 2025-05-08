@@ -1,12 +1,103 @@
 package dbfinder
 
 import (
+	"context"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
+	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-server/model"
 )
+
+func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
+	var ents []*model.Feed
+	if err := dbutil.Select(ctx, f.db, FeedSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
+		return nil, logErr(ctx, err)
+	}
+	return ents, nil
+}
+
+func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
+	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Feed) int { return ent.ID }), nil
+}
+
+func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
+	var ents []*model.FeedState
+	err := dbutil.Select(ctx,
+		f.db,
+		quickSelect("feed_states", nil, nil, nil).Where(In("feed_id", ids)),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
+}
+
+func (f *Finder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.FeedFetchParam) (int, *model.FeedFetchFilter, *int) {
+			return p.FeedID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.FeedFetchFilter, limit *int) (ents []*model.FeedFetch, err error) {
+			q := sq.StatementBuilder.
+				Select("*").
+				From("feed_fetches").
+				Limit(checkLimit(limit)).
+				OrderBy("feed_fetches.fetched_at desc")
+			if where != nil {
+				if where.Success != nil {
+					q = q.Where(sq.Eq{"success": *where.Success})
+				}
+			}
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(q, "current_feeds", "id", "feed_fetches", "feed_id", keys),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.FeedFetch) int {
+			return ent.FeedID
+		},
+	)
+}
+
+func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.FeedParam) ([][]*model.Feed, []error) {
+	type qent struct {
+		OperatorOnestopID string
+		model.Feed
+	}
+	qentGroups, err := paramGroupQuery(
+		params,
+		func(p model.FeedParam) (string, *model.FeedFilter, *int) {
+			return p.OperatorOnestopID, p.Where, p.Limit
+		},
+		func(keys []string, where *model.FeedFilter, limit *int) (ents []*qent, err error) {
+			q := FeedSelect(nil, nil, nil, f.PermFilter(ctx), where).
+				Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
+				Column("coif.resolved_onestop_id as operator_onestop_id").
+				Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
+				Where(In("coif.resolved_onestop_id", keys))
+			err = dbutil.Select(ctx,
+				f.db,
+				q,
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *qent) string {
+			return ent.OperatorOnestopID
+		},
+	)
+	return convertEnts(qentGroups, func(a *qent) *model.Feed { return &a.Feed }), err
+}
 
 func FeedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.

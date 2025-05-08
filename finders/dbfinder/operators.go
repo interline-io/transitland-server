@@ -1,11 +1,76 @@
 package dbfinder
 
 import (
+	"context"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-server/model"
 )
+
+func (f *Finder) FindOperators(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
+	var ents []*model.Operator
+	if err := dbutil.Select(ctx, f.db, OperatorSelect(limit, after, ids, f.PermFilter(ctx), where), &ents); err != nil {
+		return nil, logErr(ctx, err)
+	}
+	return ents, nil
+}
+
+func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Operator, []error) {
+	var ents []*model.Operator
+	err := dbutil.Select(ctx,
+		f.db,
+		OperatorSelect(nil, nil, ids, f.PermFilter(ctx), nil),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.ID }), nil
+}
+
+func (f *Finder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.Operator, []error) {
+	var ents []*model.Operator
+	err := dbutil.Select(ctx,
+		f.db,
+		OperatorsByAgencyID(nil, nil, ids),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(ids), err)
+	}
+	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.AgencyID }), nil
+}
+
+// Param loaders
+
+func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorParam) ([][]*model.Operator, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.OperatorParam) (int, *model.OperatorFilter, *int) {
+			return p.FeedID, p.Where, p.Limit
+		},
+		func(keys []int, where *model.OperatorFilter, limit *int) (ents []*model.Operator, err error) {
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					OperatorSelectBase(true, nil),
+					"current_feeds",
+					"id",
+					"coif",
+					"feed_id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.Operator) int {
+			return ent.FeedID
+		},
+	)
+}
 
 func OperatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.
