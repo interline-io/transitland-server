@@ -221,3 +221,7 @@ func (r *Resolver) ValidationReportErrorGroup() gqlout.ValidationReportErrorGrou
 func (r *Resolver) CensusDataset() gqlout.CensusDatasetResolver {
 	return &censusDatasetResolver{r}
 }
+
+func (r *Resolver) CensusSource() gqlout.CensusSourceResolver {
+	return &censusSourceResolver{r}
+}

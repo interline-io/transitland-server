@@ -44,7 +44,7 @@ func (f *Finder) CensusGeographiesByEntityID(ctx context.Context, params []model
 			return p.EntityID, &rp, p.Limit
 		},
 		func(keys []int, where *model.CensusGeographyParam, limit *int) (ents []*model.CensusGeography, err error) {
-			err = dbutil.Select(ctx, f.db, censusGeographySelect(where, keys), &ents)
+			err = dbutil.Select(ctx, f.db, censusGeographySelect(where, keys, nil), &ents)
 			return ents, err
 		},
 		func(ent *model.CensusGeography) int {
@@ -85,7 +85,6 @@ func (f *Finder) CensusSourcesByDatasetID(ctx context.Context, params []model.Ce
 			return p.DatasetID, nil, p.Limit
 		},
 		func(keys []int, where *model.CensusSourceParam, limit *int) (ents []*model.CensusSource, err error) {
-			fmt.Println("KEYS:", keys)
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
@@ -101,6 +100,38 @@ func (f *Finder) CensusSourcesByDatasetID(ctx context.Context, params []model.Ce
 			return ents, err
 		},
 		func(ent *model.CensusSource) int {
+			return ent.DatasetID
+		},
+	)
+}
+
+func (f *Finder) CensusGeographiesByDatasetID(ctx context.Context, params []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
+	return paramGroupQuery(
+		params,
+		func(p model.CensusGeographyParam) (int, *model.CensusGeographyParam, *int) {
+			rp := model.CensusGeographyParam{
+				Limit: p.Limit,
+				Where: p.Where,
+			}
+			return p.DatasetID, &rp, p.Limit
+		},
+		func(keys []int, p *model.CensusGeographyParam, limit *int) (ents []*model.CensusGeography, err error) {
+			q := censusGeographySelect(p, nil, keys)
+			err = dbutil.Select(ctx,
+				f.db,
+				lateralWrap(
+					q,
+					"tl_census_datasets",
+					"id",
+					"tlcd",
+					"id",
+					keys,
+				),
+				&ents,
+			)
+			return ents, err
+		},
+		func(ent *model.CensusGeography) int {
 			return ent.DatasetID
 		},
 	)
@@ -148,7 +179,7 @@ func censusDatasetSelect(_ *int, _ *model.Cursor, _ []int, where *model.CensusDa
 	return q
 }
 
-func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int) sq.SelectBuilder {
+func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int, datasetIds []int) sq.SelectBuilder {
 	if param.EntityID > 0 {
 		entityIds = append(entityIds, param.EntityID)
 	}
@@ -169,7 +200,9 @@ func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int) s
 		"tlcg.aland",
 		"tlcg.awater",
 		"tlcs.source_name",
+		"tlcs.id as source_id",
 		"tlcd.dataset_name",
+		"tlcd.id as dataset_id",
 	}
 
 	// A normal query..
@@ -178,21 +211,23 @@ func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int) s
 		From("tl_census_geographies tlcg").
 		Join("tl_census_sources tlcs on tlcs.id = tlcg.source_id").
 		Join("tl_census_datasets tlcd on tlcd.id = tlcs.dataset_id").
-		Join("gtfs_stops ON ST_DWithin(tlcg.geometry, gtfs_stops.geometry, ?)", radius).
 		Limit(checkLimit(param.Limit))
 
-	// Handle aggregation by entity type
-	if param.EntityType == "route" {
-		q = q.Column("tl_route_stops.route_id as match_entity_id")
-		q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
-		q = q.Distinct().Options("on (tl_route_stops.route_id,tlcg.id)").Where(In("tl_route_stops.route_id", entityIds)).OrderBy("tl_route_stops.route_id,tlcg.id")
-	} else if param.EntityType == "agency" {
-		q = q.Column("tl_route_stops.agency_id as match_entity_id")
-		q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
-		q = q.Distinct().Options("on (tl_route_stops.stop_id,tlcg.id)").Where(In("tl_route_stops.agency_id", entityIds)).OrderBy("tl_route_stops.agency_id,tlcg.id")
-	} else if param.EntityType == "stop" {
-		q = q.Column("gtfs_stops.id as match_entity_id")
-		q = q.Where(In("gtfs_stops.id", entityIds)).OrderBy("gtfs_stops.id,tlcg.id")
+	if len(entityIds) > 0 {
+		// Handle aggregation by entity type
+		q = q.Join("gtfs_stops ON ST_DWithin(tlcg.geometry, gtfs_stops.geometry, ?)", radius)
+		if param.EntityType == "route" {
+			q = q.Column("tl_route_stops.route_id as match_entity_id")
+			q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
+			q = q.Distinct().Options("on (tl_route_stops.route_id,tlcg.id)").Where(In("tl_route_stops.route_id", entityIds)).OrderBy("tl_route_stops.route_id,tlcg.id")
+		} else if param.EntityType == "agency" {
+			q = q.Column("tl_route_stops.agency_id as match_entity_id")
+			q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
+			q = q.Distinct().Options("on (tl_route_stops.stop_id,tlcg.id)").Where(In("tl_route_stops.agency_id", entityIds)).OrderBy("tl_route_stops.agency_id,tlcg.id")
+		} else if param.EntityType == "stop" {
+			q = q.Column("gtfs_stops.id as match_entity_id")
+			q = q.Where(In("gtfs_stops.id", entityIds)).OrderBy("gtfs_stops.id,tlcg.id")
+		}
 	}
 
 	// Check layer, dataset
@@ -202,6 +237,9 @@ func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int) s
 		}
 		if where.Dataset != nil {
 			q = q.Where(sq.Eq{"tlcd.dataset_name": where.Dataset})
+		}
+		if where.Search != nil {
+			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
 		}
 	}
 	return q

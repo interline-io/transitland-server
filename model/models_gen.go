@@ -169,6 +169,7 @@ type CensusGeography struct {
 	Geometry *tt.Polygon `json:"geometry,omitempty"`
 	// Census tables containing data for this geography
 	Values        []*CensusValue `json:"values"`
+	DatasetID     int            `json:"-"`
 	MatchEntityID int            `json:"-"`
 }
 
@@ -177,6 +178,7 @@ type CensusGeographyFilter struct {
 	Dataset *string  `json:"dataset,omitempty"`
 	Layer   *string  `json:"layer,omitempty"`
 	Radius  *float64 `json:"radius,omitempty"`
+	Search  *string  `json:"search,omitempty"`
 }
 
 type CensusSource struct {
@@ -190,7 +192,12 @@ type CensusSource struct {
 	Sha1        string             `json:"sha1"`
 	Geographies []*CensusGeography `json:"geographies,omitempty"`
 	Tables      []*CensusTable     `json:"tables,omitempty"`
+	Layers      []*string          `json:"layers,omitempty"`
 	DatasetID   int                `json:"-"`
+}
+
+type CensusSourceFilter struct {
+	Search *string `json:"search,omitempty"`
 }
 
 // Census table metadata
@@ -206,7 +213,12 @@ type CensusTable struct {
 	// Additional details, e.g. population universe
 	TableDetails *string `json:"table_details,omitempty"`
 	// Individial field definitions for this table
-	Fields []*CensusField `json:"fields"`
+	Fields    []*CensusField `json:"fields"`
+	DatasetID int            `json:"-"`
+}
+
+type CensusTableFilter struct {
+	Search *string `json:"search,omitempty"`
 }
 
 // Census values

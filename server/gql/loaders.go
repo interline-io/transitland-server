@@ -33,6 +33,7 @@ type Loaders struct {
 	CensusFieldsByTableID                                        *dataloader.Loader[model.CensusFieldParam, []*model.CensusField]
 	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
 	CensusSourcesByDatasetID                                     *dataloader.Loader[model.CensusSourceParam, []*model.CensusSource]
+	CensusGeographiesByDatasetID                                 *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
 	FeedFetchesByFeedID                                          *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
 	FeedInfosByFeedVersionID                                     *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
 	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
@@ -108,6 +109,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusFieldsByTableID:                   withWaitAndCapacity(waitTime, batchSize, dbf.CensusFieldsByTableID),
 		CensusValuesByGeographyID:               withWaitAndCapacity(waitTime, batchSize, dbf.CensusValuesByGeographyID),
 		CensusSourcesByDatasetID:                withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourcesByDatasetID),
+		CensusGeographiesByDatasetID:            withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByDatasetID),
 		FeedFetchesByFeedID:                     withWaitAndCapacity(waitTime, batchSize, dbf.FeedFetchesByFeedID),
 		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedInfosByFeedVersionID),
 		FeedsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),

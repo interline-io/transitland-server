@@ -165,6 +165,7 @@ type CalendarDateParam struct {
 type CensusGeographyParam struct {
 	EntityType string
 	EntityID   int
+	DatasetID  int
 	Limit      *int
 	Where      *CensusGeographyFilter
 }
@@ -188,6 +189,7 @@ type CensusFieldParam struct {
 type CensusSourceParam struct {
 	DatasetID int
 	Limit     *int
+	Where     *CensusSourceFilter
 }
 
 type RouteStopBufferParam struct {
