@@ -220,7 +220,14 @@ models:
         resolver: true
       tables:
         resolver: true
+      layers:
+        resolver: true
   CensusSource:
+    fields:
+      layers:
+        resolver: true
+      geographies:
+        resolver: true
     extraFields:
       DatasetID:
         type: int
@@ -229,6 +236,8 @@ models:
       values:
         resolver: true
     extraFields:
+      DatasetID:
+        type: int
       MatchEntityID:
         type: int      
   CensusValue:
@@ -244,6 +253,9 @@ models:
     fields:
       fields:
         resolver: true
+    extraFields:
+      DatasetID:
+        type: int
   CensusField:
     extraFields:
       TableID: 

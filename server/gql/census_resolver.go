@@ -2,7 +2,6 @@ package gql
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/interline-io/transitland-server/model"
@@ -12,17 +11,29 @@ import (
 
 type censusDatasetResolver struct{ *Resolver }
 
-func (r *censusDatasetResolver) Geographies(ctx context.Context, obj *model.CensusDataset, limit *int) (ents []*model.CensusGeography, err error) {
-	fmt.Println("CensusDatasetResolver.Geographies")
+func (r *censusDatasetResolver) Geographies(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusGeographyFilter) (ents []*model.CensusGeography, err error) {
+	return LoaderFor(ctx).CensusGeographiesByDatasetID.Load(ctx, model.CensusGeographyParam{DatasetID: obj.ID, Limit: limit, Where: where})()
+}
+
+func (r *censusDatasetResolver) Sources(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusSourceFilter) (ents []*model.CensusSource, err error) {
+	return LoaderFor(ctx).CensusSourcesByDatasetID.Load(ctx, model.CensusSourceParam{DatasetID: obj.ID, Limit: limit, Where: where})()
+}
+
+func (r *censusDatasetResolver) Tables(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusTableFilter) (ents []*model.CensusTable, err error) {
 	return nil, nil
 }
 
-func (r *censusDatasetResolver) Sources(ctx context.Context, obj *model.CensusDataset) (ents []*model.CensusSource, err error) {
-	return For(ctx).CensusSourcesByDatasetID.Load(ctx, model.CensusSourceParam{DatasetID: obj.ID})()
+func (r *censusDatasetResolver) Layers(ctx context.Context, obj *model.CensusDataset) (ret []string, err error) {
+	return LoaderFor(ctx).CensusDatasetLayersByDatasetID.Load(ctx, obj.ID)()
 }
 
-func (r *censusDatasetResolver) Tables(ctx context.Context, obj *model.CensusDataset, limit *int) (ents []*model.CensusTable, err error) {
-	fmt.Println("CensusDatasetResolver.Tables")
+type censusSourceResolver struct{ *Resolver }
+
+func (r *censusSourceResolver) Layers(ctx context.Context, obj *model.CensusSource) (ret []string, err error) {
+	return LoaderFor(ctx).CensusSourceLayersBySourceID.Load(ctx, obj.ID)()
+}
+
+func (r *censusSourceResolver) Geographies(ctx context.Context, obj *model.CensusSource, _ *int) (ret []*model.CensusGeography, err error) {
 	return nil, nil
 }
 
@@ -30,25 +41,25 @@ type censusGeographyResolver struct{ *Resolver }
 
 func (r *censusGeographyResolver) Values(ctx context.Context, obj *model.CensusGeography, tableNames []string, datasetName *string, limit *int) (ents []*model.CensusValue, err error) {
 	// dataloader cant easily pass []string
-	return For(ctx).CensusValuesByGeographyID.Load(ctx, model.CensusValueParam{Dataset: datasetName, TableNames: strings.Join(tableNames, ","), Limit: limit, Geoid: *obj.Geoid})()
+	return LoaderFor(ctx).CensusValuesByGeographyID.Load(ctx, model.CensusValueParam{Dataset: datasetName, TableNames: strings.Join(tableNames, ","), Limit: limit, Geoid: *obj.Geoid})()
 }
 
 type censusValueResolver struct{ *Resolver }
 
 func (r *censusValueResolver) Table(ctx context.Context, obj *model.CensusValue) (*model.CensusTable, error) {
-	return For(ctx).CensusTableByID.Load(ctx, obj.TableID)()
+	return LoaderFor(ctx).CensusTableByID.Load(ctx, obj.TableID)()
 }
 
 type censusTableResolver struct{ *Resolver }
 
 func (r *censusTableResolver) Fields(ctx context.Context, obj *model.CensusTable) ([]*model.CensusField, error) {
-	return For(ctx).CensusFieldsByTableID.Load(ctx, model.CensusFieldParam{TableID: obj.ID})()
+	return LoaderFor(ctx).CensusFieldsByTableID.Load(ctx, model.CensusFieldParam{TableID: obj.ID})()
 }
 
 // add geography resolvers to agency, route, stop
 
 func (r *agencyResolver) CensusGeographies(ctx context.Context, obj *model.Agency, limit *int, where *model.CensusGeographyFilter) (ents []*model.CensusGeography, err error) {
-	return For(ctx).CensusGeographiesByEntityID.Load(ctx, model.CensusGeographyParam{
+	return LoaderFor(ctx).CensusGeographiesByEntityID.Load(ctx, model.CensusGeographyParam{
 		EntityType: "agency",
 		EntityID:   obj.ID,
 		Limit:      limit,
@@ -57,7 +68,7 @@ func (r *agencyResolver) CensusGeographies(ctx context.Context, obj *model.Agenc
 }
 
 func (r *routeResolver) CensusGeographies(ctx context.Context, obj *model.Route, limit *int, where *model.CensusGeographyFilter) (ents []*model.CensusGeography, err error) {
-	return For(ctx).CensusGeographiesByEntityID.Load(ctx, model.CensusGeographyParam{
+	return LoaderFor(ctx).CensusGeographiesByEntityID.Load(ctx, model.CensusGeographyParam{
 		EntityType: "route",
 		EntityID:   obj.ID,
 		Limit:      limit,
@@ -66,7 +77,7 @@ func (r *routeResolver) CensusGeographies(ctx context.Context, obj *model.Route,
 }
 
 func (r *stopResolver) CensusGeographies(ctx context.Context, obj *model.Stop, limit *int, where *model.CensusGeographyFilter) (ents []*model.CensusGeography, err error) {
-	return For(ctx).CensusGeographiesByEntityID.Load(ctx, model.CensusGeographyParam{
+	return LoaderFor(ctx).CensusGeographiesByEntityID.Load(ctx, model.CensusGeographyParam{
 		EntityType: "stop",
 		EntityID:   obj.ID,
 		Limit:      limit,

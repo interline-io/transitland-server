@@ -1102,11 +1102,12 @@ type CensusDataset {
   "Maximum year of data in this dataset"
   year_max: Int!
   # Sources in this dataset
-  sources: [CensusSource!]
+  sources(limit: Int, where: CensusSourceFilter): [CensusSource!]
   # Census geographies in this dataset
-  geographies(limit: Int): [CensusGeography!]
+  geographies(limit: Int, where: CensusGeographyFilter): [CensusGeography!]
   # Census tables in this dataset
-  tables(limit: Int): [CensusTable!]
+  tables(limit: Int, where: CensusTableFilter): [CensusTable!]
+  layers: [String!]
 }
 
 type CensusSource {
@@ -1122,6 +1123,8 @@ type CensusSource {
   geographies(limit: Int): [CensusGeography!]
   # Census tables in this source
   tables(limit: Int): [CensusTable!]
+  # Layers
+  layers: [String!]
 }
 
 """Census geography data"""
@@ -1839,6 +1842,16 @@ input CensusGeographyFilter {
   dataset: String
   layer: String
   radius: Float
+  search: String
+}
+
+input CensusTableFilter {
+  search: String
+}
+
+input CensusSourceFilter {
+  source_name: String
+  search: String
 }
 
 """Search options for route segments"""
