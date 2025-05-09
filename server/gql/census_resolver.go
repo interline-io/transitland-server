@@ -7,6 +7,12 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
+type CensusSourceParam struct {
+	DatasetID int
+	Limit     *int
+	Where     *model.CensusSourceFilter
+}
+
 ////////////////////////// CENSUS RESOLVERS
 
 type censusDatasetResolver struct{ *Resolver }
@@ -16,7 +22,7 @@ func (r *censusDatasetResolver) Geographies(ctx context.Context, obj *model.Cens
 }
 
 func (r *censusDatasetResolver) Sources(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusSourceFilter) (ents []*model.CensusSource, err error) {
-	return LoaderFor(ctx).CensusSourcesByDatasetID.Load(ctx, model.CensusSourceParam{DatasetID: obj.ID, Limit: limit, Where: where})()
+	return LoaderFor(ctx).CensusSourcesByDatasetIDs.Load(ctx, CensusSourceParam{DatasetID: obj.ID, Limit: limit, Where: where})()
 }
 
 func (r *censusDatasetResolver) Tables(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusTableFilter) (ents []*model.CensusTable, err error) {
