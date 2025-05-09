@@ -3,6 +3,7 @@ package gql
 // import graph gophers with your other imports
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -33,7 +34,7 @@ type Loaders struct {
 	CensusFieldsByTableID                                        *dataloader.Loader[model.CensusFieldParam, []*model.CensusField]
 	CensusGeographiesByDatasetID                                 *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
 	CensusGeographiesByEntityID                                  *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
-	CensusSourcesByDatasetID                                     *dataloader.Loader[model.CensusSourceParam, []*model.CensusSource]
+	CensusSourcesByDatasetIDs                                    *dataloader.Loader[CensusSourceParam, []*model.CensusSource]
 	CensusTableByID                                              *dataloader.Loader[int, *model.CensusTable]
 	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
 	FeedFetchesByFeedID                                          *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
@@ -100,20 +101,37 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		stopTimeBatchSize = maxBatch
 	}
 	loaders := &Loaders{
-		AgenciesByFeedVersionID:                 withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByFeedVersionID),
-		AgenciesByID:                            withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByID),
-		AgenciesByOnestopID:                     withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByOnestopID),
-		AgencyPlacesByAgencyID:                  withWaitAndCapacity(waitTime, batchSize, dbf.AgencyPlacesByAgencyID),
-		CalendarDatesByServiceID:                withWaitAndCapacity(waitTime, batchSize, dbf.CalendarDatesByServiceID),
-		CalendarsByID:                           withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
-		CensusDatasetLayersByDatasetID:          withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetID),
-		CensusSourceLayersBySourceID:            withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceID),
-		CensusFieldsByTableID:                   withWaitAndCapacity(waitTime, batchSize, dbf.CensusFieldsByTableID),
-		CensusGeographiesByDatasetID:            withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByDatasetID),
-		CensusGeographiesByEntityID:             withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByEntityID),
-		CensusSourcesByDatasetID:                withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourcesByDatasetID),
-		CensusTableByID:                         withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
-		CensusValuesByGeographyID:               withWaitAndCapacity(waitTime, batchSize, dbf.CensusValuesByGeographyID),
+		AgenciesByFeedVersionID:        withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByFeedVersionID),
+		AgenciesByID:                   withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByID),
+		AgenciesByOnestopID:            withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByOnestopID),
+		AgencyPlacesByAgencyID:         withWaitAndCapacity(waitTime, batchSize, dbf.AgencyPlacesByAgencyID),
+		CalendarDatesByServiceID:       withWaitAndCapacity(waitTime, batchSize, dbf.CalendarDatesByServiceID),
+		CalendarsByID:                  withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
+		CensusDatasetLayersByDatasetID: withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetID),
+		CensusSourceLayersBySourceID:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceID),
+		CensusFieldsByTableID:          withWaitAndCapacity(waitTime, batchSize, dbf.CensusFieldsByTableID),
+		CensusGeographiesByDatasetID:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByDatasetID),
+		CensusGeographiesByEntityID:    withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByEntityID),
+		CensusTableByID:                withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
+		CensusValuesByGeographyID:      withWaitAndCapacity(waitTime, batchSize, dbf.CensusValuesByGeographyID),
+		CensusSourcesByDatasetIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []CensusSourceParam) ([][]*model.CensusSource, []error) {
+				return paramGroupQuery(
+					params,
+					func(p CensusSourceParam) (int, *model.CensusSourceFilter, *int) {
+						return p.DatasetID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.CensusSourceFilter, limit *int) (ents []*model.CensusSource, err error) {
+						return dbf.CensusSourcesByDatasetIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.CensusSource) int {
+						return ent.DatasetID
+					},
+				)
+			},
+		),
 		FeedFetchesByFeedID:                     withWaitAndCapacity(waitTime, batchSize, dbf.FeedFetchesByFeedID),
 		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedInfosByFeedVersionID),
 		FeedsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),
@@ -225,4 +243,93 @@ func unwrapResult[
 		return ret
 	}
 	return x
+}
+
+////////////
+
+// Multiple param sets
+
+func paramGroupQuery[
+	K comparable,
+	P any,
+	W any,
+	R any,
+](
+	params []P,
+	paramFunc func(P) (K, W, *int),
+	queryFunc func([]K, W, *int) ([]*R, error),
+	keyFunc func(*R) K,
+) ([][]*R, []error) {
+	// Create return value
+	ret := make([][]*R, len(params))
+	errs := make([]error, len(params))
+
+	// Group params by JSON representation
+	type paramGroupItem[K comparable, M any] struct {
+		Limit *int
+		Where M
+	}
+	type paramGroup[K comparable, M any] struct {
+		Index []int
+		Keys  []K
+		Limit *int
+		Where M
+	}
+	paramGroups := map[string]paramGroup[K, W]{}
+	for i, param := range params {
+		// Get values from supplied func
+		key, where, limit := paramFunc(param)
+
+		// Convert to paramGroupItem
+		item := paramGroupItem[K, W]{
+			Limit: limit,
+			Where: where,
+		}
+
+		// Use the JSON representation of Where and Limit as the key
+		jj, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
+		if err != nil {
+			// TODO: log and expand error
+			errs[i] = err
+			continue
+		}
+		paramGroupKey := string(jj)
+
+		// Add index and key
+		a, ok := paramGroups[paramGroupKey]
+		if !ok {
+			a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
+		}
+		a.Index = append(a.Index, i)
+		a.Keys = append(a.Keys, key)
+		paramGroups[paramGroupKey] = a
+	}
+
+	// Process each param group
+	for _, pgroup := range paramGroups {
+		// Run query function
+		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
+
+		// Group using keyFunc and merge into output
+		// limit := checkLimit(pgroup.Limit)
+		limit := uint64(1000)
+		bykey := map[K][]*R{}
+		for _, ent := range ents {
+			key := keyFunc(ent)
+			bykey[key] = append(bykey[key], ent)
+		}
+		for keyidx, key := range pgroup.Keys {
+			idx := pgroup.Index[keyidx]
+			gi := bykey[key]
+			if err != nil {
+				errs[idx] = err
+			}
+			if uint64(len(gi)) <= limit {
+				ret[idx] = gi
+			} else {
+				ret[idx] = gi[0:limit]
+			}
+		}
+	}
+	return ret, errs
 }

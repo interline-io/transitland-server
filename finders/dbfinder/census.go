@@ -78,32 +78,49 @@ func (f *Finder) CensusValuesByGeographyID(ctx context.Context, params []model.C
 	)
 }
 
-func (f *Finder) CensusSourcesByDatasetID(ctx context.Context, params []model.CensusSourceParam) ([][]*model.CensusSource, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.CensusSourceParam) (int, *model.CensusSourceParam, *int) {
-			return p.DatasetID, &model.CensusSourceParam{Where: p.Where}, p.Limit
-		},
-		func(keys []int, param *model.CensusSourceParam, limit *int) (ents []*model.CensusSource, err error) {
-			q := censusSourceSelect(limit, nil, nil, param.Where)
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					q,
-					"tl_census_datasets",
-					"id",
-					"tl_census_sources",
-					"dataset_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.CensusSource) int {
-			return ent.DatasetID
-		},
+// func (f *Finder) CensusSourcesByDatasetID(ctx context.Context, params []model.CensusSourceParam) ([][]*model.CensusSource, []error) {
+// 	return paramGroupQuery(
+// 		params,
+// 		func(p model.CensusSourceParam) (int, *model.CensusSourceParam, *int) {
+// 			return p.DatasetID, &model.CensusSourceParam{Where: p.Where}, p.Limit
+// 		},
+// 		func(keys []int, param *model.CensusSourceParam, limit *int) (ents []*model.CensusSource, err error) {
+// 			q := censusSourceSelect(limit, nil, nil, param.Where)
+// 			err = dbutil.Select(ctx,
+// 				f.db,
+// 				lateralWrap(
+// 					q,
+// 					"tl_census_datasets",
+// 					"id",
+// 					"tl_census_sources",
+// 					"dataset_id",
+// 					keys,
+// 				),
+// 				&ents,
+// 			)
+// 			return ents, err
+// 		},
+// 		func(ent *model.CensusSource) int {
+// 			return ent.DatasetID
+// 		},
+// 	)
+// }
+
+func (f *Finder) CensusSourcesByDatasetIDs(ctx context.Context, limit *int, where *model.CensusSourceFilter, datasetIds []int) (ents []*model.CensusSource, err error) {
+	q := censusSourceSelect(limit, nil, nil, where)
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			q,
+			"tl_census_datasets",
+			"id",
+			"tl_census_sources",
+			"dataset_id",
+			datasetIds,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) CensusDatasetLayersByDatasetID(ctx context.Context, ids []int) ([][]string, []error) {
