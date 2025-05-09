@@ -1716,7 +1716,7 @@ input Feature {
   geometry: Geometry
 }
 
-input GeomFilter {
+input LocationFilter {
   "Search for stops within this bounding box"
   bbox: BoundingBox
   "Search for stops within this geographic polygon"
@@ -1759,7 +1759,7 @@ input StopFilter {
   "Search for stops with these agency integer IDs. Deprecated."
   agency_ids: [Int!]
   "Geographic search by bbox, radius, or features"
-  location: GeomFilter
+  location: LocationFilter
   "Backward compat: Search for stops within this bounding box"
   bbox: BoundingBox
   "Backward compat: Search for stops within this geographic polygon"

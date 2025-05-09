@@ -347,18 +347,35 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		q = q.JoinClause(`LEFT JOIN feed_version_stop_onestop_ids ON feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
 	}
 
-	// Handle other clauses
+	// Handle geom search
 	if where != nil {
-		if where.Bbox != nil {
+		// Backwards compat
+		var loc = where.Location
+		if loc == nil && (where.Near != nil || where.Within != nil || where.Bbox != nil) {
+			loc = &model.LocationFilter{
+				Near:   where.Near,
+				Within: where.Within,
+				Bbox:   where.Bbox,
+			}
+		}
+		// Apply location filters
+		if loc == nil {
+			loc = &model.LocationFilter{}
+		}
+		if loc.Bbox != nil {
 			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
 		}
-		if where.Within != nil && where.Within.Valid {
+		if loc.Within != nil && where.Within.Valid {
 			q = q.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
 		}
-		if where.Near != nil {
+		if loc.Near != nil {
 			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
 			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
+	}
+
+	// Handle other clauses
+	if where != nil {
 		if where.StopCode != nil {
 			q = q.Where(sq.Eq{"gtfs_stops.stop_code": where.StopCode})
 		}

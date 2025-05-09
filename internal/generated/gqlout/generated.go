@@ -7292,9 +7292,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFeedVersionSetInput,
 		ec.unmarshalInputGbfsBikeRequest,
 		ec.unmarshalInputGbfsDockRequest,
-		ec.unmarshalInputGeomFilter,
 		ec.unmarshalInputLevelSetInput,
 		ec.unmarshalInputLicenseFilter,
+		ec.unmarshalInputLocationFilter,
 		ec.unmarshalInputOperatorFilter,
 		ec.unmarshalInputPathwayFilter,
 		ec.unmarshalInputPathwaySetInput,
@@ -9537,7 +9537,7 @@ input Feature {
   geometry: Geometry
 }
 
-input GeomFilter {
+input LocationFilter {
   "Search for stops within this bounding box"
   bbox: BoundingBox
   "Search for stops within this geographic polygon"
@@ -9580,7 +9580,7 @@ input StopFilter {
   "Search for stops with these agency integer IDs. Deprecated."
   agency_ids: [Int!]
   "Geographic search by bbox, radius, or features"
-  location: GeomFilter
+  location: LocationFilter
   "Backward compat: Search for stops within this bounding box"
   bbox: BoundingBox
   "Backward compat: Search for stops within this geographic polygon"
@@ -56083,54 +56083,6 @@ func (ec *executionContext) unmarshalInputGbfsDockRequest(ctx context.Context, o
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputGeomFilter(ctx context.Context, obj any) (model.GeomFilter, error) {
-	var it model.GeomFilter
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"bbox", "within", "features", "near"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "bbox":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
-			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Bbox = data
-		case "within":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
-			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Within = data
-		case "features":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("features"))
-			data, err := ec.unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Features = data
-		case "near":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
-			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Near = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputLevelSetInput(ctx context.Context, obj any) (model.LevelSetInput, error) {
 	var it model.LevelSetInput
 	asMap := map[string]any{}
@@ -56249,6 +56201,54 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 				return it, err
 			}
 			it.RedistributionAllowed = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputLocationFilter(ctx context.Context, obj any) (model.LocationFilter, error) {
+	var it model.LocationFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bbox", "within", "features", "near"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bbox":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
+			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Bbox = data
+		case "within":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
+			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Within = data
+		case "features":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("features"))
+			data, err := ec.unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Features = data
+		case "near":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Near = data
 		}
 	}
 
@@ -57031,7 +57031,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 			it.AgencyIds = data
 		case "location":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
-			data, err := ec.unmarshalOGeomFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGeomFilter(ctx, v)
+			data, err := ec.unmarshalOLocationFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLocationFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -71565,14 +71565,6 @@ func (ec *executionContext) marshalOGbfsVehicleTypeAvailable2ᚕᚖgithubᚗcom�
 	return ret
 }
 
-func (ec *executionContext) unmarshalOGeomFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGeomFilter(ctx context.Context, v any) (*model.GeomFilter, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputGeomFilter(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOGeometry2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐGeometry(ctx context.Context, v any) (tt.Geometry, error) {
 	var res tt.Geometry
 	err := res.UnmarshalGQL(v)
@@ -71851,6 +71843,14 @@ func (ec *executionContext) marshalOLineString2ᚖgithubᚗcomᚋinterlineᚑio�
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOLocationFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐLocationFilter(ctx context.Context, v any) (*model.LocationFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLocationFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOOperator2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐOperatorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Operator) graphql.Marshaler {

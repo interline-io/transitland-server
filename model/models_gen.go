@@ -427,16 +427,6 @@ type GbfsDockRequest struct {
 	Near *PointRadius `json:"near,omitempty"`
 }
 
-type GeomFilter struct {
-	// Search for stops within this bounding box
-	Bbox *BoundingBox `json:"bbox,omitempty"`
-	// Search for stops within this geographic polygon
-	Within   *tt.Polygon `json:"within,omitempty"`
-	Features []*Feature  `json:"features,omitempty"`
-	// Search for stops within specified radius of a point
-	Near *PointRadius `json:"near,omitempty"`
-}
-
 type Itinerary struct {
 	Duration  *Duration `json:"duration"`
 	Distance  *Distance `json:"distance"`
@@ -517,6 +507,16 @@ type LicenseFilter struct {
 	UseWithoutAttribution *LicenseValue `json:"use_without_attribution,omitempty"`
 	// Search for entities with this Redistribution Allowed restriction
 	RedistributionAllowed *LicenseValue `json:"redistribution_allowed,omitempty"`
+}
+
+type LocationFilter struct {
+	// Search for stops within this bounding box
+	Bbox *BoundingBox `json:"bbox,omitempty"`
+	// Search for stops within this geographic polygon
+	Within   *tt.Polygon `json:"within,omitempty"`
+	Features []*Feature  `json:"features,omitempty"`
+	// Search for stops within specified radius of a point
+	Near *PointRadius `json:"near,omitempty"`
 }
 
 // Current user metadata
@@ -924,7 +924,7 @@ type StopFilter struct {
 	// Search for stops with these agency integer IDs. Deprecated.
 	AgencyIds []int `json:"agency_ids,omitempty"`
 	// Geographic search by bbox, radius, or features
-	Location *GeomFilter `json:"location,omitempty"`
+	Location *LocationFilter `json:"location,omitempty"`
 	// Backward compat: Search for stops within this bounding box
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 	// Backward compat: Search for stops within this geographic polygon
