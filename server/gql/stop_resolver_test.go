@@ -152,11 +152,19 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 			selectExpect: []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"},
 		},
 		{
-			name:  "where within polygon",
-			query: `query{stops(where:{within:{type:"Polygon",coordinates:[[[-122.396,37.8],[-122.408,37.79],[-122.393,37.778],[-122.38,37.787],[-122.396,37.8]]]}}){id stop_id}}`,
-
+			name:         "where within polygon",
+			query:        `query{stops(where:{within:{type:"Polygon",coordinates:[[[-122.396,37.8],[-122.408,37.79],[-122.393,37.778],[-122.38,37.787],[-122.396,37.8]]]}}){id stop_id}}`,
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{"EMBR", "MONT"},
+		},
+		// MatchPolygons
+		{
+			name: "where locations within_features",
+			query: `query {stops(where:{location:{features:[
+			{id:"abc",geometry:{type:"Polygon",coordinates:[[[-122.26056968514843,37.82764708485912],[-122.27696196387409,37.802600070178286],[-122.2689749038766,37.800104259637735],[-122.25401406862724,37.82458700630413],[-122.26056968514843,37.82764708485912]]]}}
+			]}}){id stop_id}}`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"12TH", "19TH", "19TH_N"},
 		},
 		{
 			name:         "where onestop_id",

@@ -2,6 +2,8 @@ package dbfinder
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
@@ -371,6 +373,50 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		if loc.Near != nil {
 			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
 			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+		}
+		if len(loc.Features) > 0 {
+			// SELECT
+			// 	gtfs_stops.id,
+			// 	array_agg(features.id) feature_ids
+			// FROM gtfs_stops
+			// JOIN (
+			// 	SELECT
+			// 		(feature::json->'properties'->>'id') AS id,
+			// 		ST_GeomFromGeoJSON(feature::json->'geometry') geometry
+			// 	FROM unnest(ARRAY[
+			// 		'{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-122.27262458518825,37.80633825263463],[-122.27549363705046,37.803039475768074],[-122.26892051076885,37.799825141197346],[-122.26476680881899,37.806321336206125],[-122.27262458518825,37.80633825263463]]]},"properties":{"id":"feature1"}}',
+			// 		'{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-122.275082012318,37.8381941786717],[-122.28776836687179,37.79433566951509],[-122.22448054978109,37.77530494953251],[-122.2035736613928,37.842876831100426],[-122.275082012318,37.8381941786717]]]},"properties":{"id":"feature2"}}'
+			// 	]) feature
+			// ) features ON ST_Intersects(gtfs_stops.geometry, features.geometry)
+			// GROUP BY gtfs_stops.id
+
+			var fjArray []any
+			for _, v := range loc.Features {
+				fj, _ := json.Marshal(v)
+				fmt.Println("FJ:", string(fj))
+				fjArray = append(fjArray, string(fj))
+			}
+
+			// featureq := sq.StatementBuilder.
+			// 	Select(
+			// 		"(feature::json->'properties'->>'id') AS feature_id",
+			// 		"ST_GeomFromGeoJSON(feature::json->'geometry') geometry",
+			// 	).
+			featureq := sq.StatementBuilder.
+				Select(
+					"feature::json->'properties'->>'id' as feature_id",
+					"ST_GeomFromGeoJSON(feature::json->'geometry') geometry",
+				).
+				FromSelect(sq.StatementBuilder.Select().Column(sq.Expr("unnest(ARRAY[?]) feature", fjArray...)), "t")
+			qloc := sq.StatementBuilder.
+				Select(
+					"gtfs_stops.id",
+					"array_agg(features.feature_id) feature_ids",
+				).
+				From("gtfs_stops").
+				JoinClause(featureq.Prefix("JOIN (").Suffix(") features ON ST_Intersects(gtfs_stops.geometry, features.geometry)")).
+				GroupBy("gtfs_stops.id")
+			q = q.JoinClause(qloc.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id"))
 		}
 	}
 
