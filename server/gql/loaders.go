@@ -33,7 +33,7 @@ type Loaders struct {
 	CensusSourceLayersBySourceID                                 *dataloader.Loader[int, []string]
 	CensusFieldsByTableID                                        *dataloader.Loader[model.CensusFieldParam, []*model.CensusField]
 	CensusGeographiesByDatasetID                                 *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
-	CensusGeographiesByEntityID                                  *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
+	CensusGeographiesByEntityIDs                                 *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
 	CensusSourcesByDatasetIDs                                    *dataloader.Loader[CensusSourceParam, []*model.CensusSource]
 	CensusTableByID                                              *dataloader.Loader[int, *model.CensusTable]
 	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
@@ -111,9 +111,29 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusSourceLayersBySourceID:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceID),
 		CensusFieldsByTableID:          withWaitAndCapacity(waitTime, batchSize, dbf.CensusFieldsByTableID),
 		CensusGeographiesByDatasetID:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByDatasetID),
-		CensusGeographiesByEntityID:    withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByEntityID),
-		CensusTableByID:                withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
-		CensusValuesByGeographyID:      withWaitAndCapacity(waitTime, batchSize, dbf.CensusValuesByGeographyID),
+		CensusGeographiesByEntityIDs: withWaitAndCapacity(waitTime, batchSize,
+			func(ctx context.Context, params []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.CensusGeographyParam) (int, *model.CensusGeographyParam, *int) {
+						rp := model.CensusGeographyParam{
+							EntityType: p.EntityType,
+							Limit:      p.Limit,
+							Where:      p.Where,
+						}
+						return p.EntityID, &rp, p.Limit
+					},
+					func(keys []int, where *model.CensusGeographyParam, limit *int) (ents []*model.CensusGeography, err error) {
+						return dbf.CensusGeographiesByEntityIDs(ctx, limit, where.EntityType, keys, where.Where)
+					},
+					func(ent *model.CensusGeography) int {
+						return ent.MatchEntityID
+					},
+				)
+			},
+		),
+		CensusTableByID:           withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
+		CensusValuesByGeographyID: withWaitAndCapacity(waitTime, batchSize, dbf.CensusValuesByGeographyID),
 		CensusSourcesByDatasetIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,

@@ -118,7 +118,7 @@ type EntityLoader interface {
 	PathwaysByFromStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
 	PathwaysByToStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
 	CalendarDatesByServiceID(context.Context, []CalendarDateParam) ([][]*CalendarDate, []error)
-	CensusGeographiesByEntityID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
+	CensusGeographiesByEntityIDs(context.Context, *int, string, []int, *CensusGeographyFilter) ([]*CensusGeography, error)
 	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
 	CensusFieldsByTableID(context.Context, []CensusFieldParam) ([][]*CensusField, []error)
 	CensusSourcesByDatasetIDs(context.Context, *int, *CensusSourceFilter, []int) ([]*CensusSource, error)
