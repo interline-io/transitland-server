@@ -10,6 +10,8 @@ import (
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/model"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/geojson"
 )
 
 func (f *Finder) FindStops(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
@@ -352,29 +354,27 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	// Handle geom search
 	if where != nil {
 		// Backwards compat
-		loc := &model.LocationFilter{
-			Features: where.WithinFeatures,
-		}
-		if where.Near != nil || where.Within != nil || where.Bbox != nil {
-			loc = &model.LocationFilter{
-				Near:   where.Near,
-				Within: where.Within,
-				Bbox:   where.Bbox,
+		if len(where.WithinFeatures) > 0 {
+			// Set bounding box from features
+			var fc []*geojson.Feature
+			fcBbox := geom.Bounds{}
+			for _, f := range where.WithinFeatures {
+				fc = append(fc, &geojson.Feature{
+					ID:       nilOr(f.ID, ""),
+					Geometry: f.Geometry.Val,
+				})
+				fcBbox.Extend(f.Geometry.Val)
 			}
-		}
-		if loc.Bbox != nil {
-			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
-		}
-		if loc.Within != nil && where.Within.Valid {
-			q = q.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
-		}
-		if loc.Near != nil {
-			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
-			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
-		}
-		if len(loc.Features) > 0 {
+			// fc2 := geojson.FeatureCollection{Features: fc}
+			where.Bbox = &model.BoundingBox{
+				MinLon: fcBbox.Min(0),
+				MinLat: fcBbox.Min(1),
+				MaxLon: fcBbox.Max(0),
+				MaxLat: fcBbox.Max(1),
+			}
+
 			// Search based on GeoJSON features, and include the matching features in response
-			fjArray, err := json.Marshal(loc.Features)
+			fjArray, err := json.Marshal(fc)
 			if err != nil {
 				log.Error().Msgf("failed to encode features as json: %s", err)
 			}
@@ -397,6 +397,16 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 			q = q.
 				Column("features.feature_ids as within_features").
 				JoinClause(featureQuery.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id"))
+		}
+		if where.Bbox != nil {
+			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
+		}
+		if where.Within != nil && where.Within.Valid {
+			q = q.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
+		}
+		if where.Near != nil {
+			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
+			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
 	}
 
