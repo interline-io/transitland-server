@@ -923,13 +923,13 @@ type StopFilter struct {
 	ServedByRouteTypes []int `json:"served_by_route_types,omitempty"`
 	// Search for stops with these agency integer IDs. Deprecated.
 	AgencyIds []int `json:"agency_ids,omitempty"`
-	// Geographic search by bbox, radius, or features
-	Location *LocationFilter `json:"location,omitempty"`
-	// Backward compat: Search for stops within this bounding box
+	// Search for stops within this bounding box
 	Bbox *BoundingBox `json:"bbox,omitempty"`
-	// Backward compat: Search for stops within this geographic polygon
+	// Search for stops within this geographic polygon
 	Within *tt.Polygon `json:"within,omitempty"`
-	// Backward compat: Search for stops within specified radius of a point
+	// Search for stops within these geojson features
+	WithinFeatures []*Feature `json:"within_features,omitempty"`
+	// Search for stops within specified radius of a point
 	Near *PointRadius `json:"near,omitempty"`
 }
 

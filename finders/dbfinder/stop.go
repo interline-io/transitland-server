@@ -352,17 +352,15 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	// Handle geom search
 	if where != nil {
 		// Backwards compat
-		var loc = where.Location
-		if loc == nil && (where.Near != nil || where.Within != nil || where.Bbox != nil) {
+		loc := &model.LocationFilter{
+			Features: where.WithinFeatures,
+		}
+		if where.Near != nil || where.Within != nil || where.Bbox != nil {
 			loc = &model.LocationFilter{
 				Near:   where.Near,
 				Within: where.Within,
 				Bbox:   where.Bbox,
 			}
-		}
-		// Apply location filters
-		if loc == nil {
-			loc = &model.LocationFilter{}
 		}
 		if loc.Bbox != nil {
 			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
