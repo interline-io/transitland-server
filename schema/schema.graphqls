@@ -633,6 +633,8 @@ type Stop {
   nearby_stops(limit: Int, radius: Float): [Stop!]
   "GTFS-RT Alerts for this stop"
   alerts(active: Boolean, limit: Int): [Alert!]
+  "Matching feature ids from polygon search"
+  within_features: Strings
 }
 
 """Record from a static GTFS [pathways.txt](https://gtfs.org/reference/static/#pathwaysstxt). Pathways are a graph representation of a subway or train station, with nodes (entrances, platforms, etc) and edges (the pathways). See https://gtfs.org/reference/static/#pathwaystxt"""

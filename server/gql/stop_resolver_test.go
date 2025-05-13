@@ -2,6 +2,7 @@ package gql
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/interline-io/transitland-server/model"
@@ -12,6 +13,11 @@ import (
 func TestStopResolver(t *testing.T) {
 	c, cfg := newTestClient(t)
 	queryTestcases(t, c, stopResolverTestcases(t, cfg))
+}
+
+func TestStopResolverLocation(t *testing.T) {
+	c, cfg := newTestClient(t)
+	queryTestcases(t, c, stopResolverLocationTestcases(t, cfg))
 }
 
 func TestStopResolver_Cursor(t *testing.T) {
@@ -87,6 +93,14 @@ func BenchmarkStopResolver(b *testing.B) {
 	benchmarkTestcases(b, c, stopResolverTestcases(b, cfg))
 }
 
+func decodeGeojson(d string) hw {
+	featureAbc := hw{}
+	if err := json.Unmarshal([]byte(d), &featureAbc); err != nil {
+		panic(err)
+	}
+	return featureAbc
+}
+
 func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 	bartStops := []string{"12TH", "16TH", "19TH", "19TH_N", "24TH", "ANTC", "ASHB", "BALB", "BAYF", "CAST", "CIVC", "COLS", "COLM", "CONC", "DALY", "DBRK", "DUBL", "DELN", "PLZA", "EMBR", "FRMT", "FTVL", "GLEN", "HAYW", "LAFY", "LAKE", "MCAR", "MCAR_S", "MLBR", "MONT", "NBRK", "NCON", "OAKL", "ORIN", "PITT", "PCTR", "PHIL", "POWL", "RICH", "ROCK", "SBRN", "SFIA", "SANL", "SHAY", "SSAN", "UCTY", "WCRK", "WARM", "WDUB", "WOAK"}
 	caltrainRailStops := []string{"70011", "70012", "70021", "70022", "70031", "70032", "70041", "70042", "70051", "70052", "70061", "70062", "70071", "70072", "70081", "70082", "70091", "70092", "70101", "70102", "70111", "70112", "70121", "70122", "70131", "70132", "70141", "70142", "70151", "70152", "70161", "70162", "70171", "70172", "70191", "70192", "70201", "70202", "70211", "70212", "70221", "70222", "70231", "70232", "70241", "70242", "70251", "70252", "70261", "70262", "70271", "70272", "70281", "70282", "70291", "70292", "70301", "70302", "70311", "70312", "70321", "70322"}
@@ -98,6 +112,7 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 	allStops = append(allStops, bartStops...)
 	allStops = append(allStops, caltrainStops...)
 	vars := hw{"stop_id": "MCAR"}
+
 	stopObsFvid := 0
 	if err := cfg.Finder.DBX().QueryRowx("select feed_version_id from ext_performance_stop_observations limit 1").Scan(&stopObsFvid); err != nil {
 		t.Errorf("could not get fvid for stop observation test: %s", err.Error())
@@ -117,14 +132,6 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 			expect: `{"stops":[{"feed_onestop_id":"BA","feed_version_sha1":"e535eb2b3b9ac3ef15d82c56575e914575e732e0","location_type":0,"onestop_id":"s-9q9p1wxf72-macarthur","stop_code":null,"stop_desc":null,"stop_id":"MCAR","stop_name":"MacArthur","stop_timezone":null,"stop_url":"http://www.bart.gov/stations/MCAR/","wheelchair_boarding":1,"zone_id":"MCAR"}]}`,
 		},
 		{
-			// just ensure this query completes successfully; checking coordinates is a pain and flaky.
-			name:         "geometry",
-			query:        `query($stop_id: String!) {  stops(where:{stop_id:$stop_id}) {geometry} }`,
-			vars:         vars,
-			selector:     "stops.0.geometry.type",
-			selectExpect: []string{"Point"},
-		},
-		{
 			name:   "feed_version",
 			query:  `query($stop_id: String!) {  stops(where:{stop_id:$stop_id}) {feed_version_sha1} }`,
 			vars:   vars,
@@ -137,35 +144,7 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 			selector:     "stops.0.route_stops.#.route.route_id",
 			selectExpect: []string{"01", "03", "07"},
 		},
-		{
-			name:         "where near 10m",
-			query:        `query {stops(where:{near:{lon:-122.407974,lat:37.784471,radius:10.0}}) {stop_id onestop_id geometry}}`,
-			vars:         vars,
-			selector:     "stops.#.stop_id",
-			selectExpect: []string{"POWL"},
-		},
-		{
-			name:         "where near 2000m",
-			query:        `query {stops(where:{near:{lon:-122.407974,lat:37.784471,radius:2000.0}}) {stop_id onestop_id geometry}}`,
-			vars:         vars,
-			selector:     "stops.#.stop_id",
-			selectExpect: []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"},
-		},
-		{
-			name:         "where within polygon",
-			query:        `query{stops(where:{within:{type:"Polygon",coordinates:[[[-122.396,37.8],[-122.408,37.79],[-122.393,37.778],[-122.38,37.787],[-122.396,37.8]]]}}){id stop_id}}`,
-			selector:     "stops.#.stop_id",
-			selectExpect: []string{"EMBR", "MONT"},
-		},
-		// MatchPolygons
-		{
-			name: "where locations within_features",
-			query: `query {stops(where:{location:{features:[
-			{id:"abc",geometry:{type:"Polygon",coordinates:[[[-122.26056968514843,37.82764708485912],[-122.27696196387409,37.802600070178286],[-122.2689749038766,37.800104259637735],[-122.25401406862724,37.82458700630413],[-122.26056968514843,37.82764708485912]]]}}
-			]}}){id stop_id}}`,
-			selector:     "stops.#.stop_id",
-			selectExpect: []string{"12TH", "19TH", "19TH_N"},
-		},
+
 		{
 			name:         "where onestop_id",
 			query:        `query{stops(where:{onestop_id:"s-9q9k658fd1-sanjosediridoncaltrain"}) {stop_id} }`,
@@ -318,86 +297,7 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 			selector:     "stops.0.stop_times.#.trip.trip_id",
 			selectExpect: []string{"3611521SAT", "3631541SAT", "3651601SAT", "3671621SAT", "3691641SAT", "3711701SAT", "3731721SAT", "3751741SAT", "3771801SAT", "3791821SAT", "3611841SAT", "3631901SAT", "2231528SAT", "2251548SAT", "2271608SAT", "2291628SAT", "2311648SAT", "2331708SAT", "2351728SAT", "2211748SAT", "2231808SAT", "2251828SAT", "2271848SAT", "2291908SAT", "4471533SAT", "4491553SAT", "4511613SAT", "4531633SAT", "4411653SAT", "4431713SAT", "4451733SAT", "4471753SAT", "4491813SAT", "4511833SAT", "4531853SAT"},
 		},
-		// nearby stops
-		{
-			name: "nearby stops 1000m",
-			query: `query($stop_id:String!, $radius:Float!) {
-				stops(where: {feed_onestop_id: "BA", stop_id: $stop_id}) {
-				  stop_id
-				  nearby_stops(radius:$radius, limit:10) {
-					stop_id
-				  }
-				}
-			  }			  `,
-			vars:         hw{"stop_id": "19TH", "radius": 1000},
-			selector:     "stops.0.nearby_stops.#.stop_id",
-			selectExpect: []string{"19TH", "19TH_N", "12TH"},
-		},
-		{
-			name: "nearby stops 2000m",
-			query: `query($stop_id:String!, $radius:Float!) {
-				stops(where: {feed_onestop_id: "BA", stop_id: $stop_id}) {
-				  stop_id
-				  nearby_stops(radius:$radius, limit:10) {
-					stop_id
-				  }
-				}
-			  }			  `,
-			vars:         hw{"stop_id": "19TH", "radius": 2000},
-			selector:     "stops.0.nearby_stops.#.stop_id",
-			selectExpect: []string{"19TH", "19TH_N", "12TH", "LAKE"},
-		},
-		// bbox
-		{
-			name: "bbox 1",
-			query: `query($bbox:BoundingBox) {
-				stops(where: {bbox:$bbox}) {
-				  stop_id
-				}
-			  }			  `,
-			vars:         hw{"bbox": hw{"min_lon": -122.2698781543005, "min_lat": 37.80700393130445, "max_lon": -122.2677640139239, "max_lat": 37.8088734037938}},
-			selector:     "stops.#.stop_id",
-			selectExpect: []string{"19TH", "19TH_N"},
-		},
-		{
-			name: "bbox 2",
-			query: `query($bbox:BoundingBox) {
-				stops(where: {bbox:$bbox}) {
-				  stop_id
-				}
-			  }			  `,
-			vars:         hw{"bbox": hw{"min_lon": -124.3340029563042, "min_lat": 40.65505368922123, "max_lon": -123.9653594784379, "max_lat": 40.896440342606525}},
-			selector:     "stops.#.stop_id",
-			selectExpect: []string{},
-		},
-		{
-			name: "bbox too large",
-			query: `query($bbox:BoundingBox) {
-				stops(where: {bbox:$bbox}) {
-				  stop_id
-				}
-			  }			  `,
-			vars:        hw{"bbox": hw{"min_lon": -137.88020156441956, "min_lat": 30.072648315782004, "max_lon": -109.00421121090919, "max_lat": 45.02437957865729}},
-			selector:    "stops.#.stop_id",
-			expectError: true,
-			f: func(t *testing.T, jj string) {
-			},
-		},
-		// this test is just for debugging purposes
-		{
-			name: "nearby stops check n+1 query",
-			query: `query($radius:Float!) {
-				stops(where: {feed_onestop_id: "BA"}) {
-				  stop_id
-				  nearby_stops(radius:$radius, limit:10) {
-					stop_id
-				  }
-				}
-			  }			  `,
-			vars:         hw{"radius": 1000},
-			selector:     "stops.#.stop_id",
-			selectExpect: bartStops,
-		},
+
 		// stop external references
 		{
 			name: "external reference: working",
@@ -529,7 +429,6 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 			selector:     "stops.#.stop_id",
 			selectExpect: []string{},
 		},
-
 		{
 			// Caltrain
 			name:         "stop route_type=3",
@@ -547,6 +446,199 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 		// TODO: route_stop_buffer
 	}
 	return testcases
+}
+
+func stopResolverLocationTestcases(t *testing.T, cfg model.Config) []testcase {
+	vars := hw{"stop_id": "MCAR"}
+
+	featureBig := decodeGeojson(`{
+		"id": "big",
+		"geometry": {
+			"type": "Polygon",
+			"coordinates": [
+			[
+				[
+				-122.26056968514843,
+				37.82764708485912
+				],
+				[
+				-122.27696196387409,
+				37.802600070178286
+				],
+				[
+				-122.2689749038766,
+				37.800104259637735
+				],
+				[
+				-122.25401406862724,
+				37.82458700630413
+				],
+				[
+				-122.26056968514843,
+				37.82764708485912
+				]
+			]
+		]
+	}}`)
+
+	featureSmall := decodeGeojson(`{
+		"id": "small",
+		"geometry": {
+			"coordinates": [
+			[
+				[
+				-122.27340683066507,
+				37.806198590527046
+				],
+				[
+				-122.27340683066507,
+				37.801023273225354
+				],
+				[
+				-122.26772379009174,
+				37.801023273225354
+				],
+				[
+				-122.26772379009174,
+				37.806198590527046
+				],
+				[
+				-122.27340683066507,
+				37.806198590527046
+				]
+			]
+			],
+			"type": "Polygon"
+		}
+	}`)
+
+	bartStops := []string{"12TH", "16TH", "19TH", "19TH_N", "24TH", "ANTC", "ASHB", "BALB", "BAYF", "CAST", "CIVC", "COLS", "COLM", "CONC", "DALY", "DBRK", "DUBL", "DELN", "PLZA", "EMBR", "FRMT", "FTVL", "GLEN", "HAYW", "LAFY", "LAKE", "MCAR", "MCAR_S", "MLBR", "MONT", "NBRK", "NCON", "OAKL", "ORIN", "PITT", "PCTR", "PHIL", "POWL", "RICH", "ROCK", "SBRN", "SFIA", "SANL", "SHAY", "SSAN", "UCTY", "WCRK", "WARM", "WDUB", "WOAK"}
+
+	testcases := []testcase{
+		{
+			// just ensure this query completes successfully; checking coordinates is a pain and flaky.
+			name:         "geometry",
+			query:        `query($stop_id: String!) {  stops(where:{stop_id:$stop_id}) {geometry} }`,
+			vars:         vars,
+			selector:     "stops.0.geometry.type",
+			selectExpect: []string{"Point"},
+		},
+		{
+			name:         "where near 10m",
+			query:        `query {stops(where:{near:{lon:-122.407974,lat:37.784471,radius:10.0}}) {stop_id onestop_id geometry}}`,
+			vars:         vars,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"POWL"},
+		},
+		{
+			name:         "where near 2000m",
+			query:        `query {stops(where:{near:{lon:-122.407974,lat:37.784471,radius:2000.0}}) {stop_id onestop_id geometry}}`,
+			vars:         vars,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"70011", "70012", "CIVC", "EMBR", "MONT", "POWL"},
+		},
+		// within features
+		{
+			name:         "where within polygon",
+			query:        `query{stops(where:{within:{type:"Polygon",coordinates:[[[-122.396,37.8],[-122.408,37.79],[-122.393,37.778],[-122.38,37.787],[-122.396,37.8]]]}}){id stop_id}}`,
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"EMBR", "MONT"},
+		},
+		{
+			name:   "where locations within_features 1",
+			query:  `query($features: [Feature]) {stops(where:{location:{features:$features}}){stop_id within_features}}`,
+			vars:   hw{"features": []hw{featureSmall}},
+			expect: `{"stops":[{"stop_id":"12TH","within_features":["small"]}]}`,
+		},
+		{
+			name:   "where locations within_features 2",
+			query:  `query($features: [Feature]) {stops(where:{location:{features:$features}}){stop_id within_features}}`,
+			vars:   hw{"features": []hw{featureSmall, featureBig}},
+			expect: `{"stops":[{"stop_id":"12TH","within_features":["small","big"]},{"stop_id":"19TH","within_features":["big"]},{"stop_id":"19TH_N","within_features":["big"]}]}`,
+		},
+		// nearby stops
+		{
+			name: "nearby stops 1000m",
+			query: `query($stop_id:String!, $radius:Float!) {
+				stops(where: {feed_onestop_id: "BA", stop_id: $stop_id}) {
+				  stop_id
+				  nearby_stops(radius:$radius, limit:10) {
+					stop_id
+				  }
+				}
+			  }			  `,
+			vars:         hw{"stop_id": "19TH", "radius": 1000},
+			selector:     "stops.0.nearby_stops.#.stop_id",
+			selectExpect: []string{"19TH", "19TH_N", "12TH"},
+		},
+		{
+			name: "nearby stops 2000m",
+			query: `query($stop_id:String!, $radius:Float!) {
+				stops(where: {feed_onestop_id: "BA", stop_id: $stop_id}) {
+				  stop_id
+				  nearby_stops(radius:$radius, limit:10) {
+					stop_id
+				  }
+				}
+			  }			  `,
+			vars:         hw{"stop_id": "19TH", "radius": 2000},
+			selector:     "stops.0.nearby_stops.#.stop_id",
+			selectExpect: []string{"19TH", "19TH_N", "12TH", "LAKE"},
+		},
+		// bbox
+		{
+			name: "bbox 1",
+			query: `query($bbox:BoundingBox) {
+				stops(where: {bbox:$bbox}) {
+				  stop_id
+				}
+			  }			  `,
+			vars:         hw{"bbox": hw{"min_lon": -122.2698781543005, "min_lat": 37.80700393130445, "max_lon": -122.2677640139239, "max_lat": 37.8088734037938}},
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{"19TH", "19TH_N"},
+		},
+		{
+			name: "bbox 2",
+			query: `query($bbox:BoundingBox) {
+				stops(where: {bbox:$bbox}) {
+				  stop_id
+				}
+			  }			  `,
+			vars:         hw{"bbox": hw{"min_lon": -124.3340029563042, "min_lat": 40.65505368922123, "max_lon": -123.9653594784379, "max_lat": 40.896440342606525}},
+			selector:     "stops.#.stop_id",
+			selectExpect: []string{},
+		},
+		{
+			name: "bbox too large",
+			query: `query($bbox:BoundingBox) {
+				stops(where: {bbox:$bbox}) {
+				  stop_id
+				}
+			  }			  `,
+			vars:        hw{"bbox": hw{"min_lon": -137.88020156441956, "min_lat": 30.072648315782004, "max_lon": -109.00421121090919, "max_lat": 45.02437957865729}},
+			selector:    "stops.#.stop_id",
+			expectError: true,
+			f: func(t *testing.T, jj string) {
+			},
+		},
+		// this test is just for debugging purposes
+		{
+			name: "nearby stops check n+1 query",
+			query: `query($radius:Float!) {
+				stops(where: {feed_onestop_id: "BA"}) {
+				  stop_id
+				  nearby_stops(radius:$radius, limit:10) {
+					stop_id
+				  }
+				}
+			  }			  `,
+			vars:         hw{"radius": 1000},
+			selector:     "stops.#.stop_id",
+			selectExpect: bartStops,
+		},
+	}
+	return testcases
+
 }
 
 func stopResolverCursorTestcases(t *testing.T, cfg model.Config) []testcase {
