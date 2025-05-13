@@ -353,7 +353,6 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 
 	// Handle geom search
 	if where != nil {
-		// Backwards compat
 		if len(where.WithinFeatures) > 0 {
 			// Set bounding box from features
 			var fc []*geojson.Feature
@@ -365,8 +364,7 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				})
 				fcBbox.Extend(f.Geometry.Val)
 			}
-			// fc2 := geojson.FeatureCollection{Features: fc}
-			where.Bbox = &model.BoundingBox{
+			fcBbox2 := &model.BoundingBox{
 				MinLon: fcBbox.Min(0),
 				MinLat: fcBbox.Min(1),
 				MaxLon: fcBbox.Max(0),
@@ -396,7 +394,8 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				GroupBy("gtfs_stops.id")
 			q = q.
 				Column("features.feature_ids as within_features").
-				JoinClause(featureQuery.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id"))
+				JoinClause(featureQuery.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id")).
+				Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", fcBbox2.MinLon, fcBbox2.MinLat, fcBbox2.MaxLon, fcBbox2.MaxLat)
 		}
 		if where.Bbox != nil {
 			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)

@@ -137,7 +137,7 @@ type ComplexityRoot struct {
 
 	CensusDataset struct {
 		DatasetName func(childComplexity int) int
-		Geographies func(childComplexity int, limit *int, where *model.CensusGeographyFilter) int
+		Geographies func(childComplexity int, limit *int, where *model.CensusDatasetGeographyFilter) int
 		ID          func(childComplexity int) int
 		Layers      func(childComplexity int) int
 		Sources     func(childComplexity int, limit *int, where *model.CensusSourceFilter) int
@@ -1168,7 +1168,7 @@ type CalendarResolver interface {
 }
 type CensusDatasetResolver interface {
 	Sources(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusSourceFilter) ([]*model.CensusSource, error)
-	Geographies(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusGeographyFilter) ([]*model.CensusGeography, error)
+	Geographies(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusDatasetGeographyFilter) ([]*model.CensusGeography, error)
 	Tables(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusTableFilter) ([]*model.CensusTable, error)
 	Layers(ctx context.Context, obj *model.CensusDataset) ([]string, error)
 }
@@ -1766,7 +1766,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.CensusDataset.Geographies(childComplexity, args["limit"].(*int), args["where"].(*model.CensusGeographyFilter)), true
+		return e.complexity.CensusDataset.Geographies(childComplexity, args["limit"].(*int), args["where"].(*model.CensusDatasetGeographyFilter)), true
 
 	case "CensusDataset.id":
 		if e.complexity.CensusDataset.ID == nil {
@@ -7286,6 +7286,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputBoundingBox,
 		ec.unmarshalInputCalendarDateFilter,
 		ec.unmarshalInputCensusDatasetFilter,
+		ec.unmarshalInputCensusDatasetGeographyFilter,
 		ec.unmarshalInputCensusGeographyFilter,
 		ec.unmarshalInputCensusSourceFilter,
 		ec.unmarshalInputCensusTableFilter,
@@ -8935,7 +8936,7 @@ type CensusDataset {
   # Sources in this dataset
   sources(limit: Int, where: CensusSourceFilter): [CensusSource!]
   # Census geographies in this dataset
-  geographies(limit: Int, where: CensusGeographyFilter): [CensusGeography!]
+  geographies(limit: Int, where: CensusDatasetGeographyFilter): [CensusGeography!]
   # Census tables in this dataset
   tables(limit: Int, where: CensusTableFilter): [CensusTable!]
   layers: [String!]
@@ -9554,6 +9555,7 @@ input LocationFilter {
   bbox: BoundingBox
   "Search for stops within this geographic polygon"
   within: Polygon
+  "Search within these enclosing features, and return the matching feature ids"
   features: [Feature]
   "Search for stops within specified radius of a point"
   near: PointRadius
@@ -9595,7 +9597,7 @@ input StopFilter {
   bbox: BoundingBox
   "Search for stops within this geographic polygon"
   within: Polygon
-  "Search for stops within these geojson features"
+  "Search for stops within these enclosing features, and return the matching feature ids"
   within_features: [Feature]
   "Search for stops within specified radius of a point"
   near: PointRadius
@@ -9694,6 +9696,19 @@ input CensusGeographyFilter {
   layer: String
   radius: Float
   search: String
+}
+
+input CensusDatasetGeographyFilter {
+  "Search within this layer"
+  layer: String
+  "Search for geographies matching this string"
+  search: String
+  "Search within this bounding box"
+  bbox: BoundingBox
+  "Search within this geographic polygon"
+  within: Polygon
+  "Search within specified radius of a point"
+  near: PointRadius
 }
 
 input CensusTableFilter {
@@ -10253,18 +10268,18 @@ func (ec *executionContext) field_CensusDataset_geographies_argsLimit(
 func (ec *executionContext) field_CensusDataset_geographies_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (*model.CensusGeographyFilter, error) {
+) (*model.CensusDatasetGeographyFilter, error) {
 	if _, ok := rawArgs["where"]; !ok {
-		var zeroVal *model.CensusGeographyFilter
+		var zeroVal *model.CensusDatasetGeographyFilter
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
 	if tmp, ok := rawArgs["where"]; ok {
-		return ec.unmarshalOCensusGeographyFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusGeographyFilter(ctx, tmp)
+		return ec.unmarshalOCensusDatasetGeographyFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusDatasetGeographyFilter(ctx, tmp)
 	}
 
-	var zeroVal *model.CensusGeographyFilter
+	var zeroVal *model.CensusDatasetGeographyFilter
 	return zeroVal, nil
 }
 
@@ -16755,7 +16770,7 @@ func (ec *executionContext) _CensusDataset_geographies(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CensusDataset().Geographies(rctx, obj, fc.Args["limit"].(*int), fc.Args["where"].(*model.CensusGeographyFilter))
+		return ec.resolvers.CensusDataset().Geographies(rctx, obj, fc.Args["limit"].(*int), fc.Args["where"].(*model.CensusDatasetGeographyFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -55568,6 +55583,61 @@ func (ec *executionContext) unmarshalInputCensusDatasetFilter(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCensusDatasetGeographyFilter(ctx context.Context, obj any) (model.CensusDatasetGeographyFilter, error) {
+	var it model.CensusDatasetGeographyFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"layer", "search", "bbox", "within", "near"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "layer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("layer"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Layer = data
+		case "search":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Search = data
+		case "bbox":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
+			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Bbox = data
+		case "within":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
+			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Within = data
+		case "near":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Near = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCensusGeographyFilter(ctx context.Context, obj any) (model.CensusGeographyFilter, error) {
 	var it model.CensusGeographyFilter
 	asMap := map[string]any{}
@@ -70374,6 +70444,14 @@ func (ec *executionContext) unmarshalOCensusDatasetFilter2ᚖgithubᚗcomᚋinte
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputCensusDatasetFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCensusDatasetGeographyFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusDatasetGeographyFilter(ctx context.Context, v any) (*model.CensusDatasetGeographyFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCensusDatasetGeographyFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
