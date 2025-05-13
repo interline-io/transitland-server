@@ -136,6 +136,19 @@ type CensusDatasetFilter struct {
 	Search *string `json:"search,omitempty"`
 }
 
+type CensusDatasetGeographyFilter struct {
+	// Search within this layer
+	Layer *string `json:"layer,omitempty"`
+	// Search for geographies matching this string
+	Search *string `json:"search,omitempty"`
+	// Search within this bounding box
+	Bbox *BoundingBox `json:"bbox,omitempty"`
+	// Search within this geographic polygon
+	Within *tt.Polygon `json:"within,omitempty"`
+	// Search within specified radius of a point
+	Near *PointRadius `json:"near,omitempty"`
+}
+
 type CensusField struct {
 	// Internal integer ID
 	ID int `json:"id"`
@@ -513,8 +526,9 @@ type LocationFilter struct {
 	// Search for stops within this bounding box
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 	// Search for stops within this geographic polygon
-	Within   *tt.Polygon `json:"within,omitempty"`
-	Features []*Feature  `json:"features,omitempty"`
+	Within *tt.Polygon `json:"within,omitempty"`
+	// Search within these enclosing features, and return the matching feature ids
+	Features []*Feature `json:"features,omitempty"`
 	// Search for stops within specified radius of a point
 	Near *PointRadius `json:"near,omitempty"`
 }
@@ -927,7 +941,7 @@ type StopFilter struct {
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 	// Search for stops within this geographic polygon
 	Within *tt.Polygon `json:"within,omitempty"`
-	// Search for stops within these geojson features
+	// Search for stops within these enclosing features, and return the matching feature ids
 	WithinFeatures []*Feature `json:"within_features,omitempty"`
 	// Search for stops within specified radius of a point
 	Near *PointRadius `json:"near,omitempty"`

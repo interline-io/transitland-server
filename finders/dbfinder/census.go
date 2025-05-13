@@ -44,7 +44,7 @@ func (f *Finder) CensusGeographiesByEntityID(ctx context.Context, params []model
 			return p.EntityID, &rp, p.Limit
 		},
 		func(keys []int, where *model.CensusGeographyParam, limit *int) (ents []*model.CensusGeography, err error) {
-			err = dbutil.Select(ctx, f.db, censusGeographySelect(where, keys, nil), &ents)
+			err = dbutil.Select(ctx, f.db, censusGeographySelect(where, keys), &ents)
 			return ents, err
 		},
 		func(ent *model.CensusGeography) int {
@@ -155,18 +155,14 @@ func (f *Finder) CensusSourceLayersBySourceID(ctx context.Context, ids []int) ([
 	return ret, errs
 }
 
-func (f *Finder) CensusGeographiesByDatasetID(ctx context.Context, params []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
+func (f *Finder) CensusGeographiesByDatasetID(ctx context.Context, params []model.CensusDatasetGeographyParam) ([][]*model.CensusGeography, []error) {
 	return paramGroupQuery(
 		params,
-		func(p model.CensusGeographyParam) (int, *model.CensusGeographyParam, *int) {
-			rp := model.CensusGeographyParam{
-				Limit: p.Limit,
-				Where: p.Where,
-			}
-			return p.DatasetID, &rp, p.Limit
+		func(p model.CensusDatasetGeographyParam) (int, *model.CensusDatasetGeographyFilter, *int) {
+			return p.DatasetID, p.Where, p.Limit
 		},
-		func(keys []int, p *model.CensusGeographyParam, limit *int) (ents []*model.CensusGeography, err error) {
-			q := censusGeographySelect(p, nil, keys)
+		func(keys []int, p *model.CensusDatasetGeographyFilter, limit *int) (ents []*model.CensusGeography, err error) {
+			q := censusDatasetGeographySelect(limit, p, keys)
 			err = dbutil.Select(ctx,
 				f.db,
 				lateralWrap(
@@ -239,11 +235,43 @@ func censusSourceSelect(limit *int, after *model.Cursor, ids []int, where *model
 	return q
 }
 
-func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int, _ []int) sq.SelectBuilder {
-	if param.EntityID > 0 {
-		entityIds = append(entityIds, param.EntityID)
+func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeographyFilter, datasetIds []int) sq.SelectBuilder {
+	// Include matched entity column
+	cols := []string{
+		"tlcg.id",
+		"tlcg.geometry",
+		"tlcg.layer_name",
+		"tlcg.geoid",
+		"tlcg.name",
+		"tlcg.aland",
+		"tlcg.awater",
+		"tlcs.source_name",
+		"tlcs.id as source_id",
+		"tlcd.dataset_name",
+		"tlcd.id as dataset_id",
 	}
 
+	// A normal query..
+	q := sq.StatementBuilder.
+		Select(cols...).
+		From("tl_census_geographies tlcg").
+		Join("tl_census_sources tlcs on tlcs.id = tlcg.source_id").
+		Join("tl_census_datasets tlcd on tlcd.id = tlcs.dataset_id").
+		Limit(checkLimit(limit))
+
+	// Check layer, dataset
+	if where != nil {
+		if where.Layer != nil {
+			q = q.Where(sq.Eq{"tlcg.layer_name": where.Layer})
+		}
+		if where.Search != nil {
+			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
+		}
+	}
+	return q
+}
+
+func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int) sq.SelectBuilder {
 	// Get search radius
 	radius := 0.0
 	if param.Where != nil {

@@ -170,6 +170,12 @@ type CensusGeographyParam struct {
 	Where      *CensusGeographyFilter
 }
 
+type CensusDatasetGeographyParam struct {
+	DatasetID int
+	Limit     *int
+	Where     *CensusDatasetGeographyFilter
+}
+
 type CensusValueParam struct {
 	Dataset    *string
 	Geoid      string

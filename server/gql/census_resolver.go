@@ -11,8 +11,8 @@ import (
 
 type censusDatasetResolver struct{ *Resolver }
 
-func (r *censusDatasetResolver) Geographies(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusGeographyFilter) (ents []*model.CensusGeography, err error) {
-	return LoaderFor(ctx).CensusGeographiesByDatasetID.Load(ctx, model.CensusGeographyParam{DatasetID: obj.ID, Limit: limit, Where: where})()
+func (r *censusDatasetResolver) Geographies(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusDatasetGeographyFilter) (ents []*model.CensusGeography, err error) {
+	return LoaderFor(ctx).CensusGeographiesByDatasetID.Load(ctx, model.CensusDatasetGeographyParam{DatasetID: obj.ID, Limit: limit, Where: where})()
 }
 
 func (r *censusDatasetResolver) Sources(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusSourceFilter) (ents []*model.CensusSource, err error) {
