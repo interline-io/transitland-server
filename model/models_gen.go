@@ -275,6 +275,11 @@ type EntityDeleteResult struct {
 	ID int `json:"id"`
 }
 
+type Feature struct {
+	ID       *string      `json:"id,omitempty"`
+	Geometry *tt.Geometry `json:"geometry,omitempty"`
+}
+
 // Search options for feed fetches
 type FeedFetchFilter struct {
 	// Search for feed fetches with success (true) or failure (false) or unspecified (null)
@@ -502,6 +507,16 @@ type LicenseFilter struct {
 	UseWithoutAttribution *LicenseValue `json:"use_without_attribution,omitempty"`
 	// Search for entities with this Redistribution Allowed restriction
 	RedistributionAllowed *LicenseValue `json:"redistribution_allowed,omitempty"`
+}
+
+type LocationFilter struct {
+	// Search for stops within this bounding box
+	Bbox *BoundingBox `json:"bbox,omitempty"`
+	// Search for stops within this geographic polygon
+	Within   *tt.Polygon `json:"within,omitempty"`
+	Features []*Feature  `json:"features,omitempty"`
+	// Search for stops within specified radius of a point
+	Near *PointRadius `json:"near,omitempty"`
 }
 
 // Current user metadata
@@ -896,12 +911,6 @@ type StopFilter struct {
 	LocationType *int `json:"location_type,omitempty"`
 	// Search for stops with 1 or more trips (true) or 0 or more trips (false or null)
 	Serviced *bool `json:"serviced,omitempty"`
-	// Search for stops within this bounding box
-	Bbox *BoundingBox `json:"bbox,omitempty"`
-	// Search for stops within this geographic polygon
-	Within *tt.Polygon `json:"within,omitempty"`
-	// Search for stops within specified radius of a point
-	Near *PointRadius `json:"near,omitempty"`
 	// Full text search
 	Search *string `json:"search,omitempty"`
 	// Search for stops with these license details
@@ -914,6 +923,14 @@ type StopFilter struct {
 	ServedByRouteTypes []int `json:"served_by_route_types,omitempty"`
 	// Search for stops with these agency integer IDs. Deprecated.
 	AgencyIds []int `json:"agency_ids,omitempty"`
+	// Search for stops within this bounding box
+	Bbox *BoundingBox `json:"bbox,omitempty"`
+	// Search for stops within this geographic polygon
+	Within *tt.Polygon `json:"within,omitempty"`
+	// Search for stops within these geojson features
+	WithinFeatures []*Feature `json:"within_features,omitempty"`
+	// Search for stops within specified radius of a point
+	Near *PointRadius `json:"near,omitempty"`
 }
 
 // Measurements of observed arrival times based on GTFS-RT data

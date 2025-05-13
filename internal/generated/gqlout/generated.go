@@ -960,6 +960,7 @@ type ComplexityRoot struct {
 		StopURL            func(childComplexity int) int
 		TtsStopName        func(childComplexity int) int
 		WheelchairBoarding func(childComplexity int) int
+		WithinFeatures     func(childComplexity int) int
 		ZoneID             func(childComplexity int) int
 	}
 
@@ -6202,6 +6203,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Stop.WheelchairBoarding(childComplexity), true
 
+	case "Stop.within_features":
+		if e.complexity.Stop.WithinFeatures == nil {
+			break
+		}
+
+		return e.complexity.Stop.WithinFeatures(childComplexity), true
+
 	case "Stop.zone_id":
 		if e.complexity.Stop.ZoneID == nil {
 			break
@@ -7282,6 +7290,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCensusSourceFilter,
 		ec.unmarshalInputCensusTableFilter,
 		ec.unmarshalInputDirectionRequest,
+		ec.unmarshalInputFeature,
 		ec.unmarshalInputFeedFetchFilter,
 		ec.unmarshalInputFeedFilter,
 		ec.unmarshalInputFeedSourceUrl,
@@ -7293,6 +7302,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGbfsDockRequest,
 		ec.unmarshalInputLevelSetInput,
 		ec.unmarshalInputLicenseFilter,
+		ec.unmarshalInputLocationFilter,
 		ec.unmarshalInputOperatorFilter,
 		ec.unmarshalInputPathwayFilter,
 		ec.unmarshalInputPathwaySetInput,
@@ -8452,6 +8462,8 @@ type Stop {
   nearby_stops(limit: Int, radius: Float): [Stop!]
   "GTFS-RT Alerts for this stop"
   alerts(active: Boolean, limit: Int): [Alert!]
+  "Matching feature ids from polygon search"
+  within_features: Strings
 }
 
 """Record from a static GTFS [pathways.txt](https://gtfs.org/reference/static/#pathwaysstxt). Pathways are a graph representation of a subway or train station, with nodes (entrances, platforms, etc) and edges (the pathways). See https://gtfs.org/reference/static/#pathwaystxt"""
@@ -9530,6 +9542,21 @@ input RouteFilter {
   agency_ids: [Int!]
 }
 
+input Feature {
+  id: String
+  geometry: Geometry
+}
+
+input LocationFilter {
+  "Search for stops within this bounding box"
+  bbox: BoundingBox
+  "Search for stops within this geographic polygon"
+  within: Polygon
+  features: [Feature]
+  "Search for stops within specified radius of a point"
+  near: PointRadius
+}
+
 """Search options for stops"""
 input StopFilter {
   "Search for stops with this OnestopID"
@@ -9550,12 +9577,6 @@ input StopFilter {
   location_type: Int
   "Search for stops with 1 or more trips (true) or 0 or more trips (false or null)"
   serviced: Boolean
-  "Search for stops within this bounding box"
-  bbox: BoundingBox
-  "Search for stops within this geographic polygon"
-  within: Polygon
-  "Search for stops within specified radius of a point"
-  near: PointRadius
   "Full text search"
   search: String
   "Search for stops with these license details"
@@ -9568,6 +9589,15 @@ input StopFilter {
   served_by_route_types: [Int!]
   "Search for stops with these agency integer IDs. Deprecated."
   agency_ids: [Int!]
+  "Search for stops within this bounding box"
+  bbox: BoundingBox
+  "Search for stops within this geographic polygon"
+  within: Polygon
+  "Search for stops within these geojson features"
+  within_features: [Feature]
+  "Search for stops within specified radius of a point"
+  near: PointRadius
+  
 }
 
 """Search options for stop times, optionally on a given date"""
@@ -22846,6 +22876,8 @@ func (ec *executionContext) fieldContext_FeedVersion_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -35006,6 +35038,8 @@ func (ec *executionContext) fieldContext_Level_stops(_ context.Context, field gr
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -35754,6 +35788,8 @@ func (ec *executionContext) fieldContext_Mutation_stop_create(ctx context.Contex
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -35881,6 +35917,8 @@ func (ec *executionContext) fieldContext_Mutation_stop_update(ctx context.Contex
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -37494,6 +37532,8 @@ func (ec *executionContext) fieldContext_Pathway_from_stop(_ context.Context, fi
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -37610,6 +37650,8 @@ func (ec *executionContext) fieldContext_Pathway_to_stop(_ context.Context, fiel
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -38445,6 +38487,8 @@ func (ec *executionContext) fieldContext_Query_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -40809,6 +40853,8 @@ func (ec *executionContext) fieldContext_Route_stops(ctx context.Context, field 
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -41903,6 +41949,8 @@ func (ec *executionContext) fieldContext_RouteHeadway_stop(_ context.Context, fi
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -42549,6 +42597,8 @@ func (ec *executionContext) fieldContext_RouteStop_stop(_ context.Context, field
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -44899,6 +44949,8 @@ func (ec *executionContext) fieldContext_Stop_parent(_ context.Context, field gr
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -45147,6 +45199,8 @@ func (ec *executionContext) fieldContext_Stop_children(ctx context.Context, fiel
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -46099,6 +46153,8 @@ func (ec *executionContext) fieldContext_Stop_nearby_stops(ctx context.Context, 
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -46185,6 +46241,47 @@ func (ec *executionContext) fieldContext_Stop_alerts(ctx context.Context, field 
 	if fc.Args, err = ec.field_Stop_alerts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Stop_within_features(ctx context.Context, field graphql.CollectedField, obj *model.Stop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stop_within_features(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WithinFeatures, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(tt.Strings)
+	fc.Result = res
+	return ec.marshalOStrings2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐStrings(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stop_within_features(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stop",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Strings does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -46462,6 +46559,8 @@ func (ec *executionContext) fieldContext_StopExternalReference_target_active_sto
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -47770,6 +47869,8 @@ func (ec *executionContext) fieldContext_StopTime_stop(_ context.Context, field 
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -51025,6 +51126,8 @@ func (ec *executionContext) fieldContext_ValidationReportDetails_stops(ctx conte
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -52228,6 +52331,8 @@ func (ec *executionContext) fieldContext_VehiclePosition_stop_id(_ context.Conte
 				return ec.fieldContext_Stop_nearby_stops(ctx, field)
 			case "alerts":
 				return ec.fieldContext_Stop_alerts(ctx, field)
+			case "within_features":
+				return ec.fieldContext_Stop_within_features(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stop", field.Name)
 		},
@@ -55618,6 +55723,40 @@ func (ec *executionContext) unmarshalInputDirectionRequest(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFeature(ctx context.Context, obj any) (model.Feature, error) {
+	var it model.Feature
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "geometry"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "geometry":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geometry"))
+			data, err := ec.unmarshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐGeometry(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Geometry = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFeedFetchFilter(ctx context.Context, obj any) (model.FeedFetchFilter, error) {
 	var it model.FeedFetchFilter
 	asMap := map[string]any{}
@@ -56147,6 +56286,54 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 				return it, err
 			}
 			it.RedistributionAllowed = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputLocationFilter(ctx context.Context, obj any) (model.LocationFilter, error) {
+	var it model.LocationFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bbox", "within", "features", "near"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bbox":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
+			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Bbox = data
+		case "within":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
+			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Within = data
+		case "features":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("features"))
+			data, err := ec.unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Features = data
+		case "near":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Near = data
 		}
 	}
 
@@ -56815,7 +57002,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "bbox", "within", "near", "search", "license", "served_by_onestop_ids", "served_by_route_type", "served_by_route_types", "agency_ids"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "search", "license", "served_by_onestop_ids", "served_by_route_type", "served_by_route_types", "agency_ids", "bbox", "within", "within_features", "near"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -56885,27 +57072,6 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.Serviced = data
-		case "bbox":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
-			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Bbox = data
-		case "within":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
-			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Within = data
-		case "near":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
-			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Near = data
 		case "search":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -56948,6 +57114,34 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.AgencyIds = data
+		case "bbox":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
+			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Bbox = data
+		case "within":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
+			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Within = data
+		case "within_features":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within_features"))
+			data, err := ec.unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WithinFeatures = data
+		case "near":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Near = data
 		}
 	}
 
@@ -65561,6 +65755,8 @@ func (ec *executionContext) _Stop(ctx context.Context, sel ast.SelectionSet, obj
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "within_features":
+			out.Values[i] = ec._Stop_within_features(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -70395,6 +70591,32 @@ func (ec *executionContext) unmarshalOEmail2githubᚗcomᚋinterlineᚑioᚋtran
 
 func (ec *executionContext) marshalOEmail2githubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐEmail(ctx context.Context, sel ast.SelectionSet, v tt.Email) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx context.Context, v any) ([]*model.Feature, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.Feature, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOFeature2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOFeature2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx context.Context, v any) (*model.Feature, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFeature(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOFeed2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeedᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Feed) graphql.Marshaler {

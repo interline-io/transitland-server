@@ -633,6 +633,8 @@ type Stop {
   nearby_stops(limit: Int, radius: Float): [Stop!]
   "GTFS-RT Alerts for this stop"
   alerts(active: Boolean, limit: Int): [Alert!]
+  "Matching feature ids from polygon search"
+  within_features: Strings
 }
 
 """Record from a static GTFS [pathways.txt](https://gtfs.org/reference/static/#pathwaysstxt). Pathways are a graph representation of a subway or train station, with nodes (entrances, platforms, etc) and edges (the pathways). See https://gtfs.org/reference/static/#pathwaystxt"""
@@ -1711,6 +1713,21 @@ input RouteFilter {
   agency_ids: [Int!]
 }
 
+input Feature {
+  id: String
+  geometry: Geometry
+}
+
+input LocationFilter {
+  "Search for stops within this bounding box"
+  bbox: BoundingBox
+  "Search for stops within this geographic polygon"
+  within: Polygon
+  features: [Feature]
+  "Search for stops within specified radius of a point"
+  near: PointRadius
+}
+
 """Search options for stops"""
 input StopFilter {
   "Search for stops with this OnestopID"
@@ -1731,12 +1748,6 @@ input StopFilter {
   location_type: Int
   "Search for stops with 1 or more trips (true) or 0 or more trips (false or null)"
   serviced: Boolean
-  "Search for stops within this bounding box"
-  bbox: BoundingBox
-  "Search for stops within this geographic polygon"
-  within: Polygon
-  "Search for stops within specified radius of a point"
-  near: PointRadius
   "Full text search"
   search: String
   "Search for stops with these license details"
@@ -1749,6 +1760,15 @@ input StopFilter {
   served_by_route_types: [Int!]
   "Search for stops with these agency integer IDs. Deprecated."
   agency_ids: [Int!]
+  "Search for stops within this bounding box"
+  bbox: BoundingBox
+  "Search for stops within this geographic polygon"
+  within: Polygon
+  "Search for stops within these geojson features"
+  within_features: [Feature]
+  "Search for stops within specified radius of a point"
+  near: PointRadius
+  
 }
 
 """Search options for stop times, optionally on a given date"""

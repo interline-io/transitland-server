@@ -2,8 +2,10 @@ package dbfinder
 
 import (
 	"context"
+	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
@@ -347,18 +349,59 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		q = q.JoinClause(`LEFT JOIN feed_version_stop_onestop_ids ON feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
 	}
 
-	// Handle other clauses
+	// Handle geom search
 	if where != nil {
-		if where.Bbox != nil {
+		// Backwards compat
+		loc := &model.LocationFilter{
+			Features: where.WithinFeatures,
+		}
+		if where.Near != nil || where.Within != nil || where.Bbox != nil {
+			loc = &model.LocationFilter{
+				Near:   where.Near,
+				Within: where.Within,
+				Bbox:   where.Bbox,
+			}
+		}
+		if loc.Bbox != nil {
 			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
 		}
-		if where.Within != nil && where.Within.Valid {
+		if loc.Within != nil && where.Within.Valid {
 			q = q.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
 		}
-		if where.Near != nil {
+		if loc.Near != nil {
 			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
 			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
 		}
+		if len(loc.Features) > 0 {
+			// Search based on GeoJSON features, and include the matching features in response
+			fjArray, err := json.Marshal(loc.Features)
+			if err != nil {
+				log.Error().Msgf("failed to encode features as json: %s", err)
+			}
+			featureData := sq.StatementBuilder.
+				Select(
+					"feature->>'id' as feature_id",
+					"ST_GeomFromGeoJSON(feature->'geometry') geometry",
+				).
+				FromSelect(sq.StatementBuilder.Select().Column(sq.Expr("json_array_elements(?::json) feature", string(fjArray))), "t")
+
+			// Must be json_agg to work with tt.Strings
+			featureQuery := sq.StatementBuilder.
+				Select(
+					"gtfs_stops.id",
+					"json_agg(features.feature_id) feature_ids",
+				).
+				From("gtfs_stops").
+				JoinClause(featureData.Prefix("JOIN (").Suffix(") features ON ST_Intersects(gtfs_stops.geometry, features.geometry)")).
+				GroupBy("gtfs_stops.id")
+			q = q.
+				Column("features.feature_ids as within_features").
+				JoinClause(featureQuery.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id"))
+		}
+	}
+
+	// Handle other clauses
+	if where != nil {
 		if where.StopCode != nil {
 			q = q.Where(sq.Eq{"gtfs_stops.stop_code": where.StopCode})
 		}

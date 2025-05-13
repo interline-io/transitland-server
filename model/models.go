@@ -102,6 +102,7 @@ type Stop struct {
 	FeedVersionSHA1 string
 	OnestopID       *string
 	SearchRank      *string
+	WithinFeatures  tt.Strings
 	gtfs.Stop
 }
 
