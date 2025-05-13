@@ -74,32 +74,21 @@ func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.Agen
 	)
 }
 
-func (f *Finder) AgenciesByFeedVersionID(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.AgencyParam) (int, *model.AgencyFilter, *int) {
-			return p.FeedVersionID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					agencySelect(limit, nil, nil, false, f.PermFilter(ctx), where),
-					"feed_versions",
-					"id",
-					"gtfs_agencies",
-					"feed_version_id",
-					keys,
-				),
-				&ents,
-			)
-
-			return ents, err
-		},
-		func(ent *model.Agency) int {
-			return ent.FeedVersionID
-		},
+func (f *Finder) AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []int) (ents []*model.Agency, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			agencySelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+			"feed_versions",
+			"id",
+			"gtfs_agencies",
+			"feed_version_id",
+			keys,
+		),
+		&ents,
 	)
+
+	return ents, err
 }
 
 func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {

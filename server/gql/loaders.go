@@ -23,7 +23,7 @@ const (
 
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	AgenciesByFeedVersionID                                      *dataloader.Loader[model.AgencyParam, []*model.Agency]
+	AgenciesByFeedVersionIDs                                     *dataloader.Loader[model.AgencyParam, []*model.Agency]
 	AgenciesByID                                                 *dataloader.Loader[int, *model.Agency]
 	AgenciesByOnestopID                                          *dataloader.Loader[model.AgencyParam, []*model.Agency]
 	AgencyPlacesByAgencyID                                       *dataloader.Loader[model.AgencyPlaceParam, []*model.AgencyPlace]
@@ -101,12 +101,31 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		stopTimeBatchSize = maxBatch
 	}
 	loaders := &Loaders{
-		AgenciesByFeedVersionID:        withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByFeedVersionID),
-		AgenciesByID:                   withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByID),
-		AgenciesByOnestopID:            withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByOnestopID),
-		AgencyPlacesByAgencyID:         withWaitAndCapacity(waitTime, batchSize, dbf.AgencyPlacesByAgencyID),
-		CalendarDatesByServiceID:       withWaitAndCapacity(waitTime, batchSize, dbf.CalendarDatesByServiceID),
-		CalendarsByID:                  withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
+		AgenciesByFeedVersionIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.AgencyParam) (int, *model.AgencyFilter, *int) {
+						return p.FeedVersionID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
+						return dbf.AgenciesByFeedVersionIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Agency) int {
+						return ent.FeedVersionID
+					},
+				)
+			},
+		),
+		AgenciesByID:           withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByID),
+		AgenciesByOnestopID:    withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByOnestopID),
+		AgencyPlacesByAgencyID: withWaitAndCapacity(waitTime, batchSize, dbf.AgencyPlacesByAgencyID),
+
+		CalendarDatesByServiceID: withWaitAndCapacity(waitTime, batchSize, dbf.CalendarDatesByServiceID),
+		CalendarsByID:            withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
+
 		CensusDatasetLayersByDatasetID: withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetID),
 		CensusSourceLayersBySourceID:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceID),
 		CensusFieldsByTableID:          withWaitAndCapacity(waitTime, batchSize, dbf.CensusFieldsByTableID),
@@ -194,14 +213,31 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopsByFeedVersionID:                    withWaitAndCapacity(waitTime, batchSize, dbf.StopsByFeedVersionID),
 		StopsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.StopsByID),
 		StopsByLevelID:                          withWaitAndCapacity(waitTime, batchSize, dbf.StopsByLevelID),
-		StopsByParentStopID:                     withWaitAndCapacity(waitTime, batchSize, dbf.StopsByParentStopID),
-		StopsByRouteID:                          withWaitAndCapacity(waitTime, batchSize, dbf.StopsByRouteID),
-		StopTimesByStopID:                       withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
-		StopTimesByTripID:                       withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
-		TargetStopsByStopID:                     withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopID),
-		TripsByFeedVersionID:                    withWaitAndCapacity(waitTime, batchSize, dbf.TripsByFeedVersionID),
-		TripsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.TripsByID),
-		TripsByRouteID:                          withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),
+		StopsByParentStopID: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.StopParam) (int, *model.StopFilter, *int) {
+						return p.ParentStopID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.StopFilter, limit *int) (ents []*model.Stop, err error) {
+						return dbf.StopsByParentStopIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Stop) int {
+						return ent.ParentStation.Int()
+					},
+				)
+			},
+		),
+		StopsByRouteID:       withWaitAndCapacity(waitTime, batchSize, dbf.StopsByRouteID),
+		StopTimesByStopID:    withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
+		StopTimesByTripID:    withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
+		TargetStopsByStopID:  withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopID),
+		TripsByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.TripsByFeedVersionID),
+		TripsByID:            withWaitAndCapacity(waitTime, batchSize, dbf.TripsByID),
+		TripsByRouteID:       withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),
 		ValidationReportErrorExemplarsByValidationReportErrorGroupID: withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupID),
 		ValidationReportErrorGroupsByValidationReportID:              withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorGroupsByValidationReportID),
 		ValidationReportsByFeedVersionID:                             withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportsByFeedVersionID),
