@@ -60,6 +60,48 @@ func TestCensusResolver(t *testing.T) {
 			selector:     "census_datasets.0.geographies.#.geoid",
 			selectExpect: []string{"1400000US53033028802"},
 		},
+		{
+			name:         "dataset geographies near point 1",
+			query:        `query { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(limit:5, where:{layer: "tract", near: {lon:-122.270, lat:37.805, radius:1000}}) { name geoid }} }`,
+			vars:         vars,
+			selector:     "census_datasets.0.geographies.#.geoid",
+			selectExpect: []string{"1400000US06001983200", "1400000US06001403402", "1400000US06001403302", "1400000US06001402802", "1400000US06001403301"},
+		},
+		{
+			name:         "dataset geographies near point 2",
+			query:        `query { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(limit:5, where:{layer: "tract", near: {lon:-122.270, lat:37.805, radius:100}}) { name geoid }} }`,
+			vars:         vars,
+			selector:     "census_datasets.0.geographies.#.geoid",
+			selectExpect: []string{"1400000US06001402801", "1400000US06001402900"},
+		},
+		{
+			name:         "dataset geographies near point 3",
+			query:        `query { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(limit:5, where:{layer: "tract", near: {lon:-122.270, lat:37.805, radius:10}}) { name geoid }} }`,
+			vars:         vars,
+			selector:     "census_datasets.0.geographies.#.geoid",
+			selectExpect: []string{"1400000US06001402900"},
+		},
+		{
+			name:         "dataset geographies near point 4",
+			query:        `query { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(limit:5, where:{layer: "county", near: {lon:-122.270, lat:37.805, radius:1000}}) { name geoid }} }`,
+			vars:         vars,
+			selector:     "census_datasets.0.geographies.#.geoid",
+			selectExpect: []string{"0500000US06001"},
+		},
+		{
+			name:         "dataset geographies in bbox 1",
+			query:        `query($bbox:BoundingBox) { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(limit:5, where:{layer: "tract", bbox:$bbox}) { name geoid }} }`,
+			vars:         hw{"bbox": hw{"min_lon": -122.27187746297761, "min_lat": 37.86760085920619, "max_lon": -122.26331772424285, "max_lat": 37.874244507564896}},
+			selector:     "census_datasets.0.geographies.#.geoid",
+			selectExpect: []string{"1400000US06001982100", "1400000US06001422902", "1400000US06001422901", "1400000US06001422400", "1400000US06001422800"},
+		},
+		{
+			name:         "dataset geographies in bbox 2",
+			query:        `query($bbox:BoundingBox) { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(limit:5, where:{layer: "tract", bbox:$bbox}) { name geoid }} }`,
+			vars:         hw{"bbox": hw{"min_lon": -122.2698781543005, "min_lat": 37.80700393130445, "max_lon": -122.2677640139239, "max_lat": 37.8088734037938}},
+			selector:     "census_datasets.0.geographies.#.geoid",
+			selectExpect: []string{"1400000US06001402801", "1400000US06001402900"},
+		},
 		// Sources
 		{
 			name:   "sources",

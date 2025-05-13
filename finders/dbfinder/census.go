@@ -259,6 +259,19 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 		Join("tl_census_datasets tlcd on tlcd.id = tlcs.dataset_id").
 		Limit(checkLimit(limit))
 
+	if where != nil {
+		if where.Bbox != nil {
+			q = q.Where("ST_Intersects(tlcg.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
+		}
+		if where.Within != nil && where.Within.Valid {
+			q = q.Where("ST_Intersects(tlcg.geometry, ?)", where.Within)
+		}
+		if where.Near != nil {
+			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
+			q = q.Where("ST_DWithin(tlcg.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+		}
+	}
+
 	// Check layer, dataset
 	if where != nil {
 		if where.Layer != nil {
