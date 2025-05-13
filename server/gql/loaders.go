@@ -31,7 +31,7 @@ type Loaders struct {
 	CensusDatasetLayersByDatasetID                               *dataloader.Loader[int, []string]
 	CensusSourceLayersBySourceID                                 *dataloader.Loader[int, []string]
 	CensusFieldsByTableID                                        *dataloader.Loader[model.CensusFieldParam, []*model.CensusField]
-	CensusGeographiesByDatasetID                                 *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
+	CensusGeographiesByDatasetID                                 *dataloader.Loader[model.CensusDatasetGeographyParam, []*model.CensusGeography]
 	CensusGeographiesByEntityID                                  *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
 	CensusSourcesByDatasetID                                     *dataloader.Loader[model.CensusSourceParam, []*model.CensusSource]
 	CensusTableByID                                              *dataloader.Loader[int, *model.CensusTable]
