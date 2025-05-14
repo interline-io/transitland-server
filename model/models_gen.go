@@ -289,8 +289,10 @@ type EntityDeleteResult struct {
 }
 
 type Feature struct {
-	ID       *string      `json:"id,omitempty"`
-	Geometry *tt.Geometry `json:"geometry,omitempty"`
+	ID         *string      `json:"id,omitempty"`
+	Geometry   *tt.Geometry `json:"geometry,omitempty"`
+	Properties *tt.Map      `json:"properties,omitempty"`
+	Type       *string      `json:"type,omitempty"`
 }
 
 // Search options for feed fetches
