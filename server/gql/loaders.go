@@ -3,6 +3,7 @@ package gql
 // import graph gophers with your other imports
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -22,10 +23,10 @@ const (
 
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	AgenciesByFeedVersionID                                      *dataloader.Loader[model.AgencyParam, []*model.Agency]
+	AgenciesByFeedVersionIDs                                     *dataloader.Loader[model.AgencyParam, []*model.Agency]
 	AgenciesByID                                                 *dataloader.Loader[int, *model.Agency]
-	AgenciesByOnestopID                                          *dataloader.Loader[model.AgencyParam, []*model.Agency]
-	AgencyPlacesByAgencyID                                       *dataloader.Loader[model.AgencyPlaceParam, []*model.AgencyPlace]
+	AgenciesByOnestopIDs                                         *dataloader.Loader[model.AgencyParam, []*model.Agency]
+	AgencyPlacesByAgencyIDs                                      *dataloader.Loader[model.AgencyPlaceParam, []*model.AgencyPlace]
 	CalendarDatesByServiceID                                     *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
 	CalendarsByID                                                *dataloader.Loader[int, *model.Calendar]
 	CensusDatasetLayersByDatasetID                               *dataloader.Loader[int, []string]
@@ -100,10 +101,58 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		stopTimeBatchSize = maxBatch
 	}
 	loaders := &Loaders{
-		AgenciesByFeedVersionID:                 withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByFeedVersionID),
-		AgenciesByID:                            withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByID),
-		AgenciesByOnestopID:                     withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByOnestopID),
-		AgencyPlacesByAgencyID:                  withWaitAndCapacity(waitTime, batchSize, dbf.AgencyPlacesByAgencyID),
+		AgenciesByFeedVersionIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.AgencyParam) (int, *model.AgencyFilter, *int) {
+						return p.FeedVersionID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
+						return dbf.AgenciesByFeedVersionIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Agency) int {
+						return ent.FeedVersionID
+					},
+				)
+			},
+		),
+		AgenciesByID: withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByID),
+		AgenciesByOnestopIDs: withWaitAndCapacity(waitTime, batchSize, func(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
+			return paramGroupQuery(
+				params,
+				func(p model.AgencyParam) (string, *model.AgencyFilter, *int) {
+					a := ""
+					if p.OnestopID != nil {
+						a = *p.OnestopID
+					}
+					return a, p.Where, p.Limit
+				},
+				func(keys []string, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
+					return dbf.AgenciesByOnestopIDs(ctx, limit, where, keys)
+				},
+				func(ent *model.Agency) string {
+					return ent.OnestopID
+				},
+			)
+		}),
+		AgencyPlacesByAgencyIDs: withWaitAndCapacity(waitTime, batchSize, func(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
+			return paramGroupQuery(
+				params,
+				func(p model.AgencyPlaceParam) (int, *model.AgencyPlaceFilter, *int) {
+					return p.AgencyID, p.Where, p.Limit
+				},
+				func(keys []int, where *model.AgencyPlaceFilter, limit *int) (ents []*model.AgencyPlace, err error) {
+					return dbf.AgencyPlacesByAgencyIDs(ctx, limit, where, keys)
+				},
+				func(ent *model.AgencyPlace) int {
+					return ent.AgencyID
+				},
+			)
+
+		}),
 		CalendarDatesByServiceID:                withWaitAndCapacity(waitTime, batchSize, dbf.CalendarDatesByServiceID),
 		CalendarsByID:                           withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
 		CensusDatasetLayersByDatasetID:          withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetID),
@@ -225,4 +274,93 @@ func unwrapResult[
 		return ret
 	}
 	return x
+}
+
+////////////
+
+// Multiple param sets
+
+func paramGroupQuery[
+	K comparable,
+	P any,
+	W any,
+	R any,
+](
+	params []P,
+	paramFunc func(P) (K, W, *int),
+	queryFunc func([]K, W, *int) ([]*R, error),
+	keyFunc func(*R) K,
+) ([][]*R, []error) {
+	// Create return value
+	ret := make([][]*R, len(params))
+	errs := make([]error, len(params))
+
+	// Group params by JSON representation
+	type paramGroupItem[K comparable, M any] struct {
+		Limit *int
+		Where M
+	}
+	type paramGroup[K comparable, M any] struct {
+		Index []int
+		Keys  []K
+		Limit *int
+		Where M
+	}
+	paramGroups := map[string]paramGroup[K, W]{}
+	for i, param := range params {
+		// Get values from supplied func
+		key, where, limit := paramFunc(param)
+
+		// Convert to paramGroupItem
+		item := paramGroupItem[K, W]{
+			Limit: limit,
+			Where: where,
+		}
+
+		// Use the JSON representation of Where and Limit as the key
+		jj, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
+		if err != nil {
+			// TODO: log and expand error
+			errs[i] = err
+			continue
+		}
+		paramGroupKey := string(jj)
+
+		// Add index and key
+		a, ok := paramGroups[paramGroupKey]
+		if !ok {
+			a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
+		}
+		a.Index = append(a.Index, i)
+		a.Keys = append(a.Keys, key)
+		paramGroups[paramGroupKey] = a
+	}
+
+	// Process each param group
+	for _, pgroup := range paramGroups {
+		// Run query function
+		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
+
+		// Group using keyFunc and merge into output
+		// limit := checkLimit(pgroup.Limit)
+		limit := uint64(1000)
+		bykey := map[K][]*R{}
+		for _, ent := range ents {
+			key := keyFunc(ent)
+			bykey[key] = append(bykey[key], ent)
+		}
+		for keyidx, key := range pgroup.Keys {
+			idx := pgroup.Index[keyidx]
+			gi := bykey[key]
+			if err != nil {
+				errs[idx] = err
+			}
+			if uint64(len(gi)) <= limit {
+				ret[idx] = gi
+			} else {
+				ret[idx] = gi[0:limit]
+			}
+		}
+	}
+	return ret, errs
 }

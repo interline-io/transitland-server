@@ -17,7 +17,7 @@ func (r *operatorResolver) Cursor(ctx context.Context, obj *model.Operator) (*mo
 }
 
 func (r *operatorResolver) Agencies(ctx context.Context, obj *model.Operator) ([]*model.Agency, error) {
-	return LoaderFor(ctx).AgenciesByOnestopID.Load(ctx, model.AgencyParam{OnestopID: &obj.OnestopID.Val})()
+	return LoaderFor(ctx).AgenciesByOnestopIDs.Load(ctx, model.AgencyParam{OnestopID: &obj.OnestopID.Val})()
 }
 
 func (r *operatorResolver) AssociatedFeeds(ctx context.Context, obj *model.Operator) (interface{}, error) {
