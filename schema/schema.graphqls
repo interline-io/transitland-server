@@ -1716,6 +1716,8 @@ input RouteFilter {
 input Feature {
   id: String
   geometry: Geometry
+  properties: Map
+  type: String
 }
 
 input StopLocationFilter {

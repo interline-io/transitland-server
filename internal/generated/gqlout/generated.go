@@ -9546,6 +9546,8 @@ input RouteFilter {
 input Feature {
   id: String
   geometry: Geometry
+  properties: Map
+  type: String
 }
 
 input StopLocationFilter {
@@ -55803,7 +55805,7 @@ func (ec *executionContext) unmarshalInputFeature(ctx context.Context, obj any) 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "geometry"}
+	fieldsInOrder := [...]string{"id", "geometry", "properties", "type"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -55824,6 +55826,20 @@ func (ec *executionContext) unmarshalInputFeature(ctx context.Context, obj any) 
 				return it, err
 			}
 			it.Geometry = data
+		case "properties":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("properties"))
+			data, err := ec.unmarshalOMap2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMap(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Properties = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
 		}
 	}
 
@@ -72051,6 +72067,22 @@ func (ec *executionContext) unmarshalOLineString2ᚖgithubᚗcomᚋinterlineᚑi
 }
 
 func (ec *executionContext) marshalOLineString2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐLineString(ctx context.Context, sel ast.SelectionSet, v *tt.LineString) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOMap2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMap(ctx context.Context, v any) (*tt.Map, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(tt.Map)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMap2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMap(ctx context.Context, sel ast.SelectionSet, v *tt.Map) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
