@@ -45,7 +45,7 @@ func (r *stopResolver) Parent(ctx context.Context, obj *model.Stop) (*model.Stop
 }
 
 func (r *stopResolver) Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error) {
-	return LoaderFor(ctx).StopsByParentStopID.Load(ctx, model.StopParam{ParentStopID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).StopsByParentStopIDs.Load(ctx, model.StopParam{ParentStopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) Place(ctx context.Context, obj *model.Stop) (*model.StopPlace, error) {

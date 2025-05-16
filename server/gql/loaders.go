@@ -79,7 +79,7 @@ type Loaders struct {
 	StopsByFeedVersionIDs                                        *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopsByIDs                                                   *dataloader.Loader[int, *model.Stop]
 	StopsByLevelIDs                                              *dataloader.Loader[model.StopParam, []*model.Stop]
-	StopsByParentStopID                                          *dataloader.Loader[model.StopParam, []*model.Stop]
+	StopsByParentStopIDs                                         *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopsByRouteID                                               *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopTimesByStopID                                            *dataloader.Loader[model.StopTimeParam, []*model.StopTime]
 	StopTimesByTripID                                            *dataloader.Loader[model.TripStopTimeParam, []*model.StopTime]
@@ -627,7 +627,23 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		StopsByParentStopID:  withWaitAndCapacity(waitTime, batchSize, dbf.StopsByParentStopID),
+		StopsByParentStopIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.StopParam) (int, *model.StopFilter, *int) {
+						return p.ParentStopID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.StopFilter, limit *int) (ents []*model.Stop, err error) {
+						return dbf.StopsByParentStopIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Stop) int {
+						return ent.ParentStation.Int()
+					},
+				)
+			}),
 		StopsByRouteID:       withWaitAndCapacity(waitTime, batchSize, dbf.StopsByRouteID),
 		StopTimesByStopID:    withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
 		StopTimesByTripID:    withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),

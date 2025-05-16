@@ -89,31 +89,20 @@ func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) (
 	return convertEnts(qentGroups, func(a *qent) *model.Stop { return &a.Stop }), err
 }
 
-func (f *Finder) StopsByParentStopID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.StopParam) (int, *model.StopFilter, *int) {
-			return p.ParentStopID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.StopFilter, limit *int) (ents []*model.Stop, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
-					"gtfs_stops",
-					"id",
-					"gtfs_stops",
-					"parent_station",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Stop) int {
-			return ent.ParentStation.Int()
-		},
+func (f *Finder) StopsByParentStopIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) (ents []*model.Stop, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+			"gtfs_stops",
+			"id",
+			"gtfs_stops",
+			"parent_station",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) TargetStopsByStopIDs(ctx context.Context, ids []int) ([]*model.Stop, []error) {
