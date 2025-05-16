@@ -85,7 +85,7 @@ type Loaders struct {
 	StopTimesByTripID                                            *dataloader.Loader[model.TripStopTimeParam, []*model.StopTime]
 	TargetStopsByStopID                                          *dataloader.Loader[int, *model.Stop]
 	TripsByFeedVersionID                                         *dataloader.Loader[model.TripParam, []*model.Trip]
-	TripsByID                                                    *dataloader.Loader[int, *model.Trip]
+	TripsByIDs                                                   *dataloader.Loader[int, *model.Trip]
 	TripsByRouteID                                               *dataloader.Loader[model.TripParam, []*model.Trip]
 	ValidationReportErrorExemplarsByValidationReportErrorGroupID *dataloader.Loader[model.ValidationReportErrorExemplarParam, []*model.ValidationReportError]
 	ValidationReportErrorGroupsByValidationReportID              *dataloader.Loader[model.ValidationReportErrorGroupParam, []*model.ValidationReportErrorGroup]
@@ -377,7 +377,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopTimesByTripID:                       withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
 		TargetStopsByStopID:                     withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopID),
 		TripsByFeedVersionID:                    withWaitAndCapacity(waitTime, batchSize, dbf.TripsByFeedVersionID),
-		TripsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.TripsByID),
+		TripsByIDs:                              withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
 		TripsByRouteID:                          withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),
 		ValidationReportErrorExemplarsByValidationReportErrorGroupID: withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupID),
 		ValidationReportErrorGroupsByValidationReportID:              withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorGroupsByValidationReportID),

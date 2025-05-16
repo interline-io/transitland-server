@@ -55,7 +55,7 @@ type EntityMutator interface {
 // EntityLoader methods must return items in the same order as the input parameters
 type EntityLoader interface {
 	// Simple ID loaders
-	TripsByID(context.Context, []int) ([]*Trip, []error)
+	TripsByIDs(context.Context, []int) ([]*Trip, []error)
 	LevelsByID(context.Context, []int) ([]*Level, []error)
 	PathwaysByID(context.Context, []int) ([]*Pathway, []error)
 	CalendarsByID(context.Context, []int) ([]*Calendar, []error)

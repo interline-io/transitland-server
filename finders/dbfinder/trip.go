@@ -22,7 +22,7 @@ func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor,
 	return ents, nil
 }
 
-func (f *Finder) TripsByID(ctx context.Context, ids []int) (ents []*model.Trip, errs []error) {
+func (f *Finder) TripsByIDs(ctx context.Context, ids []int) (ents []*model.Trip, errs []error) {
 	ents, err := f.FindTrips(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
