@@ -26,7 +26,7 @@ func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []err
 	return arrangeBy(ids, ents, func(ent *model.Feed) int { return ent.ID }), nil
 }
 
-func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
+func (f *Finder) FeedStatesByFeedIDs(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
 	var ents []*model.FeedState
 	err := dbutil.Select(ctx,
 		f.db,

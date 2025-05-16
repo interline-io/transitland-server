@@ -16,7 +16,7 @@ func (r *feedResolver) Cursor(ctx context.Context, obj *model.Feed) (*model.Curs
 }
 
 func (r *feedResolver) FeedState(ctx context.Context, obj *model.Feed) (*model.FeedState, error) {
-	return LoaderFor(ctx).FeedStatesByFeedID.Load(ctx, obj.ID)()
+	return LoaderFor(ctx).FeedStatesByFeedIDs.Load(ctx, obj.ID)()
 }
 
 func (r *feedResolver) FeedVersions(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {

@@ -41,7 +41,7 @@ type Loaders struct {
 	FeedInfosByFeedVersionIDs                                    *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
 	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
 	FeedsByOperatorOnestopIDs                                    *dataloader.Loader[model.FeedParam, []*model.Feed]
-	FeedStatesByFeedID                                           *dataloader.Loader[int, *model.FeedState]
+	FeedStatesByFeedIDs                                          *dataloader.Loader[int, *model.FeedState]
 	FeedVersionFileInfosByFeedVersionID                          *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
 	FeedVersionGeometryByID                                      *dataloader.Loader[int, *tt.Polygon]
 	FeedVersionGtfsImportByFeedVersionID                         *dataloader.Loader[int, *model.FeedVersionGtfsImport]
@@ -317,7 +317,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		FeedStatesByFeedID:                      withWaitAndCapacity(waitTime, batchSize, dbf.FeedStatesByFeedID),
+		FeedStatesByFeedIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.FeedStatesByFeedIDs),
 		FeedVersionFileInfosByFeedVersionID:     withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionFileInfosByFeedVersionID),
 		FeedVersionGeometryByID:                 withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGeometryByID),
 		FeedVersionGtfsImportByFeedVersionID:    withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGtfsImportByFeedVersionID),
