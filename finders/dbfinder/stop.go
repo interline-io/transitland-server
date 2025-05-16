@@ -408,11 +408,11 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		if len(loc.GeographyIds) > 0 {
 			featureData := sq.StatementBuilder.
 				Select(
-					"tlcg.id as feature_id",
+					"tlcg.id::text as feature_id",
 					"tlcg.geometry",
 				).
-				From("tl_census_geographies").
-				Where(sq.Eq{"id": loc.GeographyIds})
+				From("tl_census_geographies tlcg").
+				Where(sq.Eq{"tlcg.id": loc.GeographyIds})
 			featureQuery := sq.StatementBuilder.
 				Select(
 					"gtfs_stops.id",

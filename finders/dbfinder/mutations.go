@@ -282,12 +282,10 @@ func createUpdateEnt[T hasTableName](
 	}
 
 	// Update columns
-	fmt.Printf("update %v baseEnt %#v\n", update, baseEnt)
 	cols, err := updateFunc(baseEnt)
 	if err != nil {
 		return 0, err
 	}
-	fmt.Printf("baseEnd after update: %#v\n", baseEnt)
 
 	// Validate
 	if errs := tt.CheckErrors(baseEnt); len(errs) > 0 {

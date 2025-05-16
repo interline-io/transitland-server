@@ -449,8 +449,12 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 }
 
 func stopResolverLocationTestcases(t *testing.T, cfg model.Config) []testcase {
-	vars := hw{"stop_id": "MCAR"}
+	geographyId := 0
+	if err := cfg.Finder.DBX().QueryRowx(`select id from tl_census_geographies where layer_name = 'tract' and geoid = '1400000US06001402900'`).Scan(&geographyId); err != nil {
+		t.Errorf("could not get geography id for test: %s", err.Error())
+	}
 
+	vars := hw{"stop_id": "MCAR"}
 	featureBig := decodeGeojson(`{
 		"id": "big",
 		"geometry": {
@@ -555,6 +559,14 @@ func stopResolverLocationTestcases(t *testing.T, cfg model.Config) []testcase {
 			query:  `query($features: [Feature]) {stops(where:{location:{features:$features}}){stop_id within_features}}`,
 			vars:   hw{"features": []hw{featureSmall, featureBig}},
 			expect: `{"stops":[{"stop_id":"12TH","within_features":["small","big"]},{"stop_id":"19TH","within_features":["big"]},{"stop_id":"19TH_N","within_features":["big"]}]}`,
+		},
+		// within geography ids
+		{
+			name:         "where within geography ids 1",
+			query:        `query($geographyIds:[Int!]){stops(where:{location:{geography_ids:$geographyIds}}){id stop_id}}`,
+			selector:     "stops.#.stop_id",
+			vars:         hw{"geographyIds": []int{geographyId}},
+			selectExpect: []string{"19TH", "19TH_N"},
 		},
 		// nearby stops
 		{
