@@ -51,7 +51,7 @@ type Loaders struct {
 	FeedVersionServiceWindowByFeedVersionIDs                     *dataloader.Loader[int, *model.FeedVersionServiceWindow]
 	FrequenciesByTripIDs                                         *dataloader.Loader[model.FrequencyParam, []*model.Frequency]
 	LevelsByIDs                                                  *dataloader.Loader[int, *model.Level]
-	LevelsByParentStationID                                      *dataloader.Loader[model.LevelParam, []*model.Level]
+	LevelsByParentStationIDs                                     *dataloader.Loader[model.LevelParam, []*model.Level]
 	OperatorsByAgencyIDs                                         *dataloader.Loader[int, *model.Operator]
 	OperatorsByCOIFs                                             *dataloader.Loader[int, *model.Operator]
 	OperatorsByFeedID                                            *dataloader.Loader[model.OperatorParam, []*model.Operator]
@@ -390,12 +390,28 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		LevelsByIDs:             withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
-		LevelsByParentStationID: withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByParentStationID),
-		OperatorsByAgencyIDs:    withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
-		OperatorsByCOIFs:        withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
-		OperatorsByFeedID:       withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByFeedID),
-		PathwaysByIDs:           withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
+		LevelsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
+		LevelsByParentStationIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.LevelParam) ([][]*model.Level, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.LevelParam) (int, bool, *int) {
+						return p.ParentStationID, false, p.Limit
+					},
+					func(keys []int, where bool, limit *int) (ents []*model.Level, err error) {
+						return dbf.LevelsByParentStationIDs(ctx, limit, keys)
+					},
+					func(ent *model.Level) int {
+						return ent.ParentStation.Int()
+					},
+				)
+			}),
+		OperatorsByAgencyIDs: withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
+		OperatorsByCOIFs:     withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
+		OperatorsByFeedID:    withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByFeedID),
+		PathwaysByIDs:        withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
 		PathwaysByFromStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,

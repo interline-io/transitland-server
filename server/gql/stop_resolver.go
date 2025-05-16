@@ -34,7 +34,7 @@ func (r *stopResolver) Level(ctx context.Context, obj *model.Stop) (*model.Level
 }
 
 func (r *stopResolver) ChildLevels(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Level, error) {
-	return LoaderFor(ctx).LevelsByParentStationID.Load(ctx, model.LevelParam{ParentStationID: obj.ID, Limit: limit})()
+	return LoaderFor(ctx).LevelsByParentStationIDs.Load(ctx, model.LevelParam{ParentStationID: obj.ID, Limit: limit})()
 }
 
 func (r *stopResolver) Parent(ctx context.Context, obj *model.Stop) (*model.Stop, error) {

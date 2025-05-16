@@ -103,7 +103,7 @@ type EntityLoader interface {
 
 	PathwaysByFromStopIDs(context.Context, *int, *PathwayFilter, []int) ([]*Pathway, error)
 	PathwaysByToStopIDs(context.Context, *int, *PathwayFilter, []int) ([]*Pathway, error)
-	LevelsByParentStationID(context.Context, []LevelParam) ([][]*Level, []error)
+	LevelsByParentStationIDs(context.Context, *int, []int) ([]*Level, error)
 
 	RouteGeometriesByRouteID(context.Context, []RouteGeometryParam) ([][]*RouteGeometry, []error)
 	RouteHeadwaysByRouteID(context.Context, []RouteHeadwayParam) ([][]*RouteHeadway, []error)
