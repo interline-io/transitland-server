@@ -153,31 +153,20 @@ func (f *Finder) RoutesByAgencyIDs(ctx context.Context, limit *int, where *model
 	return ents, err
 }
 
-func (f *Finder) RoutesByFeedVersionID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.RouteParam) (int, *model.RouteFilter, *int) {
-			return p.FeedVersionID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.RouteFilter, limit *int) (ents []*model.Route, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					routeSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
-					"feed_versions",
-					"id",
-					"gtfs_routes",
-					"feed_version_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Route) int {
-			return ent.FeedVersionID
-		},
+func (f *Finder) RoutesByFeedVersionIDs(ctx context.Context, limit *int, where *model.RouteFilter, keys []int) (ents []*model.Route, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			routeSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+			"feed_versions",
+			"id",
+			"gtfs_routes",
+			"feed_version_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) RouteStopsByRouteID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {

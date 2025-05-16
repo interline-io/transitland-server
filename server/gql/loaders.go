@@ -62,7 +62,7 @@ type Loaders struct {
 	RouteGeometriesByRouteIDs                                    *dataloader.Loader[model.RouteGeometryParam, []*model.RouteGeometry]
 	RouteHeadwaysByRouteIDs                                      *dataloader.Loader[model.RouteHeadwayParam, []*model.RouteHeadway]
 	RoutesByAgencyIDs                                            *dataloader.Loader[model.RouteParam, []*model.Route]
-	RoutesByFeedVersionID                                        *dataloader.Loader[model.RouteParam, []*model.Route]
+	RoutesByFeedVersionIDs                                       *dataloader.Loader[model.RouteParam, []*model.Route]
 	RoutesByIDs                                                  *dataloader.Loader[int, *model.Route]
 	RouteStopPatternsByRouteID                                   *dataloader.Loader[model.RouteStopPatternParam, []*model.RouteStopPattern]
 	RouteStopsByRouteID                                          *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
@@ -498,7 +498,23 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		RoutesByFeedVersionID:           withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByFeedVersionID),
+		RoutesByFeedVersionIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.RouteParam) (int, *model.RouteFilter, *int) {
+						return p.FeedVersionID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.RouteFilter, limit *int) (ents []*model.Route, err error) {
+						return dbf.RoutesByFeedVersionIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Route) int {
+						return ent.FeedVersionID
+					},
+				)
+			}),
 		RoutesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
 		RouteStopPatternsByRouteID:      withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopPatternsByRouteID),
 		RouteStopsByRouteID:             withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByRouteID),

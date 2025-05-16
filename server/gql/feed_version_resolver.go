@@ -21,7 +21,7 @@ func (r *feedVersionResolver) Agencies(ctx context.Context, obj *model.FeedVersi
 }
 
 func (r *feedVersionResolver) Routes(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.RouteFilter) ([]*model.Route, error) {
-	return LoaderFor(ctx).RoutesByFeedVersionID.Load(ctx, model.RouteParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
+	return LoaderFor(ctx).RoutesByFeedVersionIDs.Load(ctx, model.RouteParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *feedVersionResolver) Stops(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.StopFilter) ([]*model.Stop, error) {
