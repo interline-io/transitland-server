@@ -356,12 +356,10 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		loc := where.Location
 		if loc == nil {
 			loc = &model.StopLocationFilter{
-				Bbox:     where.Bbox,
-				Features: where.WithinFeatures,
-				Near:     where.Near,
-				Polygon:  where.Within,
+				Bbox:    where.Bbox,
+				Near:    where.Near,
+				Polygon: where.Within,
 			}
-
 		}
 		if len(loc.Features) > 0 {
 			// Set bounding box from features
@@ -406,6 +404,26 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				Column("features.feature_ids as within_features").
 				JoinClause(featureQuery.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id")).
 				Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", fcBbox2.MinLon, fcBbox2.MinLat, fcBbox2.MaxLon, fcBbox2.MaxLat)
+		}
+		if len(loc.GeographyIds) > 0 {
+			featureData := sq.StatementBuilder.
+				Select(
+					"tlcg.id as feature_id",
+					"tlcg.geometry",
+				).
+				From("tl_census_geographies").
+				Where(sq.Eq{"id": loc.GeographyIds})
+			featureQuery := sq.StatementBuilder.
+				Select(
+					"gtfs_stops.id",
+					"json_agg(features.feature_id) feature_ids",
+				).
+				From("gtfs_stops").
+				JoinClause(featureData.Prefix("JOIN (").Suffix(") features ON ST_Intersects(gtfs_stops.geometry, features.geometry)")).
+				GroupBy("gtfs_stops.id")
+			q = q.
+				Column("features.feature_ids as within_features").
+				JoinClause(featureQuery.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id"))
 		}
 		if loc.Bbox != nil {
 			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat)

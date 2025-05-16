@@ -934,8 +934,6 @@ type StopFilter struct {
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 	// Backwards compat: Search for stops within this geographic polygon
 	Within *tt.Polygon `json:"within,omitempty"`
-	// Backwards compat: Search for stops within these enclosing features, and return the matching feature ids
-	WithinFeatures []*Feature `json:"within_features,omitempty"`
 	// Backwards compat: Search for stops within specified radius of a point
 	Near *PointRadius `json:"near,omitempty"`
 }

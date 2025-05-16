@@ -546,13 +546,13 @@ func stopResolverLocationTestcases(t *testing.T, cfg model.Config) []testcase {
 		},
 		{
 			name:   "where locations within_features 1",
-			query:  `query($features: [Feature]) {stops(where:{within_features:$features}){stop_id within_features}}`,
+			query:  `query($features: [Feature]) {stops(where:{location:{features:$features}}){stop_id within_features}}`,
 			vars:   hw{"features": []hw{featureSmall}},
 			expect: `{"stops":[{"stop_id":"12TH","within_features":["small"]}]}`,
 		},
 		{
 			name:   "where locations within_features 2",
-			query:  `query($features: [Feature]) {stops(where:{within_features:$features}){stop_id within_features}}`,
+			query:  `query($features: [Feature]) {stops(where:{location:{features:$features}}){stop_id within_features}}`,
 			vars:   hw{"features": []hw{featureSmall, featureBig}},
 			expect: `{"stops":[{"stop_id":"12TH","within_features":["small","big"]},{"stop_id":"19TH","within_features":["big"]},{"stop_id":"19TH_N","within_features":["big"]}]}`,
 		},

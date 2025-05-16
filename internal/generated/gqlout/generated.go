@@ -9601,8 +9601,6 @@ input StopFilter {
   bbox: BoundingBox
   "Backwards compat: Search for stops within this geographic polygon"
   within: Polygon
-  "Backwards compat: Search for stops within these enclosing features, and return the matching feature ids"
-  within_features: [Feature]
   "Backwards compat: Search for stops within specified radius of a point"
   near: PointRadius
 }
@@ -57043,7 +57041,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "search", "license", "served_by_onestop_ids", "served_by_route_type", "served_by_route_types", "agency_ids", "location", "bbox", "within", "within_features", "near"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "search", "license", "served_by_onestop_ids", "served_by_route_type", "served_by_route_types", "agency_ids", "location", "bbox", "within", "near"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -57176,13 +57174,6 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.Within = data
-		case "within_features":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within_features"))
-			data, err := ec.unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.WithinFeatures = data
 		case "near":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
 			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
