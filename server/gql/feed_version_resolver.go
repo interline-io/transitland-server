@@ -58,7 +58,7 @@ func (r *feedVersionResolver) ServiceLevels(ctx context.Context, obj *model.Feed
 }
 
 func (r *feedVersionResolver) FeedInfos(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedInfo, error) {
-	return LoaderFor(ctx).FeedInfosByFeedVersionID.Load(ctx, model.FeedInfoParam{FeedVersionID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).FeedInfosByFeedVersionIDs.Load(ctx, model.FeedInfoParam{FeedVersionID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 // FEED VALIDATION REPORT

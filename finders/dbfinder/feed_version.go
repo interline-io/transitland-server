@@ -178,31 +178,20 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*m
 	return ret, err
 }
 
-func (f *Finder) FeedInfosByFeedVersionID(ctx context.Context, params []model.FeedInfoParam) ([][]*model.FeedInfo, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.FeedInfoParam) (int, bool, *int) {
-			return p.FeedVersionID, false, p.Limit
-		},
-		func(keys []int, where bool, limit *int) (ents []*model.FeedInfo, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					quickSelectOrder("gtfs_feed_infos", limit, nil, nil, "feed_version_id"),
-					"feed_versions",
-					"id",
-					"gtfs_feed_infos",
-					"feed_version_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.FeedInfo) int {
-			return ent.FeedVersionID
-		},
+func (f *Finder) FeedInfosByFeedVersionIDs(ctx context.Context, limit *int, keys []int) (ents []*model.FeedInfo, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			quickSelectOrder("gtfs_feed_infos", limit, nil, nil, "feed_version_id"),
+			"feed_versions",
+			"id",
+			"gtfs_feed_infos",
+			"feed_version_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func feedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) sq.SelectBuilder {

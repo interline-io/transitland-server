@@ -38,7 +38,7 @@ type Loaders struct {
 	CensusTableByIDs                                             *dataloader.Loader[int, *model.CensusTable]
 	CensusValuesByGeographyIDs                                   *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
 	FeedFetchesByFeedIDs                                         *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
-	FeedInfosByFeedVersionID                                     *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
+	FeedInfosByFeedVersionIDs                                    *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
 	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
 	FeedsByOperatorOnestopID                                     *dataloader.Loader[model.FeedParam, []*model.Feed]
 	FeedStatesByFeedID                                           *dataloader.Loader[int, *model.FeedState]
@@ -279,7 +279,23 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedInfosByFeedVersionID),
+		FeedInfosByFeedVersionIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.FeedInfoParam) ([][]*model.FeedInfo, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.FeedInfoParam) (int, bool, *int) {
+						return p.FeedVersionID, false, p.Limit
+					},
+					func(keys []int, where bool, limit *int) (ents []*model.FeedInfo, err error) {
+						return dbf.FeedInfosByFeedVersionIDs(ctx, limit, keys)
+					},
+					func(ent *model.FeedInfo) int {
+						return ent.FeedVersionID
+					},
+				)
+			}),
 		FeedsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),
 		FeedsByOperatorOnestopID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByOperatorOnestopID),
 		FeedStatesByFeedID:                      withWaitAndCapacity(waitTime, batchSize, dbf.FeedStatesByFeedID),
