@@ -122,6 +122,10 @@ models:
       onestop_id:
         fieldName: FeedID
   # Force resolvers
+  StopObservation:
+    extraFields:
+      StopID:
+        type: int
   RouteStop:
     fields:
       route:

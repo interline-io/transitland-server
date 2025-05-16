@@ -979,6 +979,7 @@ type StopObservation struct {
 	ObservedArrivalTime *tt.Seconds `json:"observed_arrival_time,omitempty"`
 	// GTFS-RT calculated departure time
 	ObservedDepartureTime *tt.Seconds `json:"observed_departure_time,omitempty"`
+	StopID                int         `json:"-"`
 }
 
 // Search options for stop observations

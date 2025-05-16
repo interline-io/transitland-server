@@ -36,38 +36,22 @@ func (f *Finder) StopExternalReferencesByStopIDs(ctx context.Context, ids []int)
 	return arrangeBy(ids, ents, func(ent *model.StopExternalReference) int { return ent.StopID.Int() }), nil
 }
 
-func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.StopObservationParam) ([][]*model.StopObservation, []error) {
-	type qent struct {
-		StopID int
-		model.StopObservation
+func (f *Finder) StopObservationsByStopIDs(ctx context.Context, limit *int, where *model.StopObservationFilter, keys []int) (ents []*model.StopObservation, err error) {
+	// Prepare output
+	q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
+		From("ext_performance_stop_observations obs").
+		Join("gtfs_stops on gtfs_stops.stop_id = obs.to_stop_id").
+		Where(In("gtfs_stops.id", keys)).
+		Limit(100000)
+	if where != nil {
+		q = q.Where("obs.feed_version_id = ?", where.FeedVersionID)
+		q = q.Where("obs.trip_start_date = ?", where.TripStartDate)
+		q = q.Where("obs.source = ?", where.Source)
+		// q = q.Where("start_time >= ?", where.StartTime)
+		// q = q.Where("end_time <= ?", where.EndTime)
 	}
-	qentGroups, err := paramGroupQuery(
-		params,
-		func(p model.StopObservationParam) (int, *model.StopObservationFilter, *int) {
-			return p.StopID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.StopObservationFilter, limit *int) (ents []*qent, err error) {
-			// Prepare output
-			q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
-				From("ext_performance_stop_observations obs").
-				Join("gtfs_stops on gtfs_stops.stop_id = obs.to_stop_id").
-				Where(In("gtfs_stops.id", keys)).
-				Limit(100000)
-			if where != nil {
-				q = q.Where("obs.feed_version_id = ?", where.FeedVersionID)
-				q = q.Where("obs.trip_start_date = ?", where.TripStartDate)
-				q = q.Where("obs.source = ?", where.Source)
-				// q = q.Where("start_time >= ?", where.StartTime)
-				// q = q.Where("end_time <= ?", where.EndTime)
-			}
-			err = dbutil.Select(ctx, f.db, q, &ents)
-			return ents, err
-		},
-		func(ent *qent) int {
-			return ent.StopID
-		},
-	)
-	return convertEnts(qentGroups, func(a *qent) *model.StopObservation { return &a.StopObservation }), err
+	err = dbutil.Select(ctx, f.db, q, &ents)
+	return ents, err
 }
 
 func (f *Finder) StopsByIDs(ctx context.Context, ids []int) ([]*model.Stop, []error) {

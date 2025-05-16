@@ -74,7 +74,7 @@ type Loaders struct {
 	SegmentsByRouteID                                            *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	ShapesByIDs                                                  *dataloader.Loader[int, *model.Shape]
 	StopExternalReferencesByStopIDs                              *dataloader.Loader[int, *model.StopExternalReference]
-	StopObservationsByStopID                                     *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
+	StopObservationsByStopIDs                                    *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
 	StopPlacesByStopID                                           *dataloader.Loader[model.StopPlaceParam, *model.StopPlace]
 	StopsByFeedVersionID                                         *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopsByIDs                                                   *dataloader.Loader[int, *model.Stop]
@@ -574,19 +574,35 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		SegmentsByRouteID:               withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByRouteID),
 		ShapesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByIDs),
 		StopExternalReferencesByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopIDs),
-		StopObservationsByStopID:        withWaitAndCapacity(waitTime, batchSize, dbf.StopObservationsByStopID),
-		StopPlacesByStopID:              withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
-		StopsByFeedVersionID:            withWaitAndCapacity(waitTime, batchSize, dbf.StopsByFeedVersionID),
-		StopsByIDs:                      withWaitAndCapacity(waitTime, batchSize, dbf.StopsByIDs),
-		StopsByLevelID:                  withWaitAndCapacity(waitTime, batchSize, dbf.StopsByLevelID),
-		StopsByParentStopID:             withWaitAndCapacity(waitTime, batchSize, dbf.StopsByParentStopID),
-		StopsByRouteID:                  withWaitAndCapacity(waitTime, batchSize, dbf.StopsByRouteID),
-		StopTimesByStopID:               withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
-		StopTimesByTripID:               withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
-		TargetStopsByStopIDs:            withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopIDs),
-		TripsByFeedVersionID:            withWaitAndCapacity(waitTime, batchSize, dbf.TripsByFeedVersionID),
-		TripsByIDs:                      withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
-		TripsByRouteID:                  withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),
+		StopObservationsByStopIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.StopObservationParam) ([][]*model.StopObservation, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.StopObservationParam) (int, *model.StopObservationFilter, *int) {
+						return p.StopID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.StopObservationFilter, limit *int) (ents []*model.StopObservation, err error) {
+						return dbf.StopObservationsByStopIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.StopObservation) int {
+						return ent.StopID
+					},
+				)
+			}),
+		StopPlacesByStopID:   withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
+		StopsByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.StopsByFeedVersionID),
+		StopsByIDs:           withWaitAndCapacity(waitTime, batchSize, dbf.StopsByIDs),
+		StopsByLevelID:       withWaitAndCapacity(waitTime, batchSize, dbf.StopsByLevelID),
+		StopsByParentStopID:  withWaitAndCapacity(waitTime, batchSize, dbf.StopsByParentStopID),
+		StopsByRouteID:       withWaitAndCapacity(waitTime, batchSize, dbf.StopsByRouteID),
+		StopTimesByStopID:    withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
+		StopTimesByTripID:    withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
+		TargetStopsByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopIDs),
+		TripsByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.TripsByFeedVersionID),
+		TripsByIDs:           withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
+		TripsByRouteID:       withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),
 		ValidationReportErrorExemplarsByValidationReportErrorGroupID: withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupID),
 		ValidationReportErrorGroupsByValidationReportID:              withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorGroupsByValidationReportID),
 		ValidationReportsByFeedVersionID:                             withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportsByFeedVersionID),
