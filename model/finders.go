@@ -103,7 +103,7 @@ type EntityLoader interface {
 	FeedInfosByFeedVersionIDs(context.Context, *int, []int) ([]*FeedInfo, error)
 	FeedsByOperatorOnestopIDs(context.Context, *int, *FeedFilter, []string) ([]*Feed, error)
 	FeedVersionFileInfosByFeedVersionIDs(context.Context, *int, []int) ([]*FeedVersionFileInfo, error)
-	FeedVersionsByFeedID(context.Context, []FeedVersionParam) ([][]*FeedVersion, []error)
+	FeedVersionsByFeedIDs(context.Context, *int, *FeedVersionFilter, []int) ([]*FeedVersion, error)
 	FeedVersionServiceLevelsByFeedVersionID(context.Context, []FeedVersionServiceLevelParam) ([][]*FeedVersionServiceLevel, []error)
 
 	FrequenciesByTripID(context.Context, []FrequencyParam) ([][]*Frequency, []error)

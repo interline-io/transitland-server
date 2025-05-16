@@ -20,7 +20,7 @@ func (r *feedResolver) FeedState(ctx context.Context, obj *model.Feed) (*model.F
 }
 
 func (r *feedResolver) FeedVersions(ctx context.Context, obj *model.Feed, limit *int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
-	return LoaderFor(ctx).FeedVersionsByFeedID.Load(ctx, model.FeedVersionParam{FeedID: obj.ID, Limit: checkLimit(limit), Where: where})()
+	return LoaderFor(ctx).FeedVersionsByFeedIDs.Load(ctx, model.FeedVersionParam{FeedID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *feedResolver) License(ctx context.Context, obj *model.Feed) (*model.FeedLicense, error) {
