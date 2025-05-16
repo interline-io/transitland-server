@@ -62,31 +62,15 @@ func (f *Finder) StopsByIDs(ctx context.Context, ids []int) ([]*model.Stop, []er
 	return arrangeBy(ids, ents, func(ent *model.Stop) int { return ent.ID }), nil
 }
 
-func (f *Finder) StopsByRouteID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
-	type qent struct {
-		RouteID int
-		model.Stop
-	}
-	qentGroups, err := paramGroupQuery(
-		params,
-		func(p model.StopParam) (int, *model.StopFilter, *int) {
-			return p.RouteID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.StopFilter, limit *int) (ents []*qent, err error) {
-			qso := stopSelect(params[0].Limit, nil, nil, false, f.PermFilter(ctx), where)
-			qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(In("route_id", keys)).Column("route_id")
-			err = dbutil.Select(ctx,
-				f.db,
-				qso,
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *qent) int {
-			return ent.RouteID
-		},
+func (f *Finder) StopsByRouteIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) (ents []*model.Stop, err error) {
+	qso := stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where)
+	qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(In("route_id", keys)).Column("route_id as with_route_id")
+	err = dbutil.Select(ctx,
+		f.db,
+		qso,
+		&ents,
 	)
-	return convertEnts(qentGroups, func(a *qent) *model.Stop { return &a.Stop }), err
+	return ents, err
 }
 
 func (f *Finder) StopsByParentStopIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) (ents []*model.Stop, err error) {

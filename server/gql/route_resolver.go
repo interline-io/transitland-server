@@ -48,7 +48,7 @@ func (r *routeResolver) FeedVersion(ctx context.Context, obj *model.Route) (*mod
 }
 
 func (r *routeResolver) Stops(ctx context.Context, obj *model.Route, limit *int, where *model.StopFilter) ([]*model.Stop, error) {
-	return LoaderFor(ctx).StopsByRouteID.Load(ctx, model.StopParam{RouteID: obj.ID, Limit: checkLimit(limit), Where: where})()
+	return LoaderFor(ctx).StopsByRouteIDs.Load(ctx, model.StopParam{RouteID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *routeResolver) RouteStops(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteStop, error) {

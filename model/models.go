@@ -104,6 +104,7 @@ type Stop struct {
 	OnestopID       *string
 	SearchRank      *string
 	WithinFeatures  tt.Strings
+	WithRouteID     tt.Int
 	gtfs.Stop
 }
 
