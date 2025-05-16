@@ -104,7 +104,7 @@ type EntityLoader interface {
 	FeedsByOperatorOnestopIDs(context.Context, *int, *FeedFilter, []string) ([]*Feed, error)
 	FeedVersionFileInfosByFeedVersionIDs(context.Context, *int, []int) ([]*FeedVersionFileInfo, error)
 	FeedVersionsByFeedIDs(context.Context, *int, *FeedVersionFilter, []int) ([]*FeedVersion, error)
-	FeedVersionServiceLevelsByFeedVersionID(context.Context, []FeedVersionServiceLevelParam) ([][]*FeedVersionServiceLevel, []error)
+	FeedVersionServiceLevelsByFeedVersionIDs(context.Context, *int, *FeedVersionServiceLevelFilter, []int) ([]*FeedVersionServiceLevel, error)
 
 	FrequenciesByTripID(context.Context, []FrequencyParam) ([][]*Frequency, []error)
 

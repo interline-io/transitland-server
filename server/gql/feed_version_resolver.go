@@ -54,7 +54,7 @@ func (r *feedVersionResolver) ServiceWindow(ctx context.Context, obj *model.Feed
 }
 
 func (r *feedVersionResolver) ServiceLevels(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.FeedVersionServiceLevelFilter) ([]*model.FeedVersionServiceLevel, error) {
-	return LoaderFor(ctx).FeedVersionServiceLevelsByFeedVersionID.Load(ctx, model.FeedVersionServiceLevelParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
+	return LoaderFor(ctx).FeedVersionServiceLevelsByFeedVersionIDs.Load(ctx, model.FeedVersionServiceLevelParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *feedVersionResolver) FeedInfos(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedInfo, error) {

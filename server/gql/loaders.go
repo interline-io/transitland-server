@@ -47,7 +47,7 @@ type Loaders struct {
 	FeedVersionGtfsImportByFeedVersionID                         *dataloader.Loader[int, *model.FeedVersionGtfsImport]
 	FeedVersionsByFeedIDs                                        *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
 	FeedVersionsByID                                             *dataloader.Loader[int, *model.FeedVersion]
-	FeedVersionServiceLevelsByFeedVersionID                      *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
+	FeedVersionServiceLevelsByFeedVersionIDs                     *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
 	FeedVersionServiceWindowByFeedVersionID                      *dataloader.Loader[int, *model.FeedVersionServiceWindow]
 	FrequenciesByTripID                                          *dataloader.Loader[model.FrequencyParam, []*model.Frequency]
 	LevelsByID                                                   *dataloader.Loader[int, *model.Level]
@@ -354,8 +354,24 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		FeedVersionsByID:                        withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByID),
-		FeedVersionServiceLevelsByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionServiceLevelsByFeedVersionID),
+		FeedVersionsByID: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByID),
+		FeedVersionServiceLevelsByFeedVersionIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.FeedVersionServiceLevelParam) ([][]*model.FeedVersionServiceLevel, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.FeedVersionServiceLevelParam) (int, *model.FeedVersionServiceLevelFilter, *int) {
+						return p.FeedVersionID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.FeedVersionServiceLevelFilter, limit *int) (ents []*model.FeedVersionServiceLevel, err error) {
+						return dbf.FeedVersionServiceLevelsByFeedVersionIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.FeedVersionServiceLevel) int {
+						return ent.FeedVersionID
+					},
+				)
+			}),
 		FeedVersionServiceWindowByFeedVersionID: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionID),
 		FrequenciesByTripID:                     withWaitAndCapacity(waitTime, batchSize, dbf.FrequenciesByTripID),
 		LevelsByID:                              withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByID),
