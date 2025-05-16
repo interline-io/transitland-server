@@ -21,7 +21,7 @@ func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tt.Geo
 		return &obj.Geometry, nil
 	}
 	// Defer geometry loading
-	geoms, err := LoaderFor(ctx).RouteGeometriesByRouteID.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID})()
+	geoms, err := LoaderFor(ctx).RouteGeometriesByRouteIDs.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID})()
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (r *routeResolver) Geometry(ctx context.Context, obj *model.Route) (*tt.Geo
 }
 
 func (r *routeResolver) Geometries(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteGeometry, error) {
-	return LoaderFor(ctx).RouteGeometriesByRouteID.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).RouteGeometriesByRouteIDs.Load(ctx, model.RouteGeometryParam{RouteID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *routeResolver) Trips(ctx context.Context, obj *model.Route, limit *int, where *model.TripFilter) ([]*model.Trip, error) {

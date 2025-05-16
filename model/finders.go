@@ -52,7 +52,6 @@ type EntityMutator interface {
 	LevelDelete(ctx context.Context, id int) error
 }
 
-// EntityLoader methods must return items in the same order as the input parameters
 type EntityLoader interface {
 	// Simple ID loaders
 	TripsByIDs(context.Context, []int) ([]*Trip, []error)
@@ -105,7 +104,7 @@ type EntityLoader interface {
 	PathwaysByToStopIDs(context.Context, *int, *PathwayFilter, []int) ([]*Pathway, error)
 	LevelsByParentStationIDs(context.Context, *int, []int) ([]*Level, error)
 
-	RouteGeometriesByRouteID(context.Context, []RouteGeometryParam) ([][]*RouteGeometry, []error)
+	RouteGeometriesByRouteIDs(context.Context, *int, []int) ([]*RouteGeometry, error)
 	RouteHeadwaysByRouteID(context.Context, []RouteHeadwayParam) ([][]*RouteHeadway, []error)
 	RoutesByAgencyID(context.Context, []RouteParam) ([][]*Route, []error)
 	RoutesByFeedVersionID(context.Context, []RouteParam) ([][]*Route, []error)
@@ -120,11 +119,12 @@ type EntityLoader interface {
 	StopsByRouteID(context.Context, []StopParam) ([][]*Stop, []error)
 	StopTimesByStopID(context.Context, []StopTimeParam) ([][]*StopTime, []error)
 	StopTimesByTripID(context.Context, []TripStopTimeParam) ([][]*StopTime, []error)
+	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 
 	TripsByFeedVersionID(context.Context, []TripParam) ([][]*Trip, []error)
 	TripsByRouteID(context.Context, []TripParam) ([][]*Trip, []error)
+
 	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
-	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 
 	// Validation reports
 	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)

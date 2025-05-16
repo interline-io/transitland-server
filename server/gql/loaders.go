@@ -59,7 +59,7 @@ type Loaders struct {
 	PathwaysByIDs                                                *dataloader.Loader[int, *model.Pathway]
 	PathwaysByToStopID                                           *dataloader.Loader[model.PathwayParam, []*model.Pathway]
 	RouteAttributesByRouteIDs                                    *dataloader.Loader[int, *model.RouteAttribute]
-	RouteGeometriesByRouteID                                     *dataloader.Loader[model.RouteGeometryParam, []*model.RouteGeometry]
+	RouteGeometriesByRouteIDs                                    *dataloader.Loader[model.RouteGeometryParam, []*model.RouteGeometry]
 	RouteHeadwaysByRouteID                                       *dataloader.Loader[model.RouteHeadwayParam, []*model.RouteHeadway]
 	RoutesByAgencyID                                             *dataloader.Loader[model.RouteParam, []*model.Route]
 	RoutesByFeedVersionID                                        *dataloader.Loader[model.RouteParam, []*model.Route]
@@ -446,8 +446,24 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		RouteAttributesByRouteIDs:       withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
-		RouteGeometriesByRouteID:        withWaitAndCapacity(waitTime, batchSize, dbf.RouteGeometriesByRouteID),
+		RouteAttributesByRouteIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
+		RouteGeometriesByRouteIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.RouteGeometryParam) ([][]*model.RouteGeometry, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.RouteGeometryParam) (int, bool, *int) {
+						return p.RouteID, false, p.Limit
+					},
+					func(keys []int, where bool, limit *int) (ents []*model.RouteGeometry, err error) {
+						return dbf.RouteGeometriesByRouteIDs(ctx, limit, keys)
+					},
+					func(ent *model.RouteGeometry) int {
+						return ent.RouteID
+					},
+				)
+			}),
 		RouteHeadwaysByRouteID:          withWaitAndCapacity(waitTime, batchSize, dbf.RouteHeadwaysByRouteID),
 		RoutesByAgencyID:                withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByAgencyID),
 		RoutesByFeedVersionID:           withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByFeedVersionID),

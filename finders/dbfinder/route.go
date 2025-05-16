@@ -132,32 +132,20 @@ func (f *Finder) RouteStopPatternsByRouteID(ctx context.Context, params []model.
 	)
 }
 
-func (f *Finder) RouteGeometriesByRouteID(ctx context.Context, params []model.RouteGeometryParam) ([][]*model.RouteGeometry, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.RouteGeometryParam) (int, bool, *int) {
-			return p.RouteID, false, p.Limit
-		},
-		func(keys []int, where bool, limit *int) (ents []*model.RouteGeometry, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					quickSelectOrder("tl_route_geometries", limit, nil, nil, "route_id"),
-					"gtfs_routes",
-					"id",
-					"tl_route_geometries",
-					"route_id",
-					keys,
-				),
-				&ents,
-			)
-
-			return ents, err
-		},
-		func(ent *model.RouteGeometry) int {
-			return ent.RouteID
-		},
+func (f *Finder) RouteGeometriesByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteGeometry, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			quickSelectOrder("tl_route_geometries", limit, nil, nil, "route_id"),
+			"gtfs_routes",
+			"id",
+			"tl_route_geometries",
+			"route_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
