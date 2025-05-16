@@ -17,7 +17,7 @@ type stopTimeResolver struct {
 }
 
 func (r *stopTimeResolver) Stop(ctx context.Context, obj *model.StopTime) (*model.Stop, error) {
-	return LoaderFor(ctx).StopsByID.Load(ctx, obj.StopID.Int())()
+	return LoaderFor(ctx).StopsByIDs.Load(ctx, obj.StopID.Int())()
 }
 
 func (r *stopTimeResolver) ScheduleRelationship(ctx context.Context, obj *model.StopTime) (*model.ScheduleRelationship, error) {

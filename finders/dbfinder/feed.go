@@ -18,7 +18,7 @@ func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor,
 	return ents, nil
 }
 
-func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
+func (f *Finder) FeedsByIDs(ctx context.Context, ids []int) ([]*model.Feed, []error) {
 	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)

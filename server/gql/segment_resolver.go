@@ -19,9 +19,9 @@ func (r *segmentResolver) SegmentPatterns(ctx context.Context, obj *model.Segmen
 type segmentPatternResolver struct{ *Resolver }
 
 func (r *segmentPatternResolver) Segment(ctx context.Context, obj *model.SegmentPattern) (*model.Segment, error) {
-	return LoaderFor(ctx).SegmentsByID.Load(ctx, obj.SegmentID)()
+	return LoaderFor(ctx).SegmentsByIDs.Load(ctx, obj.SegmentID)()
 }
 
 func (r *segmentPatternResolver) Route(ctx context.Context, obj *model.SegmentPattern) (*model.Route, error) {
-	return LoaderFor(ctx).RoutesByID.Load(ctx, obj.RouteID)()
+	return LoaderFor(ctx).RoutesByIDs.Load(ctx, obj.RouteID)()
 }

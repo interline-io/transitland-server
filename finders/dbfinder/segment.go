@@ -35,7 +35,7 @@ func (f *Finder) SegmentsByFeedVersionID(ctx context.Context, params []model.Seg
 	)
 }
 
-func (f *Finder) SegmentsByID(ctx context.Context, ids []int) ([]*model.Segment, []error) {
+func (f *Finder) SegmentsByIDs(ctx context.Context, ids []int) ([]*model.Segment, []error) {
 	var ents []*model.Segment
 	err := dbutil.Select(ctx,
 		f.db,

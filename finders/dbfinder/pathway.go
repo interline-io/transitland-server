@@ -8,7 +8,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []error) {
+func (f *Finder) LevelsByIDs(ctx context.Context, ids []int) ([]*model.Level, []error) {
 	var ents []*model.Level
 	err := dbutil.Select(ctx,
 		f.db,
@@ -21,7 +21,7 @@ func (f *Finder) LevelsByID(ctx context.Context, ids []int) ([]*model.Level, []e
 	return arrangeBy(ids, ents, func(ent *model.Level) int { return ent.ID }), nil
 }
 
-func (f *Finder) PathwaysByID(ctx context.Context, ids []int) ([]*model.Pathway, []error) {
+func (f *Finder) PathwaysByIDs(ctx context.Context, ids []int) ([]*model.Pathway, []error) {
 	var ents []*model.Pathway
 	err := dbutil.Select(ctx,
 		f.db,

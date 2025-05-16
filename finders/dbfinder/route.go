@@ -33,7 +33,7 @@ func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBuff
 	return ents, nil
 }
 
-func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*model.RouteAttribute, []error) {
+func (f *Finder) RouteAttributesByRouteIDs(ctx context.Context, ids []int) ([]*model.RouteAttribute, []error) {
 	var ents []*model.RouteAttribute
 	q := sq.StatementBuilder.Select("*").From("ext_plus_route_attributes").Where(In("route_id", ids))
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
@@ -42,7 +42,7 @@ func (f *Finder) RouteAttributesByRouteID(ctx context.Context, ids []int) ([]*mo
 	return arrangeBy(ids, ents, func(ent *model.RouteAttribute) int { return ent.RouteID }), nil
 }
 
-func (f *Finder) RoutesByID(ctx context.Context, ids []int) ([]*model.Route, []error) {
+func (f *Finder) RoutesByIDs(ctx context.Context, ids []int) ([]*model.Route, []error) {
 	ents, err := f.FindRoutes(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
@@ -241,7 +241,7 @@ func (f *Finder) RouteStopsByRouteID(ctx context.Context, params []model.RouteSt
 	)
 }
 
-func (f *Finder) ShapesByID(ctx context.Context, ids []int) ([]*model.Shape, []error) {
+func (f *Finder) ShapesByIDs(ctx context.Context, ids []int) ([]*model.Shape, []error) {
 	var ents []*model.Shape
 	err := dbutil.Select(ctx,
 		f.db,

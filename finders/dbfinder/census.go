@@ -19,7 +19,7 @@ func (f *Finder) FindCensusDatasets(ctx context.Context, limit *int, after *mode
 	return ents, nil
 }
 
-func (f *Finder) CensusTableByID(ctx context.Context, ids []int) ([]*model.CensusTable, []error) {
+func (f *Finder) CensusTableByIDs(ctx context.Context, ids []int) ([]*model.CensusTable, []error) {
 	var ents []*model.CensusTable
 	err := dbutil.Select(ctx,
 		f.db,

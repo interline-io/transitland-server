@@ -23,14 +23,14 @@ func (r *stopResolver) Cursor(ctx context.Context, obj *model.Stop) (*model.Curs
 }
 
 func (r *stopResolver) FeedVersion(ctx context.Context, obj *model.Stop) (*model.FeedVersion, error) {
-	return LoaderFor(ctx).FeedVersionsByID.Load(ctx, obj.FeedVersionID)()
+	return LoaderFor(ctx).FeedVersionsByIDs.Load(ctx, obj.FeedVersionID)()
 }
 
 func (r *stopResolver) Level(ctx context.Context, obj *model.Stop) (*model.Level, error) {
 	if !obj.LevelID.Valid {
 		return nil, nil
 	}
-	return LoaderFor(ctx).LevelsByID.Load(ctx, obj.LevelID.Int())()
+	return LoaderFor(ctx).LevelsByIDs.Load(ctx, obj.LevelID.Int())()
 }
 
 func (r *stopResolver) ChildLevels(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Level, error) {
@@ -41,7 +41,7 @@ func (r *stopResolver) Parent(ctx context.Context, obj *model.Stop) (*model.Stop
 	if !obj.ParentStation.Valid {
 		return nil, nil
 	}
-	return LoaderFor(ctx).StopsByID.Load(ctx, obj.ParentStation.Int())()
+	return LoaderFor(ctx).StopsByIDs.Load(ctx, obj.ParentStation.Int())()
 }
 
 func (r *stopResolver) Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error) {
@@ -66,7 +66,7 @@ func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limi
 }
 
 func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (*model.StopExternalReference, error) {
-	return LoaderFor(ctx).StopExternalReferencesByStopID.Load(ctx, obj.ID)()
+	return LoaderFor(ctx).StopExternalReferencesByStopIDs.Load(ctx, obj.ID)()
 }
 
 func (r *stopResolver) Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error) {
@@ -187,5 +187,5 @@ type stopExternalReferenceResolver struct {
 }
 
 func (r *stopExternalReferenceResolver) TargetActiveStop(ctx context.Context, obj *model.StopExternalReference) (*model.Stop, error) {
-	return LoaderFor(ctx).TargetStopsByStopID.Load(ctx, obj.StopID.Int())()
+	return LoaderFor(ctx).TargetStopsByStopIDs.Load(ctx, obj.StopID.Int())()
 }

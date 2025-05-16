@@ -56,34 +56,27 @@ type EntityMutator interface {
 type EntityLoader interface {
 	// Simple ID loaders
 	TripsByIDs(context.Context, []int) ([]*Trip, []error)
-	LevelsByID(context.Context, []int) ([]*Level, []error)
-	PathwaysByID(context.Context, []int) ([]*Pathway, []error)
-	CalendarsByID(context.Context, []int) ([]*Calendar, []error)
-	ShapesByID(context.Context, []int) ([]*Shape, []error)
-	FeedVersionsByID(context.Context, []int) ([]*FeedVersion, []error)
-	FeedsByID(context.Context, []int) ([]*Feed, []error)
-	AgenciesByID(context.Context, []int) ([]*Agency, []error)
-	StopsByID(context.Context, []int) ([]*Stop, []error)
-	RoutesByID(context.Context, []int) ([]*Route, []error)
-	StopExternalReferencesByStopID(context.Context, []int) ([]*StopExternalReference, []error)
-	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
-	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
+	LevelsByIDs(context.Context, []int) ([]*Level, []error)
+	PathwaysByIDs(context.Context, []int) ([]*Pathway, []error)
+	CalendarsByIDs(context.Context, []int) ([]*Calendar, []error)
+	ShapesByIDs(context.Context, []int) ([]*Shape, []error)
+	FeedVersionsByIDs(context.Context, []int) ([]*FeedVersion, []error)
+	FeedsByIDs(context.Context, []int) ([]*Feed, []error)
+	AgenciesByIDs(context.Context, []int) ([]*Agency, []error)
+	StopsByIDs(context.Context, []int) ([]*Stop, []error)
+	RoutesByIDs(context.Context, []int) ([]*Route, []error)
+	StopExternalReferencesByStopIDs(context.Context, []int) ([]*StopExternalReference, []error)
+	TargetStopsByStopIDs(context.Context, []int) ([]*Stop, []error)
+	RouteAttributesByRouteIDs(context.Context, []int) ([]*RouteAttribute, []error)
 	FeedVersionGeometryByIDs(context.Context, []int) ([]*tt.Polygon, []error)
-	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
-
-	// Segments
-	SegmentPatternsByRouteID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
-	SegmentPatternsBySegmentID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
-	SegmentsByID(context.Context, []int) ([]*Segment, []error)
-	SegmentsByRouteID(context.Context, []SegmentParam) ([][]*Segment, []error)
-	SegmentsByFeedVersionID(context.Context, []SegmentParam) ([][]*Segment, []error)
+	CensusTableByIDs(context.Context, []int) ([]*CensusTable, []error)
 
 	// Other loaders
-	FeedVersionGtfsImportByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
+	FeedVersionGtfsImportByFeedVersionIDs(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
 	FeedVersionServiceWindowByFeedVersionIDs(context.Context, []int) ([]*FeedVersionServiceWindow, []error)
 	FeedStatesByFeedIDs(context.Context, []int) ([]*FeedState, []error)
-	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
-	OperatorsByAgencyID(context.Context, []int) ([]*Operator, []error)
+	OperatorsByCOIFs(context.Context, []int) ([]*Operator, []error)
+	OperatorsByAgencyIDs(context.Context, []int) ([]*Operator, []error)
 
 	// Param loaders
 	AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *AgencyFilter, feedVersionIds []int) ([]*Agency, error)
@@ -137,6 +130,13 @@ type EntityLoader interface {
 	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
 	ValidationReportErrorGroupsByValidationReportID(context.Context, []ValidationReportErrorGroupParam) ([][]*ValidationReportErrorGroup, []error)
 	ValidationReportErrorExemplarsByValidationReportErrorGroupID(context.Context, []ValidationReportErrorExemplarParam) ([][]*ValidationReportError, []error)
+
+	// Segments
+	SegmentPatternsByRouteID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
+	SegmentPatternsBySegmentID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
+	SegmentsByIDs(context.Context, []int) ([]*Segment, []error)
+	SegmentsByRouteID(context.Context, []SegmentParam) ([][]*Segment, []error)
+	SegmentsByFeedVersionID(context.Context, []SegmentParam) ([][]*Segment, []error)
 }
 
 // RTFinder manages and looks up RT data

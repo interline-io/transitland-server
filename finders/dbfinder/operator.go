@@ -17,7 +17,7 @@ func (f *Finder) FindOperators(ctx context.Context, limit *int, after *model.Cur
 	return ents, nil
 }
 
-func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Operator, []error) {
+func (f *Finder) OperatorsByCOIFs(ctx context.Context, ids []int) ([]*model.Operator, []error) {
 	var ents []*model.Operator
 	err := dbutil.Select(ctx,
 		f.db,
@@ -30,7 +30,7 @@ func (f *Finder) OperatorsByCOIF(ctx context.Context, ids []int) ([]*model.Opera
 	return arrangeBy(ids, ents, func(ent *model.Operator) int { return ent.ID }), nil
 }
 
-func (f *Finder) OperatorsByAgencyID(ctx context.Context, ids []int) ([]*model.Operator, []error) {
+func (f *Finder) OperatorsByAgencyIDs(ctx context.Context, ids []int) ([]*model.Operator, []error) {
 	var ents []*model.Operator
 	err := dbutil.Select(ctx,
 		f.db,

@@ -40,11 +40,11 @@ func (r *routeResolver) Trips(ctx context.Context, obj *model.Route, limit *int,
 }
 
 func (r *routeResolver) Agency(ctx context.Context, obj *model.Route) (*model.Agency, error) {
-	return LoaderFor(ctx).AgenciesByID.Load(ctx, obj.AgencyID.Int())()
+	return LoaderFor(ctx).AgenciesByIDs.Load(ctx, obj.AgencyID.Int())()
 }
 
 func (r *routeResolver) FeedVersion(ctx context.Context, obj *model.Route) (*model.FeedVersion, error) {
-	return LoaderFor(ctx).FeedVersionsByID.Load(ctx, obj.FeedVersionID)()
+	return LoaderFor(ctx).FeedVersionsByIDs.Load(ctx, obj.FeedVersionID)()
 }
 
 func (r *routeResolver) Stops(ctx context.Context, obj *model.Route, limit *int, where *model.StopFilter) ([]*model.Stop, error) {
@@ -81,7 +81,7 @@ func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*mode
 }
 
 func (r *routeResolver) RouteAttribute(ctx context.Context, obj *model.Route) (*model.RouteAttribute, error) {
-	return LoaderFor(ctx).RouteAttributesByRouteID.Load(ctx, obj.ID)()
+	return LoaderFor(ctx).RouteAttributesByRouteIDs.Load(ctx, obj.ID)()
 }
 
 func (r *routeResolver) SegmentPatterns(ctx context.Context, obj *model.Route, limit *int, where *model.SegmentPatternFilter) ([]*model.SegmentPattern, error) {
@@ -97,7 +97,7 @@ func (r *routeResolver) Segments(ctx context.Context, obj *model.Route, limit *i
 type routeHeadwayResolver struct{ *Resolver }
 
 func (r *routeHeadwayResolver) Stop(ctx context.Context, obj *model.RouteHeadway) (*model.Stop, error) {
-	return LoaderFor(ctx).StopsByID.Load(ctx, obj.SelectedStopID)()
+	return LoaderFor(ctx).StopsByIDs.Load(ctx, obj.SelectedStopID)()
 }
 
 func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteHeadway) ([]*tt.Seconds, error) {
@@ -114,15 +114,15 @@ func (r *routeHeadwayResolver) Departures(ctx context.Context, obj *model.RouteH
 type routeStopResolver struct{ *Resolver }
 
 func (r *routeStopResolver) Route(ctx context.Context, obj *model.RouteStop) (*model.Route, error) {
-	return LoaderFor(ctx).RoutesByID.Load(ctx, obj.RouteID)()
+	return LoaderFor(ctx).RoutesByIDs.Load(ctx, obj.RouteID)()
 }
 
 func (r *routeStopResolver) Stop(ctx context.Context, obj *model.RouteStop) (*model.Stop, error) {
-	return LoaderFor(ctx).StopsByID.Load(ctx, obj.StopID)()
+	return LoaderFor(ctx).StopsByIDs.Load(ctx, obj.StopID)()
 }
 
 func (r *routeStopResolver) Agency(ctx context.Context, obj *model.RouteStop) (*model.Agency, error) {
-	return LoaderFor(ctx).AgenciesByID.Load(ctx, obj.AgencyID)()
+	return LoaderFor(ctx).AgenciesByIDs.Load(ctx, obj.AgencyID)()
 }
 
 // ROUTE PATTERN

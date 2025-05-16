@@ -20,7 +20,7 @@ func (r *agencyResolver) Routes(ctx context.Context, obj *model.Agency, limit *i
 }
 
 func (r *agencyResolver) FeedVersion(ctx context.Context, obj *model.Agency) (*model.FeedVersion, error) {
-	return LoaderFor(ctx).FeedVersionsByID.Load(ctx, obj.FeedVersionID)()
+	return LoaderFor(ctx).FeedVersionsByIDs.Load(ctx, obj.FeedVersionID)()
 }
 
 func (r *agencyResolver) Places(ctx context.Context, obj *model.Agency, limit *int, where *model.AgencyPlaceFilter) ([]*model.AgencyPlace, error) {
@@ -31,7 +31,7 @@ func (r *agencyResolver) Operator(ctx context.Context, obj *model.Agency) (*mode
 	if obj.CoifID == nil {
 		return nil, nil
 	}
-	return LoaderFor(ctx).OperatorsByCOIF.Load(ctx, *obj.CoifID)()
+	return LoaderFor(ctx).OperatorsByCOIFs.Load(ctx, *obj.CoifID)()
 }
 
 func (r *agencyResolver) Alerts(ctx context.Context, obj *model.Agency, active *bool, limit *int) ([]*model.Alert, error) {

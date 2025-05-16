@@ -21,7 +21,7 @@ func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Curs
 	return ents, nil
 }
 
-func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
+func (f *Finder) AgenciesByIDs(ctx context.Context, ids []int) ([]*model.Agency, []error) {
 	var ents []*model.Agency
 	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil)
 	if err != nil {

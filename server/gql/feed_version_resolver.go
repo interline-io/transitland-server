@@ -33,7 +33,7 @@ func (r *feedVersionResolver) Trips(ctx context.Context, obj *model.FeedVersion,
 }
 
 func (r *feedVersionResolver) Feed(ctx context.Context, obj *model.FeedVersion) (*model.Feed, error) {
-	return LoaderFor(ctx).FeedsByID.Load(ctx, obj.FeedID)()
+	return LoaderFor(ctx).FeedsByIDs.Load(ctx, obj.FeedID)()
 }
 
 func (r *feedVersionResolver) Geometry(ctx context.Context, obj *model.FeedVersion) (*tt.Polygon, error) {
@@ -46,7 +46,7 @@ func (r *feedVersionResolver) Files(ctx context.Context, obj *model.FeedVersion,
 }
 
 func (r *feedVersionResolver) FeedVersionGtfsImport(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionGtfsImport, error) {
-	return LoaderFor(ctx).FeedVersionGtfsImportByFeedVersionID.Load(ctx, obj.ID)()
+	return LoaderFor(ctx).FeedVersionGtfsImportByFeedVersionIDs.Load(ctx, obj.ID)()
 }
 
 func (r *feedVersionResolver) ServiceWindow(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionServiceWindow, error) {
@@ -102,5 +102,5 @@ func (r *feedVersionGtfsImportResolver) SkipEntityMarkedCount(ctx context.Contex
 }
 
 func (r *feedStateResolver) FeedVersion(ctx context.Context, obj *model.FeedState) (*model.FeedVersion, error) {
-	return LoaderFor(ctx).FeedVersionsByID.Load(ctx, int(obj.FeedVersionID.Val))()
+	return LoaderFor(ctx).FeedVersionsByIDs.Load(ctx, int(obj.FeedVersionID.Val))()
 }

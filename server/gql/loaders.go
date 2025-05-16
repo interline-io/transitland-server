@@ -24,11 +24,11 @@ const (
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
 	AgenciesByFeedVersionIDs                                     *dataloader.Loader[model.AgencyParam, []*model.Agency]
-	AgenciesByID                                                 *dataloader.Loader[int, *model.Agency]
+	AgenciesByIDs                                                *dataloader.Loader[int, *model.Agency]
 	AgenciesByOnestopIDs                                         *dataloader.Loader[model.AgencyParam, []*model.Agency]
 	AgencyPlacesByAgencyIDs                                      *dataloader.Loader[model.AgencyPlaceParam, []*model.AgencyPlace]
 	CalendarDatesByServiceIDs                                    *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
-	CalendarsByID                                                *dataloader.Loader[int, *model.Calendar]
+	CalendarsByIDs                                               *dataloader.Loader[int, *model.Calendar]
 	CensusDatasetLayersByDatasetIDs                              *dataloader.Loader[int, []string]
 	CensusSourceLayersBySourceIDs                                *dataloader.Loader[int, []string]
 	CensusFieldsByTableIDs                                       *dataloader.Loader[model.CensusFieldParam, []*model.CensusField]
@@ -39,51 +39,51 @@ type Loaders struct {
 	CensusValuesByGeographyIDs                                   *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
 	FeedFetchesByFeedIDs                                         *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
 	FeedInfosByFeedVersionIDs                                    *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
-	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
+	FeedsByIDs                                                   *dataloader.Loader[int, *model.Feed]
 	FeedsByOperatorOnestopIDs                                    *dataloader.Loader[model.FeedParam, []*model.Feed]
 	FeedStatesByFeedIDs                                          *dataloader.Loader[int, *model.FeedState]
 	FeedVersionFileInfosByFeedVersionIDs                         *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
 	FeedVersionGeometryByIDs                                     *dataloader.Loader[int, *tt.Polygon]
-	FeedVersionGtfsImportByFeedVersionID                         *dataloader.Loader[int, *model.FeedVersionGtfsImport]
+	FeedVersionGtfsImportByFeedVersionIDs                        *dataloader.Loader[int, *model.FeedVersionGtfsImport]
 	FeedVersionsByFeedIDs                                        *dataloader.Loader[model.FeedVersionParam, []*model.FeedVersion]
-	FeedVersionsByID                                             *dataloader.Loader[int, *model.FeedVersion]
+	FeedVersionsByIDs                                            *dataloader.Loader[int, *model.FeedVersion]
 	FeedVersionServiceLevelsByFeedVersionIDs                     *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
 	FeedVersionServiceWindowByFeedVersionIDs                     *dataloader.Loader[int, *model.FeedVersionServiceWindow]
 	FrequenciesByTripID                                          *dataloader.Loader[model.FrequencyParam, []*model.Frequency]
-	LevelsByID                                                   *dataloader.Loader[int, *model.Level]
+	LevelsByIDs                                                  *dataloader.Loader[int, *model.Level]
 	LevelsByParentStationID                                      *dataloader.Loader[model.LevelParam, []*model.Level]
-	OperatorsByAgencyID                                          *dataloader.Loader[int, *model.Operator]
-	OperatorsByCOIF                                              *dataloader.Loader[int, *model.Operator]
+	OperatorsByAgencyIDs                                         *dataloader.Loader[int, *model.Operator]
+	OperatorsByCOIFs                                             *dataloader.Loader[int, *model.Operator]
 	OperatorsByFeedID                                            *dataloader.Loader[model.OperatorParam, []*model.Operator]
 	PathwaysByFromStopID                                         *dataloader.Loader[model.PathwayParam, []*model.Pathway]
-	PathwaysByID                                                 *dataloader.Loader[int, *model.Pathway]
+	PathwaysByIDs                                                *dataloader.Loader[int, *model.Pathway]
 	PathwaysByToStopID                                           *dataloader.Loader[model.PathwayParam, []*model.Pathway]
-	RouteAttributesByRouteID                                     *dataloader.Loader[int, *model.RouteAttribute]
+	RouteAttributesByRouteIDs                                    *dataloader.Loader[int, *model.RouteAttribute]
 	RouteGeometriesByRouteID                                     *dataloader.Loader[model.RouteGeometryParam, []*model.RouteGeometry]
 	RouteHeadwaysByRouteID                                       *dataloader.Loader[model.RouteHeadwayParam, []*model.RouteHeadway]
 	RoutesByAgencyID                                             *dataloader.Loader[model.RouteParam, []*model.Route]
 	RoutesByFeedVersionID                                        *dataloader.Loader[model.RouteParam, []*model.Route]
-	RoutesByID                                                   *dataloader.Loader[int, *model.Route]
+	RoutesByIDs                                                  *dataloader.Loader[int, *model.Route]
 	RouteStopPatternsByRouteID                                   *dataloader.Loader[model.RouteStopPatternParam, []*model.RouteStopPattern]
 	RouteStopsByRouteID                                          *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	RouteStopsByStopID                                           *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	SegmentPatternsByRouteID                                     *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentPatternsBySegmentID                                   *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentsByFeedVersionID                                      *dataloader.Loader[model.SegmentParam, []*model.Segment]
-	SegmentsByID                                                 *dataloader.Loader[int, *model.Segment]
+	SegmentsByIDs                                                *dataloader.Loader[int, *model.Segment]
 	SegmentsByRouteID                                            *dataloader.Loader[model.SegmentParam, []*model.Segment]
-	ShapesByID                                                   *dataloader.Loader[int, *model.Shape]
-	StopExternalReferencesByStopID                               *dataloader.Loader[int, *model.StopExternalReference]
+	ShapesByIDs                                                  *dataloader.Loader[int, *model.Shape]
+	StopExternalReferencesByStopIDs                              *dataloader.Loader[int, *model.StopExternalReference]
 	StopObservationsByStopID                                     *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
 	StopPlacesByStopID                                           *dataloader.Loader[model.StopPlaceParam, *model.StopPlace]
 	StopsByFeedVersionID                                         *dataloader.Loader[model.StopParam, []*model.Stop]
-	StopsByID                                                    *dataloader.Loader[int, *model.Stop]
+	StopsByIDs                                                   *dataloader.Loader[int, *model.Stop]
 	StopsByLevelID                                               *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopsByParentStopID                                          *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopsByRouteID                                               *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopTimesByStopID                                            *dataloader.Loader[model.StopTimeParam, []*model.StopTime]
 	StopTimesByTripID                                            *dataloader.Loader[model.TripStopTimeParam, []*model.StopTime]
-	TargetStopsByStopID                                          *dataloader.Loader[int, *model.Stop]
+	TargetStopsByStopIDs                                         *dataloader.Loader[int, *model.Stop]
 	TripsByFeedVersionID                                         *dataloader.Loader[model.TripParam, []*model.Trip]
 	TripsByIDs                                                   *dataloader.Loader[int, *model.Trip]
 	TripsByRouteID                                               *dataloader.Loader[model.TripParam, []*model.Trip]
@@ -119,7 +119,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				)
 			},
 		),
-		AgenciesByID: withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByID),
+		AgenciesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByIDs),
 		AgenciesByOnestopIDs: withWaitAndCapacity(waitTime, batchSize,
 			func(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
 				return paramGroupQuery(
@@ -170,7 +170,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		CalendarsByID:                   withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
+		CalendarsByIDs:                  withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByIDs),
 		CensusDatasetLayersByDatasetIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetIDs),
 		CensusSourceLayersBySourceIDs:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceIDs),
 		CensusFieldsByTableIDs: withWaitAndCapacity(waitTime, batchSize,
@@ -243,7 +243,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		CensusTableByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
+		CensusTableByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByIDs),
 		CensusValuesByGeographyIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -296,7 +296,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		FeedsByID: withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),
+		FeedsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByIDs),
 		FeedsByOperatorOnestopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -335,8 +335,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		FeedVersionGeometryByIDs:             withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGeometryByIDs),
-		FeedVersionGtfsImportByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGtfsImportByFeedVersionID),
+		FeedVersionGeometryByIDs:              withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGeometryByIDs),
+		FeedVersionGtfsImportByFeedVersionIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGtfsImportByFeedVersionIDs),
 		FeedVersionsByFeedIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -354,7 +354,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		FeedVersionsByID: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByID),
+		FeedVersionsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByIDs),
 		FeedVersionServiceLevelsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -374,40 +374,40 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			}),
 		FeedVersionServiceWindowByFeedVersionIDs: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionIDs),
 		FrequenciesByTripID:                      withWaitAndCapacity(waitTime, batchSize, dbf.FrequenciesByTripID),
-		LevelsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByID),
+		LevelsByIDs:                              withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
 		LevelsByParentStationID:                  withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByParentStationID),
-		OperatorsByAgencyID:                      withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyID),
-		OperatorsByCOIF:                          withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIF),
+		OperatorsByAgencyIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
+		OperatorsByCOIFs:                         withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
 		OperatorsByFeedID:                        withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByFeedID),
 		PathwaysByFromStopID:                     withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByFromStopID),
-		PathwaysByID:                             withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByID),
+		PathwaysByIDs:                            withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
 		PathwaysByToStopID:                       withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByToStopID),
-		RouteAttributesByRouteID:                 withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteID),
+		RouteAttributesByRouteIDs:                withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
 		RouteGeometriesByRouteID:                 withWaitAndCapacity(waitTime, batchSize, dbf.RouteGeometriesByRouteID),
 		RouteHeadwaysByRouteID:                   withWaitAndCapacity(waitTime, batchSize, dbf.RouteHeadwaysByRouteID),
 		RoutesByAgencyID:                         withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByAgencyID),
 		RoutesByFeedVersionID:                    withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByFeedVersionID),
-		RoutesByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByID),
+		RoutesByIDs:                              withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
 		RouteStopPatternsByRouteID:               withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopPatternsByRouteID),
 		RouteStopsByRouteID:                      withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByRouteID),
 		RouteStopsByStopID:                       withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByStopID),
 		SegmentPatternsByRouteID:                 withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
 		SegmentPatternsBySegmentID:               withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsBySegmentID),
 		SegmentsByFeedVersionID:                  withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByFeedVersionID),
-		SegmentsByID:                             withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByID),
+		SegmentsByIDs:                            withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByIDs),
 		SegmentsByRouteID:                        withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByRouteID),
-		ShapesByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByID),
-		StopExternalReferencesByStopID:           withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopID),
+		ShapesByIDs:                              withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByIDs),
+		StopExternalReferencesByStopIDs:          withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopIDs),
 		StopObservationsByStopID:                 withWaitAndCapacity(waitTime, batchSize, dbf.StopObservationsByStopID),
 		StopPlacesByStopID:                       withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
 		StopsByFeedVersionID:                     withWaitAndCapacity(waitTime, batchSize, dbf.StopsByFeedVersionID),
-		StopsByID:                                withWaitAndCapacity(waitTime, batchSize, dbf.StopsByID),
+		StopsByIDs:                               withWaitAndCapacity(waitTime, batchSize, dbf.StopsByIDs),
 		StopsByLevelID:                           withWaitAndCapacity(waitTime, batchSize, dbf.StopsByLevelID),
 		StopsByParentStopID:                      withWaitAndCapacity(waitTime, batchSize, dbf.StopsByParentStopID),
 		StopsByRouteID:                           withWaitAndCapacity(waitTime, batchSize, dbf.StopsByRouteID),
 		StopTimesByStopID:                        withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
 		StopTimesByTripID:                        withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
-		TargetStopsByStopID:                      withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopID),
+		TargetStopsByStopIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopIDs),
 		TripsByFeedVersionID:                     withWaitAndCapacity(waitTime, batchSize, dbf.TripsByFeedVersionID),
 		TripsByIDs:                               withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
 		TripsByRouteID:                           withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),

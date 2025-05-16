@@ -27,7 +27,7 @@ func (f *Finder) FindStops(ctx context.Context, limit *int, after *model.Cursor,
 	return ents, nil
 }
 
-func (f *Finder) StopExternalReferencesByStopID(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
+func (f *Finder) StopExternalReferencesByStopIDs(ctx context.Context, ids []int) ([]*model.StopExternalReference, []error) {
 	var ents []*model.StopExternalReference
 	q := sq.StatementBuilder.Select("*").From("tl_stop_external_references").Where(In("stop_id", ids))
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
@@ -70,7 +70,7 @@ func (f *Finder) StopObservationsByStopID(ctx context.Context, params []model.St
 	return convertEnts(qentGroups, func(a *qent) *model.StopObservation { return &a.StopObservation }), err
 }
 
-func (f *Finder) StopsByID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
+func (f *Finder) StopsByIDs(ctx context.Context, ids []int) ([]*model.Stop, []error) {
 	ents, err := f.FindStops(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
@@ -132,7 +132,7 @@ func (f *Finder) StopsByParentStopID(ctx context.Context, params []model.StopPar
 	)
 }
 
-func (f *Finder) TargetStopsByStopID(ctx context.Context, ids []int) ([]*model.Stop, []error) {
+func (f *Finder) TargetStopsByStopIDs(ctx context.Context, ids []int) ([]*model.Stop, []error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}

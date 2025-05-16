@@ -20,7 +20,7 @@ func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.
 	return ents, nil
 }
 
-func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
+func (f *Finder) FeedVersionsByIDs(ctx context.Context, ids []int) ([]*model.FeedVersion, []error) {
 	ents, err := f.FindFeedVersions(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
@@ -28,7 +28,7 @@ func (f *Finder) FeedVersionsByID(ctx context.Context, ids []int) ([]*model.Feed
 	return arrangeBy(ids, ents, func(ent *model.FeedVersion) int { return ent.ID }), nil
 }
 
-func (f *Finder) FeedVersionGtfsImportByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
+func (f *Finder) FeedVersionGtfsImportByFeedVersionIDs(ctx context.Context, ids []int) ([]*model.FeedVersionGtfsImport, []error) {
 	var ents []*model.FeedVersionGtfsImport
 	err := dbutil.Select(ctx,
 		f.db,

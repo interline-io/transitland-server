@@ -7,7 +7,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) CalendarsByID(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
+func (f *Finder) CalendarsByIDs(ctx context.Context, ids []int) ([]*model.Calendar, []error) {
 	var ents []*model.Calendar
 	err := dbutil.Select(ctx,
 		f.db,
