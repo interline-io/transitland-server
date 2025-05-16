@@ -42,7 +42,7 @@ func (r *feedVersionResolver) Geometry(ctx context.Context, obj *model.FeedVersi
 }
 
 func (r *feedVersionResolver) Files(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedVersionFileInfo, error) {
-	return LoaderFor(ctx).FeedVersionFileInfosByFeedVersionID.Load(ctx, model.FeedVersionFileInfoParam{FeedVersionID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).FeedVersionFileInfosByFeedVersionIDs.Load(ctx, model.FeedVersionFileInfoParam{FeedVersionID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *feedVersionResolver) FeedVersionGtfsImport(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionGtfsImport, error) {
