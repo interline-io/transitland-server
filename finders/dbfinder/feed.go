@@ -61,7 +61,7 @@ func (f *Finder) FeedFetchesByFeedIDs(ctx context.Context, limit *int, where *mo
 func (f *Finder) FeedsByOperatorOnestopIDs(ctx context.Context, limit *int, where *model.FeedFilter, keys []string) (ents []*model.Feed, err error) {
 	q := feedSelect(nil, nil, nil, f.PermFilter(ctx), where).
 		Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
-		Column("coif.resolved_onestop_id as operator_onestop_id").
+		Column("coif.resolved_onestop_id as with_operator_onestop_id").
 		Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
 		Where(In("coif.resolved_onestop_id", keys))
 	err = dbutil.Select(ctx,

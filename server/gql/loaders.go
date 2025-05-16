@@ -310,10 +310,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return dbf.FeedsByOperatorOnestopIDs(ctx, limit, where, keys)
 					},
 					func(ent *model.Feed) string {
-						if ent.OperatorOnestopID == nil {
-							return ""
-						}
-						return *ent.OperatorOnestopID
+						return ent.WithOperatorOnestopID.String()
 					},
 				)
 			}),
