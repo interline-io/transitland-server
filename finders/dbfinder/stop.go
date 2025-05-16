@@ -165,31 +165,20 @@ func (f *Finder) StopsByFeedVersionIDs(ctx context.Context, limit *int, where *m
 	return ents, err
 }
 
-func (f *Finder) StopsByLevelID(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.StopParam) (int, *model.StopFilter, *int) {
-			return p.LevelID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.StopFilter, limit *int) (ents []*model.Stop, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
-					"gtfs_levels",
-					"id",
-					"gtfs_stops",
-					"level_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Stop) int {
-			return ent.LevelID.Int()
-		},
+func (f *Finder) StopsByLevelIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) (ents []*model.Stop, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+			"gtfs_levels",
+			"id",
+			"gtfs_stops",
+			"level_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) StopPlacesByStopID(ctx context.Context, params []model.StopPlaceParam) ([]*model.StopPlace, []error) {

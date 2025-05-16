@@ -114,7 +114,7 @@ type EntityLoader interface {
 
 	StopObservationsByStopIDs(context.Context, *int, *StopObservationFilter, []int) ([]*StopObservation, error)
 	StopsByFeedVersionIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
-	StopsByLevelID(context.Context, []StopParam) ([][]*Stop, []error)
+	StopsByLevelIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
 	StopsByParentStopID(context.Context, []StopParam) ([][]*Stop, []error)
 	StopsByRouteID(context.Context, []StopParam) ([][]*Stop, []error)
 	StopTimesByStopID(context.Context, []StopTimeParam) ([][]*StopTime, []error)
