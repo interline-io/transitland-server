@@ -11,7 +11,8 @@ import (
 )
 
 type Feed struct {
-	SearchRank *string
+	OperatorOnestopID *string
+	SearchRank        *string
 	dmfr.Feed
 }
 

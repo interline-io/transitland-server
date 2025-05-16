@@ -117,7 +117,7 @@ models:
   Timezone:
     model:
       - "github.com/interline-io/transitland-lib/tt.Timezone"
-  Feed:
+  Feed:       
     fields:
       onestop_id:
         fieldName: FeedID

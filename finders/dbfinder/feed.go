@@ -58,34 +58,18 @@ func (f *Finder) FeedFetchesByFeedIDs(ctx context.Context, limit *int, where *mo
 	return ents, err
 }
 
-func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.FeedParam) ([][]*model.Feed, []error) {
-	type qent struct {
-		OperatorOnestopID string
-		model.Feed
-	}
-	qentGroups, err := paramGroupQuery(
-		params,
-		func(p model.FeedParam) (string, *model.FeedFilter, *int) {
-			return p.OperatorOnestopID, p.Where, p.Limit
-		},
-		func(keys []string, where *model.FeedFilter, limit *int) (ents []*qent, err error) {
-			q := feedSelect(nil, nil, nil, f.PermFilter(ctx), where).
-				Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
-				Column("coif.resolved_onestop_id as operator_onestop_id").
-				Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
-				Where(In("coif.resolved_onestop_id", keys))
-			err = dbutil.Select(ctx,
-				f.db,
-				q,
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *qent) string {
-			return ent.OperatorOnestopID
-		},
+func (f *Finder) FeedsByOperatorOnestopIDs(ctx context.Context, limit *int, where *model.FeedFilter, keys []string) (ents []*model.Feed, err error) {
+	q := feedSelect(nil, nil, nil, f.PermFilter(ctx), where).
+		Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
+		Column("coif.resolved_onestop_id as operator_onestop_id").
+		Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
+		Where(In("coif.resolved_onestop_id", keys))
+	err = dbutil.Select(ctx,
+		f.db,
+		q,
+		&ents,
 	)
-	return convertEnts(qentGroups, func(a *qent) *model.Feed { return &a.Feed }), err
+	return ents, err
 }
 
 func feedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) sq.SelectBuilder {

@@ -33,5 +33,5 @@ func (r *operatorResolver) Generated(ctx context.Context, obj *model.Operator) (
 }
 
 func (r *operatorResolver) Feeds(ctx context.Context, obj *model.Operator, limit *int, where *model.FeedFilter) ([]*model.Feed, error) {
-	return LoaderFor(ctx).FeedsByOperatorOnestopID.Load(ctx, model.FeedParam{OperatorOnestopID: obj.OnestopID.Val, Where: where, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).FeedsByOperatorOnestopIDs.Load(ctx, model.FeedParam{OperatorOnestopID: obj.OnestopID.Val, Where: where, Limit: checkLimit(limit)})()
 }

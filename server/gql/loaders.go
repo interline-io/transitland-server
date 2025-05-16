@@ -40,7 +40,7 @@ type Loaders struct {
 	FeedFetchesByFeedIDs                                         *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
 	FeedInfosByFeedVersionIDs                                    *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
 	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
-	FeedsByOperatorOnestopID                                     *dataloader.Loader[model.FeedParam, []*model.Feed]
+	FeedsByOperatorOnestopIDs                                    *dataloader.Loader[model.FeedParam, []*model.Feed]
 	FeedStatesByFeedID                                           *dataloader.Loader[int, *model.FeedState]
 	FeedVersionFileInfosByFeedVersionID                          *dataloader.Loader[model.FeedVersionFileInfoParam, []*model.FeedVersionFileInfo]
 	FeedVersionGeometryByID                                      *dataloader.Loader[int, *tt.Polygon]
@@ -296,8 +296,27 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		FeedsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),
-		FeedsByOperatorOnestopID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByOperatorOnestopID),
+		FeedsByID: withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),
+		FeedsByOperatorOnestopIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.FeedParam) ([][]*model.Feed, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.FeedParam) (string, *model.FeedFilter, *int) {
+						return p.OperatorOnestopID, p.Where, p.Limit
+					},
+					func(keys []string, where *model.FeedFilter, limit *int) (ents []*model.Feed, err error) {
+						return dbf.FeedsByOperatorOnestopIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Feed) string {
+						if ent.OperatorOnestopID == nil {
+							return ""
+						}
+						return *ent.OperatorOnestopID
+					},
+				)
+			}),
 		FeedStatesByFeedID:                      withWaitAndCapacity(waitTime, batchSize, dbf.FeedStatesByFeedID),
 		FeedVersionFileInfosByFeedVersionID:     withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionFileInfosByFeedVersionID),
 		FeedVersionGeometryByID:                 withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGeometryByID),
