@@ -38,7 +38,7 @@ func (r *feedVersionResolver) Feed(ctx context.Context, obj *model.FeedVersion) 
 
 func (r *feedVersionResolver) Geometry(ctx context.Context, obj *model.FeedVersion) (*tt.Polygon, error) {
 	// Defer feed geometry loading
-	return LoaderFor(ctx).FeedVersionGeometryByID.Load(ctx, obj.ID)()
+	return LoaderFor(ctx).FeedVersionGeometryByIDs.Load(ctx, obj.ID)()
 }
 
 func (r *feedVersionResolver) Files(ctx context.Context, obj *model.FeedVersion, limit *int) ([]*model.FeedVersionFileInfo, error) {

@@ -54,7 +54,7 @@ func (f *Finder) FeedVersionServiceWindowByFeedVersionID(ctx context.Context, id
 	return arrangeBy(ids, ents, func(ent *model.FeedVersionServiceWindow) int { return ent.FeedVersionID }), nil
 }
 
-func (f *Finder) FeedVersionGeometryByID(ctx context.Context, ids []int) ([]*tt.Polygon, []error) {
+func (f *Finder) FeedVersionGeometryByIDs(ctx context.Context, ids []int) ([]*tt.Polygon, []error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}

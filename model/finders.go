@@ -68,7 +68,7 @@ type EntityLoader interface {
 	StopExternalReferencesByStopID(context.Context, []int) ([]*StopExternalReference, []error)
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
 	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
-	FeedVersionGeometryByID(context.Context, []int) ([]*tt.Polygon, []error)
+	FeedVersionGeometryByIDs(context.Context, []int) ([]*tt.Polygon, []error)
 	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
 
 	// Segments
