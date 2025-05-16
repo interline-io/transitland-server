@@ -49,7 +49,7 @@ type Loaders struct {
 	FeedVersionsByIDs                                            *dataloader.Loader[int, *model.FeedVersion]
 	FeedVersionServiceLevelsByFeedVersionIDs                     *dataloader.Loader[model.FeedVersionServiceLevelParam, []*model.FeedVersionServiceLevel]
 	FeedVersionServiceWindowByFeedVersionIDs                     *dataloader.Loader[int, *model.FeedVersionServiceWindow]
-	FrequenciesByTripID                                          *dataloader.Loader[model.FrequencyParam, []*model.Frequency]
+	FrequenciesByTripIDs                                         *dataloader.Loader[model.FrequencyParam, []*model.Frequency]
 	LevelsByIDs                                                  *dataloader.Loader[int, *model.Level]
 	LevelsByParentStationID                                      *dataloader.Loader[model.LevelParam, []*model.Level]
 	OperatorsByAgencyIDs                                         *dataloader.Loader[int, *model.Operator]
@@ -373,44 +373,60 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				)
 			}),
 		FeedVersionServiceWindowByFeedVersionIDs: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionIDs),
-		FrequenciesByTripID:                      withWaitAndCapacity(waitTime, batchSize, dbf.FrequenciesByTripID),
-		LevelsByIDs:                              withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
-		LevelsByParentStationID:                  withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByParentStationID),
-		OperatorsByAgencyIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
-		OperatorsByCOIFs:                         withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
-		OperatorsByFeedID:                        withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByFeedID),
-		PathwaysByFromStopID:                     withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByFromStopID),
-		PathwaysByIDs:                            withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
-		PathwaysByToStopID:                       withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByToStopID),
-		RouteAttributesByRouteIDs:                withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
-		RouteGeometriesByRouteID:                 withWaitAndCapacity(waitTime, batchSize, dbf.RouteGeometriesByRouteID),
-		RouteHeadwaysByRouteID:                   withWaitAndCapacity(waitTime, batchSize, dbf.RouteHeadwaysByRouteID),
-		RoutesByAgencyID:                         withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByAgencyID),
-		RoutesByFeedVersionID:                    withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByFeedVersionID),
-		RoutesByIDs:                              withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
-		RouteStopPatternsByRouteID:               withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopPatternsByRouteID),
-		RouteStopsByRouteID:                      withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByRouteID),
-		RouteStopsByStopID:                       withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByStopID),
-		SegmentPatternsByRouteID:                 withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
-		SegmentPatternsBySegmentID:               withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsBySegmentID),
-		SegmentsByFeedVersionID:                  withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByFeedVersionID),
-		SegmentsByIDs:                            withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByIDs),
-		SegmentsByRouteID:                        withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByRouteID),
-		ShapesByIDs:                              withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByIDs),
-		StopExternalReferencesByStopIDs:          withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopIDs),
-		StopObservationsByStopID:                 withWaitAndCapacity(waitTime, batchSize, dbf.StopObservationsByStopID),
-		StopPlacesByStopID:                       withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
-		StopsByFeedVersionID:                     withWaitAndCapacity(waitTime, batchSize, dbf.StopsByFeedVersionID),
-		StopsByIDs:                               withWaitAndCapacity(waitTime, batchSize, dbf.StopsByIDs),
-		StopsByLevelID:                           withWaitAndCapacity(waitTime, batchSize, dbf.StopsByLevelID),
-		StopsByParentStopID:                      withWaitAndCapacity(waitTime, batchSize, dbf.StopsByParentStopID),
-		StopsByRouteID:                           withWaitAndCapacity(waitTime, batchSize, dbf.StopsByRouteID),
-		StopTimesByStopID:                        withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
-		StopTimesByTripID:                        withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
-		TargetStopsByStopIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopIDs),
-		TripsByFeedVersionID:                     withWaitAndCapacity(waitTime, batchSize, dbf.TripsByFeedVersionID),
-		TripsByIDs:                               withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
-		TripsByRouteID:                           withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),
+		FrequenciesByTripIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.FrequencyParam) ([][]*model.Frequency, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.FrequencyParam) (int, bool, *int) {
+						return p.TripID, false, p.Limit
+					},
+					func(keys []int, where bool, limit *int) (ents []*model.Frequency, err error) {
+						return dbf.FrequenciesByTripIDs(ctx, limit, keys)
+					},
+					func(ent *model.Frequency) int {
+						return ent.TripID.Int()
+					},
+				)
+			}),
+		LevelsByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
+		LevelsByParentStationID:         withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByParentStationID),
+		OperatorsByAgencyIDs:            withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
+		OperatorsByCOIFs:                withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
+		OperatorsByFeedID:               withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByFeedID),
+		PathwaysByFromStopID:            withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByFromStopID),
+		PathwaysByIDs:                   withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
+		PathwaysByToStopID:              withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByToStopID),
+		RouteAttributesByRouteIDs:       withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
+		RouteGeometriesByRouteID:        withWaitAndCapacity(waitTime, batchSize, dbf.RouteGeometriesByRouteID),
+		RouteHeadwaysByRouteID:          withWaitAndCapacity(waitTime, batchSize, dbf.RouteHeadwaysByRouteID),
+		RoutesByAgencyID:                withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByAgencyID),
+		RoutesByFeedVersionID:           withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByFeedVersionID),
+		RoutesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
+		RouteStopPatternsByRouteID:      withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopPatternsByRouteID),
+		RouteStopsByRouteID:             withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByRouteID),
+		RouteStopsByStopID:              withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByStopID),
+		SegmentPatternsByRouteID:        withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
+		SegmentPatternsBySegmentID:      withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsBySegmentID),
+		SegmentsByFeedVersionID:         withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByFeedVersionID),
+		SegmentsByIDs:                   withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByIDs),
+		SegmentsByRouteID:               withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByRouteID),
+		ShapesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByIDs),
+		StopExternalReferencesByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopIDs),
+		StopObservationsByStopID:        withWaitAndCapacity(waitTime, batchSize, dbf.StopObservationsByStopID),
+		StopPlacesByStopID:              withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
+		StopsByFeedVersionID:            withWaitAndCapacity(waitTime, batchSize, dbf.StopsByFeedVersionID),
+		StopsByIDs:                      withWaitAndCapacity(waitTime, batchSize, dbf.StopsByIDs),
+		StopsByLevelID:                  withWaitAndCapacity(waitTime, batchSize, dbf.StopsByLevelID),
+		StopsByParentStopID:             withWaitAndCapacity(waitTime, batchSize, dbf.StopsByParentStopID),
+		StopsByRouteID:                  withWaitAndCapacity(waitTime, batchSize, dbf.StopsByRouteID),
+		StopTimesByStopID:               withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
+		StopTimesByTripID:               withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
+		TargetStopsByStopIDs:            withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopIDs),
+		TripsByFeedVersionID:            withWaitAndCapacity(waitTime, batchSize, dbf.TripsByFeedVersionID),
+		TripsByIDs:                      withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
+		TripsByRouteID:                  withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),
 		ValidationReportErrorExemplarsByValidationReportErrorGroupID: withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupID),
 		ValidationReportErrorGroupsByValidationReportID:              withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorGroupsByValidationReportID),
 		ValidationReportsByFeedVersionID:                             withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportsByFeedVersionID),

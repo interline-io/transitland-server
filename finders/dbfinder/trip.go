@@ -30,31 +30,20 @@ func (f *Finder) TripsByIDs(ctx context.Context, ids []int) (ents []*model.Trip,
 	return arrangeBy(ids, ents, func(ent *model.Trip) int { return ent.ID }), nil
 }
 
-func (f *Finder) FrequenciesByTripID(ctx context.Context, params []model.FrequencyParam) ([][]*model.Frequency, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.FrequencyParam) (int, bool, *int) {
-			return p.TripID, false, p.Limit
-		},
-		func(keys []int, where bool, limit *int) (ents []*model.Frequency, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					quickSelect("gtfs_frequencies", limit, nil, nil),
-					"gtfs_trips",
-					"id",
-					"gtfs_frequencies",
-					"trip_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Frequency) int {
-			return ent.TripID.Int()
-		},
+func (f *Finder) FrequenciesByTripIDs(ctx context.Context, limit *int, keys []int) (ents []*model.Frequency, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			quickSelect("gtfs_frequencies", limit, nil, nil),
+			"gtfs_trips",
+			"id",
+			"gtfs_frequencies",
+			"trip_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {

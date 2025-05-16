@@ -99,7 +99,7 @@ type EntityLoader interface {
 	FeedVersionsByFeedIDs(context.Context, *int, *FeedVersionFilter, []int) ([]*FeedVersion, error)
 	FeedVersionServiceLevelsByFeedVersionIDs(context.Context, *int, *FeedVersionServiceLevelFilter, []int) ([]*FeedVersionServiceLevel, error)
 
-	FrequenciesByTripID(context.Context, []FrequencyParam) ([][]*Frequency, []error)
+	FrequenciesByTripIDs(context.Context, *int, []int) ([]*Frequency, error)
 
 	PathwaysByFromStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
 	PathwaysByToStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)

@@ -51,7 +51,7 @@ func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *in
 }
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {
-	return LoaderFor(ctx).FrequenciesByTripID.Load(ctx, model.FrequencyParam{TripID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).FrequenciesByTripIDs.Load(ctx, model.FrequencyParam{TripID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
