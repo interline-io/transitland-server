@@ -52,7 +52,7 @@ func (r *routeResolver) Stops(ctx context.Context, obj *model.Route, limit *int,
 }
 
 func (r *routeResolver) RouteStops(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteStop, error) {
-	return LoaderFor(ctx).RouteStopsByRouteID.Load(ctx, model.RouteStopParam{RouteID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).RouteStopsByRouteIDs.Load(ctx, model.RouteStopParam{RouteID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *routeResolver) Headways(ctx context.Context, obj *model.Route, limit *int) ([]*model.RouteHeadway, error) {

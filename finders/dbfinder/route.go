@@ -157,31 +157,21 @@ func (f *Finder) RoutesByFeedVersionIDs(ctx context.Context, limit *int, where *
 	return ents, err
 }
 
-func (f *Finder) RouteStopsByRouteID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.RouteStopParam) (int, bool, *int) {
-			return p.RouteID, false, p.Limit
-		},
-		func(keys []int, where bool, limit *int) (ents []*model.RouteStop, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					quickSelectOrder("tl_route_stops", limit, nil, nil, "stop_id"),
-					"gtfs_routes",
-					"id",
-					"tl_route_stops",
-					"route_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.RouteStop) int {
-			return ent.RouteID
-		},
+func (f *Finder) RouteStopsByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteStop, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			quickSelectOrder("tl_route_stops", limit, nil, nil, "stop_id"),
+			"gtfs_routes",
+			"id",
+			"tl_route_stops",
+			"route_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
+
 }
 
 func (f *Finder) ShapesByIDs(ctx context.Context, ids []int) ([]*model.Shape, []error) {

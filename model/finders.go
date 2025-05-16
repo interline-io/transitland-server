@@ -109,7 +109,7 @@ type EntityLoader interface {
 	RoutesByAgencyIDs(context.Context, *int, *RouteFilter, []int) ([]*Route, error)
 	RoutesByFeedVersionIDs(context.Context, *int, *RouteFilter, []int) ([]*Route, error)
 	RouteStopPatternsByRouteIDs(context.Context, *int, []int) ([]*RouteStopPattern, error)
-	RouteStopsByRouteID(context.Context, []RouteStopParam) ([][]*RouteStop, []error)
+	RouteStopsByRouteIDs(context.Context, *int, []int) ([]*RouteStop, error)
 	RouteStopsByStopID(context.Context, []RouteStopParam) ([][]*RouteStop, []error)
 
 	StopObservationsByStopID(context.Context, []StopObservationParam) ([][]*StopObservation, []error)
