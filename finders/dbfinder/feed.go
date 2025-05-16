@@ -39,34 +39,23 @@ func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.Fe
 	return arrangeBy(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
 }
 
-func (f *Finder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.FeedFetchParam) (int, *model.FeedFetchFilter, *int) {
-			return p.FeedID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.FeedFetchFilter, limit *int) (ents []*model.FeedFetch, err error) {
-			q := sq.StatementBuilder.
-				Select("*").
-				From("feed_fetches").
-				Limit(checkLimit(limit)).
-				OrderBy("feed_fetches.fetched_at desc")
-			if where != nil {
-				if where.Success != nil {
-					q = q.Where(sq.Eq{"success": *where.Success})
-				}
-			}
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(q, "current_feeds", "id", "feed_fetches", "feed_id", keys),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.FeedFetch) int {
-			return ent.FeedID
-		},
+func (f *Finder) FeedFetchesByFeedIDs(ctx context.Context, limit *int, where *model.FeedFetchFilter, keys []int) (ents []*model.FeedFetch, err error) {
+	q := sq.StatementBuilder.
+		Select("*").
+		From("feed_fetches").
+		Limit(checkLimit(limit)).
+		OrderBy("feed_fetches.fetched_at desc")
+	if where != nil {
+		if where.Success != nil {
+			q = q.Where(sq.Eq{"success": *where.Success})
+		}
+	}
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(q, "current_feeds", "id", "feed_fetches", "feed_id", keys),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.FeedParam) ([][]*model.Feed, []error) {

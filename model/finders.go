@@ -99,7 +99,7 @@ type EntityLoader interface {
 	CensusSourcesByDatasetIDs(context.Context, *int, *CensusSourceFilter, []int) ([]*CensusSource, error)
 	CensusValuesByGeographyIDs(context.Context, *int, []string, []string) ([]*CensusValue, error)
 
-	FeedFetchesByFeedID(context.Context, []FeedFetchParam) ([][]*FeedFetch, []error)
+	FeedFetchesByFeedIDs(context.Context, *int, *FeedFetchFilter, []int) ([]*FeedFetch, error)
 	FeedInfosByFeedVersionID(context.Context, []FeedInfoParam) ([][]*FeedInfo, []error)
 	FeedsByOperatorOnestopID(context.Context, []FeedParam) ([][]*Feed, []error)
 	FeedVersionFileInfosByFeedVersionID(context.Context, []FeedVersionFileInfoParam) ([][]*FeedVersionFileInfo, []error)

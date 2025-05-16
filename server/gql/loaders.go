@@ -37,7 +37,7 @@ type Loaders struct {
 	CensusSourcesByDatasetIDs                                    *dataloader.Loader[model.CensusSourceParam, []*model.CensusSource]
 	CensusTableByIDs                                             *dataloader.Loader[int, *model.CensusTable]
 	CensusValuesByGeographyIDs                                   *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
-	FeedFetchesByFeedID                                          *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
+	FeedFetchesByFeedIDs                                         *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
 	FeedInfosByFeedVersionID                                     *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
 	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
 	FeedsByOperatorOnestopID                                     *dataloader.Loader[model.FeedParam, []*model.Feed]
@@ -262,7 +262,23 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		FeedFetchesByFeedID:                     withWaitAndCapacity(waitTime, batchSize, dbf.FeedFetchesByFeedID),
+		FeedFetchesByFeedIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.FeedFetchParam) (int, *model.FeedFetchFilter, *int) {
+						return p.FeedID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.FeedFetchFilter, limit *int) (ents []*model.FeedFetch, err error) {
+						return dbf.FeedFetchesByFeedIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.FeedFetch) int {
+						return ent.FeedID
+					},
+				)
+			}),
 		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedInfosByFeedVersionID),
 		FeedsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),
 		FeedsByOperatorOnestopID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByOperatorOnestopID),
