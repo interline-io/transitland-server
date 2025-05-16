@@ -76,7 +76,7 @@ type Loaders struct {
 	StopExternalReferencesByStopIDs                              *dataloader.Loader[int, *model.StopExternalReference]
 	StopObservationsByStopIDs                                    *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
 	StopPlacesByStopID                                           *dataloader.Loader[model.StopPlaceParam, *model.StopPlace]
-	StopsByFeedVersionID                                         *dataloader.Loader[model.StopParam, []*model.Stop]
+	StopsByFeedVersionIDs                                        *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopsByIDs                                                   *dataloader.Loader[int, *model.Stop]
 	StopsByLevelID                                               *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopsByParentStopID                                          *dataloader.Loader[model.StopParam, []*model.Stop]
@@ -591,8 +591,24 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		StopPlacesByStopID:   withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
-		StopsByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.StopsByFeedVersionID),
+		StopPlacesByStopID: withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
+		StopsByFeedVersionIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.StopParam) ([][]*model.Stop, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.StopParam) (int, *model.StopFilter, *int) {
+						return p.FeedVersionID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.StopFilter, limit *int) (ents []*model.Stop, err error) {
+						return dbf.StopsByFeedVersionIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Stop) int {
+						return ent.FeedVersionID
+					},
+				)
+			}),
 		StopsByIDs:           withWaitAndCapacity(waitTime, batchSize, dbf.StopsByIDs),
 		StopsByLevelID:       withWaitAndCapacity(waitTime, batchSize, dbf.StopsByLevelID),
 		StopsByParentStopID:  withWaitAndCapacity(waitTime, batchSize, dbf.StopsByParentStopID),
