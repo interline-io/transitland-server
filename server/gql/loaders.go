@@ -55,7 +55,7 @@ type Loaders struct {
 	OperatorsByAgencyIDs                                         *dataloader.Loader[int, *model.Operator]
 	OperatorsByCOIFs                                             *dataloader.Loader[int, *model.Operator]
 	OperatorsByFeedID                                            *dataloader.Loader[model.OperatorParam, []*model.Operator]
-	PathwaysByFromStopID                                         *dataloader.Loader[model.PathwayParam, []*model.Pathway]
+	PathwaysByFromStopIDs                                        *dataloader.Loader[model.PathwayParam, []*model.Pathway]
 	PathwaysByIDs                                                *dataloader.Loader[int, *model.Pathway]
 	PathwaysByToStopID                                           *dataloader.Loader[model.PathwayParam, []*model.Pathway]
 	RouteAttributesByRouteIDs                                    *dataloader.Loader[int, *model.RouteAttribute]
@@ -390,14 +390,46 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		LevelsByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
-		LevelsByParentStationID:         withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByParentStationID),
-		OperatorsByAgencyIDs:            withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
-		OperatorsByCOIFs:                withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
-		OperatorsByFeedID:               withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByFeedID),
-		PathwaysByFromStopID:            withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByFromStopID),
-		PathwaysByIDs:                   withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
-		PathwaysByToStopID:              withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByToStopID),
+		LevelsByIDs:             withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
+		LevelsByParentStationID: withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByParentStationID),
+		OperatorsByAgencyIDs:    withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
+		OperatorsByCOIFs:        withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
+		OperatorsByFeedID:       withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByFeedID),
+		PathwaysByIDs:           withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
+		PathwaysByFromStopIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.PathwayParam) ([][]*model.Pathway, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.PathwayParam) (int, *model.PathwayFilter, *int) {
+						return p.FromStopID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.PathwayFilter, limit *int) (ents []*model.Pathway, err error) {
+						return dbf.PathwaysByFromStopIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Pathway) int {
+						return ent.FromStopID.Int()
+					},
+				)
+			}),
+		PathwaysByToStopID: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.PathwayParam) ([][]*model.Pathway, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.PathwayParam) (int, *model.PathwayFilter, *int) {
+						return p.ToStopID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.PathwayFilter, limit *int) (ents []*model.Pathway, err error) {
+						return dbf.PathwaysByToStopIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Pathway) int {
+						return ent.FromStopID.Int()
+					},
+				)
+			}),
 		RouteAttributesByRouteIDs:       withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
 		RouteGeometriesByRouteID:        withWaitAndCapacity(waitTime, batchSize, dbf.RouteGeometriesByRouteID),
 		RouteHeadwaysByRouteID:          withWaitAndCapacity(waitTime, batchSize, dbf.RouteHeadwaysByRouteID),

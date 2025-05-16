@@ -61,58 +61,36 @@ func (f *Finder) LevelsByParentStationID(ctx context.Context, params []model.Lev
 	)
 }
 
-func (f *Finder) PathwaysByFromStopID(ctx context.Context, params []model.PathwayParam) ([][]*model.Pathway, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.PathwayParam) (int, *model.PathwayFilter, *int) {
-			return p.FromStopID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.PathwayFilter, limit *int) (ents []*model.Pathway, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					pathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
-					"gtfs_stops",
-					"id",
-					"gtfs_pathways",
-					"from_stop_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Pathway) int {
-			return ent.FromStopID.Int()
-		},
+func (f *Finder) PathwaysByFromStopIDs(ctx context.Context, limit *int, where *model.PathwayFilter, keys []int) (ents []*model.Pathway, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			pathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
+			"gtfs_stops",
+			"id",
+			"gtfs_pathways",
+			"from_stop_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
-func (f *Finder) PathwaysByToStopID(ctx context.Context, params []model.PathwayParam) ([][]*model.Pathway, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.PathwayParam) (int, *model.PathwayFilter, *int) {
-			return p.ToStopID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.PathwayFilter, limit *int) (ents []*model.Pathway, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					pathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
-					"gtfs_stops",
-					"id",
-					"gtfs_pathways",
-					"to_stop_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Pathway) int {
-			return ent.ToStopID.Int()
-		},
+func (f *Finder) PathwaysByToStopIDs(ctx context.Context, limit *int, where *model.PathwayFilter, keys []int) (ents []*model.Pathway, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			pathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
+			"gtfs_stops",
+			"id",
+			"gtfs_pathways",
+			"to_stop_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func pathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.PathwayFilter) sq.SelectBuilder {

@@ -58,7 +58,7 @@ func (r *stopResolver) RouteStops(ctx context.Context, obj *model.Stop, limit *i
 }
 
 func (r *stopResolver) PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {
-	return LoaderFor(ctx).PathwaysByFromStopID.Load(ctx, model.PathwayParam{FromStopID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).PathwaysByFromStopIDs.Load(ctx, model.PathwayParam{FromStopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {

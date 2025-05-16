@@ -101,8 +101,8 @@ type EntityLoader interface {
 
 	FrequenciesByTripIDs(context.Context, *int, []int) ([]*Frequency, error)
 
-	PathwaysByFromStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
-	PathwaysByToStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
+	PathwaysByFromStopIDs(context.Context, *int, *PathwayFilter, []int) ([]*Pathway, error)
+	PathwaysByToStopIDs(context.Context, *int, *PathwayFilter, []int) ([]*Pathway, error)
 	LevelsByParentStationID(context.Context, []LevelParam) ([][]*Level, []error)
 
 	RouteGeometriesByRouteID(context.Context, []RouteGeometryParam) ([][]*RouteGeometry, []error)
