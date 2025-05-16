@@ -29,14 +29,14 @@ type Loaders struct {
 	AgencyPlacesByAgencyIDs                                      *dataloader.Loader[model.AgencyPlaceParam, []*model.AgencyPlace]
 	CalendarDatesByServiceIDs                                    *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
 	CalendarsByID                                                *dataloader.Loader[int, *model.Calendar]
-	CensusDatasetLayersByDatasetID                               *dataloader.Loader[int, []string]
-	CensusSourceLayersBySourceID                                 *dataloader.Loader[int, []string]
-	CensusFieldsByTableID                                        *dataloader.Loader[model.CensusFieldParam, []*model.CensusField]
-	CensusGeographiesByDatasetID                                 *dataloader.Loader[model.CensusDatasetGeographyParam, []*model.CensusGeography]
-	CensusGeographiesByEntityID                                  *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
-	CensusSourcesByDatasetID                                     *dataloader.Loader[model.CensusSourceParam, []*model.CensusSource]
-	CensusTableByID                                              *dataloader.Loader[int, *model.CensusTable]
-	CensusValuesByGeographyID                                    *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
+	CensusDatasetLayersByDatasetIDs                              *dataloader.Loader[int, []string]
+	CensusSourceLayersBySourceIDs                                *dataloader.Loader[int, []string]
+	CensusFieldsByTableIDs                                       *dataloader.Loader[model.CensusFieldParam, []*model.CensusField]
+	CensusGeographiesByDatasetIDs                                *dataloader.Loader[model.CensusDatasetGeographyParam, []*model.CensusGeography]
+	CensusGeographiesByEntityIDs                                 *dataloader.Loader[model.CensusGeographyParam, []*model.CensusGeography]
+	CensusSourcesByDatasetIDs                                    *dataloader.Loader[model.CensusSourceParam, []*model.CensusSource]
+	CensusTableByIDs                                             *dataloader.Loader[int, *model.CensusTable]
+	CensusValuesByGeographyIDs                                   *dataloader.Loader[model.CensusValueParam, []*model.CensusValue]
 	FeedFetchesByFeedID                                          *dataloader.Loader[model.FeedFetchParam, []*model.FeedFetch]
 	FeedInfosByFeedVersionID                                     *dataloader.Loader[model.FeedInfoParam, []*model.FeedInfo]
 	FeedsByID                                                    *dataloader.Loader[int, *model.Feed]
@@ -120,62 +120,148 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			},
 		),
 		AgenciesByID: withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByID),
-		AgenciesByOnestopIDs: withWaitAndCapacity(waitTime, batchSize, func(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
-			return paramGroupQuery(
-				params,
-				func(p model.AgencyParam) (string, *model.AgencyFilter, *int) {
-					a := ""
-					if p.OnestopID != nil {
-						a = *p.OnestopID
-					}
-					return a, p.Where, p.Limit
-				},
-				func(keys []string, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
-					return dbf.AgenciesByOnestopIDs(ctx, limit, where, keys)
-				},
-				func(ent *model.Agency) string {
-					return ent.OnestopID
-				},
-			)
-		}),
-		AgencyPlacesByAgencyIDs: withWaitAndCapacity(waitTime, batchSize, func(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
-			return paramGroupQuery(
-				params,
-				func(p model.AgencyPlaceParam) (int, *model.AgencyPlaceFilter, *int) {
-					return p.AgencyID, p.Where, p.Limit
-				},
-				func(keys []int, where *model.AgencyPlaceFilter, limit *int) (ents []*model.AgencyPlace, err error) {
-					return dbf.AgencyPlacesByAgencyIDs(ctx, limit, where, keys)
-				},
-				func(ent *model.AgencyPlace) int {
-					return ent.AgencyID
-				},
-			)
+		AgenciesByOnestopIDs: withWaitAndCapacity(waitTime, batchSize,
+			func(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.AgencyParam) (string, *model.AgencyFilter, *int) {
+						a := ""
+						if p.OnestopID != nil {
+							a = *p.OnestopID
+						}
+						return a, p.Where, p.Limit
+					},
+					func(keys []string, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
+						return dbf.AgenciesByOnestopIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Agency) string {
+						return ent.OnestopID
+					},
+				)
+			}),
+		AgencyPlacesByAgencyIDs: withWaitAndCapacity(waitTime, batchSize,
+			func(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.AgencyPlaceParam) (int, *model.AgencyPlaceFilter, *int) {
+						return p.AgencyID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.AgencyPlaceFilter, limit *int) (ents []*model.AgencyPlace, err error) {
+						return dbf.AgencyPlacesByAgencyIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.AgencyPlace) int {
+						return ent.AgencyID
+					},
+				)
 
-		}),
-		CalendarDatesByServiceIDs: withWaitAndCapacity(waitTime, batchSize, func(ctx context.Context, params []model.CalendarDateParam) ([][]*model.CalendarDate, []error) {
-			return paramGroupQuery(
-				params,
-				func(p model.CalendarDateParam) (int, *model.CalendarDateFilter, *int) {
-					return p.ServiceID, p.Where, p.Limit
-				},
-				func(keys []int, where *model.CalendarDateFilter, limit *int) (ents []*model.CalendarDate, err error) {
-					return dbf.CalendarDatesByServiceIDs(ctx, limit, where, keys)
-				},
-				func(ent *model.CalendarDate) int {
-					return ent.ServiceID.Int()
-				},
-			)
-		}),
-		CalendarsByID:                           withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
-		CensusDatasetLayersByDatasetID:          withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetID),
-		CensusSourceLayersBySourceID:            withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceID),
-		CensusFieldsByTableID:                   withWaitAndCapacity(waitTime, batchSize, dbf.CensusFieldsByTableID),
-		CensusGeographiesByDatasetID:            withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByDatasetID),
-		CensusGeographiesByEntityID:             withWaitAndCapacity(waitTime, batchSize, dbf.CensusGeographiesByEntityID),
-		CensusSourcesByDatasetID:                withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourcesByDatasetID),
-		CensusTableByID:                         withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
-		CensusValuesByGeographyID:               withWaitAndCapacity(waitTime, batchSize, dbf.CensusValuesByGeographyID),
+			}),
+		CalendarDatesByServiceIDs: withWaitAndCapacity(waitTime, batchSize,
+			func(ctx context.Context, params []model.CalendarDateParam) ([][]*model.CalendarDate, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.CalendarDateParam) (int, *model.CalendarDateFilter, *int) {
+						return p.ServiceID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.CalendarDateFilter, limit *int) (ents []*model.CalendarDate, err error) {
+						return dbf.CalendarDatesByServiceIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.CalendarDate) int {
+						return ent.ServiceID.Int()
+					},
+				)
+			}),
+		CalendarsByID:                   withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
+		CensusDatasetLayersByDatasetIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetIDs),
+		CensusSourceLayersBySourceIDs:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceIDs),
+		CensusFieldsByTableIDs: withWaitAndCapacity(waitTime, batchSize,
+			func(ctx context.Context, params []model.CensusFieldParam) ([][]*model.CensusField, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.CensusFieldParam) (int, *model.CensusFieldParam, *int) {
+						return p.TableID, nil, p.Limit
+					},
+					func(keys []int, where *model.CensusFieldParam, limit *int) (ents []*model.CensusField, err error) {
+						return dbf.CensusFieldsByTableIDs(ctx, limit, keys)
+					},
+					func(ent *model.CensusField) int {
+						return ent.TableID
+					},
+				)
+			}),
+		CensusGeographiesByDatasetIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.CensusDatasetGeographyParam) ([][]*model.CensusGeography, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.CensusDatasetGeographyParam) (int, *model.CensusDatasetGeographyFilter, *int) {
+						return p.DatasetID, p.Where, p.Limit
+					},
+					func(keys []int, p *model.CensusDatasetGeographyFilter, limit *int) (ents []*model.CensusGeography, err error) {
+						return dbf.CensusGeographiesByDatasetIDs(ctx, limit, p, keys)
+					},
+					func(ent *model.CensusGeography) int {
+						return ent.DatasetID
+					},
+				)
+			}),
+		CensusGeographiesByEntityIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.CensusGeographyParam) ([][]*model.CensusGeography, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.CensusGeographyParam) (int, *model.CensusGeographyParam, *int) {
+						rp := model.CensusGeographyParam{
+							EntityType: p.EntityType,
+							Where:      p.Where,
+						}
+						return p.EntityID, &rp, p.Limit
+					},
+					func(keys []int, param *model.CensusGeographyParam, limit *int) (ents []*model.CensusGeography, err error) {
+						return dbf.CensusGeographiesByEntityIDs(ctx, limit, param.Where, param.EntityType, keys)
+					},
+					func(ent *model.CensusGeography) int {
+						return ent.MatchEntityID
+					},
+				)
+			}),
+		CensusSourcesByDatasetIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.CensusSourceParam) ([][]*model.CensusSource, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.CensusSourceParam) (int, *model.CensusSourceFilter, *int) {
+						return p.DatasetID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.CensusSourceFilter, limit *int) (ents []*model.CensusSource, err error) {
+						return dbf.CensusSourcesByDatasetIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.CensusSource) int {
+						return ent.DatasetID
+					},
+				)
+			}),
+		CensusTableByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByID),
+		CensusValuesByGeographyIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.CensusValueParam) ([][]*model.CensusValue, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.CensusValueParam) (string, string, *int) {
+						return p.Geoid, p.TableNames, p.Limit
+					},
+					func(keys []string, tableNames string, limit *int) (ents []*model.CensusValue, err error) {
+						return nil, nil
+						// return dbf.CensusValuesByGeographyIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.CensusValue) string {
+						return ent.Geoid
+					},
+				)
+			}),
 		FeedFetchesByFeedID:                     withWaitAndCapacity(waitTime, batchSize, dbf.FeedFetchesByFeedID),
 		FeedInfosByFeedVersionID:                withWaitAndCapacity(waitTime, batchSize, dbf.FeedInfosByFeedVersionID),
 		FeedsByID:                               withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByID),

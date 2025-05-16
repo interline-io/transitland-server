@@ -89,16 +89,15 @@ type EntityLoader interface {
 	AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *AgencyFilter, feedVersionIds []int) ([]*Agency, error)
 	AgenciesByOnestopIDs(context.Context, *int, *AgencyFilter, []string) ([]*Agency, error)
 	AgencyPlacesByAgencyIDs(context.Context, *int, *AgencyPlaceFilter, []int) ([]*AgencyPlace, error)
-
 	CalendarDatesByServiceIDs(context.Context, *int, *CalendarDateFilter, []int) ([]*CalendarDate, error)
 
-	CensusDatasetLayersByDatasetID(context.Context, []int) ([][]string, []error)
-	CensusFieldsByTableID(context.Context, []CensusFieldParam) ([][]*CensusField, []error)
-	CensusGeographiesByDatasetID(context.Context, []CensusDatasetGeographyParam) ([][]*CensusGeography, []error)
-	CensusGeographiesByEntityID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
-	CensusSourceLayersBySourceID(context.Context, []int) ([][]string, []error)
-	CensusSourcesByDatasetID(context.Context, []CensusSourceParam) ([][]*CensusSource, []error)
-	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
+	CensusDatasetLayersByDatasetIDs(context.Context, []int) ([][]string, []error)
+	CensusFieldsByTableIDs(context.Context, *int, []int) ([]*CensusField, error)
+	CensusGeographiesByDatasetIDs(context.Context, *int, *CensusDatasetGeographyFilter, []int) ([]*CensusGeography, error)
+	CensusGeographiesByEntityIDs(context.Context, *int, *CensusGeographyFilter, string, []int) ([]*CensusGeography, error)
+	CensusSourceLayersBySourceIDs(context.Context, []int) ([][]string, []error)
+	CensusSourcesByDatasetIDs(context.Context, *int, *CensusSourceFilter, []int) ([]*CensusSource, error)
+	CensusValuesByGeographyIDs(context.Context, *int, []string, []string) ([]*CensusValue, error)
 
 	FeedFetchesByFeedID(context.Context, []FeedFetchParam) ([][]*FeedFetch, []error)
 	FeedInfosByFeedVersionID(context.Context, []FeedInfoParam) ([][]*FeedInfo, []error)
