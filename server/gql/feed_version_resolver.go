@@ -50,7 +50,7 @@ func (r *feedVersionResolver) FeedVersionGtfsImport(ctx context.Context, obj *mo
 }
 
 func (r *feedVersionResolver) ServiceWindow(ctx context.Context, obj *model.FeedVersion) (*model.FeedVersionServiceWindow, error) {
-	return LoaderFor(ctx).FeedVersionServiceWindowByFeedVersionID.Load(ctx, obj.ID)()
+	return LoaderFor(ctx).FeedVersionServiceWindowByFeedVersionIDs.Load(ctx, obj.ID)()
 }
 
 func (r *feedVersionResolver) ServiceLevels(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.FeedVersionServiceLevelFilter) ([]*model.FeedVersionServiceLevel, error) {

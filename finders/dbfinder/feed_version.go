@@ -41,7 +41,7 @@ func (f *Finder) FeedVersionGtfsImportByFeedVersionID(ctx context.Context, ids [
 	return arrangeBy(ids, ents, func(ent *model.FeedVersionGtfsImport) int { return ent.FeedVersionID }), nil
 }
 
-func (f *Finder) FeedVersionServiceWindowByFeedVersionID(ctx context.Context, ids []int) ([]*model.FeedVersionServiceWindow, []error) {
+func (f *Finder) FeedVersionServiceWindowByFeedVersionIDs(ctx context.Context, ids []int) ([]*model.FeedVersionServiceWindow, []error) {
 	var ents []*model.FeedVersionServiceWindow
 	err := dbutil.Select(ctx,
 		f.db,

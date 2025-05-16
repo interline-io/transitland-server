@@ -80,7 +80,7 @@ type EntityLoader interface {
 
 	// Other loaders
 	FeedVersionGtfsImportByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
-	FeedVersionServiceWindowByFeedVersionID(context.Context, []int) ([]*FeedVersionServiceWindow, []error)
+	FeedVersionServiceWindowByFeedVersionIDs(context.Context, []int) ([]*FeedVersionServiceWindow, []error)
 	FeedStatesByFeedIDs(context.Context, []int) ([]*FeedState, []error)
 	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
 	OperatorsByAgencyID(context.Context, []int) ([]*Operator, []error)
