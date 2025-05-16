@@ -7303,7 +7303,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGbfsDockRequest,
 		ec.unmarshalInputLevelSetInput,
 		ec.unmarshalInputLicenseFilter,
-		ec.unmarshalInputLocationFilter,
 		ec.unmarshalInputOperatorFilter,
 		ec.unmarshalInputPathwayFilter,
 		ec.unmarshalInputPathwaySetInput,
@@ -7315,6 +7314,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputServiceCoversFilter,
 		ec.unmarshalInputStopExternalReferenceSetInput,
 		ec.unmarshalInputStopFilter,
+		ec.unmarshalInputStopLocationFilter,
 		ec.unmarshalInputStopObservationFilter,
 		ec.unmarshalInputStopSetInput,
 		ec.unmarshalInputStopTimeFilter,
@@ -9550,15 +9550,17 @@ input Feature {
   type: String
 }
 
-input LocationFilter {
+input StopLocationFilter {
   "Search for stops within this bounding box"
   bbox: BoundingBox
   "Search for stops within this geographic polygon"
-  within: Polygon
+  polygon: Polygon
   "Search within these enclosing features, and return the matching feature ids"
   features: [Feature]
   "Search for stops within specified radius of a point"
   near: PointRadius
+  "Search within these geography ids"
+  geography_ids: [Int]
 }
 
 """Search options for stops"""
@@ -9593,15 +9595,14 @@ input StopFilter {
   served_by_route_types: [Int!]
   "Search for stops with these agency integer IDs. Deprecated."
   agency_ids: [Int!]
-  "Search for stops within this bounding box"
+  "Search geographically"
+  location: StopLocationFilter
+  "Backwards compat: Search for stops within this bounding box"
   bbox: BoundingBox
-  "Search for stops within this geographic polygon"
+  "Backwards compat: Search for stops within this geographic polygon"
   within: Polygon
-  "Search for stops within these enclosing features, and return the matching feature ids"
-  within_features: [Feature]
-  "Search for stops within specified radius of a point"
+  "Backwards compat: Search for stops within specified radius of a point"
   near: PointRadius
-  
 }
 
 """Search options for stop times, optionally on a given date"""
@@ -56378,54 +56379,6 @@ func (ec *executionContext) unmarshalInputLicenseFilter(ctx context.Context, obj
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputLocationFilter(ctx context.Context, obj any) (model.LocationFilter, error) {
-	var it model.LocationFilter
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"bbox", "within", "features", "near"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "bbox":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
-			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Bbox = data
-		case "within":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within"))
-			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Within = data
-		case "features":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("features"))
-			data, err := ec.unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Features = data
-		case "near":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
-			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Near = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputOperatorFilter(ctx context.Context, obj any) (model.OperatorFilter, error) {
 	var it model.OperatorFilter
 	asMap := map[string]any{}
@@ -57088,7 +57041,7 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "search", "license", "served_by_onestop_ids", "served_by_route_type", "served_by_route_types", "agency_ids", "bbox", "within", "within_features", "near"}
+	fieldsInOrder := [...]string{"onestop_id", "onestop_ids", "allow_previous_onestop_ids", "feed_version_sha1", "feed_onestop_id", "stop_id", "stop_code", "location_type", "serviced", "search", "license", "served_by_onestop_ids", "served_by_route_type", "served_by_route_types", "agency_ids", "location", "bbox", "within", "near"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -57200,6 +57153,13 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.AgencyIds = data
+		case "location":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
+			data, err := ec.unmarshalOStopLocationFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopLocationFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Location = data
 		case "bbox":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
 			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
@@ -57214,13 +57174,6 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.Within = data
-		case "within_features":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("within_features"))
-			data, err := ec.unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.WithinFeatures = data
 		case "near":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
 			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
@@ -57228,6 +57181,61 @@ func (ec *executionContext) unmarshalInputStopFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.Near = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStopLocationFilter(ctx context.Context, obj any) (model.StopLocationFilter, error) {
+	var it model.StopLocationFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bbox", "polygon", "features", "near", "geography_ids"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bbox":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
+			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Bbox = data
+		case "polygon":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("polygon"))
+			data, err := ec.unmarshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Polygon = data
+		case "features":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("features"))
+			data, err := ec.unmarshalOFeature2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFeature(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Features = data
+		case "near":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("near"))
+			data, err := ec.unmarshalOPointRadius2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐPointRadius(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Near = data
+		case "geography_ids":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geography_ids"))
+			data, err := ec.unmarshalOInt2ᚕᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GeographyIds = data
 		}
 	}
 
@@ -71844,6 +71852,36 @@ func (ec *executionContext) marshalOInt2ᚕintᚄ(ctx context.Context, sel ast.S
 	return ret
 }
 
+func (ec *executionContext) unmarshalOInt2ᚕᚖint(ctx context.Context, v any) ([]*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOInt2ᚖint(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOInt2ᚕᚖint(ctx context.Context, sel ast.SelectionSet, v []*int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOInt2ᚖint(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v any) (*int, error) {
 	if v == nil {
 		return nil, nil
@@ -72734,6 +72772,14 @@ func (ec *executionContext) unmarshalOStopFilter2ᚖgithubᚗcomᚋinterlineᚑi
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputStopFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOStopLocationFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopLocationFilter(ctx context.Context, v any) (*model.StopLocationFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStopLocationFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
