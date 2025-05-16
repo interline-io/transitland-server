@@ -16,7 +16,7 @@ func (r *agencyResolver) Cursor(ctx context.Context, obj *model.Agency) (*model.
 }
 
 func (r *agencyResolver) Routes(ctx context.Context, obj *model.Agency, limit *int, where *model.RouteFilter) ([]*model.Route, error) {
-	return LoaderFor(ctx).RoutesByAgencyID.Load(ctx, model.RouteParam{AgencyID: obj.ID, Limit: checkLimit(limit), Where: where})()
+	return LoaderFor(ctx).RoutesByAgencyIDs.Load(ctx, model.RouteParam{AgencyID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *agencyResolver) FeedVersion(ctx context.Context, obj *model.Agency) (*model.FeedVersion, error) {

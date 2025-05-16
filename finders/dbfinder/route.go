@@ -137,31 +137,20 @@ func (f *Finder) RouteGeometriesByRouteIDs(ctx context.Context, limit *int, keys
 	return ents, err
 }
 
-func (f *Finder) RoutesByAgencyID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.RouteParam) (int, *model.RouteFilter, *int) {
-			return p.AgencyID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.RouteFilter, limit *int) (ents []*model.Route, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					routeSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
-					"gtfs_agencies",
-					"id",
-					"gtfs_routes",
-					"agency_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Route) int {
-			return ent.AgencyID.Int()
-		},
+func (f *Finder) RoutesByAgencyIDs(ctx context.Context, limit *int, where *model.RouteFilter, keys []int) (ents []*model.Route, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			routeSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+			"gtfs_agencies",
+			"id",
+			"gtfs_routes",
+			"agency_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) RoutesByFeedVersionID(ctx context.Context, params []model.RouteParam) ([][]*model.Route, []error) {
