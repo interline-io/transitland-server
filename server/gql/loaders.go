@@ -27,7 +27,7 @@ type Loaders struct {
 	AgenciesByID                                                 *dataloader.Loader[int, *model.Agency]
 	AgenciesByOnestopIDs                                         *dataloader.Loader[model.AgencyParam, []*model.Agency]
 	AgencyPlacesByAgencyIDs                                      *dataloader.Loader[model.AgencyPlaceParam, []*model.AgencyPlace]
-	CalendarDatesByServiceID                                     *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
+	CalendarDatesByServiceIDs                                    *dataloader.Loader[model.CalendarDateParam, []*model.CalendarDate]
 	CalendarsByID                                                *dataloader.Loader[int, *model.Calendar]
 	CensusDatasetLayersByDatasetID                               *dataloader.Loader[int, []string]
 	CensusSourceLayersBySourceID                                 *dataloader.Loader[int, []string]
@@ -153,7 +153,20 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			)
 
 		}),
-		CalendarDatesByServiceID:                withWaitAndCapacity(waitTime, batchSize, dbf.CalendarDatesByServiceID),
+		CalendarDatesByServiceIDs: withWaitAndCapacity(waitTime, batchSize, func(ctx context.Context, params []model.CalendarDateParam) ([][]*model.CalendarDate, []error) {
+			return paramGroupQuery(
+				params,
+				func(p model.CalendarDateParam) (int, *model.CalendarDateFilter, *int) {
+					return p.ServiceID, p.Where, p.Limit
+				},
+				func(keys []int, where *model.CalendarDateFilter, limit *int) (ents []*model.CalendarDate, err error) {
+					return dbf.CalendarDatesByServiceIDs(ctx, limit, where, keys)
+				},
+				func(ent *model.CalendarDate) int {
+					return ent.ServiceID.Int()
+				},
+			)
+		}),
 		CalendarsByID:                           withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByID),
 		CensusDatasetLayersByDatasetID:          withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetID),
 		CensusSourceLayersBySourceID:            withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceID),

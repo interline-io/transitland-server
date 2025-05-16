@@ -65,7 +65,6 @@ type EntityLoader interface {
 	AgenciesByID(context.Context, []int) ([]*Agency, []error)
 	StopsByID(context.Context, []int) ([]*Stop, []error)
 	RoutesByID(context.Context, []int) ([]*Route, []error)
-	LevelsByParentStationID(context.Context, []LevelParam) ([][]*Level, []error)
 	StopExternalReferencesByStopID(context.Context, []int) ([]*StopExternalReference, []error)
 	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
 	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
@@ -83,17 +82,15 @@ type EntityLoader interface {
 	FeedVersionGtfsImportByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
 	FeedVersionServiceWindowByFeedVersionID(context.Context, []int) ([]*FeedVersionServiceWindow, []error)
 	FeedStatesByFeedID(context.Context, []int) ([]*FeedState, []error)
-	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
 	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
 	OperatorsByAgencyID(context.Context, []int) ([]*Operator, []error)
-	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 
 	// Param loaders
 	AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *AgencyFilter, feedVersionIds []int) ([]*Agency, error)
 	AgenciesByOnestopIDs(context.Context, *int, *AgencyFilter, []string) ([]*Agency, error)
 	AgencyPlacesByAgencyIDs(context.Context, *int, *AgencyPlaceFilter, []int) ([]*AgencyPlace, error)
 
-	CalendarDatesByServiceID(context.Context, []CalendarDateParam) ([][]*CalendarDate, []error)
+	CalendarDatesByServiceIDs(context.Context, *int, *CalendarDateFilter, []int) ([]*CalendarDate, error)
 
 	CensusDatasetLayersByDatasetID(context.Context, []int) ([][]string, []error)
 	CensusFieldsByTableID(context.Context, []CensusFieldParam) ([][]*CensusField, []error)
@@ -114,6 +111,7 @@ type EntityLoader interface {
 
 	PathwaysByFromStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
 	PathwaysByToStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
+	LevelsByParentStationID(context.Context, []LevelParam) ([][]*Level, []error)
 
 	RouteGeometriesByRouteID(context.Context, []RouteGeometryParam) ([][]*RouteGeometry, []error)
 	RouteHeadwaysByRouteID(context.Context, []RouteHeadwayParam) ([][]*RouteHeadway, []error)
@@ -133,6 +131,8 @@ type EntityLoader interface {
 
 	TripsByFeedVersionID(context.Context, []TripParam) ([][]*Trip, []error)
 	TripsByRouteID(context.Context, []TripParam) ([][]*Trip, []error)
+	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
+	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 
 	// Validation reports
 	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
