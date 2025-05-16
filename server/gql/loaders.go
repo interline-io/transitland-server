@@ -64,7 +64,7 @@ type Loaders struct {
 	RoutesByAgencyIDs                                            *dataloader.Loader[model.RouteParam, []*model.Route]
 	RoutesByFeedVersionIDs                                       *dataloader.Loader[model.RouteParam, []*model.Route]
 	RoutesByIDs                                                  *dataloader.Loader[int, *model.Route]
-	RouteStopPatternsByRouteID                                   *dataloader.Loader[model.RouteStopPatternParam, []*model.RouteStopPattern]
+	RouteStopPatternsByRouteIDs                                  *dataloader.Loader[model.RouteStopPatternParam, []*model.RouteStopPattern]
 	RouteStopsByRouteID                                          *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	RouteStopsByStopID                                           *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	SegmentPatternsByRouteID                                     *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
@@ -515,8 +515,24 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		RoutesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
-		RouteStopPatternsByRouteID:      withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopPatternsByRouteID),
+		RoutesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
+		RouteStopPatternsByRouteIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.RouteStopPatternParam) ([][]*model.RouteStopPattern, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.RouteStopPatternParam) (int, bool, *int) {
+						return p.RouteID, false, nil
+					},
+					func(keys []int, where bool, limit *int) (ents []*model.RouteStopPattern, err error) {
+						return dbf.RouteStopPatternsByRouteIDs(ctx, limit, keys)
+					},
+					func(ent *model.RouteStopPattern) int {
+						return ent.RouteID
+					},
+				)
+			}),
 		RouteStopsByRouteID:             withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByRouteID),
 		RouteStopsByStopID:              withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByStopID),
 		SegmentPatternsByRouteID:        withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),

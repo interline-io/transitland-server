@@ -93,32 +93,20 @@ func (f *Finder) RouteHeadwaysByRouteIDs(ctx context.Context, limit *int, keys [
 	return ents, err
 }
 
-func (f *Finder) RouteStopPatternsByRouteID(ctx context.Context, params []model.RouteStopPatternParam) ([][]*model.RouteStopPattern, []error) {
-	// TODO: Add limit option in resolver
-	return paramGroupQuery(
-		params,
-		func(p model.RouteStopPatternParam) (int, bool, *int) {
-			return p.RouteID, false, nil
-		},
-		func(keys []int, where bool, limit *int) (ents []*model.RouteStopPattern, err error) {
-			q := sq.StatementBuilder.
-				Select("route_id", "direction_id", "stop_pattern_id", "count(*) as count").
-				From("gtfs_trips").
-				Where(In("route_id", keys)).
-				GroupBy("route_id,direction_id,stop_pattern_id").
-				OrderBy("route_id,count desc").
-				Limit(1000)
-			err = dbutil.Select(ctx,
-				f.db,
-				q,
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.RouteStopPattern) int {
-			return ent.RouteID
-		},
+func (f *Finder) RouteStopPatternsByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteStopPattern, err error) {
+	q := sq.StatementBuilder.
+		Select("route_id", "direction_id", "stop_pattern_id", "count(*) as count").
+		From("gtfs_trips").
+		Where(In("route_id", keys)).
+		GroupBy("route_id,direction_id,stop_pattern_id").
+		OrderBy("route_id,count desc").
+		Limit(1000)
+	err = dbutil.Select(ctx,
+		f.db,
+		q,
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) RouteGeometriesByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteGeometry, err error) {

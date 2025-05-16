@@ -77,7 +77,7 @@ func (r *routeResolver) Alerts(ctx context.Context, obj *model.Route, active *bo
 }
 
 func (r *routeResolver) Patterns(ctx context.Context, obj *model.Route) ([]*model.RouteStopPattern, error) {
-	return LoaderFor(ctx).RouteStopPatternsByRouteID.Load(ctx, model.RouteStopPatternParam{RouteID: obj.ID})()
+	return LoaderFor(ctx).RouteStopPatternsByRouteIDs.Load(ctx, model.RouteStopPatternParam{RouteID: obj.ID})()
 }
 
 func (r *routeResolver) RouteAttribute(ctx context.Context, obj *model.Route) (*model.RouteAttribute, error) {
