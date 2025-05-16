@@ -50,31 +50,20 @@ func (f *Finder) RoutesByIDs(ctx context.Context, ids []int) ([]*model.Route, []
 	return arrangeBy(ids, ents, func(ent *model.Route) int { return ent.ID }), nil
 }
 
-func (f *Finder) RouteStopsByStopID(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.RouteStopParam) (int, bool, *int) {
-			return p.StopID, false, p.Limit
-		},
-		func(keys []int, where bool, limit *int) (ents []*model.RouteStop, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					quickSelectOrder("tl_route_stops", limit, nil, nil, "stop_id"),
-					"gtfs_stops",
-					"id",
-					"tl_route_stops",
-					"stop_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.RouteStop) int {
-			return ent.StopID
-		},
+func (f *Finder) RouteStopsByStopIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteStop, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			quickSelectOrder("tl_route_stops", limit, nil, nil, "stop_id"),
+			"gtfs_stops",
+			"id",
+			"tl_route_stops",
+			"stop_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) RouteHeadwaysByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteHeadway, err error) {

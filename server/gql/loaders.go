@@ -66,7 +66,7 @@ type Loaders struct {
 	RoutesByIDs                                                  *dataloader.Loader[int, *model.Route]
 	RouteStopPatternsByRouteIDs                                  *dataloader.Loader[model.RouteStopPatternParam, []*model.RouteStopPattern]
 	RouteStopsByRouteIDs                                         *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
-	RouteStopsByStopID                                           *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
+	RouteStopsByStopIDs                                          *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	SegmentPatternsByRouteID                                     *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentPatternsBySegmentID                                   *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentsByFeedVersionID                                      *dataloader.Loader[model.SegmentParam, []*model.Segment]
@@ -550,7 +550,23 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		RouteStopsByStopID:              withWaitAndCapacity(waitTime, batchSize, dbf.RouteStopsByStopID),
+		RouteStopsByStopIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.RouteStopParam) ([][]*model.RouteStop, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.RouteStopParam) (int, bool, *int) {
+						return p.StopID, false, p.Limit
+					},
+					func(keys []int, where bool, limit *int) (ents []*model.RouteStop, err error) {
+						return dbf.RouteStopsByStopIDs(ctx, limit, keys)
+					},
+					func(ent *model.RouteStop) int {
+						return ent.StopID
+					},
+				)
+			}),
 		SegmentPatternsByRouteID:        withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
 		SegmentPatternsBySegmentID:      withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsBySegmentID),
 		SegmentsByFeedVersionID:         withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByFeedVersionID),
