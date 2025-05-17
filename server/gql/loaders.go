@@ -69,7 +69,7 @@ type Loaders struct {
 	RouteStopsByStopIDs                                          *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	SegmentPatternsByRouteID                                     *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentPatternsBySegmentID                                   *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
-	SegmentsByFeedVersionID                                      *dataloader.Loader[model.SegmentParam, []*model.Segment]
+	SegmentsByFeedVersionIDs                                     *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	SegmentsByIDs                                                *dataloader.Loader[int, *model.Segment]
 	SegmentsByRouteID                                            *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	ShapesByIDs                                                  *dataloader.Loader[int, *model.Shape]
@@ -581,9 +581,26 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		SegmentPatternsByRouteID:        withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
-		SegmentPatternsBySegmentID:      withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsBySegmentID),
-		SegmentsByFeedVersionID:         withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByFeedVersionID),
+		SegmentPatternsByRouteID:   withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
+		SegmentPatternsBySegmentID: withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsBySegmentID),
+		SegmentsByFeedVersionIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.SegmentParam) ([][]*model.Segment, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.SegmentParam) (int, *model.SegmentFilter, *int) {
+						return p.FeedVersionID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.SegmentFilter, limit *int) (ents []*model.Segment, err error) {
+						return dbf.SegmentsByFeedVersionIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Segment) int {
+						return ent.FeedVersionID
+					},
+				)
+			},
+		),
 		SegmentsByIDs:                   withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByIDs),
 		SegmentsByRouteID:               withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByRouteID),
 		ShapesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByIDs),

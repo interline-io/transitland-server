@@ -141,7 +141,7 @@ type EntityLoader interface {
 	SegmentPatternsBySegmentID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
 	SegmentsByIDs(context.Context, []int) ([]*Segment, []error)
 	SegmentsByRouteID(context.Context, []SegmentParam) ([][]*Segment, []error)
-	SegmentsByFeedVersionID(context.Context, []SegmentParam) ([][]*Segment, []error)
+	SegmentsByFeedVersionIDs(context.Context, *int, *SegmentFilter, []int) ([]*Segment, error)
 }
 
 // RTFinder manages and looks up RT data

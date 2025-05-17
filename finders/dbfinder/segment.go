@@ -8,31 +8,20 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) SegmentsByFeedVersionID(ctx context.Context, params []model.SegmentParam) ([][]*model.Segment, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.SegmentParam) (int, string, *int) {
-			return p.FeedVersionID, p.Layer, p.Limit
-		},
-		func(keys []int, layer string, limit *int) (ents []*model.Segment, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					quickSelect("tl_segments", limit, nil, nil),
-					"feed_versions",
-					"id",
-					"tl_segments",
-					"feed_version_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Segment) int {
-			return ent.FeedVersionID
-		},
+func (f *Finder) SegmentsByFeedVersionIDs(ctx context.Context, limit *int, where *model.SegmentFilter, keys []int) (ents []*model.Segment, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			quickSelect("tl_segments", limit, nil, nil),
+			"feed_versions",
+			"id",
+			"tl_segments",
+			"feed_version_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) SegmentsByIDs(ctx context.Context, ids []int) ([]*model.Segment, []error) {
