@@ -39,7 +39,7 @@ func (f *Finder) FeedStatesByFeedIDs(ctx context.Context, ids []int) ([]*model.F
 	return arrangeBy(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
 }
 
-func (f *Finder) FeedFetchesByFeedIDs(ctx context.Context, limit *int, where *model.FeedFetchFilter, keys []int) (ents []*model.FeedFetch, err error) {
+func (f *Finder) FeedFetchesByFeedIDs(ctx context.Context, limit *int, where *model.FeedFetchFilter, keys []int) ([][]*model.FeedFetch, error) {
 	q := sq.StatementBuilder.
 		Select("*").
 		From("feed_fetches").
@@ -50,12 +50,13 @@ func (f *Finder) FeedFetchesByFeedIDs(ctx context.Context, limit *int, where *mo
 			q = q.Where(sq.Eq{"success": *where.Success})
 		}
 	}
-	err = dbutil.Select(ctx,
+	var ents []*model.FeedFetch
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(q, "current_feeds", "id", "feed_fetches", "feed_id", keys),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.FeedFetch) int { return ent.FeedID }), err
 }
 
 func (f *Finder) FeedsByOperatorOnestopIDs(ctx context.Context, limit *int, where *model.FeedFilter, keys []string) (ents []*model.Feed, err error) {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	dataloader "github.com/graph-gophers/dataloader/v7"
@@ -186,58 +187,36 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusSourcesByDatasetIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []censusSourceLoaderParam) ([][]*model.CensusSource, []error) {
-				return paramGroupQuery(
-					params,
-					func(p censusSourceLoaderParam) (int, *model.CensusSourceFilter, *int) {
-						return p.DatasetID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.CensusSourceFilter, limit *int) (ents []*model.CensusSource, err error) {
-						return dbf.CensusSourcesByDatasetIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.CensusSource) int {
-						return ent.DatasetID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p censusSourceLoaderParam) (int, *model.CensusSourceFilter, *int) {
+					return p.DatasetID, p.Where, p.Limit
+				},
+				dbf.CensusSourcesByDatasetIDs,
+			),
 		),
 		CensusTableByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByIDs),
 		CensusValuesByGeographyIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []censusValueLoaderParam) ([][]*model.CensusValue, []error) {
-				return paramGroupQuery(
-					params,
-					func(p censusValueLoaderParam) (string, string, *int) {
-						return p.Geoid, p.TableNames, p.Limit
-					},
-					func(keys []string, tableNames string, limit *int) (ents []*model.CensusValue, err error) {
-						return nil, nil
-						// return dbf.CensusValuesByGeographyIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.CensusValue) string {
-						return ent.Geoid
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p censusValueLoaderParam) (string, string, *int) {
+					return p.Geoid, p.TableNames, p.Limit
+				},
+				func(ctx context.Context, limit *int, tableNames string, keys []string) ([][]*model.CensusValue, error) {
+					tn := strings.Split(tableNames, ",")
+					return dbf.CensusValuesByGeographyIDs(ctx, limit, tn, keys)
+				},
+			),
 		),
 		FeedFetchesByFeedIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []feedFetchLoaderParam) ([][]*model.FeedFetch, []error) {
-				return paramGroupQuery(
-					params,
-					func(p feedFetchLoaderParam) (int, *model.FeedFetchFilter, *int) {
-						return p.FeedID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.FeedFetchFilter, limit *int) (ents []*model.FeedFetch, err error) {
-						return dbf.FeedFetchesByFeedIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.FeedFetch) int {
-						return ent.FeedID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p feedFetchLoaderParam) (int, *model.FeedFetchFilter, *int) {
+					return p.FeedID, p.Where, p.Limit
+				},
+				dbf.FeedFetchesByFeedIDs,
+			),
 		),
 		FeedInfosByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,

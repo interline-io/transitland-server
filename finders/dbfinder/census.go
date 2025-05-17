@@ -37,7 +37,7 @@ func (f *Finder) CensusGeographiesByEntityIDs(ctx context.Context, limit *int, w
 	return arrangeGroup(entityIds, ents, func(ent *model.CensusGeography) int { return ent.MatchEntityID }), err
 }
 
-func (f *Finder) CensusValuesByGeographyIDs(ctx context.Context, limit *int, tableNames []string, keys []string) (ents []*model.CensusValue, err error) {
+func (f *Finder) CensusValuesByGeographyIDs(ctx context.Context, limit *int, tableNames []string, keys []string) ([][]*model.CensusValue, error) {
 	// TODO: FIXME
 	// return paramGroupQuery(
 	// 	params,
@@ -64,9 +64,10 @@ func (f *Finder) CensusValuesByGeographyIDs(ctx context.Context, limit *int, tab
 	return nil, nil
 }
 
-func (f *Finder) CensusSourcesByDatasetIDs(ctx context.Context, limit *int, where *model.CensusSourceFilter, keys []int) (ents []*model.CensusSource, err error) {
+func (f *Finder) CensusSourcesByDatasetIDs(ctx context.Context, limit *int, where *model.CensusSourceFilter, keys []int) ([][]*model.CensusSource, error) {
 	q := censusSourceSelect(limit, nil, nil, where)
-	err = dbutil.Select(ctx,
+	var ents []*model.CensusSource
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			q,
@@ -78,7 +79,7 @@ func (f *Finder) CensusSourcesByDatasetIDs(ctx context.Context, limit *int, wher
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.CensusSource) int { return ent.DatasetID }), err
 }
 
 func (f *Finder) CensusDatasetLayersByDatasetIDs(ctx context.Context, ids []int) ([][]string, []error) {
