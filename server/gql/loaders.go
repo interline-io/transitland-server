@@ -86,7 +86,7 @@ type Loaders struct {
 	TargetStopsByStopIDs                                         *dataloader.Loader[int, *model.Stop]
 	TripsByFeedVersionIDs                                        *dataloader.Loader[model.TripParam, []*model.Trip]
 	TripsByIDs                                                   *dataloader.Loader[int, *model.Trip]
-	TripsByRouteID                                               *dataloader.Loader[model.TripParam, []*model.Trip]
+	TripsByRouteIDs                                              *dataloader.Loader[model.TripParam, []*model.Trip]
 	ValidationReportErrorExemplarsByValidationReportErrorGroupID *dataloader.Loader[model.ValidationReportErrorExemplarParam, []*model.ValidationReportError]
 	ValidationReportErrorGroupsByValidationReportID              *dataloader.Loader[model.ValidationReportErrorGroupParam, []*model.ValidationReportErrorGroup]
 	ValidationReportsByFeedVersionID                             *dataloader.Loader[model.ValidationReportParam, []*model.ValidationReport]
@@ -685,8 +685,32 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				)
 			},
 		),
-		TripsByIDs:     withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
-		TripsByRouteID: withWaitAndCapacity(waitTime, batchSize, dbf.TripsByRouteID),
+		TripsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
+		TripsByRouteIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
+				// TODO: FIXME
+				// This is not really a dataloader, see above...
+				// We need to split by feed version id to extract service window
+				type fvParamGroup struct {
+					FeedVersionID int
+					Where         *model.TripFilter
+				}
+				return paramGroupQuery(
+					params,
+					func(p model.TripParam) (int, fvParamGroup, *int) {
+						return p.RouteID, fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}, p.Limit
+					},
+					func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
+						return dbf.TripsByRouteIDs(ctx, limit, fvwhere.Where, fvwhere.FeedVersionID, keys)
+					},
+					func(ent *model.Trip) int {
+						return ent.RouteID.Int()
+					},
+				)
+			},
+		),
 		ValidationReportErrorExemplarsByValidationReportErrorGroupID: withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupID),
 		ValidationReportErrorGroupsByValidationReportID:              withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorGroupsByValidationReportID),
 		ValidationReportsByFeedVersionID:                             withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportsByFeedVersionID),

@@ -36,7 +36,7 @@ func (r *routeResolver) Geometries(ctx context.Context, obj *model.Route, limit 
 }
 
 func (r *routeResolver) Trips(ctx context.Context, obj *model.Route, limit *int, where *model.TripFilter) ([]*model.Trip, error) {
-	return LoaderFor(ctx).TripsByRouteID.Load(ctx, model.TripParam{RouteID: obj.ID, FeedVersionID: obj.FeedVersionID, Limit: checkLimit(limit), Where: where})()
+	return LoaderFor(ctx).TripsByRouteIDs.Load(ctx, model.TripParam{RouteID: obj.ID, FeedVersionID: obj.FeedVersionID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *routeResolver) Agency(ctx context.Context, obj *model.Route) (*model.Agency, error) {
