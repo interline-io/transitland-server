@@ -96,7 +96,7 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 }
 
 func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
-	sts, err := (LoaderFor(ctx).StopTimesByStopID.Load(ctx, model.StopTimeParam{
+	sts, err := (LoaderFor(ctx).StopTimesByStopIDs.Load(ctx, model.StopTimeParam{
 		StopID:        obj.ID,
 		FeedVersionID: obj.FeedVersionID,
 		Limit:         checkLimit(limit),

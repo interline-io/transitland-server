@@ -122,7 +122,7 @@ type EntityLoader interface {
 	StopsByLevelIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
 	StopsByParentStopIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
 	StopsByRouteIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
-	StopTimesByStopID(context.Context, []StopTimeParam) ([][]*StopTime, []error)
+	StopTimesByStopIDs(context.Context, *int, *StopTimeFilter, []FVPair) ([]*StopTime, error)
 	StopTimesByTripIDs(context.Context, *int, *TripStopTimeFilter, []FVPair) ([]*StopTime, error)
 	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 
