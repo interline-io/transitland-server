@@ -113,40 +113,27 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		),
 		AgenciesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByIDs),
 		AgenciesByOnestopIDs: withWaitAndCapacity(waitTime, batchSize,
-			func(ctx context.Context, params []agencyLoaderParam) ([][]*model.Agency, []error) {
-				return paramGroupQuery(
-					params,
-					func(p agencyLoaderParam) (string, *model.AgencyFilter, *int) {
-						a := ""
-						if p.OnestopID != nil {
-							a = *p.OnestopID
-						}
-						return a, p.Where, p.Limit
-					},
-					func(keys []string, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
-						return dbf.AgenciesByOnestopIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Agency) string {
-						return ent.OnestopID
-					},
-				)
-			}),
-		AgencyPlacesByAgencyIDs: withWaitAndCapacity(waitTime, batchSize,
-			func(ctx context.Context, params []agencyPlaceLoaderParam) ([][]*model.AgencyPlace, []error) {
-				return paramGroupQuery(
-					params,
-					func(p agencyPlaceLoaderParam) (int, *model.AgencyPlaceFilter, *int) {
-						return p.AgencyID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.AgencyPlaceFilter, limit *int) (ents []*model.AgencyPlace, err error) {
-						return dbf.AgencyPlacesByAgencyIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.AgencyPlace) int {
-						return ent.AgencyID
-					},
-				)
-
-			}),
+			paramGroupQuery2(
+				func(p agencyLoaderParam) (string, *model.AgencyFilter, *int) {
+					a := ""
+					if p.OnestopID != nil {
+						a = *p.OnestopID
+					}
+					return a, p.Where, p.Limit
+				},
+				dbf.AgenciesByOnestopIDs,
+			),
+		),
+		AgencyPlacesByAgencyIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			paramGroupQuery2(
+				func(p agencyPlaceLoaderParam) (int, *model.AgencyPlaceFilter, *int) {
+					return p.AgencyID, p.Where, p.Limit
+				},
+				dbf.AgencyPlacesByAgencyIDs,
+			),
+		),
 		CalendarDatesByServiceIDs: withWaitAndCapacity(waitTime, batchSize,
 			func(ctx context.Context, params []calendarDateLoaderParam) ([][]*model.CalendarDate, []error) {
 				return paramGroupQuery(

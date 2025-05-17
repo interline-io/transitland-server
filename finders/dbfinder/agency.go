@@ -30,7 +30,7 @@ func (f *Finder) AgenciesByIDs(ctx context.Context, ids []int) ([]*model.Agency,
 	return arrangeBy(ids, ents, func(ent *model.Agency) int { return ent.ID }), nil
 }
 
-func (f *Finder) AgencyPlacesByAgencyIDs(ctx context.Context, limit *int, where *model.AgencyPlaceFilter, keys []int) (ents []*model.AgencyPlace, err error) {
+func (f *Finder) AgencyPlacesByAgencyIDs(ctx context.Context, limit *int, where *model.AgencyPlaceFilter, keys []int) ([][]*model.AgencyPlace, error) {
 	q := sq.StatementBuilder.Select(
 		"tl_agency_places.agency_id",
 		"tl_agency_places.rank",
@@ -48,7 +48,8 @@ func (f *Finder) AgencyPlacesByAgencyIDs(ctx context.Context, limit *int, where 
 			q = q.Where(sq.GtOrEq{"rank": where.MinRank})
 		}
 	}
-	err = dbutil.Select(ctx,
+	var ents []*model.AgencyPlace
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			q,
@@ -60,7 +61,7 @@ func (f *Finder) AgencyPlacesByAgencyIDs(ctx context.Context, limit *int, where 
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.AgencyPlace) int { return ent.AgencyID }), err
 }
 
 func (f *Finder) AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []int) ([][]*model.Agency, error) {
@@ -80,13 +81,14 @@ func (f *Finder) AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where
 	return arrangeGroup(keys, ents, func(ent *model.Agency) int { return ent.FeedVersionID }), err
 }
 
-func (f *Finder) AgenciesByOnestopIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []string) (ents []*model.Agency, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) AgenciesByOnestopIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []string) ([][]*model.Agency, error) {
+	var ents []*model.Agency
+	err := dbutil.Select(ctx,
 		f.db,
 		agencySelect(limit, nil, nil, true, f.PermFilter(ctx), nil).Where(In("coif.resolved_onestop_id", keys)),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Agency) string { return ent.OnestopID }), err
 }
 
 func (f *Finder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {

@@ -48,8 +48,8 @@ type EntityFinder interface {
 type EntityLoader interface {
 	AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *AgencyFilter, feedVersionIds []int) ([][]*Agency, error)
 	AgenciesByIDs(context.Context, []int) ([]*Agency, []error)
-	AgenciesByOnestopIDs(context.Context, *int, *AgencyFilter, []string) ([]*Agency, error)
-	AgencyPlacesByAgencyIDs(context.Context, *int, *AgencyPlaceFilter, []int) ([]*AgencyPlace, error)
+	AgenciesByOnestopIDs(context.Context, *int, *AgencyFilter, []string) ([][]*Agency, error)
+	AgencyPlacesByAgencyIDs(context.Context, *int, *AgencyPlaceFilter, []int) ([][]*AgencyPlace, error)
 	CalendarDatesByServiceIDs(context.Context, *int, *CalendarDateFilter, []int) ([]*CalendarDate, error)
 	CalendarsByIDs(context.Context, []int) ([]*Calendar, []error)
 	CensusDatasetLayersByDatasetIDs(context.Context, []int) ([][]string, []error)
