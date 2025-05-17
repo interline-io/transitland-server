@@ -24,12 +24,6 @@ type StopPlaceParam struct {
 	Point tlxy.Point
 }
 
-type RouteStopBufferParam struct {
-	EntityID int
-	Radius   *float64
-	Limit    *int
-}
-
 //////////
 
 type Feed struct {

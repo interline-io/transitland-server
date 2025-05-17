@@ -21,12 +21,9 @@ func (f *Finder) FindRoutes(ctx context.Context, limit *int, after *model.Cursor
 	return ents, nil
 }
 
-func (f *Finder) RouteStopBuffer(ctx context.Context, param *model.RouteStopBufferParam) ([]*model.RouteStopBuffer, error) {
-	if param == nil {
-		return nil, nil
-	}
+func (f *Finder) RouteStopBuffer(ctx context.Context, limit *int, radius *float64, routeId int) ([]*model.RouteStopBuffer, error) {
 	var ents []*model.RouteStopBuffer
-	q := routeStopBufferSelect(*param)
+	q := routeStopBufferSelect(limit, radius, routeId)
 	if err := dbutil.Select(ctx, f.db, q, &ents); err != nil {
 		return nil, logErr(ctx, err)
 	}
@@ -322,8 +319,8 @@ func routeSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 	return q
 }
 
-func routeStopBufferSelect(param model.RouteStopBufferParam) sq.SelectBuilder {
-	r := checkFloat(param.Radius, 0, 2000.0)
+func routeStopBufferSelect(_ *int, radius *float64, routeId int) sq.SelectBuilder {
+	r := checkFloat(radius, 0, 2000.0)
 	q := sq.StatementBuilder.
 		Select(
 			"ST_Collect(gtfs_stops.geometry::geometry)::geography AS stop_points",
@@ -332,6 +329,6 @@ func routeStopBufferSelect(param model.RouteStopBufferParam) sq.SelectBuilder {
 		Column(sq.Expr("ST_Buffer(ST_Collect(gtfs_stops.geometry::geometry)::geography, ?, 4)::geography AS stop_buffer", r)). // column expr
 		From("gtfs_stops").
 		InnerJoin("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").
-		Where(sq.Eq{"tl_route_stops.route_id": param.EntityID})
+		Where(sq.Eq{"tl_route_stops.route_id": routeId})
 	return q
 }
