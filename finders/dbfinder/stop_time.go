@@ -13,11 +13,11 @@ import (
 func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopTimeParam) ([][]*model.StopTime, []error) {
 	return paramGroupQuery(
 		params,
-		func(p model.TripStopTimeParam) (FVPair, *model.TripStopTimeFilter, *int) {
-			a := FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}
+		func(p model.TripStopTimeParam) (model.FVPair, *model.TripStopTimeFilter, *int) {
+			a := model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}
 			return a, p.Where, p.Limit
 		},
-		func(keys []FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
+		func(keys []model.FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
 			err = dbutil.Select(ctx,
 				f.db,
 				stopTimeSelect(keys, nil, where),
@@ -25,8 +25,8 @@ func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopT
 			)
 			return ents, err
 		},
-		func(ent *model.StopTime) FVPair {
-			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
+		func(ent *model.StopTime) model.FVPair {
+			return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
 		},
 	)
 }
@@ -40,12 +40,12 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 	}
 	return paramGroupQuery(
 		params,
-		func(p model.StopTimeParam) (FVPair, fvParamGroup, *int) {
-			a := FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}
+		func(p model.StopTimeParam) (model.FVPair, fvParamGroup, *int) {
+			a := model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}
 			w := fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}
 			return a, w, p.Limit
 		},
-		func(keys []FVPair, fvwhere fvParamGroup, limit *int) (ents []*model.StopTime, err error) {
+		func(keys []model.FVPair, fvwhere fvParamGroup, limit *int) (ents []*model.StopTime, err error) {
 			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
 			if err != nil {
 				return nil, err
@@ -88,13 +88,13 @@ func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeP
 			}
 			return ents, err
 		},
-		func(ent *model.StopTime) FVPair {
-			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.StopID.Int()}
+		func(ent *model.StopTime) model.FVPair {
+			return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.StopID.Int()}
 		},
 	)
 }
 
-func stopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
+func stopTimeSelect(tpairs []model.FVPair, spairs []model.FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
@@ -146,7 +146,7 @@ func stopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeF
 	return q
 }
 
-func stopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
+func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
 	// Where must already be set for local service date and timezone
 	serviceDate := time.Now()
 	if where != nil && where.ServiceDate != nil {
@@ -430,12 +430,7 @@ func stopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow
 	return whereGroups
 }
 
-type FVPair struct {
-	EntityID      int
-	FeedVersionID int
-}
-
-func pairKeys(spairs []FVPair) ([]int, []int) {
+func pairKeys(spairs []model.FVPair) ([]int, []int) {
 	eids := map[int]bool{}
 	fvids := map[int]bool{}
 	for _, v := range spairs {
