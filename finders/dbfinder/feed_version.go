@@ -73,8 +73,9 @@ func (f *Finder) FeedVersionGeometryByIDs(ctx context.Context, ids []int) ([]*tt
 	return ents, nil
 }
 
-func (f *Finder) FeedVersionFileInfosByFeedVersionIDs(ctx context.Context, limit *int, keys []int) (ents []*model.FeedVersionFileInfo, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) FeedVersionFileInfosByFeedVersionIDs(ctx context.Context, limit *int, keys []int) ([][]*model.FeedVersionFileInfo, error) {
+	var ents []*model.FeedVersionFileInfo
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelectOrder("feed_version_file_infos", limit, nil, nil, "feed_version_id"),
@@ -86,11 +87,12 @@ func (f *Finder) FeedVersionFileInfosByFeedVersionIDs(ctx context.Context, limit
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.FeedVersionFileInfo) int { return ent.FeedVersionID }), err
 }
 
-func (f *Finder) FeedVersionsByFeedIDs(ctx context.Context, limit *int, where *model.FeedVersionFilter, keys []int) (ents []*model.FeedVersion, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) FeedVersionsByFeedIDs(ctx context.Context, limit *int, where *model.FeedVersionFilter, keys []int) ([][]*model.FeedVersion, error) {
+	var ents []*model.FeedVersion
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			feedVersionSelect(limit, nil, nil, f.PermFilter(ctx), where),
@@ -102,14 +104,12 @@ func (f *Finder) FeedVersionsByFeedIDs(ctx context.Context, limit *int, where *m
 		),
 		&ents,
 	)
-	if err != nil {
-		return nil, err
-	}
-	return ents, nil
+	return arrangeGroup(keys, ents, func(ent *model.FeedVersion) int { return ent.FeedID }), err
 }
 
-func (f *Finder) FeedVersionServiceLevelsByFeedVersionIDs(ctx context.Context, limit *int, where *model.FeedVersionServiceLevelFilter, keys []int) (ents []*model.FeedVersionServiceLevel, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) FeedVersionServiceLevelsByFeedVersionIDs(ctx context.Context, limit *int, where *model.FeedVersionServiceLevelFilter, keys []int) ([][]*model.FeedVersionServiceLevel, error) {
+	var ents []*model.FeedVersionServiceLevel
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			feedVersionServiceLevelSelect(limit, nil, nil, f.PermFilter(ctx), where),
@@ -121,7 +121,7 @@ func (f *Finder) FeedVersionServiceLevelsByFeedVersionIDs(ctx context.Context, l
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.FeedVersionServiceLevel) int { return ent.FeedVersionID }), err
 }
 
 func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*model.ServiceWindow, error) {

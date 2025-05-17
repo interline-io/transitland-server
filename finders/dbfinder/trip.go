@@ -30,8 +30,9 @@ func (f *Finder) TripsByIDs(ctx context.Context, ids []int) (ents []*model.Trip,
 	return arrangeBy(ids, ents, func(ent *model.Trip) int { return ent.ID }), nil
 }
 
-func (f *Finder) FrequenciesByTripIDs(ctx context.Context, limit *int, keys []int) (ents []*model.Frequency, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) FrequenciesByTripIDs(ctx context.Context, limit *int, keys []int) ([][]*model.Frequency, error) {
+	var ents []*model.Frequency
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelect("gtfs_frequencies", limit, nil, nil),
@@ -43,7 +44,7 @@ func (f *Finder) FrequenciesByTripIDs(ctx context.Context, limit *int, keys []in
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Frequency) int { return ent.FeedVersionID }), err
 }
 
 func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.TripFilter, keys []model.FVPair) (ents []*model.Trip, err error) {

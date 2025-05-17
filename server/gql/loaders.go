@@ -245,99 +245,65 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedVersionFileInfosByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []feedVersionFileInfoLoaderParam) ([][]*model.FeedVersionFileInfo, []error) {
-				return paramGroupQuery(
-					params,
-					func(p feedVersionFileInfoLoaderParam) (int, bool, *int) {
-						return p.FeedVersionID, false, p.Limit
-					},
-					func(keys []int, where bool, limit *int) (ents []*model.FeedVersionFileInfo, err error) {
-						return dbf.FeedVersionFileInfosByFeedVersionIDs(ctx, limit, keys)
-					},
-					func(ent *model.FeedVersionFileInfo) int {
-						return ent.FeedVersionID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p feedVersionFileInfoLoaderParam) (int, bool, *int) {
+					return p.FeedVersionID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, _ bool, keys []int) ([][]*model.FeedVersionFileInfo, error) {
+					return dbf.FeedVersionFileInfosByFeedVersionIDs(ctx, limit, keys)
+				},
+			),
 		),
 		FeedVersionGeometryByIDs:              withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGeometryByIDs),
 		FeedVersionGtfsImportByFeedVersionIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGtfsImportByFeedVersionIDs),
 		FeedVersionsByFeedIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []feedVersionLoaderParam) ([][]*model.FeedVersion, []error) {
-				return paramGroupQuery(
-					params,
-					func(p feedVersionLoaderParam) (int, *model.FeedVersionFilter, *int) {
-						return p.FeedID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.FeedVersionFilter, limit *int) ([]*model.FeedVersion, error) {
-						return dbf.FeedVersionsByFeedIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.FeedVersion) int {
-						return ent.FeedID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p feedVersionLoaderParam) (int, *model.FeedVersionFilter, *int) {
+					return p.FeedID, p.Where, p.Limit
+				},
+				dbf.FeedVersionsByFeedIDs,
+			),
 		),
 		FeedVersionsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByIDs),
 		FeedVersionServiceLevelsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []feedVersionServiceLevelLoaderParam) ([][]*model.FeedVersionServiceLevel, []error) {
-				return paramGroupQuery(
-					params,
-					func(p feedVersionServiceLevelLoaderParam) (int, *model.FeedVersionServiceLevelFilter, *int) {
-						return p.FeedVersionID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.FeedVersionServiceLevelFilter, limit *int) (ents []*model.FeedVersionServiceLevel, err error) {
-						return dbf.FeedVersionServiceLevelsByFeedVersionIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.FeedVersionServiceLevel) int {
-						return ent.FeedVersionID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p feedVersionServiceLevelLoaderParam) (int, *model.FeedVersionServiceLevelFilter, *int) {
+					return p.FeedVersionID, p.Where, p.Limit
+				},
+				dbf.FeedVersionServiceLevelsByFeedVersionIDs,
+			),
 		),
 
 		FeedVersionServiceWindowByFeedVersionIDs: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionIDs),
 		FrequenciesByTripIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []frequencyLoaderParam) ([][]*model.Frequency, []error) {
-				return paramGroupQuery(
-					params,
-					func(p frequencyLoaderParam) (int, bool, *int) {
-						return p.TripID, false, p.Limit
-					},
-					func(keys []int, where bool, limit *int) (ents []*model.Frequency, err error) {
-						return dbf.FrequenciesByTripIDs(ctx, limit, keys)
-					},
-					func(ent *model.Frequency) int {
-						return ent.TripID.Int()
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p frequencyLoaderParam) (int, bool, *int) {
+					return p.TripID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, _ bool, keys []int) (ents [][]*model.Frequency, err error) {
+					return dbf.FrequenciesByTripIDs(ctx, limit, keys)
+				},
+			),
 		),
 
 		LevelsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
 		LevelsByParentStationIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []levelLoaderParam) ([][]*model.Level, []error) {
-				return paramGroupQuery(
-					params,
-					func(p levelLoaderParam) (int, bool, *int) {
-						return p.ParentStationID, false, p.Limit
-					},
-					func(keys []int, where bool, limit *int) (ents []*model.Level, err error) {
-						return dbf.LevelsByParentStationIDs(ctx, limit, keys)
-					},
-					func(ent *model.Level) int {
-						return ent.ParentStation.Int()
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p levelLoaderParam) (int, bool, *int) {
+					return p.ParentStationID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, _ bool, keys []int) (ents [][]*model.Level, err error) {
+					return dbf.LevelsByParentStationIDs(ctx, limit, keys)
+				},
+			),
 		),
 
 		OperatorsByAgencyIDs: withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),

@@ -34,8 +34,9 @@ func (f *Finder) PathwaysByIDs(ctx context.Context, ids []int) ([]*model.Pathway
 	return arrangeBy(ids, ents, func(ent *model.Pathway) int { return ent.ID }), nil
 }
 
-func (f *Finder) LevelsByParentStationIDs(ctx context.Context, limit *int, keys []int) (ents []*model.Level, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) LevelsByParentStationIDs(ctx context.Context, limit *int, keys []int) ([][]*model.Level, error) {
+	var ents []*model.Level
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelect("gtfs_levels", limit, nil, nil),
@@ -47,7 +48,7 @@ func (f *Finder) LevelsByParentStationIDs(ctx context.Context, limit *int, keys 
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Level) int { return ent.ParentStation.Int() }), err
 }
 
 func (f *Finder) PathwaysByFromStopIDs(ctx context.Context, limit *int, where *model.PathwayFilter, keys []int) (ents []*model.Pathway, err error) {
