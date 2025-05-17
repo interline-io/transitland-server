@@ -8,7 +8,7 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) ValidationReportsByFeedVersionIDs(ctx context.Context, limit *int, where *model.ValidationReportFilter, keys []int) ([]*model.ValidationReport, error) {
+func (f *Finder) ValidationReportsByFeedVersionIDs(ctx context.Context, limit *int, where *model.ValidationReportFilter, keys []int) ([][]*model.ValidationReport, error) {
 	q := sq.StatementBuilder.
 		Select("*").
 		From("tl_validation_reports").
@@ -47,7 +47,7 @@ func (f *Finder) ValidationReportsByFeedVersionIDs(ctx context.Context, limit *i
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.ValidationReport) int { return ent.FeedVersionID }), err
 }
 
 func (f *Finder) ValidationReportErrorGroupsByValidationReportIDs(ctx context.Context, limit *int, keys []int) ([]*model.ValidationReportErrorGroup, error) {

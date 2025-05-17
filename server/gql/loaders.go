@@ -781,19 +781,12 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		ValidationReportsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []validationReportLoaderParam) ([][]*model.ValidationReport, []error) {
-				return paramGroupQuery(
-					params,
-					func(p validationReportLoaderParam) (int, *model.ValidationReportFilter, *int) {
-						return p.FeedVersionID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.ValidationReportFilter, limit *int) ([]*model.ValidationReport, error) {
-						return dbf.ValidationReportsByFeedVersionIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.ValidationReport) int { return ent.FeedVersionID },
-				)
-
-			},
+			paramGroupQuery2(
+				func(p validationReportLoaderParam) (int, *model.ValidationReportFilter, *int) {
+					return p.FeedVersionID, p.Where, p.Limit
+				},
+				dbf.ValidationReportsByFeedVersionIDs,
+			),
 		),
 	}
 	return loaders

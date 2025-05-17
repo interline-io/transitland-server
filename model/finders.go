@@ -112,7 +112,7 @@ type EntityLoader interface {
 	TripsByRouteIDs(context.Context, *int, *TripFilter, []FVPair) ([]*Trip, error)
 	ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(context.Context, *int, []int) ([]*ValidationReportError, error)
 	ValidationReportErrorGroupsByValidationReportIDs(context.Context, *int, []int) ([]*ValidationReportErrorGroup, error)
-	ValidationReportsByFeedVersionIDs(context.Context, *int, *ValidationReportFilter, []int) ([]*ValidationReport, error)
+	ValidationReportsByFeedVersionIDs(context.Context, *int, *ValidationReportFilter, []int) ([][]*ValidationReport, error)
 }
 
 type EntityMutator interface {
