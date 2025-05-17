@@ -28,7 +28,7 @@ func (f *Finder) StopTimesByStopIDs(ctx context.Context, limit *int, where *mode
 	// }
 	// return paramGroupQuery(
 	// 	params,
-	// 	func(p model.StopTimeParam) (model.FVPair, fvParamGroup, *int) {
+	// 	func(p StopTimeParam) (model.FVPair, fvParamGroup, *int) {
 	// 		a := model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}
 	// 		w := fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}
 	// 		return a, w, p.Limit

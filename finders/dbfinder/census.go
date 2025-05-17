@@ -3,7 +3,6 @@ package dbfinder
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-dbutil/dbutil"
@@ -41,14 +40,14 @@ func (f *Finder) CensusValuesByGeographyIDs(ctx context.Context, limit *int, tab
 	// TODO: FIXME
 	// return paramGroupQuery(
 	// 	params,
-	// 	func(p model.CensusValueParam) (string, *model.CensusValueParam, *int) {
-	// 		rp := model.CensusValueParam{
+	// 	func(p CensusValueParam) (string, *CensusValueParam, *int) {
+	// 		rp := CensusValueParam{
 	// 			TableNames: p.TableNames,
 	// 			Dataset:    p.Dataset,
 	// 		}
 	// 		return p.Geoid, &rp, p.Limit
 	// 	},
-	// 	func(keys []string, where *model.CensusValueParam, limit *int) (ents []*model.CensusValue, err error) {
+	// 	func(keys []string, where *CensusValueParam, limit *int) (ents []*model.CensusValue, err error) {
 	// err = dbutil.Select(
 	// 	ctx,
 	// 	f.db,
@@ -131,7 +130,7 @@ func (f *Finder) CensusSourceLayersBySourceIDs(ctx context.Context, ids []int) (
 }
 
 func (f *Finder) CensusGeographiesByDatasetIDs(ctx context.Context, limit *int, p *model.CensusDatasetGeographyFilter, keys []int) (ents []*model.CensusGeography, err error) {
-	q := censusDatasetGeographySelect(limit, p, keys)
+	q := censusDatasetGeographySelect(limit, p)
 	err = dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
@@ -188,7 +187,7 @@ func censusSourceSelect(limit *int, after *model.Cursor, ids []int, where *model
 	return q
 }
 
-func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeographyFilter, datasetIds []int) sq.SelectBuilder {
+func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeographyFilter) sq.SelectBuilder {
 	// Include matched entity column
 	cols := []string{
 		"tlcg.id",
@@ -229,68 +228,6 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 	if where != nil {
 		if where.Layer != nil {
 			q = q.Where(sq.Eq{"tlcg.layer_name": where.Layer})
-		}
-		if where.Search != nil {
-			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
-		}
-	}
-	return q
-}
-
-func censusGeographySelect(param *model.CensusGeographyParam, entityIds []int) sq.SelectBuilder {
-	// Get search radius
-	radius := 0.0
-	if param.Where != nil {
-		radius = checkFloat(param.Where.Radius, 0, 2000.0)
-	}
-
-	// Include matched entity column
-	cols := []string{
-		"tlcg.id",
-		"tlcg.geometry",
-		"tlcg.layer_name",
-		"tlcg.geoid",
-		"tlcg.name",
-		"tlcg.aland",
-		"tlcg.awater",
-		"tlcs.source_name",
-		"tlcs.id as source_id",
-		"tlcd.dataset_name",
-		"tlcd.id as dataset_id",
-	}
-
-	// A normal query..
-	q := sq.StatementBuilder.
-		Select(cols...).
-		From("tl_census_geographies tlcg").
-		Join("tl_census_sources tlcs on tlcs.id = tlcg.source_id").
-		Join("tl_census_datasets tlcd on tlcd.id = tlcs.dataset_id").
-		Limit(checkLimit(param.Limit))
-
-	if len(entityIds) > 0 {
-		// Handle aggregation by entity type
-		q = q.Join("gtfs_stops ON ST_DWithin(tlcg.geometry, gtfs_stops.geometry, ?)", radius)
-		if param.EntityType == "route" {
-			q = q.Column("tl_route_stops.route_id as match_entity_id")
-			q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
-			q = q.Distinct().Options("on (tl_route_stops.route_id,tlcg.id)").Where(In("tl_route_stops.route_id", entityIds)).OrderBy("tl_route_stops.route_id,tlcg.id")
-		} else if param.EntityType == "agency" {
-			q = q.Column("tl_route_stops.agency_id as match_entity_id")
-			q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
-			q = q.Distinct().Options("on (tl_route_stops.stop_id,tlcg.id)").Where(In("tl_route_stops.agency_id", entityIds)).OrderBy("tl_route_stops.agency_id,tlcg.id")
-		} else if param.EntityType == "stop" {
-			q = q.Column("gtfs_stops.id as match_entity_id")
-			q = q.Where(In("gtfs_stops.id", entityIds)).OrderBy("gtfs_stops.id,tlcg.id")
-		}
-	}
-
-	// Check layer, dataset
-	if where := param.Where; where != nil {
-		if where.Layer != nil {
-			q = q.Where(sq.Eq{"tlcg.layer_name": where.Layer})
-		}
-		if where.Dataset != nil {
-			q = q.Where(sq.Eq{"tlcd.dataset_name": where.Dataset})
 		}
 		if where.Search != nil {
 			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
@@ -361,27 +298,27 @@ func censusGeographySelect2(limit *int, where *model.CensusGeographyFilter, enti
 	return q
 }
 
-func censusValueSelect(param *model.CensusValueParam, geoids []string) sq.SelectBuilder {
-	tnames := sliceToLower(strings.Split(param.TableNames, ","))
-	q := sq.StatementBuilder.
-		Select(
-			"tlcv.table_values as values",
-			"tlcv.geoid",
-			"tlcv.table_id",
-			"tlcs.source_name",
-			"tlcd.dataset_name",
-		).
-		From("tl_census_values tlcv").
-		Limit(checkLimit(param.Limit)).
-		Join("tl_census_tables tlct ON tlct.id = tlcv.table_id").
-		Join("tl_census_sources tlcs on tlcs.id = tlcv.source_id").
-		Join("tl_census_datasets tlcd on tlcd.id = tlct.dataset_id").
-		Where(sq.Eq{"tlcv.geoid": geoids}).
-		Where(sq.Eq{"tlct.table_name": tnames}).
-		OrderBy("tlcv.table_id")
-	if param.Dataset != nil {
-		q = q.Where(sq.Eq{"tlcd.dataset_name": param.Dataset})
-	}
+// func censusValueSelect(param *CensusValueParam, geoids []string) sq.SelectBuilder {
+// 	tnames := sliceToLower(strings.Split(param.TableNames, ","))
+// 	q := sq.StatementBuilder.
+// 		Select(
+// 			"tlcv.table_values as values",
+// 			"tlcv.geoid",
+// 			"tlcv.table_id",
+// 			"tlcs.source_name",
+// 			"tlcd.dataset_name",
+// 		).
+// 		From("tl_census_values tlcv").
+// 		Limit(checkLimit(param.Limit)).
+// 		Join("tl_census_tables tlct ON tlct.id = tlcv.table_id").
+// 		Join("tl_census_sources tlcs on tlcs.id = tlcv.source_id").
+// 		Join("tl_census_datasets tlcd on tlcd.id = tlct.dataset_id").
+// 		Where(sq.Eq{"tlcv.geoid": geoids}).
+// 		Where(sq.Eq{"tlct.table_name": tnames}).
+// 		OrderBy("tlcv.table_id")
+// 	if param.Dataset != nil {
+// 		q = q.Where(sq.Eq{"tlcd.dataset_name": param.Dataset})
+// 	}
 
-	return q
-}
+// 	return q
+// }

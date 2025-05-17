@@ -36,7 +36,7 @@ func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Ca
 }
 
 func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error) {
-	sts, err := LoaderFor(ctx).StopTimesByTripIDs.Load(ctx, model.TripStopTimeParam{
+	sts, err := LoaderFor(ctx).StopTimesByTripIDs.Load(ctx, TripStopTimeParam{
 		FeedVersionID: obj.FeedVersionID,
 		TripID:        obj.ID,
 		Limit:         checkLimit(limit),
@@ -51,7 +51,7 @@ func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *in
 }
 
 func (r *tripResolver) Frequencies(ctx context.Context, obj *model.Trip, limit *int) ([]*model.Frequency, error) {
-	return LoaderFor(ctx).FrequenciesByTripIDs.Load(ctx, model.FrequencyParam{TripID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).FrequenciesByTripIDs.Load(ctx, FrequencyParam{TripID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *tripResolver) ScheduleRelationship(ctx context.Context, obj *model.Trip) (*model.ScheduleRelationship, error) {
