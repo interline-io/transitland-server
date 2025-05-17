@@ -68,7 +68,7 @@ type Loaders struct {
 	RouteStopsByRouteIDs                                         *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	RouteStopsByStopIDs                                          *dataloader.Loader[model.RouteStopParam, []*model.RouteStop]
 	SegmentPatternsByRouteID                                     *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
-	SegmentPatternsBySegmentID                                   *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
+	SegmentPatternsBySegmentIDs                                  *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentsByFeedVersionIDs                                     *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	SegmentsByIDs                                                *dataloader.Loader[int, *model.Segment]
 	SegmentsByRouteIDs                                           *dataloader.Loader[model.SegmentParam, []*model.Segment]
@@ -581,8 +581,25 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		SegmentPatternsByRouteID:   withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
-		SegmentPatternsBySegmentID: withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsBySegmentID),
+		SegmentPatternsByRouteID: withWaitAndCapacity(waitTime, batchSize, dbf.SegmentPatternsByRouteID),
+		SegmentPatternsBySegmentIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.SegmentPatternParam) ([][]*model.SegmentPattern, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.SegmentPatternParam) (int, *model.SegmentPatternFilter, *int) {
+						return p.SegmentID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.SegmentPatternFilter, limit *int) (ents []*model.SegmentPattern, err error) {
+						return dbf.SegmentPatternsBySegmentIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.SegmentPattern) int {
+						return ent.SegmentID
+					},
+				)
+			},
+		),
 		SegmentsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
