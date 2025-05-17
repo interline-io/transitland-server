@@ -129,7 +129,7 @@ type EntityLoader interface {
 	TripsByFeedVersionIDs(context.Context, *int, *TripFilter, []int) ([]*Trip, error)
 	TripsByRouteIDs(context.Context, *int, *TripFilter, []FVPair) ([]*Trip, error)
 
-	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
+	OperatorsByFeedIDs(context.Context, *int, *OperatorFilter, []int) ([]*Operator, error)
 
 	// Validation reports
 	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)

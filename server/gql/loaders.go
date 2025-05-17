@@ -54,7 +54,7 @@ type Loaders struct {
 	LevelsByParentStationIDs                                     *dataloader.Loader[model.LevelParam, []*model.Level]
 	OperatorsByAgencyIDs                                         *dataloader.Loader[int, *model.Operator]
 	OperatorsByCOIFs                                             *dataloader.Loader[int, *model.Operator]
-	OperatorsByFeedID                                            *dataloader.Loader[model.OperatorParam, []*model.Operator]
+	OperatorsByFeedIDs                                           *dataloader.Loader[model.OperatorParam, []*model.Operator]
 	PathwaysByFromStopIDs                                        *dataloader.Loader[model.PathwayParam, []*model.Pathway]
 	PathwaysByIDs                                                *dataloader.Loader[int, *model.Pathway]
 	PathwaysByToStopID                                           *dataloader.Loader[model.PathwayParam, []*model.Pathway]
@@ -407,8 +407,25 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			}),
 		OperatorsByAgencyIDs: withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
 		OperatorsByCOIFs:     withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
-		OperatorsByFeedID:    withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByFeedID),
-		PathwaysByIDs:        withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
+		OperatorsByFeedIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.OperatorParam) ([][]*model.Operator, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.OperatorParam) (int, *model.OperatorFilter, *int) {
+						return p.FeedID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.OperatorFilter, limit *int) (ents []*model.Operator, err error) {
+						return dbf.OperatorsByFeedIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Operator) int {
+						return ent.FeedID
+					},
+				)
+			},
+		),
+		PathwaysByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
 		PathwaysByFromStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,

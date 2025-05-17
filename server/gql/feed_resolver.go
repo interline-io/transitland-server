@@ -36,7 +36,7 @@ func (r *feedResolver) Urls(ctx context.Context, obj *model.Feed) (*model.FeedUr
 }
 
 func (r *feedResolver) AssociatedOperators(ctx context.Context, obj *model.Feed) ([]*model.Operator, error) {
-	return LoaderFor(ctx).OperatorsByFeedID.Load(ctx, model.OperatorParam{FeedID: obj.ID})()
+	return LoaderFor(ctx).OperatorsByFeedIDs.Load(ctx, model.OperatorParam{FeedID: obj.ID})()
 }
 
 func (r *feedResolver) Authorization(ctx context.Context, obj *model.Feed) (*model.FeedAuthorization, error) {

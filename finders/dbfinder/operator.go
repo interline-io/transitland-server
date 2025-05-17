@@ -45,31 +45,20 @@ func (f *Finder) OperatorsByAgencyIDs(ctx context.Context, ids []int) ([]*model.
 
 // Param loaders
 
-func (f *Finder) OperatorsByFeedID(ctx context.Context, params []model.OperatorParam) ([][]*model.Operator, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.OperatorParam) (int, *model.OperatorFilter, *int) {
-			return p.FeedID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.OperatorFilter, limit *int) (ents []*model.Operator, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					operatorSelectBase(true, nil),
-					"current_feeds",
-					"id",
-					"coif",
-					"feed_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Operator) int {
-			return ent.FeedID
-		},
+func (f *Finder) OperatorsByFeedIDs(ctx context.Context, limit *int, where *model.OperatorFilter, keys []int) (ents []*model.Operator, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			operatorSelectBase(true, nil),
+			"current_feeds",
+			"id",
+			"coif",
+			"feed_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func operatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBuilder {
