@@ -89,7 +89,7 @@ type Loaders struct {
 	TripsByRouteIDs                                               *dataloader.Loader[model.TripParam, []*model.Trip]
 	ValidationReportErrorExemplarsByValidationReportErrorGroupIDs *dataloader.Loader[model.ValidationReportErrorExemplarParam, []*model.ValidationReportError]
 	ValidationReportErrorGroupsByValidationReportIDs              *dataloader.Loader[model.ValidationReportErrorGroupParam, []*model.ValidationReportErrorGroup]
-	ValidationReportsByFeedVersionID                              *dataloader.Loader[model.ValidationReportParam, []*model.ValidationReport]
+	ValidationReportsByFeedVersionIDs                             *dataloader.Loader[model.ValidationReportParam, []*model.ValidationReport]
 }
 
 // NewLoaders instantiates data loaders for the middleware
@@ -815,7 +815,23 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				)
 			},
 		),
-		ValidationReportsByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportsByFeedVersionID),
+		ValidationReportsByFeedVersionIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.ValidationReportParam) ([][]*model.ValidationReport, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.ValidationReportParam) (int, *model.ValidationReportFilter, *int) {
+						return p.FeedVersionID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.ValidationReportFilter, limit *int) ([]*model.ValidationReport, error) {
+						return dbf.ValidationReportsByFeedVersionIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.ValidationReport) int { return ent.FeedVersionID },
+				)
+
+			},
+		),
 	}
 	return loaders
 }

@@ -64,7 +64,7 @@ func (r *feedVersionResolver) FeedInfos(ctx context.Context, obj *model.FeedVers
 // FEED VALIDATION REPORT
 
 func (r *feedVersionResolver) ValidationReports(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.ValidationReportFilter) ([]*model.ValidationReport, error) {
-	return LoaderFor(ctx).ValidationReportsByFeedVersionID.Load(ctx, model.ValidationReportParam{FeedVersionID: obj.ID, Where: where, Limit: limit})()
+	return LoaderFor(ctx).ValidationReportsByFeedVersionIDs.Load(ctx, model.ValidationReportParam{FeedVersionID: obj.ID, Where: where, Limit: limit})()
 }
 
 // SEGMENTS

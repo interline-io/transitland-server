@@ -132,7 +132,7 @@ type EntityLoader interface {
 	OperatorsByFeedIDs(context.Context, *int, *OperatorFilter, []int) ([]*Operator, error)
 
 	// Validation reports
-	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
+	ValidationReportsByFeedVersionIDs(context.Context, *int, *ValidationReportFilter, []int) ([]*ValidationReport, error)
 	ValidationReportErrorGroupsByValidationReportIDs(context.Context, *int, []int) ([]*ValidationReportErrorGroup, error)
 	ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(context.Context, *int, []int) ([]*ValidationReportError, error)
 
