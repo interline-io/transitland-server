@@ -137,7 +137,7 @@ type EntityLoader interface {
 	ValidationReportErrorExemplarsByValidationReportErrorGroupID(context.Context, []ValidationReportErrorExemplarParam) ([][]*ValidationReportError, []error)
 
 	// Segments
-	SegmentPatternsByRouteID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
+	SegmentPatternsByRouteIDs(context.Context, *int, *SegmentPatternFilter, []int) ([]*SegmentPattern, error)
 	SegmentPatternsBySegmentIDs(context.Context, *int, *SegmentPatternFilter, []int) ([]*SegmentPattern, error)
 	SegmentsByIDs(context.Context, []int) ([]*Segment, []error)
 	SegmentsByRouteIDs(context.Context, *int, *SegmentFilter, []int) ([]*Segment, error)

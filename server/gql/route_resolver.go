@@ -85,7 +85,7 @@ func (r *routeResolver) RouteAttribute(ctx context.Context, obj *model.Route) (*
 }
 
 func (r *routeResolver) SegmentPatterns(ctx context.Context, obj *model.Route, limit *int, where *model.SegmentPatternFilter) ([]*model.SegmentPattern, error) {
-	return LoaderFor(ctx).SegmentPatternsByRouteID.Load(ctx, model.SegmentPatternParam{RouteID: obj.ID, Where: where, Limit: limit})()
+	return LoaderFor(ctx).SegmentPatternsByRouteIDs.Load(ctx, model.SegmentPatternParam{RouteID: obj.ID, Where: where, Limit: limit})()
 }
 
 func (r *routeResolver) Segments(ctx context.Context, obj *model.Route, limit *int, where *model.SegmentFilter) ([]*model.Segment, error) {
