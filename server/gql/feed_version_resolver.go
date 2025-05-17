@@ -29,7 +29,7 @@ func (r *feedVersionResolver) Stops(ctx context.Context, obj *model.FeedVersion,
 }
 
 func (r *feedVersionResolver) Trips(ctx context.Context, obj *model.FeedVersion, limit *int, where *model.TripFilter) ([]*model.Trip, error) {
-	return LoaderFor(ctx).TripsByFeedVersionID.Load(ctx, model.TripParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
+	return LoaderFor(ctx).TripsByFeedVersionIDs.Load(ctx, model.TripParam{FeedVersionID: obj.ID, Limit: checkLimit(limit), Where: where})()
 }
 
 func (r *feedVersionResolver) Feed(ctx context.Context, obj *model.FeedVersion) (*model.Feed, error) {

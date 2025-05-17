@@ -83,41 +83,24 @@ func (f *Finder) TripsByRouteID(ctx context.Context, params []model.TripParam) (
 	)
 }
 
-func (f *Finder) TripsByFeedVersionID(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
-	// We need to split by feed version id to extract service window
-	// Fields must be public
-	type fvParamGroup struct {
-		FeedVersionID int
-		Where         *model.TripFilter
+func (f *Finder) TripsByFeedVersionID(ctx context.Context, limit *int, where *model.TripFilter, fvid int) (ents []*model.Trip, err error) {
+	fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvid)
+	if err != nil {
+		return nil, err
 	}
-	return paramGroupQuery(
-		params,
-		func(p model.TripParam) (int, fvParamGroup, *int) {
-			return p.FeedVersionID, fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}, p.Limit
-		},
-		func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
-			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
-			if err != nil {
-				return nil, err
-			}
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					tripSelect(limit, nil, nil, false, f.PermFilter(ctx), fvwhere.Where, fvsw),
-					"feed_versions",
-					"id",
-					"gtfs_trips",
-					"feed_version_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Trip) int {
-			return ent.FeedVersionID
-		},
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			tripSelect(limit, nil, nil, false, f.PermFilter(ctx), where, fvsw),
+			"feed_versions",
+			"id",
+			"gtfs_trips",
+			"feed_version_id",
+			[]int{fvid},
+		),
+		&ents,
 	)
+	return ents, err
 }
 
 func tripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.TripFilter, fvsw *model.ServiceWindow) sq.SelectBuilder {
