@@ -665,19 +665,13 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			waitTime,
 			batchSize,
 			func(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
-				// TODO: FIXME
-				// This is not really a dataloader because we actually split on queries on fvid...
-				type fvParamGroup struct {
-					FeedVersionID int
-					Where         *model.TripFilter
-				}
 				return paramGroupQuery(
 					params,
-					func(p model.TripParam) (int, fvParamGroup, *int) {
-						return p.FeedVersionID, fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}, p.Limit
+					func(p model.TripParam) (int, *model.TripFilter, *int) {
+						return p.FeedVersionID, p.Where, p.Limit
 					},
-					func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
-						return dbf.TripsByFeedVersionID(ctx, limit, fvwhere.Where, fvwhere.FeedVersionID)
+					func(keys []int, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
+						return dbf.TripsByFeedVersionIDs(ctx, limit, where, keys)
 					},
 					func(ent *model.Trip) int {
 						return ent.FeedVersionID

@@ -66,23 +66,27 @@ func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.T
 	return ents, err
 }
 
-func (f *Finder) TripsByFeedVersionID(ctx context.Context, limit *int, where *model.TripFilter, fvid int) (ents []*model.Trip, err error) {
-	fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvid)
-	if err != nil {
-		return nil, err
+func (f *Finder) TripsByFeedVersionIDs(ctx context.Context, limit *int, where *model.TripFilter, keys []int) (ents []*model.Trip, err error) {
+	for _, fvid := range keys {
+		fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvid)
+		if err != nil {
+			return nil, err
+		}
+		var q []*model.Trip
+		err = dbutil.Select(ctx,
+			f.db,
+			lateralWrap(
+				tripSelect(limit, nil, nil, false, f.PermFilter(ctx), where, fvsw),
+				"feed_versions",
+				"id",
+				"gtfs_trips",
+				"feed_version_id",
+				[]int{fvid},
+			),
+			&q,
+		)
+		ents = append(ents, q...)
 	}
-	err = dbutil.Select(ctx,
-		f.db,
-		lateralWrap(
-			tripSelect(limit, nil, nil, false, f.PermFilter(ctx), where, fvsw),
-			"feed_versions",
-			"id",
-			"gtfs_trips",
-			"feed_version_id",
-			[]int{fvid},
-		),
-		&ents,
-	)
 	return ents, err
 }
 
