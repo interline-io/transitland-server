@@ -20,8 +20,9 @@ func (f *Finder) CalendarsByIDs(ctx context.Context, ids []int) ([]*model.Calend
 	return arrangeBy(ids, ents, func(ent *model.Calendar) int { return ent.ID }), nil
 }
 
-func (f *Finder) CalendarDatesByServiceIDs(ctx context.Context, limit *int, where *model.CalendarDateFilter, keys []int) (ents []*model.CalendarDate, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) CalendarDatesByServiceIDs(ctx context.Context, limit *int, where *model.CalendarDateFilter, keys []int) ([][]*model.CalendarDate, error) {
+	var ents []*model.CalendarDate
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelectOrder("gtfs_calendar_dates", limit, nil, nil, "date").Where(In("service_id", keys)),
@@ -33,5 +34,5 @@ func (f *Finder) CalendarDatesByServiceIDs(ctx context.Context, limit *int, wher
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.CalendarDate) int { return ent.ServiceID.Int() }), err
 }

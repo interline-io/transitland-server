@@ -134,77 +134,55 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				dbf.AgencyPlacesByAgencyIDs,
 			),
 		),
-		CalendarDatesByServiceIDs: withWaitAndCapacity(waitTime, batchSize,
-			func(ctx context.Context, params []calendarDateLoaderParam) ([][]*model.CalendarDate, []error) {
-				return paramGroupQuery(
-					params,
-					func(p calendarDateLoaderParam) (int, *model.CalendarDateFilter, *int) {
-						return p.ServiceID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.CalendarDateFilter, limit *int) (ents []*model.CalendarDate, err error) {
-						return dbf.CalendarDatesByServiceIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.CalendarDate) int {
-						return ent.ServiceID.Int()
-					},
-				)
-			}),
+		CalendarDatesByServiceIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			paramGroupQuery2(
+				func(p calendarDateLoaderParam) (int, *model.CalendarDateFilter, *int) {
+					return p.ServiceID, p.Where, p.Limit
+				},
+				dbf.CalendarDatesByServiceIDs,
+			),
+		),
 		CalendarsByIDs:                  withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByIDs),
 		CensusDatasetLayersByDatasetIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetIDs),
 		CensusSourceLayersBySourceIDs:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceIDs),
 		CensusFieldsByTableIDs: withWaitAndCapacity(waitTime, batchSize,
-			func(ctx context.Context, params []censusFieldLoaderParam) ([][]*model.CensusField, []error) {
-				return paramGroupQuery(
-					params,
-					func(p censusFieldLoaderParam) (int, *censusFieldLoaderParam, *int) {
-						return p.TableID, nil, p.Limit
-					},
-					func(keys []int, where *censusFieldLoaderParam, limit *int) (ents []*model.CensusField, err error) {
-						return dbf.CensusFieldsByTableIDs(ctx, limit, keys)
-					},
-					func(ent *model.CensusField) int {
-						return ent.TableID
-					},
-				)
-			}),
+			paramGroupQuery2(
+				func(p censusFieldLoaderParam) (int, bool, *int) {
+					return p.TableID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, where bool, keys []int) ([][]*model.CensusField, error) {
+					return dbf.CensusFieldsByTableIDs(ctx, limit, keys)
+				},
+			),
+		),
 		CensusGeographiesByDatasetIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []censusDatasetGeographyLoaderParam) ([][]*model.CensusGeography, []error) {
-				return paramGroupQuery(
-					params,
-					func(p censusDatasetGeographyLoaderParam) (int, *model.CensusDatasetGeographyFilter, *int) {
-						return p.DatasetID, p.Where, p.Limit
-					},
-					func(keys []int, p *model.CensusDatasetGeographyFilter, limit *int) (ents []*model.CensusGeography, err error) {
-						return dbf.CensusGeographiesByDatasetIDs(ctx, limit, p, keys)
-					},
-					func(ent *model.CensusGeography) int {
-						return ent.DatasetID
-					},
-				)
-			}),
+			paramGroupQuery2(
+				func(p censusDatasetGeographyLoaderParam) (int, *model.CensusDatasetGeographyFilter, *int) {
+					return p.DatasetID, p.Where, p.Limit
+				},
+				dbf.CensusGeographiesByDatasetIDs,
+			),
+		),
 		CensusGeographiesByEntityIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []censusGeographyLoaderParam) ([][]*model.CensusGeography, []error) {
-				return paramGroupQuery(
-					params,
-					func(p censusGeographyLoaderParam) (int, *censusGeographyLoaderParam, *int) {
-						rp := censusGeographyLoaderParam{
-							EntityType: p.EntityType,
-							Where:      p.Where,
-						}
-						return p.EntityID, &rp, p.Limit
-					},
-					func(keys []int, param *censusGeographyLoaderParam, limit *int) (ents []*model.CensusGeography, err error) {
-						return dbf.CensusGeographiesByEntityIDs(ctx, limit, param.Where, param.EntityType, keys)
-					},
-					func(ent *model.CensusGeography) int {
-						return ent.MatchEntityID
-					},
-				)
-			}),
+			paramGroupQuery2(
+				func(p censusGeographyLoaderParam) (int, *censusGeographyLoaderParam, *int) {
+					rp := censusGeographyLoaderParam{
+						EntityType: p.EntityType,
+						Where:      p.Where,
+					}
+					return p.EntityID, &rp, p.Limit
+				},
+				func(ctx context.Context, limit *int, param *censusGeographyLoaderParam, keys []int) (ents [][]*model.CensusGeography, err error) {
+					return dbf.CensusGeographiesByEntityIDs(ctx, limit, param.Where, param.EntityType, keys)
+				},
+			),
+		),
 		CensusSourcesByDatasetIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -221,7 +199,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.DatasetID
 					},
 				)
-			}),
+			},
+		),
 		CensusTableByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByIDs),
 		CensusValuesByGeographyIDs: withWaitAndCapacity(
 			waitTime,
@@ -240,7 +219,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.Geoid
 					},
 				)
-			}),
+			},
+		),
 		FeedFetchesByFeedIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -257,7 +237,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FeedID
 					},
 				)
-			}),
+			},
+		),
 		FeedInfosByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -274,7 +255,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FeedVersionID
 					},
 				)
-			}),
+			},
+		),
 		FeedsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByIDs),
 		FeedsByOperatorOnestopIDs: withWaitAndCapacity(
 			waitTime,
@@ -292,7 +274,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.WithOperatorOnestopID.String()
 					},
 				)
-			}),
+			},
+		),
 		FeedStatesByFeedIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedStatesByFeedIDs),
 		FeedVersionFileInfosByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
@@ -310,7 +293,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FeedVersionID
 					},
 				)
-			}),
+			},
+		),
 		FeedVersionGeometryByIDs:              withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGeometryByIDs),
 		FeedVersionGtfsImportByFeedVersionIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGtfsImportByFeedVersionIDs),
 		FeedVersionsByFeedIDs: withWaitAndCapacity(
@@ -329,7 +313,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FeedID
 					},
 				)
-			}),
+			},
+		),
 		FeedVersionsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByIDs),
 		FeedVersionServiceLevelsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
@@ -347,7 +332,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FeedVersionID
 					},
 				)
-			}),
+			},
+		),
+
 		FeedVersionServiceWindowByFeedVersionIDs: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionIDs),
 		FrequenciesByTripIDs: withWaitAndCapacity(
 			waitTime,
@@ -365,7 +352,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.TripID.Int()
 					},
 				)
-			}),
+			},
+		),
+
 		LevelsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
 		LevelsByParentStationIDs: withWaitAndCapacity(
 			waitTime,
@@ -383,7 +372,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.ParentStation.Int()
 					},
 				)
-			}),
+			},
+		),
+
 		OperatorsByAgencyIDs: withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
 		OperatorsByCOIFs:     withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
 		OperatorsByFeedIDs: withWaitAndCapacity(
@@ -421,7 +412,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FromStopID.Int()
 					},
 				)
-			}),
+			},
+		),
+
 		PathwaysByToStopID: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -438,7 +431,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FromStopID.Int()
 					},
 				)
-			}),
+			},
+		),
+
 		RouteAttributesByRouteIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
 		RouteGeometriesByRouteIDs: withWaitAndCapacity(
 			waitTime,
@@ -456,7 +451,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.RouteID
 					},
 				)
-			}),
+			},
+		),
+
 		RouteHeadwaysByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -473,7 +470,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.RouteID
 					},
 				)
-			}),
+			},
+		),
+
 		RoutesByAgencyIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -490,7 +489,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.AgencyID.Int()
 					},
 				)
-			}),
+			},
+		),
+
 		RoutesByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -507,7 +508,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FeedVersionID
 					},
 				)
-			}),
+			},
+		),
+
 		RoutesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
 		RouteStopPatternsByRouteIDs: withWaitAndCapacity(
 			waitTime,
@@ -525,7 +528,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.RouteID
 					},
 				)
-			}),
+			},
+		),
+
 		RouteStopsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -542,7 +547,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.RouteID
 					},
 				)
-			}),
+			},
+		),
+
 		RouteStopsByStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -559,7 +566,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.StopID
 					},
 				)
-			}),
+			},
+		),
+
 		SegmentPatternsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -651,7 +660,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.StopID
 					},
 				)
-			}),
+			},
+		),
+
 		StopPlacesByStopID: withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
 		StopsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
@@ -669,7 +680,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.FeedVersionID
 					},
 				)
-			}),
+			},
+		),
+
 		StopsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.StopsByIDs),
 		StopsByLevelIDs: withWaitAndCapacity(
 			waitTime,
@@ -687,7 +700,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.LevelID.Int()
 					},
 				)
-			}),
+			},
+		),
+
 		StopsByParentStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -704,7 +719,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.ParentStation.Int()
 					},
 				)
-			}),
+			},
+		),
+
 		StopsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
@@ -721,7 +738,9 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 						return ent.WithRouteID.Int()
 					},
 				)
-			}),
+			},
+		),
+
 		StopTimesByStopIDs: withWaitAndCapacity(
 			waitTime,
 			stopTimeBatchSize,
