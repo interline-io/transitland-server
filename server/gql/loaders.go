@@ -71,7 +71,7 @@ type Loaders struct {
 	SegmentPatternsBySegmentID                                   *dataloader.Loader[model.SegmentPatternParam, []*model.SegmentPattern]
 	SegmentsByFeedVersionIDs                                     *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	SegmentsByIDs                                                *dataloader.Loader[int, *model.Segment]
-	SegmentsByRouteID                                            *dataloader.Loader[model.SegmentParam, []*model.Segment]
+	SegmentsByRouteIDs                                           *dataloader.Loader[model.SegmentParam, []*model.Segment]
 	ShapesByIDs                                                  *dataloader.Loader[int, *model.Shape]
 	StopExternalReferencesByStopIDs                              *dataloader.Loader[int, *model.StopExternalReference]
 	StopObservationsByStopIDs                                    *dataloader.Loader[model.StopObservationParam, []*model.StopObservation]
@@ -601,8 +601,25 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				)
 			},
 		),
-		SegmentsByIDs:                   withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByIDs),
-		SegmentsByRouteID:               withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByRouteID),
+		SegmentsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByIDs),
+		SegmentsByRouteIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.SegmentParam) ([][]*model.Segment, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.SegmentParam) (int, *model.SegmentFilter, *int) {
+						return p.RouteID, p.Where, p.Limit
+					},
+					func(keys []int, where *model.SegmentFilter, limit *int) (ents []*model.Segment, err error) {
+						return dbf.SegmentsByRouteIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.Segment) int {
+						return ent.WithRouteID
+					},
+				)
+			},
+		),
 		ShapesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByIDs),
 		StopExternalReferencesByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopIDs),
 		StopObservationsByStopIDs: withWaitAndCapacity(

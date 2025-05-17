@@ -177,6 +177,8 @@ models:
       segment_patterns:
         resolver: true
     extraFields:
+      WithRouteID: 
+        type: int
       FeedVersionID:
         type: int
   SegmentPattern:

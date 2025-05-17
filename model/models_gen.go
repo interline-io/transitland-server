@@ -843,6 +843,7 @@ type Segment struct {
 	// Routes and stop patterns associated with this segment
 	SegmentPatterns []*SegmentPattern `json:"segment_patterns,omitempty"`
 	FeedVersionID   int               `json:"-"`
+	WithRouteID     int               `json:"-"`
 }
 
 // Search options for route segments

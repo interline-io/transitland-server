@@ -140,7 +140,7 @@ type EntityLoader interface {
 	SegmentPatternsByRouteID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
 	SegmentPatternsBySegmentID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
 	SegmentsByIDs(context.Context, []int) ([]*Segment, []error)
-	SegmentsByRouteID(context.Context, []SegmentParam) ([][]*Segment, []error)
+	SegmentsByRouteIDs(context.Context, *int, *SegmentFilter, []int) ([]*Segment, error)
 	SegmentsByFeedVersionIDs(context.Context, *int, *SegmentFilter, []int) ([]*Segment, error)
 }
 

@@ -37,36 +37,20 @@ func (f *Finder) SegmentsByIDs(ctx context.Context, ids []int) ([]*model.Segment
 	return arrangeBy(ids, ents, func(ent *model.Segment) int { return ent.ID }), nil
 }
 
-func (f *Finder) SegmentsByRouteID(ctx context.Context, params []model.SegmentParam) ([][]*model.Segment, []error) {
-	type qent struct {
-		RouteID int
-		model.Segment
-	}
-	qentGroups, err := paramGroupQuery(
-		params,
-		func(p model.SegmentParam) (int, *model.SegmentFilter, *int) {
-			return p.RouteID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.SegmentFilter, limit *int) (ents []*qent, err error) {
-			q := sq.Select("s.id", "s.way_id", "s.geometry", "s.route_id").
-				From("gtfs_routes").
-				JoinClause(
-					`join lateral (select distinct on (tl_segments.id, tl_segment_patterns.route_id) tl_segments.id, tl_segments.way_id, tl_segments.geometry, tl_segment_patterns.route_id from tl_segments join tl_segment_patterns on tl_segment_patterns.segment_id = tl_segments.id where tl_segment_patterns.route_id = gtfs_routes.id limit ?) s on true`,
-					checkLimit(limit),
-				).
-				Where(In("gtfs_routes.id", keys))
-			err = dbutil.Select(ctx,
-				f.db,
-				q,
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *qent) int {
-			return ent.RouteID
-		},
+func (f *Finder) SegmentsByRouteIDs(ctx context.Context, limit *int, where *model.SegmentFilter, keys []int) (ents []*model.Segment, err error) {
+	q := sq.Select("s.id", "s.way_id", "s.geometry", "s.route_id", "s.route_id with_route_id").
+		From("gtfs_routes").
+		JoinClause(
+			`join lateral (select distinct on (tl_segments.id, tl_segment_patterns.route_id) tl_segments.id, tl_segments.way_id, tl_segments.geometry, tl_segment_patterns.route_id from tl_segments join tl_segment_patterns on tl_segment_patterns.segment_id = tl_segments.id where tl_segment_patterns.route_id = gtfs_routes.id limit ?) s on true`,
+			checkLimit(limit),
+		).
+		Where(In("gtfs_routes.id", keys))
+	err = dbutil.Select(ctx,
+		f.db,
+		q,
+		&ents,
 	)
-	return convertEnts(qentGroups, func(a *qent) *model.Segment { return &a.Segment }), err
+	return ents, err
 }
 
 func (f *Finder) SegmentPatternsByRouteID(ctx context.Context, params []model.SegmentPatternParam) ([][]*model.SegmentPattern, []error) {
