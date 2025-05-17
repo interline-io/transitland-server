@@ -36,7 +36,7 @@ func (r *tripResolver) Calendar(ctx context.Context, obj *model.Trip) (*model.Ca
 }
 
 func (r *tripResolver) StopTimes(ctx context.Context, obj *model.Trip, limit *int, where *model.TripStopTimeFilter) ([]*model.StopTime, error) {
-	sts, err := LoaderFor(ctx).StopTimesByTripID.Load(ctx, model.TripStopTimeParam{
+	sts, err := LoaderFor(ctx).StopTimesByTripIDs.Load(ctx, model.TripStopTimeParam{
 		FeedVersionID: obj.FeedVersionID,
 		TripID:        obj.ID,
 		Limit:         checkLimit(limit),

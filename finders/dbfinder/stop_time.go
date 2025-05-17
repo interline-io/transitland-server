@@ -10,25 +10,13 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopTimeParam) ([][]*model.StopTime, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.TripStopTimeParam) (model.FVPair, *model.TripStopTimeFilter, *int) {
-			a := model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}
-			return a, p.Where, p.Limit
-		},
-		func(keys []model.FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				stopTimeSelect(keys, nil, where),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.StopTime) model.FVPair {
-			return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
-		},
+func (f *Finder) StopTimesByTripIDs(ctx context.Context, limit *int, where *model.TripStopTimeFilter, keys []model.FVPair) (ents []*model.StopTime, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		stopTimeSelect(keys, nil, where),
+		&ents,
 	)
+	return ents, err
 }
 
 func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {

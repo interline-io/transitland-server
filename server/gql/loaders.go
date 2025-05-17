@@ -82,7 +82,7 @@ type Loaders struct {
 	StopsByParentStopIDs                                          *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopsByRouteIDs                                               *dataloader.Loader[model.StopParam, []*model.Stop]
 	StopTimesByStopID                                             *dataloader.Loader[model.StopTimeParam, []*model.StopTime]
-	StopTimesByTripID                                             *dataloader.Loader[model.TripStopTimeParam, []*model.StopTime]
+	StopTimesByTripIDs                                            *dataloader.Loader[model.TripStopTimeParam, []*model.StopTime]
 	TargetStopsByStopIDs                                          *dataloader.Loader[int, *model.Stop]
 	TripsByFeedVersionIDs                                         *dataloader.Loader[model.TripParam, []*model.Trip]
 	TripsByIDs                                                    *dataloader.Loader[int, *model.Trip]
@@ -743,8 +743,25 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					},
 				)
 			}),
-		StopTimesByStopID:    withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
-		StopTimesByTripID:    withWaitAndCapacity(waitTime, batchSize, dbf.StopTimesByTripID),
+		StopTimesByStopID: withWaitAndCapacity(waitTime, stopTimeBatchSize, dbf.StopTimesByStopID),
+		StopTimesByTripIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.TripStopTimeParam) ([][]*model.StopTime, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.TripStopTimeParam) (model.FVPair, *model.TripStopTimeFilter, *int) {
+						return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}, p.Where, p.Limit
+					},
+					func(keys []model.FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
+						return dbf.StopTimesByTripIDs(ctx, limit, where, keys)
+					},
+					func(ent *model.StopTime) model.FVPair {
+						return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
+					},
+				)
+			},
+		),
 		TargetStopsByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopIDs),
 		TripsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
@@ -958,8 +975,10 @@ func paramGroupQuery[
 		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
 
 		// Group using keyFunc and merge into output
-		// limit := checkLimit(pgroup.Limit)
 		limit := uint64(1000)
+		if a := checkLimit(pgroup.Limit); a != nil {
+			limit = uint64(*a)
+		}
 		bykey := map[K][]*R{}
 		for _, ent := range ents {
 			key := keyFunc(ent)
