@@ -46,23 +46,30 @@ func (f *Finder) FrequenciesByTripIDs(ctx context.Context, limit *int, keys []in
 	return ents, err
 }
 
-func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.TripFilter, fvid int, keys []int) (ents []*model.Trip, err error) {
-	fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvid)
-	if err != nil {
-		return nil, err
+func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.TripFilter, keys []model.FVPair) (ents []*model.Trip, err error) {
+	// Group by fvid
+	groups := map[int][]int{}
+	for _, key := range keys {
+		groups[key.FeedVersionID] = append(groups[key.FeedVersionID], key.EntityID)
 	}
-	err = dbutil.Select(ctx,
-		f.db,
-		lateralWrap(
-			tripSelect(limit, nil, nil, false, f.PermFilter(ctx), where, fvsw),
-			"gtfs_routes",
-			"id",
-			"gtfs_trips",
-			"route_id",
-			keys,
-		),
-		&ents,
-	)
+	for fvid, entityIds := range groups {
+		fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvid)
+		if err != nil {
+			return nil, err
+		}
+		err = dbutil.Select(ctx,
+			f.db,
+			lateralWrap(
+				tripSelect(limit, nil, nil, false, f.PermFilter(ctx), where, fvsw),
+				"gtfs_routes",
+				"id",
+				"gtfs_trips",
+				"route_id",
+				entityIds,
+			),
+			&ents,
+		)
+	}
 	return ents, err
 }
 

@@ -12,6 +12,11 @@ import (
 	"github.com/interline-io/transitland-server/internal/gbfs"
 )
 
+type FVPair struct {
+	FeedVersionID int
+	EntityID      int
+}
+
 // Finder provides all necessary database methods
 type Finder interface {
 	PermFinder
@@ -122,7 +127,7 @@ type EntityLoader interface {
 	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 
 	TripsByFeedVersionIDs(context.Context, *int, *TripFilter, []int) ([]*Trip, error)
-	TripsByRouteIDs(context.Context, *int, *TripFilter, int, []int) ([]*Trip, error)
+	TripsByRouteIDs(context.Context, *int, *TripFilter, []FVPair) ([]*Trip, error)
 
 	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
 

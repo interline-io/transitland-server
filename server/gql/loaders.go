@@ -684,23 +684,16 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			waitTime,
 			batchSize,
 			func(ctx context.Context, params []model.TripParam) ([][]*model.Trip, []error) {
-				// TODO: FIXME
-				// This is not really a dataloader, see above...
-				// We need to split by feed version id to extract service window
-				type fvParamGroup struct {
-					FeedVersionID int
-					Where         *model.TripFilter
-				}
 				return paramGroupQuery(
 					params,
-					func(p model.TripParam) (int, fvParamGroup, *int) {
-						return p.RouteID, fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}, p.Limit
+					func(p model.TripParam) (model.FVPair, *model.TripFilter, *int) {
+						return model.FVPair{EntityID: p.RouteID, FeedVersionID: p.FeedVersionID}, p.Where, p.Limit
 					},
-					func(keys []int, fvwhere fvParamGroup, limit *int) (ents []*model.Trip, err error) {
-						return dbf.TripsByRouteIDs(ctx, limit, fvwhere.Where, fvwhere.FeedVersionID, keys)
+					func(keys []model.FVPair, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
+						return dbf.TripsByRouteIDs(ctx, limit, where, keys)
 					},
-					func(ent *model.Trip) int {
-						return ent.RouteID.Int()
+					func(ent *model.Trip) model.FVPair {
+						return model.FVPair{EntityID: ent.RouteID.Int(), FeedVersionID: ent.FeedVersionID}
 					},
 				)
 			},
