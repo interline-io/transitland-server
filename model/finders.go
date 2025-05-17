@@ -63,7 +63,7 @@ type EntityLoader interface {
 	FeedFetchesByFeedIDs(context.Context, *int, *FeedFetchFilter, []int) ([][]*FeedFetch, error)
 	FeedInfosByFeedVersionIDs(context.Context, *int, []int) ([][]*FeedInfo, error)
 	FeedsByIDs(context.Context, []int) ([]*Feed, []error)
-	FeedsByOperatorOnestopIDs(context.Context, *int, *FeedFilter, []string) ([]*Feed, error)
+	FeedsByOperatorOnestopIDs(context.Context, *int, *FeedFilter, []string) ([][]*Feed, error)
 	FeedStatesByFeedIDs(context.Context, []int) ([]*FeedState, []error)
 	FeedVersionFileInfosByFeedVersionIDs(context.Context, *int, []int) ([]*FeedVersionFileInfo, error)
 	FeedVersionGeometryByIDs(context.Context, []int) ([]*tt.Polygon, []error)

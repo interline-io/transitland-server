@@ -59,18 +59,19 @@ func (f *Finder) FeedFetchesByFeedIDs(ctx context.Context, limit *int, where *mo
 	return arrangeGroup(keys, ents, func(ent *model.FeedFetch) int { return ent.FeedID }), err
 }
 
-func (f *Finder) FeedsByOperatorOnestopIDs(ctx context.Context, limit *int, where *model.FeedFilter, keys []string) (ents []*model.Feed, err error) {
+func (f *Finder) FeedsByOperatorOnestopIDs(ctx context.Context, limit *int, where *model.FeedFilter, keys []string) ([][]*model.Feed, error) {
 	q := feedSelect(nil, nil, nil, f.PermFilter(ctx), where).
 		Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
 		Column("coif.resolved_onestop_id as with_operator_onestop_id").
 		Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
 		Where(In("coif.resolved_onestop_id", keys))
-	err = dbutil.Select(ctx,
+	var ents []*model.Feed
+	err := dbutil.Select(ctx,
 		f.db,
 		q,
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Feed) string { return ent.WithOperatorOnestopID.Val }), err
 }
 
 func feedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) sq.SelectBuilder {

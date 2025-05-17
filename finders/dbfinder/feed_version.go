@@ -144,8 +144,9 @@ func (f *Finder) FindFeedVersionServiceWindow(ctx context.Context, fvid int) (*m
 	return ret, err
 }
 
-func (f *Finder) FeedInfosByFeedVersionIDs(ctx context.Context, limit *int, keys []int) (ents []*model.FeedInfo, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) FeedInfosByFeedVersionIDs(ctx context.Context, limit *int, keys []int) ([][]*model.FeedInfo, error) {
+	var ents []*model.FeedInfo
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelectOrder("gtfs_feed_infos", limit, nil, nil, "feed_version_id"),
@@ -157,7 +158,7 @@ func (f *Finder) FeedInfosByFeedVersionIDs(ctx context.Context, limit *int, keys
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.FeedInfo) int { return ent.FeedVersionID }), err
 }
 
 func feedVersionSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedVersionFilter) sq.SelectBuilder {

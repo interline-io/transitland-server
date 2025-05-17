@@ -221,39 +221,25 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedInfosByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []feedInfoLoaderParam) ([][]*model.FeedInfo, []error) {
-				return paramGroupQuery(
-					params,
-					func(p feedInfoLoaderParam) (int, bool, *int) {
-						return p.FeedVersionID, false, p.Limit
-					},
-					func(keys []int, where bool, limit *int) (ents []*model.FeedInfo, err error) {
-						return dbf.FeedInfosByFeedVersionIDs(ctx, limit, keys)
-					},
-					func(ent *model.FeedInfo) int {
-						return ent.FeedVersionID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p feedInfoLoaderParam) (int, bool, *int) {
+					return p.FeedVersionID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, where bool, keys []int) (ents [][]*model.FeedInfo, err error) {
+					return dbf.FeedInfosByFeedVersionIDs(ctx, limit, keys)
+				},
+			),
 		),
 		FeedsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByIDs),
 		FeedsByOperatorOnestopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []feedLoaderParam) ([][]*model.Feed, []error) {
-				return paramGroupQuery(
-					params,
-					func(p feedLoaderParam) (string, *model.FeedFilter, *int) {
-						return p.OperatorOnestopID, p.Where, p.Limit
-					},
-					func(keys []string, where *model.FeedFilter, limit *int) (ents []*model.Feed, err error) {
-						return dbf.FeedsByOperatorOnestopIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Feed) string {
-						return ent.WithOperatorOnestopID.String()
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p feedLoaderParam) (string, *model.FeedFilter, *int) {
+					return p.OperatorOnestopID, p.Where, p.Limit
+				},
+				dbf.FeedsByOperatorOnestopIDs,
+			),
 		),
 		FeedStatesByFeedIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedStatesByFeedIDs),
 		FeedVersionFileInfosByFeedVersionIDs: withWaitAndCapacity(
