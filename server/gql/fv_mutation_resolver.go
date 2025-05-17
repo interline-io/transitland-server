@@ -48,7 +48,7 @@ func (r *mutationResolver) FeedVersionUpdate(ctx context.Context, values model.F
 	if err != nil {
 		return nil, err
 	}
-	ents, errs := cfg.Finder.FeedVersionsByID(ctx, []int{entId})
+	ents, errs := cfg.Finder.FeedVersionsByIDs(ctx, []int{entId})
 	return first(errs, ents)
 }
 

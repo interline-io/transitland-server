@@ -14,7 +14,7 @@ func (r *placeResolver) Operators(ctx context.Context, obj *model.Place) ([]*mod
 	var thunks []dataloader.Thunk[*model.Operator]
 	for _, oid := range obj.AgencyIDs.Val {
 		// fmt.Println("creating thunk for operator:", oid)
-		t := LoaderFor(ctx).OperatorsByAgencyID.Load(ctx, int(oid))
+		t := LoaderFor(ctx).OperatorsByAgencyIDs.Load(ctx, int(oid))
 		thunks = append(thunks, t)
 	}
 	for i := 0; i < len(obj.AgencyIDs.Val); i++ {

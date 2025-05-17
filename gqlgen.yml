@@ -117,11 +117,15 @@ models:
   Timezone:
     model:
       - "github.com/interline-io/transitland-lib/tt.Timezone"
-  Feed:
+  Feed:       
     fields:
       onestop_id:
         fieldName: FeedID
   # Force resolvers
+  StopObservation:
+    extraFields:
+      StopID:
+        type: int
   RouteStop:
     fields:
       route:
@@ -173,6 +177,8 @@ models:
       segment_patterns:
         resolver: true
     extraFields:
+      WithRouteID: 
+        type: int
       FeedVersionID:
         type: int
   SegmentPattern:

@@ -18,7 +18,7 @@ func (f *Finder) FindFeeds(ctx context.Context, limit *int, after *model.Cursor,
 	return ents, nil
 }
 
-func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []error) {
+func (f *Finder) FeedsByIDs(ctx context.Context, ids []int) ([]*model.Feed, []error) {
 	ents, err := f.FindFeeds(ctx, nil, nil, ids, nil)
 	if err != nil {
 		return nil, logExtendErr(ctx, len(ids), err)
@@ -26,7 +26,7 @@ func (f *Finder) FeedsByID(ctx context.Context, ids []int) ([]*model.Feed, []err
 	return arrangeBy(ids, ents, func(ent *model.Feed) int { return ent.ID }), nil
 }
 
-func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
+func (f *Finder) FeedStatesByFeedIDs(ctx context.Context, ids []int) ([]*model.FeedState, []error) {
 	var ents []*model.FeedState
 	err := dbutil.Select(ctx,
 		f.db,
@@ -39,64 +39,39 @@ func (f *Finder) FeedStatesByFeedID(ctx context.Context, ids []int) ([]*model.Fe
 	return arrangeBy(ids, ents, func(ent *model.FeedState) int { return ent.FeedID }), nil
 }
 
-func (f *Finder) FeedFetchesByFeedID(ctx context.Context, params []model.FeedFetchParam) ([][]*model.FeedFetch, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.FeedFetchParam) (int, *model.FeedFetchFilter, *int) {
-			return p.FeedID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.FeedFetchFilter, limit *int) (ents []*model.FeedFetch, err error) {
-			q := sq.StatementBuilder.
-				Select("*").
-				From("feed_fetches").
-				Limit(checkLimit(limit)).
-				OrderBy("feed_fetches.fetched_at desc")
-			if where != nil {
-				if where.Success != nil {
-					q = q.Where(sq.Eq{"success": *where.Success})
-				}
-			}
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(q, "current_feeds", "id", "feed_fetches", "feed_id", keys),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.FeedFetch) int {
-			return ent.FeedID
-		},
+func (f *Finder) FeedFetchesByFeedIDs(ctx context.Context, limit *int, where *model.FeedFetchFilter, keys []int) ([][]*model.FeedFetch, error) {
+	q := sq.StatementBuilder.
+		Select("*").
+		From("feed_fetches").
+		Limit(checkLimit(limit)).
+		OrderBy("feed_fetches.fetched_at desc")
+	if where != nil {
+		if where.Success != nil {
+			q = q.Where(sq.Eq{"success": *where.Success})
+		}
+	}
+	var ents []*model.FeedFetch
+	err := dbutil.Select(ctx,
+		f.db,
+		lateralWrap(q, "current_feeds", "id", "feed_fetches", "feed_id", keys),
+		&ents,
 	)
+	return arrangeGroup(keys, ents, func(ent *model.FeedFetch) int { return ent.FeedID }), err
 }
 
-func (f *Finder) FeedsByOperatorOnestopID(ctx context.Context, params []model.FeedParam) ([][]*model.Feed, []error) {
-	type qent struct {
-		OperatorOnestopID string
-		model.Feed
-	}
-	qentGroups, err := paramGroupQuery(
-		params,
-		func(p model.FeedParam) (string, *model.FeedFilter, *int) {
-			return p.OperatorOnestopID, p.Where, p.Limit
-		},
-		func(keys []string, where *model.FeedFilter, limit *int) (ents []*qent, err error) {
-			q := feedSelect(nil, nil, nil, f.PermFilter(ctx), where).
-				Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
-				Column("coif.resolved_onestop_id as operator_onestop_id").
-				Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
-				Where(In("coif.resolved_onestop_id", keys))
-			err = dbutil.Select(ctx,
-				f.db,
-				q,
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *qent) string {
-			return ent.OperatorOnestopID
-		},
+func (f *Finder) FeedsByOperatorOnestopIDs(ctx context.Context, limit *int, where *model.FeedFilter, keys []string) ([][]*model.Feed, error) {
+	q := feedSelect(nil, nil, nil, f.PermFilter(ctx), where).
+		Distinct().Options("on (coif.resolved_onestop_id, current_feeds.id)").
+		Column("coif.resolved_onestop_id as with_operator_onestop_id").
+		Join("current_operators_in_feed coif on coif.feed_id = current_feeds.id").
+		Where(In("coif.resolved_onestop_id", keys))
+	var ents []*model.Feed
+	err := dbutil.Select(ctx,
+		f.db,
+		q,
+		&ents,
 	)
-	return convertEnts(qentGroups, func(a *qent) *model.Feed { return &a.Feed }), err
+	return arrangeGroup(keys, ents, func(ent *model.Feed) string { return ent.WithOperatorOnestopID.Val }), err
 }
 
 func feedSelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.FeedFilter) sq.SelectBuilder {

@@ -448,7 +448,7 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 	return testcases
 }
 
-func stopResolverLocationTestcases(t *testing.T, cfg model.Config) []testcase {
+func stopResolverLocationTestcases(_ *testing.T, _ model.Config) []testcase {
 	vars := hw{"stop_id": "MCAR"}
 
 	featureBig := decodeGeojson(`{
