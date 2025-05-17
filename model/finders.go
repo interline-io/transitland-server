@@ -133,7 +133,7 @@ type EntityLoader interface {
 
 	// Validation reports
 	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
-	ValidationReportErrorGroupsByValidationReportID(context.Context, []ValidationReportErrorGroupParam) ([][]*ValidationReportErrorGroup, []error)
+	ValidationReportErrorGroupsByValidationReportIDs(context.Context, *int, []int) ([]*ValidationReportErrorGroup, error)
 	ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(context.Context, *int, []int) ([]*ValidationReportError, error)
 
 	// Segments

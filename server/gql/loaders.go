@@ -88,7 +88,7 @@ type Loaders struct {
 	TripsByIDs                                                    *dataloader.Loader[int, *model.Trip]
 	TripsByRouteIDs                                               *dataloader.Loader[model.TripParam, []*model.Trip]
 	ValidationReportErrorExemplarsByValidationReportErrorGroupIDs *dataloader.Loader[model.ValidationReportErrorExemplarParam, []*model.ValidationReportError]
-	ValidationReportErrorGroupsByValidationReportID               *dataloader.Loader[model.ValidationReportErrorGroupParam, []*model.ValidationReportErrorGroup]
+	ValidationReportErrorGroupsByValidationReportIDs              *dataloader.Loader[model.ValidationReportErrorGroupParam, []*model.ValidationReportErrorGroup]
 	ValidationReportsByFeedVersionID                              *dataloader.Loader[model.ValidationReportParam, []*model.ValidationReport]
 }
 
@@ -799,8 +799,23 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				)
 			},
 		),
-		ValidationReportErrorGroupsByValidationReportID: withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportErrorGroupsByValidationReportID),
-		ValidationReportsByFeedVersionID:                withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportsByFeedVersionID),
+		ValidationReportErrorGroupsByValidationReportIDs: withWaitAndCapacity(
+			waitTime,
+			batchSize,
+			func(ctx context.Context, params []model.ValidationReportErrorGroupParam) ([][]*model.ValidationReportErrorGroup, []error) {
+				return paramGroupQuery(
+					params,
+					func(p model.ValidationReportErrorGroupParam) (int, bool, *int) {
+						return p.ValidationReportID, false, p.Limit
+					},
+					func(keys []int, where bool, limit *int) ([]*model.ValidationReportErrorGroup, error) {
+						return dbf.ValidationReportErrorGroupsByValidationReportIDs(ctx, limit, keys)
+					},
+					func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID },
+				)
+			},
+		),
+		ValidationReportsByFeedVersionID: withWaitAndCapacity(waitTime, batchSize, dbf.ValidationReportsByFeedVersionID),
 	}
 	return loaders
 }

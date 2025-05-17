@@ -12,7 +12,7 @@ func (r *validationReportResolver) Errors(ctx context.Context, obj *model.Valida
 	if len(obj.Errors) > 0 {
 		return obj.Errors, nil
 	}
-	return LoaderFor(ctx).ValidationReportErrorGroupsByValidationReportID.Load(ctx, model.ValidationReportErrorGroupParam{ValidationReportID: obj.ID, Limit: limit})()
+	return LoaderFor(ctx).ValidationReportErrorGroupsByValidationReportIDs.Load(ctx, model.ValidationReportErrorGroupParam{ValidationReportID: obj.ID, Limit: limit})()
 }
 
 func (r *validationReportResolver) Warnings(ctx context.Context, obj *model.ValidationReport, limit *int) ([]*model.ValidationReportErrorGroup, error) {
