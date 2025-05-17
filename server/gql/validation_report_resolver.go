@@ -32,7 +32,7 @@ func (r *validationReportErrorGroupResolver) Errors(ctx context.Context, obj *mo
 	if len(obj.Errors) > 0 {
 		return obj.Errors, nil
 	}
-	ret, err := LoaderFor(ctx).ValidationReportErrorExemplarsByValidationReportErrorGroupID.Load(ctx, model.ValidationReportErrorExemplarParam{ValidationReportGroupID: obj.ID, Limit: limit})()
+	ret, err := LoaderFor(ctx).ValidationReportErrorExemplarsByValidationReportErrorGroupIDs.Load(ctx, model.ValidationReportErrorExemplarParam{ValidationReportGroupID: obj.ID, Limit: limit})()
 	if err != nil {
 		return nil, err
 	}

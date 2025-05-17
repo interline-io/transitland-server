@@ -85,28 +85,18 @@ func (f *Finder) ValidationReportErrorGroupsByValidationReportID(ctx context.Con
 	)
 }
 
-func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupID(ctx context.Context, params []model.ValidationReportErrorExemplarParam) ([][]*model.ValidationReportError, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.ValidationReportErrorExemplarParam) (int, bool, *int) {
-			return p.ValidationReportGroupID, false, p.Limit
-		},
-		func(keys []int, where bool, limit *int) ([]*model.ValidationReportError, error) {
-			var ents []*model.ValidationReportError
-			err := dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					quickSelect("tl_validation_report_error_exemplars", limit, nil, nil),
-					"tl_validation_report_error_groups",
-					"id",
-					"tl_validation_report_error_exemplars",
-					"validation_report_error_group_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID },
+func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(ctx context.Context, limit *int, keys []int) (ents []*model.ValidationReportError, err error) {
+	err = dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			quickSelect("tl_validation_report_error_exemplars", limit, nil, nil),
+			"tl_validation_report_error_groups",
+			"id",
+			"tl_validation_report_error_exemplars",
+			"validation_report_error_group_id",
+			keys,
+		),
+		&ents,
 	)
+	return ents, err
 }
