@@ -34,7 +34,7 @@ func (r *stopResolver) Level(ctx context.Context, obj *model.Stop) (*model.Level
 }
 
 func (r *stopResolver) ChildLevels(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Level, error) {
-	return LoaderFor(ctx).LevelsByParentStationIDs.Load(ctx, LevelParam{ParentStationID: obj.ID, Limit: limit})()
+	return LoaderFor(ctx).LevelsByParentStationIDs.Load(ctx, levelLoaderParam{ParentStationID: obj.ID, Limit: limit})()
 }
 
 func (r *stopResolver) Parent(ctx context.Context, obj *model.Stop) (*model.Stop, error) {
@@ -45,7 +45,7 @@ func (r *stopResolver) Parent(ctx context.Context, obj *model.Stop) (*model.Stop
 }
 
 func (r *stopResolver) Children(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Stop, error) {
-	return LoaderFor(ctx).StopsByParentStopIDs.Load(ctx, StopParam{ParentStopID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).StopsByParentStopIDs.Load(ctx, stopLoaderParam{ParentStopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) Place(ctx context.Context, obj *model.Stop) (*model.StopPlace, error) {
@@ -54,15 +54,15 @@ func (r *stopResolver) Place(ctx context.Context, obj *model.Stop) (*model.StopP
 }
 
 func (r *stopResolver) RouteStops(ctx context.Context, obj *model.Stop, limit *int) ([]*model.RouteStop, error) {
-	return LoaderFor(ctx).RouteStopsByStopIDs.Load(ctx, RouteStopParam{StopID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).RouteStopsByStopIDs.Load(ctx, routeStopLoaderParam{StopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) PathwaysFromStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {
-	return LoaderFor(ctx).PathwaysByFromStopIDs.Load(ctx, PathwayParam{FromStopID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).PathwaysByFromStopIDs.Load(ctx, pathwayLoaderParam{FromStopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) PathwaysToStop(ctx context.Context, obj *model.Stop, limit *int) ([]*model.Pathway, error) {
-	return LoaderFor(ctx).PathwaysByToStopID.Load(ctx, PathwayParam{ToStopID: obj.ID, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).PathwaysByToStopID.Load(ctx, pathwayLoaderParam{ToStopID: obj.ID, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (*model.StopExternalReference, error) {
@@ -70,7 +70,7 @@ func (r *stopResolver) ExternalReference(ctx context.Context, obj *model.Stop) (
 }
 
 func (r *stopResolver) Observations(ctx context.Context, obj *model.Stop, limit *int, where *model.StopObservationFilter) ([]*model.StopObservation, error) {
-	return LoaderFor(ctx).StopObservationsByStopIDs.Load(ctx, StopObservationParam{StopID: obj.ID, Where: where, Limit: checkLimit(limit)})()
+	return LoaderFor(ctx).StopObservationsByStopIDs.Load(ctx, stopObservationLoaderParam{StopID: obj.ID, Where: where, Limit: checkLimit(limit)})()
 }
 
 func (r *stopResolver) Departures(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
@@ -96,7 +96,7 @@ func (r *stopResolver) StopTimes(ctx context.Context, obj *model.Stop, limit *in
 }
 
 func (r *stopResolver) getStopTimes(ctx context.Context, obj *model.Stop, limit *int, where *model.StopTimeFilter) ([]*model.StopTime, error) {
-	sts, err := (LoaderFor(ctx).StopTimesByStopIDs.Load(ctx, StopTimeParam{
+	sts, err := (LoaderFor(ctx).StopTimesByStopIDs.Load(ctx, stopTimeLoaderParam{
 		StopID:        obj.ID,
 		FeedVersionID: obj.FeedVersionID,
 		Limit:         checkLimit(limit),

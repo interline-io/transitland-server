@@ -11,7 +11,7 @@ import (
 type segmentResolver struct{ *Resolver }
 
 func (r *segmentResolver) SegmentPatterns(ctx context.Context, obj *model.Segment) ([]*model.SegmentPattern, error) {
-	return LoaderFor(ctx).SegmentPatternsBySegmentIDs.Load(ctx, SegmentPatternParam{SegmentID: obj.ID})()
+	return LoaderFor(ctx).SegmentPatternsBySegmentIDs.Load(ctx, segmentPatternLoaderParam{SegmentID: obj.ID})()
 }
 
 // SEGMENT PATTERNS

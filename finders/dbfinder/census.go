@@ -40,14 +40,14 @@ func (f *Finder) CensusValuesByGeographyIDs(ctx context.Context, limit *int, tab
 	// TODO: FIXME
 	// return paramGroupQuery(
 	// 	params,
-	// 	func(p CensusValueParam) (string, *CensusValueParam, *int) {
-	// 		rp := CensusValueParam{
+	// 	func(p censusValueLoaderParam) (string, *censusValueLoaderParam, *int) {
+	// 		rp := censusValueLoaderParam{
 	// 			TableNames: p.TableNames,
 	// 			Dataset:    p.Dataset,
 	// 		}
 	// 		return p.Geoid, &rp, p.Limit
 	// 	},
-	// 	func(keys []string, where *CensusValueParam, limit *int) (ents []*model.CensusValue, err error) {
+	// 	func(keys []string, where *censusValueLoaderParam, limit *int) (ents []*model.CensusValue, err error) {
 	// err = dbutil.Select(
 	// 	ctx,
 	// 	f.db,
@@ -298,7 +298,7 @@ func censusGeographySelect2(limit *int, where *model.CensusGeographyFilter, enti
 	return q
 }
 
-// func censusValueSelect(param *CensusValueParam, geoids []string) sq.SelectBuilder {
+// func censusValueSelect(param *censusValueLoaderParam, geoids []string) sq.SelectBuilder {
 // 	tnames := sliceToLower(strings.Split(param.TableNames, ","))
 // 	q := sq.StatementBuilder.
 // 		Select(

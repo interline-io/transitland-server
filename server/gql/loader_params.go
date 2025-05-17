@@ -7,34 +7,34 @@ import (
 // This file contains parameters that can be passed to methods for finding/selecting/grouping entities
 // These are distinct from WHERE graphql input filters, which are available to users.
 
-type FrequencyParam struct {
+type frequencyLoaderParam struct {
 	TripID int
 	Limit  *int
 }
 
-type FeedVersionFileInfoParam struct {
+type feedVersionFileInfoLoaderParam struct {
 	FeedVersionID int
 	Limit         *int
 }
 
-type FeedVersionParam struct {
+type feedVersionLoaderParam struct {
 	FeedID int
 	Limit  *int
 	Where  *model.FeedVersionFilter
 }
 
-type FeedVersionServiceLevelParam struct {
+type feedVersionServiceLevelLoaderParam struct {
 	FeedVersionID int
 	Limit         *int
 	Where         *model.FeedVersionServiceLevelFilter
 }
 
-type FeedInfoParam struct {
+type feedInfoLoaderParam struct {
 	FeedVersionID int
 	Limit         *int
 }
 
-type PathwayParam struct {
+type pathwayLoaderParam struct {
 	FeedVersionID int
 	FromStopID    int
 	ToStopID      int
@@ -42,7 +42,7 @@ type PathwayParam struct {
 	Where         *model.PathwayFilter
 }
 
-type StopTimeParam struct {
+type stopTimeLoaderParam struct {
 	TripID        int
 	StopID        int
 	FeedVersionID int
@@ -50,7 +50,7 @@ type StopTimeParam struct {
 	Where         *model.StopTimeFilter
 }
 
-type TripStopTimeParam struct {
+type tripStopTimeLoaderParam struct {
 	TripID        int
 	FeedVersionID int
 	Limit         *int
@@ -59,37 +59,37 @@ type TripStopTimeParam struct {
 	Where         *model.TripStopTimeFilter
 }
 
-type AgencyParam struct {
+type agencyLoaderParam struct {
 	FeedVersionID int
 	Limit         *int
 	OnestopID     *string
 	Where         *model.AgencyFilter
 }
 
-type RouteParam struct {
+type routeLoaderParam struct {
 	AgencyID      int
 	FeedVersionID int
 	Limit         *int
 	Where         *model.RouteFilter
 }
 
-type RouteStopParam struct {
+type routeStopLoaderParam struct {
 	RouteID int
 	StopID  int
 	Limit   *int
 }
 
-type RouteHeadwayParam struct {
+type routeHeadwayLoaderParam struct {
 	RouteID int
 	Limit   *int
 }
 
-type RouteGeometryParam struct {
+type routeGeometryLoaderParam struct {
 	RouteID int
 	Limit   *int
 }
 
-type TripParam struct {
+type tripLoaderParam struct {
 	FeedVersionID int
 	RouteID       int
 	Limit         *int
@@ -97,7 +97,7 @@ type TripParam struct {
 	Where         *model.TripFilter
 }
 
-type StopParam struct {
+type stopLoaderParam struct {
 	FeedVersionID int
 	ParentStopID  int
 	AgencyID      int
@@ -107,48 +107,48 @@ type StopParam struct {
 	RouteID       int
 }
 
-type LevelParam struct {
+type levelLoaderParam struct {
 	ParentStationID int
 	Limit           *int
 }
 
-type FeedParam struct {
+type feedLoaderParam struct {
 	OperatorOnestopID string
 	Limit             *int
 	Where             *model.FeedFilter
 }
 
-type FeedFetchParam struct {
+type feedFetchLoaderParam struct {
 	FeedID int
 	Limit  *int
 	Where  *model.FeedFetchFilter
 }
 
-type AgencyPlaceParam struct {
+type agencyPlaceLoaderParam struct {
 	AgencyID int
 	Limit    *int
 	Where    *model.AgencyPlaceFilter
 }
 
-type OperatorParam struct {
+type operatorLoaderParam struct {
 	FeedID int
 	Limit  *int
 	Where  *model.OperatorFilter
 }
 
-type StopObservationParam struct {
+type stopObservationLoaderParam struct {
 	StopID int
 	Limit  *int
 	Where  *model.StopObservationFilter
 }
 
-type CalendarDateParam struct {
+type calendarDateLoaderParam struct {
 	ServiceID int
 	Limit     *int
 	Where     *model.CalendarDateFilter
 }
 
-type CensusGeographyParam struct {
+type censusGeographyLoaderParam struct {
 	EntityType string
 	EntityID   int
 	DatasetID  int
@@ -156,46 +156,46 @@ type CensusGeographyParam struct {
 	Where      *model.CensusGeographyFilter
 }
 
-type CensusDatasetGeographyParam struct {
+type censusDatasetGeographyLoaderParam struct {
 	DatasetID int
 	Limit     *int
 	Where     *model.CensusDatasetGeographyFilter
 }
 
-type CensusValueParam struct {
+type censusValueLoaderParam struct {
 	Dataset    *string
 	Geoid      string
 	TableNames string // these have to be comma joined for now, []string cant be used as map key
 	Limit      *int
 }
 
-type CensusTableParam struct {
+type censusTableLoaderParam struct {
 	Limit *int
 }
 
-type CensusFieldParam struct {
+type censusFieldLoaderParam struct {
 	Limit   *int
 	TableID int
 }
 
-type CensusSourceParam struct {
+type censusSourceLoaderParam struct {
 	DatasetID int
 	Limit     *int
 	Where     *model.CensusSourceFilter
 }
 
-type RouteStopPatternParam struct {
+type routeStopPatternLoaderParam struct {
 	RouteID int
 }
 
-type SegmentPatternParam struct {
+type segmentPatternLoaderParam struct {
 	SegmentID int
 	RouteID   int
 	Limit     *int
 	Where     *model.SegmentPatternFilter
 }
 
-type SegmentParam struct {
+type segmentLoaderParam struct {
 	FeedVersionID int
 	RouteID       int
 	Layer         string
@@ -203,18 +203,18 @@ type SegmentParam struct {
 	Where         *model.SegmentFilter
 }
 
-type ValidationReportParam struct {
+type validationReportLoaderParam struct {
 	FeedVersionID int
 	Limit         *int
 	Where         *model.ValidationReportFilter
 }
 
-type ValidationReportErrorExemplarParam struct {
+type validationReportErrorExemplarLoaderParam struct {
 	ValidationReportGroupID int
 	Limit                   *int
 }
 
-type ValidationReportErrorGroupParam struct {
+type validationReportErrorGroupLoaderParam struct {
 	ValidationReportID int
 	Limit              *int
 }
