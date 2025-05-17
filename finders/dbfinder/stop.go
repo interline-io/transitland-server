@@ -155,7 +155,6 @@ func (f *Finder) StopsByLevelIDs(ctx context.Context, limit *int, where *model.S
 }
 
 func (f *Finder) StopPlacesByStopID(ctx context.Context, params []model.StopPlaceParam) ([]*model.StopPlace, []error) {
-	// TODO: Move to paramGroupQuery
 	if f.adminCache == nil {
 		return f.stopPlacesByStopIdFallback(ctx, params)
 	}

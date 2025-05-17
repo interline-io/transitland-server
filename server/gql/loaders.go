@@ -104,20 +104,12 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		AgenciesByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []agencyLoaderParam) ([][]*model.Agency, []error) {
-				return paramGroupQuery(
-					params,
-					func(p agencyLoaderParam) (int, *model.AgencyFilter, *int) {
-						return p.FeedVersionID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
-						return dbf.AgenciesByFeedVersionIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Agency) int {
-						return ent.FeedVersionID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p agencyLoaderParam) (int, *model.AgencyFilter, *int) {
+					return p.FeedVersionID, p.Where, p.Limit
+				},
+				dbf.AgenciesByFeedVersionIDs,
+			),
 		),
 		AgenciesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByIDs),
 		AgenciesByOnestopIDs: withWaitAndCapacity(waitTime, batchSize,
@@ -1015,4 +1007,84 @@ func paramGroupQuery[
 		}
 	}
 	return ret, errs
+}
+
+func paramGroupQuery2[
+	K comparable,
+	ParamT any,
+	W any,
+	T any,
+](
+	paramFunc func(ParamT) (K, W, *int),
+	queryFunc func(context.Context, *int, W, []K) ([][]*T, error),
+) func(context.Context, []ParamT) ([][]*T, []error) {
+	return func(ctx context.Context, params []ParamT) ([][]*T, []error) {
+		// Create return value
+		ret := make([][]*T, len(params))
+		errs := make([]error, len(params))
+
+		// Group params by JSON representation
+		type paramGroupItem[K comparable, M any] struct {
+			Limit *int
+			Where M
+		}
+		type paramGroup[K comparable, M any] struct {
+			Index []int
+			Keys  []K
+			Limit *int
+			Where M
+		}
+		paramGroups := map[string]paramGroup[K, W]{}
+		for i, param := range params {
+			// Get values from supplied func
+			key, where, limit := paramFunc(param)
+
+			// Convert to paramGroupItem
+			item := paramGroupItem[K, W]{
+				Limit: limit,
+				Where: where,
+			}
+
+			// Use the JSON representation of Where and Limit as the key
+			jj, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
+			if err != nil {
+				// TODO: log and expand error
+				errs[i] = err
+				continue
+			}
+			paramGroupKey := string(jj)
+
+			// Add index and key
+			a, ok := paramGroups[paramGroupKey]
+			if !ok {
+				a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
+			}
+			a.Index = append(a.Index, i)
+			a.Keys = append(a.Keys, key)
+			paramGroups[paramGroupKey] = a
+		}
+
+		// Process each param group
+		for _, pgroup := range paramGroups {
+			// Run query function
+			ents, err := queryFunc(ctx, pgroup.Limit, pgroup.Where, pgroup.Keys)
+			if err != nil {
+				panic(err)
+			}
+
+			// Group using keyFunc and merge into output
+			limit := 1000
+			if a := checkLimit(pgroup.Limit); a != nil {
+				limit = *a
+			}
+			for resultIdx, idx := range pgroup.Index {
+				a := ents[resultIdx]
+				if len(a) > limit {
+					a = a[0:limit]
+				}
+				ret[idx] = a
+			}
+		}
+		return ret, errs
+	}
 }

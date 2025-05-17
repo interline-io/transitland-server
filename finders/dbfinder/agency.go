@@ -63,8 +63,9 @@ func (f *Finder) AgencyPlacesByAgencyIDs(ctx context.Context, limit *int, where 
 	return ents, err
 }
 
-func (f *Finder) AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []int) (ents []*model.Agency, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []int) ([][]*model.Agency, error) {
+	var ents []*model.Agency
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			agencySelect(limit, nil, nil, false, f.PermFilter(ctx), where),
@@ -76,7 +77,7 @@ func (f *Finder) AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Agency) int { return ent.FeedVersionID }), err
 }
 
 func (f *Finder) AgenciesByOnestopIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []string) (ents []*model.Agency, err error) {

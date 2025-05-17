@@ -100,6 +100,19 @@ func arrangeMap[K comparable, T any, O any](keys []K, ents []T, cb func(T) (K, O
 	return ret
 }
 
+func arrangeGroup[K comparable, T any](keys []K, ents []T, cb func(T) K) [][]T {
+	bykey := map[K][]T{}
+	for _, ent := range ents {
+		k := cb(ent)
+		bykey[k] = append(bykey[k], ent)
+	}
+	ret := make([][]T, len(keys))
+	for idx, key := range keys {
+		ret[idx] = bykey[key]
+	}
+	return ret
+}
+
 func nilOr[T any, PT *T](v PT, def T) T {
 	if v == nil {
 		return def

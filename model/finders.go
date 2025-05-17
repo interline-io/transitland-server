@@ -46,7 +46,7 @@ type EntityFinder interface {
 }
 
 type EntityLoader interface {
-	AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *AgencyFilter, feedVersionIds []int) ([]*Agency, error)
+	AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *AgencyFilter, feedVersionIds []int) ([][]*Agency, error)
 	AgenciesByIDs(context.Context, []int) ([]*Agency, []error)
 	AgenciesByOnestopIDs(context.Context, *int, *AgencyFilter, []string) ([]*Agency, error)
 	AgencyPlacesByAgencyIDs(context.Context, *int, *AgencyPlaceFilter, []int) ([]*AgencyPlace, error)
