@@ -50,7 +50,7 @@ func (f *Finder) ValidationReportsByFeedVersionIDs(ctx context.Context, limit *i
 	return arrangeGroup(keys, ents, func(ent *model.ValidationReport) int { return ent.FeedVersionID }), err
 }
 
-func (f *Finder) ValidationReportErrorGroupsByValidationReportIDs(ctx context.Context, limit *int, keys []int) ([]*model.ValidationReportErrorGroup, error) {
+func (f *Finder) ValidationReportErrorGroupsByValidationReportIDs(ctx context.Context, limit *int, keys []int) ([][]*model.ValidationReportErrorGroup, error) {
 	var ents []*model.ValidationReportErrorGroup
 	err := dbutil.Select(ctx,
 		f.db,
@@ -64,11 +64,12 @@ func (f *Finder) ValidationReportErrorGroupsByValidationReportIDs(ctx context.Co
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID }), err
 }
 
-func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(ctx context.Context, limit *int, keys []int) (ents []*model.ValidationReportError, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(ctx context.Context, limit *int, keys []int) ([][]*model.ValidationReportError, error) {
+	var ents []*model.ValidationReportError
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelect("tl_validation_report_error_exemplars", limit, nil, nil),
@@ -80,5 +81,5 @@ func (f *Finder) ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(c
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID }), err
 }

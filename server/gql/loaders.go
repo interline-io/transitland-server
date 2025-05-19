@@ -568,52 +568,42 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				},
 				dbf.TripsByRouteIDs,
 			),
-			// func(ctx context.Context, params []tripLoaderParam) ([][]*model.Trip, []error) {
-			// 	return paramGroupQuery(
-			// 		params,
-			// 		func(p tripLoaderParam) (model.FVPair, *model.TripFilter, *int) {
-			// 			return model.FVPair{EntityID: p.RouteID, FeedVersionID: p.FeedVersionID}, p.Where, p.Limit
-			// 		},
-			// 		func(keys []model.FVPair, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
-			// 			return dbf.TripsByRouteIDs(ctx, limit, where, keys)
-			// 		},
-			// 		func(ent *model.Trip) model.FVPair {
-			// 			return model.FVPair{EntityID: ent.RouteID.Int(), FeedVersionID: ent.FeedVersionID}
-			// 		},
-			// 	)
-			// },
 		),
 		ValidationReportErrorExemplarsByValidationReportErrorGroupIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []validationReportErrorExemplarLoaderParam) ([][]*model.ValidationReportError, []error) {
-				return paramGroupQuery(
-					params,
-					func(p validationReportErrorExemplarLoaderParam) (int, bool, *int) {
-						return p.ValidationReportGroupID, false, p.Limit
-					},
-					func(keys []int, where bool, limit *int) ([]*model.ValidationReportError, error) {
-						return dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(ctx, limit, keys)
-					},
-					func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID },
-				)
-			},
+			paramGroupQuery2(
+				func(p validationReportErrorExemplarLoaderParam) (int, bool, *int) {
+					return p.ValidationReportGroupID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, where bool, keys []int) ([][]*model.ValidationReportError, error) {
+					return dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(ctx, limit, keys)
+				},
+			),
+			// func(ctx context.Context, params []validationReportErrorExemplarLoaderParam) ([][]*model.ValidationReportError, []error) {
+			// 	return paramGroupQuery(
+			// 		params,
+			// 		func(p validationReportErrorExemplarLoaderParam) (int, bool, *int) {
+			// 			return p.ValidationReportGroupID, false, p.Limit
+			// 		},
+			// 		func(keys []int, where bool, limit *int) ([]*model.ValidationReportError, error) {
+			// 			return dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(ctx, limit, keys)
+			// 		},
+			// 		func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID },
+			// 	)
+			// },
 		),
 		ValidationReportErrorGroupsByValidationReportIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []validationReportErrorGroupLoaderParam) ([][]*model.ValidationReportErrorGroup, []error) {
-				return paramGroupQuery(
-					params,
-					func(p validationReportErrorGroupLoaderParam) (int, bool, *int) {
-						return p.ValidationReportID, false, p.Limit
-					},
-					func(keys []int, where bool, limit *int) ([]*model.ValidationReportErrorGroup, error) {
-						return dbf.ValidationReportErrorGroupsByValidationReportIDs(ctx, limit, keys)
-					},
-					func(ent *model.ValidationReportErrorGroup) int { return ent.ValidationReportID },
-				)
-			},
+			paramGroupQuery2(
+				func(p validationReportErrorGroupLoaderParam) (int, bool, *int) {
+					return p.ValidationReportID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, where bool, keys []int) ([][]*model.ValidationReportErrorGroup, error) {
+					return dbf.ValidationReportErrorGroupsByValidationReportIDs(ctx, limit, keys)
+				},
+			),
 		),
 		ValidationReportsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
