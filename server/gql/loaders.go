@@ -102,16 +102,13 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		stopTimeBatchSize = maxBatch
 	}
 	loaders := &Loaders{
-		AgenciesByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		AgenciesByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.AgenciesByFeedVersionIDs,
 			func(p agencyLoaderParam) (int, *model.AgencyFilter, *int) {
 				return p.FeedVersionID, p.Where, p.Limit
 			},
-			dbf.AgenciesByFeedVersionIDs,
 		),
 		AgenciesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByIDs),
-		AgenciesByOnestopIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+		AgenciesByOnestopIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.AgenciesByOnestopIDs,
 			func(p agencyLoaderParam) (string, *model.AgencyFilter, *int) {
 				a := ""
 				if p.OnestopID != nil {
@@ -119,46 +116,34 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				}
 				return a, p.Where, p.Limit
 			},
-			dbf.AgenciesByOnestopIDs,
 		),
-		AgencyPlacesByAgencyIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		AgencyPlacesByAgencyIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.AgencyPlacesByAgencyIDs,
 			func(p agencyPlaceLoaderParam) (int, *model.AgencyPlaceFilter, *int) {
 				return p.AgencyID, p.Where, p.Limit
 			},
-			dbf.AgencyPlacesByAgencyIDs,
 		),
-		CalendarDatesByServiceIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		CalendarDatesByServiceIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.CalendarDatesByServiceIDs,
 			func(p calendarDateLoaderParam) (int, *model.CalendarDateFilter, *int) {
 				return p.ServiceID, p.Where, p.Limit
 			},
-			dbf.CalendarDatesByServiceIDs,
 		),
 		CalendarsByIDs:                  withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByIDs),
 		CensusDatasetLayersByDatasetIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetIDs),
 		CensusSourceLayersBySourceIDs:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceIDs),
-		CensusFieldsByTableIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		CensusFieldsByTableIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.CensusFieldsByTableIDs),
 			func(p censusFieldLoaderParam) (int, bool, *int) {
 				return p.TableID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.CensusFieldsByTableIDs),
 		),
-		CensusGeographiesByDatasetIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		CensusGeographiesByDatasetIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.CensusGeographiesByDatasetIDs,
 			func(p censusDatasetGeographyLoaderParam) (int, *model.CensusDatasetGeographyFilter, *int) {
 				return p.DatasetID, p.Where, p.Limit
 			},
-			dbf.CensusGeographiesByDatasetIDs,
 		),
-		CensusGeographiesByEntityIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		CensusGeographiesByEntityIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			func(ctx context.Context, limit *int, param *censusGeographyLoaderParam, keys []int) (ents [][]*model.CensusGeography, err error) {
+				return dbf.CensusGeographiesByEntityIDs(ctx, limit, param.Where, param.EntityType, keys)
+			},
 			func(p censusGeographyLoaderParam) (int, *censusGeographyLoaderParam, *int) {
 				rp := censusGeographyLoaderParam{
 					EntityType: p.EntityType,
@@ -166,327 +151,216 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				}
 				return p.EntityID, &rp, p.Limit
 			},
-			func(ctx context.Context, limit *int, param *censusGeographyLoaderParam, keys []int) (ents [][]*model.CensusGeography, err error) {
-				return dbf.CensusGeographiesByEntityIDs(ctx, limit, param.Where, param.EntityType, keys)
-			},
 		),
-		CensusSourcesByDatasetIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		CensusSourcesByDatasetIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.CensusSourcesByDatasetIDs,
 			func(p censusSourceLoaderParam) (int, *model.CensusSourceFilter, *int) {
 				return p.DatasetID, p.Where, p.Limit
 			},
-			dbf.CensusSourcesByDatasetIDs,
 		),
 		CensusTableByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByIDs),
-		CensusValuesByGeographyIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
-			func(p censusValueLoaderParam) (string, string, *int) {
-				return p.Geoid, p.TableNames, p.Limit
-			},
+		CensusValuesByGeographyIDs: withWaitAndCapacityGroup(waitTime, batchSize,
 			func(ctx context.Context, limit *int, tableNames string, keys []string) ([][]*model.CensusValue, error) {
 				tn := strings.Split(tableNames, ",")
 				return dbf.CensusValuesByGeographyIDs(ctx, limit, tn, keys)
 			},
+			func(p censusValueLoaderParam) (string, string, *int) {
+				return p.Geoid, p.TableNames, p.Limit
+			},
 		),
-		FeedFetchesByFeedIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		FeedFetchesByFeedIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.FeedFetchesByFeedIDs,
 			func(p feedFetchLoaderParam) (int, *model.FeedFetchFilter, *int) {
 				return p.FeedID, p.Where, p.Limit
 			},
-			dbf.FeedFetchesByFeedIDs,
 		),
-		FeedInfosByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		FeedInfosByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.FeedInfosByFeedVersionIDs),
 			func(p feedInfoLoaderParam) (int, bool, *int) {
 				return p.FeedVersionID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.FeedInfosByFeedVersionIDs),
 		),
 		FeedsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedsByIDs),
-		FeedsByOperatorOnestopIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		FeedsByOperatorOnestopIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.FeedsByOperatorOnestopIDs,
 			func(p feedLoaderParam) (string, *model.FeedFilter, *int) {
 				return p.OperatorOnestopID, p.Where, p.Limit
 			},
-			dbf.FeedsByOperatorOnestopIDs,
 		),
 		FeedStatesByFeedIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedStatesByFeedIDs),
-		FeedVersionFileInfosByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		FeedVersionFileInfosByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.FeedVersionFileInfosByFeedVersionIDs),
 			func(p feedVersionFileInfoLoaderParam) (int, bool, *int) {
 				return p.FeedVersionID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.FeedVersionFileInfosByFeedVersionIDs),
 		),
 		FeedVersionGeometryByIDs:              withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGeometryByIDs),
 		FeedVersionGtfsImportByFeedVersionIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionGtfsImportByFeedVersionIDs),
-		FeedVersionsByFeedIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		FeedVersionsByFeedIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.FeedVersionsByFeedIDs,
 			func(p feedVersionLoaderParam) (int, *model.FeedVersionFilter, *int) {
 				return p.FeedID, p.Where, p.Limit
 			},
-			dbf.FeedVersionsByFeedIDs,
 		),
 		FeedVersionsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedVersionsByIDs),
-		FeedVersionServiceLevelsByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		FeedVersionServiceLevelsByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.FeedVersionServiceLevelsByFeedVersionIDs,
 			func(p feedVersionServiceLevelLoaderParam) (int, *model.FeedVersionServiceLevelFilter, *int) {
 				return p.FeedVersionID, p.Where, p.Limit
 			},
-			dbf.FeedVersionServiceLevelsByFeedVersionIDs,
 		),
 
 		FeedVersionServiceWindowByFeedVersionIDs: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionIDs),
-		FrequenciesByTripIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		FrequenciesByTripIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.FrequenciesByTripIDs),
 			func(p frequencyLoaderParam) (int, bool, *int) {
 				return p.TripID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.FrequenciesByTripIDs),
 		),
 
 		LevelsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
-		LevelsByParentStationIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		LevelsByParentStationIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.LevelsByParentStationIDs),
 			func(p levelLoaderParam) (int, bool, *int) {
 				return p.ParentStationID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.LevelsByParentStationIDs),
 		),
 
 		OperatorsByAgencyIDs: withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByAgencyIDs),
 		OperatorsByCOIFs:     withWaitAndCapacity(waitTime, batchSize, dbf.OperatorsByCOIFs),
-		OperatorsByFeedIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		OperatorsByFeedIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.OperatorsByFeedIDs,
 			func(p operatorLoaderParam) (int, *model.OperatorFilter, *int) {
 				return p.FeedID, p.Where, p.Limit
 			},
-			dbf.OperatorsByFeedIDs,
 		),
 		PathwaysByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
-		PathwaysByFromStopIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		PathwaysByFromStopIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.PathwaysByFromStopIDs,
 			func(p pathwayLoaderParam) (int, *model.PathwayFilter, *int) {
 				return p.FromStopID, p.Where, p.Limit
 			},
-			dbf.PathwaysByFromStopIDs,
 		),
-		PathwaysByToStopID: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		PathwaysByToStopID: withWaitAndCapacityGroup(waitTime, batchSize, dbf.PathwaysByToStopIDs,
 			func(p pathwayLoaderParam) (int, *model.PathwayFilter, *int) {
 				return p.ToStopID, p.Where, p.Limit
 			},
-			dbf.PathwaysByToStopIDs,
 		),
 		RouteAttributesByRouteIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
-		RouteGeometriesByRouteIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		RouteGeometriesByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteGeometriesByRouteIDs),
 			func(p routeGeometryLoaderParam) (int, bool, *int) {
 				return p.RouteID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.RouteGeometriesByRouteIDs),
 		),
-
-		RouteHeadwaysByRouteIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		RouteHeadwaysByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteHeadwaysByRouteIDs),
 			func(p routeHeadwayLoaderParam) (int, bool, *int) {
 				return p.RouteID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.RouteHeadwaysByRouteIDs),
 		),
-		RoutesByAgencyIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		RoutesByAgencyIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.RoutesByAgencyIDs,
 			func(p routeLoaderParam) (int, *model.RouteFilter, *int) {
 				return p.AgencyID, p.Where, p.Limit
 			},
-			dbf.RoutesByAgencyIDs,
 		),
-		RoutesByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		RoutesByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.RoutesByFeedVersionIDs,
 			func(p routeLoaderParam) (int, *model.RouteFilter, *int) {
 				return p.FeedVersionID, p.Where, p.Limit
 			},
-			dbf.RoutesByFeedVersionIDs,
 		),
 		RoutesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
-		RouteStopPatternsByRouteIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		RouteStopPatternsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteStopPatternsByRouteIDs),
 			func(p routeStopPatternLoaderParam) (int, bool, *int) {
 				return p.RouteID, false, nil
 			},
-			paramGroupAdapter(dbf.RouteStopPatternsByRouteIDs),
 		),
-		RouteStopsByRouteIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		RouteStopsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteStopsByRouteIDs),
 			func(p routeStopLoaderParam) (int, bool, *int) {
 				return p.RouteID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.RouteStopsByRouteIDs),
 		),
-
-		RouteStopsByStopIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		RouteStopsByStopIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteStopsByStopIDs),
 			func(p routeStopLoaderParam) (int, bool, *int) {
 				return p.StopID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.RouteStopsByStopIDs),
 		),
-
-		SegmentPatternsByRouteIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		SegmentPatternsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.SegmentPatternsByRouteIDs,
 			func(p segmentPatternLoaderParam) (int, *model.SegmentPatternFilter, *int) {
 				return p.RouteID, p.Where, p.Limit
 			},
-			dbf.SegmentPatternsByRouteIDs,
 		),
-		SegmentPatternsBySegmentIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		SegmentPatternsBySegmentIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.SegmentPatternsBySegmentIDs,
 			func(p segmentPatternLoaderParam) (int, *model.SegmentPatternFilter, *int) {
 				return p.SegmentID, p.Where, p.Limit
 			},
-			dbf.SegmentPatternsBySegmentIDs,
 		),
-		SegmentsByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		SegmentsByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.SegmentsByFeedVersionIDs,
 			func(p segmentLoaderParam) (int, *model.SegmentFilter, *int) {
 				return p.FeedVersionID, p.Where, p.Limit
 			},
-			dbf.SegmentsByFeedVersionIDs,
 		),
 		SegmentsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByIDs),
-		SegmentsByRouteIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		SegmentsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.SegmentsByRouteIDs,
 			func(p segmentLoaderParam) (int, *model.SegmentFilter, *int) {
 				return p.RouteID, p.Where, p.Limit
 			},
-			dbf.SegmentsByRouteIDs,
 		),
 		ShapesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByIDs),
 		StopExternalReferencesByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopIDs),
-		StopObservationsByStopIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		StopObservationsByStopIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.StopObservationsByStopIDs,
 			func(p stopObservationLoaderParam) (int, *model.StopObservationFilter, *int) {
 				return p.StopID, p.Where, p.Limit
-
 			},
-			dbf.StopObservationsByStopIDs,
 		),
 		StopPlacesByStopID: withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),
-		StopsByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		StopsByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.StopsByFeedVersionIDs,
 			func(p stopLoaderParam) (int, *model.StopFilter, *int) {
 				return p.FeedVersionID, p.Where, p.Limit
 			},
-			dbf.StopsByFeedVersionIDs,
 		),
 		StopsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.StopsByIDs),
-		StopsByLevelIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		StopsByLevelIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.StopsByLevelIDs,
 			func(p stopLoaderParam) (int, *model.StopFilter, *int) {
 				return p.LevelID, p.Where, p.Limit
 			},
-			dbf.StopsByLevelIDs,
 		),
-		StopsByParentStopIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		StopsByParentStopIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.StopsByParentStopIDs,
 			func(p stopLoaderParam) (int, *model.StopFilter, *int) {
 				return p.ParentStopID, p.Where, p.Limit
 			},
-			dbf.StopsByParentStopIDs,
 		),
-		StopsByRouteIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		StopsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.StopsByRouteIDs,
 			func(p stopLoaderParam) (int, *model.StopFilter, *int) {
 				return p.RouteID, p.Where, p.Limit
 			},
-			dbf.StopsByRouteIDs,
 		),
-		StopTimesByStopIDs: withWaitAndCapacityGroup(
-			waitTime,
-			stopTimeBatchSize,
+		StopTimesByStopIDs: withWaitAndCapacityGroup(waitTime, stopTimeBatchSize, dbf.StopTimesByStopIDs,
 			func(p stopTimeLoaderParam) (model.FVPair, *model.StopTimeFilter, *int) {
 				return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}, p.Where, p.Limit
 			},
-			dbf.StopTimesByStopIDs,
 		),
-		StopTimesByTripIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		StopTimesByTripIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.StopTimesByTripIDs,
 			func(p tripStopTimeLoaderParam) (model.FVPair, *model.TripStopTimeFilter, *int) {
 				return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}, p.Where, p.Limit
 			},
-			dbf.StopTimesByTripIDs,
 		),
 		TargetStopsByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopIDs),
-		TripsByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		TripsByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.TripsByFeedVersionIDs,
 			func(p tripLoaderParam) (int, *model.TripFilter, *int) {
 				return p.FeedVersionID, p.Where, p.Limit
 			},
-			dbf.TripsByFeedVersionIDs,
 		),
 		TripsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
-		TripsByRouteIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		TripsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, dbf.TripsByRouteIDs,
 			func(p tripLoaderParam) (model.FVPair, *model.TripFilter, *int) {
 				return model.FVPair{EntityID: p.RouteID, FeedVersionID: p.FeedVersionID}, p.Where, p.Limit
 			},
-			dbf.TripsByRouteIDs,
 		),
-		ValidationReportErrorExemplarsByValidationReportErrorGroupIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		ValidationReportErrorExemplarsByValidationReportErrorGroupIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupIDs),
 			func(p validationReportErrorExemplarLoaderParam) (int, bool, *int) {
 				return p.ValidationReportGroupID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupIDs),
 		),
-		ValidationReportErrorGroupsByValidationReportIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		ValidationReportErrorGroupsByValidationReportIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.ValidationReportErrorGroupsByValidationReportIDs),
 			func(p validationReportErrorGroupLoaderParam) (int, bool, *int) {
 				return p.ValidationReportID, false, p.Limit
 			},
-			paramGroupAdapter(dbf.ValidationReportErrorGroupsByValidationReportIDs),
 		),
-		ValidationReportsByFeedVersionIDs: withWaitAndCapacityGroup(
-			waitTime,
-			batchSize,
+		ValidationReportsByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			dbf.ValidationReportsByFeedVersionIDs,
 			func(p validationReportLoaderParam) (int, *model.ValidationReportFilter, *int) {
 				return p.FeedVersionID, p.Where, p.Limit
 			},
-			dbf.ValidationReportsByFeedVersionIDs,
 		),
 	}
 	return loaders
@@ -535,8 +409,8 @@ func withWaitAndCapacityGroup[
 ](
 	d time.Duration,
 	size int,
-	paramFunc func(ParamT) (K, W, *int),
 	queryFunc func(context.Context, *int, W, []K) ([][]T, error),
+	paramFunc func(ParamT) (K, W, *int),
 ) *dataloader.Loader[ParamT, []T] {
 	return dataloader.NewBatchedLoader(
 		unwrapResult(paramGroupQuery(paramFunc, queryFunc)),
