@@ -99,7 +99,7 @@ type EntityLoader interface {
 	StopExternalReferencesByStopIDs(context.Context, []int) ([]*StopExternalReference, []error)
 	StopObservationsByStopIDs(context.Context, *int, *StopObservationFilter, []int) ([][]*StopObservation, error)
 	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
-	StopsByFeedVersionIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
+	StopsByFeedVersionIDs(context.Context, *int, *StopFilter, []int) ([][]*Stop, error)
 	StopsByIDs(context.Context, []int) ([]*Stop, []error)
 	StopsByLevelIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
 	StopsByParentStopIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
