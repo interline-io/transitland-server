@@ -356,20 +356,14 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RouteHeadwaysByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []routeHeadwayLoaderParam) ([][]*model.RouteHeadway, []error) {
-				return paramGroupQuery(
-					params,
-					func(p routeHeadwayLoaderParam) (int, bool, *int) {
-						return p.RouteID, false, p.Limit
-					},
-					func(keys []int, where bool, limit *int) (ents []*model.RouteHeadway, err error) {
-						return dbf.RouteHeadwaysByRouteIDs(ctx, limit, keys)
-					},
-					func(ent *model.RouteHeadway) int {
-						return ent.RouteID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p routeHeadwayLoaderParam) (int, bool, *int) {
+					return p.RouteID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, where bool, keys []int) ([][]*model.RouteHeadway, error) {
+					return dbf.RouteHeadwaysByRouteIDs(ctx, limit, keys)
+				},
+			),
 		),
 
 		RoutesByAgencyIDs: withWaitAndCapacity(

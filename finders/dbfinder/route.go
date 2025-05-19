@@ -63,8 +63,9 @@ func (f *Finder) RouteStopsByStopIDs(ctx context.Context, limit *int, keys []int
 	return ents, err
 }
 
-func (f *Finder) RouteHeadwaysByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteHeadway, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) RouteHeadwaysByRouteIDs(ctx context.Context, limit *int, keys []int) ([][]*model.RouteHeadway, error) {
+	var ents []*model.RouteHeadway
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelectOrder("tl_route_headways", limit, nil, nil, "route_id"),
@@ -76,7 +77,7 @@ func (f *Finder) RouteHeadwaysByRouteIDs(ctx context.Context, limit *int, keys [
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.RouteHeadway) int { return ent.RouteID }), err
 }
 
 func (f *Finder) RouteStopPatternsByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteStopPattern, err error) {
