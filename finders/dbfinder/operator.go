@@ -60,7 +60,6 @@ func (f *Finder) OperatorsByFeedIDs(ctx context.Context, limit *int, where *mode
 		&ents,
 	)
 	return arrangeGroup(keys, ents, func(ent *model.Operator) int { return ent.FeedID }), err
-
 }
 
 func operatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBuilder {
