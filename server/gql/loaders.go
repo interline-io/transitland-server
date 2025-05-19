@@ -160,8 +160,11 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusTableByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByIDs),
 		CensusValuesByGeographyIDs: withWaitAndCapacityGroup(waitTime, batchSize,
 			func(ctx context.Context, limit *int, tableNames string, keys []string) ([][]*model.CensusValue, error) {
-				tn := strings.Split(tableNames, ",")
-				return dbf.CensusValuesByGeographyIDs(ctx, limit, tn, keys)
+				var tnames []string
+				for _, t := range strings.Split(tableNames, ",") {
+					tnames = append(tnames, strings.ToLower(strings.TrimSpace(t)))
+				}
+				return dbf.CensusValuesByGeographyIDs(ctx, limit, tnames, keys)
 			},
 			func(p censusValueLoaderParam) (string, string, *int) {
 				return p.Geoid, p.TableNames, p.Limit

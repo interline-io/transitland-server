@@ -38,30 +38,14 @@ func (f *Finder) CensusGeographiesByEntityIDs(ctx context.Context, limit *int, w
 }
 
 func (f *Finder) CensusValuesByGeographyIDs(ctx context.Context, limit *int, tableNames []string, keys []string) ([][]*model.CensusValue, error) {
-	// TODO: FIXME
-	// return paramGroupQuery(
-	// 	params,
-	// 	func(p censusValueLoaderParam) (string, *censusValueLoaderParam, *int) {
-	// 		rp := censusValueLoaderParam{
-	// 			TableNames: p.TableNames,
-	// 			Dataset:    p.Dataset,
-	// 		}
-	// 		return p.Geoid, &rp, p.Limit
-	// 	},
-	// 	func(keys []string, where *censusValueLoaderParam, limit *int) (ents []*model.CensusValue, err error) {
-	// err = dbutil.Select(
-	// 	ctx,
-	// 	f.db,
-	// 	censusValueSelect(where, keys),
-	// 	&ents,
-	// )
-	// return ents, err
-	// 	},
-	// 	func(ent *model.CensusValue) string {
-	// 		return ent.Geoid
-	// 	},
-	// )
-	return nil, nil
+	var ents []*model.CensusValue
+	err := dbutil.Select(
+		ctx,
+		f.db,
+		censusValueSelect(limit, "", tableNames, keys),
+		&ents,
+	)
+	return arrangeGroup(keys, ents, func(ent *model.CensusValue) string { return ent.Geoid }), err
 }
 
 func (f *Finder) CensusSourcesByDatasetIDs(ctx context.Context, limit *int, where *model.CensusSourceFilter, keys []int) ([][]*model.CensusSource, error) {
@@ -302,27 +286,25 @@ func censusGeographySelect2(limit *int, where *model.CensusGeographyFilter, enti
 	return q
 }
 
-// func censusValueSelect(param *censusValueLoaderParam, geoids []string) sq.SelectBuilder {
-// 	tnames := sliceToLower(strings.Split(param.TableNames, ","))
-// 	q := sq.StatementBuilder.
-// 		Select(
-// 			"tlcv.table_values as values",
-// 			"tlcv.geoid",
-// 			"tlcv.table_id",
-// 			"tlcs.source_name",
-// 			"tlcd.dataset_name",
-// 		).
-// 		From("tl_census_values tlcv").
-// 		Limit(checkLimit(param.Limit)).
-// 		Join("tl_census_tables tlct ON tlct.id = tlcv.table_id").
-// 		Join("tl_census_sources tlcs on tlcs.id = tlcv.source_id").
-// 		Join("tl_census_datasets tlcd on tlcd.id = tlct.dataset_id").
-// 		Where(sq.Eq{"tlcv.geoid": geoids}).
-// 		Where(sq.Eq{"tlct.table_name": tnames}).
-// 		OrderBy("tlcv.table_id")
-// 	if param.Dataset != nil {
-// 		q = q.Where(sq.Eq{"tlcd.dataset_name": param.Dataset})
-// 	}
-
-// 	return q
-// }
+func censusValueSelect(limit *int, datasetName string, tnames []string, geoids []string) sq.SelectBuilder {
+	q := sq.StatementBuilder.
+		Select(
+			"tlcv.table_values as values",
+			"tlcv.geoid",
+			"tlcv.table_id",
+			"tlcs.source_name",
+			"tlcd.dataset_name",
+		).
+		From("tl_census_values tlcv").
+		Limit(checkLimit(limit)).
+		Join("tl_census_tables tlct ON tlct.id = tlcv.table_id").
+		Join("tl_census_sources tlcs on tlcs.id = tlcv.source_id").
+		Join("tl_census_datasets tlcd on tlcd.id = tlct.dataset_id").
+		Where(sq.Eq{"tlcv.geoid": geoids}).
+		Where(sq.Eq{"tlct.table_name": tnames}).
+		OrderBy("tlcv.table_id")
+	if datasetName != "" {
+		q = q.Where(sq.Eq{"tlcd.dataset_name": datasetName})
+	}
+	return q
+}
