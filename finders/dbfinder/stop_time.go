@@ -10,13 +10,16 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) StopTimesByTripIDs(ctx context.Context, limit *int, where *model.TripStopTimeFilter, keys []model.FVPair) (ents []*model.StopTime, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) StopTimesByTripIDs(ctx context.Context, limit *int, where *model.TripStopTimeFilter, keys []model.FVPair) ([][]*model.StopTime, error) {
+	var ents []*model.StopTime
+	err := dbutil.Select(ctx,
 		f.db,
 		stopTimeSelect(keys, nil, where),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.StopTime) model.FVPair {
+		return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
+	}), err
 }
 
 func (f *Finder) StopTimesByStopIDs(ctx context.Context, limit *int, where *model.StopTimeFilter, keys []model.FVPair) ([][]*model.StopTime, error) {

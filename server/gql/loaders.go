@@ -536,38 +536,30 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				},
 				dbf.StopTimesByStopIDs,
 			),
-			// func(ctx context.Context, params []stopTimeLoaderParam) ([][]*model.StopTime, []error) {
-			// 	return paramGroupQuery(
-			// 		params,
-			// 		func(p stopTimeLoaderParam) (model.FVPair, *model.StopTimeFilter, *int) {
-			// 			return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}, p.Where, p.Limit
-			// 		},
-			// 		func(keys []model.FVPair, where *model.StopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
-			// 			return dbf.StopTimesByStopIDs(ctx, limit, where, keys)
-			// 		},
-			// 		func(ent *model.StopTime) model.FVPair {
-			// 			return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.StopID.Int()}
-			// 		},
-			// 	)
-			// },
 		),
 		StopTimesByTripIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []tripStopTimeLoaderParam) ([][]*model.StopTime, []error) {
-				return paramGroupQuery(
-					params,
-					func(p tripStopTimeLoaderParam) (model.FVPair, *model.TripStopTimeFilter, *int) {
-						return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}, p.Where, p.Limit
-					},
-					func(keys []model.FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
-						return dbf.StopTimesByTripIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.StopTime) model.FVPair {
-						return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p tripStopTimeLoaderParam) (model.FVPair, *model.TripStopTimeFilter, *int) {
+					return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}, p.Where, p.Limit
+				},
+				dbf.StopTimesByTripIDs,
+			),
+			// func(ctx context.Context, params []tripStopTimeLoaderParam) ([][]*model.StopTime, []error) {
+			// 	return paramGroupQuery(
+			// 		params,
+			// 		func(p tripStopTimeLoaderParam) (model.FVPair, *model.TripStopTimeFilter, *int) {
+			// 			return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}, p.Where, p.Limit
+			// 		},
+			// 		func(keys []model.FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
+			// 			return dbf.StopTimesByTripIDs(ctx, limit, where, keys)
+			// 		},
+			// 		func(ent *model.StopTime) model.FVPair {
+			// 			return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
+			// 		},
+			// 	)
+			// },
 		),
 		TargetStopsByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.TargetStopsByStopIDs),
 		TripsByFeedVersionIDs: withWaitAndCapacity(
