@@ -19,21 +19,9 @@ func (f *Finder) StopTimesByTripIDs(ctx context.Context, limit *int, where *mode
 	return ents, err
 }
 
-func (f *Finder) StopTimesByStopIDs(ctx context.Context, limit *int, where *model.StopTimeFilter, keys []model.FVPair) ([]*model.StopTime, error) {
+func (f *Finder) StopTimesByStopIDs(ctx context.Context, limit *int, where *model.StopTimeFilter, keys []model.FVPair) ([][]*model.StopTime, error) {
 	// // We need to split by feed version id to extract service window
 	// // Fields must be public
-	// type fvParamGroup struct {
-	// 	FeedVersionID int
-	// 	Where         *model.StopTimeFilter
-	// }
-	// return paramGroupQuery(
-	// 	params,
-	// 	func(p stopTimeLoaderParam) (model.FVPair, fvParamGroup, *int) {
-	// 		a := model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}
-	// 		w := fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}
-	// 		return a, w, p.Limit
-	// 	},
-	// 	func(keys []model.FVPair, fvwhere fvParamGroup, limit *int) (ents []*model.StopTime, err error) {
 	pairGroups := map[int][]model.FVPair{}
 	for _, v := range keys {
 		pairGroups[v.FeedVersionID] = append(pairGroups[v.FeedVersionID], v)
@@ -81,7 +69,9 @@ func (f *Finder) StopTimesByStopIDs(ctx context.Context, limit *int, where *mode
 			ents = append(ents, sts...)
 		}
 	}
-	return ents, nil
+	return arrangeGroup(keys, ents, func(ent *model.StopTime) model.FVPair {
+		return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.StopID.Int()}
+	}), nil
 }
 
 func stopTimeSelect(tpairs []model.FVPair, spairs []model.FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
