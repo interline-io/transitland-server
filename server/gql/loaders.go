@@ -430,20 +430,12 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		SegmentPatternsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []segmentPatternLoaderParam) ([][]*model.SegmentPattern, []error) {
-				return paramGroupQuery(
-					params,
-					func(p segmentPatternLoaderParam) (int, *model.SegmentPatternFilter, *int) {
-						return p.RouteID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.SegmentPatternFilter, limit *int) (ents []*model.SegmentPattern, err error) {
-						return dbf.SegmentPatternsByRouteIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.SegmentPattern) int {
-						return ent.RouteID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p segmentPatternLoaderParam) (int, *model.SegmentPatternFilter, *int) {
+					return p.RouteID, p.Where, p.Limit
+				},
+				dbf.SegmentPatternsByRouteIDs,
+			),
 		),
 		SegmentPatternsBySegmentIDs: withWaitAndCapacity(
 			waitTime,

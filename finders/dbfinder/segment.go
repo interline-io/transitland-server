@@ -53,8 +53,9 @@ func (f *Finder) SegmentsByRouteIDs(ctx context.Context, limit *int, where *mode
 	return ents, err
 }
 
-func (f *Finder) SegmentPatternsByRouteIDs(ctx context.Context, limit *int, where *model.SegmentPatternFilter, keys []int) (ents []*model.SegmentPattern, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) SegmentPatternsByRouteIDs(ctx context.Context, limit *int, where *model.SegmentPatternFilter, keys []int) ([][]*model.SegmentPattern, error) {
+	var ents []*model.SegmentPattern
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelect("tl_segment_patterns", limit, nil, nil),
@@ -66,7 +67,7 @@ func (f *Finder) SegmentPatternsByRouteIDs(ctx context.Context, limit *int, wher
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.SegmentPattern) int { return ent.RouteID }), err
 }
 
 func (f *Finder) SegmentPatternsBySegmentIDs(ctx context.Context, limit *int, where *model.SegmentPatternFilter, keys []int) (ents []*model.SegmentPattern, err error) {
