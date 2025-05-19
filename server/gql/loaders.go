@@ -392,20 +392,14 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RouteStopPatternsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []routeStopPatternLoaderParam) ([][]*model.RouteStopPattern, []error) {
-				return paramGroupQuery(
-					params,
-					func(p routeStopPatternLoaderParam) (int, bool, *int) {
-						return p.RouteID, false, nil
-					},
-					func(keys []int, where bool, limit *int) (ents []*model.RouteStopPattern, err error) {
-						return dbf.RouteStopPatternsByRouteIDs(ctx, limit, keys)
-					},
-					func(ent *model.RouteStopPattern) int {
-						return ent.RouteID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p routeStopPatternLoaderParam) (int, bool, *int) {
+					return p.RouteID, false, nil
+				},
+				func(ctx context.Context, limit *int, where bool, keys []int) ([][]*model.RouteStopPattern, error) {
+					return dbf.RouteStopPatternsByRouteIDs(ctx, limit, keys)
+				},
+			),
 		),
 
 		RouteStopsByRouteIDs: withWaitAndCapacity(

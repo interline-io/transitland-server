@@ -80,7 +80,7 @@ func (f *Finder) RouteHeadwaysByRouteIDs(ctx context.Context, limit *int, keys [
 	return arrangeGroup(keys, ents, func(ent *model.RouteHeadway) int { return ent.RouteID }), err
 }
 
-func (f *Finder) RouteStopPatternsByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteStopPattern, err error) {
+func (f *Finder) RouteStopPatternsByRouteIDs(ctx context.Context, limit *int, keys []int) ([][]*model.RouteStopPattern, error) {
 	q := sq.StatementBuilder.
 		Select("route_id", "direction_id", "stop_pattern_id", "count(*) as count").
 		From("gtfs_trips").
@@ -88,12 +88,13 @@ func (f *Finder) RouteStopPatternsByRouteIDs(ctx context.Context, limit *int, ke
 		GroupBy("route_id,direction_id,stop_pattern_id").
 		OrderBy("route_id,count desc").
 		Limit(1000)
-	err = dbutil.Select(ctx,
+	var ents []*model.RouteStopPattern
+	err := dbutil.Select(ctx,
 		f.db,
 		q,
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.RouteStopPattern) int { return ent.RouteID }), err
 }
 
 func (f *Finder) RouteGeometriesByRouteIDs(ctx context.Context, limit *int, keys []int) ([][]*model.RouteGeometry, error) {
