@@ -113,8 +113,9 @@ func (f *Finder) RouteGeometriesByRouteIDs(ctx context.Context, limit *int, keys
 	return arrangeGroup(keys, ents, func(ent *model.RouteGeometry) int { return ent.RouteID }), err
 }
 
-func (f *Finder) RoutesByAgencyIDs(ctx context.Context, limit *int, where *model.RouteFilter, keys []int) (ents []*model.Route, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) RoutesByAgencyIDs(ctx context.Context, limit *int, where *model.RouteFilter, keys []int) ([][]*model.Route, error) {
+	var ents []*model.Route
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			routeSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
@@ -126,7 +127,7 @@ func (f *Finder) RoutesByAgencyIDs(ctx context.Context, limit *int, where *model
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Route) int { return ent.AgencyID.Int() }), err
 }
 
 func (f *Finder) RoutesByFeedVersionIDs(ctx context.Context, limit *int, where *model.RouteFilter, keys []int) (ents []*model.Route, err error) {
