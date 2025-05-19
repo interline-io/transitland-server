@@ -105,7 +105,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		AgenciesByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p agencyLoaderParam) (int, *model.AgencyFilter, *int) {
 					return p.FeedVersionID, p.Where, p.Limit
 				},
@@ -114,7 +114,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		),
 		AgenciesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.AgenciesByIDs),
 		AgenciesByOnestopIDs: withWaitAndCapacity(waitTime, batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p agencyLoaderParam) (string, *model.AgencyFilter, *int) {
 					a := ""
 					if p.OnestopID != nil {
@@ -128,7 +128,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		AgencyPlacesByAgencyIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p agencyPlaceLoaderParam) (int, *model.AgencyPlaceFilter, *int) {
 					return p.AgencyID, p.Where, p.Limit
 				},
@@ -138,7 +138,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CalendarDatesByServiceIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p calendarDateLoaderParam) (int, *model.CalendarDateFilter, *int) {
 					return p.ServiceID, p.Where, p.Limit
 				},
@@ -149,7 +149,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusDatasetLayersByDatasetIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetIDs),
 		CensusSourceLayersBySourceIDs:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceIDs),
 		CensusFieldsByTableIDs: withWaitAndCapacity(waitTime, batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p censusFieldLoaderParam) (int, bool, *int) {
 					return p.TableID, false, p.Limit
 				},
@@ -161,7 +161,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusGeographiesByDatasetIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p censusDatasetGeographyLoaderParam) (int, *model.CensusDatasetGeographyFilter, *int) {
 					return p.DatasetID, p.Where, p.Limit
 				},
@@ -171,7 +171,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusGeographiesByEntityIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p censusGeographyLoaderParam) (int, *censusGeographyLoaderParam, *int) {
 					rp := censusGeographyLoaderParam{
 						EntityType: p.EntityType,
@@ -187,7 +187,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusSourcesByDatasetIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p censusSourceLoaderParam) (int, *model.CensusSourceFilter, *int) {
 					return p.DatasetID, p.Where, p.Limit
 				},
@@ -198,7 +198,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CensusValuesByGeographyIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p censusValueLoaderParam) (string, string, *int) {
 					return p.Geoid, p.TableNames, p.Limit
 				},
@@ -211,7 +211,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedFetchesByFeedIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p feedFetchLoaderParam) (int, *model.FeedFetchFilter, *int) {
 					return p.FeedID, p.Where, p.Limit
 				},
@@ -221,7 +221,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedInfosByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p feedInfoLoaderParam) (int, bool, *int) {
 					return p.FeedVersionID, false, p.Limit
 				},
@@ -234,7 +234,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedsByOperatorOnestopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p feedLoaderParam) (string, *model.FeedFilter, *int) {
 					return p.OperatorOnestopID, p.Where, p.Limit
 				},
@@ -245,7 +245,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedVersionFileInfosByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p feedVersionFileInfoLoaderParam) (int, bool, *int) {
 					return p.FeedVersionID, false, p.Limit
 				},
@@ -259,7 +259,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedVersionsByFeedIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p feedVersionLoaderParam) (int, *model.FeedVersionFilter, *int) {
 					return p.FeedID, p.Where, p.Limit
 				},
@@ -270,7 +270,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FeedVersionServiceLevelsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p feedVersionServiceLevelLoaderParam) (int, *model.FeedVersionServiceLevelFilter, *int) {
 					return p.FeedVersionID, p.Where, p.Limit
 				},
@@ -282,7 +282,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		FrequenciesByTripIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p frequencyLoaderParam) (int, bool, *int) {
 					return p.TripID, false, p.Limit
 				},
@@ -296,7 +296,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		LevelsByParentStationIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p levelLoaderParam) (int, bool, *int) {
 					return p.ParentStationID, false, p.Limit
 				},
@@ -311,7 +311,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		OperatorsByFeedIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p operatorLoaderParam) (int, *model.OperatorFilter, *int) {
 					return p.FeedID, p.Where, p.Limit
 				},
@@ -322,7 +322,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		PathwaysByFromStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p pathwayLoaderParam) (int, *model.PathwayFilter, *int) {
 					return p.FromStopID, p.Where, p.Limit
 				},
@@ -332,7 +332,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		PathwaysByToStopID: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p pathwayLoaderParam) (int, *model.PathwayFilter, *int) {
 					return p.ToStopID, p.Where, p.Limit
 				},
@@ -343,7 +343,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RouteGeometriesByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p routeGeometryLoaderParam) (int, bool, *int) {
 					return p.RouteID, false, p.Limit
 				},
@@ -356,7 +356,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RouteHeadwaysByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p routeHeadwayLoaderParam) (int, bool, *int) {
 					return p.RouteID, false, p.Limit
 				},
@@ -369,7 +369,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RoutesByAgencyIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p routeLoaderParam) (int, *model.RouteFilter, *int) {
 					return p.AgencyID, p.Where, p.Limit
 				},
@@ -380,7 +380,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RoutesByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p routeLoaderParam) (int, *model.RouteFilter, *int) {
 					return p.FeedVersionID, p.Where, p.Limit
 				},
@@ -392,7 +392,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RouteStopPatternsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p routeStopPatternLoaderParam) (int, bool, *int) {
 					return p.RouteID, false, nil
 				},
@@ -404,7 +404,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RouteStopsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p routeStopLoaderParam) (int, bool, *int) {
 					return p.RouteID, false, p.Limit
 				},
@@ -417,7 +417,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RouteStopsByStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p routeStopLoaderParam) (int, bool, *int) {
 					return p.StopID, false, p.Limit
 				},
@@ -430,7 +430,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		SegmentPatternsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p segmentPatternLoaderParam) (int, *model.SegmentPatternFilter, *int) {
 					return p.RouteID, p.Where, p.Limit
 				},
@@ -440,7 +440,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		SegmentPatternsBySegmentIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p segmentPatternLoaderParam) (int, *model.SegmentPatternFilter, *int) {
 					return p.SegmentID, p.Where, p.Limit
 				},
@@ -450,7 +450,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		SegmentsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p segmentLoaderParam) (int, *model.SegmentFilter, *int) {
 					return p.FeedVersionID, p.Where, p.Limit
 				},
@@ -461,7 +461,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		SegmentsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p segmentLoaderParam) (int, *model.SegmentFilter, *int) {
 					return p.RouteID, p.Where, p.Limit
 				},
@@ -473,7 +473,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopObservationsByStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p stopObservationLoaderParam) (int, *model.StopObservationFilter, *int) {
 					return p.StopID, p.Where, p.Limit
 
@@ -485,7 +485,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p stopLoaderParam) (int, *model.StopFilter, *int) {
 					return p.FeedVersionID, p.Where, p.Limit
 				},
@@ -497,7 +497,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopsByLevelIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p stopLoaderParam) (int, *model.StopFilter, *int) {
 					return p.LevelID, p.Where, p.Limit
 				},
@@ -508,7 +508,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopsByParentStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p stopLoaderParam) (int, *model.StopFilter, *int) {
 					return p.ParentStopID, p.Where, p.Limit
 				},
@@ -519,7 +519,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p stopLoaderParam) (int, *model.StopFilter, *int) {
 					return p.RouteID, p.Where, p.Limit
 				},
@@ -530,7 +530,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopTimesByStopIDs: withWaitAndCapacity(
 			waitTime,
 			stopTimeBatchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p stopTimeLoaderParam) (model.FVPair, *model.StopTimeFilter, *int) {
 					return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}, p.Where, p.Limit
 				},
@@ -540,7 +540,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopTimesByTripIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p tripStopTimeLoaderParam) (model.FVPair, *model.TripStopTimeFilter, *int) {
 					return model.FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}, p.Where, p.Limit
 				},
@@ -551,7 +551,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		TripsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p tripLoaderParam) (int, *model.TripFilter, *int) {
 					return p.FeedVersionID, p.Where, p.Limit
 				},
@@ -562,7 +562,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		TripsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p tripLoaderParam) (model.FVPair, *model.TripFilter, *int) {
 					return model.FVPair{EntityID: p.RouteID, FeedVersionID: p.FeedVersionID}, p.Where, p.Limit
 				},
@@ -572,7 +572,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		ValidationReportErrorExemplarsByValidationReportErrorGroupIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p validationReportErrorExemplarLoaderParam) (int, bool, *int) {
 					return p.ValidationReportGroupID, false, p.Limit
 				},
@@ -580,23 +580,11 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 					return dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(ctx, limit, keys)
 				},
 			),
-			// func(ctx context.Context, params []validationReportErrorExemplarLoaderParam) ([][]*model.ValidationReportError, []error) {
-			// 	return paramGroupQuery(
-			// 		params,
-			// 		func(p validationReportErrorExemplarLoaderParam) (int, bool, *int) {
-			// 			return p.ValidationReportGroupID, false, p.Limit
-			// 		},
-			// 		func(keys []int, where bool, limit *int) ([]*model.ValidationReportError, error) {
-			// 			return dbf.ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(ctx, limit, keys)
-			// 		},
-			// 		func(ent *model.ValidationReportError) int { return ent.ValidationReportErrorGroupID },
-			// 	)
-			// },
 		),
 		ValidationReportErrorGroupsByValidationReportIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p validationReportErrorGroupLoaderParam) (int, bool, *int) {
 					return p.ValidationReportID, false, p.Limit
 				},
@@ -608,7 +596,7 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		ValidationReportsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			paramGroupQuery2(
+			paramGroupQuery(
 				func(p validationReportLoaderParam) (int, *model.ValidationReportFilter, *int) {
 					return p.FeedVersionID, p.Where, p.Limit
 				},
@@ -677,96 +665,7 @@ func unwrapResult[
 
 ////////////
 
-// Multiple param sets
-
 func paramGroupQuery[
-	K comparable,
-	P any,
-	W any,
-	R any,
-](
-	params []P,
-	paramFunc func(P) (K, W, *int),
-	queryFunc func([]K, W, *int) ([]*R, error),
-	keyFunc func(*R) K,
-) ([][]*R, []error) {
-	// Create return value
-	ret := make([][]*R, len(params))
-	errs := make([]error, len(params))
-
-	// Group params by JSON representation
-	type paramGroupItem[K comparable, M any] struct {
-		Limit *int
-		Where M
-	}
-	type paramGroup[K comparable, M any] struct {
-		Index []int
-		Keys  []K
-		Limit *int
-		Where M
-	}
-	paramGroups := map[string]paramGroup[K, W]{}
-	for i, param := range params {
-		// Get values from supplied func
-		key, where, limit := paramFunc(param)
-
-		// Convert to paramGroupItem
-		item := paramGroupItem[K, W]{
-			Limit: limit,
-			Where: where,
-		}
-
-		// Use the JSON representation of Where and Limit as the key
-		jj, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
-		if err != nil {
-			// TODO: log and expand error
-			errs[i] = err
-			continue
-		}
-		paramGroupKey := string(jj)
-
-		// Add index and key
-		a, ok := paramGroups[paramGroupKey]
-		if !ok {
-			a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
-		}
-		a.Index = append(a.Index, i)
-		a.Keys = append(a.Keys, key)
-		paramGroups[paramGroupKey] = a
-	}
-
-	// Process each param group
-	for _, pgroup := range paramGroups {
-		// Run query function
-		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
-
-		// Group using keyFunc and merge into output
-		limit := uint64(1000)
-		if a := checkLimit(pgroup.Limit); a != nil {
-			limit = uint64(*a)
-		}
-		bykey := map[K][]*R{}
-		for _, ent := range ents {
-			key := keyFunc(ent)
-			bykey[key] = append(bykey[key], ent)
-		}
-		for keyidx, key := range pgroup.Keys {
-			idx := pgroup.Index[keyidx]
-			gi := bykey[key]
-			if err != nil {
-				errs[idx] = err
-			}
-			if uint64(len(gi)) <= limit {
-				ret[idx] = gi
-			} else {
-				ret[idx] = gi[0:limit]
-			}
-		}
-	}
-	return ret, errs
-}
-
-func paramGroupQuery2[
 	K comparable,
 	ParamT any,
 	W any,
