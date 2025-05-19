@@ -380,20 +380,12 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		RoutesByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []routeLoaderParam) ([][]*model.Route, []error) {
-				return paramGroupQuery(
-					params,
-					func(p routeLoaderParam) (int, *model.RouteFilter, *int) {
-						return p.FeedVersionID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.RouteFilter, limit *int) (ents []*model.Route, err error) {
-						return dbf.RoutesByFeedVersionIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Route) int {
-						return ent.FeedVersionID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p routeLoaderParam) (int, *model.RouteFilter, *int) {
+					return p.FeedVersionID, p.Where, p.Limit
+				},
+				dbf.RoutesByFeedVersionIDs,
+			),
 		),
 
 		RoutesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
