@@ -519,20 +519,26 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []stopLoaderParam) ([][]*model.Stop, []error) {
-				return paramGroupQuery(
-					params,
-					func(p stopLoaderParam) (int, *model.StopFilter, *int) {
-						return p.RouteID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.StopFilter, limit *int) (ents []*model.Stop, err error) {
-						return dbf.StopsByRouteIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Stop) int {
-						return ent.WithRouteID.Int()
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p stopLoaderParam) (int, *model.StopFilter, *int) {
+					return p.RouteID, p.Where, p.Limit
+				},
+				dbf.StopsByRouteIDs,
+			),
+			// func(ctx context.Context, params []stopLoaderParam) ([][]*model.Stop, []error) {
+			// 	return paramGroupQuery(
+			// 		params,
+			// 		func(p stopLoaderParam) (int, *model.StopFilter, *int) {
+			// 			return p.RouteID, p.Where, p.Limit
+			// 		},
+			// 		func(keys []int, where *model.StopFilter, limit *int) (ents []*model.Stop, err error) {
+			// 			return dbf.StopsByRouteIDs(ctx, limit, where, keys)
+			// 		},
+			// 		func(ent *model.Stop) int {
+			// 			return ent.WithRouteID.Int()
+			// 		},
+			// 	)
+			// },
 		),
 
 		StopTimesByStopIDs: withWaitAndCapacity(

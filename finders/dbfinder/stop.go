@@ -63,15 +63,16 @@ func (f *Finder) StopsByIDs(ctx context.Context, ids []int) ([]*model.Stop, []er
 	return arrangeBy(ids, ents, func(ent *model.Stop) int { return ent.ID }), nil
 }
 
-func (f *Finder) StopsByRouteIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) (ents []*model.Stop, err error) {
+func (f *Finder) StopsByRouteIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) ([][]*model.Stop, error) {
+	var ents []*model.Stop
 	qso := stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where)
 	qso = qso.Join("tl_route_stops on tl_route_stops.stop_id = gtfs_stops.id").Where(In("route_id", keys)).Column("route_id as with_route_id")
-	err = dbutil.Select(ctx,
+	err := dbutil.Select(ctx,
 		f.db,
 		qso,
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Stop) int { return ent.WithRouteID.Int() }), err
 }
 
 func (f *Finder) StopsByParentStopIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) ([][]*model.Stop, error) {
