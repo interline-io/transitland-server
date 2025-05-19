@@ -557,39 +557,31 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				},
 				dbf.TripsByFeedVersionIDs,
 			),
-			// func(ctx context.Context, params []tripLoaderParam) ([][]*model.Trip, []error) {
-			// 	return paramGroupQuery(
-			// 		params,
-			// 		func(p tripLoaderParam) (int, *model.TripFilter, *int) {
-			// 			return p.FeedVersionID, p.Where, p.Limit
-			// 		},
-			// 		func(keys []int, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
-			// 			return dbf.TripsByFeedVersionIDs(ctx, limit, where, keys)
-			// 		},
-			// 		func(ent *model.Trip) int {
-			// 			return ent.FeedVersionID
-			// 		},
-			// 	)
-			// },
 		),
 		TripsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.TripsByIDs),
 		TripsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []tripLoaderParam) ([][]*model.Trip, []error) {
-				return paramGroupQuery(
-					params,
-					func(p tripLoaderParam) (model.FVPair, *model.TripFilter, *int) {
-						return model.FVPair{EntityID: p.RouteID, FeedVersionID: p.FeedVersionID}, p.Where, p.Limit
-					},
-					func(keys []model.FVPair, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
-						return dbf.TripsByRouteIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Trip) model.FVPair {
-						return model.FVPair{EntityID: ent.RouteID.Int(), FeedVersionID: ent.FeedVersionID}
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p tripLoaderParam) (model.FVPair, *model.TripFilter, *int) {
+					return model.FVPair{EntityID: p.RouteID, FeedVersionID: p.FeedVersionID}, p.Where, p.Limit
+				},
+				dbf.TripsByRouteIDs,
+			),
+			// func(ctx context.Context, params []tripLoaderParam) ([][]*model.Trip, []error) {
+			// 	return paramGroupQuery(
+			// 		params,
+			// 		func(p tripLoaderParam) (model.FVPair, *model.TripFilter, *int) {
+			// 			return model.FVPair{EntityID: p.RouteID, FeedVersionID: p.FeedVersionID}, p.Where, p.Limit
+			// 		},
+			// 		func(keys []model.FVPair, where *model.TripFilter, limit *int) (ents []*model.Trip, err error) {
+			// 			return dbf.TripsByRouteIDs(ctx, limit, where, keys)
+			// 		},
+			// 		func(ent *model.Trip) model.FVPair {
+			// 			return model.FVPair{EntityID: ent.RouteID.Int(), FeedVersionID: ent.FeedVersionID}
+			// 		},
+			// 	)
+			// },
 		),
 		ValidationReportErrorExemplarsByValidationReportErrorGroupIDs: withWaitAndCapacity(
 			waitTime,

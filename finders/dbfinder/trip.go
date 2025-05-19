@@ -47,7 +47,8 @@ func (f *Finder) FrequenciesByTripIDs(ctx context.Context, limit *int, keys []in
 	return arrangeGroup(keys, ents, func(ent *model.Frequency) int { return ent.FeedVersionID }), err
 }
 
-func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.TripFilter, keys []model.FVPair) (ents []*model.Trip, err error) {
+func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.TripFilter, keys []model.FVPair) ([][]*model.Trip, error) {
+	var ents []*model.Trip
 	// Group by fvid
 	groups := map[int][]int{}
 	for _, key := range keys {
@@ -58,7 +59,7 @@ func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.T
 		if err != nil {
 			return nil, err
 		}
-		err = dbutil.Select(ctx,
+		if err := dbutil.Select(ctx,
 			f.db,
 			lateralWrap(
 				tripSelect(limit, nil, nil, false, f.PermFilter(ctx), where, fvsw),
@@ -69,9 +70,13 @@ func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.T
 				entityIds,
 			),
 			&ents,
-		)
+		); err != nil {
+			return nil, err
+		}
 	}
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Trip) model.FVPair {
+		return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.RouteID.Int()}
+	}), nil
 }
 
 func (f *Finder) TripsByFeedVersionIDs(ctx context.Context, limit *int, where *model.TripFilter, keys []int) ([][]*model.Trip, error) {
