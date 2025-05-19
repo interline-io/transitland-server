@@ -8,8 +8,9 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) SegmentsByFeedVersionIDs(ctx context.Context, limit *int, where *model.SegmentFilter, keys []int) (ents []*model.Segment, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) SegmentsByFeedVersionIDs(ctx context.Context, limit *int, where *model.SegmentFilter, keys []int) ([][]*model.Segment, error) {
+	var ents []*model.Segment
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelect("tl_segments", limit, nil, nil),
@@ -21,7 +22,7 @@ func (f *Finder) SegmentsByFeedVersionIDs(ctx context.Context, limit *int, where
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Segment) int { return ent.FeedVersionID }), err
 }
 
 func (f *Finder) SegmentsByIDs(ctx context.Context, ids []int) ([]*model.Segment, []error) {
@@ -37,7 +38,8 @@ func (f *Finder) SegmentsByIDs(ctx context.Context, ids []int) ([]*model.Segment
 	return arrangeBy(ids, ents, func(ent *model.Segment) int { return ent.ID }), nil
 }
 
-func (f *Finder) SegmentsByRouteIDs(ctx context.Context, limit *int, where *model.SegmentFilter, keys []int) (ents []*model.Segment, err error) {
+func (f *Finder) SegmentsByRouteIDs(ctx context.Context, limit *int, where *model.SegmentFilter, keys []int) ([][]*model.Segment, error) {
+	var ents []*model.Segment
 	q := sq.Select("s.id", "s.way_id", "s.geometry", "s.route_id", "s.route_id with_route_id").
 		From("gtfs_routes").
 		JoinClause(
@@ -45,12 +47,12 @@ func (f *Finder) SegmentsByRouteIDs(ctx context.Context, limit *int, where *mode
 			checkLimit(limit),
 		).
 		Where(In("gtfs_routes.id", keys))
-	err = dbutil.Select(ctx,
+	err := dbutil.Select(ctx,
 		f.db,
 		q,
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Segment) int { return ent.WithRouteID }), err
 }
 
 func (f *Finder) SegmentPatternsByRouteIDs(ctx context.Context, limit *int, where *model.SegmentPatternFilter, keys []int) ([][]*model.SegmentPattern, error) {

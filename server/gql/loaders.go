@@ -450,39 +450,23 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		SegmentsByFeedVersionIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []segmentLoaderParam) ([][]*model.Segment, []error) {
-				return paramGroupQuery(
-					params,
-					func(p segmentLoaderParam) (int, *model.SegmentFilter, *int) {
-						return p.FeedVersionID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.SegmentFilter, limit *int) (ents []*model.Segment, err error) {
-						return dbf.SegmentsByFeedVersionIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Segment) int {
-						return ent.FeedVersionID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p segmentLoaderParam) (int, *model.SegmentFilter, *int) {
+					return p.FeedVersionID, p.Where, p.Limit
+				},
+				dbf.SegmentsByFeedVersionIDs,
+			),
 		),
 		SegmentsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.SegmentsByIDs),
 		SegmentsByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []segmentLoaderParam) ([][]*model.Segment, []error) {
-				return paramGroupQuery(
-					params,
-					func(p segmentLoaderParam) (int, *model.SegmentFilter, *int) {
-						return p.RouteID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.SegmentFilter, limit *int) (ents []*model.Segment, err error) {
-						return dbf.SegmentsByRouteIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Segment) int {
-						return ent.WithRouteID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p segmentLoaderParam) (int, *model.SegmentFilter, *int) {
+					return p.RouteID, p.Where, p.Limit
+				},
+				dbf.SegmentsByRouteIDs,
+			),
 		),
 		ShapesByIDs:                     withWaitAndCapacity(waitTime, batchSize, dbf.ShapesByIDs),
 		StopExternalReferencesByStopIDs: withWaitAndCapacity(waitTime, batchSize, dbf.StopExternalReferencesByStopIDs),
