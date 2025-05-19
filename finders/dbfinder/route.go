@@ -148,8 +148,9 @@ func (f *Finder) RoutesByFeedVersionIDs(ctx context.Context, limit *int, where *
 	return arrangeGroup(keys, ents, func(ent *model.Route) int { return ent.FeedVersionID }), err
 }
 
-func (f *Finder) RouteStopsByRouteIDs(ctx context.Context, limit *int, keys []int) (ents []*model.RouteStop, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) RouteStopsByRouteIDs(ctx context.Context, limit *int, keys []int) ([][]*model.RouteStop, error) {
+	var ents []*model.RouteStop
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			quickSelectOrder("tl_route_stops", limit, nil, nil, "stop_id"),
@@ -161,8 +162,7 @@ func (f *Finder) RouteStopsByRouteIDs(ctx context.Context, limit *int, keys []in
 		),
 		&ents,
 	)
-	return ents, err
-
+	return arrangeGroup(keys, ents, func(ent *model.RouteStop) int { return ent.RouteID }), err
 }
 
 func (f *Finder) ShapesByIDs(ctx context.Context, ids []int) ([]*model.Shape, []error) {
