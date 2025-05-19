@@ -74,8 +74,9 @@ func (f *Finder) StopsByRouteIDs(ctx context.Context, limit *int, where *model.S
 	return ents, err
 }
 
-func (f *Finder) StopsByParentStopIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) (ents []*model.Stop, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) StopsByParentStopIDs(ctx context.Context, limit *int, where *model.StopFilter, keys []int) ([][]*model.Stop, error) {
+	var ents []*model.Stop
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			stopSelect(limit, nil, nil, false, f.PermFilter(ctx), where),
@@ -87,7 +88,7 @@ func (f *Finder) StopsByParentStopIDs(ctx context.Context, limit *int, where *mo
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Stop) int { return ent.ParentStation.Int() }), err
 }
 
 func (f *Finder) TargetStopsByStopIDs(ctx context.Context, ids []int) ([]*model.Stop, []error) {

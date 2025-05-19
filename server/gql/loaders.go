@@ -508,20 +508,12 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopsByParentStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []stopLoaderParam) ([][]*model.Stop, []error) {
-				return paramGroupQuery(
-					params,
-					func(p stopLoaderParam) (int, *model.StopFilter, *int) {
-						return p.ParentStopID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.StopFilter, limit *int) (ents []*model.Stop, err error) {
-						return dbf.StopsByParentStopIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Stop) int {
-						return ent.ParentStation.Int()
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p stopLoaderParam) (int, *model.StopFilter, *int) {
+					return p.ParentStopID, p.Where, p.Limit
+				},
+				dbf.StopsByParentStopIDs,
+			),
 		),
 
 		StopsByRouteIDs: withWaitAndCapacity(
