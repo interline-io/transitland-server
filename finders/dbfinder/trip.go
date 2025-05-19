@@ -74,7 +74,8 @@ func (f *Finder) TripsByRouteIDs(ctx context.Context, limit *int, where *model.T
 	return ents, err
 }
 
-func (f *Finder) TripsByFeedVersionIDs(ctx context.Context, limit *int, where *model.TripFilter, keys []int) (ents []*model.Trip, err error) {
+func (f *Finder) TripsByFeedVersionIDs(ctx context.Context, limit *int, where *model.TripFilter, keys []int) ([][]*model.Trip, error) {
+	var ents []*model.Trip
 	for _, fvid := range keys {
 		fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvid)
 		if err != nil {
@@ -95,7 +96,7 @@ func (f *Finder) TripsByFeedVersionIDs(ctx context.Context, limit *int, where *m
 		)
 		ents = append(ents, q...)
 	}
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Trip) int { return ent.FeedVersionID }), nil
 }
 
 func tripSelect(limit *int, after *model.Cursor, ids []int, active bool, permFilter *model.PermFilter, where *model.TripFilter, fvsw *model.ServiceWindow) sq.SelectBuilder {
