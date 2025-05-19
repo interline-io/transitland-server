@@ -473,20 +473,13 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		StopObservationsByStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []stopObservationLoaderParam) ([][]*model.StopObservation, []error) {
-				return paramGroupQuery(
-					params,
-					func(p stopObservationLoaderParam) (int, *model.StopObservationFilter, *int) {
-						return p.StopID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.StopObservationFilter, limit *int) (ents []*model.StopObservation, err error) {
-						return dbf.StopObservationsByStopIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.StopObservation) int {
-						return ent.StopID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p stopObservationLoaderParam) (int, *model.StopObservationFilter, *int) {
+					return p.StopID, p.Where, p.Limit
+
+				},
+				dbf.StopObservationsByStopIDs,
+			),
 		),
 
 		StopPlacesByStopID: withWaitAndCapacity(waitTime, batchSize, dbf.StopPlacesByStopID),

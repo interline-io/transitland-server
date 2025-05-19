@@ -97,7 +97,7 @@ type EntityLoader interface {
 	SegmentsByRouteIDs(context.Context, *int, *SegmentFilter, []int) ([][]*Segment, error)
 	ShapesByIDs(context.Context, []int) ([]*Shape, []error)
 	StopExternalReferencesByStopIDs(context.Context, []int) ([]*StopExternalReference, []error)
-	StopObservationsByStopIDs(context.Context, *int, *StopObservationFilter, []int) ([]*StopObservation, error)
+	StopObservationsByStopIDs(context.Context, *int, *StopObservationFilter, []int) ([][]*StopObservation, error)
 	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
 	StopsByFeedVersionIDs(context.Context, *int, *StopFilter, []int) ([]*Stop, error)
 	StopsByIDs(context.Context, []int) ([]*Stop, []error)

@@ -36,7 +36,7 @@ func (f *Finder) StopExternalReferencesByStopIDs(ctx context.Context, ids []int)
 	return arrangeBy(ids, ents, func(ent *model.StopExternalReference) int { return ent.StopID.Int() }), nil
 }
 
-func (f *Finder) StopObservationsByStopIDs(ctx context.Context, limit *int, where *model.StopObservationFilter, keys []int) (ents []*model.StopObservation, err error) {
+func (f *Finder) StopObservationsByStopIDs(ctx context.Context, limit *int, where *model.StopObservationFilter, keys []int) ([][]*model.StopObservation, error) {
 	// Prepare output
 	q := sq.StatementBuilder.Select("gtfs_stops.id as stop_id", "obs.*").
 		From("ext_performance_stop_observations obs").
@@ -50,8 +50,9 @@ func (f *Finder) StopObservationsByStopIDs(ctx context.Context, limit *int, wher
 		// q = q.Where("start_time >= ?", where.StartTime)
 		// q = q.Where("end_time <= ?", where.EndTime)
 	}
-	err = dbutil.Select(ctx, f.db, q, &ents)
-	return ents, err
+	var ents []*model.StopObservation
+	err := dbutil.Select(ctx, f.db, q, &ents)
+	return arrangeGroup(keys, ents, func(ent *model.StopObservation) int { return ent.StopID }), err
 }
 
 func (f *Finder) StopsByIDs(ctx context.Context, ids []int) ([]*model.Stop, []error) {
