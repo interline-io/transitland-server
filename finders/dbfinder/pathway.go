@@ -51,8 +51,9 @@ func (f *Finder) LevelsByParentStationIDs(ctx context.Context, limit *int, keys 
 	return arrangeGroup(keys, ents, func(ent *model.Level) int { return ent.ParentStation.Int() }), err
 }
 
-func (f *Finder) PathwaysByFromStopIDs(ctx context.Context, limit *int, where *model.PathwayFilter, keys []int) (ents []*model.Pathway, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) PathwaysByFromStopIDs(ctx context.Context, limit *int, where *model.PathwayFilter, keys []int) ([][]*model.Pathway, error) {
+	var ents []*model.Pathway
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			pathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
@@ -64,11 +65,12 @@ func (f *Finder) PathwaysByFromStopIDs(ctx context.Context, limit *int, where *m
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Pathway) int { return ent.FromStopID.Int() }), err
 }
 
-func (f *Finder) PathwaysByToStopIDs(ctx context.Context, limit *int, where *model.PathwayFilter, keys []int) (ents []*model.Pathway, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) PathwaysByToStopIDs(ctx context.Context, limit *int, where *model.PathwayFilter, keys []int) ([][]*model.Pathway, error) {
+	var ents []*model.Pathway
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			pathwaySelect(limit, nil, nil, f.PermFilter(ctx), where),
@@ -80,7 +82,7 @@ func (f *Finder) PathwaysByToStopIDs(ctx context.Context, limit *int, where *mod
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Pathway) int { return ent.ToStopID.Int() }), err
 }
 
 func pathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model.PermFilter, where *model.PathwayFilter) sq.SelectBuilder {

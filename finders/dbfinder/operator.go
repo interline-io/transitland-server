@@ -45,8 +45,9 @@ func (f *Finder) OperatorsByAgencyIDs(ctx context.Context, ids []int) ([]*model.
 
 // Param loaders
 
-func (f *Finder) OperatorsByFeedIDs(ctx context.Context, limit *int, where *model.OperatorFilter, keys []int) (ents []*model.Operator, err error) {
-	err = dbutil.Select(ctx,
+func (f *Finder) OperatorsByFeedIDs(ctx context.Context, limit *int, where *model.OperatorFilter, keys []int) ([][]*model.Operator, error) {
+	var ents []*model.Operator
+	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
 			operatorSelectBase(true, nil),
@@ -58,7 +59,8 @@ func (f *Finder) OperatorsByFeedIDs(ctx context.Context, limit *int, where *mode
 		),
 		&ents,
 	)
-	return ents, err
+	return arrangeGroup(keys, ents, func(ent *model.Operator) int { return ent.FeedID }), err
+
 }
 
 func operatorSelectBase(distinct bool, where *model.OperatorFilter) sq.SelectBuilder {

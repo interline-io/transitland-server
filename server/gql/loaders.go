@@ -311,78 +311,46 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		OperatorsByFeedIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []operatorLoaderParam) ([][]*model.Operator, []error) {
-				return paramGroupQuery(
-					params,
-					func(p operatorLoaderParam) (int, *model.OperatorFilter, *int) {
-						return p.FeedID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.OperatorFilter, limit *int) (ents []*model.Operator, err error) {
-						return dbf.OperatorsByFeedIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Operator) int {
-						return ent.FeedID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p operatorLoaderParam) (int, *model.OperatorFilter, *int) {
+					return p.FeedID, p.Where, p.Limit
+				},
+				dbf.OperatorsByFeedIDs,
+			),
 		),
 		PathwaysByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.PathwaysByIDs),
 		PathwaysByFromStopIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []pathwayLoaderParam) ([][]*model.Pathway, []error) {
-				return paramGroupQuery(
-					params,
-					func(p pathwayLoaderParam) (int, *model.PathwayFilter, *int) {
-						return p.FromStopID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.PathwayFilter, limit *int) (ents []*model.Pathway, err error) {
-						return dbf.PathwaysByFromStopIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Pathway) int {
-						return ent.FromStopID.Int()
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p pathwayLoaderParam) (int, *model.PathwayFilter, *int) {
+					return p.FromStopID, p.Where, p.Limit
+				},
+				dbf.PathwaysByFromStopIDs,
+			),
 		),
-
 		PathwaysByToStopID: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []pathwayLoaderParam) ([][]*model.Pathway, []error) {
-				return paramGroupQuery(
-					params,
-					func(p pathwayLoaderParam) (int, *model.PathwayFilter, *int) {
-						return p.ToStopID, p.Where, p.Limit
-					},
-					func(keys []int, where *model.PathwayFilter, limit *int) (ents []*model.Pathway, err error) {
-						return dbf.PathwaysByToStopIDs(ctx, limit, where, keys)
-					},
-					func(ent *model.Pathway) int {
-						return ent.FromStopID.Int()
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p pathwayLoaderParam) (int, *model.PathwayFilter, *int) {
+					return p.ToStopID, p.Where, p.Limit
+				},
+				dbf.PathwaysByToStopIDs,
+			),
 		),
-
 		RouteAttributesByRouteIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
 		RouteGeometriesByRouteIDs: withWaitAndCapacity(
 			waitTime,
 			batchSize,
-			func(ctx context.Context, params []routeGeometryLoaderParam) ([][]*model.RouteGeometry, []error) {
-				return paramGroupQuery(
-					params,
-					func(p routeGeometryLoaderParam) (int, bool, *int) {
-						return p.RouteID, false, p.Limit
-					},
-					func(keys []int, where bool, limit *int) (ents []*model.RouteGeometry, err error) {
-						return dbf.RouteGeometriesByRouteIDs(ctx, limit, keys)
-					},
-					func(ent *model.RouteGeometry) int {
-						return ent.RouteID
-					},
-				)
-			},
+			paramGroupQuery2(
+				func(p routeGeometryLoaderParam) (int, bool, *int) {
+					return p.RouteID, false, p.Limit
+				},
+				func(ctx context.Context, limit *int, where bool, keys []int) ([][]*model.RouteGeometry, error) {
+					return dbf.RouteGeometriesByRouteIDs(ctx, limit, keys)
+				},
+			),
 		),
 
 		RouteHeadwaysByRouteIDs: withWaitAndCapacity(
