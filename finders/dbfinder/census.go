@@ -33,7 +33,7 @@ func (f *Finder) CensusTableByIDs(ctx context.Context, ids []int) ([]*model.Cens
 
 func (f *Finder) CensusGeographiesByEntityIDs(ctx context.Context, limit *int, where *model.CensusGeographyFilter, entityType string, entityIds []int) ([][]*model.CensusGeography, error) {
 	var ents []*model.CensusGeography
-	err := dbutil.Select(ctx, f.db, censusGeographySelect2(limit, where, entityType, entityIds), &ents)
+	err := dbutil.Select(ctx, f.db, censusGeographySelect(limit, where, entityType, entityIds), &ents)
 	return arrangeGroup(entityIds, ents, func(ent *model.CensusGeography) int { return ent.MatchEntityID }), err
 }
 
@@ -224,7 +224,7 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 	return q
 }
 
-func censusGeographySelect2(limit *int, where *model.CensusGeographyFilter, entityType string, entityIds []int) sq.SelectBuilder {
+func censusGeographySelect(limit *int, where *model.CensusGeographyFilter, entityType string, entityIds []int) sq.SelectBuilder {
 	// Get search radius
 	radius := 0.0
 	if where != nil {
