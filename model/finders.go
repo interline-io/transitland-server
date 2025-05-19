@@ -89,7 +89,7 @@ type EntityLoader interface {
 	RoutesByIDs(context.Context, []int) ([]*Route, []error)
 	RouteStopPatternsByRouteIDs(context.Context, *int, []int) ([][]*RouteStopPattern, error)
 	RouteStopsByRouteIDs(context.Context, *int, []int) ([][]*RouteStop, error)
-	RouteStopsByStopIDs(context.Context, *int, []int) ([]*RouteStop, error)
+	RouteStopsByStopIDs(context.Context, *int, []int) ([][]*RouteStop, error)
 	SegmentPatternsByRouteIDs(context.Context, *int, *SegmentPatternFilter, []int) ([]*SegmentPattern, error)
 	SegmentPatternsBySegmentIDs(context.Context, *int, *SegmentPatternFilter, []int) ([]*SegmentPattern, error)
 	SegmentsByFeedVersionIDs(context.Context, *int, *SegmentFilter, []int) ([]*Segment, error)
