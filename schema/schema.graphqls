@@ -1147,6 +1147,14 @@ type CensusGeography {
   aland: Float
   "Water area, in square meters"
   awater: Float
+  "State or province name"
+  adm1_name: String
+  "State or province ISO code"
+  adm1_iso: String
+  "Country name"
+  adm0_name: String
+  "Country ISO code"
+  adm0_iso: String
   "Census geography polygon"
   geometry: Polygon
   "Census tables containing data for this geography"

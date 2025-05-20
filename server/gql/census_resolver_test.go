@@ -35,7 +35,7 @@ func TestCensusResolver(t *testing.T) {
 			name:   "dataset layers",
 			query:  `query { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name layers} }`,
 			vars:   vars,
-			expect: `{"census_datasets":[{"dataset_name":"tiger2024","layers":["county","tract"]}]}`,
+			expect: `{"census_datasets":[{"dataset_name":"tiger2024","layers":["county","place","tract"]}]}`,
 		},
 		// Dataset Geographies
 		{
@@ -51,6 +51,12 @@ func TestCensusResolver(t *testing.T) {
 			vars:         vars,
 			selector:     "census_datasets.0.geographies.#.name",
 			selectExpect: []string{"King", "Alameda"},
+		},
+		{
+			name:   "dataset geographies with layer and adm names",
+			query:  `query { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(where:{layer:"county"}) { name geoid adm0_name adm1_name adm0_iso adm1_iso }} }`,
+			vars:   vars,
+			expect: `{"census_datasets":[{"dataset_name":"tiger2024","geographies":[{"adm0_iso":"US","adm0_name":"United States","adm1_iso":"US-CA","adm1_name":"California","geoid":"0500000US06001","name":"Alameda"},{"adm0_iso":"US","adm0_name":"United States","adm1_iso":"US-WA","adm1_name":"Washington","geoid":"0500000US53033","name":"King"}]}]}`,
 		},
 		{
 			name:         "dataset geographies with search",
@@ -133,7 +139,7 @@ func TestCensusResolver(t *testing.T) {
 			name:   "sources",
 			query:  `query { census_datasets(where:{dataset_name:"acsdt5y2022"}) {dataset_name sources { source_name }} }`,
 			vars:   vars,
-			expect: `{"census_datasets":[{"dataset_name":"acsdt5y2022","sources":[{"source_name":"acsdt5y2022-b01001.dat"}]}]}`,
+			expect: ` {"census_datasets":[{"dataset_name":"acsdt5y2022","sources":[{"source_name":"acsdt5y2022-b01001.dat"},{"source_name":"acsdt5y2022-b01001a.dat"},{"source_name":"acsdt5y2022-b01001b.dat"},{"source_name":"acsdt5y2022-b01001c.dat"},{"source_name":"acsdt5y2022-b01001d.dat"},{"source_name":"acsdt5y2022-b01001e.dat"},{"source_name":"acsdt5y2022-b01001f.dat"},{"source_name":"acsdt5y2022-b01001g.dat"},{"source_name":"acsdt5y2022-b01001h.dat"},{"source_name":"acsdt5y2022-b01001i.dat"}]}]}`,
 		},
 		// Source layers
 		{
