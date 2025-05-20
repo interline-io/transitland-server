@@ -155,6 +155,10 @@ type ComplexityRoot struct {
 	}
 
 	CensusGeography struct {
+		Adm0Iso     func(childComplexity int) int
+		Adm0Name    func(childComplexity int) int
+		Adm1Iso     func(childComplexity int) int
+		Adm1Name    func(childComplexity int) int
 		Aland       func(childComplexity int) int
 		Awater      func(childComplexity int) int
 		DatasetName func(childComplexity int) int
@@ -1854,6 +1858,34 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.CensusField.ID(childComplexity), true
+
+	case "CensusGeography.adm0_iso":
+		if e.complexity.CensusGeography.Adm0Iso == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.Adm0Iso(childComplexity), true
+
+	case "CensusGeography.adm0_name":
+		if e.complexity.CensusGeography.Adm0Name == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.Adm0Name(childComplexity), true
+
+	case "CensusGeography.adm1_iso":
+		if e.complexity.CensusGeography.Adm1Iso == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.Adm1Iso(childComplexity), true
+
+	case "CensusGeography.adm1_name":
+		if e.complexity.CensusGeography.Adm1Name == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.Adm1Name(childComplexity), true
 
 	case "CensusGeography.aland":
 		if e.complexity.CensusGeography.Aland == nil {
@@ -7856,6 +7888,9 @@ scalar LineString
 """Geographic polygon"""
 scalar Polygon
 
+"""Geographic MultiPolygon"""
+scalar MultiPolygon
+
 """Local time since midnight, in HH:MM:SS. May also be input as integer seconds."""
 scalar Seconds
 
@@ -8979,8 +9014,16 @@ type CensusGeography {
   aland: Float
   "Water area, in square meters"
   awater: Float
+  "State or province name"
+  adm1_name: String
+  "State or province ISO code"
+  adm1_iso: String
+  "Country name"
+  adm0_name: String
+  "Country ISO code"
+  adm0_iso: String
   "Census geography polygon"
-  geometry: Polygon
+  geometry: MultiPolygon
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
 }
@@ -15145,6 +15188,14 @@ func (ec *executionContext) fieldContext_Agency_census_geographies(ctx context.C
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
 				return ec.fieldContext_CensusGeography_awater(ctx, field)
+			case "adm1_name":
+				return ec.fieldContext_CensusGeography_adm1_name(ctx, field)
+			case "adm1_iso":
+				return ec.fieldContext_CensusGeography_adm1_iso(ctx, field)
+			case "adm0_name":
+				return ec.fieldContext_CensusGeography_adm0_name(ctx, field)
+			case "adm0_iso":
+				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
@@ -16827,6 +16878,14 @@ func (ec *executionContext) fieldContext_CensusDataset_geographies(ctx context.C
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
 				return ec.fieldContext_CensusGeography_awater(ctx, field)
+			case "adm1_name":
+				return ec.fieldContext_CensusGeography_adm1_name(ctx, field)
+			case "adm1_iso":
+				return ec.fieldContext_CensusGeography_adm1_iso(ctx, field)
+			case "adm0_name":
+				return ec.fieldContext_CensusGeography_adm0_name(ctx, field)
+			case "adm0_iso":
+				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
@@ -17469,6 +17528,170 @@ func (ec *executionContext) fieldContext_CensusGeography_awater(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _CensusGeography_adm1_name(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_adm1_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm1Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_adm1_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusGeography_adm1_iso(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_adm1_iso(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm1Iso, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_adm1_iso(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusGeography_adm0_name(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_adm0_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm0Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_adm0_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusGeography_adm0_iso(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adm0Iso, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_adm0_iso(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CensusGeography_geometry(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CensusGeography_geometry(ctx, field)
 	if err != nil {
@@ -17492,9 +17715,9 @@ func (ec *executionContext) _CensusGeography_geometry(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.Polygon)
+	res := resTmp.(*tt.MultiPolygon)
 	fc.Result = res
-	return ec.marshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, field.Selections, res)
+	return ec.marshalOMultiPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMultiPolygon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CensusGeography_geometry(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -17504,7 +17727,7 @@ func (ec *executionContext) fieldContext_CensusGeography_geometry(_ context.Cont
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Polygon does not have child fields")
+			return nil, errors.New("field of type MultiPolygon does not have child fields")
 		},
 	}
 	return fc, nil
@@ -17805,6 +18028,14 @@ func (ec *executionContext) fieldContext_CensusSource_geographies(ctx context.Co
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
 				return ec.fieldContext_CensusGeography_awater(ctx, field)
+			case "adm1_name":
+				return ec.fieldContext_CensusGeography_adm1_name(ctx, field)
+			case "adm1_iso":
+				return ec.fieldContext_CensusGeography_adm1_iso(ctx, field)
+			case "adm0_name":
+				return ec.fieldContext_CensusGeography_adm0_name(ctx, field)
+			case "adm0_iso":
+				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
@@ -41172,6 +41403,14 @@ func (ec *executionContext) fieldContext_Route_census_geographies(ctx context.Co
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
 				return ec.fieldContext_CensusGeography_awater(ctx, field)
+			case "adm1_name":
+				return ec.fieldContext_CensusGeography_adm1_name(ctx, field)
+			case "adm1_iso":
+				return ec.fieldContext_CensusGeography_adm1_iso(ctx, field)
+			case "adm0_name":
+				return ec.fieldContext_CensusGeography_adm0_name(ctx, field)
+			case "adm0_iso":
+				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
@@ -45984,6 +46223,14 @@ func (ec *executionContext) fieldContext_Stop_census_geographies(ctx context.Con
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
 				return ec.fieldContext_CensusGeography_awater(ctx, field)
+			case "adm1_name":
+				return ec.fieldContext_CensusGeography_adm1_name(ctx, field)
+			case "adm1_iso":
+				return ec.fieldContext_CensusGeography_adm1_iso(ctx, field)
+			case "adm0_name":
+				return ec.fieldContext_CensusGeography_adm0_name(ctx, field)
+			case "adm0_iso":
+				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
@@ -58688,6 +58935,14 @@ func (ec *executionContext) _CensusGeography(ctx context.Context, sel ast.Select
 			out.Values[i] = ec._CensusGeography_aland(ctx, field, obj)
 		case "awater":
 			out.Values[i] = ec._CensusGeography_awater(ctx, field, obj)
+		case "adm1_name":
+			out.Values[i] = ec._CensusGeography_adm1_name(ctx, field, obj)
+		case "adm1_iso":
+			out.Values[i] = ec._CensusGeography_adm1_iso(ctx, field, obj)
+		case "adm0_name":
+			out.Values[i] = ec._CensusGeography_adm0_name(ctx, field, obj)
+		case "adm0_iso":
+			out.Values[i] = ec._CensusGeography_adm0_iso(ctx, field, obj)
 		case "geometry":
 			out.Values[i] = ec._CensusGeography_geometry(ctx, field, obj)
 		case "values":
@@ -72183,6 +72438,22 @@ func (ec *executionContext) unmarshalOMap2ᚖgithubᚗcomᚋinterlineᚑioᚋtra
 }
 
 func (ec *executionContext) marshalOMap2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMap(ctx context.Context, sel ast.SelectionSet, v *tt.Map) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOMultiPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMultiPolygon(ctx context.Context, v any) (*tt.MultiPolygon, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(tt.MultiPolygon)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMultiPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMultiPolygon(ctx context.Context, sel ast.SelectionSet, v *tt.MultiPolygon) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

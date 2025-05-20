@@ -188,8 +188,16 @@ type CensusGeography struct {
 	Aland *float64 `json:"aland,omitempty"`
 	// Water area, in square meters
 	Awater *float64 `json:"awater,omitempty"`
+	// State or province name
+	Adm1Name *string `json:"adm1_name,omitempty"`
+	// State or province ISO code
+	Adm1Iso *string `json:"adm1_iso,omitempty"`
+	// Country name
+	Adm0Name *string `json:"adm0_name,omitempty"`
+	// Country ISO code
+	Adm0Iso *string `json:"adm0_iso,omitempty"`
 	// Census geography polygon
-	Geometry *tt.Polygon `json:"geometry,omitempty"`
+	Geometry *tt.MultiPolygon `json:"geometry,omitempty"`
 	// Census tables containing data for this geography
 	Values        []*CensusValue `json:"values"`
 	DatasetID     int            `json:"-"`
