@@ -220,6 +220,9 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 		if where.Search != nil {
 			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
 		}
+		if len(where.Ids) > 0 {
+			q = q.Where(sq.Eq{"tlcg.id": where.Ids})
+		}
 	}
 	return q
 }

@@ -137,6 +137,8 @@ type CensusDatasetFilter struct {
 }
 
 type CensusDatasetGeographyFilter struct {
+	// Geographies with these integer IDs
+	Ids []int `json:"ids,omitempty"`
 	// Search within this layer
 	Layer *string `json:"layer,omitempty"`
 	// Search for geographies matching this string

@@ -3,6 +3,12 @@ package gql
 import "testing"
 
 func TestCensusResolver(t *testing.T) {
+	c, cfg := newTestClient(t)
+	geographyId := 0
+	if err := cfg.Finder.DBX().QueryRowx(`select id from tl_census_geographies where layer_name = 'tract' and geoid = '1400000US06001403000'`).Scan(&geographyId); err != nil {
+		t.Errorf("could not get geography id for test: %s", err.Error())
+	}
+
 	vars := hw{}
 	testcases := []testcase{
 		// Datasets
@@ -102,6 +108,13 @@ func TestCensusResolver(t *testing.T) {
 			selector:     "census_datasets.0.geographies.#.geoid",
 			selectExpect: []string{"1400000US06001402801", "1400000US06001402900"},
 		},
+		{
+			name:         "dataset geographies by id",
+			query:        `query($ids:[Int!]) { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(where:{ids:$ids}) { name geoid }} }`,
+			vars:         hw{"ids": []int{geographyId}},
+			selector:     "census_datasets.0.geographies.#.geoid",
+			selectExpect: []string{"1400000US06001403000"},
+		},
 		// Sources
 		{
 			name:   "sources",
@@ -117,6 +130,5 @@ func TestCensusResolver(t *testing.T) {
 			expect: `{"census_datasets":[{"dataset_name":"tiger2024","sources":[{"layers":["tract"],"source_name":"tl_2024_06_tract.zip"}]}]}`,
 		},
 	}
-	c, _ := newTestClient(t)
 	queryTestcases(t, c, testcases)
 }

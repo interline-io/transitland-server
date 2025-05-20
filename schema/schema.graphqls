@@ -1870,6 +1870,8 @@ input CensusGeographyFilter {
 }
 
 input CensusDatasetGeographyFilter {
+  "Geographies with these integer IDs"
+  ids: [Int!]
   "Search within this layer"
   layer: String
   "Search for geographies matching this string"
