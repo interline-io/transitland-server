@@ -195,6 +195,8 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 		"tlcd.id as dataset_id",
 	}
 
+	orderBy := sq.Expr("tlcg.id")
+
 	// A normal query..
 	q := sq.StatementBuilder.
 		Select(cols...).
@@ -213,12 +215,11 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 		}
 		if loc.Near != nil {
 			radius := checkFloat(&loc.Near.Radius, 0, 1_000_000)
-			q = q.
-				Where("ST_DWithin(tlcg.geometry, ST_MakePoint(?,?), ?)", loc.Near.Lon, loc.Near.Lat, radius).
-				OrderByClause(sq.Expr("ST_Distance(tlcg.geometry, ST_MakePoint(?,?))", loc.Near.Lon, loc.Near.Lat))
+			q = q.Where("ST_DWithin(tlcg.geometry, ST_MakePoint(?,?), ?)", loc.Near.Lon, loc.Near.Lat, radius)
+			orderBy = sq.Expr("ST_Distance(tlcg.geometry, ST_MakePoint(?,?))", loc.Near.Lon, loc.Near.Lat)
 		}
 		if loc.Focus != nil {
-			q = q.OrderByClause(sq.Expr("ST_Distance(tlcg.geometry, ST_MakePoint(?,?))", loc.Focus.Lon, loc.Focus.Lat))
+			orderBy = sq.Expr("ST_Distance(tlcg.geometry, ST_MakePoint(?,?))", loc.Focus.Lon, loc.Focus.Lat)
 		}
 	}
 
@@ -234,6 +235,8 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 			q = q.Where(sq.Eq{"tlcg.id": where.Ids})
 		}
 	}
+
+	q = q.OrderByClause(orderBy)
 	return q
 }
 
