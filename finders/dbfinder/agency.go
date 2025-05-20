@@ -21,7 +21,7 @@ func (f *Finder) FindAgencies(ctx context.Context, limit *int, after *model.Curs
 	return ents, nil
 }
 
-func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, []error) {
+func (f *Finder) AgenciesByIDs(ctx context.Context, ids []int) ([]*model.Agency, []error) {
 	var ents []*model.Agency
 	ents, err := f.FindAgencies(ctx, nil, nil, ids, nil)
 	if err != nil {
@@ -30,100 +30,65 @@ func (f *Finder) AgenciesByID(ctx context.Context, ids []int) ([]*model.Agency, 
 	return arrangeBy(ids, ents, func(ent *model.Agency) int { return ent.ID }), nil
 }
 
-func (f *Finder) AgencyPlacesByAgencyID(ctx context.Context, params []model.AgencyPlaceParam) ([][]*model.AgencyPlace, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.AgencyPlaceParam) (int, *model.AgencyPlaceFilter, *int) {
-			return p.AgencyID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.AgencyPlaceFilter, limit *int) (ents []*model.AgencyPlace, err error) {
-			q := sq.StatementBuilder.Select(
-				"tl_agency_places.agency_id",
-				"tl_agency_places.rank",
-				"tl_agency_places.name as city_name",
-				"tl_agency_places.adm0name as adm0_name",
-				"tl_agency_places.adm1name as adm1_name",
-				"ne_admin.iso_a2 as adm0_iso",
-				"ne_admin.iso_3166_2 as adm1_iso",
-			).
-				From("tl_agency_places").
-				Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tl_agency_places.adm1name and ne_admin.admin = tl_agency_places.adm0name")
+func (f *Finder) AgencyPlacesByAgencyIDs(ctx context.Context, limit *int, where *model.AgencyPlaceFilter, keys []int) ([][]*model.AgencyPlace, error) {
+	q := sq.StatementBuilder.Select(
+		"tl_agency_places.agency_id",
+		"tl_agency_places.rank",
+		"tl_agency_places.name as city_name",
+		"tl_agency_places.adm0name as adm0_name",
+		"tl_agency_places.adm1name as adm1_name",
+		"ne_admin.iso_a2 as adm0_iso",
+		"ne_admin.iso_3166_2 as adm1_iso",
+	).
+		From("tl_agency_places").
+		Join("ne_10m_admin_1_states_provinces ne_admin on ne_admin.name = tl_agency_places.adm1name and ne_admin.admin = tl_agency_places.adm0name")
 
-			if where != nil {
-				if where.MinRank != nil {
-					q = q.Where(sq.GtOrEq{"rank": where.MinRank})
-				}
-			}
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					q,
-					"gtfs_agencies",
-					"id",
-					"tl_agency_places",
-					"agency_id",
-					keys,
-				),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.AgencyPlace) int {
-			return ent.AgencyID
-		},
+	if where != nil {
+		if where.MinRank != nil {
+			q = q.Where(sq.GtOrEq{"rank": where.MinRank})
+		}
+	}
+	var ents []*model.AgencyPlace
+	err := dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			q,
+			"gtfs_agencies",
+			"id",
+			"tl_agency_places",
+			"agency_id",
+			keys,
+		),
+		&ents,
 	)
+	return arrangeGroup(keys, ents, func(ent *model.AgencyPlace) int { return ent.AgencyID }), err
 }
 
-func (f *Finder) AgenciesByFeedVersionID(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.AgencyParam) (int, *model.AgencyFilter, *int) {
-			return p.FeedVersionID, p.Where, p.Limit
-		},
-		func(keys []int, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				lateralWrap(
-					agencySelect(limit, nil, nil, false, f.PermFilter(ctx), where),
-					"feed_versions",
-					"id",
-					"gtfs_agencies",
-					"feed_version_id",
-					keys,
-				),
-				&ents,
-			)
-
-			return ents, err
-		},
-		func(ent *model.Agency) int {
-			return ent.FeedVersionID
-		},
+func (f *Finder) AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []int) ([][]*model.Agency, error) {
+	var ents []*model.Agency
+	err := dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			agencySelect(limit, nil, nil, false, f.PermFilter(ctx), where),
+			"feed_versions",
+			"id",
+			"gtfs_agencies",
+			"feed_version_id",
+			keys,
+		),
+		&ents,
 	)
+	return arrangeGroup(keys, ents, func(ent *model.Agency) int { return ent.FeedVersionID }), err
 }
 
-func (f *Finder) AgenciesByOnestopID(ctx context.Context, params []model.AgencyParam) ([][]*model.Agency, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.AgencyParam) (string, *model.AgencyFilter, *int) {
-			a := ""
-			if p.OnestopID != nil {
-				a = *p.OnestopID
-			}
-			return a, p.Where, p.Limit
-		},
-		func(keys []string, where *model.AgencyFilter, limit *int) (ents []*model.Agency, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				agencySelect(limit, nil, nil, true, f.PermFilter(ctx), nil).Where(In("coif.resolved_onestop_id", keys)),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.Agency) string {
-			return ent.OnestopID
-		},
+func (f *Finder) AgenciesByOnestopIDs(ctx context.Context, limit *int, where *model.AgencyFilter, keys []string) ([][]*model.Agency, error) {
+	var ents []*model.Agency
+	err := dbutil.Select(ctx,
+		f.db,
+		agencySelect(limit, nil, nil, true, f.PermFilter(ctx), nil).Where(In("coif.resolved_onestop_id", keys)),
+		&ents,
 	)
+	return arrangeGroup(keys, ents, func(ent *model.Agency) string { return ent.OnestopID }), err
 }
 
 func (f *Finder) FindPlaces(ctx context.Context, limit *int, after *model.Cursor, ids []int, level *model.PlaceAggregationLevel, where *model.PlaceFilter) ([]*model.Place, error) {

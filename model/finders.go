@@ -12,6 +12,11 @@ import (
 	"github.com/interline-io/transitland-server/internal/gbfs"
 )
 
+type FVPair struct {
+	FeedVersionID int
+	EntityID      int
+}
+
 // Finder provides all necessary database methods
 type Finder interface {
 	PermFinder
@@ -35,9 +40,79 @@ type EntityFinder interface {
 	FindOperators(context.Context, *int, *Cursor, []int, *OperatorFilter) ([]*Operator, error)
 	FindPlaces(context.Context, *int, *Cursor, []int, *PlaceAggregationLevel, *PlaceFilter) ([]*Place, error)
 	FindCensusDatasets(context.Context, *int, *Cursor, []int, *CensusDatasetFilter) ([]*CensusDataset, error)
-	RouteStopBuffer(context.Context, *RouteStopBufferParam) ([]*RouteStopBuffer, error)
+	RouteStopBuffer(context.Context, *int, *float64, int) ([]*RouteStopBuffer, error)
 	FindFeedVersionServiceWindow(context.Context, int) (*ServiceWindow, error)
 	DBX() tldb.Ext // escape hatch, for now
+}
+
+type EntityLoader interface {
+	AgenciesByFeedVersionIDs(ctx context.Context, limit *int, where *AgencyFilter, feedVersionIds []int) ([][]*Agency, error)
+	AgenciesByIDs(context.Context, []int) ([]*Agency, []error)
+	AgenciesByOnestopIDs(context.Context, *int, *AgencyFilter, []string) ([][]*Agency, error)
+	AgencyPlacesByAgencyIDs(context.Context, *int, *AgencyPlaceFilter, []int) ([][]*AgencyPlace, error)
+	CalendarDatesByServiceIDs(context.Context, *int, *CalendarDateFilter, []int) ([][]*CalendarDate, error)
+	CalendarsByIDs(context.Context, []int) ([]*Calendar, []error)
+	CensusDatasetLayersByDatasetIDs(context.Context, []int) ([][]string, []error)
+	CensusFieldsByTableIDs(context.Context, *int, []int) ([][]*CensusField, error)
+	CensusGeographiesByDatasetIDs(context.Context, *int, *CensusDatasetGeographyFilter, []int) ([][]*CensusGeography, error)
+	CensusGeographiesByEntityIDs(context.Context, *int, *CensusGeographyFilter, string, []int) ([][]*CensusGeography, error)
+	CensusSourceLayersBySourceIDs(context.Context, []int) ([][]string, []error)
+	CensusSourcesByDatasetIDs(context.Context, *int, *CensusSourceFilter, []int) ([][]*CensusSource, error)
+	CensusTableByIDs(context.Context, []int) ([]*CensusTable, []error)
+	CensusValuesByGeographyIDs(context.Context, *int, []string, []string) ([][]*CensusValue, error)
+	FeedFetchesByFeedIDs(context.Context, *int, *FeedFetchFilter, []int) ([][]*FeedFetch, error)
+	FeedInfosByFeedVersionIDs(context.Context, *int, []int) ([][]*FeedInfo, error)
+	FeedsByIDs(context.Context, []int) ([]*Feed, []error)
+	FeedsByOperatorOnestopIDs(context.Context, *int, *FeedFilter, []string) ([][]*Feed, error)
+	FeedStatesByFeedIDs(context.Context, []int) ([]*FeedState, []error)
+	FeedVersionFileInfosByFeedVersionIDs(context.Context, *int, []int) ([][]*FeedVersionFileInfo, error)
+	FeedVersionGeometryByIDs(context.Context, []int) ([]*tt.Polygon, []error)
+	FeedVersionGtfsImportByFeedVersionIDs(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
+	FeedVersionsByFeedIDs(context.Context, *int, *FeedVersionFilter, []int) ([][]*FeedVersion, error)
+	FeedVersionsByIDs(context.Context, []int) ([]*FeedVersion, []error)
+	FeedVersionServiceLevelsByFeedVersionIDs(context.Context, *int, *FeedVersionServiceLevelFilter, []int) ([][]*FeedVersionServiceLevel, error)
+	FeedVersionServiceWindowByFeedVersionIDs(context.Context, []int) ([]*FeedVersionServiceWindow, []error)
+	FrequenciesByTripIDs(context.Context, *int, []int) ([][]*Frequency, error)
+	LevelsByIDs(context.Context, []int) ([]*Level, []error)
+	LevelsByParentStationIDs(context.Context, *int, []int) ([][]*Level, error)
+	OperatorsByAgencyIDs(context.Context, []int) ([]*Operator, []error)
+	OperatorsByCOIFs(context.Context, []int) ([]*Operator, []error)
+	OperatorsByFeedIDs(context.Context, *int, *OperatorFilter, []int) ([][]*Operator, error)
+	PathwaysByFromStopIDs(context.Context, *int, *PathwayFilter, []int) ([][]*Pathway, error)
+	PathwaysByIDs(context.Context, []int) ([]*Pathway, []error)
+	PathwaysByToStopIDs(context.Context, *int, *PathwayFilter, []int) ([][]*Pathway, error)
+	RouteAttributesByRouteIDs(context.Context, []int) ([]*RouteAttribute, []error)
+	RouteGeometriesByRouteIDs(context.Context, *int, []int) ([][]*RouteGeometry, error)
+	RouteHeadwaysByRouteIDs(context.Context, *int, []int) ([][]*RouteHeadway, error)
+	RoutesByAgencyIDs(context.Context, *int, *RouteFilter, []int) ([][]*Route, error)
+	RoutesByFeedVersionIDs(context.Context, *int, *RouteFilter, []int) ([][]*Route, error)
+	RoutesByIDs(context.Context, []int) ([]*Route, []error)
+	RouteStopPatternsByRouteIDs(context.Context, *int, []int) ([][]*RouteStopPattern, error)
+	RouteStopsByRouteIDs(context.Context, *int, []int) ([][]*RouteStop, error)
+	RouteStopsByStopIDs(context.Context, *int, []int) ([][]*RouteStop, error)
+	SegmentPatternsByRouteIDs(context.Context, *int, *SegmentPatternFilter, []int) ([][]*SegmentPattern, error)
+	SegmentPatternsBySegmentIDs(context.Context, *int, *SegmentPatternFilter, []int) ([][]*SegmentPattern, error)
+	SegmentsByFeedVersionIDs(context.Context, *int, *SegmentFilter, []int) ([][]*Segment, error)
+	SegmentsByIDs(context.Context, []int) ([]*Segment, []error)
+	SegmentsByRouteIDs(context.Context, *int, *SegmentFilter, []int) ([][]*Segment, error)
+	ShapesByIDs(context.Context, []int) ([]*Shape, []error)
+	StopExternalReferencesByStopIDs(context.Context, []int) ([]*StopExternalReference, []error)
+	StopObservationsByStopIDs(context.Context, *int, *StopObservationFilter, []int) ([][]*StopObservation, error)
+	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
+	StopsByFeedVersionIDs(context.Context, *int, *StopFilter, []int) ([][]*Stop, error)
+	StopsByIDs(context.Context, []int) ([]*Stop, []error)
+	StopsByLevelIDs(context.Context, *int, *StopFilter, []int) ([][]*Stop, error)
+	StopsByParentStopIDs(context.Context, *int, *StopFilter, []int) ([][]*Stop, error)
+	StopsByRouteIDs(context.Context, *int, *StopFilter, []int) ([][]*Stop, error)
+	StopTimesByStopIDs(context.Context, *int, *StopTimeFilter, []FVPair) ([][]*StopTime, error)
+	StopTimesByTripIDs(context.Context, *int, *TripStopTimeFilter, []FVPair) ([][]*StopTime, error)
+	TargetStopsByStopIDs(context.Context, []int) ([]*Stop, []error)
+	TripsByFeedVersionIDs(context.Context, *int, *TripFilter, []int) ([][]*Trip, error)
+	TripsByIDs(context.Context, []int) ([]*Trip, []error)
+	TripsByRouteIDs(context.Context, *int, *TripFilter, []FVPair) ([][]*Trip, error)
+	ValidationReportErrorExemplarsByValidationReportErrorGroupIDs(context.Context, *int, []int) ([][]*ValidationReportError, error)
+	ValidationReportErrorGroupsByValidationReportIDs(context.Context, *int, []int) ([][]*ValidationReportErrorGroup, error)
+	ValidationReportsByFeedVersionIDs(context.Context, *int, *ValidationReportFilter, []int) ([][]*ValidationReport, error)
 }
 
 type EntityMutator interface {
@@ -50,86 +125,6 @@ type EntityMutator interface {
 	LevelCreate(ctx context.Context, input LevelSetInput) (int, error)
 	LevelUpdate(ctx context.Context, input LevelSetInput) (int, error)
 	LevelDelete(ctx context.Context, id int) error
-}
-
-// EntityLoader methods must return items in the same order as the input parameters
-type EntityLoader interface {
-	// Simple ID loaders
-	TripsByID(context.Context, []int) ([]*Trip, []error)
-	LevelsByID(context.Context, []int) ([]*Level, []error)
-	PathwaysByID(context.Context, []int) ([]*Pathway, []error)
-	CalendarsByID(context.Context, []int) ([]*Calendar, []error)
-	ShapesByID(context.Context, []int) ([]*Shape, []error)
-	FeedVersionsByID(context.Context, []int) ([]*FeedVersion, []error)
-	FeedsByID(context.Context, []int) ([]*Feed, []error)
-	AgenciesByID(context.Context, []int) ([]*Agency, []error)
-	StopsByID(context.Context, []int) ([]*Stop, []error)
-	RoutesByID(context.Context, []int) ([]*Route, []error)
-	LevelsByParentStationID(context.Context, []LevelParam) ([][]*Level, []error)
-	StopExternalReferencesByStopID(context.Context, []int) ([]*StopExternalReference, []error)
-	StopObservationsByStopID(context.Context, []StopObservationParam) ([][]*StopObservation, []error)
-	TargetStopsByStopID(context.Context, []int) ([]*Stop, []error)
-	RouteAttributesByRouteID(context.Context, []int) ([]*RouteAttribute, []error)
-	FeedVersionGeometryByID(context.Context, []int) ([]*tt.Polygon, []error)
-	CensusTableByID(context.Context, []int) ([]*CensusTable, []error)
-
-	// Segments
-	SegmentPatternsByRouteID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
-	SegmentPatternsBySegmentID(context.Context, []SegmentPatternParam) ([][]*SegmentPattern, []error)
-	SegmentsByID(context.Context, []int) ([]*Segment, []error)
-	SegmentsByRouteID(context.Context, []SegmentParam) ([][]*Segment, []error)
-	SegmentsByFeedVersionID(context.Context, []SegmentParam) ([][]*Segment, []error)
-
-	// Other loaders
-	FeedVersionGtfsImportByFeedVersionID(context.Context, []int) ([]*FeedVersionGtfsImport, []error)
-	FeedVersionServiceWindowByFeedVersionID(context.Context, []int) ([]*FeedVersionServiceWindow, []error)
-	FeedStatesByFeedID(context.Context, []int) ([]*FeedState, []error)
-	OperatorsByFeedID(context.Context, []OperatorParam) ([][]*Operator, []error)
-	OperatorsByCOIF(context.Context, []int) ([]*Operator, []error)
-	OperatorsByAgencyID(context.Context, []int) ([]*Operator, []error)
-	StopPlacesByStopID(context.Context, []StopPlaceParam) ([]*StopPlace, []error)
-
-	// Param loaders
-	FeedFetchesByFeedID(context.Context, []FeedFetchParam) ([][]*FeedFetch, []error)
-	FeedsByOperatorOnestopID(context.Context, []FeedParam) ([][]*Feed, []error)
-	FrequenciesByTripID(context.Context, []FrequencyParam) ([][]*Frequency, []error)
-	StopTimesByTripID(context.Context, []TripStopTimeParam) ([][]*StopTime, []error)
-	StopTimesByStopID(context.Context, []StopTimeParam) ([][]*StopTime, []error)
-	RouteStopsByStopID(context.Context, []RouteStopParam) ([][]*RouteStop, []error)
-	StopsByRouteID(context.Context, []StopParam) ([][]*Stop, []error)
-	RouteStopsByRouteID(context.Context, []RouteStopParam) ([][]*RouteStop, []error)
-	RouteHeadwaysByRouteID(context.Context, []RouteHeadwayParam) ([][]*RouteHeadway, []error)
-	RouteStopPatternsByRouteID(context.Context, []RouteStopPatternParam) ([][]*RouteStopPattern, []error)
-	FeedVersionFileInfosByFeedVersionID(context.Context, []FeedVersionFileInfoParam) ([][]*FeedVersionFileInfo, []error)
-	StopsByParentStopID(context.Context, []StopParam) ([][]*Stop, []error)
-	FeedVersionsByFeedID(context.Context, []FeedVersionParam) ([][]*FeedVersion, []error)
-	AgencyPlacesByAgencyID(context.Context, []AgencyPlaceParam) ([][]*AgencyPlace, []error)
-	RouteGeometriesByRouteID(context.Context, []RouteGeometryParam) ([][]*RouteGeometry, []error)
-	TripsByRouteID(context.Context, []TripParam) ([][]*Trip, []error)
-	RoutesByAgencyID(context.Context, []RouteParam) ([][]*Route, []error)
-	AgenciesByFeedVersionID(context.Context, []AgencyParam) ([][]*Agency, []error)
-	AgenciesByOnestopID(context.Context, []AgencyParam) ([][]*Agency, []error)
-	StopsByFeedVersionID(context.Context, []StopParam) ([][]*Stop, []error)
-	StopsByLevelID(context.Context, []StopParam) ([][]*Stop, []error)
-	TripsByFeedVersionID(context.Context, []TripParam) ([][]*Trip, []error)
-	FeedInfosByFeedVersionID(context.Context, []FeedInfoParam) ([][]*FeedInfo, []error)
-	RoutesByFeedVersionID(context.Context, []RouteParam) ([][]*Route, []error)
-	FeedVersionServiceLevelsByFeedVersionID(context.Context, []FeedVersionServiceLevelParam) ([][]*FeedVersionServiceLevel, []error)
-	PathwaysByFromStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
-	PathwaysByToStopID(context.Context, []PathwayParam) ([][]*Pathway, []error)
-	CalendarDatesByServiceID(context.Context, []CalendarDateParam) ([][]*CalendarDate, []error)
-	CensusGeographiesByEntityID(context.Context, []CensusGeographyParam) ([][]*CensusGeography, []error)
-	CensusValuesByGeographyID(context.Context, []CensusValueParam) ([][]*CensusValue, []error)
-	CensusFieldsByTableID(context.Context, []CensusFieldParam) ([][]*CensusField, []error)
-	CensusSourcesByDatasetID(context.Context, []CensusSourceParam) ([][]*CensusSource, []error)
-	CensusDatasetLayersByDatasetID(context.Context, []int) ([][]string, []error)
-	CensusSourceLayersBySourceID(context.Context, []int) ([][]string, []error)
-	CensusGeographiesByDatasetID(context.Context, []CensusDatasetGeographyParam) ([][]*CensusGeography, []error)
-
-	// Validation reports
-	ValidationReportsByFeedVersionID(context.Context, []ValidationReportParam) ([][]*ValidationReport, []error)
-	ValidationReportErrorGroupsByValidationReportID(context.Context, []ValidationReportErrorGroupParam) ([][]*ValidationReportErrorGroup, []error)
-	ValidationReportErrorExemplarsByValidationReportErrorGroupID(context.Context, []ValidationReportErrorExemplarParam) ([][]*ValidationReportError, []error)
 }
 
 // RTFinder manages and looks up RT data

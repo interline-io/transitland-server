@@ -832,6 +832,7 @@ type Segment struct {
 	// Routes and stop patterns associated with this segment
 	SegmentPatterns []*SegmentPattern `json:"segment_patterns,omitempty"`
 	FeedVersionID   int               `json:"-"`
+	WithRouteID     int               `json:"-"`
 }
 
 // Search options for route segments
@@ -981,6 +982,7 @@ type StopObservation struct {
 	ObservedArrivalTime *tt.Seconds `json:"observed_arrival_time,omitempty"`
 	// GTFS-RT calculated departure time
 	ObservedDepartureTime *tt.Seconds `json:"observed_departure_time,omitempty"`
+	StopID                int         `json:"-"`
 }
 
 // Search options for stop observations

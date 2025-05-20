@@ -453,7 +453,6 @@ func stopResolverLocationTestcases(t *testing.T, cfg model.Config) []testcase {
 	if err := cfg.Finder.DBX().QueryRowx(`select id from tl_census_geographies where layer_name = 'tract' and geoid = '1400000US06001402900'`).Scan(&geographyId); err != nil {
 		t.Errorf("could not get geography id for test: %s", err.Error())
 	}
-
 	vars := hw{"stop_id": "MCAR"}
 	featureBig := decodeGeojson(`{
 		"id": "big",
