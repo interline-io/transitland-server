@@ -7287,6 +7287,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCalendarDateFilter,
 		ec.unmarshalInputCensusDatasetFilter,
 		ec.unmarshalInputCensusDatasetGeographyFilter,
+		ec.unmarshalInputCensusDatasetGeographyLocationFilter,
 		ec.unmarshalInputCensusGeographyFilter,
 		ec.unmarshalInputCensusSourceFilter,
 		ec.unmarshalInputCensusTableFilter,
@@ -7299,6 +7300,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFeedVersionInput,
 		ec.unmarshalInputFeedVersionServiceLevelFilter,
 		ec.unmarshalInputFeedVersionSetInput,
+		ec.unmarshalInputFocusPoint,
 		ec.unmarshalInputGbfsBikeRequest,
 		ec.unmarshalInputGbfsDockRequest,
 		ec.unmarshalInputLevelSetInput,
@@ -9699,6 +9701,19 @@ input CensusGeographyFilter {
   search: String
 }
 
+input CensusDatasetGeographyLocationFilter {
+  "Search within this bounding box"
+  bbox: BoundingBox
+  "Search within this geographic polygon"
+  within: Polygon
+  "Search within specified radius of a point"
+  near: PointRadius
+  "Focus search on this point; results will be sorted by distance"
+  focus: FocusPoint  
+}
+
+
+
 input CensusDatasetGeographyFilter {
   "Geographies with these integer IDs"
   ids: [Int!]
@@ -9706,12 +9721,8 @@ input CensusDatasetGeographyFilter {
   layer: String
   "Search for geographies matching this string"
   search: String
-  "Search within this bounding box"
-  bbox: BoundingBox
-  "Search within this geographic polygon"
-  within: Polygon
-  "Search within specified radius of a point"
-  near: PointRadius
+  "Location search"
+  location: CensusDatasetGeographyLocationFilter
 }
 
 input CensusTableFilter {
@@ -9812,6 +9823,13 @@ input PointRadius {
   lon: Float!
   "Radius around specified point"
   radius: Float!
+}
+
+input FocusPoint {
+  "Latitude"
+  lat: Float!
+  "Longitude"
+  lon: Float!
 }
 
 """Search for entities within a specified bounding box"""
@@ -55593,7 +55611,7 @@ func (ec *executionContext) unmarshalInputCensusDatasetGeographyFilter(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"ids", "layer", "search", "bbox", "within", "near"}
+	fieldsInOrder := [...]string{"ids", "layer", "search", "location"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -55621,6 +55639,33 @@ func (ec *executionContext) unmarshalInputCensusDatasetGeographyFilter(ctx conte
 				return it, err
 			}
 			it.Search = data
+		case "location":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
+			data, err := ec.unmarshalOCensusDatasetGeographyLocationFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusDatasetGeographyLocationFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Location = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCensusDatasetGeographyLocationFilter(ctx context.Context, obj any) (model.CensusDatasetGeographyLocationFilter, error) {
+	var it model.CensusDatasetGeographyLocationFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bbox", "within", "near", "focus"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
 		case "bbox":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bbox"))
 			data, err := ec.unmarshalOBoundingBox2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐBoundingBox(ctx, v)
@@ -55642,6 +55687,13 @@ func (ec *executionContext) unmarshalInputCensusDatasetGeographyFilter(ctx conte
 				return it, err
 			}
 			it.Near = data
+		case "focus":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("focus"))
+			data, err := ec.unmarshalOFocusPoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFocusPoint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Focus = data
 		}
 	}
 
@@ -56204,6 +56256,40 @@ func (ec *executionContext) unmarshalInputFeedVersionSetInput(ctx context.Contex
 				return it, err
 			}
 			it.Description = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFocusPoint(ctx context.Context, obj any) (model.FocusPoint, error) {
+	var it model.FocusPoint
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"lat", "lon"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "lat":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lat"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Lat = data
+		case "lon":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lon"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Lon = data
 		}
 	}
 
@@ -70472,6 +70558,14 @@ func (ec *executionContext) unmarshalOCensusDatasetGeographyFilter2ᚖgithubᚗc
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOCensusDatasetGeographyLocationFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusDatasetGeographyLocationFilter(ctx context.Context, v any) (*model.CensusDatasetGeographyLocationFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCensusDatasetGeographyLocationFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOCensusGeography2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusGeographyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CensusGeography) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -71049,6 +71143,14 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	}
 	res := graphql.MarshalFloat(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOFocusPoint2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐFocusPoint(ctx context.Context, v any) (*model.FocusPoint, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFocusPoint(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOGbfsAlertTime2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐGbfsAlertTimeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GbfsAlertTime) graphql.Marshaler {

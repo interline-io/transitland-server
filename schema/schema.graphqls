@@ -1869,6 +1869,17 @@ input CensusGeographyFilter {
   search: String
 }
 
+input CensusDatasetGeographyLocationFilter {
+  "Search within this bounding box"
+  bbox: BoundingBox
+  "Search within this geographic polygon"
+  within: Polygon
+  "Search within specified radius of a point"
+  near: PointRadius
+  "Focus search on this point; results will be sorted by distance"
+  focus: FocusPoint  
+}
+
 input CensusDatasetGeographyFilter {
   "Geographies with these integer IDs"
   ids: [Int!]
@@ -1876,12 +1887,8 @@ input CensusDatasetGeographyFilter {
   layer: String
   "Search for geographies matching this string"
   search: String
-  "Search within this bounding box"
-  bbox: BoundingBox
-  "Search within this geographic polygon"
-  within: Polygon
-  "Search within specified radius of a point"
-  near: PointRadius
+  "Location search"
+  location: CensusDatasetGeographyLocationFilter
 }
 
 input CensusTableFilter {
@@ -1982,6 +1989,13 @@ input PointRadius {
   lon: Float!
   "Radius around specified point"
   radius: Float!
+}
+
+input FocusPoint {
+  "Latitude"
+  lat: Float!
+  "Longitude"
+  lon: Float!
 }
 
 """Search for entities within a specified bounding box"""
