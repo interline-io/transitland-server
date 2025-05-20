@@ -292,11 +292,19 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 
 	// Handle geom search
 	if where != nil {
-		if len(where.WithinFeatures) > 0 {
+		loc := where.Location
+		if loc == nil {
+			loc = &model.StopLocationFilter{
+				Bbox:    where.Bbox,
+				Near:    where.Near,
+				Polygon: where.Within,
+			}
+		}
+		if len(loc.Features) > 0 {
 			// Set bounding box from features
 			var fc []*geojson.Feature
 			fcBbox := geom.Bounds{}
-			for _, f := range where.WithinFeatures {
+			for _, f := range loc.Features {
 				fc = append(fc, &geojson.Feature{
 					ID:       nilOr(f.ID, ""),
 					Geometry: f.Geometry.Val,
@@ -336,15 +344,35 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				JoinClause(featureQuery.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id")).
 				Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", fcBbox2.MinLon, fcBbox2.MinLat, fcBbox2.MaxLon, fcBbox2.MaxLat)
 		}
-		if where.Bbox != nil {
-			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", where.Bbox.MinLon, where.Bbox.MinLat, where.Bbox.MaxLon, where.Bbox.MaxLat)
+		if len(loc.GeographyIds) > 0 {
+			featureData := sq.StatementBuilder.
+				Select(
+					"tlcg.id::text as feature_id",
+					"tlcg.geometry",
+				).
+				From("tl_census_geographies tlcg").
+				Where(sq.Eq{"tlcg.id": loc.GeographyIds})
+			featureQuery := sq.StatementBuilder.
+				Select(
+					"gtfs_stops.id",
+					"json_agg(features.feature_id) feature_ids",
+				).
+				From("gtfs_stops").
+				JoinClause(featureData.Prefix("JOIN (").Suffix(") features ON ST_Intersects(gtfs_stops.geometry, features.geometry)")).
+				GroupBy("gtfs_stops.id")
+			q = q.
+				Column("features.feature_ids as within_features").
+				JoinClause(featureQuery.Prefix("JOIN (").Suffix(") features on features.id = gtfs_stops.id"))
 		}
-		if where.Within != nil && where.Within.Valid {
-			q = q.Where("ST_Intersects(gtfs_stops.geometry, ?)", where.Within)
+		if loc.Bbox != nil {
+			q = q.Where("ST_Intersects(gtfs_stops.geometry, ST_MakeEnvelope(?,?,?,?,4326))", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat)
 		}
-		if where.Near != nil {
-			radius := checkFloat(&where.Near.Radius, 0, 1_000_000)
-			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", where.Near.Lon, where.Near.Lat, radius)
+		if loc.Polygon != nil && loc.Polygon.Valid {
+			q = q.Where("ST_Intersects(gtfs_stops.geometry, ?)", loc.Polygon)
+		}
+		if loc.Near != nil {
+			radius := checkFloat(&loc.Near.Radius, 0, 1_000_000)
+			q = q.Where("ST_DWithin(gtfs_stops.geometry, ST_MakePoint(?,?), ?)", loc.Near.Lon, loc.Near.Lat, radius)
 		}
 	}
 

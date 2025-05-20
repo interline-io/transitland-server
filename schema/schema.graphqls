@@ -1720,15 +1720,17 @@ input Feature {
   type: String
 }
 
-input LocationFilter {
+input StopLocationFilter {
   "Search for stops within this bounding box"
   bbox: BoundingBox
   "Search for stops within this geographic polygon"
-  within: Polygon
+  polygon: Polygon
   "Search within these enclosing features, and return the matching feature ids"
   features: [Feature]
   "Search for stops within specified radius of a point"
   near: PointRadius
+  "Search within these geography ids"
+  geography_ids: [Int]
 }
 
 """Search options for stops"""
@@ -1763,15 +1765,14 @@ input StopFilter {
   served_by_route_types: [Int!]
   "Search for stops with these agency integer IDs. Deprecated."
   agency_ids: [Int!]
-  "Search for stops within this bounding box"
+  "Search geographically"
+  location: StopLocationFilter
+  "Backwards compat: Search for stops within this bounding box"
   bbox: BoundingBox
-  "Search for stops within this geographic polygon"
+  "Backwards compat: Search for stops within this geographic polygon"
   within: Polygon
-  "Search for stops within these enclosing features, and return the matching feature ids"
-  within_features: [Feature]
-  "Search for stops within specified radius of a point"
+  "Backwards compat: Search for stops within specified radius of a point"
   near: PointRadius
-  
 }
 
 """Search options for stop times, optionally on a given date"""
@@ -1869,6 +1870,8 @@ input CensusGeographyFilter {
 }
 
 input CensusDatasetGeographyFilter {
+  "Geographies with these integer IDs"
+  ids: [Int!]
   "Search within this layer"
   layer: String
   "Search for geographies matching this string"

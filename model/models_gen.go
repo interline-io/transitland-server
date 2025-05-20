@@ -137,6 +137,8 @@ type CensusDatasetFilter struct {
 }
 
 type CensusDatasetGeographyFilter struct {
+	// Geographies with these integer IDs
+	Ids []int `json:"ids,omitempty"`
 	// Search within this layer
 	Layer *string `json:"layer,omitempty"`
 	// Search for geographies matching this string
@@ -522,17 +524,6 @@ type LicenseFilter struct {
 	UseWithoutAttribution *LicenseValue `json:"use_without_attribution,omitempty"`
 	// Search for entities with this Redistribution Allowed restriction
 	RedistributionAllowed *LicenseValue `json:"redistribution_allowed,omitempty"`
-}
-
-type LocationFilter struct {
-	// Search for stops within this bounding box
-	Bbox *BoundingBox `json:"bbox,omitempty"`
-	// Search for stops within this geographic polygon
-	Within *tt.Polygon `json:"within,omitempty"`
-	// Search within these enclosing features, and return the matching feature ids
-	Features []*Feature `json:"features,omitempty"`
-	// Search for stops within specified radius of a point
-	Near *PointRadius `json:"near,omitempty"`
 }
 
 // Current user metadata
@@ -940,14 +931,27 @@ type StopFilter struct {
 	ServedByRouteTypes []int `json:"served_by_route_types,omitempty"`
 	// Search for stops with these agency integer IDs. Deprecated.
 	AgencyIds []int `json:"agency_ids,omitempty"`
+	// Search geographically
+	Location *StopLocationFilter `json:"location,omitempty"`
+	// Backwards compat: Search for stops within this bounding box
+	Bbox *BoundingBox `json:"bbox,omitempty"`
+	// Backwards compat: Search for stops within this geographic polygon
+	Within *tt.Polygon `json:"within,omitempty"`
+	// Backwards compat: Search for stops within specified radius of a point
+	Near *PointRadius `json:"near,omitempty"`
+}
+
+type StopLocationFilter struct {
 	// Search for stops within this bounding box
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 	// Search for stops within this geographic polygon
-	Within *tt.Polygon `json:"within,omitempty"`
-	// Search for stops within these enclosing features, and return the matching feature ids
-	WithinFeatures []*Feature `json:"within_features,omitempty"`
+	Polygon *tt.Polygon `json:"polygon,omitempty"`
+	// Search within these enclosing features, and return the matching feature ids
+	Features []*Feature `json:"features,omitempty"`
 	// Search for stops within specified radius of a point
 	Near *PointRadius `json:"near,omitempty"`
+	// Search within these geography ids
+	GeographyIds []*int `json:"geography_ids,omitempty"`
 }
 
 // Measurements of observed arrival times based on GTFS-RT data
