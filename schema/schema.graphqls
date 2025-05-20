@@ -24,6 +24,9 @@ scalar LineString
 """Geographic polygon"""
 scalar Polygon
 
+"""Geographic MultiPolygon"""
+scalar MultiPolygon
+
 """Local time since midnight, in HH:MM:SS. May also be input as integer seconds."""
 scalar Seconds
 
@@ -1156,7 +1159,7 @@ type CensusGeography {
   "Country ISO code"
   adm0_iso: String
   "Census geography polygon"
-  geometry: Polygon
+  geometry: MultiPolygon
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
 }

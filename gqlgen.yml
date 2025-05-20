@@ -78,6 +78,9 @@ models:
   Polygon:
     model: 
       - "github.com/interline-io/transitland-lib/tt.Polygon"
+  MultiPolygon:
+    model: 
+      - "github.com/interline-io/transitland-lib/tt.MultiPolygon"
   LineString:
     model:
       - "github.com/interline-io/transitland-lib/tt.LineString"

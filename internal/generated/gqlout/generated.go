@@ -7888,6 +7888,9 @@ scalar LineString
 """Geographic polygon"""
 scalar Polygon
 
+"""Geographic MultiPolygon"""
+scalar MultiPolygon
+
 """Local time since midnight, in HH:MM:SS. May also be input as integer seconds."""
 scalar Seconds
 
@@ -9020,7 +9023,7 @@ type CensusGeography {
   "Country ISO code"
   adm0_iso: String
   "Census geography polygon"
-  geometry: Polygon
+  geometry: MultiPolygon
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
 }
@@ -17712,9 +17715,9 @@ func (ec *executionContext) _CensusGeography_geometry(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*tt.Polygon)
+	res := resTmp.(*tt.MultiPolygon)
 	fc.Result = res
-	return ec.marshalOPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐPolygon(ctx, field.Selections, res)
+	return ec.marshalOMultiPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMultiPolygon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CensusGeography_geometry(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -17724,7 +17727,7 @@ func (ec *executionContext) fieldContext_CensusGeography_geometry(_ context.Cont
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Polygon does not have child fields")
+			return nil, errors.New("field of type MultiPolygon does not have child fields")
 		},
 	}
 	return fc, nil
@@ -72435,6 +72438,22 @@ func (ec *executionContext) unmarshalOMap2ᚖgithubᚗcomᚋinterlineᚑioᚋtra
 }
 
 func (ec *executionContext) marshalOMap2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMap(ctx context.Context, sel ast.SelectionSet, v *tt.Map) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOMultiPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMultiPolygon(ctx context.Context, v any) (*tt.MultiPolygon, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(tt.MultiPolygon)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMultiPolygon2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐMultiPolygon(ctx context.Context, sel ast.SelectionSet, v *tt.MultiPolygon) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

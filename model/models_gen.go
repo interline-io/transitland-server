@@ -197,7 +197,7 @@ type CensusGeography struct {
 	// Country ISO code
 	Adm0Iso *string `json:"adm0_iso,omitempty"`
 	// Census geography polygon
-	Geometry *tt.Polygon `json:"geometry,omitempty"`
+	Geometry *tt.MultiPolygon `json:"geometry,omitempty"`
 	// Census tables containing data for this geography
 	Values        []*CensusValue `json:"values"`
 	DatasetID     int            `json:"-"`

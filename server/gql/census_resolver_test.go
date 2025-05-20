@@ -59,6 +59,13 @@ func TestCensusResolver(t *testing.T) {
 			expect: `{"census_datasets":[{"dataset_name":"tiger2024","geographies":[{"adm0_iso":"US","adm0_name":"United States","adm1_iso":"US-WA","adm1_name":"Washington","geoid":"0500000US53033","name":"King"},{"adm0_iso":"US","adm0_name":"United States","adm1_iso":"US-CA","adm1_name":"California","geoid":"0500000US06001","name":"Alameda"}]}]}`,
 		},
 		{
+			name:         "dataset geographies are multipolygon",
+			query:        `query { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(where:{search:"king"}) { name geoid geometry }} }`,
+			vars:         vars,
+			selector:     "census_datasets.0.geographies.#.geometry.type",
+			selectExpect: []string{"MultiPolygon"},
+		},
+		{
 			name:         "dataset geographies with search",
 			query:        `query { census_datasets(where:{dataset_name:"tiger2024"}) {dataset_name geographies(where:{search:"king"}) { name geoid }} }`,
 			vars:         vars,
