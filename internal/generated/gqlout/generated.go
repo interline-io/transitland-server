@@ -9712,8 +9712,6 @@ input CensusDatasetGeographyLocationFilter {
   focus: FocusPoint  
 }
 
-
-
 input CensusDatasetGeographyFilter {
   "Geographies with these integer IDs"
   ids: [Int!]
