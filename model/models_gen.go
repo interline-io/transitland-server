@@ -143,12 +143,19 @@ type CensusDatasetGeographyFilter struct {
 	Layer *string `json:"layer,omitempty"`
 	// Search for geographies matching this string
 	Search *string `json:"search,omitempty"`
+	// Location search
+	Location *CensusDatasetGeographyLocationFilter `json:"location,omitempty"`
+}
+
+type CensusDatasetGeographyLocationFilter struct {
 	// Search within this bounding box
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 	// Search within this geographic polygon
 	Within *tt.Polygon `json:"within,omitempty"`
 	// Search within specified radius of a point
 	Near *PointRadius `json:"near,omitempty"`
+	// Focus search on this point; results will be sorted by distance
+	Focus *FocusPoint `json:"focus,omitempty"`
 }
 
 type CensusField struct {
@@ -434,6 +441,13 @@ type FeedVersionSetInput struct {
 type FeedVersionUnimportResult struct {
 	// Did the unimport succeed
 	Success bool `json:"success"`
+}
+
+type FocusPoint struct {
+	// Latitude
+	Lat float64 `json:"lat"`
+	// Longitude
+	Lon float64 `json:"lon"`
 }
 
 type GbfsBikeRequest struct {
