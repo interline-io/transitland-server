@@ -2,16 +2,33 @@ package model
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-lib/gtfs"
 	"github.com/interline-io/transitland-lib/rt/pb"
 	"github.com/interline-io/transitland-lib/service"
+	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
 )
 
+type ServiceWindow struct {
+	NowLocal     time.Time
+	StartDate    time.Time
+	EndDate      time.Time
+	FallbackWeek time.Time
+}
+
+type StopPlaceParam struct {
+	ID    int
+	Point tlxy.Point
+}
+
+//////////
+
 type Feed struct {
-	SearchRank *string
+	WithOperatorOnestopID tt.String
+	SearchRank            *string
 	dmfr.Feed
 }
 
@@ -103,6 +120,7 @@ type Stop struct {
 	OnestopID       *string
 	SearchRank      *string
 	WithinFeatures  tt.Strings
+	WithRouteID     tt.Int
 	gtfs.Stop
 }
 

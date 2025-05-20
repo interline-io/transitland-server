@@ -14,7 +14,7 @@ func (r *mutationResolver) StopCreate(ctx context.Context, obj model.StopSetInpu
 	if err != nil {
 		return nil, err
 	}
-	ents, errs := finder.StopsByID(ctx, []int{entId})
+	ents, errs := finder.StopsByIDs(ctx, []int{entId})
 	return first(errs, ents)
 }
 
@@ -24,7 +24,7 @@ func (r *mutationResolver) StopUpdate(ctx context.Context, obj model.StopSetInpu
 	if err != nil {
 		return nil, err
 	}
-	ents, errs := finder.StopsByID(ctx, []int{entId})
+	ents, errs := finder.StopsByIDs(ctx, []int{entId})
 	return first(errs, ents)
 }
 
@@ -42,7 +42,7 @@ func (r *mutationResolver) LevelCreate(ctx context.Context, obj model.LevelSetIn
 	if err != nil {
 		return nil, err
 	}
-	ents, errs := finder.LevelsByID(ctx, []int{entId})
+	ents, errs := finder.LevelsByIDs(ctx, []int{entId})
 	return first(errs, ents)
 }
 
@@ -52,7 +52,7 @@ func (r *mutationResolver) LevelUpdate(ctx context.Context, obj model.LevelSetIn
 	if err != nil {
 		return nil, err
 	}
-	ents, errs := finder.LevelsByID(ctx, []int{entId})
+	ents, errs := finder.LevelsByIDs(ctx, []int{entId})
 	return first(errs, ents)
 }
 
@@ -70,7 +70,7 @@ func (r *mutationResolver) PathwayCreate(ctx context.Context, obj model.PathwayS
 	if err != nil {
 		return nil, err
 	}
-	ents, errs := finder.PathwaysByID(ctx, []int{entId})
+	ents, errs := finder.PathwaysByIDs(ctx, []int{entId})
 	return first(errs, ents)
 }
 
@@ -80,7 +80,7 @@ func (r *mutationResolver) PathwayUpdate(ctx context.Context, obj model.PathwayS
 	if err != nil {
 		return nil, err
 	}
-	ents, errs := finder.PathwaysByID(ctx, []int{entId})
+	ents, errs := finder.PathwaysByIDs(ctx, []int{entId})
 	return first(errs, ents)
 }
 

@@ -10,91 +10,74 @@ import (
 	"github.com/interline-io/transitland-server/model"
 )
 
-func (f *Finder) StopTimesByTripID(ctx context.Context, params []model.TripStopTimeParam) ([][]*model.StopTime, []error) {
-	return paramGroupQuery(
-		params,
-		func(p model.TripStopTimeParam) (FVPair, *model.TripStopTimeFilter, *int) {
-			a := FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.TripID}
-			return a, p.Where, p.Limit
-		},
-		func(keys []FVPair, where *model.TripStopTimeFilter, limit *int) (ents []*model.StopTime, err error) {
-			err = dbutil.Select(ctx,
-				f.db,
-				stopTimeSelect(keys, nil, where),
-				&ents,
-			)
-			return ents, err
-		},
-		func(ent *model.StopTime) FVPair {
-			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
-		},
+func (f *Finder) StopTimesByTripIDs(ctx context.Context, limit *int, where *model.TripStopTimeFilter, keys []model.FVPair) ([][]*model.StopTime, error) {
+	var ents []*model.StopTime
+	err := dbutil.Select(ctx,
+		f.db,
+		stopTimeSelect(keys, nil, where),
+		&ents,
 	)
+	return arrangeGroup(keys, ents, func(ent *model.StopTime) model.FVPair {
+		return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.TripID.Int()}
+	}), err
 }
 
-func (f *Finder) StopTimesByStopID(ctx context.Context, params []model.StopTimeParam) ([][]*model.StopTime, []error) {
-	// We need to split by feed version id to extract service window
-	// Fields must be public
-	type fvParamGroup struct {
-		FeedVersionID int
-		Where         *model.StopTimeFilter
+func (f *Finder) StopTimesByStopIDs(ctx context.Context, limit *int, where *model.StopTimeFilter, keys []model.FVPair) ([][]*model.StopTime, error) {
+	// // We need to split by feed version id to extract service window
+	// // Fields must be public
+	pairGroups := map[int][]model.FVPair{}
+	for _, v := range keys {
+		pairGroups[v.FeedVersionID] = append(pairGroups[v.FeedVersionID], v)
 	}
-	return paramGroupQuery(
-		params,
-		func(p model.StopTimeParam) (FVPair, fvParamGroup, *int) {
-			a := FVPair{FeedVersionID: p.FeedVersionID, EntityID: p.StopID}
-			w := fvParamGroup{FeedVersionID: p.FeedVersionID, Where: p.Where}
-			return a, w, p.Limit
-		},
-		func(keys []FVPair, fvwhere fvParamGroup, limit *int) (ents []*model.StopTime, err error) {
-			fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvwhere.FeedVersionID)
-			if err != nil {
+	var ents []*model.StopTime
+	for fvid, stopKeys := range pairGroups {
+		fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvid)
+		if err != nil {
+			return nil, err
+		}
+		// Run separate queries for each possible service day
+		for _, w := range stopTimeFilterExpand(where, fvsw) {
+			var serviceDate *tt.Date
+			if w != nil && w.ServiceDate != nil {
+				serviceDate = w.ServiceDate
+			}
+			var sts []*model.StopTime
+			var q sq.SelectBuilder
+			if serviceDate != nil {
+				// Get stops on a specified day
+				q = stopDeparturesSelect(stopKeys, w)
+			} else {
+				// Otherwise get all stop_times for stop
+				q = stopTimeSelect(nil, stopKeys, nil)
+			}
+			// Run query
+			if err := dbutil.Select(ctx,
+				f.db,
+				q,
+				&sts,
+			); err != nil {
 				return nil, err
 			}
-			// Run separate queries for each possible service day
-			for _, w := range stopTimeFilterExpand(fvwhere.Where, fvsw) {
-				var serviceDate *tt.Date
-				if w != nil && w.ServiceDate != nil {
-					serviceDate = w.ServiceDate
-				}
-				var sts []*model.StopTime
-				var q sq.SelectBuilder
-				if serviceDate != nil {
-					// Get stops on a specified day
-					q = stopDeparturesSelect(keys, w)
-				} else {
-					// Otherwise get all stop_times for stop
-					q = stopTimeSelect(nil, keys, nil)
-				}
-				// Run query
-				if err := dbutil.Select(ctx,
-					f.db,
-					q,
-					&sts,
-				); err != nil {
-					return nil, err
-				}
-				// Set service date based on StopTimeFilter, and adjust calendar date if needed
-				if serviceDate != nil {
-					for _, ent := range sts {
-						ent.ServiceDate.Set(serviceDate.Val)
-						if ent.ArrivalTime.Val > 24*60*60 {
-							ent.Date.Set(serviceDate.Val.AddDate(0, 0, 1))
-						} else {
-							ent.Date.Set(serviceDate.Val)
-						}
+			// Set service date based on StopTimeFilter, and adjust calendar date if needed
+			if serviceDate != nil {
+				for _, ent := range sts {
+					ent.ServiceDate.Set(serviceDate.Val)
+					if ent.ArrivalTime.Val > 24*60*60 {
+						ent.Date.Set(serviceDate.Val.AddDate(0, 0, 1))
+					} else {
+						ent.Date.Set(serviceDate.Val)
 					}
 				}
-				ents = append(ents, sts...)
 			}
-			return ents, err
-		},
-		func(ent *model.StopTime) FVPair {
-			return FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.StopID.Int()}
-		},
-	)
+			ents = append(ents, sts...)
+		}
+	}
+	return arrangeGroup(keys, ents, func(ent *model.StopTime) model.FVPair {
+		return model.FVPair{FeedVersionID: ent.FeedVersionID, EntityID: ent.StopID.Int()}
+	}), nil
 }
 
-func stopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
+func stopTimeSelect(tpairs []model.FVPair, spairs []model.FVPair, where *model.TripStopTimeFilter) sq.SelectBuilder {
 	q := sq.StatementBuilder.Select(
 		"gtfs_trips.journey_pattern_id",
 		"gtfs_trips.journey_pattern_offset",
@@ -146,7 +129,7 @@ func stopTimeSelect(tpairs []FVPair, spairs []FVPair, where *model.TripStopTimeF
 	return q
 }
 
-func stopDeparturesSelect(spairs []FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
+func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
 	// Where must already be set for local service date and timezone
 	serviceDate := time.Now()
 	if where != nil && where.ServiceDate != nil {
@@ -430,12 +413,7 @@ func stopTimeFilterExpand(where *model.StopTimeFilter, fvsw *model.ServiceWindow
 	return whereGroups
 }
 
-type FVPair struct {
-	EntityID      int
-	FeedVersionID int
-}
-
-func pairKeys(spairs []FVPair) ([]int, []int) {
+func pairKeys(spairs []model.FVPair) ([]int, []int) {
 	eids := map[int]bool{}
 	fvids := map[int]bool{}
 	for _, v := range spairs {

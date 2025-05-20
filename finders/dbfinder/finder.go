@@ -2,7 +2,6 @@ package dbfinder
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -101,108 +100,17 @@ func arrangeMap[K comparable, T any, O any](keys []K, ents []T, cb func(T) (K, O
 	return ret
 }
 
-// Multiple param sets
-
-func paramGroupQuery[
-	K comparable,
-	P any,
-	W any,
-	R any,
-](
-	params []P,
-	paramFunc func(P) (K, W, *int),
-	queryFunc func([]K, W, *int) ([]*R, error),
-	keyFunc func(*R) K,
-) ([][]*R, []error) {
-	// Create return value
-	ret := make([][]*R, len(params))
-	errs := make([]error, len(params))
-
-	// Group params by JSON representation
-	type paramGroupItem[K comparable, M any] struct {
-		Limit *int
-		Where M
+func arrangeGroup[K comparable, T any](keys []K, ents []T, cb func(T) K) [][]T {
+	bykey := map[K][]T{}
+	for _, ent := range ents {
+		k := cb(ent)
+		bykey[k] = append(bykey[k], ent)
 	}
-	type paramGroup[K comparable, M any] struct {
-		Index []int
-		Keys  []K
-		Limit *int
-		Where M
-	}
-	paramGroups := map[string]paramGroup[K, W]{}
-	for i, param := range params {
-		// Get values from supplied func
-		key, where, limit := paramFunc(param)
-
-		// Convert to paramGroupItem
-		item := paramGroupItem[K, W]{
-			Limit: limit,
-			Where: where,
-		}
-
-		// Use the JSON representation of Where and Limit as the key
-		jj, err := json.Marshal(paramGroupItem[K, W]{Where: item.Where, Limit: item.Limit})
-		if err != nil {
-			// TODO: log and expand error
-			errs[i] = err
-			continue
-		}
-		paramGroupKey := string(jj)
-
-		// Add index and key
-		a, ok := paramGroups[paramGroupKey]
-		if !ok {
-			a = paramGroup[K, W]{Where: item.Where, Limit: item.Limit}
-		}
-		a.Index = append(a.Index, i)
-		a.Keys = append(a.Keys, key)
-		paramGroups[paramGroupKey] = a
-	}
-
-	// Process each param group
-	for _, pgroup := range paramGroups {
-		// Run query function
-		ents, err := queryFunc(pgroup.Keys, pgroup.Where, pgroup.Limit)
-
-		// Group using keyFunc and merge into output
-		limit := checkLimit(pgroup.Limit)
-		bykey := map[K][]*R{}
-		for _, ent := range ents {
-			key := keyFunc(ent)
-			bykey[key] = append(bykey[key], ent)
-		}
-		for keyidx, key := range pgroup.Keys {
-			idx := pgroup.Index[keyidx]
-			gi := bykey[key]
-			if err != nil {
-				errs[idx] = err
-			}
-			if uint64(len(gi)) <= limit {
-				ret[idx] = gi
-			} else {
-				ret[idx] = gi[0:limit]
-			}
-		}
-	}
-	return ret, errs
-}
-
-func convertEnts[A any, B any](vals [][]A, fn func(a A) B) [][]B {
-	ret := make([][]B, len(vals))
-	for i, x := range vals {
-		ret[i] = make([]B, len(x))
-		for j, y := range x {
-			ret[i][j] = fn(y)
-		}
+	ret := make([][]T, len(keys))
+	for idx, key := range keys {
+		ret[idx] = bykey[key]
 	}
 	return ret
-}
-
-func sliceToLower(v []string) []string {
-	for i := 0; i < len(v); i++ {
-		v[i] = strings.ToLower(v[i])
-	}
-	return v
 }
 
 func nilOr[T any, PT *T](v PT, def T) T {
