@@ -171,6 +171,12 @@ type ComplexityRoot struct {
 		Values      func(childComplexity int, tableNames []string, dataset *string, limit *int) int
 	}
 
+	CensusLayer struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+	}
+
 	CensusSource struct {
 		Geographies func(childComplexity int, limit *int) int
 		ID          func(childComplexity int) int
@@ -1961,6 +1967,27 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.CensusGeography.Values(childComplexity, args["table_names"].([]string), args["dataset"].(*string), args["limit"].(*int)), true
+
+	case "CensusLayer.description":
+		if e.complexity.CensusLayer.Description == nil {
+			break
+		}
+
+		return e.complexity.CensusLayer.Description(childComplexity), true
+
+	case "CensusLayer.id":
+		if e.complexity.CensusLayer.ID == nil {
+			break
+		}
+
+		return e.complexity.CensusLayer.ID(childComplexity), true
+
+	case "CensusLayer.name":
+		if e.complexity.CensusLayer.Name == nil {
+			break
+		}
+
+		return e.complexity.CensusLayer.Name(childComplexity), true
 
 	case "CensusSource.geographies":
 		if e.complexity.CensusSource.Geographies == nil {
@@ -8994,6 +9021,16 @@ type CensusSource {
   tables(limit: Int): [CensusTable!]
   # Layers
   layers: [String!]
+}
+
+""""Census layer metadata"""
+type CensusLayer {
+  "Internal integer ID"
+  id: Int!
+  "Layer name, e.g. tl_2024_01_tract"
+  name: String!
+  "Layer description"
+  description: String
 }
 
 """Census geography data"""
@@ -17796,6 +17833,135 @@ func (ec *executionContext) fieldContext_CensusGeography_values(ctx context.Cont
 	if fc.Args, err = ec.field_CensusGeography_values_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusLayer_id(ctx context.Context, field graphql.CollectedField, obj *model.CensusLayer) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusLayer_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusLayer_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusLayer",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusLayer_name(ctx context.Context, field graphql.CollectedField, obj *model.CensusLayer) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusLayer_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusLayer_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusLayer",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusLayer_description(ctx context.Context, field graphql.CollectedField, obj *model.CensusLayer) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusLayer_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusLayer_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusLayer",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -58981,6 +59147,52 @@ func (ec *executionContext) _CensusGeography(ctx context.Context, sel ast.Select
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var censusLayerImplementors = []string{"CensusLayer"}
+
+func (ec *executionContext) _CensusLayer(ctx context.Context, sel ast.SelectionSet, obj *model.CensusLayer) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, censusLayerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CensusLayer")
+		case "id":
+			out.Values[i] = ec._CensusLayer_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._CensusLayer_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._CensusLayer_description(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -1132,6 +1132,16 @@ type CensusSource {
   layers: [String!]
 }
 
+""""Census layer metadata"""
+type CensusLayer {
+  "Internal integer ID"
+  id: Int!
+  "Layer name, e.g. tl_2024_01_tract"
+  name: String!
+  "Layer description"
+  description: String
+}
+
 """Census geography data"""
 type CensusGeography {
   "Internal integer ID"

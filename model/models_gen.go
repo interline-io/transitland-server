@@ -212,6 +212,16 @@ type CensusGeographyFilter struct {
 	Search  *string  `json:"search,omitempty"`
 }
 
+// "Census layer metadata
+type CensusLayer struct {
+	// Internal integer ID
+	ID int `json:"id"`
+	// Layer name, e.g. tl_2024_01_tract
+	Name string `json:"name"`
+	// Layer description
+	Description *string `json:"description,omitempty"`
+}
+
 type CensusSource struct {
 	// Internal integer ID
 	ID int `json:"id"`
