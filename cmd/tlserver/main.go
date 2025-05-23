@@ -70,6 +70,7 @@ func init() {
 		tlcli.CobraHelper(&diff.Command{}, pc, "diff"),
 		tlcli.CobraHelper(&ServerCommand{}, pc, "server"),
 		tlcli.CobraHelper(&versionCommand{}, pc, "version"),
+		tlcli.CobraHelper(&cmds.DBMigrateCommand{}, pc, "dbmigrate"),
 		genDocCommand,
 	)
 }

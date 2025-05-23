@@ -52,20 +52,19 @@ The "example" server instance configured by the  `tlserver` command runs without
    - e.g. `postgresql://localhost:5432/tlv2_test_server?sslmode=disable`
    - You must also set `PGHOST=localhost`, `PGDATABASE=tlv2_test_server`, etc., to match this url
    - This requirement may be removed in the future
-1. Initialize test database schema: `transitland-lib/schema/postgres/bootstrap.sh`
+1. Initialize test fixtures: `./testdata/test_setup.sh`
    - This will create the `tlv2_test_server` database in postgres
    - Will halt with an error (intentionally) if this database already exists
-   - Runs golang-migrate on the migrations in `transitland-lib/schema/postgres/migrations`
+   - Runs migrations in `transitland-lib/schema/postgres/migrations`
    - Unpacks and imports the Natural Earth datasets bundled with `transitland-lib`
-2. Initialize test fixtures: `./testdata/test_setup.sh`
    - Builds and installs the `cmd/tlserver` command
    - Sets up test feeds contained in `testdata/server/server-test.dmfr.json`
    - Fetches and imports feeds contained in `testdata/gtfs`
    - Creates additional fixtures defined in `testdata/test_supplement.pgsql`
    - Note that temporary files will be created in `testdata/tmp`; these are excluded in `.gitignore`
-3. Optional: Set `TL_TEST_REDIS_URL` to run some GBFS tests
-4. Optional: Set `TL_TEST_FGA_ENDPOINT` to a running [OpenFGA](https://github.com/openfga/openfga) server to run authorization tests
-5. Run all tests with `go test -v ./...`
+2. Optional: Set `TL_TEST_REDIS_URL` to run some GBFS tests
+3. Optional: Set `TL_TEST_FGA_ENDPOINT` to a running [OpenFGA](https://github.com/openfga/openfga) server to run authorization tests
+4. Run all tests with `go test -v ./...`
 
 Test cases generally run within transactions; you do not need to regenerate the fixtures unless you are testing migrations or changes to data import functionality.
   

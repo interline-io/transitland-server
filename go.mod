@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	github.com/99designs/gqlgen v0.17.72
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/aws/aws-sdk-go v1.44.218
+	github.com/aws/aws-sdk-go v1.49.6
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/service/location v1.44.2
@@ -20,7 +20,7 @@ require (
 	github.com/interline-io/log v0.0.0-20250425230611-851ec713ec98
 	github.com/interline-io/transitland-dbutil v0.0.0-20250506013203-964770296cd6
 	github.com/interline-io/transitland-jobs v0.0.0-20250506013316-3a895dfc53e9
-	github.com/interline-io/transitland-lib v1.1.3-0.20250520100946-ef7d368ef6a7
+	github.com/interline-io/transitland-lib v1.1.3-0.20250523015343-4e831c3a80c6
 	github.com/interline-io/transitland-mw v0.0.0-20250506013255-4b0eba879d63
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.34.0
@@ -28,7 +28,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.10.0
 	github.com/tidwall/gjson v1.18.0
-	github.com/twpayne/go-geom v1.5.7
+	github.com/twpayne/go-geom v1.6.1
 	github.com/twpayne/go-polyline v1.1.1
 	github.com/vektah/gqlparser/v2 v2.5.26
 	google.golang.org/protobuf v1.36.6
@@ -38,7 +38,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.6.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.8.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v0.5.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
 	github.com/PuerkitoBio/rehttp v1.3.0 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
@@ -71,6 +71,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
+	github.com/golang-migrate/migrate/v4 v4.18.3 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -91,6 +92,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -111,21 +113,22 @@ require (
 	github.com/tidwall/rtree v1.10.0 // indirect
 	github.com/tidwall/tinylru v1.2.1 // indirect
 	github.com/tkrajina/gpxgo v1.1.2 // indirect
-	github.com/twpayne/go-shapefile v0.0.5 // indirect
+	github.com/twpayne/go-shapefile v0.0.6 // indirect
 	github.com/urfave/cli/v2 v2.27.6 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/oauth2 v0.16.0 // indirect
-	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/oauth2 v0.18.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/tools v0.32.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240311173647-c811ad7063a7 // indirect
-	google.golang.org/grpc v1.62.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
+	google.golang.org/grpc v1.64.1 // indirect
 	gopkg.in/dnaeon/go-vcr.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
