@@ -61,7 +61,6 @@ jobs:
       - run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
       - run: git clone https://github.com/interline-io/transitland-lib.git
       - run: dropdb --if-exists ${PGDATABASE}
-      - run: ${PWD}/transitland-lib/schema/postgres/bootstrap.sh
       - run: (cd cmd/tlserver && go version && go install .)
       - run: ./testdata/test_setup.sh
       - run: go test -v -count=1 ./...
