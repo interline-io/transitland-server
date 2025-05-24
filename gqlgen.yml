@@ -231,6 +231,10 @@ models:
         resolver: true
       layers:
         resolver: true
+  CensusLayer:
+    extraFields:
+      DatasetID:
+        type: int
   CensusSource:
     fields:
       layers:

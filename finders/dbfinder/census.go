@@ -66,53 +66,56 @@ func (f *Finder) CensusSourcesByDatasetIDs(ctx context.Context, limit *int, wher
 	return arrangeGroup(keys, ents, func(ent *model.CensusSource) int { return ent.DatasetID }), err
 }
 
-func (f *Finder) CensusDatasetLayersByDatasetIDs(ctx context.Context, ids []int) ([][]string, []error) {
-	var ret [][]string
-	var errs []error
-	for _, id := range ids {
-		var layers []string
-		err := dbutil.Select(ctx,
-			f.db,
-			sq.StatementBuilder.
-				Select("tlcl.name as layer_name").
-				Distinct().Options("on (tlcl.name)").
-				From("tl_census_datasets tlcd").
-				Join("tl_census_layers tlcl on tlcl.dataset_id = tlcd.id").
-				Where(sq.Eq{"tlcd.id": id}),
-			&layers,
-		)
-		if err != nil {
-			errs = append(errs, logErr(ctx, err))
-			continue
-		}
-		ret = append(ret, layers)
+func (f *Finder) CensusDatasetLayersByDatasetIDs(ctx context.Context, keys []int) ([][]*model.CensusLayer, []error) {
+	var ents []*model.CensusLayer
+	err := dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			sq.StatementBuilder.Select("*").From("tl_census_layers"),
+			"tl_census_datasets",
+			"id",
+			"tl_census_layers",
+			"dataset_id",
+			keys,
+		),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(keys), err)
 	}
-	return ret, errs
+	return arrangeGroup(keys, ents, func(ent *model.CensusLayer) int { return ent.DatasetID }), nil
 }
 
-func (f *Finder) CensusSourceLayersBySourceIDs(ctx context.Context, ids []int) ([][]string, []error) {
-	var ret [][]string
-	var errs []error
-	for _, id := range ids {
-		var layers []string
-		err := dbutil.Select(ctx,
-			f.db,
-			sq.StatementBuilder.
-				Select("tlcl.name as layer_name").
-				Distinct().Options("on (tlcl.name)").
-				From("tl_census_sources tlcs").
-				Join("tl_census_geographies tlcg on tlcg.source_id = tlcs.id").
-				Join("tl_census_layers tlcl on tlcl.id = tlcg.layer_id").
-				Where(sq.Eq{"tlcs.id": id}),
-			&layers,
-		)
-		if err != nil {
-			errs = append(errs, logErr(ctx, err))
-			continue
-		}
-		ret = append(ret, layers)
+func (f *Finder) CensusSourceLayersBySourceIDs(ctx context.Context, keys []int) ([][]*model.CensusLayer, []error) {
+	type qent struct {
+		SourceID int
+		model.CensusLayer
 	}
-	return ret, errs
+	var ents []*qent
+	q := sq.StatementBuilder.
+		Select("tlcg.source_id", "tlcl.*").
+		Distinct().Options("on (tlcl.id)").
+		From("tl_census_geographies tlcg").
+		Join("tl_census_layers tlcl on tlcl.id = tlcg.layer_id").
+		Where(sq.Eq{"tlcg.source_id": keys})
+	err := dbutil.Select(ctx,
+		f.db,
+		q,
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(keys), err)
+	}
+	grouped := arrangeGroup(keys, ents, func(ent *qent) int { return ent.SourceID })
+	var ret [][]*model.CensusLayer
+	for _, group := range grouped {
+		var g []*model.CensusLayer
+		for _, ent := range group {
+			g = append(g, &ent.CensusLayer)
+		}
+		ret = append(ret, g)
+	}
+	return ret, nil
 }
 
 func (f *Finder) CensusGeographiesByDatasetIDs(ctx context.Context, limit *int, p *model.CensusDatasetGeographyFilter, keys []int) ([][]*model.CensusGeography, error) {

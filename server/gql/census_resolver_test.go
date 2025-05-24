@@ -33,9 +33,9 @@ func TestCensusResolver(t *testing.T) {
 		// Dataset layers
 		{
 			name:   "dataset layers",
-			query:  `query { census_datasets(where:{name:"tiger2024"}) {name layers} }`,
+			query:  `query { census_datasets(where:{name:"tiger2024"}) {name layers { name description }} }`,
 			vars:   vars,
-			expect: `{"census_datasets":[{"name":"tiger2024","layers":["cbsa","county","csa","place","state","tract","uac20"]}]}`,
+			expect: `{"census_datasets":[{"layers":[{"description":"Layer: uac20","name":"uac20"},{"description":"Layer: cbsa","name":"cbsa"},{"description":"Layer: csa","name":"csa"},{"description":"Layer: state","name":"state"},{"description":"Layer: county","name":"county"},{"description":"Layer: place","name":"place"},{"description":"Layer: tract","name":"tract"}],"name":"tiger2024"}]}`,
 		},
 		// Dataset Geographies
 		{
@@ -151,9 +151,9 @@ func TestCensusResolver(t *testing.T) {
 		// Source layers
 		{
 			name:   "source layers",
-			query:  `query { census_datasets(where:{name:"tiger2024"}) {name sources(where:{name:"tl_2024_06_tract.zip"}) {name layers} } }`,
+			query:  `query { census_datasets(where:{name:"tiger2024"}) {name sources(where:{name:"tl_2024_06_tract.zip"}) {name layers { name description }} } }`,
 			vars:   vars,
-			expect: `{"census_datasets":[{"name":"tiger2024","sources":[{"layers":["tract"],"name":"tl_2024_06_tract.zip"}]}]}`,
+			expect: `{"census_datasets":[{"name":"tiger2024","sources":[{"layers":[{"description":"Layer: tract","name":"tract"}],"name":"tl_2024_06_tract.zip"}]}]}`,
 		},
 	}
 	queryTestcases(t, c, testcases)

@@ -127,7 +127,7 @@ type CensusDataset struct {
 	Sources     []*CensusSource    `json:"sources,omitempty"`
 	Geographies []*CensusGeography `json:"geographies,omitempty"`
 	Tables      []*CensusTable     `json:"tables,omitempty"`
-	Layers      []string           `json:"layers,omitempty"`
+	Layers      []*CensusLayer     `json:"layers,omitempty"`
 }
 
 // Search options for census datasets
@@ -201,9 +201,13 @@ type CensusGeography struct {
 	// Census geography polygon
 	Geometry *tt.MultiPolygon `json:"geometry,omitempty"`
 	// Census tables containing data for this geography
-	Values        []*CensusValue `json:"values"`
-	DatasetID     int            `json:"-"`
-	MatchEntityID int            `json:"-"`
+	Values []*CensusValue `json:"values"`
+	// Layer
+	Layer *CensusLayer `json:"layer,omitempty"`
+	// Source
+	Source        *CensusSource `json:"source,omitempty"`
+	DatasetID     int           `json:"-"`
+	MatchEntityID int           `json:"-"`
 }
 
 // Search options for census geographies
@@ -222,6 +226,7 @@ type CensusLayer struct {
 	Name string `json:"name"`
 	// Layer description
 	Description *string `json:"description,omitempty"`
+	DatasetID   int     `json:"-"`
 }
 
 type CensusSource struct {
@@ -237,7 +242,7 @@ type CensusSource struct {
 	Sha1        string             `json:"sha1"`
 	Geographies []*CensusGeography `json:"geographies,omitempty"`
 	Tables      []*CensusTable     `json:"tables,omitempty"`
-	Layers      []string           `json:"layers,omitempty"`
+	Layers      []*CensusLayer     `json:"layers,omitempty"`
 	DatasetID   int                `json:"-"`
 }
 

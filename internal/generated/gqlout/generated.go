@@ -166,8 +166,10 @@ type ComplexityRoot struct {
 		Geoid       func(childComplexity int) int
 		Geometry    func(childComplexity int) int
 		ID          func(childComplexity int) int
+		Layer       func(childComplexity int) int
 		LayerName   func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Source      func(childComplexity int) int
 		SourceName  func(childComplexity int) int
 		Values      func(childComplexity int, tableNames []string, dataset *string, limit *int) int
 	}
@@ -1182,7 +1184,7 @@ type CensusDatasetResolver interface {
 	Sources(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusSourceFilter) ([]*model.CensusSource, error)
 	Geographies(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusDatasetGeographyFilter) ([]*model.CensusGeography, error)
 	Tables(ctx context.Context, obj *model.CensusDataset, limit *int, where *model.CensusTableFilter) ([]*model.CensusTable, error)
-	Layers(ctx context.Context, obj *model.CensusDataset) ([]string, error)
+	Layers(ctx context.Context, obj *model.CensusDataset) ([]*model.CensusLayer, error)
 }
 type CensusGeographyResolver interface {
 	Values(ctx context.Context, obj *model.CensusGeography, tableNames []string, dataset *string, limit *int) ([]*model.CensusValue, error)
@@ -1190,7 +1192,7 @@ type CensusGeographyResolver interface {
 type CensusSourceResolver interface {
 	Geographies(ctx context.Context, obj *model.CensusSource, limit *int) ([]*model.CensusGeography, error)
 
-	Layers(ctx context.Context, obj *model.CensusSource) ([]string, error)
+	Layers(ctx context.Context, obj *model.CensusSource) ([]*model.CensusLayer, error)
 }
 type CensusTableResolver interface {
 	Fields(ctx context.Context, obj *model.CensusTable) ([]*model.CensusField, error)
@@ -1944,6 +1946,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.CensusGeography.ID(childComplexity), true
 
+	case "CensusGeography.layer":
+		if e.complexity.CensusGeography.Layer == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.Layer(childComplexity), true
+
 	case "CensusGeography.layer_name":
 		if e.complexity.CensusGeography.LayerName == nil {
 			break
@@ -1957,6 +1966,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.CensusGeography.Name(childComplexity), true
+
+	case "CensusGeography.source":
+		if e.complexity.CensusGeography.Source == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.Source(childComplexity), true
 
 	case "CensusGeography.source_name":
 		if e.complexity.CensusGeography.SourceName == nil {
@@ -9021,7 +9037,7 @@ type CensusDataset {
   geographies(limit: Int, where: CensusDatasetGeographyFilter): [CensusGeography!]
   # Census tables in this dataset
   tables(limit: Int, where: CensusTableFilter): [CensusTable!]
-  layers: [String!]
+  layers: [CensusLayer!]
 }
 
 type CensusSource {
@@ -9040,7 +9056,7 @@ type CensusSource {
   # Census tables in this source
   tables(limit: Int): [CensusTable!]
   # Layers
-  layers: [String!]
+  layers: [CensusLayer!]
 }
 
 """"Census layer metadata"""
@@ -9083,6 +9099,10 @@ type CensusGeography {
   geometry: MultiPolygon
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
+  "Layer"
+  layer: CensusLayer
+  "Source"
+  source: CensusSource
 }
 
 """Census values"""
@@ -15257,6 +15277,10 @@ func (ec *executionContext) fieldContext_Agency_census_geographies(ctx context.C
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
+			case "layer":
+				return ec.fieldContext_CensusGeography_layer(ctx, field)
+			case "source":
+				return ec.fieldContext_CensusGeography_source(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CensusGeography", field.Name)
 		},
@@ -16984,6 +17008,10 @@ func (ec *executionContext) fieldContext_CensusDataset_geographies(ctx context.C
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
+			case "layer":
+				return ec.fieldContext_CensusGeography_layer(ctx, field)
+			case "source":
+				return ec.fieldContext_CensusGeography_source(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CensusGeography", field.Name)
 		},
@@ -17091,9 +17119,9 @@ func (ec *executionContext) _CensusDataset_layers(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]*model.CensusLayer)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalOCensusLayer2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusLayerᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CensusDataset_layers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -17103,7 +17131,15 @@ func (ec *executionContext) fieldContext_CensusDataset_layers(_ context.Context,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CensusLayer_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CensusLayer_name(ctx, field)
+			case "description":
+				return ec.fieldContext_CensusLayer_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CensusLayer", field.Name)
 		},
 	}
 	return fc, nil
@@ -17894,6 +17930,114 @@ func (ec *executionContext) fieldContext_CensusGeography_values(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _CensusGeography_layer(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_layer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Layer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CensusLayer)
+	fc.Result = res
+	return ec.marshalOCensusLayer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusLayer(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_layer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CensusLayer_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CensusLayer_name(ctx, field)
+			case "description":
+				return ec.fieldContext_CensusLayer_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CensusLayer", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusGeography_source(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_source(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CensusSource)
+	fc.Result = res
+	return ec.marshalOCensusSource2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusSource(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_source(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CensusSource_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CensusSource_name(ctx, field)
+			case "description":
+				return ec.fieldContext_CensusSource_description(ctx, field)
+			case "url":
+				return ec.fieldContext_CensusSource_url(ctx, field)
+			case "sha1":
+				return ec.fieldContext_CensusSource_sha1(ctx, field)
+			case "geographies":
+				return ec.fieldContext_CensusSource_geographies(ctx, field)
+			case "tables":
+				return ec.fieldContext_CensusSource_tables(ctx, field)
+			case "layers":
+				return ec.fieldContext_CensusSource_layers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CensusSource", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CensusLayer_id(ctx context.Context, field graphql.CollectedField, obj *model.CensusLayer) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CensusLayer_id(ctx, field)
 	if err != nil {
@@ -18304,6 +18448,10 @@ func (ec *executionContext) fieldContext_CensusSource_geographies(ctx context.Co
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
+			case "layer":
+				return ec.fieldContext_CensusGeography_layer(ctx, field)
+			case "source":
+				return ec.fieldContext_CensusGeography_source(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CensusGeography", field.Name)
 		},
@@ -18411,9 +18559,9 @@ func (ec *executionContext) _CensusSource_layers(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]*model.CensusLayer)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalOCensusLayer2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusLayerᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CensusSource_layers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18423,7 +18571,15 @@ func (ec *executionContext) fieldContext_CensusSource_layers(_ context.Context, 
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CensusLayer_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CensusLayer_name(ctx, field)
+			case "description":
+				return ec.fieldContext_CensusLayer_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CensusLayer", field.Name)
 		},
 	}
 	return fc, nil
@@ -41681,6 +41837,10 @@ func (ec *executionContext) fieldContext_Route_census_geographies(ctx context.Co
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
+			case "layer":
+				return ec.fieldContext_CensusGeography_layer(ctx, field)
+			case "source":
+				return ec.fieldContext_CensusGeography_source(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CensusGeography", field.Name)
 		},
@@ -46501,6 +46661,10 @@ func (ec *executionContext) fieldContext_Stop_census_geographies(ctx context.Con
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
+			case "layer":
+				return ec.fieldContext_CensusGeography_layer(ctx, field)
+			case "source":
+				return ec.fieldContext_CensusGeography_source(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CensusGeography", field.Name)
 		},
@@ -59243,6 +59407,10 @@ func (ec *executionContext) _CensusGeography(ctx context.Context, sel ast.Select
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "layer":
+			out.Values[i] = ec._CensusGeography_layer(ctx, field, obj)
+		case "source":
+			out.Values[i] = ec._CensusGeography_source(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -68616,6 +68784,16 @@ func (ec *executionContext) marshalNCensusGeography2ᚖgithubᚗcomᚋinterline�
 	return ec._CensusGeography(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCensusLayer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusLayer(ctx context.Context, sel ast.SelectionSet, v *model.CensusLayer) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CensusLayer(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNCensusSource2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusSource(ctx context.Context, sel ast.SelectionSet, v *model.CensusSource) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -71184,6 +71362,60 @@ func (ec *executionContext) unmarshalOCensusGeographyFilter2ᚖgithubᚗcomᚋin
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOCensusLayer2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusLayerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CensusLayer) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCensusLayer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusLayer(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOCensusLayer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusLayer(ctx context.Context, sel ast.SelectionSet, v *model.CensusLayer) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CensusLayer(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOCensusSource2ᚕᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusSourceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CensusSource) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -71229,6 +71461,13 @@ func (ec *executionContext) marshalOCensusSource2ᚕᚖgithubᚗcomᚋinterline�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOCensusSource2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusSource(ctx context.Context, sel ast.SelectionSet, v *model.CensusSource) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CensusSource(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCensusSourceFilter2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐCensusSourceFilter(ctx context.Context, v any) (*model.CensusSourceFilter, error) {

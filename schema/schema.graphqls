@@ -1114,7 +1114,7 @@ type CensusDataset {
   geographies(limit: Int, where: CensusDatasetGeographyFilter): [CensusGeography!]
   # Census tables in this dataset
   tables(limit: Int, where: CensusTableFilter): [CensusTable!]
-  layers: [String!]
+  layers: [CensusLayer!]
 }
 
 type CensusSource {
@@ -1133,7 +1133,7 @@ type CensusSource {
   # Census tables in this source
   tables(limit: Int): [CensusTable!]
   # Layers
-  layers: [String!]
+  layers: [CensusLayer!]
 }
 
 """"Census layer metadata"""
@@ -1176,6 +1176,10 @@ type CensusGeography {
   geometry: MultiPolygon
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
+  "Layer"
+  layer: CensusLayer
+  "Source"
+  source: CensusSource
 }
 
 """Census values"""
