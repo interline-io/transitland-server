@@ -1099,27 +1099,31 @@ type CensusDataset {
   "Internal integer ID"
   id: Int!
   "Dataset name, e.g. acsdt5y2022"
-  dataset_name: String!
+  name: String!
+  "Dataset description"
+  description: String
   "Dataset url"
   url: Url
   "Minimum year of data in this dataset"
-  year_min: Int!
+  year_min: Int
   "Maximum year of data in this dataset"
-  year_max: Int!
+  year_max: Int
   # Sources in this dataset
   sources(limit: Int, where: CensusSourceFilter): [CensusSource!]
   # Census geographies in this dataset
   geographies(limit: Int, where: CensusDatasetGeographyFilter): [CensusGeography!]
   # Census tables in this dataset
   tables(limit: Int, where: CensusTableFilter): [CensusTable!]
-  layers: [String!]
+  layers: [CensusLayer!]
 }
 
 type CensusSource {
   "Internal integer ID"
   id: Int!
   "Source name, e.g. tl_2024_01_tract.zip"
-  source_name: String!
+  name: String!
+  "Source description"
+  description: String
   "Source url"
   url: Url!
   "Source checksum"
@@ -1129,7 +1133,17 @@ type CensusSource {
   # Census tables in this source
   tables(limit: Int): [CensusTable!]
   # Layers
-  layers: [String!]
+  layers: [CensusLayer!]
+}
+
+""""Census layer metadata"""
+type CensusLayer {
+  "Internal integer ID"
+  id: Int!
+  "Layer name, e.g. tl_2024_01_tract"
+  name: String!
+  "Layer description"
+  description: String
 }
 
 """Census geography data"""
@@ -1162,6 +1176,10 @@ type CensusGeography {
   geometry: MultiPolygon
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
+  "Layer"
+  layer: CensusLayer
+  "Source"
+  source: CensusSource
 }
 
 """Census values"""
@@ -1867,7 +1885,7 @@ input TripFilter {
 """Search options for census datasets"""
 input CensusDatasetFilter {
   "Search for datasets with this name"
-  dataset_name: String
+  name: String
   "Search for datasets matching this string"
   search: String
 }
@@ -1907,7 +1925,7 @@ input CensusTableFilter {
 }
 
 input CensusSourceFilter {
-  source_name: String
+  name: String
   search: String
 }
 

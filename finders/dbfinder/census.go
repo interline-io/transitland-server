@@ -66,53 +66,56 @@ func (f *Finder) CensusSourcesByDatasetIDs(ctx context.Context, limit *int, wher
 	return arrangeGroup(keys, ents, func(ent *model.CensusSource) int { return ent.DatasetID }), err
 }
 
-func (f *Finder) CensusDatasetLayersByDatasetIDs(ctx context.Context, ids []int) ([][]string, []error) {
-	var ret [][]string
-	var errs []error
-	for _, id := range ids {
-		var layers []string
-		err := dbutil.Select(ctx,
-			f.db,
-			sq.StatementBuilder.
-				Select("tlcg.layer_name").
-				Distinct().Options("on (tlcg.layer_name)").
-				From("tl_census_datasets tlcd").
-				Join("tl_census_sources tlcs on tlcs.dataset_id = tlcd.id").
-				Join("tl_census_geographies tlcg on tlcg.source_id = tlcs.id").
-				Where(sq.Eq{"tlcd.id": id}),
-			&layers,
-		)
-		if err != nil {
-			errs = append(errs, logErr(ctx, err))
-			continue
-		}
-		ret = append(ret, layers)
+func (f *Finder) CensusDatasetLayersByDatasetIDs(ctx context.Context, keys []int) ([][]*model.CensusLayer, []error) {
+	var ents []*model.CensusLayer
+	err := dbutil.Select(ctx,
+		f.db,
+		lateralWrap(
+			sq.StatementBuilder.Select("*").From("tl_census_layers"),
+			"tl_census_datasets",
+			"id",
+			"tl_census_layers",
+			"dataset_id",
+			keys,
+		),
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(keys), err)
 	}
-	return ret, errs
+	return arrangeGroup(keys, ents, func(ent *model.CensusLayer) int { return ent.DatasetID }), nil
 }
 
-func (f *Finder) CensusSourceLayersBySourceIDs(ctx context.Context, ids []int) ([][]string, []error) {
-	var ret [][]string
-	var errs []error
-	for _, id := range ids {
-		var layers []string
-		err := dbutil.Select(ctx,
-			f.db,
-			sq.StatementBuilder.
-				Select("tlcg.layer_name").
-				Distinct().Options("on (tlcg.layer_name)").
-				From("tl_census_sources tlcs").
-				Join("tl_census_geographies tlcg on tlcg.source_id = tlcs.id").
-				Where(sq.Eq{"tlcs.id": id}),
-			&layers,
-		)
-		if err != nil {
-			errs = append(errs, logErr(ctx, err))
-			continue
-		}
-		ret = append(ret, layers)
+func (f *Finder) CensusSourceLayersBySourceIDs(ctx context.Context, keys []int) ([][]*model.CensusLayer, []error) {
+	type qent struct {
+		SourceID int
+		model.CensusLayer
 	}
-	return ret, errs
+	var ents []*qent
+	q := sq.StatementBuilder.
+		Select("tlcg.source_id", "tlcl.*").
+		Distinct().Options("on (tlcl.id)").
+		From("tl_census_geographies tlcg").
+		Join("tl_census_layers tlcl on tlcl.id = tlcg.layer_id").
+		Where(sq.Eq{"tlcg.source_id": keys})
+	err := dbutil.Select(ctx,
+		f.db,
+		q,
+		&ents,
+	)
+	if err != nil {
+		return nil, logExtendErr(ctx, len(keys), err)
+	}
+	grouped := arrangeGroup(keys, ents, func(ent *qent) int { return ent.SourceID })
+	var ret [][]*model.CensusLayer
+	for _, group := range grouped {
+		var g []*model.CensusLayer
+		for _, ent := range group {
+			g = append(g, &ent.CensusLayer)
+		}
+		ret = append(ret, g)
+	}
+	return ret, nil
 }
 
 func (f *Finder) CensusGeographiesByDatasetIDs(ctx context.Context, limit *int, p *model.CensusDatasetGeographyFilter, keys []int) ([][]*model.CensusGeography, error) {
@@ -155,11 +158,11 @@ func censusDatasetSelect(_ *int, _ *model.Cursor, _ []int, where *model.CensusDa
 		Select("*").
 		From("tl_census_datasets")
 	if where != nil {
-		if where.DatasetName != nil {
-			q = q.Where(sq.Eq{"dataset_name": *where.DatasetName})
+		if where.Name != nil {
+			q = q.Where(sq.Eq{"name": *where.Name})
 		}
 		if where.Search != nil {
-			q = q.Where(sq.Like{"dataset_name": fmt.Sprintf("%%%s%%", *where.Search)})
+			q = q.Where(sq.Like{"name": fmt.Sprintf("%%%s%%", *where.Search)})
 		}
 	}
 	return q
@@ -168,8 +171,8 @@ func censusDatasetSelect(_ *int, _ *model.Cursor, _ []int, where *model.CensusDa
 func censusSourceSelect(limit *int, after *model.Cursor, ids []int, where *model.CensusSourceFilter) sq.SelectBuilder {
 	q := quickSelectOrder("tl_census_sources", limit, after, ids, "id")
 	if where != nil {
-		if where.SourceName != nil {
-			q = q.Where(sq.Eq{"source_name": *where.SourceName})
+		if where.Name != nil {
+			q = q.Where(sq.Eq{"name": *where.Name})
 		}
 	}
 	return q
@@ -180,7 +183,7 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 	cols := []string{
 		"tlcg.id",
 		"tlcg.geometry",
-		"tlcg.layer_name",
+		"tlcl.name as layer_name",
 		"tlcg.geoid",
 		"tlcg.name",
 		"tlcg.aland",
@@ -189,9 +192,9 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 		"tlcg.adm1_name",
 		"tlcg.adm0_iso",
 		"tlcg.adm1_iso",
-		"tlcs.source_name",
+		"tlcs.name as source_name",
 		"tlcs.id as source_id",
-		"tlcd.dataset_name",
+		"tlcd.name as dataset_name",
 		"tlcd.id as dataset_id",
 	}
 
@@ -203,6 +206,7 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 		From("tl_census_geographies tlcg").
 		Join("tl_census_sources tlcs on tlcs.id = tlcg.source_id").
 		Join("tl_census_datasets tlcd on tlcd.id = tlcs.dataset_id").
+		Join("tl_census_layers tlcl on tlcl.id = tlcg.layer_id").
 		Limit(checkLimit(limit))
 
 	if where != nil && where.Location != nil {
@@ -226,7 +230,7 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 	// Check layer, dataset
 	if where != nil {
 		if where.Layer != nil {
-			q = q.Where(sq.Eq{"tlcg.layer_name": where.Layer})
+			q = q.Where(sq.Eq{"tlcl.name": where.Layer})
 		}
 		if where.Search != nil {
 			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
@@ -251,14 +255,14 @@ func censusGeographySelect(limit *int, where *model.CensusGeographyFilter, entit
 	cols := []string{
 		"tlcg.id",
 		"tlcg.geometry",
-		"tlcg.layer_name",
+		"tlcl.name as layer_name",
 		"tlcg.geoid",
 		"tlcg.name",
 		"tlcg.aland",
 		"tlcg.awater",
-		"tlcs.source_name",
+		"tlcs.name as source_name",
 		"tlcs.id as source_id",
-		"tlcd.dataset_name",
+		"tlcd.name as dataset_name",
 		"tlcd.id as dataset_id",
 	}
 
@@ -268,6 +272,7 @@ func censusGeographySelect(limit *int, where *model.CensusGeographyFilter, entit
 		From("tl_census_geographies tlcg").
 		Join("tl_census_sources tlcs on tlcs.id = tlcg.source_id").
 		Join("tl_census_datasets tlcd on tlcd.id = tlcs.dataset_id").
+		Join("tl_census_layers tlcl on tlcl.id = tlcg.layer_id").
 		Limit(checkLimit(limit))
 
 	if len(entityIds) > 0 {
@@ -293,7 +298,7 @@ func censusGeographySelect(limit *int, where *model.CensusGeographyFilter, entit
 			q = q.Where(sq.Eq{"tlcg.layer_name": where.Layer})
 		}
 		if where.Dataset != nil {
-			q = q.Where(sq.Eq{"tlcd.dataset_name": where.Dataset})
+			q = q.Where(sq.Eq{"tlcd.name": where.Dataset})
 		}
 		if where.Search != nil {
 			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
@@ -308,8 +313,8 @@ func censusValueSelect(limit *int, datasetName string, tnames []string, geoids [
 			"tlcv.table_values as values",
 			"tlcv.geoid",
 			"tlcv.table_id",
-			"tlcs.source_name",
-			"tlcd.dataset_name",
+			"tlcs.name as source_name",
+			"tlcd.name as dataset_name",
 		).
 		From("tl_census_values tlcv").
 		Limit(checkLimit(limit)).
@@ -320,7 +325,7 @@ func censusValueSelect(limit *int, datasetName string, tnames []string, geoids [
 		Where(sq.Eq{"tlct.table_name": tnames}).
 		OrderBy("tlcv.table_id")
 	if datasetName != "" {
-		q = q.Where(sq.Eq{"tlcd.dataset_name": datasetName})
+		q = q.Where(sq.Eq{"tlcd.name": datasetName})
 	}
 	return q
 }
