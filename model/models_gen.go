@@ -115,13 +115,15 @@ type CensusDataset struct {
 	// Internal integer ID
 	ID int `json:"id"`
 	// Dataset name, e.g. acsdt5y2022
-	DatasetName string `json:"dataset_name"`
+	Name string `json:"name"`
+	// Dataset description
+	Description *string `json:"description,omitempty"`
 	// Dataset url
 	URL *tt.Url `json:"url,omitempty"`
 	// Minimum year of data in this dataset
-	YearMin int `json:"year_min"`
+	YearMin *int `json:"year_min,omitempty"`
 	// Maximum year of data in this dataset
-	YearMax     int                `json:"year_max"`
+	YearMax     *int               `json:"year_max,omitempty"`
 	Sources     []*CensusSource    `json:"sources,omitempty"`
 	Geographies []*CensusGeography `json:"geographies,omitempty"`
 	Tables      []*CensusTable     `json:"tables,omitempty"`
@@ -131,7 +133,7 @@ type CensusDataset struct {
 // Search options for census datasets
 type CensusDatasetFilter struct {
 	// Search for datasets with this name
-	DatasetName *string `json:"dataset_name,omitempty"`
+	Name *string `json:"name,omitempty"`
 	// Search for datasets matching this string
 	Search *string `json:"search,omitempty"`
 }
@@ -226,7 +228,9 @@ type CensusSource struct {
 	// Internal integer ID
 	ID int `json:"id"`
 	// Source name, e.g. tl_2024_01_tract.zip
-	SourceName string `json:"source_name"`
+	Name string `json:"name"`
+	// Source description
+	Description *string `json:"description,omitempty"`
 	// Source url
 	URL tt.Url `json:"url"`
 	// Source checksum
@@ -238,8 +242,8 @@ type CensusSource struct {
 }
 
 type CensusSourceFilter struct {
-	SourceName *string `json:"source_name,omitempty"`
-	Search     *string `json:"search,omitempty"`
+	Name   *string `json:"name,omitempty"`
+	Search *string `json:"search,omitempty"`
 }
 
 // Census table metadata

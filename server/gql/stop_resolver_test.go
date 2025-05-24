@@ -450,7 +450,7 @@ func stopResolverTestcases(t testing.TB, cfg model.Config) []testcase {
 
 func stopResolverLocationTestcases(t *testing.T, cfg model.Config) []testcase {
 	geographyId := 0
-	if err := cfg.Finder.DBX().QueryRowx(`select id from tl_census_geographies where layer_name = 'tract' and geoid = '1400000US06001402900'`).Scan(&geographyId); err != nil {
+	if err := cfg.Finder.DBX().QueryRowx(`select id from tl_census_geographies where geoid = '1400000US06001402900'`).Scan(&geographyId); err != nil {
 		t.Errorf("could not get geography id for test: %s", err.Error())
 	}
 	vars := hw{"stop_id": "MCAR"}
