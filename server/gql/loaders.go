@@ -34,8 +34,12 @@ type Loaders struct {
 	CensusSourceLayersBySourceIDs                                 *dataloader.Loader[int, []*model.CensusLayer]
 	CensusFieldsByTableIDs                                        *dataloader.Loader[censusFieldLoaderParam, []*model.CensusField]
 	CensusGeographiesByDatasetIDs                                 *dataloader.Loader[censusDatasetGeographyLoaderParam, []*model.CensusGeography]
+	CensusGeographiesBySourceIDs                                  *dataloader.Loader[censusSourceGeographyLoaderParam, []*model.CensusGeography]
 	CensusGeographiesByEntityIDs                                  *dataloader.Loader[censusGeographyLoaderParam, []*model.CensusGeography]
 	CensusSourcesByDatasetIDs                                     *dataloader.Loader[censusSourceLoaderParam, []*model.CensusSource]
+	CensusGeographiesByLayerIDs                                   *dataloader.Loader[censusSourceGeographyLoaderParam, []*model.CensusGeography]
+	CensusSourcesByIDs                                            *dataloader.Loader[int, *model.CensusSource]
+	CensusLayersByIDs                                             *dataloader.Loader[int, *model.CensusLayer]
 	CensusTableByIDs                                              *dataloader.Loader[int, *model.CensusTable]
 	CensusValuesByGeographyIDs                                    *dataloader.Loader[censusValueLoaderParam, []*model.CensusValue]
 	FeedFetchesByFeedIDs                                          *dataloader.Loader[feedFetchLoaderParam, []*model.FeedFetch]
@@ -130,7 +134,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		CalendarsByIDs:                  withWaitAndCapacity(waitTime, batchSize, dbf.CalendarsByIDs),
 		CensusDatasetLayersByDatasetIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusDatasetLayersByDatasetIDs),
 		CensusSourceLayersBySourceIDs:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourceLayersBySourceIDs),
-		CensusFieldsByTableIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.CensusFieldsByTableIDs),
+		CensusFieldsByTableIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.CensusFieldsByTableIDs),
 			func(p censusFieldLoaderParam) (int, bool, *int) {
 				return p.TableID, false, p.Limit
 			},
@@ -157,7 +162,21 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				return p.DatasetID, p.Where, p.Limit
 			},
 		),
-		CensusTableByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByIDs),
+		CensusTableByIDs:   withWaitAndCapacity(waitTime, batchSize, dbf.CensusTableByIDs),
+		CensusLayersByIDs:  withWaitAndCapacity(waitTime, batchSize, dbf.CensusLayersByIDs),
+		CensusSourcesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.CensusSourcesByIDs),
+		CensusGeographiesBySourceIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			dbf.CensusGeographiesBySourceIDs,
+			func(p censusSourceGeographyLoaderParam) (int, *model.CensusSourceGeographyFilter, *int) {
+				return p.SourceID, p.Where, p.Limit
+			},
+		),
+		CensusGeographiesByLayerIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			dbf.CensusGeographiesByLayerIDs,
+			func(p censusSourceGeographyLoaderParam) (int, *model.CensusSourceGeographyFilter, *int) {
+				return p.LayerID, p.Where, p.Limit
+			},
+		),
 		CensusValuesByGeographyIDs: withWaitAndCapacityGroup(waitTime, batchSize,
 			func(ctx context.Context, limit *int, tableNames string, keys []string) ([][]*model.CensusValue, error) {
 				var tnames []string
@@ -175,7 +194,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 				return p.FeedID, p.Where, p.Limit
 			},
 		),
-		FeedInfosByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.FeedInfosByFeedVersionIDs),
+		FeedInfosByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.FeedInfosByFeedVersionIDs),
 			func(p feedInfoLoaderParam) (int, bool, *int) {
 				return p.FeedVersionID, false, p.Limit
 			},
@@ -187,7 +207,8 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			},
 		),
 		FeedStatesByFeedIDs: withWaitAndCapacity(waitTime, batchSize, dbf.FeedStatesByFeedIDs),
-		FeedVersionFileInfosByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.FeedVersionFileInfosByFeedVersionIDs),
+		FeedVersionFileInfosByFeedVersionIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.FeedVersionFileInfosByFeedVersionIDs),
 			func(p feedVersionFileInfoLoaderParam) (int, bool, *int) {
 				return p.FeedVersionID, false, p.Limit
 			},
@@ -207,14 +228,16 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 		),
 
 		FeedVersionServiceWindowByFeedVersionIDs: withWaitAndCapacity(waitTime, maxBatch, dbf.FeedVersionServiceWindowByFeedVersionIDs),
-		FrequenciesByTripIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.FrequenciesByTripIDs),
+		FrequenciesByTripIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.FrequenciesByTripIDs),
 			func(p frequencyLoaderParam) (int, bool, *int) {
 				return p.TripID, false, p.Limit
 			},
 		),
 
 		LevelsByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.LevelsByIDs),
-		LevelsByParentStationIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.LevelsByParentStationIDs),
+		LevelsByParentStationIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.LevelsByParentStationIDs),
 			func(p levelLoaderParam) (int, bool, *int) {
 				return p.ParentStationID, false, p.Limit
 			},
@@ -239,12 +262,14 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			},
 		),
 		RouteAttributesByRouteIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RouteAttributesByRouteIDs),
-		RouteGeometriesByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteGeometriesByRouteIDs),
+		RouteGeometriesByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.RouteGeometriesByRouteIDs),
 			func(p routeGeometryLoaderParam) (int, bool, *int) {
 				return p.RouteID, false, p.Limit
 			},
 		),
-		RouteHeadwaysByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteHeadwaysByRouteIDs),
+		RouteHeadwaysByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.RouteHeadwaysByRouteIDs),
 			func(p routeHeadwayLoaderParam) (int, bool, *int) {
 				return p.RouteID, false, p.Limit
 			},
@@ -260,17 +285,20 @@ func NewLoaders(dbf model.Finder, batchSize int, stopTimeBatchSize int) *Loaders
 			},
 		),
 		RoutesByIDs: withWaitAndCapacity(waitTime, batchSize, dbf.RoutesByIDs),
-		RouteStopPatternsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteStopPatternsByRouteIDs),
+		RouteStopPatternsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.RouteStopPatternsByRouteIDs),
 			func(p routeStopPatternLoaderParam) (int, bool, *int) {
 				return p.RouteID, false, nil
 			},
 		),
-		RouteStopsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteStopsByRouteIDs),
+		RouteStopsByRouteIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.RouteStopsByRouteIDs),
 			func(p routeStopLoaderParam) (int, bool, *int) {
 				return p.RouteID, false, p.Limit
 			},
 		),
-		RouteStopsByStopIDs: withWaitAndCapacityGroup(waitTime, batchSize, paramGroupAdapter(dbf.RouteStopsByStopIDs),
+		RouteStopsByStopIDs: withWaitAndCapacityGroup(waitTime, batchSize,
+			paramGroupAdapter(dbf.RouteStopsByStopIDs),
 			func(p routeStopLoaderParam) (int, bool, *int) {
 				return p.StopID, false, p.Limit
 			},

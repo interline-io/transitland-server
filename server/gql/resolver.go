@@ -225,3 +225,7 @@ func (r *Resolver) CensusDataset() gqlout.CensusDatasetResolver {
 func (r *Resolver) CensusSource() gqlout.CensusSourceResolver {
 	return &censusSourceResolver{r}
 }
+
+func (r *Resolver) CensusLayer() gqlout.CensusLayerResolver {
+	return &censusLayerResolver{r}
+}

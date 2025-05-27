@@ -26,7 +26,7 @@ func TestCensusResolver(t *testing.T) {
 		},
 		{
 			name:   "dataset filter by search",
-			query:  `query { census_datasets(where:{search:"tiger"}) {name} }`,
+			query:  `query { census_datasets(where:{search:"tiger"}) {name } }`,
 			vars:   vars,
 			expect: `{"census_datasets":[{"name":"tiger2024"}]}`,
 		},
@@ -36,6 +36,12 @@ func TestCensusResolver(t *testing.T) {
 			query:  `query { census_datasets(where:{name:"tiger2024"}) {name layers { name description }} }`,
 			vars:   vars,
 			expect: `{"census_datasets":[{"layers":[{"description":"Layer: uac20","name":"uac20"},{"description":"Layer: cbsa","name":"cbsa"},{"description":"Layer: csa","name":"csa"},{"description":"Layer: state","name":"state"},{"description":"Layer: county","name":"county"},{"description":"Layer: place","name":"place"},{"description":"Layer: tract","name":"tract"}],"name":"tiger2024"}]}`,
+		},
+		{
+			name:   "dataset layer geographies",
+			query:  `query { census_datasets(where:{name:"tiger2024"}) {name layers { name geographies(where:{search:"ala"}) { name } }} }`,
+			vars:   vars,
+			expect: `{"census_datasets":[{"layers":[{"geographies":null,"name":"uac20"},{"geographies":null,"name":"cbsa"},{"geographies":null,"name":"csa"},{"geographies":null,"name":"state"},{"geographies":[{"name":"Alameda"}],"name":"county"},{"geographies":[{"name":"Acalanes Ridge"}],"name":"place"},{"geographies":null,"name":"tract"}],"name":"tiger2024"}]}`,
 		},
 		// Dataset Geographies
 		{
@@ -140,7 +146,18 @@ func TestCensusResolver(t *testing.T) {
 			vars:   hw{"focus": hw{"lon": -122.180, "lat": 48.390}},
 			expect: `{"census_datasets":[{"name":"tiger2024","geographies":[{"geoid":"0500000US53033","name":"King"},{"geoid":"0500000US06001","name":"Alameda"}]}]}`,
 		},
-
+		{
+			name:   "dataset geographies layer",
+			query:  `query($ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{ids:$ids}) { name geoid layer { name }}} }`,
+			vars:   hw{"ids": []int{geographyId}},
+			expect: `{"census_datasets":[{"geographies":[{"geoid":"1400000US06001403000","layer":{"name":"tract"},"name":"4030"}],"name":"tiger2024"}]}`,
+		},
+		{
+			name:   "dataset geographies source",
+			query:  `query($ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{ids:$ids}) { name geoid source { name }}} }`,
+			vars:   hw{"ids": []int{geographyId}},
+			expect: `{"census_datasets":[{"geographies":[{"geoid":"1400000US06001403000","name":"4030","source":{"name":"tl_2024_06_tract.zip"}}],"name":"tiger2024"}]}`,
+		},
 		// Sources
 		{
 			name:   "sources",
@@ -154,6 +171,12 @@ func TestCensusResolver(t *testing.T) {
 			query:  `query { census_datasets(where:{name:"tiger2024"}) {name sources(where:{name:"tl_2024_06_tract.zip"}) {name layers { name description }} } }`,
 			vars:   vars,
 			expect: `{"census_datasets":[{"name":"tiger2024","sources":[{"layers":[{"description":"Layer: tract","name":"tract"}],"name":"tl_2024_06_tract.zip"}]}]}`,
+		},
+		{
+			name:   "source geographies",
+			query:  `query { census_datasets(where:{name:"tiger2024"}) {name sources(where:{name:"tl_2024_us_county.zip"}) {name geographies(where:{search:"ala"}) { name } } } }`,
+			vars:   vars,
+			expect: `{"census_datasets":[{"name":"tiger2024","sources":[{"geographies":[{"name":"Alameda"}],"name":"tl_2024_us_county.zip"}]}]}`,
 		},
 	}
 	queryTestcases(t, c, testcases)

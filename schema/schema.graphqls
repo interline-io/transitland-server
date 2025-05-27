@@ -1128,8 +1128,8 @@ type CensusSource {
   url: Url!
   "Source checksum"
   sha1: String!
-  # Census geographies in this source
-  geographies(limit: Int): [CensusGeography!]
+  # Census geographies in this layer
+  geographies(limit: Int, where: CensusSourceGeographyFilter): [CensusGeography!]
   # Census tables in this source
   tables(limit: Int): [CensusTable!]
   # Layers
@@ -1144,6 +1144,8 @@ type CensusLayer {
   name: String!
   "Layer description"
   description: String
+  # Census geographies in this layer
+  geographies(limit: Int, where: CensusSourceGeographyFilter): [CensusGeography!]
 }
 
 """Census geography data"""
@@ -1914,6 +1916,15 @@ input CensusDatasetGeographyFilter {
   ids: [Int!]
   "Search within this layer"
   layer: String
+  "Search for geographies matching this string"
+  search: String
+  "Location search"
+  location: CensusDatasetGeographyLocationFilter
+}
+
+input CensusSourceGeographyFilter {
+  "Geographies with these integer IDs"
+  ids: [Int!]
   "Search for geographies matching this string"
   search: String
   "Location search"

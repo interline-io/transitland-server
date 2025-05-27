@@ -152,6 +152,8 @@ type censusGeographyLoaderParam struct {
 	EntityType string
 	EntityID   int
 	DatasetID  int
+	SourceID   int
+	LayerID    int
 	Limit      *int
 	Where      *model.CensusGeographyFilter
 }
@@ -160,6 +162,13 @@ type censusDatasetGeographyLoaderParam struct {
 	DatasetID int
 	Limit     *int
 	Where     *model.CensusDatasetGeographyFilter
+}
+
+type censusSourceGeographyLoaderParam struct {
+	SourceID int
+	LayerID  int
+	Limit    *int
+	Where    *model.CensusSourceGeographyFilter
 }
 
 type censusValueLoaderParam struct {
