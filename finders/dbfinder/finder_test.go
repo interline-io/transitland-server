@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-lib/tldb/querylogger"
+	"github.com/interline-io/transitland-mw/testutil"
 	"github.com/stretchr/testify/assert"
 )
 

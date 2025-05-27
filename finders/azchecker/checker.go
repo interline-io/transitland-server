@@ -12,11 +12,11 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-mw/auth/auth0"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/auth/fga"
+	"github.com/interline-io/transitland-mw/dbutil"
 )
 
 // For less typing

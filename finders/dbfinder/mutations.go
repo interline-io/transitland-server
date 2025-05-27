@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/gtfs"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/tldb/postgres"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/auth/authz"
+	"github.com/interline-io/transitland-mw/dbutil"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/jmoiron/sqlx"
 )

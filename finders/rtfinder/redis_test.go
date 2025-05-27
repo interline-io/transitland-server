@@ -3,7 +3,7 @@ package rtfinder
 import (
 	"testing"
 
-	"github.com/interline-io/transitland-dbutil/testutil"
+	"github.com/interline-io/transitland-mw/testutil"
 )
 
 func TestRedisCache(t *testing.T) {

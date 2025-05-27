@@ -18,10 +18,8 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20250425230611-851ec713ec98
-	github.com/interline-io/transitland-dbutil v0.0.0-20250506013203-964770296cd6
-	github.com/interline-io/transitland-jobs v0.0.0-20250506013316-3a895dfc53e9
 	github.com/interline-io/transitland-lib v1.1.3-0.20250527183625-b35d14fbb721
-	github.com/interline-io/transitland-mw v0.0.0-20250506013255-4b0eba879d63
+	github.com/interline-io/transitland-mw v0.0.0-20250527233849-26e2a381eede
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.8.1
@@ -84,7 +82,7 @@ require (
 	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.7.2 // indirect
+	github.com/jackc/pgx/v5 v5.7.4 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jellydator/ttlcache/v2 v2.11.1 // indirect
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af // indirect
@@ -136,10 +134,8 @@ require (
 // Fork to allow exporting x- extensions
 replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17
 
-// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
-// replace github.com/interline-io/transitland-dbutil => /Users/irees/src/interline-io/transitland-dbutil
-// replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
-// replace github.com/interline-io/transitland-jobs => /Users/irees/src/interline-io/transitland-jobs
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
+// replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
+// replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 
 tool github.com/99designs/gqlgen

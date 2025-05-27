@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-lib/tlxy"
+	"github.com/interline-io/transitland-mw/testutil"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/testdata"
