@@ -231,6 +231,13 @@ models:
         resolver: true
       layers:
         resolver: true
+  CensusLayer:
+    fields:
+      geographies:
+        resolver: true
+    extraFields:
+      DatasetID:
+        type: int
   CensusSource:
     fields:
       layers:
@@ -244,8 +251,16 @@ models:
     fields:
       values:
         resolver: true
+      layer:
+        resolver: true
+      source:
+        resolver: true
     extraFields:
       DatasetID:
+        type: int
+      LayerID:
+        type: int
+      SourceID:
         type: int
       MatchEntityID:
         type: int      

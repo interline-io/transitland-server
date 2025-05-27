@@ -115,23 +115,25 @@ type CensusDataset struct {
 	// Internal integer ID
 	ID int `json:"id"`
 	// Dataset name, e.g. acsdt5y2022
-	DatasetName string `json:"dataset_name"`
+	Name string `json:"name"`
+	// Dataset description
+	Description *string `json:"description,omitempty"`
 	// Dataset url
 	URL *tt.Url `json:"url,omitempty"`
 	// Minimum year of data in this dataset
-	YearMin int `json:"year_min"`
+	YearMin *int `json:"year_min,omitempty"`
 	// Maximum year of data in this dataset
-	YearMax     int                `json:"year_max"`
+	YearMax     *int               `json:"year_max,omitempty"`
 	Sources     []*CensusSource    `json:"sources,omitempty"`
 	Geographies []*CensusGeography `json:"geographies,omitempty"`
 	Tables      []*CensusTable     `json:"tables,omitempty"`
-	Layers      []string           `json:"layers,omitempty"`
+	Layers      []*CensusLayer     `json:"layers,omitempty"`
 }
 
 // Search options for census datasets
 type CensusDatasetFilter struct {
 	// Search for datasets with this name
-	DatasetName *string `json:"dataset_name,omitempty"`
+	Name *string `json:"name,omitempty"`
 	// Search for datasets matching this string
 	Search *string `json:"search,omitempty"`
 }
@@ -199,9 +201,15 @@ type CensusGeography struct {
 	// Census geography polygon
 	Geometry *tt.MultiPolygon `json:"geometry,omitempty"`
 	// Census tables containing data for this geography
-	Values        []*CensusValue `json:"values"`
-	DatasetID     int            `json:"-"`
-	MatchEntityID int            `json:"-"`
+	Values []*CensusValue `json:"values"`
+	// Layer
+	Layer *CensusLayer `json:"layer,omitempty"`
+	// Source
+	Source        *CensusSource `json:"source,omitempty"`
+	DatasetID     int           `json:"-"`
+	LayerID       int           `json:"-"`
+	MatchEntityID int           `json:"-"`
+	SourceID      int           `json:"-"`
 }
 
 // Search options for census geographies
@@ -212,24 +220,47 @@ type CensusGeographyFilter struct {
 	Search  *string  `json:"search,omitempty"`
 }
 
+// "Census layer metadata
+type CensusLayer struct {
+	// Internal integer ID
+	ID int `json:"id"`
+	// Layer name, e.g. tl_2024_01_tract
+	Name string `json:"name"`
+	// Layer description
+	Description *string            `json:"description,omitempty"`
+	Geographies []*CensusGeography `json:"geographies,omitempty"`
+	DatasetID   int                `json:"-"`
+}
+
 type CensusSource struct {
 	// Internal integer ID
 	ID int `json:"id"`
 	// Source name, e.g. tl_2024_01_tract.zip
-	SourceName string `json:"source_name"`
+	Name string `json:"name"`
+	// Source description
+	Description *string `json:"description,omitempty"`
 	// Source url
 	URL tt.Url `json:"url"`
 	// Source checksum
 	Sha1        string             `json:"sha1"`
 	Geographies []*CensusGeography `json:"geographies,omitempty"`
 	Tables      []*CensusTable     `json:"tables,omitempty"`
-	Layers      []string           `json:"layers,omitempty"`
+	Layers      []*CensusLayer     `json:"layers,omitempty"`
 	DatasetID   int                `json:"-"`
 }
 
 type CensusSourceFilter struct {
-	SourceName *string `json:"source_name,omitempty"`
-	Search     *string `json:"search,omitempty"`
+	Name   *string `json:"name,omitempty"`
+	Search *string `json:"search,omitempty"`
+}
+
+type CensusSourceGeographyFilter struct {
+	// Geographies with these integer IDs
+	Ids []int `json:"ids,omitempty"`
+	// Search for geographies matching this string
+	Search *string `json:"search,omitempty"`
+	// Location search
+	Location *CensusDatasetGeographyLocationFilter `json:"location,omitempty"`
 }
 
 // Census table metadata
