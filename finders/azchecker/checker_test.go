@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/testdata"
+	"github.com/interline-io/transitland-mw/testutil"
 	"github.com/stretchr/testify/assert"
 )
 

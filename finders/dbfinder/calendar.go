@@ -3,7 +3,7 @@ package dbfinder
 import (
 	"context"
 
-	"github.com/interline-io/transitland-dbutil/dbutil"
+	"github.com/interline-io/transitland-mw/dbutil"
 	"github.com/interline-io/transitland-server/model"
 )
 

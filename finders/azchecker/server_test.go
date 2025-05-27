@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/interline-io/transitland-dbutil/testutil"
 	"github.com/interline-io/transitland-mw/auth/authz"
 	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
+	"github.com/interline-io/transitland-mw/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )

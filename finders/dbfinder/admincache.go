@@ -7,9 +7,9 @@ import (
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/geojson"
 
-	"github.com/interline-io/transitland-dbutil/dbutil"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-lib/tt"
+	"github.com/interline-io/transitland-mw/dbutil"
 	"github.com/jmoiron/sqlx"
 )
 

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/location"
-	"github.com/interline-io/transitland-dbutil/testutil"
+	"github.com/interline-io/transitland-mw/testutil"
 	dt "github.com/interline-io/transitland-server/finders/directions/directionstest"
 	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/testdata"
