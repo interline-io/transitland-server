@@ -25,7 +25,7 @@ func (f *Finder) PathwaysByIDs(ctx context.Context, ids []int) ([]*model.Pathway
 	var ents []*model.Pathway
 	err := dbutil.Select(ctx,
 		f.db,
-		pathwaySelect(nil, nil, ids, nil, nil),
+		pathwaySelect(nil, nil, ids, f.PermFilter(ctx), nil),
 		&ents,
 	)
 	if err != nil {
