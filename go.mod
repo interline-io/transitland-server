@@ -19,7 +19,7 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20250425230611-851ec713ec98
 	github.com/interline-io/transitland-lib v1.1.3-0.20250527183625-b35d14fbb721
-	github.com/interline-io/transitland-mw v0.0.0-20250527233849-26e2a381eede
+	github.com/interline-io/transitland-mw v0.0.0-20250603010024-afe33e1617d1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.8.1
