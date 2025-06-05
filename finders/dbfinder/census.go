@@ -58,8 +58,24 @@ func (f *Finder) CensusSourcesByIDs(ctx context.Context, ids []int) ([]*model.Ce
 }
 
 func (f *Finder) CensusGeographiesByEntityIDs(ctx context.Context, limit *int, where *model.CensusGeographyFilter, entityType string, entityIds []int) ([][]*model.CensusGeography, error) {
+	if where == nil {
+		where = &model.CensusGeographyFilter{}
+	}
+	var stopIds []int
+	if err := dbutil.Select(ctx, f.db, getBufferStopIds(entityType, entityIds, 0), &stopIds); err != nil {
+		return nil, logErr(ctx, err)
+	}
+	fmt.Println("found stop ids:", stopIds)
 	var ents []*model.CensusGeography
-	err := dbutil.Select(ctx, f.db, censusGeographySelect(limit, where, entityType, entityIds), &ents)
+	pw := &model.CensusDatasetGeographyFilter{
+		Layer:  where.Layer,
+		Search: where.Search,
+		Location: &model.CensusDatasetGeographyLocationFilter{
+			StopIds:    stopIds,
+			StopRadius: where.Radius,
+		},
+	}
+	err := dbutil.Select(ctx, f.db, censusDatasetGeographySelect(limit, pw), &ents)
 	return arrangeGroup(entityIds, ents, func(ent *model.CensusGeography) int { return ent.MatchEntityID }), err
 }
 
@@ -266,6 +282,7 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 		"tlcg.adm1_name",
 		"tlcg.adm0_iso",
 		"tlcg.adm1_iso",
+		"ST_Area(tlcg.geometry) as geometry_area",
 		"tlcs.name as source_name",
 		"tlcs.id as source_id",
 		"tlcd.name as dataset_name",
@@ -287,15 +304,24 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 	if where != nil && where.Location != nil {
 		loc := where.Location
 		if loc.Bbox != nil {
-			q = q.Where("ST_Intersects(tlcg.geometry, ST_MakeEnvelope(?,?,?,?,4326))", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat)
-		}
-		if loc.Within != nil && loc.Within.Valid {
-			q = q.Where("ST_Intersects(tlcg.geometry, ?)", loc.Within)
-		}
-		if loc.Near != nil {
+			q = q.
+				Column("ST_Area(ST_Intersection(tlcg.geometry, ST_MakeEnvelope(?,?,?,?,4326)::geography)) as intersection_area", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat).
+				Where("ST_Intersects(tlcg.geometry, ST_MakeEnvelope(?,?,?,?,4326))", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat)
+		} else if loc.Within != nil && loc.Within.Valid {
+			q = q.
+				Column("ST_Area(ST_Intersection(tlcg.geometry, ?)::geography) as intersection_area", loc.Within).
+				Where("ST_Intersects(tlcg.geometry, ?)", loc.Within)
+		} else if loc.Near != nil {
 			radius := checkFloat(&loc.Near.Radius, 0, 1_000_000)
-			q = q.Where("ST_DWithin(tlcg.geometry, ST_MakePoint(?,?), ?)", loc.Near.Lon, loc.Near.Lat, radius)
-			orderBy = sq.Expr("ST_Distance(tlcg.geometry, ST_MakePoint(?,?))", loc.Near.Lon, loc.Near.Lat)
+			q = q.
+				Column("ST_Area(ST_Intersection(tlcg.geometry, ST_Buffer(ST_MakePoint(?,?)::geography, ?))::geography) as intersection_area", loc.Near.Lon, loc.Near.Lat, radius).
+				Where("ST_Intersects(tlcg.geometry, ST_Buffer(ST_MakePoint(?,?)::geography, ?))", loc.Near.Lon, loc.Near.Lat, radius)
+		} else if len(loc.StopIds) > 0 {
+			fmt.Println("search by stop ids:", loc.StopIds)
+			// radius := checkFloat(loc.StopRadius, 0, 1_000)
+			// q = q.
+			// 	Column("ST_Area(ST_Intersection(tlcg.geometry, ST_Buffer(ST_MakePoint(?,?)::geography, ?))::geography) as intersection_area", loc.Near.Lon, loc.Near.Lat, radius).
+			// 	Where("ST_Intersects(tlcg.geometry, ST_Buffer(ST_MakePoint(?,?)::geography, ?))", loc.Near.Lon, loc.Near.Lat, radius)
 		}
 		if loc.Focus != nil {
 			orderBy = sq.Expr("ST_Distance(tlcg.geometry, ST_MakePoint(?,?))", loc.Focus.Lon, loc.Focus.Lat)
@@ -319,68 +345,87 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 	return q
 }
 
-func censusGeographySelect(limit *int, where *model.CensusGeographyFilter, entityType string, entityIds []int) sq.SelectBuilder {
-	// Get search radius
-	radius := 0.0
-	if where != nil {
-		radius = checkFloat(where.Radius, 0, 2000.0)
-	}
-
-	// Include matched entity column
-	cols := []string{
-		"tlcg.id",
-		"tlcg.geometry",
-		"tlcl.name as layer_name",
-		"tlcg.geoid",
-		"tlcg.name",
-		"tlcg.aland",
-		"tlcg.awater",
-		"tlcs.name as source_name",
-		"tlcs.id as source_id",
-		"tlcd.name as dataset_name",
-		"tlcd.id as dataset_id",
-	}
-
-	// A normal query..
+func getBufferStopIds(entityType string, entityIds []int, radius float64) sq.SelectBuilder {
+	// Handle aggregation by entity type
 	q := sq.StatementBuilder.
-		Select(cols...).
-		From("tl_census_geographies tlcg").
-		Join("tl_census_sources tlcs on tlcs.id = tlcg.source_id").
-		Join("tl_census_datasets tlcd on tlcd.id = tlcs.dataset_id").
-		Join("tl_census_layers tlcl on tlcl.id = tlcg.layer_id").
-		Limit(checkLimit(limit))
-
-	if len(entityIds) > 0 {
-		// Handle aggregation by entity type
-		q = q.Join("gtfs_stops ON ST_DWithin(tlcg.geometry, gtfs_stops.geometry, ?)", radius)
-		if entityType == "route" {
-			q = q.Column("tl_route_stops.route_id as match_entity_id")
-			q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
-			q = q.Distinct().Options("on (tl_route_stops.route_id,tlcg.id)").Where(In("tl_route_stops.route_id", entityIds)).OrderBy("tl_route_stops.route_id,tlcg.id")
-		} else if entityType == "agency" {
-			q = q.Column("tl_route_stops.agency_id as match_entity_id")
-			q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
-			q = q.Distinct().Options("on (tl_route_stops.stop_id,tlcg.id)").Where(In("tl_route_stops.agency_id", entityIds)).OrderBy("tl_route_stops.agency_id,tlcg.id")
-		} else if entityType == "stop" {
-			q = q.Column("gtfs_stops.id as match_entity_id")
-			q = q.Where(In("gtfs_stops.id", entityIds)).OrderBy("gtfs_stops.id,tlcg.id")
-		}
-	}
-
-	// Check layer, dataset
-	if where != nil {
-		if where.Layer != nil {
-			q = q.Where(sq.Eq{"tlcg.layer_name": where.Layer})
-		}
-		if where.Dataset != nil {
-			q = q.Where(sq.Eq{"tlcd.name": where.Dataset})
-		}
-		if where.Search != nil {
-			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
-		}
+		Select("id").
+		Distinct().Options("on (gtfs_stops.id)").
+		From("gtfs_stops")
+	if entityType == "route" {
+		q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
+		q = q.Where(In("tl_route_stops.route_id", entityIds))
+	} else if entityType == "agency" {
+		q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
+		q = q.Where(In("tl_route_stops.agency_id", entityIds))
+	} else if entityType == "stop" {
+		q = q.Where(In("gtfs_stops.id", entityIds))
 	}
 	return q
 }
+
+// func censusGeographySelect(limit *int, where *model.CensusGeographyFilter, entityType string, entityIds []int) sq.SelectBuilder {
+// 	// Get search radius
+// 	radius := 0.0
+// 	if where != nil {
+// 		radius = checkFloat(where.Radius, 0, 2000.0)
+// 	}
+
+// 	// Include matched entity column
+// 	cols := []string{
+// 		"tlcg.id",
+// 		"tlcg.geometry",
+// 		"tlcl.name as layer_name",
+// 		"tlcg.geoid",
+// 		"tlcg.name",
+// 		"tlcg.aland",
+// 		"tlcg.awater",
+// 		"ST_Area(tlcg.geometry) as geometry_area",
+// 		"tlcs.name as source_name",
+// 		"tlcs.id as source_id",
+// 		"tlcd.name as dataset_name",
+// 		"tlcd.id as dataset_id",
+// 	}
+
+// 	// A normal query..
+// 	q := sq.StatementBuilder.
+// 		Select(cols...).
+// 		From("tl_census_geographies tlcg").
+// 		Join("tl_census_sources tlcs on tlcs.id = tlcg.source_id").
+// 		Join("tl_census_datasets tlcd on tlcd.id = tlcs.dataset_id").
+// 		Join("tl_census_layers tlcl on tlcl.id = tlcg.layer_id").
+// 		Limit(checkLimit(limit))
+
+// 	if len(entityIds) > 0 {
+// 		// Handle aggregation by entity type
+// 		q = q.Join("gtfs_stops ON ST_DWithin(tlcg.geometry, gtfs_stops.geometry, ?)", radius)
+// 		if entityType == "route" {
+// 			q = q.Column("tl_route_stops.route_id as match_entity_id")
+// 			q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
+// 			q = q.Distinct().Options("on (tl_route_stops.route_id,tlcg.id)").Where(In("tl_route_stops.route_id", entityIds)).OrderBy("tl_route_stops.route_id,tlcg.id")
+// 		} else if entityType == "agency" {
+// 			q = q.Column("tl_route_stops.agency_id as match_entity_id")
+// 			q = q.Join("tl_route_stops ON tl_route_stops.stop_id = gtfs_stops.id")
+// 			q = q.Distinct().Options("on (tl_route_stops.stop_id,tlcg.id)").Where(In("tl_route_stops.agency_id", entityIds)).OrderBy("tl_route_stops.agency_id,tlcg.id")
+// 		} else if entityType == "stop" {
+// 			q = q.Column("gtfs_stops.id as match_entity_id")
+// 			q = q.Where(In("gtfs_stops.id", entityIds)).OrderBy("gtfs_stops.id,tlcg.id")
+// 		}
+// 	}
+
+// 	// Check layer, dataset
+// 	if where != nil {
+// 		if where.Layer != nil {
+// 			q = q.Where(sq.Eq{"tlcg.layer_name": where.Layer})
+// 		}
+// 		if where.Dataset != nil {
+// 			q = q.Where(sq.Eq{"tlcd.name": where.Dataset})
+// 		}
+// 		if where.Search != nil {
+// 			q = q.Where(sq.ILike{"tlcg.name": fmt.Sprintf("%%%s%%", *where.Search)})
+// 		}
+// 	}
+// 	return q
+// }
 
 func censusValueSelect(limit *int, datasetName string, tnames []string, geoids []string) sq.SelectBuilder {
 	q := sq.StatementBuilder.

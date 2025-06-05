@@ -1162,6 +1162,8 @@ type CensusGeography {
   geoid: String
   "Census geography name"
   name: String
+  "Geometry total area, in square meters"
+  geometry_area: Float
   "Land area, in square meters"
   aland: Float
   "Water area, in square meters"
@@ -1176,6 +1178,8 @@ type CensusGeography {
   adm0_iso: String
   "Census geography polygon"
   geometry: MultiPolygon
+  "Intersection area with a given geometry, in square meters"
+  intersection_area: Float
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
   "Layer"
@@ -1909,6 +1913,10 @@ input CensusDatasetGeographyLocationFilter {
   near: PointRadius
   "Focus search on this point; results will be sorted by distance"
   focus: FocusPoint  
+  "Search for geographies with these stop IDs"
+  stop_ids: [Int!]
+  "Stop ID search radius, in meters"
+  stop_radius: Float
 }
 
 input CensusDatasetGeographyFilter {
