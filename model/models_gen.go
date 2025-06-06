@@ -158,10 +158,8 @@ type CensusDatasetGeographyLocationFilter struct {
 	Near *PointRadius `json:"near,omitempty"`
 	// Focus search on this point; results will be sorted by distance
 	Focus *FocusPoint `json:"focus,omitempty"`
-	// Search for geographies with these stop IDs
-	StopIds []int `json:"stop_ids,omitempty"`
-	// Stop ID search radius, in meters
-	StopRadius *float64 `json:"stop_radius,omitempty"`
+	// Search based on a buffer around these stop ids
+	StopBuffer *StopBuffer `json:"stop_buffer,omitempty"`
 }
 
 type CensusField struct {
@@ -953,6 +951,13 @@ type Step struct {
 	Mode           StepMode  `json:"mode"`
 	Instruction    string    `json:"instruction"`
 	GeometryOffset int       `json:"geometry_offset"`
+}
+
+type StopBuffer struct {
+	// Search for geographies with these stop IDs
+	StopIds []int `json:"stop_ids,omitempty"`
+	// Stop ID search radius, in meters
+	Radius *float64 `json:"radius,omitempty"`
 }
 
 type StopExternalReferenceSetInput struct {

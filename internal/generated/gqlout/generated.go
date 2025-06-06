@@ -7441,6 +7441,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSegmentFilter,
 		ec.unmarshalInputSegmentPatternFilter,
 		ec.unmarshalInputServiceCoversFilter,
+		ec.unmarshalInputStopBuffer,
 		ec.unmarshalInputStopExternalReferenceSetInput,
 		ec.unmarshalInputStopFilter,
 		ec.unmarshalInputStopLocationFilter,
@@ -9872,10 +9873,15 @@ input CensusDatasetGeographyLocationFilter {
   near: PointRadius
   "Focus search on this point; results will be sorted by distance"
   focus: FocusPoint  
+  "Search based on a buffer around these stop ids"
+  stop_buffer: StopBuffer
+}
+
+input StopBuffer {
   "Search for geographies with these stop IDs"
   stop_ids: [Int!]
   "Stop ID search radius, in meters"
-  stop_radius: Float
+  radius: Float
 }
 
 input CensusDatasetGeographyFilter {
@@ -56661,7 +56667,7 @@ func (ec *executionContext) unmarshalInputCensusDatasetGeographyLocationFilter(c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"bbox", "within", "near", "focus", "stop_ids", "stop_radius"}
+	fieldsInOrder := [...]string{"bbox", "within", "near", "focus", "stop_buffer"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -56696,20 +56702,13 @@ func (ec *executionContext) unmarshalInputCensusDatasetGeographyLocationFilter(c
 				return it, err
 			}
 			it.Focus = data
-		case "stop_ids":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_ids"))
-			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+		case "stop_buffer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_buffer"))
+			data, err := ec.unmarshalOStopBuffer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopBuffer(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.StopIds = data
-		case "stop_radius":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_radius"))
-			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.StopRadius = data
+			it.StopBuffer = data
 		}
 	}
 
@@ -58146,6 +58145,40 @@ func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Contex
 				return it, err
 			}
 			it.LatestCalendarDate = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStopBuffer(ctx context.Context, obj any) (model.StopBuffer, error) {
+	var it model.StopBuffer
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"stop_ids", "radius"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "stop_ids":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_ids"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopIds = data
+		case "radius":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("radius"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Radius = data
 		}
 	}
 
@@ -74168,6 +74201,14 @@ func (ec *executionContext) marshalOStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		return graphql.Null
 	}
 	return ec._Stop(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOStopBuffer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopBuffer(ctx context.Context, v any) (*model.StopBuffer, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStopBuffer(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOStopExternalReference2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopExternalReference(ctx context.Context, sel ast.SelectionSet, v *model.StopExternalReference) graphql.Marshaler {

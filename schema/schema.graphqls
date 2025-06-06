@@ -1913,10 +1913,15 @@ input CensusDatasetGeographyLocationFilter {
   near: PointRadius
   "Focus search on this point; results will be sorted by distance"
   focus: FocusPoint  
+  "Search based on a buffer around these stop ids"
+  stop_buffer: StopBuffer
+}
+
+input StopBuffer {
   "Search for geographies with these stop IDs"
   stop_ids: [Int!]
   "Stop ID search radius, in meters"
-  stop_radius: Float
+  radius: Float
 }
 
 input CensusDatasetGeographyFilter {

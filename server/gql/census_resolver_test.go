@@ -9,12 +9,22 @@ import (
 
 func TestCensusResolver(t *testing.T) {
 	c, cfg := newTestClient(t)
+	// Define checks and get IDs for tests
+	countyArea := 2126920288.43 // Area of Alameda County in m^2
 	geographyId := 0
 	if err := cfg.Finder.DBX().QueryRowx(`select id from tl_census_geographies where geoid = '1400000US06001403000'`).Scan(&geographyId); err != nil {
 		t.Errorf("could not get geography id for test: %s", err.Error())
 	}
-	countyArea := 2126920288.43 // Area of Alameda County in m^2
+	bartFtvlStopId := 0
+	if err := cfg.Finder.DBX().QueryRowx(`select gtfs_stops.id from gtfs_stops join feed_states using(feed_version_id) where stop_id = 'FTVL'`).Scan(&bartFtvlStopId); err != nil {
+		t.Errorf("could not get stop id for test: %s", err.Error())
+	}
+	bartMcarStopId := 0
+	if err := cfg.Finder.DBX().QueryRowx(`select gtfs_stops.id from gtfs_stops join feed_states using(feed_version_id) where stop_id = 'MCAR'`).Scan(&bartMcarStopId); err != nil {
+		t.Errorf("could not get stop id for test: %s", err.Error())
+	}
 
+	// Define test cases
 	vars := hw{}
 	testcases := []testcase{
 		// Datasets
@@ -186,7 +196,49 @@ func TestCensusResolver(t *testing.T) {
 		},
 		// Intersection areas
 		{
-			name:  "dataset intersection areas - tract",
+			name:  "dataset intersection areas by stop buffer - tract",
+			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:100}}}) { name geoid geometry_area intersection_area }} }`,
+			vars:  hw{"stop_ids": []int{bartFtvlStopId}},
+			f: func(t *testing.T, jj string) {
+				testIntersectionArea(
+					t,
+					gjson.Get(jj, "census_datasets.0.geographies").Array(),
+					1,
+					1918910.47033,
+					31235.844716912135,
+				)
+			},
+		},
+		{
+			name:  "dataset intersection areas by stop buffer - tract, 1km",
+			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(limit:1000, where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:1000}}}) { name geoid geometry_area intersection_area }} }`,
+			vars:  hw{"stop_ids": []int{bartFtvlStopId}},
+			f: func(t *testing.T, jj string) {
+				testIntersectionArea(
+					t,
+					gjson.Get(jj, "census_datasets.0.geographies").Array(),
+					10,
+					9.496240598676275e+06,
+					3.123584448019881e+06,
+				)
+			},
+		},
+		{
+			name:  "dataset intersection areas by stop buffer, 2 stops - tract",
+			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:100}}}) { name geoid geometry_area intersection_area }} }`,
+			vars:  hw{"stop_ids": []int{bartFtvlStopId, bartMcarStopId}},
+			f: func(t *testing.T, jj string) {
+				testIntersectionArea(
+					t,
+					gjson.Get(jj, "census_datasets.0.geographies").Array(),
+					3,
+					3.9412406339011015e+06,
+					62472.080208225176,
+				)
+			},
+		},
+		{
+			name:  "dataset intersection areas within feature - tract",
 			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
 			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
 				{-122.27463277683867, 37.805635064682264},
@@ -212,7 +264,7 @@ func TestCensusResolver(t *testing.T) {
 			},
 		},
 		{
-			name:  "dataset intersection areas - county",
+			name:  "dataset intersection areas within feature - county",
 			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
 			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
 				{-122.27463277683867, 37.805635064682264},
@@ -238,7 +290,7 @@ func TestCensusResolver(t *testing.T) {
 			},
 		},
 		{
-			name:  "dataset intersection areas - county (big)",
+			name:  "dataset intersection areas within feature - county (big)",
 			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
 			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
 				{-123.77489413290716, 38.794161309061735},
