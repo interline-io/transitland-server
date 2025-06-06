@@ -368,7 +368,7 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 			qJoin = sq.StatementBuilder.Select().
 				Column("ST_Buffer(ST_Collect(ST_Buffer(gtfs_stops.geometry::geography, ?)::geometry), 0) as buffer", radius).
 				From("gtfs_stops").
-				Where(sq.Eq{"gtfs_stops.id": loc.StopBuffer.StopIds})
+				Where(In("gtfs_stops.id", loc.StopBuffer.StopIds))
 		} else {
 			found = false
 		}
