@@ -197,7 +197,7 @@ func TestCensusResolver(t *testing.T) {
 		// Intersection areas
 		{
 			name:  "dataset intersection areas by stop buffer - tract",
-			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:100}}}) { name geoid geometry_area intersection_area }} }`,
+			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:100}}}) { name geoid geometry_area geometry intersection_geometry intersection_area }} }`,
 			vars:  hw{"stop_ids": []int{bartFtvlStopId}},
 			f: func(t *testing.T, jj string) {
 				testIntersectionArea(
@@ -211,7 +211,7 @@ func TestCensusResolver(t *testing.T) {
 		},
 		{
 			name:  "dataset intersection areas by stop buffer - tract, 1km",
-			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(limit:1000, where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:1000}}}) { name geoid geometry_area intersection_area }} }`,
+			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(limit:1000, where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:1000}}}) { name geoid geometry_area intersection_geometry intersection_area }} }`,
 			vars:  hw{"stop_ids": []int{bartFtvlStopId}},
 			f: func(t *testing.T, jj string) {
 				testIntersectionArea(
@@ -225,7 +225,7 @@ func TestCensusResolver(t *testing.T) {
 		},
 		{
 			name:  "dataset intersection areas by stop buffer, 2 stops - tract",
-			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:100}}}) { name geoid geometry_area intersection_area }} }`,
+			query: `query($stop_ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{stop_buffer:{stop_ids:$stop_ids, radius:100}}}) { name geoid geometry_area intersection_geometry intersection_area }} }`,
 			vars:  hw{"stop_ids": []int{bartFtvlStopId, bartMcarStopId}},
 			f: func(t *testing.T, jj string) {
 				testIntersectionArea(
@@ -239,7 +239,7 @@ func TestCensusResolver(t *testing.T) {
 		},
 		{
 			name:  "dataset intersection areas within feature - tract",
-			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
+			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{within:$feature}}) { name geoid geometry_area intersection_geometry intersection_area }} }`,
 			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
 				{-122.27463277683867, 37.805635064682264},
 				{-122.28006473340696, 37.80461858815316},
@@ -265,7 +265,7 @@ func TestCensusResolver(t *testing.T) {
 		},
 		{
 			name:  "dataset intersection areas within feature - county",
-			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
+			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_geometry intersection_area }} }`,
 			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
 				{-122.27463277683867, 37.805635064682264},
 				{-122.28006473340696, 37.80461858815316},
@@ -291,7 +291,7 @@ func TestCensusResolver(t *testing.T) {
 		},
 		{
 			name:  "dataset intersection areas within feature - county (big)",
-			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
+			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_geometry intersection_area }} }`,
 			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
 				{-123.77489413290716, 38.794161309061735},
 				{-122.69431950796763, 35.52679604934255},
@@ -310,7 +310,7 @@ func TestCensusResolver(t *testing.T) {
 		},
 		{
 			name:  "agency intersection areas - county",
-			query: `query { agencies(where:{agency_id:"BART"}) { agency_id census_geographies(where:{layer:"county", radius:1000.0}) { name geometry_area intersection_area } } }`,
+			query: `query { agencies(where:{agency_id:"BART"}) { agency_id census_geographies(where:{layer:"county", radius:1000.0}) { name geometry_area intersection_geometry intersection_area } } }`,
 			vars:  vars,
 			f: func(t *testing.T, jj string) {
 				testIntersectionArea(
@@ -324,7 +324,7 @@ func TestCensusResolver(t *testing.T) {
 		},
 		{
 			name:  "agency intersection areas - tract",
-			query: `query { agencies(where:{agency_id:"BART"}) { agency_id census_geographies(where:{layer:"tract", radius:100.0}) { name geometry_area intersection_area } } }`,
+			query: `query { agencies(where:{agency_id:"BART"}) { agency_id census_geographies(where:{layer:"tract", radius:100.0}) { name geometry_area intersection_geometry intersection_area } } }`,
 			vars:  vars,
 			f: func(t *testing.T, jj string) {
 				testIntersectionArea(

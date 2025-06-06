@@ -1180,6 +1180,7 @@ type CensusGeography {
   geometry: MultiPolygon
   "Intersection area with a given geometry, in square meters"
   intersection_area: Float
+  intersection_geometry: Geometry
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
   "Layer"

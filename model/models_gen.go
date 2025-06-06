@@ -205,7 +205,8 @@ type CensusGeography struct {
 	// Census geography polygon
 	Geometry *tt.MultiPolygon `json:"geometry,omitempty"`
 	// Intersection area with a given geometry, in square meters
-	IntersectionArea *float64 `json:"intersection_area,omitempty"`
+	IntersectionArea     *float64     `json:"intersection_area,omitempty"`
+	IntersectionGeometry *tt.Geometry `json:"intersection_geometry,omitempty"`
 	// Census tables containing data for this geography
 	Values []*CensusValue `json:"values"`
 	// Layer
