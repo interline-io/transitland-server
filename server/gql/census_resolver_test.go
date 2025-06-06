@@ -13,6 +13,7 @@ func TestCensusResolver(t *testing.T) {
 	if err := cfg.Finder.DBX().QueryRowx(`select id from tl_census_geographies where geoid = '1400000US06001403000'`).Scan(&geographyId); err != nil {
 		t.Errorf("could not get geography id for test: %s", err.Error())
 	}
+	countyArea := 2126920288.43 // Area of Alameda County in m^2
 
 	vars := hw{}
 	testcases := []testcase{
@@ -133,95 +134,6 @@ func TestCensusResolver(t *testing.T) {
 			selectExpect: []string{"1400000US06001402801", "1400000US06001402900"},
 		},
 		{
-			name:  "dataset geographies in polygon - tract",
-			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
-			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
-				{-122.27463277683867, 37.805635064682264},
-				{-122.28006473340696, 37.80461858815316},
-				{-122.27406099193678, 37.801456127261474},
-				{-122.2754189810789, 37.79671218203016},
-				{-122.27041586318674, 37.799648945955155},
-				{-122.26398328303992, 37.79863238703946},
-				{-122.26791430424078, 37.80247264731531},
-				{-122.26441212171653, 37.80693387544258},
-				{-122.269558185834, 37.806199767818995},
-				{-122.27313184147101, 37.81066077079923},
-				{-122.27463277683867, 37.805635064682264},
-			}}}},
-			f: func(t *testing.T, jj string) {
-				// Sum areas to expected amount
-				expectIntersectionArea := 829385.7985148486
-				expectGeometryArea := 4755614.60179
-				gotIntersectionArea := 0.0
-				gotGeometryArea := 0.0
-				a := gjson.Get(jj, "census_datasets.0.geographies").Array()
-				for _, v := range a {
-					gotIntersectionArea += v.Get("intersection_area").Float()
-					gotGeometryArea += v.Get("geometry_area").Float()
-				}
-				assert.InDelta(t, expectIntersectionArea, gotIntersectionArea, 1.0)
-				assert.InDelta(t, expectGeometryArea, gotGeometryArea, 1.0)
-				assert.Equal(t, 11, len(a), "should have 11 geographies in polygon")
-			},
-		},
-		{
-			name:  "dataset geographies in polygon - county",
-			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
-			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
-				{-122.27463277683867, 37.805635064682264},
-				{-122.28006473340696, 37.80461858815316},
-				{-122.27406099193678, 37.801456127261474},
-				{-122.2754189810789, 37.79671218203016},
-				{-122.27041586318674, 37.799648945955155},
-				{-122.26398328303992, 37.79863238703946},
-				{-122.26791430424078, 37.80247264731531},
-				{-122.26441212171653, 37.80693387544258},
-				{-122.269558185834, 37.806199767818995},
-				{-122.27313184147101, 37.81066077079923},
-				{-122.27463277683867, 37.805635064682264},
-			}}}},
-			f: func(t *testing.T, jj string) {
-				// Sum areas to expected amount
-				expectIntersectionArea := 829385.7985148486
-				expectGeometryArea := 2126920288.43
-				gotIntersectionArea := 0.0
-				gotGeometryArea := 0.0
-				a := gjson.Get(jj, "census_datasets.0.geographies").Array()
-				for _, v := range a {
-					gotIntersectionArea += v.Get("intersection_area").Float()
-					gotGeometryArea += v.Get("geometry_area").Float()
-				}
-				assert.InDelta(t, expectIntersectionArea, gotIntersectionArea, 1.0)
-				assert.InDelta(t, expectGeometryArea, gotGeometryArea, 1.0)
-				assert.Equal(t, 1, len(a), "should have 1 geographies in polygon")
-			},
-		},
-		{
-			name:  "dataset geographies in big polygon - county",
-			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
-			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
-				{-123.77489413290716, 38.794161309061735},
-				{-122.69431950796763, 35.52679604934255},
-				{-119.9104881819854, 37.991860068760204},
-				{-123.77489413290716, 38.794161309061735},
-			}}}},
-			f: func(t *testing.T, jj string) {
-				// Should be equal to the area of Alameda County
-				expectGeometryArea := 2126920288.43
-				expectIntersectionArea := 2126920288.43
-				intersectionArea := 0.0
-				geometryArea := 0.0
-				a := gjson.Get(jj, "census_datasets.0.geographies").Array()
-				for _, v := range a {
-					intersectionArea += v.Get("intersection_area").Float()
-					geometryArea += v.Get("geometry_area").Float()
-				}
-				assert.InDelta(t, expectIntersectionArea, intersectionArea, 1.0)
-				assert.InDelta(t, expectGeometryArea, geometryArea, 1.0)
-				assert.Equal(t, 1, len(a), "should have 1 geographies in polygon")
-			},
-		},
-		{
 			name:         "dataset geographies by id",
 			query:        `query($ids:[Int!]) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{ids:$ids}) { name geoid }} }`,
 			vars:         hw{"ids": []int{geographyId}},
@@ -272,13 +184,117 @@ func TestCensusResolver(t *testing.T) {
 			vars:   vars,
 			expect: `{"census_datasets":[{"name":"tiger2024","sources":[{"geographies":[{"name":"Alameda"}],"name":"tl_2024_us_county.zip"}]}]}`,
 		},
-		// Agency geographies
+		// Intersection areas
 		{
-			name:   "agency geographies",
-			query:  `query { agencies { census_geographies { name } } }`,
-			vars:   vars,
-			expect: `{"census_datasets":[{"name":"tiger2024","sources":[{"geographies":[{"name":"Alameda"}],"name":"tl_2024_us_county.zip"}]}]}`,
+			name:  "dataset intersection areas - tract",
+			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "tract", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
+			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
+				{-122.27463277683867, 37.805635064682264},
+				{-122.28006473340696, 37.80461858815316},
+				{-122.27406099193678, 37.801456127261474},
+				{-122.2754189810789, 37.79671218203016},
+				{-122.27041586318674, 37.799648945955155},
+				{-122.26398328303992, 37.79863238703946},
+				{-122.26791430424078, 37.80247264731531},
+				{-122.26441212171653, 37.80693387544258},
+				{-122.269558185834, 37.806199767818995},
+				{-122.27313184147101, 37.81066077079923},
+				{-122.27463277683867, 37.805635064682264},
+			}}}},
+			f: func(t *testing.T, jj string) {
+				testIntersectionArea(
+					t,
+					gjson.Get(jj, "census_datasets.0.geographies").Array(),
+					11,
+					4755614.60179,
+					829385.7985148486,
+				)
+			},
+		},
+		{
+			name:  "dataset intersection areas - county",
+			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
+			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
+				{-122.27463277683867, 37.805635064682264},
+				{-122.28006473340696, 37.80461858815316},
+				{-122.27406099193678, 37.801456127261474},
+				{-122.2754189810789, 37.79671218203016},
+				{-122.27041586318674, 37.799648945955155},
+				{-122.26398328303992, 37.79863238703946},
+				{-122.26791430424078, 37.80247264731531},
+				{-122.26441212171653, 37.80693387544258},
+				{-122.269558185834, 37.806199767818995},
+				{-122.27313184147101, 37.81066077079923},
+				{-122.27463277683867, 37.805635064682264},
+			}}}},
+			f: func(t *testing.T, jj string) {
+				testIntersectionArea(
+					t,
+					gjson.Get(jj, "census_datasets.0.geographies").Array(),
+					1,
+					countyArea,
+					829385.7985148486,
+				)
+			},
+		},
+		{
+			name:  "dataset intersection areas - county (big)",
+			query: `query($feature:Polygon) { census_datasets(where:{name:"tiger2024"}) {name geographies(where:{layer: "county", location:{within:$feature}}) { name geoid geometry_area intersection_area }} }`,
+			vars: hw{"feature": hw{"type": "Polygon", "coordinates": [][][]float64{{
+				{-123.77489413290716, 38.794161309061735},
+				{-122.69431950796763, 35.52679604934255},
+				{-119.9104881819854, 37.991860068760204},
+				{-123.77489413290716, 38.794161309061735},
+			}}}},
+			f: func(t *testing.T, jj string) {
+				testIntersectionArea(
+					t,
+					gjson.Get(jj, "census_datasets.0.geographies").Array(),
+					1,
+					countyArea,
+					countyArea,
+				)
+			},
+		},
+		{
+			name:  "agency intersection areas - county",
+			query: `query { agencies(where:{agency_id:"BART"}) { agency_id census_geographies(where:{layer:"county", radius:1000.0}) { name geometry_area intersection_area } } }`,
+			vars:  vars,
+			f: func(t *testing.T, jj string) {
+				testIntersectionArea(
+					t,
+					gjson.Get(jj, "agencies.0.census_geographies").Array(),
+					1,
+					countyArea,
+					65341022.43,
+				)
+			},
+		},
+		{
+			name:  "agency intersection areas - tract",
+			query: `query { agencies(where:{agency_id:"BART"}) { agency_id census_geographies(where:{layer:"tract", radius:100.0}) { name geometry_area intersection_area } } }`,
+			vars:  vars,
+			f: func(t *testing.T, jj string) {
+				testIntersectionArea(
+					t,
+					gjson.Get(jj, "agencies.0.census_geographies").Array(),
+					37,
+					73325034.5592,
+					687170.8023156085,
+				)
+			},
 		},
 	}
 	queryTestcases(t, c, testcases)
+}
+func testIntersectionArea(t *testing.T, a []gjson.Result, expectCount int, expectGeometryArea float64, expectIntersectionArea float64) {
+	intersectionArea := 0.0
+	geometryArea := 0.0
+	for _, v := range a {
+		intersectionArea += v.Get("intersection_area").Float()
+		geometryArea += v.Get("geometry_area").Float()
+	}
+	assert.InDelta(t, expectIntersectionArea, intersectionArea, 1.0, "expected intersection area")
+	assert.InDelta(t, expectGeometryArea, geometryArea, 1.0, "expected geometry area")
+	assert.Equal(t, expectCount, len(a), "expected geographies returned")
 }
