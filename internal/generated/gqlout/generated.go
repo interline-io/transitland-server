@@ -157,22 +157,25 @@ type ComplexityRoot struct {
 	}
 
 	CensusGeography struct {
-		Adm0Iso     func(childComplexity int) int
-		Adm0Name    func(childComplexity int) int
-		Adm1Iso     func(childComplexity int) int
-		Adm1Name    func(childComplexity int) int
-		Aland       func(childComplexity int) int
-		Awater      func(childComplexity int) int
-		DatasetName func(childComplexity int) int
-		Geoid       func(childComplexity int) int
-		Geometry    func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Layer       func(childComplexity int) int
-		LayerName   func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Source      func(childComplexity int) int
-		SourceName  func(childComplexity int) int
-		Values      func(childComplexity int, tableNames []string, dataset *string, limit *int) int
+		Adm0Iso              func(childComplexity int) int
+		Adm0Name             func(childComplexity int) int
+		Adm1Iso              func(childComplexity int) int
+		Adm1Name             func(childComplexity int) int
+		Aland                func(childComplexity int) int
+		Awater               func(childComplexity int) int
+		DatasetName          func(childComplexity int) int
+		Geoid                func(childComplexity int) int
+		Geometry             func(childComplexity int) int
+		GeometryArea         func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		IntersectionArea     func(childComplexity int) int
+		IntersectionGeometry func(childComplexity int) int
+		Layer                func(childComplexity int) int
+		LayerName            func(childComplexity int) int
+		Name                 func(childComplexity int) int
+		Source               func(childComplexity int) int
+		SourceName           func(childComplexity int) int
+		Values               func(childComplexity int, tableNames []string, dataset *string, limit *int) int
 	}
 
 	CensusLayer struct {
@@ -1946,12 +1949,33 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.CensusGeography.Geometry(childComplexity), true
 
+	case "CensusGeography.geometry_area":
+		if e.complexity.CensusGeography.GeometryArea == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.GeometryArea(childComplexity), true
+
 	case "CensusGeography.id":
 		if e.complexity.CensusGeography.ID == nil {
 			break
 		}
 
 		return e.complexity.CensusGeography.ID(childComplexity), true
+
+	case "CensusGeography.intersection_area":
+		if e.complexity.CensusGeography.IntersectionArea == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.IntersectionArea(childComplexity), true
+
+	case "CensusGeography.intersection_geometry":
+		if e.complexity.CensusGeography.IntersectionGeometry == nil {
+			break
+		}
+
+		return e.complexity.CensusGeography.IntersectionGeometry(childComplexity), true
 
 	case "CensusGeography.layer":
 		if e.complexity.CensusGeography.Layer == nil {
@@ -7425,6 +7449,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSegmentFilter,
 		ec.unmarshalInputSegmentPatternFilter,
 		ec.unmarshalInputServiceCoversFilter,
+		ec.unmarshalInputStopBuffer,
 		ec.unmarshalInputStopExternalReferenceSetInput,
 		ec.unmarshalInputStopFilter,
 		ec.unmarshalInputStopLocationFilter,
@@ -9105,6 +9130,8 @@ type CensusGeography {
   geoid: String
   "Census geography name"
   name: String
+  "Geometry total area, in square meters"
+  geometry_area: Float
   "Land area, in square meters"
   aland: Float
   "Water area, in square meters"
@@ -9119,6 +9146,9 @@ type CensusGeography {
   adm0_iso: String
   "Census geography polygon"
   geometry: MultiPolygon
+  "Intersection area with a given geometry, in square meters"
+  intersection_area: Float
+  intersection_geometry: Geometry
   "Census tables containing data for this geography"
   values(table_names: [String!]!, dataset: String, limit: Int): [CensusValue]!
   "Layer"
@@ -9852,6 +9882,15 @@ input CensusDatasetGeographyLocationFilter {
   near: PointRadius
   "Focus search on this point; results will be sorted by distance"
   focus: FocusPoint  
+  "Search based on a buffer around these stop ids"
+  stop_buffer: StopBuffer
+}
+
+input StopBuffer {
+  "Search for geographies with these stop IDs"
+  stop_ids: [Int!]
+  "Stop ID search radius, in meters"
+  radius: Float
 }
 
 input CensusDatasetGeographyFilter {
@@ -15366,6 +15405,8 @@ func (ec *executionContext) fieldContext_Agency_census_geographies(ctx context.C
 				return ec.fieldContext_CensusGeography_geoid(ctx, field)
 			case "name":
 				return ec.fieldContext_CensusGeography_name(ctx, field)
+			case "geometry_area":
+				return ec.fieldContext_CensusGeography_geometry_area(ctx, field)
 			case "aland":
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
@@ -15380,6 +15421,10 @@ func (ec *executionContext) fieldContext_Agency_census_geographies(ctx context.C
 				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
+			case "intersection_area":
+				return ec.fieldContext_CensusGeography_intersection_area(ctx, field)
+			case "intersection_geometry":
+				return ec.fieldContext_CensusGeography_intersection_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
 			case "layer":
@@ -17097,6 +17142,8 @@ func (ec *executionContext) fieldContext_CensusDataset_geographies(ctx context.C
 				return ec.fieldContext_CensusGeography_geoid(ctx, field)
 			case "name":
 				return ec.fieldContext_CensusGeography_name(ctx, field)
+			case "geometry_area":
+				return ec.fieldContext_CensusGeography_geometry_area(ctx, field)
 			case "aland":
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
@@ -17111,6 +17158,10 @@ func (ec *executionContext) fieldContext_CensusDataset_geographies(ctx context.C
 				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
+			case "intersection_area":
+				return ec.fieldContext_CensusGeography_intersection_area(ctx, field)
+			case "intersection_geometry":
+				return ec.fieldContext_CensusGeography_intersection_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
 			case "layer":
@@ -17683,6 +17734,47 @@ func (ec *executionContext) fieldContext_CensusGeography_name(_ context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _CensusGeography_geometry_area(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_geometry_area(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GeometryArea, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_geometry_area(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CensusGeography_aland(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CensusGeography_aland(ctx, field)
 	if err != nil {
@@ -17965,6 +18057,88 @@ func (ec *executionContext) fieldContext_CensusGeography_geometry(_ context.Cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type MultiPolygon does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusGeography_intersection_area(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_intersection_area(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IntersectionArea, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_intersection_area(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CensusGeography_intersection_geometry(ctx context.Context, field graphql.CollectedField, obj *model.CensusGeography) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CensusGeography_intersection_geometry(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IntersectionGeometry, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*tt.Geometry)
+	fc.Result = res
+	return ec.marshalOGeometry2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑlibᚋttᚐGeometry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CensusGeography_intersection_geometry(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CensusGeography",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Geometry does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18324,6 +18498,8 @@ func (ec *executionContext) fieldContext_CensusLayer_geographies(ctx context.Con
 				return ec.fieldContext_CensusGeography_geoid(ctx, field)
 			case "name":
 				return ec.fieldContext_CensusGeography_name(ctx, field)
+			case "geometry_area":
+				return ec.fieldContext_CensusGeography_geometry_area(ctx, field)
 			case "aland":
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
@@ -18338,6 +18514,10 @@ func (ec *executionContext) fieldContext_CensusLayer_geographies(ctx context.Con
 				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
+			case "intersection_area":
+				return ec.fieldContext_CensusGeography_intersection_area(ctx, field)
+			case "intersection_geometry":
+				return ec.fieldContext_CensusGeography_intersection_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
 			case "layer":
@@ -18627,6 +18807,8 @@ func (ec *executionContext) fieldContext_CensusSource_geographies(ctx context.Co
 				return ec.fieldContext_CensusGeography_geoid(ctx, field)
 			case "name":
 				return ec.fieldContext_CensusGeography_name(ctx, field)
+			case "geometry_area":
+				return ec.fieldContext_CensusGeography_geometry_area(ctx, field)
 			case "aland":
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
@@ -18641,6 +18823,10 @@ func (ec *executionContext) fieldContext_CensusSource_geographies(ctx context.Co
 				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
+			case "intersection_area":
+				return ec.fieldContext_CensusGeography_intersection_area(ctx, field)
+			case "intersection_geometry":
+				return ec.fieldContext_CensusGeography_intersection_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
 			case "layer":
@@ -42018,6 +42204,8 @@ func (ec *executionContext) fieldContext_Route_census_geographies(ctx context.Co
 				return ec.fieldContext_CensusGeography_geoid(ctx, field)
 			case "name":
 				return ec.fieldContext_CensusGeography_name(ctx, field)
+			case "geometry_area":
+				return ec.fieldContext_CensusGeography_geometry_area(ctx, field)
 			case "aland":
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
@@ -42032,6 +42220,10 @@ func (ec *executionContext) fieldContext_Route_census_geographies(ctx context.Co
 				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
+			case "intersection_area":
+				return ec.fieldContext_CensusGeography_intersection_area(ctx, field)
+			case "intersection_geometry":
+				return ec.fieldContext_CensusGeography_intersection_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
 			case "layer":
@@ -46842,6 +47034,8 @@ func (ec *executionContext) fieldContext_Stop_census_geographies(ctx context.Con
 				return ec.fieldContext_CensusGeography_geoid(ctx, field)
 			case "name":
 				return ec.fieldContext_CensusGeography_name(ctx, field)
+			case "geometry_area":
+				return ec.fieldContext_CensusGeography_geometry_area(ctx, field)
 			case "aland":
 				return ec.fieldContext_CensusGeography_aland(ctx, field)
 			case "awater":
@@ -46856,6 +47050,10 @@ func (ec *executionContext) fieldContext_Stop_census_geographies(ctx context.Con
 				return ec.fieldContext_CensusGeography_adm0_iso(ctx, field)
 			case "geometry":
 				return ec.fieldContext_CensusGeography_geometry(ctx, field)
+			case "intersection_area":
+				return ec.fieldContext_CensusGeography_intersection_area(ctx, field)
+			case "intersection_geometry":
+				return ec.fieldContext_CensusGeography_intersection_geometry(ctx, field)
 			case "values":
 				return ec.fieldContext_CensusGeography_values(ctx, field)
 			case "layer":
@@ -56531,7 +56729,7 @@ func (ec *executionContext) unmarshalInputCensusDatasetGeographyLocationFilter(c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"bbox", "within", "near", "focus"}
+	fieldsInOrder := [...]string{"bbox", "within", "near", "focus", "stop_buffer"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -56566,6 +56764,13 @@ func (ec *executionContext) unmarshalInputCensusDatasetGeographyLocationFilter(c
 				return it, err
 			}
 			it.Focus = data
+		case "stop_buffer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_buffer"))
+			data, err := ec.unmarshalOStopBuffer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopBuffer(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopBuffer = data
 		}
 	}
 
@@ -58002,6 +58207,40 @@ func (ec *executionContext) unmarshalInputServiceCoversFilter(ctx context.Contex
 				return it, err
 			}
 			it.LatestCalendarDate = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStopBuffer(ctx context.Context, obj any) (model.StopBuffer, error) {
+	var it model.StopBuffer
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"stop_ids", "radius"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "stop_ids":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stop_ids"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StopIds = data
+		case "radius":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("radius"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Radius = data
 		}
 	}
 
@@ -59595,6 +59834,8 @@ func (ec *executionContext) _CensusGeography(ctx context.Context, sel ast.Select
 			out.Values[i] = ec._CensusGeography_geoid(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._CensusGeography_name(ctx, field, obj)
+		case "geometry_area":
+			out.Values[i] = ec._CensusGeography_geometry_area(ctx, field, obj)
 		case "aland":
 			out.Values[i] = ec._CensusGeography_aland(ctx, field, obj)
 		case "awater":
@@ -59609,6 +59850,10 @@ func (ec *executionContext) _CensusGeography(ctx context.Context, sel ast.Select
 			out.Values[i] = ec._CensusGeography_adm0_iso(ctx, field, obj)
 		case "geometry":
 			out.Values[i] = ec._CensusGeography_geometry(ctx, field, obj)
+		case "intersection_area":
+			out.Values[i] = ec._CensusGeography_intersection_area(ctx, field, obj)
+		case "intersection_geometry":
+			out.Values[i] = ec._CensusGeography_intersection_geometry(ctx, field, obj)
 		case "values":
 			field := field
 
@@ -74020,6 +74265,14 @@ func (ec *executionContext) marshalOStop2ᚖgithubᚗcomᚋinterlineᚑioᚋtran
 		return graphql.Null
 	}
 	return ec._Stop(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOStopBuffer2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopBuffer(ctx context.Context, v any) (*model.StopBuffer, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStopBuffer(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOStopExternalReference2ᚖgithubᚗcomᚋinterlineᚑioᚋtransitlandᚑserverᚋmodelᚐStopExternalReference(ctx context.Context, sel ast.SelectionSet, v *model.StopExternalReference) graphql.Marshaler {

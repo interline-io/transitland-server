@@ -158,6 +158,8 @@ type CensusDatasetGeographyLocationFilter struct {
 	Near *PointRadius `json:"near,omitempty"`
 	// Focus search on this point; results will be sorted by distance
 	Focus *FocusPoint `json:"focus,omitempty"`
+	// Search based on a buffer around these stop ids
+	StopBuffer *StopBuffer `json:"stop_buffer,omitempty"`
 }
 
 type CensusField struct {
@@ -186,6 +188,8 @@ type CensusGeography struct {
 	Geoid *string `json:"geoid,omitempty"`
 	// Census geography name
 	Name *string `json:"name,omitempty"`
+	// Geometry total area, in square meters
+	GeometryArea *float64 `json:"geometry_area,omitempty"`
 	// Land area, in square meters
 	Aland *float64 `json:"aland,omitempty"`
 	// Water area, in square meters
@@ -200,6 +204,9 @@ type CensusGeography struct {
 	Adm0Iso *string `json:"adm0_iso,omitempty"`
 	// Census geography polygon
 	Geometry *tt.MultiPolygon `json:"geometry,omitempty"`
+	// Intersection area with a given geometry, in square meters
+	IntersectionArea     *float64     `json:"intersection_area,omitempty"`
+	IntersectionGeometry *tt.Geometry `json:"intersection_geometry,omitempty"`
 	// Census tables containing data for this geography
 	Values []*CensusValue `json:"values"`
 	// Layer
@@ -945,6 +952,13 @@ type Step struct {
 	Mode           StepMode  `json:"mode"`
 	Instruction    string    `json:"instruction"`
 	GeometryOffset int       `json:"geometry_offset"`
+}
+
+type StopBuffer struct {
+	// Search for geographies with these stop IDs
+	StopIds []int `json:"stop_ids,omitempty"`
+	// Stop ID search radius, in meters
+	Radius *float64 `json:"radius,omitempty"`
 }
 
 type StopExternalReferenceSetInput struct {
