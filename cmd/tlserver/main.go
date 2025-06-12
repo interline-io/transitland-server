@@ -4,14 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"runtime/debug"
-	"strings"
-	"time"
-
 	"net/http"
 	"net/http/pprof"
 	"os"
-
+	"runtime/debug"
+	"strings"
+	"time"
 	_ "time/tzdata"
 
 	"github.com/go-chi/chi/v5"
@@ -28,6 +26,9 @@ import (
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-mw/dbutil"
+	"github.com/interline-io/transitland-mw/meters"
+	localmeter "github.com/interline-io/transitland-mw/meters/local"
+
 	"github.com/interline-io/transitland-server/finders/dbfinder"
 	"github.com/interline-io/transitland-server/finders/gbfsfinder"
 	"github.com/interline-io/transitland-server/finders/rtfinder"
@@ -233,13 +234,16 @@ func (cmd *ServerCommand) Run(ctx context.Context) error {
 	root.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	root.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 
+	// Metering and metrics
+	meterProvider := localmeter.NewLocalMeterProvider()
+
 	// GraphQL API
 	graphqlServer, err := gql.NewServer()
 	if err != nil {
 		return err
-	}
-	if true {
+	} else {
 		r := chi.NewRouter()
+		r.Use(meters.WithMeter(meterProvider, "graphql", 1.0, nil))
 		r.Mount("/", graphqlServer)
 		root.Mount("/query", r)
 	}
@@ -248,9 +252,9 @@ func (cmd *ServerCommand) Run(ctx context.Context) error {
 	restServer, err := rest.NewServer(graphqlServer)
 	if err != nil {
 		return err
-	}
-	if true {
+	} else {
 		r := chi.NewRouter()
+		r.Use(meters.WithMeter(meterProvider, "rest", 1.0, nil))
 		r.Mount("/", restServer)
 		root.Mount("/rest", r)
 	}

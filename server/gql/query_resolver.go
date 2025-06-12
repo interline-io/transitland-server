@@ -47,7 +47,7 @@ func (r *queryResolver) Me(ctx context.Context) (*model.Me, error) {
 
 func (r *queryResolver) Agencies(ctx context.Context, limit *int, after *int, ids []int, where *model.AgencyFilter) ([]*model.Agency, error) {
 	cfg := model.ForContext(ctx)
-	addMetric(ctx, "agencies")
+	ctx = addMetric(ctx, "agencies")
 	if where != nil {
 		if err := checkGeo(cfg.MaxRadius, where.Near, where.Bbox); err != nil {
 			return nil, err
@@ -58,7 +58,7 @@ func (r *queryResolver) Agencies(ctx context.Context, limit *int, after *int, id
 
 func (r *queryResolver) Routes(ctx context.Context, limit *int, after *int, ids []int, where *model.RouteFilter) ([]*model.Route, error) {
 	cfg := model.ForContext(ctx)
-	addMetric(ctx, "routes")
+	ctx = addMetric(ctx, "routes")
 	if where != nil {
 		if err := checkGeo(cfg.MaxRadius, where.Near, where.Bbox); err != nil {
 			return nil, err
@@ -69,7 +69,7 @@ func (r *queryResolver) Routes(ctx context.Context, limit *int, after *int, ids 
 
 func (r *queryResolver) Stops(ctx context.Context, limit *int, after *int, ids []int, where *model.StopFilter) ([]*model.Stop, error) {
 	cfg := model.ForContext(ctx)
-	addMetric(ctx, "stops")
+	ctx = addMetric(ctx, "stops")
 	if where != nil {
 		if err := checkGeo(cfg.MaxRadius, where.Near, where.Bbox); err != nil {
 			return nil, err
@@ -80,13 +80,13 @@ func (r *queryResolver) Stops(ctx context.Context, limit *int, after *int, ids [
 
 func (r *queryResolver) Trips(ctx context.Context, limit *int, after *int, ids []int, where *model.TripFilter) ([]*model.Trip, error) {
 	cfg := model.ForContext(ctx)
-	addMetric(ctx, "trips")
+	ctx = addMetric(ctx, "trips")
 	return cfg.Finder.FindTrips(ctx, checkLimit(limit), checkCursor(after), ids, where)
 }
 
 func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {
 	cfg := model.ForContext(ctx)
-	addMetric(ctx, "feedVersions")
+	ctx = addMetric(ctx, "feedVersions")
 	if where != nil {
 		if err := checkGeo(cfg.MaxRadius, where.Near, where.Bbox); err != nil {
 			return nil, err
@@ -97,7 +97,7 @@ func (r *queryResolver) FeedVersions(ctx context.Context, limit *int, after *int
 
 func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids []int, where *model.FeedFilter) ([]*model.Feed, error) {
 	cfg := model.ForContext(ctx)
-	addMetric(ctx, "feeds")
+	ctx = addMetric(ctx, "feeds")
 	if where != nil {
 		if err := checkGeo(cfg.MaxRadius, where.Near, where.Bbox); err != nil {
 			return nil, err
@@ -108,7 +108,7 @@ func (r *queryResolver) Feeds(ctx context.Context, limit *int, after *int, ids [
 
 func (r *queryResolver) Operators(ctx context.Context, limit *int, after *int, ids []int, where *model.OperatorFilter) ([]*model.Operator, error) {
 	cfg := model.ForContext(ctx)
-	addMetric(ctx, "operators")
+	ctx = addMetric(ctx, "operators")
 	if where != nil {
 		if err := checkGeo(cfg.MaxRadius, where.Near, where.Bbox); err != nil {
 			return nil, err

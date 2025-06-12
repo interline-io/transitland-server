@@ -39,10 +39,11 @@ func checkCursor(after *int) *model.Cursor {
 	return cursor
 }
 
-func addMetric(ctx context.Context, resolverName string) {
+func addMetric(ctx context.Context, resolverName string) context.Context {
 	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
-		apiMeter.AddDimension("graphql", "resolver", resolverName)
+		apiMeter.ApplyDimension("resolver", resolverName)
 	}
+	return ctx
 }
 
 func checkGeo(maxRadius float64, near *model.PointRadius, bbox *model.BoundingBox) error {

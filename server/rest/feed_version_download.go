@@ -143,18 +143,26 @@ func feedVersionDownloadLatestHandler(graphqlHandler http.Handler, w http.Respon
 		return
 	}
 
-	// Send request to metering
-	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
-		dims := []meters.Dimension{
-			{Key: "fv_sha1", Value: fvsha1},
-			{Key: "feed_onestop_id", Value: fid},
-			{Key: "is_latest_feed_version", Value: "true"},
-		}
-		apiMeter.Meter("feed-version-downloads", 1.0, dims)
-	}
 	downloadKey := fmt.Sprintf("%s-%s.zip", fid, fvsha1)
 	cfg := model.ForContext(ctx)
-	serveFromStorage(w, r, cfg.Storage, fvsha1, downloadKey)
+	if err := serveFromStorage(w, r, cfg.Storage, fvsha1, downloadKey); err != nil {
+		// Do not meter
+		log.For(ctx).Error().Err(err).Msg("feed version download failed")
+		return
+	}
+	// Send request to metering
+	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
+		apiMeter.Meter(ctx, meters.MeterEvent{
+			Name:  "feed-version-downloads",
+			Value: 1.0,
+			Dimensions: []meters.Dimension{
+				{Key: "fv_sha1", Value: fvsha1},
+				{Key: "feed_onestop_id", Value: fid},
+				{Key: "is_latest_feed_version", Value: "true"},
+			},
+		})
+	}
+
 }
 
 const feedVersionFileQuery = `
@@ -221,48 +229,53 @@ func feedVersionDownloadHandler(graphqlHandler http.Handler, w http.ResponseWrit
 		return
 	}
 
-	// Send request to metering
-	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
-		dims := []meters.Dimension{
-			{Key: "fv_sha1", Value: fvsha1},
-			{Key: "feed_onestop_id", Value: fid},
-			{Key: "is_latest_feed_version", Value: "false"},
-		}
-		apiMeter.Meter("feed-version-downloads", 1.0, dims)
-	}
 	downloadKey := fmt.Sprintf("%s-%s.zip", fid, fvsha1)
 	cfg := model.ForContext(ctx)
-	serveFromStorage(w, r, cfg.Storage, fvsha1, downloadKey)
+	if err := serveFromStorage(w, r, cfg.Storage, fvsha1, downloadKey); err != nil {
+		// Do not meter
+		log.For(ctx).Error().Err(err).Msg("feed version download failed")
+		return
+	}
+	// Send request to metering
+	if apiMeter := meters.ForContext(ctx); apiMeter != nil {
+		apiMeter.Meter(ctx, meters.MeterEvent{
+			Name:  "feed-version-downloads",
+			Value: 1.0,
+			Dimensions: []meters.Dimension{
+				{Key: "fv_sha1", Value: fvsha1},
+				{Key: "feed_onestop_id", Value: fid},
+				{Key: "is_latest_feed_version", Value: "false"},
+			},
+		})
+	}
 }
 
-func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string, downloadKey string) {
+func serveFromStorage(w http.ResponseWriter, r *http.Request, storage string, fvsha1 string, downloadKey string) error {
 	ctx := r.Context()
 	store, err := request.GetStore(storage)
 	if err != nil {
-		log.For(ctx).Error().Err(err).Msg("failed to access file; could not get from storage")
 		util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("failed to access file; could not get from storage: %w", err)
 	}
 	fvkey := fmt.Sprintf("%s.zip", fvsha1)
 	if v, ok := store.(request.Presigner); ok {
 		signedUrl, err := v.CreateSignedUrl(ctx, fvkey, downloadKey)
 		if err != nil {
-			log.For(ctx).Error().Err(err).Msg("failed to access file; could not presign")
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
-			return
+			return fmt.Errorf("failed to access file; could not presign: %w", err)
 		}
 		w.Header().Add("Location", signedUrl)
 		w.WriteHeader(http.StatusFound)
 	} else {
 		rdr, _, err := store.Download(ctx, fvkey)
 		if err != nil {
-			log.For(ctx).Error().Err(err).Msg("failed to access file; not authorized")
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
-			return
+			return fmt.Errorf("failed to access file; not authorized: %w", err)
 		}
 		if _, err := io.Copy(w, rdr); err != nil {
-			log.For(ctx).Error().Err(err).Msg("failed to access file; failed to copy to client")
 			util.WriteJsonError(w, "failed access file", http.StatusInternalServerError)
+			return fmt.Errorf("failed to access file; failed to copy to client: %w", err)
 		}
 	}
+	return nil
 }
