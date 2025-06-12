@@ -184,9 +184,9 @@ func makeHandlerFunc(graphqlHandler http.Handler, handlerName string, f func(htt
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		if apiMeter := meters.ForContext(ctx); apiMeter != nil {
-			apiMeter.AddDimension("rest", "handler", handlerName)
+			apiMeter.ApplyDimension("handler", handlerName)
 		}
-		f(graphqlHandler, w, r)
+		f(graphqlHandler, w, r.WithContext(ctx))
 	}
 }
 
@@ -216,9 +216,9 @@ func makeHandler(graphqlHandler http.Handler, handlerName string, f func() apiHa
 			}
 		}
 
-		// Metrics
+		// Meters
 		if apiMeter := meters.ForContext(ctx); apiMeter != nil {
-			apiMeter.AddDimension("rest", "handler", handlerName)
+			apiMeter.ApplyDimension("handler", handlerName)
 		}
 
 		// Handle format
