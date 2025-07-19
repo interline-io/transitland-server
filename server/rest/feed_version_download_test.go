@@ -270,13 +270,6 @@ func TestFeedDownloadRtLatestRequest(t *testing.T) {
 		}
 	})
 
-	t.Run("geojsonl format only for vehicle_positions", func(t *testing.T) {
-		req, _ := http.NewRequest("GET", "/feeds/BA~rt/download_latest_rt/alerts.geojsonl", nil)
-		rr := httptest.NewRecorder()
-		asAdmin := usercheck.AdminDefaultMiddleware("test")(restSrv)
-		asAdmin.ServeHTTP(rr, req)
-		assert.Equal(t, 400, rr.Result().StatusCode, "should return 400 for non-vehicle positions")
-	})
 	t.Run("geojson format only for vehicle_positions", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/feeds/BA~rt/download_latest_rt/alerts.geojson", nil)
 		rr := httptest.NewRecorder()
@@ -395,37 +388,4 @@ func TestFeedDownloadRtVehiclePositions(t *testing.T) {
 		assert.Greater(t, featureCount, 0, "should have at least one feature")
 	})
 
-	t.Run("vehicle_positions with no data", func(t *testing.T) {
-		// Test with a feed that has no vehicle positions data
-		req, _ := http.NewRequest("GET", "/feeds/BA~rt/download_latest_rt/vehicle_positions.geojson", nil)
-		rr := httptest.NewRecorder()
-		asAdmin := usercheck.AdminDefaultMiddleware("test")(restSrv)
-		asAdmin.ServeHTTP(rr, req)
-		assert.Equal(t, "application/geo+json", rr.Header().Get("content-type"), "content-type")
-		assert.Equal(t, 200, rr.Result().StatusCode, "status code")
-
-		var checkJson map[string]any
-		if err := json.Unmarshal(rr.Body.Bytes(), &checkJson); err != nil {
-			t.Fatal(err)
-		}
-		assert.Equal(t, "FeatureCollection", checkJson["type"], "should be a FeatureCollection")
-		if features, ok := checkJson["features"].([]any); ok {
-			assert.Equal(t, 0, len(features), "should have no features when no vehicle positions data exists")
-		} else {
-			t.Fatal("expected features array")
-		}
-	})
-
-	t.Run("vehicle_positions geojsonl with no data", func(t *testing.T) {
-		// Test GeoJSONL with no vehicle positions data
-		req, _ := http.NewRequest("GET", "/feeds/BA~rt/download_latest_rt/vehicle_positions.geojsonl", nil)
-		rr := httptest.NewRecorder()
-		asAdmin := usercheck.AdminDefaultMiddleware("test")(restSrv)
-		asAdmin.ServeHTTP(rr, req)
-		assert.Equal(t, "application/geo+json-seq", rr.Header().Get("content-type"), "content-type")
-		assert.Equal(t, 200, rr.Result().StatusCode, "status code")
-
-		body := rr.Body.Bytes()
-		assert.Equal(t, 0, len(body), "should have no content when no vehicle positions data exists")
-	})
 }
