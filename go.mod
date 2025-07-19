@@ -18,7 +18,7 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1
-	github.com/interline-io/transitland-lib v1.2.1-0.20250603225547-2b22a522b906
+	github.com/interline-io/transitland-lib v1.2.5-0.20250719163717-3d4c049900aa
 	github.com/interline-io/transitland-mw v0.0.0-20250612022712-7ac3cbdff76a
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.34.0
