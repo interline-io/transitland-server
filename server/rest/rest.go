@@ -44,8 +44,13 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	stopDepartureHandler := makeHandler(graphqlHandler, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
 	operatorHandler := makeHandler(graphqlHandler, "operators", func() apiHandler { return &OperatorRequest{} })
 
-	// OpenAPI Schema endpoint
+	// Redirect root to OpenAPI documentation
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/openapi.json", http.StatusMovedPermanently)
+	})
+
+	// OpenAPI Schema endpoint
+	r.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
 		cfg := model.ForContext(r.Context())
 		schema, err := GenerateOpenAPI(cfg.RestPrefix)
 		if err != nil {
