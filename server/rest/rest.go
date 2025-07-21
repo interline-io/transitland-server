@@ -44,6 +44,18 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	stopDepartureHandler := makeHandler(graphqlHandler, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
 	operatorHandler := makeHandler(graphqlHandler, "operators", func() apiHandler { return &OperatorRequest{} })
 
+	// OpenAPI Schema endpoint
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		cfg := model.ForContext(r.Context())
+		schema, err := GenerateOpenAPI(cfg.RestPrefix)
+		if err != nil {
+			http.Error(w, "Failed to generate schema", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(schema)
+	})
+
 	r.HandleFunc("/feeds.{format}", feedHandler)
 	r.HandleFunc("/feeds", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}.{format}", feedHandler)
