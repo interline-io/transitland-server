@@ -199,6 +199,9 @@ func (r FeedVersionDownloadRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Operation: &oa.Operation{
 				Summary: "Download feed version",
+				Extensions: map[string]any{
+					"x-required-role": "tl_download_fv_historic",
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "feed_version_key",

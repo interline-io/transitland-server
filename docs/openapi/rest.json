@@ -2977,7 +2977,8 @@
             "description": "ok"
           }
         },
-        "summary": "Download feed version"
+        "summary": "Download feed version",
+        "x-required-role": "tl_download_fv_historic"
       }
     },
     "/feeds": {
@@ -3986,7 +3987,8 @@
             "description": "ok"
           }
         },
-        "summary": "Download latest feed version"
+        "summary": "Download latest feed version",
+        "x-required-role": "tl_download_fv_current"
       }
     },
     "/feeds/{feed_key}/download_latest_rt/{rt_type}.{format}": {
