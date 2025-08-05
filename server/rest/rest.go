@@ -62,7 +62,10 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(schema)
+		if err := json.NewEncoder(w).Encode(schema); err != nil {
+			http.Error(w, "Failed to encode schema", http.StatusInternalServerError)
+			return
+		}
 	})
 
 	r.HandleFunc("/feeds.{format}", feedHandler)
