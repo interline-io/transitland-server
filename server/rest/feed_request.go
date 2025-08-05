@@ -249,8 +249,8 @@ func (r FeedDownloadRtRequest) RequestInfo() RequestInfo {
 						Name:        "format",
 						In:          "path",
 						Required:    true,
-						Description: `Output format (JSON or Protocol Buffers)`,
-						Schema:      newSRVal("string", "", []any{"json", "pb"}),
+						Description: `Output format (JSON, Protocol Buffers, or GeoJSON for vehicle positions)`,
+						Schema:      newSRVal("string", "", []any{"json", "pb", "geojson", "geojsonl"}),
 					}},
 				},
 				Responses: oa.NewResponses(

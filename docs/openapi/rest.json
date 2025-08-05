@@ -2371,14 +2371,16 @@
             }
           },
           {
-            "description": "Output format (JSON or Protocol Buffers)",
+            "description": "Output format (JSON, Protocol Buffers, or GeoJSON for vehicle positions)",
             "in": "path",
             "name": "format",
             "required": true,
             "schema": {
               "enum": [
                 "json",
-                "pb"
+                "pb",
+                "geojson",
+                "geojsonl"
               ],
               "type": "string"
             }
