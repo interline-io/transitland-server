@@ -21,10 +21,10 @@ func GenerateOpenAPI() (*oa.T, error) {
 		OpenAPI: "3.0.0",
 		Info: &oa.Info{
 			Title:       "Transitland REST API",
-			Description: "Transitland REST API",
-			Version:     "1.0.0-oas3",
+			Description: "Transitland REST API - Access transit data including feeds, agencies, routes, stops, operators, and real-time departures",
+			Version:     "2.0.0",
 			Contact: &oa.Contact{
-				Email: "hello@transit.land",
+				Email: "info@interline.io",
 			},
 		},
 	}

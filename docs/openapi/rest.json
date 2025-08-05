@@ -300,11 +300,11 @@
   },
   "info": {
     "contact": {
-      "email": "hello@transit.land"
+      "email": "info@interline.io"
     },
-    "description": "Transitland REST API",
+    "description": "Transitland REST API - Access transit data including feeds, agencies, routes, stops, operators, and real-time departures",
     "title": "Transitland REST API",
-    "version": "1.0.0-oas3"
+    "version": "2.0.0"
   },
   "openapi": "3.0.0",
   "paths": {

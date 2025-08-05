@@ -43,7 +43,7 @@ func GenerateOpenAPI(restPrefix string, opts ...SchemaOption) (*oa.T, error) {
 	}
 
 	// Determine server URL based on RestPrefix
-	serverURL := "https://transit.land/api/v2/rest"
+	serverURL := ""
 	if restPrefix != "" {
 		serverURL = restPrefix
 	}
@@ -58,12 +58,16 @@ func GenerateOpenAPI(restPrefix string, opts ...SchemaOption) (*oa.T, error) {
 				Email: "info@interline.io",
 			},
 		},
-		Servers: []*oa.Server{
+	}
+
+	// Add server configuration only if URL is provided
+	if serverURL != "" {
+		outdoc.Servers = []*oa.Server{
 			{
 				URL:         serverURL,
 				Description: "Transitland REST API",
 			},
-		},
+		}
 	}
 
 	// Add parameter components
