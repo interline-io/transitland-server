@@ -113,6 +113,25 @@
           "type": "string"
         }
       },
+      "includeRoutesParam": {
+        "description": "Include routes that serve this stop (requires tl_user_pro role)",
+        "in": "query",
+        "name": "include_routes",
+        "schema": {
+          "enum": [
+            "true",
+            "false"
+          ],
+          "type": "string"
+        },
+        "x-example-requests": [
+          {
+            "description": "include_routes=true",
+            "url": "include_routes=true"
+          }
+        ],
+        "x-required-role": "tl_user_pro"
+      },
       "includeStopsParam": {
         "description": "Include stops in response",
         "in": "query",
@@ -333,6 +352,9 @@
           },
           {
             "$ref": "#/components/parameters/includeAlertsParam"
+          },
+          {
+            "$ref": "#/components/parameters/includeRoutesParam"
           },
           {
             "$ref": "#/components/parameters/afterParam"
@@ -1245,6 +1267,9 @@
           },
           {
             "$ref": "#/components/parameters/includeAlertsParam"
+          },
+          {
+            "$ref": "#/components/parameters/includeRoutesParam"
           },
           {
             "$ref": "#/components/parameters/limitParam",
@@ -10083,6 +10108,9 @@
             "$ref": "#/components/parameters/includeAlertsParam"
           },
           {
+            "$ref": "#/components/parameters/includeRoutesParam"
+          },
+          {
             "$ref": "#/components/parameters/idParam"
           },
           {
@@ -10930,6 +10958,9 @@
           },
           {
             "$ref": "#/components/parameters/includeAlertsParam"
+          },
+          {
+            "$ref": "#/components/parameters/includeRoutesParam"
           },
           {
             "$ref": "#/components/parameters/limitParam"
