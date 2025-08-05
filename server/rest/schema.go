@@ -66,6 +66,14 @@ func GenerateOpenAPI(restPrefix string, opts ...SchemaOption) (*oa.T, error) {
 		&TripRequest{},
 		&StopRequest{},
 		&StopDepartureRequest{},
+		// Individual resource handlers
+		&AgencyKeyRequest{},
+		&RouteKeyRequest{},
+		&TripEntityRequest{},
+		&StopEntityRequest{},
+		&FeedDownloadLatestFeedVersionRequest{},
+		&FeedVersionDownloadRequest{},
+		&FeedDownloadRtRequest{},
 	}
 	for _, handler := range handlers {
 		requestInfo := handler.RequestInfo()
