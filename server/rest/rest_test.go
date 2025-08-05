@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -120,4 +121,46 @@ func checkTestCase(t *testing.T, tc testCase) {
 func toJson(m map[string]interface{}) string {
 	rr, _ := json.Marshal(&m)
 	return string(rr)
+}
+
+func TestRootRedirect(t *testing.T) {
+	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
+		Storage: testdata.Path("tmp"),
+	})
+
+	t.Run("root redirect to openapi.json", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/", nil)
+		rr := httptest.NewRecorder()
+		restSrv.ServeHTTP(rr, req)
+
+		if sc := rr.Result().StatusCode; sc != http.StatusMovedPermanently {
+			t.Errorf("got status code %d, expected %d", sc, http.StatusMovedPermanently)
+		}
+
+		location := rr.Header().Get("Location")
+		if location != "/openapi.json" {
+			t.Errorf("got location %s, expected /openapi.json", location)
+		}
+	})
+
+	t.Run("openapi.json endpoint returns json", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/openapi.json", nil)
+		rr := httptest.NewRecorder()
+		restSrv.ServeHTTP(rr, req)
+
+		if sc := rr.Result().StatusCode; sc != http.StatusOK {
+			t.Errorf("got status code %d, expected %d", sc, http.StatusOK)
+		}
+
+		contentType := rr.Header().Get("Content-Type")
+		if contentType != "application/json" {
+			t.Errorf("got content type %s, expected application/json", contentType)
+		}
+
+		// Verify it's valid JSON
+		var schema map[string]interface{}
+		if err := json.Unmarshal(rr.Body.Bytes(), &schema); err != nil {
+			t.Errorf("response is not valid JSON: %v", err)
+		}
+	})
 }
