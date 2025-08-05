@@ -198,6 +198,13 @@ func (r TripEntityRequest) RequestInfo() RequestInfo {
 						Schema:      newSRVal("string", "", nil),
 					}},
 					&pref{Value: &param{
+						Name:        "id",
+						In:          "path",
+						Required:    true,
+						Description: `Trip ID`,
+						Schema:      newSRVal("integer", "", nil),
+					}},
+					&pref{Value: &param{
 						Name:        "include_geometry",
 						In:          "query",
 						Description: `Include shape geometry`,
@@ -205,7 +212,6 @@ func (r TripEntityRequest) RequestInfo() RequestInfo {
 						Extensions:  newExt("", "include_geometry=true", "route_onestop_id=r-9q9j-l1&include_geometry=true"),
 					}},
 					newPRef("includeAlertsParam"),
-					newPRef("idParam"),
 					newPRefExt("limitParam", "", "limit=1", "route_onestop_id=r-9q9j-l1&limit=1"),
 					newPRefExt("formatParam", "", "format=geojson", "route_onestop_id=r-9q9j-l1&format=geojson"),
 				},

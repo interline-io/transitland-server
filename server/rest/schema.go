@@ -8,6 +8,33 @@ type RestHandlers interface {
 	RequestInfo() RequestInfo
 }
 
+// RestHandlersList contains all REST API handlers in logical order
+var RestHandlersList = []RestHandlers{
+	// Core entity collection endpoints (for searching/filtering)
+	&FeedRequest{},          // /feeds
+	&FeedVersionRequest{},   // /feed_versions
+	&OperatorRequest{},      // /operators
+	&AgencyRequest{},        // /agencies
+	&RouteRequest{},         // /routes
+	&TripRequest{},          // /routes/{route_key}/trips
+	&StopRequest{},          // /stops
+	&StopDepartureRequest{}, // /stops/{stop_key}/departures
+
+	// Individual resource endpoints (for direct lookups)
+	&FeedKeyRequest{},        // /feeds/{feed_key}
+	&FeedVersionKeyRequest{}, // /feed_versions/{feed_version_key}
+	&OperatorKeyRequest{},    // /operators/{operator_key}
+	&AgencyKeyRequest{},      // /agencies/{agency_key}
+	&RouteKeyRequest{},       // /routes/{route_key}
+	&TripEntityRequest{},     // /routes/{route_key}/trips/{id}
+	&StopEntityRequest{},     // /stops/{stop_key}
+
+	// Download/special endpoints
+	&FeedDownloadLatestFeedVersionRequest{}, // /feeds/{feed_key}/download_latest_feed_version
+	&FeedVersionDownloadRequest{},           // /feed_versions/{feed_version_key}/download
+	&FeedDownloadRtRequest{},                // /feeds/{feed_key}/download_latest_rt/{rt_type}.{format}
+}
+
 func GenerateOpenAPI(restPrefix string, opts ...SchemaOption) (*oa.T, error) {
 	// Apply options
 	config := &SchemaConfig{}
@@ -57,24 +84,7 @@ func GenerateOpenAPI(restPrefix string, opts ...SchemaOption) (*oa.T, error) {
 
 	// Create PathItem for each handler
 	var pathOpts []oa.NewPathsOption
-	var handlers = []RestHandlers{
-		&FeedRequest{},
-		&FeedVersionRequest{},
-		&OperatorRequest{},
-		&AgencyRequest{},
-		&RouteRequest{},
-		&TripRequest{},
-		&StopRequest{},
-		&StopDepartureRequest{},
-		// Individual resource handlers
-		&AgencyKeyRequest{},
-		&RouteKeyRequest{},
-		&TripEntityRequest{},
-		&StopEntityRequest{},
-		&FeedDownloadLatestFeedVersionRequest{},
-		&FeedVersionDownloadRequest{},
-		&FeedDownloadRtRequest{},
-	}
+	var handlers = RestHandlersList
 	for _, handler := range handlers {
 		requestInfo := handler.RequestInfo()
 		oaResponse, err := queryToOAResponses(requestInfo.Get.Query)

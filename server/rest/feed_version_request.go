@@ -164,6 +164,34 @@ func (r FeedVersionRequest) ResponseKey() string {
 type FeedVersionDownloadRequest struct {
 }
 
+type FeedVersionKeyRequest struct {
+	FeedVersionRequest
+}
+
+func (r FeedVersionKeyRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/feed_versions/{feed_version_key}",
+		Get: RequestOperation{
+			Query: feedVersionQuery,
+			Operation: &oa.Operation{
+				Summary: "Feed Versions",
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "feed_version_key",
+						In:          "path",
+						Required:    true,
+						Description: `Feed version lookup key; can be an integer ID or a SHA1 value`,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "dd7aca4a8e4c90908fd3603c097fabee75fea907", "dd7aca4a8e4c90908fd3603c097fabee75fea907"),
+					}},
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+				},
+			},
+		},
+	}
+}
+
 func (r FeedVersionDownloadRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path:        "/feed_versions/{feed_version_key}/download",

@@ -193,7 +193,8 @@ func (r StopEntityRequest) RequestInfo() RequestInfo {
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "stop_key",
-						In:          "query",
+						In:          "path",
+						Required:    true,
 						Description: `Stop lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs stop_id>' key, or a Onestop ID`,
 						Schema:      newSRVal("string", "", nil),
 					}},

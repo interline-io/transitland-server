@@ -130,6 +130,7 @@ require (
 )
 
 // Fork to allow exporting x- extensions
+// Waiting on https://github.com/getkin/kin-openapi/pull/1005 to be merged
 replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17
 
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log

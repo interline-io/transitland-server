@@ -188,6 +188,7 @@ func (r AgencyKeyRequest) RequestInfo() RequestInfo {
 					&pref{Value: &param{
 						Name:        "agency_key",
 						In:          "path",
+						Required:    true,
 						Description: `Agency lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs agency_id>' key, or a Onestop ID`,
 						Schema:      newSRVal("string", "", nil),
 					}},

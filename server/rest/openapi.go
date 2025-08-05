@@ -255,4 +255,20 @@ var ParameterComponents = oa.ParametersMap{
 			Schema:      newSRVal("string", "", nil),
 		},
 	},
+	"includeGeometryParam": &pref{
+		Value: &param{
+			Name:        "include_geometry",
+			In:          "query",
+			Description: `Include geometry in response`,
+			Schema:      newSRVal("string", "", []any{"true", "false"}),
+		},
+	},
+	"includeStopsParam": &pref{
+		Value: &param{
+			Name:        "include_stops",
+			In:          "query",
+			Description: `Include stops in response`,
+			Schema:      newSRVal("string", "", []any{"true", "false"}),
+		},
+	},
 }

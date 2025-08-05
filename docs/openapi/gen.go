@@ -39,19 +39,7 @@ func GenerateOpenAPI() (*oa.T, error) {
 
 	// Create PathItem for each handler
 	var pathOpts []oa.NewPathsOption
-	var handlers = []RestHandlers{
-		&rest.FeedRequest{},
-		&rest.FeedVersionRequest{},
-		&rest.OperatorRequest{},
-		&rest.AgencyRequest{},
-		&rest.RouteRequest{},
-		&rest.TripRequest{},
-		&rest.StopRequest{},
-		&rest.StopDepartureRequest{},
-		&rest.FeedVersionDownloadRequest{},
-		&rest.FeedDownloadLatestFeedVersionRequest{},
-		&rest.FeedDownloadRtRequest{},
-	}
+	var handlers = rest.RestHandlersList
 	for _, handler := range handlers {
 		requestInfo := handler.RequestInfo()
 		oaResponse, err := queryToOAResponses(requestInfo.Get.Query)
