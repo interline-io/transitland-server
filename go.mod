@@ -18,8 +18,8 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1
-	github.com/interline-io/transitland-lib v1.2.5-0.20250719163717-3d4c049900aa
-	github.com/interline-io/transitland-mw v0.0.0-20250612022712-7ac3cbdff76a
+	github.com/interline-io/transitland-lib v1.2.5-0.20250805211609-3b9edc88690d
+	github.com/interline-io/transitland-mw v0.0.0-20250806213844-f0f9dc17648a
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.8.1
@@ -121,7 +121,7 @@ require (
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/oauth2 v0.18.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/tools v0.32.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
