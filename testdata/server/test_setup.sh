@@ -22,11 +22,11 @@ tlserver dbmigrate --dburl="$TL_TEST_SERVER_DATABASE_URL" up
 tlserver dbmigrate --dburl="$TL_TEST_SERVER_DATABASE_URL" natural-earth
 
 # Remove import files
-tlserver sync --dburl="$TL_TEST_SERVER_DATABASE_URL" testdata/server/server-test.dmfr.json
+tlserver sync --dburl="$TL_TEST_SERVER_DATABASE_URL" testdata/server/server/server-test.dmfr.json
 
 # older data and forced error
-tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --validation-report --validation-report-storage="$TL_TEST_STORAGE" --allow-local-fetch --feed-url=testdata/gtfs/bart-errors.zip BA # error data
-tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --validation-report --validation-report-storage="$TL_TEST_STORAGE" --allow-local-fetch --feed-url=testdata/gtfs/bart-old.zip BA # old data
+tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --validation-report --validation-report-storage="$TL_TEST_STORAGE" --allow-local-fetch --feed-url=testdata/server/gtfs/bart-errors.zip BA # error data
+tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --validation-report --validation-report-storage="$TL_TEST_STORAGE" --allow-local-fetch --feed-url=testdata/server/gtfs/bart-old.zip BA # old data
 tlserver import --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" 
 
 # current data
@@ -34,7 +34,7 @@ tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAG
 tlserver import --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --activate
 
 # sync again
-tlserver sync --dburl="$TL_TEST_SERVER_DATABASE_URL" testdata/server/server-test.dmfr.json
+tlserver sync --dburl="$TL_TEST_SERVER_DATABASE_URL" testdata/server/server/server-test.dmfr.json
 
 # supplemental data
 psql $TL_TEST_SERVER_DATABASE_URL -f $(dirname "$0")/test_supplement.pgsql

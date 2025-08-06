@@ -9,7 +9,7 @@
         "en-US"
       ],
       "urls": {
-        "static_current": "file://testdata/gtfs/caltrain.zip",
+        "static_current": "file://testdata/server/gtfs/caltrain.zip",
         "static_historic": [
           "https://caltrain.com/old_feed.zip"
         ]
@@ -47,7 +47,7 @@
       "spec": "gbfs",
       "id": "test-gbfs",
       "urls": {
-        "gbfs_auto_discovery": "file://../../testdata/gbfs/gbfs.json"
+        "gbfs_auto_discovery": "file://../../testdata/server/gbfs/gbfs.json"
       }
     },
     {
@@ -66,7 +66,7 @@
         "share_alike_optional": "no"
       }, 
       "urls": {
-        "static_current": "file://testdata/gtfs/bart.zip"
+        "static_current": "file://testdata/server/gtfs/bart.zip"
       }
     },
     {
@@ -81,21 +81,21 @@
         "share_alike_optional": "yes"
       },    
       "urls": {
-        "static_current": "file://testdata/gtfs/hart.zip"
+        "static_current": "file://testdata/server/gtfs/hart.zip"
       }
     },    
     {
       "spec": "gtfs-rt",
       "id": "BA~rt",
       "urls": {
-        "realtime_trip_updates": "file://testdata/rt/BA.json"
+        "realtime_trip_updates": "file://testdata/server/rt/BA.json"
       }
     },
     {
       "spec": "gtfs-rt",
       "id": "CT~rt",
       "urls": {
-        "realtime_trip_updates": "file://testdata/rt/CT.json"
+        "realtime_trip_updates": "file://testdata/server/rt/CT.json"
       }
     },
     {
@@ -109,14 +109,14 @@
       "spec": "gtfs",
       "id": "EX",    
       "urls": {
-        "static_current": "file://testdata/gtfs/example.zip"
+        "static_current": "file://testdata/server/gtfs/example.zip"
       }
     },
     {
       "spec": "gtfs",
       "id": "EG",    
       "urls": {
-        "static_current": "file://testdata/gtfs/eg.zip"
+        "static_current": "file://testdata/server/gtfs/eg.zip"
       }
     }
   ],
