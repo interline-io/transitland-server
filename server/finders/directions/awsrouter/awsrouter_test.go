@@ -26,7 +26,7 @@ func TestRouter(t *testing.T) {
 			Success:  true,
 			Duration: 4215,
 			Distance: 4.100,
-			ResJson:  testdata.Path("directions/response/aws_ped.json"),
+			ResJson:  testdata.Path("server/directions/response/aws_ped.json"),
 		},
 		{
 			Name:     "bike",
@@ -71,7 +71,7 @@ func TestRouter(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(tc.Name, func(t *testing.T) {
-			recorder := testutil.NewRecorder(filepath.Join(testdata.Path("directions/aws/location"), tc.Name), "directions://aws")
+			recorder := testutil.NewRecorder(filepath.Join(testdata.Path("server/directions/aws/location"), tc.Name), "directions://aws")
 			defer recorder.Stop()
 			h, err := makeTestMockRouter(recorder)
 			if err != nil {
