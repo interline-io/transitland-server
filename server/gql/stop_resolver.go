@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/interline-io/transitland-lib/tlxy"
-	"github.com/interline-io/transitland-server/finders/directions"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/finders/directions"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 // STOP

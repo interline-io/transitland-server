@@ -15,7 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/interline-io/transitland-lib/tt"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )

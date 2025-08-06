@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 	"github.com/interline-io/transitland-server/testdata"
 )
 

@@ -18,7 +18,7 @@ import (
 	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/util"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 	"github.com/rs/zerolog"
 )
 

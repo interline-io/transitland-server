@@ -10,7 +10,7 @@ import (
 	"github.com/interline-io/transitland-lib/tldb/postgres"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
