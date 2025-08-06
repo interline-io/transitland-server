@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/request"
+	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/util"
 	"github.com/interline-io/transitland-server/model"
@@ -84,10 +85,32 @@ func feedDownloadRtHelper(graphqlHandler http.Handler, w http.ResponseWriter, r 
 
 	var data []byte
 	var marshalErr error
-	if format == "json" {
+	switch format {
+	case "json":
 		data, marshalErr = protojson.Marshal(rtMsg)
 		w.Header().Add("Content-Type", "application/json")
-	} else {
+	case "geojson", "geojsonl":
+		// Only support GeoJSON formats for vehicle positions
+		if rtType != "realtime_vehicle_positions" {
+			util.WriteJsonError(w, "geojson format only supported for vehicle_positions", http.StatusBadRequest)
+			return
+		}
+
+		if format == "geojsonl" {
+			// Use streaming for GeoJSONL to reduce memory usage
+			w.Header().Add("Content-Type", "application/geo+json-seq")
+			marshalErr = rt.VehiclePositionsToGeoJSONLStream(rtMsg, w)
+			if marshalErr != nil {
+				util.WriteJsonError(w, "error processing result", http.StatusInternalServerError)
+				return
+			}
+			return // Already written to response
+		} else {
+			// Use non-streaming for standard GeoJSON
+			data, marshalErr = rt.VehiclePositionsToGeoJSON(rtMsg, false)
+			w.Header().Add("Content-Type", "application/geo+json")
+		}
+	default:
 		data, marshalErr = proto.Marshal(rtMsg)
 		w.Header().Add("Content-Type", "application/octet-stream")
 	}

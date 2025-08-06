@@ -173,8 +173,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1 h1:tjXAmTK76qme1HgGQT+PaCwhzdO4RbkhAhtcze2Xw9E=
 github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
-github.com/interline-io/transitland-lib v1.2.1-0.20250603225547-2b22a522b906 h1:s1MiKeUk0Dv4Lvwtrkt7lsStQBZiVjfc56XfUnmcYSw=
-github.com/interline-io/transitland-lib v1.2.1-0.20250603225547-2b22a522b906/go.mod h1:ywkR3sow5VDJ2z00itH1OVVAAznTROfN8MlAuITypgY=
+github.com/interline-io/transitland-lib v1.2.5-0.20250719163717-3d4c049900aa h1:UK26Mu/91O6hVuL3Aaesa9ArjgSCUXDnltGlioziXrE=
+github.com/interline-io/transitland-lib v1.2.5-0.20250719163717-3d4c049900aa/go.mod h1:ywkR3sow5VDJ2z00itH1OVVAAznTROfN8MlAuITypgY=
 github.com/interline-io/transitland-mw v0.0.0-20250612022712-7ac3cbdff76a h1:mVbWuB6cuN/kBj0w3WOnha2k6qTzmwaJZqXJNUUDT0c=
 github.com/interline-io/transitland-mw v0.0.0-20250612022712-7ac3cbdff76a/go.mod h1:41sEfBoC7wvhG/u16Nc353sPr1rmQaKAVoLEXRoBJno=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
