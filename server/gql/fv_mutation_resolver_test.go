@@ -16,7 +16,7 @@ import (
 )
 
 func TestFeedVersionFetchResolver(t *testing.T) {
-	expectFile := testdata.Path("gtfs/bart.zip")
+	expectFile := testdata.Path("server/gtfs/bart.zip")
 	ts200 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := os.ReadFile(expectFile)
 		if err != nil {
@@ -46,7 +46,7 @@ func TestValidateGtfsResolver(t *testing.T) {
 	defer ts200.Close()
 
 	vars := hw{
-		"url": ts200.URL + "/gtfs/caltrain.zip",
+		"url": ts200.URL + "/server/gtfs/caltrain.zip",
 	}
 	testcases := []testcase{
 		{
@@ -116,8 +116,8 @@ func TestValidateGtfsResolver(t *testing.T) {
 			name:  "rt1",
 			query: `mutation($url:String!, $realtime_urls:[String!]) {validate_gtfs(url:$url,realtime_urls:$realtime_urls){success errors{filename error_code field}}}`,
 			vars: hw{
-				"url":           ts200.URL + "/gtfs/caltrain.zip",
-				"realtime_urls": []string{ts200.URL + "/rt/CT-missing-trip.json"},
+				"url":           ts200.URL + "/server/gtfs/caltrain.zip",
+				"realtime_urls": []string{ts200.URL + "/server/rt/CT-missing-trip.json"},
 			},
 			selector:     "validate_gtfs.errors.0.error_code",
 			selectExpect: []string{"E003"},
@@ -126,8 +126,8 @@ func TestValidateGtfsResolver(t *testing.T) {
 			name:  "rt2",
 			query: `mutation($url:String!, $realtime_urls:[String!]) {validate_gtfs(url:$url,realtime_urls:$realtime_urls){success errors{filename errors{filename field error_code message}}}}`,
 			vars: hw{
-				"url":           ts200.URL + "/gtfs/caltrain.zip",
-				"realtime_urls": []string{ts200.URL + "/rt/CT-missing-trip.json"},
+				"url":           ts200.URL + "/server/gtfs/caltrain.zip",
+				"realtime_urls": []string{ts200.URL + "/server/rt/CT-missing-trip.json"},
 			},
 			selector:     "validate_gtfs.errors.0.errors.0.error_code",
 			selectExpect: []string{"E003"},
@@ -136,8 +136,8 @@ func TestValidateGtfsResolver(t *testing.T) {
 			name:  "rt-bad-vp",
 			query: `mutation($url:String!, $realtime_urls:[String!]) {validate_gtfs(url:$url,realtime_urls:$realtime_urls){success errors{filename errors{filename field error_code message geometry}}}}`,
 			vars: hw{
-				"url":           ts200.URL + "/gtfs/caltrain.zip",
-				"realtime_urls": []string{ts200.URL + "/rt/CT-bad-vp.json"},
+				"url":           ts200.URL + "/server/gtfs/caltrain.zip",
+				"realtime_urls": []string{ts200.URL + "/server/rt/CT-bad-vp.json"},
 			},
 			selector:     "validate_gtfs.errors.0.errors.0.geometry.geometries.#.type",
 			selectExpect: []string{"Point", "LineString"},

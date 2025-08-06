@@ -1,5 +1,6 @@
 #!/bin/sh
 # Set up a new postgres database and import Natural Earth data.
+# set -ex -o pipefail
 SCRIPTDIR=$(dirname "$0")
 TL_TEST_STORAGE=$(dirname "$0")/tmp
 mkdir -p "${TL_TEST_STORAGE}"; rm ${TL_TEST_STORAGE}/*.zip
@@ -25,8 +26,8 @@ tlserver dbmigrate --dburl="$TL_TEST_SERVER_DATABASE_URL" natural-earth
 tlserver sync --dburl="$TL_TEST_SERVER_DATABASE_URL" testdata/server/server-test.dmfr.json
 
 # older data and forced error
-tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --validation-report --validation-report-storage="$TL_TEST_STORAGE" --allow-local-fetch --feed-url=testdata/gtfs/bart-errors.zip BA # error data
-tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --validation-report --validation-report-storage="$TL_TEST_STORAGE" --allow-local-fetch --feed-url=testdata/gtfs/bart-old.zip BA # old data
+tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --validation-report --validation-report-storage="$TL_TEST_STORAGE" --allow-local-fetch --feed-url=testdata/server/gtfs/bart-errors.zip BA # error data
+tlserver fetch --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" --validation-report --validation-report-storage="$TL_TEST_STORAGE" --allow-local-fetch --feed-url=testdata/server/gtfs/bart-old.zip BA # old data
 tlserver import --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORAGE" 
 
 # current data

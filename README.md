@@ -59,7 +59,7 @@ The "example" server instance configured by the  `tlserver` command runs without
    - Unpacks and imports the Natural Earth datasets bundled with `transitland-lib`
    - Builds and installs the `cmd/tlserver` command
    - Sets up test feeds contained in `testdata/server/server-test.dmfr.json`
-   - Fetches and imports feeds contained in `testdata/gtfs`
+   - Fetches and imports feeds contained in `testdata/server/gtfs`
    - Creates additional fixtures defined in `testdata/test_supplement.pgsql`
    - Note that temporary files will be created in `testdata/tmp`; these are excluded in `.gitignore`
 2. Optional: Set `TL_TEST_REDIS_URL` to run some GBFS tests
