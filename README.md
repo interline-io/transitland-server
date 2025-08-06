@@ -41,26 +41,8 @@ Alternatively, the database connection string can be specified using `TL_DATABAS
 Open http://localhost:8080/ in your web browser to see the GraphQL browser, or use the endpoints at `/query` or `/rest/...`
 
 The REST API is documented with OpenAPI 3.0:
-
-### API Documentation
-- **Live OpenAPI schema**: http://localhost:8080/rest/openapi.json - Access the current API schema at runtime
-- **Static schema file**: [docs/openapi/rest.json](docs/openapi/rest.json) - Generated schema for tooling and documentation
-- **Regenerate schema**: Run `go generate` in the `docs/openapi/` directory to update the static schema
-
-### Available Endpoints
-The REST API provides access to transit data including:
-- **Feeds**: GTFS feed management and metadata
-- **Agencies**: Transit agency information
-- **Routes**: Transit route details and geometry
-- **Stops**: Stop locations and real-time departures
-- **Operators**: Transit operator information
-- **Trips**: Trip schedules and stop times
-
-### Authentication & Authorization
-- Most endpoints are publicly accessible
-- Some parameters (like `include_routes`) require specific user roles
-- Download endpoints require appropriate permissions
-- See the OpenAPI schema for detailed role requirements
+- **Interactive documentation**: http://localhost:8080/rest/openapi.json
+- **Static schema**: [docs/openapi/rest.json](docs/openapi/rest.json)
 
 The "example" server instance configured by the  `tlserver` command runs without authentication or authorization. Auth configuration is beyond the scope of this example command but can be added by configuring the server in your own package and adding HTTP middlewares to set user context and permissions data. You can use `cmd/tlserver/main.go` as an example to get started; it uses only public APIs from this package. (Earlier versions of `tlserver` included more built-in auth middlewares, but in our experience these are almost always custom per-installation, and were removed from this repo.) Additionally, this example server configuration exposes Go profiler endpoints on `/debug/pprof/...`. 
 
