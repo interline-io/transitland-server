@@ -3,7 +3,7 @@ package gql
 import (
 	"context"
 
-	"github.com/interline-io/transitland-server/server/finders/directions"
+	"github.com/interline-io/transitland-server/server/directions"
 	"github.com/interline-io/transitland-server/server/model"
 )
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/location"
 	"github.com/interline-io/transitland-mw/testutil"
-	dt "github.com/interline-io/transitland-server/server/finders/directions/directionstest"
+	dt "github.com/interline-io/transitland-server/server/directions/directionstest"
 	"github.com/interline-io/transitland-server/server/model"
 	"github.com/interline-io/transitland-server/testdata"
 )

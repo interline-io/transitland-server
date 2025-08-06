@@ -44,10 +44,10 @@ import (
 	_ "github.com/interline-io/transitland-lib/tldb/postgres"
 
 	// Import routers
-	_ "github.com/interline-io/transitland-server/server/finders/directions/awsrouter"
-	_ "github.com/interline-io/transitland-server/server/finders/directions/linerouter"
-	_ "github.com/interline-io/transitland-server/server/finders/directions/tlrouter"
-	_ "github.com/interline-io/transitland-server/server/finders/directions/valhalla"
+	_ "github.com/interline-io/transitland-server/server/directions/awsrouter"
+	_ "github.com/interline-io/transitland-server/server/directions/linerouter"
+	_ "github.com/interline-io/transitland-server/server/directions/tlrouter"
+	_ "github.com/interline-io/transitland-server/server/directions/valhalla"
 )
 
 var rootCmd = &cobra.Command{Use: "tlserver"}

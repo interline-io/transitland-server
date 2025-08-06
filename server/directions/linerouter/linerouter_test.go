@@ -3,7 +3,7 @@ package linerouter
 import (
 	"testing"
 
-	dt "github.com/interline-io/transitland-server/server/finders/directions/directionstest"
+	dt "github.com/interline-io/transitland-server/server/directions/directionstest"
 	"github.com/interline-io/transitland-server/testdata"
 )
 

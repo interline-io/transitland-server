@@ -14,7 +14,7 @@ import (
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/server/finders/directions"
+	"github.com/interline-io/transitland-server/server/directions"
 	"github.com/interline-io/transitland-server/server/model"
 )
 
