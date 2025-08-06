@@ -3,7 +3,7 @@ package rest
 import (
 	"testing"
 
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 func TestFeedVersionRequest(t *testing.T) {

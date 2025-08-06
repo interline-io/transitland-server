@@ -29,11 +29,11 @@ import (
 	"github.com/interline-io/transitland-mw/meters"
 	localmeter "github.com/interline-io/transitland-mw/meters/local"
 
-	"github.com/interline-io/transitland-server/finders/dbfinder"
-	"github.com/interline-io/transitland-server/finders/gbfsfinder"
-	"github.com/interline-io/transitland-server/finders/rtfinder"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/finders/dbfinder"
+	"github.com/interline-io/transitland-server/server/finders/gbfsfinder"
+	"github.com/interline-io/transitland-server/server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/server/gql"
+	"github.com/interline-io/transitland-server/server/model"
 	"github.com/interline-io/transitland-server/server/playground"
 	"github.com/interline-io/transitland-server/server/rest"
 	"github.com/rs/zerolog"
@@ -44,10 +44,10 @@ import (
 	_ "github.com/interline-io/transitland-lib/tldb/postgres"
 
 	// Import routers
-	_ "github.com/interline-io/transitland-server/finders/directions/awsrouter"
-	_ "github.com/interline-io/transitland-server/finders/directions/linerouter"
-	_ "github.com/interline-io/transitland-server/finders/directions/tlrouter"
-	_ "github.com/interline-io/transitland-server/finders/directions/valhalla"
+	_ "github.com/interline-io/transitland-server/server/directions/awsrouter"
+	_ "github.com/interline-io/transitland-server/server/directions/linerouter"
+	_ "github.com/interline-io/transitland-server/server/directions/tlrouter"
+	_ "github.com/interline-io/transitland-server/server/directions/valhalla"
 )
 
 var rootCmd = &cobra.Command{Use: "tlserver"}

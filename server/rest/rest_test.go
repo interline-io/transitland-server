@@ -11,8 +11,8 @@ import (
 	"github.com/interline-io/transitland-mw/auth/authn"
 	"github.com/interline-io/transitland-mw/testutil"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/model"
 	"github.com/interline-io/transitland-server/server/gql"
+	"github.com/interline-io/transitland-server/server/model"
 	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -61,7 +61,7 @@ func checkTestCase(t *testing.T, tc testCase) {
 	graphqlHandler, _, _ := testHandlersWithOptions(t, testconfig.Options{
 		WhenUtc: "2018-06-01T00:00:00Z",
 		RTJsons: testconfig.DefaultRTJson(),
-		Storage: testdata.Path("tmp"),
+		Storage: testdata.Path("server", "tmp"),
 	})
 	tested := false
 

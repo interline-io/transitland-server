@@ -9,7 +9,7 @@ import (
 	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-mw/testutil"
 	"github.com/interline-io/transitland-server/internal/testconfig"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 	"github.com/interline-io/transitland-server/testdata"
 )
 
@@ -306,7 +306,7 @@ func TestAgencyResolver_Authz(t *testing.T) {
 	}
 	cfg := testconfig.Config(t, testconfig.Options{
 		FGAEndpoint:    ep,
-		FGAModelFile:   testdata.Path("authz/tls.json"),
+		FGAModelFile:   testdata.Path("server/authz/tls.json"),
 		FGAModelTuples: fgaTestTuples,
 	})
 

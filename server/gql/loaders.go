@@ -11,7 +11,7 @@ import (
 	dataloader "github.com/graph-gophers/dataloader/v7"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tt"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 type ctxKey string

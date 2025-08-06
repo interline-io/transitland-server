@@ -7,14 +7,14 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-server/internal/gbfs"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 	"github.com/interline-io/transitland-server/testdata"
 )
 
 func setupGbfs(ctx context.Context, gbf model.GbfsFinder) error {
 	// Setup
 	sourceFeedId := "gbfs-test"
-	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("gbfs")})
+	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("server/gbfs")})
 	defer ts.Close()
 	opts := gbfs.Options{}
 	opts.FeedURL = fmt.Sprintf("%s/%s", ts.URL, "gbfs.json")

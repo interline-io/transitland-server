@@ -7,7 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 // mutation root
