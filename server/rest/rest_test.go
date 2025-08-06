@@ -61,7 +61,7 @@ func checkTestCase(t *testing.T, tc testCase) {
 	graphqlHandler, _, _ := testHandlersWithOptions(t, testconfig.Options{
 		WhenUtc: "2018-06-01T00:00:00Z",
 		RTJsons: testconfig.DefaultRTJson(),
-		Storage: testdata.Path("tmp"),
+		Storage: testdata.Path("server", "tmp"),
 	})
 	tested := false
 
