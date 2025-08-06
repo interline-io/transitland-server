@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )

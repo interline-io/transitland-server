@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 func TestFeedResolver(t *testing.T) {

@@ -1,7 +1,7 @@
 package gql
 
 import (
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 // This file contains parameters that can be passed to methods for finding/selecting/grouping entities
