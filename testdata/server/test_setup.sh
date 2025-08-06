@@ -38,7 +38,7 @@ tlserver import --dburl="$TL_TEST_SERVER_DATABASE_URL" --storage="$TL_TEST_STORA
 tlserver sync --dburl="$TL_TEST_SERVER_DATABASE_URL" testdata/server/server-test.dmfr.json
 
 # supplemental data
-psql $TL_TEST_SERVER_DATABASE_URL -f $(dirname "$0")/test_supplement.pgsql
+psql $TL_TEST_SERVER_DATABASE_URL -f testdata/server/test_supplement.pgsql
 
 # load census data
-psql $TL_TEST_SERVER_DATABASE_URL -f $(dirname "$0")/census/census.pgsql
+psql $TL_TEST_SERVER_DATABASE_URL -f testdata/server/census/census.pgsql

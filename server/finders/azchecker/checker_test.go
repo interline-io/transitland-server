@@ -1809,7 +1809,7 @@ func newTestChecker(t testing.TB, url string, testData []testCase) *Checker {
 	dbx := testutil.MustOpenTestDB(t)
 	cfg := CheckerConfig{
 		FGAEndpoint:      url,
-		FGALoadModelFile: testdata.Path("authz/tls.json"),
+		FGALoadModelFile: testdata.Path("server/authz/tls.json"),
 		GlobalAdmin:      "global_admin",
 	}
 
