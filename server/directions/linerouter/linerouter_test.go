@@ -16,7 +16,7 @@ func TestRouter(t *testing.T) {
 			Success:  true,
 			Duration: 4116,
 			Distance: 4.116,
-			ResJson:  testdata.Path("directions/response/line_ped.json"),
+			ResJson:  testdata.Path("server/directions/response/line_ped.json"),
 		},
 		{
 			Name:     "bike",

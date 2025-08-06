@@ -40,7 +40,7 @@ func (t *testWorker) Run(ctx context.Context) error {
 }
 
 func TestGbfsFetch(t *testing.T) {
-	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("gbfs")})
+	ts := httptest.NewServer(&gbfs.TestGbfsServer{Language: "en", Path: testdata.Path("server", "gbfs")})
 	defer ts.Close()
 	testconfig.ConfigTxRollback(t, testconfig.Options{}, func(cfg model.Config) {
 		ctx := model.WithConfig(context.Background(), cfg)
@@ -153,7 +153,7 @@ func TestStaticFetchWorker(t *testing.T) {
 					return
 
 				}
-				buf, err := os.ReadFile(testdata.Path(tc.serveFile))
+				buf, err := os.ReadFile(testdata.Path("server", tc.serveFile))
 				if err != nil {
 					http.Error(w, "404", 404)
 					return
@@ -215,7 +215,7 @@ func TestValidateUpload(t *testing.T) {
 	}{
 		{
 			name:      "ct",
-			serveFile: "gtfs/caltrain.zip",
+			serveFile: "caltrain.zip",
 			rtUrls:    []string{"rt/CT-vp-error.json"},
 			f: func(t *testing.T, result *model.ValidationReport) {
 				if len(result.Errors) != 1 {
@@ -239,7 +239,7 @@ func TestValidateUpload(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setup http
-			ts := testutil.NewTestServer(testdata.Path())
+			ts := testutil.NewTestServer(testdata.Path("server", "gtfs"))
 			defer ts.Close()
 
 			// Setup job

@@ -14,7 +14,7 @@ import (
 
 func TestRouter(t *testing.T) {
 	bt := dt.MakeBasicTests()
-	fdir := testdata.Path("directions/valhalla")
+	fdir := testdata.Path("server/directions/valhalla")
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
@@ -22,7 +22,7 @@ func TestRouter(t *testing.T) {
 			Success:  true,
 			Duration: 3130,
 			Distance: 4.387,
-			ResJson:  testdata.Path("directions/response/val_ped.json"),
+			ResJson:  testdata.Path("server/directions/response/val_ped.json"),
 		},
 		{
 			Name:     "bike",

@@ -15,7 +15,7 @@ import (
 func TestRouter(t *testing.T) {
 	bt := dt.MakeBasicTests()
 	baseTime := time.Unix(1738200531, 0).In(time.UTC)
-	fdir := testdata.Path("directions/tlrouter")
+	fdir := testdata.Path("server/directions/tlrouter")
 	tcs := []dt.TestCase{
 		{
 			Name:     "ped",
