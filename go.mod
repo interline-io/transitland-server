@@ -136,6 +136,6 @@ replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-202
 
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
-replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
+// replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 
 tool github.com/99designs/gqlgen

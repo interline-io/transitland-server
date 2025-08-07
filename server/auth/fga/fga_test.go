@@ -1075,7 +1075,7 @@ func newTestFGAClient(t testing.TB, url string, testTuples []testCase) *FGAClien
 	if _, err := fgac.CreateStore(context.Background(), "test"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := fgac.CreateModel(context.Background(), testdata.Path("authz/tls.json")); err != nil {
+	if _, err := fgac.CreateModel(context.Background(), testdata.Path("server/authz/tls.json")); err != nil {
 		t.Fatal(err)
 	}
 	for _, tk := range testTuples {
