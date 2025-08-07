@@ -139,3 +139,5 @@ replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-202
 // replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 
 tool github.com/99designs/gqlgen
+
+tool google.golang.org/protobuf/cmd/protoc-gen-go
