@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-mw/auth/authz"
+	"github.com/interline-io/transitland-server/server/auth/authz"
 )
 
 type PermFilter struct {

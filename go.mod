@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/99designs/gqlgen v0.17.72
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/auth0/go-auth0 v0.17.2
 	github.com/aws/aws-sdk-go v1.49.6
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
@@ -21,6 +22,7 @@ require (
 	github.com/interline-io/transitland-lib v1.2.5-0.20250805211609-3b9edc88690d
 	github.com/interline-io/transitland-mw v0.0.0-20250806213844-f0f9dc17648a
 	github.com/jmoiron/sqlx v1.4.0
+	github.com/openfga/go-sdk v0.2.3
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
@@ -29,6 +31,7 @@ require (
 	github.com/twpayne/go-geom v1.6.1
 	github.com/twpayne/go-polyline v1.1.1
 	github.com/vektah/gqlparser/v2 v2.5.26
+	google.golang.org/grpc v1.64.1
 	google.golang.org/protobuf v1.36.6
 )
 
@@ -40,7 +43,6 @@ require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
 	github.com/PuerkitoBio/rehttp v1.3.0 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
-	github.com/auth0/go-auth0 v0.17.2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.30 // indirect
@@ -96,7 +98,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mmcloughlin/geohash v0.10.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
-	github.com/openfga/go-sdk v0.2.3 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -126,7 +127,6 @@ require (
 	golang.org/x/tools v0.32.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
-	google.golang.org/grpc v1.64.1 // indirect
 	gopkg.in/dnaeon/go-vcr.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
@@ -136,6 +136,6 @@ replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-202
 
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
-// replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
+replace github.com/interline-io/transitland-mw => /Users/irees/src/interline-io/transitland-mw
 
 tool github.com/99designs/gqlgen

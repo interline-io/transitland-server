@@ -180,8 +180,6 @@ github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1 h1:tjXAmTK76qme1H
 github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
 github.com/interline-io/transitland-lib v1.2.5-0.20250805211609-3b9edc88690d h1:zeeO8ffoxjwldCPVR73M2dpAxKfLyJz/Cs6eRUunHQA=
 github.com/interline-io/transitland-lib v1.2.5-0.20250805211609-3b9edc88690d/go.mod h1:ywkR3sow5VDJ2z00itH1OVVAAznTROfN8MlAuITypgY=
-github.com/interline-io/transitland-mw v0.0.0-20250806213844-f0f9dc17648a h1:OQcFXQicsIQN7tu64G43Kbaw1rSTz2yPgaG/3gNc5Tg=
-github.com/interline-io/transitland-mw v0.0.0-20250806213844-f0f9dc17648a/go.mod h1:41sEfBoC7wvhG/u16Nc353sPr1rmQaKAVoLEXRoBJno=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
 github.com/invopop/yaml v0.3.1/go.mod h1:PMOp3nn4/12yEZUFfmOuNHJsZToEEOwoWsT+D81KkeA=
 github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17 h1:8r3a8+gGbNCrB+sF5BhzOUU5N7vo7vbwz1MGmYoq5TI=
