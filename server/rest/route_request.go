@@ -230,6 +230,7 @@ func (r RouteKeyRequest) RequestInfo() RequestInfo {
 					&pref{Value: &param{
 						Name:        "route_key",
 						In:          "path",
+						Required:    true,
 						Description: `Route lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs route_id>' key, or a Onestop ID`,
 						Schema:      newSRVal("string", "", nil),
 					}},

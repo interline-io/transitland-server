@@ -44,6 +44,30 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	stopDepartureHandler := makeHandler(graphqlHandler, "stopDepartures", func() apiHandler { return &StopDepartureRequest{} })
 	operatorHandler := makeHandler(graphqlHandler, "operators", func() apiHandler { return &OperatorRequest{} })
 
+	// Redirect root to OpenAPI documentation
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Get the base path from the request URL
+		basePath := strings.TrimSuffix(r.URL.Path, "/")
+		// When path is "/", basePath will be empty, which is correct for root
+		redirectPath := basePath + "/openapi.json"
+		http.Redirect(w, r, redirectPath, http.StatusMovedPermanently)
+	})
+
+	// OpenAPI Schema endpoint
+	r.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+		cfg := model.ForContext(r.Context())
+		schema, err := GenerateOpenAPI(cfg.RestPrefix)
+		if err != nil {
+			http.Error(w, "Failed to generate schema", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(schema); err != nil {
+			http.Error(w, "Failed to encode schema", http.StatusInternalServerError)
+			return
+		}
+	})
+
 	r.HandleFunc("/feeds.{format}", feedHandler)
 	r.HandleFunc("/feeds", feedHandler)
 	r.HandleFunc("/feeds/{feed_key}.{format}", feedHandler)

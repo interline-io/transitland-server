@@ -90,6 +90,35 @@ func (r OperatorRequest) RequestInfo() RequestInfo {
 	}
 }
 
+type OperatorKeyRequest struct {
+	OperatorRequest
+}
+
+func (r OperatorKeyRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/operators/{operator_key}",
+		Get: RequestOperation{
+			Query: operatorQuery,
+			Operation: &oa.Operation{
+				Summary: "Operators",
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "operator_key",
+						In:          "path",
+						Required:    true,
+						Description: `Operator lookup key; can be a Onestop ID or an internal database integer ID `,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "o-9q9-caltrain", "o-9q9-caltrain"),
+					}},
+					newPRef("includeAlertsParam"),
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+				},
+			},
+		},
+	}
+}
+
 // ResponseKey returns the GraphQL response entity key.
 func (r OperatorRequest) ResponseKey() string { return "operators" }
 
