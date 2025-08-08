@@ -16,7 +16,7 @@ import (
 	"github.com/interline-io/transitland-lib/tldb/postgres"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-lib/validator"
-	"github.com/interline-io/transitland-mw/auth/authz"
+	"github.com/interline-io/transitland-server/server/auth/authz"
 	"github.com/interline-io/transitland-server/server/model"
 )
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-mw/auth/authz"
+	"github.com/interline-io/transitland-server/server/auth/authz"
 )
 
 func NewServer(checker authz.CheckerServer) (http.Handler, error) {
