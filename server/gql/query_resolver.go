@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/interline-io/transitland-lib/tt"
-	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-server/server/auth/authn"
 	"github.com/interline-io/transitland-server/server/auth/authz"
 	"github.com/interline-io/transitland-server/server/model"
 )

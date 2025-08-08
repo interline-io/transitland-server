@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/interline-io/transitland-lib/tlxy"
-	"github.com/interline-io/transitland-mw/caches/ecache"
 	"github.com/interline-io/transitland-server/internal/gbfs"
+	"github.com/interline-io/transitland-server/server/caches/ecache"
 	"github.com/interline-io/transitland-server/server/model"
 	"github.com/twpayne/go-geom"
 )

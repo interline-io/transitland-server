@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-mw/caches/tzcache"
+	"github.com/interline-io/transitland-server/server/caches/tzcache"
 	"github.com/jmoiron/sqlx"
 )
 

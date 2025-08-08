@@ -8,11 +8,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/interline-io/transitland-mw/auth/authn"
-	"github.com/interline-io/transitland-mw/testutil"
 	"github.com/interline-io/transitland-server/internal/testconfig"
+	"github.com/interline-io/transitland-server/server/auth/authn"
 	"github.com/interline-io/transitland-server/server/gql"
 	"github.com/interline-io/transitland-server/server/model"
+	"github.com/interline-io/transitland-server/server/testutil"
 	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"

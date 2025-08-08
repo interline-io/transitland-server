@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-server/server/auth/authn"
 )
 
 type MockUserProvider struct {

@@ -115,6 +115,8 @@ github.com/flopp/go-staticmaps v0.0.0-20220221183018-c226716bec53 h1:bpgLIxOpmht
 github.com/flopp/go-staticmaps v0.0.0-20220221183018-c226716bec53/go.mod h1:vGgI6wKa1TTiN9iumpzYZgNc/C7KxqsZbw9OH8O10iQ=
 github.com/fogleman/gg v1.3.0 h1:/7zJX8F6AaYQc57WQCyN9cAIz+4bCJGO9B+dyW29am8=
 github.com/fogleman/gg v1.3.0/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
+github.com/form3tech-oss/jwt-go v3.2.5+incompatible h1:/l4kBbb4/vGSsdtB5nUe8L7B9mImVMaBPw9L/0TBHU8=
+github.com/form3tech-oss/jwt-go v3.2.5+incompatible/go.mod h1:pbq4aXjuKjdthFRnoDwaVPLA+WlJuPGy+QneDUgJi2k=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/go-chi/chi/v5 v5.0.10 h1:rLz5avzKpjqxrYwXNfmjkrYYXOyLJd37pz53UFHC6vk=
@@ -175,8 +177,6 @@ github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1 h1:tjXAmTK76qme1H
 github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1/go.mod h1:chJaM8SKcHI6ivoeFuZ8M8axTjSV4TPmuQ+sAyAHa34=
 github.com/interline-io/transitland-lib v1.2.6-0.20250806234055-14690d88685e h1:l9waVRrvuOGfJjTtgFckWgEpatvlUZJy5fIm9jOjtlE=
 github.com/interline-io/transitland-lib v1.2.6-0.20250806234055-14690d88685e/go.mod h1:ywkR3sow5VDJ2z00itH1OVVAAznTROfN8MlAuITypgY=
-github.com/interline-io/transitland-mw v0.0.0-20250807011020-d72e4b904cda h1:t2qC3qNt0c7xpK2retiFxeD6SGt88nWkiyiiYAjJFi8=
-github.com/interline-io/transitland-mw v0.0.0-20250807011020-d72e4b904cda/go.mod h1:Gf4QEhgwM2ZHJyypJ4NSNA6Y66/q05uLgBsjqqV9RVM=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
 github.com/invopop/yaml v0.3.1/go.mod h1:PMOp3nn4/12yEZUFfmOuNHJsZToEEOwoWsT+D81KkeA=
 github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17 h1:8r3a8+gGbNCrB+sF5BhzOUU5N7vo7vbwz1MGmYoq5TI=

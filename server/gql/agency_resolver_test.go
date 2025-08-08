@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
-	"github.com/interline-io/transitland-mw/testutil"
 	"github.com/interline-io/transitland-server/internal/testconfig"
 	"github.com/interline-io/transitland-server/server/auth/authz"
+	"github.com/interline-io/transitland-server/server/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/server/model"
+	"github.com/interline-io/transitland-server/server/testutil"
 	"github.com/interline-io/transitland-server/testdata"
 )
 
