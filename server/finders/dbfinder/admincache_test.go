@@ -6,8 +6,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/tlxy"
-	"github.com/interline-io/transitland-mw/dbutil"
-	"github.com/interline-io/transitland-mw/testutil"
+	"github.com/interline-io/transitland-server/server/dbutil"
+	"github.com/interline-io/transitland-server/server/testutil"
 	"github.com/stretchr/testify/assert"
 )
 

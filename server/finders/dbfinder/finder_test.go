@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-lib/tldb/querylogger"
-	"github.com/interline-io/transitland-mw/testutil"
+	"github.com/interline-io/transitland-server/server/testutil"
 	"github.com/stretchr/testify/assert"
 )
 

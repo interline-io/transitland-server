@@ -12,8 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/location/types"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tt"
-	"github.com/interline-io/transitland-mw/caches/httpcache"
 	"github.com/interline-io/transitland-server/internal/clock"
+	"github.com/interline-io/transitland-server/server/caches/httpcache"
 	"github.com/interline-io/transitland-server/server/directions"
 	"github.com/interline-io/transitland-server/server/model"
 )

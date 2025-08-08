@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
-	"github.com/interline-io/transitland-mw/auth/authn"
-	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/internal/testconfig"
+	"github.com/interline-io/transitland-server/server/auth/authn"
+	"github.com/interline-io/transitland-server/server/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"

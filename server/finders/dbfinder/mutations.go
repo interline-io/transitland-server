@@ -10,8 +10,8 @@ import (
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/tldb/postgres"
 	"github.com/interline-io/transitland-lib/tt"
-	"github.com/interline-io/transitland-mw/dbutil"
 	"github.com/interline-io/transitland-server/server/auth/authz"
+	"github.com/interline-io/transitland-server/server/dbutil"
 	"github.com/interline-io/transitland-server/server/model"
 	"github.com/jmoiron/sqlx"
 )

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/interline-io/transitland-mw/testutil"
 	dt "github.com/interline-io/transitland-server/server/directions/directionstest"
+	"github.com/interline-io/transitland-server/server/testutil"
 	"github.com/interline-io/transitland-server/testdata"
 )
 

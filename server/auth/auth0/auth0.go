@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/auth0/go-auth0/management"
-	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-server/server/auth/authn"
 )
 
 type Auth0Client struct {
