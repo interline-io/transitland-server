@@ -61,11 +61,12 @@ func (f *Finder) CensusSourcesByIDs(ctx context.Context, ids []int) ([]*model.Ce
 }
 
 func (f *Finder) CensusGeographiesByEntityIDs(ctx context.Context, limit *int, where *model.CensusGeographyFilter, entityType string, entityIds []int) ([][]*model.CensusGeography, error) {
-	// Special handling for stops
 	if where == nil {
 		where = &model.CensusGeographyFilter{}
 	}
 	fields := getCensusGeographySelectFields(ctx)
+
+	// Special handling for stops
 	if entityType == "stop" {
 		var ents []*model.CensusGeography
 		pw := &model.CensusDatasetGeographyFilter{
@@ -377,15 +378,23 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 		found := true
 		qJoin := sq.StatementBuilder.Select()
 		if loc.Bbox != nil {
-			qJoin = qJoin.Column("ST_MakeEnvelope(?,?,?,?,4326) as buffer", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat)
+			qJoin = qJoin.
+				Column("0 as stop_id").
+				Column("ST_MakeEnvelope(?,?,?,?,4326) as buffer", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat)
 		} else if loc.Within != nil && loc.Within.Valid {
 			jj, _ := geojson.Marshal(loc.Within.Val)
-			qJoin = qJoin.Column("ST_GeomFromGeoJSON(?) as buffer", string(jj))
+			qJoin = qJoin.
+				Column("0 as stop_id").
+				Column("0 as stop_id").Column("ST_GeomFromGeoJSON(?) as buffer", string(jj))
 		} else if loc.Near != nil {
 			radius := checkFloat(&loc.Near.Radius, 0, 1_000_000)
-			qJoin = qJoin.Column("ST_Buffer(ST_MakePoint(?,?)::geography, ?) as buffer", loc.Near.Lon, loc.Near.Lat, radius)
+			qJoin = qJoin.
+				Column("0 as stop_id").
+				Column("ST_Buffer(ST_MakePoint(?,?)::geography, ?) as buffer", loc.Near.Lon, loc.Near.Lat, radius)
 		} else if loc.StopBuffer != nil && len(loc.StopBuffer.StopIds) > 0 {
-			qJoin = qJoin.From("gtfs_stops").Where(In("gtfs_stops.id", loc.StopBuffer.StopIds))
+			qJoin = qJoin.
+				From("gtfs_stops").
+				Where(In("gtfs_stops.id", loc.StopBuffer.StopIds))
 			radius := checkFloat(loc.StopBuffer.Radius, 0, 1_000)
 			if mergeBuffer {
 				qJoin = qJoin.
@@ -404,7 +413,8 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 			found = false
 		}
 		if found {
-			q = q.Column("buffer.stop_id as match_entity_id").
+			q = q.
+				Column("buffer.stop_id as match_entity_id").
 				JoinClause(qJoin.Prefix("join (").Suffix(") as buffer on true")).
 				Where("ST_Intersects(tlcg.geometry, buffer.buffer)")
 			if fields.intersectionArea {
