@@ -61,13 +61,34 @@ func (f *Finder) CensusSourcesByIDs(ctx context.Context, ids []int) ([]*model.Ce
 }
 
 func (f *Finder) CensusGeographiesByEntityIDs(ctx context.Context, limit *int, where *model.CensusGeographyFilter, entityType string, entityIds []int) ([][]*model.CensusGeography, error) {
-	// Sadly cannot be optimized to avoid N+1
-	var ret [][]*model.CensusGeography
+	// Special handling for stops
+	if where == nil {
+		where = &model.CensusGeographyFilter{}
+	}
 	fields := getCensusGeographySelectFields(ctx)
-	for _, entityId := range entityIds {
-		if where == nil {
-			where = &model.CensusGeographyFilter{}
+	if entityType == "stop" {
+		var ents []*model.CensusGeography
+		pw := &model.CensusDatasetGeographyFilter{
+			Layer:  where.Layer,
+			Search: where.Search,
+			Location: &model.CensusDatasetGeographyLocationFilter{
+				StopBuffer: &model.StopBuffer{
+					StopIds: entityIds,
+					Radius:  where.Radius,
+				},
+			},
 		}
+		if err := dbutil.Select(ctx, f.db, censusDatasetGeographySelect(limit, pw, fields, false), &ents); err != nil {
+			return nil, logErr(ctx, err)
+		}
+		return arrangeGroup(entityIds, ents, func(ent *model.CensusGeography) int {
+			return ent.MatchEntityID
+		}), nil
+	}
+
+	// Non-stop types: Sadly cannot be optimized to avoid N+1
+	var ret [][]*model.CensusGeography
+	for _, entityId := range entityIds {
 		stopIds, err := getBufferStopIds(ctx, f.db, entityType, entityId)
 		if err != nil {
 			return nil, logErr(ctx, err)
@@ -83,7 +104,7 @@ func (f *Finder) CensusGeographiesByEntityIDs(ctx context.Context, limit *int, w
 				},
 			},
 		}
-		if err := dbutil.Select(ctx, f.db, censusDatasetGeographySelect(limit, pw, fields), &ents); err != nil {
+		if err := dbutil.Select(ctx, f.db, censusDatasetGeographySelect(limit, pw, fields, true), &ents); err != nil {
 			return nil, logErr(ctx, err)
 		}
 		ret = append(ret, ents)
@@ -174,7 +195,7 @@ func (f *Finder) CensusSourceLayersBySourceIDs(ctx context.Context, keys []int) 
 
 func (f *Finder) CensusGeographiesByDatasetIDs(ctx context.Context, limit *int, p *model.CensusDatasetGeographyFilter, keys []int) ([][]*model.CensusGeography, error) {
 	var ents []*model.CensusGeography
-	q := censusDatasetGeographySelect(limit, p, getCensusGeographySelectFields(ctx))
+	q := censusDatasetGeographySelect(limit, p, getCensusGeographySelectFields(ctx), true)
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
@@ -198,7 +219,7 @@ func (f *Finder) CensusGeographiesByLayerIDs(ctx context.Context, limit *int, wh
 		w.Location = where.Location
 	}
 	var ents []*model.CensusGeography
-	q := censusDatasetGeographySelect(limit, w, getCensusGeographySelectFields(ctx))
+	q := censusDatasetGeographySelect(limit, w, getCensusGeographySelectFields(ctx), true)
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
@@ -222,7 +243,7 @@ func (f *Finder) CensusGeographiesBySourceIDs(ctx context.Context, limit *int, w
 		w.Location = where.Location
 	}
 	var ents []*model.CensusGeography
-	q := censusDatasetGeographySelect(limit, w, getCensusGeographySelectFields(ctx))
+	q := censusDatasetGeographySelect(limit, w, getCensusGeographySelectFields(ctx), true)
 	err := dbutil.Select(ctx,
 		f.db,
 		lateralWrap(
@@ -314,7 +335,7 @@ func containsField(ctx context.Context, fieldName string) bool {
 	return false
 }
 
-func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeographyFilter, fields censusGeographySelectFields) sq.SelectBuilder {
+func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeographyFilter, fields censusGeographySelectFields, mergeBuffer bool) sq.SelectBuilder {
 	// Include matched entity column
 	cols := []string{
 		"tlcg.id",
@@ -354,27 +375,38 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 	if where != nil && where.Location != nil {
 		loc := where.Location
 		found := true
-		var qJoin sq.SelectBuilder
+		qJoin := sq.StatementBuilder.Select()
 		if loc.Bbox != nil {
-			qJoin = sq.StatementBuilder.Select().Column("ST_MakeEnvelope(?,?,?,?,4326) as buffer", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat)
+			qJoin = qJoin.Column("ST_MakeEnvelope(?,?,?,?,4326) as buffer", loc.Bbox.MinLon, loc.Bbox.MinLat, loc.Bbox.MaxLon, loc.Bbox.MaxLat)
 		} else if loc.Within != nil && loc.Within.Valid {
 			jj, _ := geojson.Marshal(loc.Within.Val)
-			qJoin = sq.StatementBuilder.Select().Column("ST_GeomFromGeoJSON(?) as buffer", string(jj))
+			qJoin = qJoin.Column("ST_GeomFromGeoJSON(?) as buffer", string(jj))
 		} else if loc.Near != nil {
 			radius := checkFloat(&loc.Near.Radius, 0, 1_000_000)
-			qJoin = sq.StatementBuilder.Select().Column("ST_Buffer(ST_MakePoint(?,?)::geography, ?) as buffer", loc.Near.Lon, loc.Near.Lat, radius)
+			qJoin = qJoin.Column("ST_Buffer(ST_MakePoint(?,?)::geography, ?) as buffer", loc.Near.Lon, loc.Near.Lat, radius)
 		} else if loc.StopBuffer != nil && len(loc.StopBuffer.StopIds) > 0 {
-			radius := checkFloat(loc.StopBuffer.Radius, 1, 1_000)
-			qJoin = sq.StatementBuilder.Select().
-				Column("ST_Buffer(ST_Collect(ST_Buffer(gtfs_stops.geometry::geography, ?)::geometry), 0) as buffer", radius).
-				From("gtfs_stops").
-				Where(In("gtfs_stops.id", loc.StopBuffer.StopIds))
+			qJoin = qJoin.From("gtfs_stops").Where(In("gtfs_stops.id", loc.StopBuffer.StopIds))
+			radius := checkFloat(loc.StopBuffer.Radius, 0, 1_000)
+			if mergeBuffer {
+				qJoin = qJoin.
+					Column("0 as stop_id").
+					Column("ST_Buffer(ST_Collect(ST_Buffer(gtfs_stops.geometry::geography, ?)::geometry), 0) as buffer", radius)
+			} else if radius == 0 {
+				qJoin = qJoin.
+					Column("gtfs_stops.id as stop_id").
+					Column("gtfs_stops.geometry as buffer")
+			} else if radius > 0 {
+				qJoin = qJoin.
+					Column("gtfs_stops.id as stop_id").
+					Column("ST_Buffer(gtfs_stops.geometry::geography, ?) as buffer", radius)
+			}
 		} else {
 			found = false
 		}
 		if found {
-			q = q.JoinClause(qJoin.Prefix("join (").Suffix(") as buffer on true"))
-			q = q.Where("ST_Intersects(tlcg.geometry, buffer.buffer)")
+			q = q.Column("buffer.stop_id as match_entity_id").
+				JoinClause(qJoin.Prefix("join (").Suffix(") as buffer on true")).
+				Where("ST_Intersects(tlcg.geometry, buffer.buffer)")
 			if fields.intersectionArea {
 				q = q.Column("ST_Area(ST_Intersection(tlcg.geometry, buffer.buffer)) as intersection_area")
 			}
