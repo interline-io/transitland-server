@@ -3,6 +3,7 @@ package dbutil
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -124,4 +125,37 @@ func Get(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{})
 		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
 	}
 	return err
+}
+
+// Insert executes an insert query and returns the result.
+func Insert(ctx context.Context, db sqlx.Ext, q sq.InsertBuilder) (sql.Result, error) {
+	useStatement := false
+	q = q.PlaceholderFormat(sq.Dollar)
+	qstr, qargs, err := q.ToSql()
+	var result sql.Result
+	if err == nil {
+		if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
+			stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
+			if prepareErr != nil {
+				err = prepareErr
+			} else {
+				result, err = stmt.ExecContext(ctx, qargs...)
+			}
+		} else if a, ok := db.(sqlx.ExecerContext); ok {
+			result, err = a.ExecContext(ctx, qstr, qargs...)
+		} else {
+			// Fallback to sqlx.DB if available
+			if sqlxDB, ok := db.(*sqlx.DB); ok {
+				result, err = sqlxDB.ExecContext(ctx, qstr, qargs...)
+			} else {
+				err = fmt.Errorf("database does not support ExecContext")
+			}
+		}
+	}
+	if ctx.Err() == context.Canceled {
+		log.Trace().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query canceled")
+	} else if err != nil {
+		log.Error().Err(err).Str("query", qstr).Interface("args", qargs).Msg("query failed")
+	}
+	return result, err
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/server/jobs"
+	"github.com/interline-io/transitland-server/server/jobs/artifactjob"
 )
 
 type Config struct {
@@ -16,6 +17,7 @@ type Config struct {
 	Checker                 Checker
 	Actions                 Actions
 	JobQueue                jobs.JobQueue
+	ArtifactJobRegistry     artifactjob.JobSubmitter
 	Clock                   clock.Clock
 	Secrets                 []dmfr.Secret
 	ValidateLargeFiles      bool
