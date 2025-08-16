@@ -51,7 +51,7 @@ func (r FeedRequest) RequestInfo() RequestInfo {
 					&pref{Value: &param{
 						Name:        "feed_key",
 						In:          "query",
-						Description: `Feed lookup key; can be an integer ID or a Onestop ID`,
+						Description: `Feed lookup key; can be a Onestop ID or an internal database integer ID `,
 						Schema:      newSRVal("string", "", nil),
 					}},
 					&pref{Value: &param{
@@ -189,6 +189,34 @@ func checkFeedSpecFilterValue(v string) string {
 type FeedDownloadLatestFeedVersionRequest struct {
 }
 
+type FeedKeyRequest struct {
+	FeedRequest
+}
+
+func (r FeedKeyRequest) RequestInfo() RequestInfo {
+	return RequestInfo{
+		Path: "/feeds/{feed_key}",
+		Get: RequestOperation{
+			Query: feedQuery,
+			Operation: &oa.Operation{
+				Summary: "Feeds",
+				Parameters: oa.Parameters{
+					&pref{Value: &param{
+						Name:        "feed_key",
+						In:          "path",
+						Required:    true,
+						Description: `Feed lookup key; can be a Onestop ID or an internal database integer ID `,
+						Schema:      newSRVal("string", "", nil),
+						Extensions:  newExt("", "f-sf~bay~area~rg", "f-sf~bay~area~rg"),
+					}},
+					newPRefExt("limitParam", "", "limit=1", ""),
+					newPRefExt("formatParam", "", "format=geojson", ""),
+				},
+			},
+		},
+	}
+}
+
 func (r FeedDownloadLatestFeedVersionRequest) RequestInfo() RequestInfo {
 	return RequestInfo{
 		Path:        "/feeds/{feed_key}/download_latest_feed_version",
@@ -196,6 +224,9 @@ func (r FeedDownloadLatestFeedVersionRequest) RequestInfo() RequestInfo {
 		Get: RequestOperation{
 			Operation: &oa.Operation{
 				Summary: "Download latest feed version",
+				Extensions: map[string]any{
+					"x-required-role": "tl_download_fv_current",
+				},
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "feed_key",

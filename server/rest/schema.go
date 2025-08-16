@@ -1,4 +1,4 @@
-package main
+package rest
 
 import (
 	"fmt"
@@ -11,6 +11,136 @@ import (
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
+
+type RestHandlers interface {
+	RequestInfo() RequestInfo
+}
+
+// RestHandlersList contains all REST API handlers in logical order
+var RestHandlersList = []RestHandlers{
+	// Core entity collection endpoints (for searching/filtering)
+	&FeedRequest{},          // /feeds
+	&FeedVersionRequest{},   // /feed_versions
+	&OperatorRequest{},      // /operators
+	&AgencyRequest{},        // /agencies
+	&RouteRequest{},         // /routes
+	&TripRequest{},          // /routes/{route_key}/trips
+	&StopRequest{},          // /stops
+	&StopDepartureRequest{}, // /stops/{stop_key}/departures
+
+	// Individual resource endpoints (for direct lookups)
+	&FeedKeyRequest{},        // /feeds/{feed_key}
+	&FeedVersionKeyRequest{}, // /feed_versions/{feed_version_key}
+	&OperatorKeyRequest{},    // /operators/{operator_key}
+	&AgencyKeyRequest{},      // /agencies/{agency_key}
+	&RouteKeyRequest{},       // /routes/{route_key}
+	&TripEntityRequest{},     // /routes/{route_key}/trips/{id}
+	&StopEntityRequest{},     // /stops/{stop_key}
+
+	// Download/special endpoints
+	&FeedDownloadLatestFeedVersionRequest{}, // /feeds/{feed_key}/download_latest_feed_version
+	&FeedVersionDownloadRequest{},           // /feed_versions/{feed_version_key}/download
+	&FeedDownloadRtRequest{},                // /feeds/{feed_key}/download_latest_rt/{rt_type}.{format}
+}
+
+func GenerateOpenAPI(restPrefix string, opts ...SchemaOption) (*oa.T, error) {
+	// Apply options
+	config := &SchemaConfig{}
+	for _, opt := range opts {
+		opt(config)
+	}
+
+	// Determine server URL based on RestPrefix
+	serverURL := ""
+	if restPrefix != "" {
+		serverURL = restPrefix
+	}
+
+	outdoc := &oa.T{
+		OpenAPI: "3.0.0",
+		Info: &oa.Info{
+			Title:       "Transitland REST API",
+			Description: "Transitland REST API - Access transit data including feeds, agencies, routes, stops, operators, and real-time departures",
+			Version:     "2.0.0",
+			Contact: &oa.Contact{
+				Email: "info@interline.io",
+			},
+		},
+	}
+
+	// Add server configuration only if URL is provided
+	if serverURL != "" {
+		outdoc.Servers = []*oa.Server{
+			{
+				URL:         serverURL,
+				Description: "Transitland REST API",
+			},
+		}
+	}
+
+	// Add parameter components
+	outdoc.Components = &oa.Components{
+		Parameters: oa.ParametersMap{},
+	}
+	for paramName, paramRef := range ParameterComponents {
+		outdoc.Components.Parameters[paramName] = paramRef
+	}
+
+	// Apply custom components if provided
+	if config.Components != nil {
+		if config.Components.SecuritySchemes != nil {
+			outdoc.Components.SecuritySchemes = config.Components.SecuritySchemes
+		}
+		// Could add other component types here (schemas, responses, etc.)
+	}
+
+	// Create PathItem for each handler
+	var pathOpts []oa.NewPathsOption
+	var handlers = RestHandlersList
+	for _, handler := range handlers {
+		requestInfo := handler.RequestInfo()
+		oaResponse, err := queryToOAResponses(requestInfo.Get.Query)
+		if err != nil {
+			return outdoc, err
+		}
+		getOp := requestInfo.Get.Operation
+		getOp.Responses = oaResponse
+		getOp.Description = requestInfo.Description
+
+		// Apply custom security if provided
+		if config.GlobalSecurity != nil {
+			getOp.Security = config.GlobalSecurity
+		}
+
+		pathItem := &oa.PathItem{Get: getOp}
+		pathOpts = append(pathOpts, oa.WithPath(requestInfo.Path, pathItem))
+	}
+	outdoc.Paths = oa.NewPaths(pathOpts...)
+	return outdoc, nil
+}
+
+// SchemaConfig holds configuration options for schema generation
+type SchemaConfig struct {
+	Components     *oa.Components
+	GlobalSecurity *oa.SecurityRequirements
+}
+
+// SchemaOption is a function that modifies schema configuration
+type SchemaOption func(*SchemaConfig)
+
+// WithComponents adds custom components to the schema
+func WithComponents(components *oa.Components) SchemaOption {
+	return func(config *SchemaConfig) {
+		config.Components = components
+	}
+}
+
+// WithSecurity adds global security requirements to all operations
+func WithSecurity(security *oa.SecurityRequirements) SchemaOption {
+	return func(config *SchemaConfig) {
+		config.GlobalSecurity = security
+	}
+}
 
 func queryToOAResponses(queryString string) (*oa.Responses, error) {
 	// Load schema
@@ -39,6 +169,38 @@ func queryToOAResponses(queryString string) (*oa.Responses, error) {
 		Content:     oa.NewContentWithSchemaRef(&responseObj, []string{"application/json"}),
 	}})
 	ret := oa.NewResponses(res)
+
+	// Add common error responses
+	badRequestDesc := "Bad request - invalid parameters"
+	ret.Set("400", &oa.ResponseRef{
+		Value: &oa.Response{
+			Description: &badRequestDesc,
+			Content: oa.NewContentWithJSONSchema(&oa.Schema{
+				Type: &oa.Types{"object"},
+			}),
+		},
+	})
+
+	serverErrorDesc := "Internal server error"
+	ret.Set("500", &oa.ResponseRef{
+		Value: &oa.Response{
+			Description: &serverErrorDesc,
+			Content: oa.NewContentWithJSONSchema(&oa.Schema{
+				Type: &oa.Types{"object"},
+			}),
+		},
+	})
+
+	// Add explicit default response to avoid empty description
+	defaultDesc := "Unexpected error"
+	ret.Set("default", &oa.ResponseRef{
+		Value: &oa.Response{
+			Description: &defaultDesc,
+			Content: oa.NewContentWithJSONSchema(&oa.Schema{
+				Type: &oa.Types{"object"},
+			}),
+		},
+	})
 	return ret, nil
 }
 
