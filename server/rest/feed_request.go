@@ -251,10 +251,6 @@ type FeedDownloadRtRequest struct {
 }
 
 func (r FeedDownloadRtRequest) RequestInfo() RequestInfo {
-	successDesc := "Success"
-	unauthorizedDesc := "Not authorized - feed redistribution not allowed"
-	notFoundDesc := "Not found - feed or real-time message not found"
-
 	return RequestInfo{
 		Path:        "/feeds/{feed_key}/download_latest_rt/{rt_type}.{format}",
 		Description: `Download the latest snapshot of the specified GTFS Realtime feed, if redistribution is allowed by the source feed's license. Returns 404 if feed or message not found, 401 if redistribution not allowed.`,
@@ -287,7 +283,7 @@ func (r FeedDownloadRtRequest) RequestInfo() RequestInfo {
 				Responses: oa.NewResponses(
 					oa.WithStatus(200, &oa.ResponseRef{
 						Value: &oa.Response{
-							Description: &successDesc,
+							Description: toPtr("Success"),
 							Content: oa.Content{
 								"application/json": &oa.MediaType{
 									Schema: newSRVal("object", "", nil),
@@ -300,12 +296,12 @@ func (r FeedDownloadRtRequest) RequestInfo() RequestInfo {
 					}),
 					oa.WithStatus(401, &oa.ResponseRef{
 						Value: &oa.Response{
-							Description: &unauthorizedDesc,
+							Description: toPtr("Not authorized - feed redistribution not allowed"),
 						},
 					}),
 					oa.WithStatus(404, &oa.ResponseRef{
 						Value: &oa.Response{
-							Description: &notFoundDesc,
+							Description: toPtr("Not found - feed or real-time message not found"),
 						},
 					}),
 				),

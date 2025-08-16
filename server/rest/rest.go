@@ -112,6 +112,9 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	r.HandleFunc("/operators/{operator_key}.{format}", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}", operatorHandler)
 
+	// OnestopID generic handler
+	r.Handle("/onestop_id/{onestop_id}", &OnestopIdEntityRedirectRequest{})
+
 	return r, nil
 }
 
@@ -506,4 +509,9 @@ func (bbox *restBbox) AsJson() map[string]any {
 		"max_lon": bbox.MaxLon,
 		"max_lat": bbox.MaxLat,
 	}
+}
+
+func toPtr[T any, P *T](v T) P {
+	vcopy := v
+	return &vcopy
 }
