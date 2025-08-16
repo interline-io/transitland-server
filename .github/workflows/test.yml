@@ -1,13 +1,19 @@
 name: Test Suite
 
 on:
+  pull_request:
+    types:
+      - opened
+  pull_request_target:
+    types:
+      - opened
   push:
     branches:
       - '*'
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       PGDATABASE: tlv2_test_server
       PGUSER: root
@@ -15,10 +21,11 @@ jobs:
       PGHOST: localhost
       PGPORT: 5432
       TL_TEST_SERVER_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
-      TL_DATABASE_URL: postgres://root:for_testing@localhost:5432/tlv2_test_server?sslmode=disable
+      # TL_TEST_FGA_ENDPOINT: http://localhost:9080
+      TL_REDIS_URL: redis://localhost
     services:
       postgres:
-        image: postgis/postgis:12-3.2-alpine
+        image: postgis/postgis:12-3.4-alpine
         ports:
           - 5432:5432
         env:
@@ -31,27 +38,27 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      # redis:
-      #   image: redis:6.0.8
+      redis:
+        image: redis:7.4.0-alpine
+        ports:
+          - 6379:6379
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      # openfga:
+      #   image: openfga/openfga
       #   ports:
-      #     - 6379:6379
-      #   # Set health checks to wait until redis has started
-      #   options: >-
-      #     --health-cmd "redis-cli ping"
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
+      #     - 9080:8080
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
         with:
-          go-version: '^1.17.6'
-      - run: sudo apt-get install -y gdal-bin
-      - run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-      - run: git clone https://github.com/interline-io/transitland-lib.git
+          go-version: '1.21.5'
       - run: dropdb --if-exists ${PGDATABASE}
-      - run: ${PWD}/transitland-lib/internal/schema/postgres/bootstrap.sh
-      - run: (cd cmd/tlserver && go install .)
-      - run: ./test_setup.sh
+      - run: (cd cmd/tlserver && go version && go install .)
+      - run: ./testdata/server/test_setup.sh
       - run: go test -v -count=1 ./...
 
