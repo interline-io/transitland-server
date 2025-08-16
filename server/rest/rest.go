@@ -112,6 +112,9 @@ func NewServer(graphqlHandler http.Handler) (http.Handler, error) {
 	r.HandleFunc("/operators/{operator_key}.{format}", operatorHandler)
 	r.HandleFunc("/operators/{operator_key}", operatorHandler)
 
+	// OnestopID generic handler
+	r.Handle("/onestop_id/{onestop_id}", makeHandlerFunc(graphqlHandler, "onestopIdEntityRedirectHandler", onestopIdEntityRedirectHandler))
+
 	return r, nil
 }
 

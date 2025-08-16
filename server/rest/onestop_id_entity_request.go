@@ -5,12 +5,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 // Query returns a GraphQL query string and variables.
-func onestopIdEntityRedirectHandler(cfg restConfig, w http.ResponseWriter, r *http.Request) {
-	onestop_id := mux.Vars(r)["onestop_id"]
+func onestopIdEntityRedirectHandler(graphqlHandler http.Handler, w http.ResponseWriter, r *http.Request) {
+	cfg := model.ForContext(r.Context())
+	onestop_id := chi.URLParam(r, "onestop_id")
+	fmt.Println("onestop_id:", onestop_id)
 	var redirectUrl string
 	if strings.HasPrefix(onestop_id, "f-") {
 		redirectUrl = fmt.Sprintf("%s/feeds/%s", cfg.RestPrefix, onestop_id)
