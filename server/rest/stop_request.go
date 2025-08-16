@@ -87,6 +87,7 @@ func (r StopRequest) RequestInfo() RequestInfo {
 						Extensions:  newExt("", "served_by_route_types=1,2", "served_by_route_types=1,2"),
 					}},
 					newPRef("includeAlertsParam"),
+					newPRef("includeRoutesParam"),
 					newPRef("idParam"),
 					newPRef("afterParam"),
 					newPRefExt("limitParam", "", "limit=1", ""),
@@ -193,11 +194,13 @@ func (r StopEntityRequest) RequestInfo() RequestInfo {
 				Parameters: oa.Parameters{
 					&pref{Value: &param{
 						Name:        "stop_key",
-						In:          "query",
+						In:          "path",
+						Required:    true,
 						Description: `Stop lookup key; can be an integer ID, a '<feed onestop_id>:<gtfs stop_id>' key, or a Onestop ID`,
 						Schema:      newSRVal("string", "", nil),
 					}},
 					newPRef("includeAlertsParam"),
+					newPRef("includeRoutesParam"),
 					newPRef("limitParam"),
 					newPRef("formatParam"),
 				},

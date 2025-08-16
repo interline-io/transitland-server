@@ -40,6 +40,10 @@ Alternatively, the database connection string can be specified using `TL_DATABAS
 
 Open http://localhost:8080/ in your web browser to see the GraphQL browser, or use the endpoints at `/query` or `/rest/...`
 
+The REST API is documented with OpenAPI 3.0:
+- **Interactive documentation**: http://localhost:8080/rest/openapi.json
+- **Static schema**: [docs/openapi/rest.json](docs/openapi/rest.json)
+
 The "example" server instance configured by the  `tlserver` command runs without authentication or authorization. Auth configuration is beyond the scope of this example command but can be added by configuring the server in your own package and adding HTTP middlewares to set user context and permissions data. You can use `cmd/tlserver/main.go` as an example to get started; it uses only public APIs from this package. (Earlier versions of `tlserver` included more built-in auth middlewares, but in our experience these are almost always custom per-installation, and were removed from this repo.) Additionally, this example server configuration exposes Go profiler endpoints on `/debug/pprof/...`. 
 
 ## Development

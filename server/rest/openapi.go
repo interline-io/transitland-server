@@ -62,6 +62,17 @@ func newExt(paramDesc, exampleDesc, exampleUrl string) map[string]any {
 	return ret
 }
 
+func newExtWithRole(paramDesc, exampleDesc, exampleUrl, requiredRole string) map[string]any {
+	ret := newExt(paramDesc, exampleDesc, exampleUrl)
+	if requiredRole != "" {
+		if ret == nil {
+			ret = map[string]any{}
+		}
+		ret["x-required-role"] = requiredRole
+	}
+	return ret
+}
+
 var ParameterComponents = oa.ParametersMap{
 	"adm0IsoParam": &pref{
 		Value: &param{
@@ -253,6 +264,31 @@ var ParameterComponents = oa.ParametersMap{
 			In:          "query",
 			Description: `Search for records in this feed version`,
 			Schema:      newSRVal("string", "", nil),
+		},
+	},
+	"includeGeometryParam": &pref{
+		Value: &param{
+			Name:        "include_geometry",
+			In:          "query",
+			Description: `Include geometry in response`,
+			Schema:      newSRVal("string", "", []any{"true", "false"}),
+		},
+	},
+	"includeStopsParam": &pref{
+		Value: &param{
+			Name:        "include_stops",
+			In:          "query",
+			Description: `Include stops in response`,
+			Schema:      newSRVal("string", "", []any{"true", "false"}),
+		},
+	},
+	"includeRoutesParam": &pref{
+		Value: &param{
+			Name:        "include_routes",
+			In:          "query",
+			Description: `Include routes that serve this stop (requires tl_user_pro role)`,
+			Schema:      newSRVal("string", "", []any{"true", "false"}),
+			Extensions:  newExtWithRole("", "include_routes=true", "include_routes=true", "tl_user_pro"),
 		},
 	},
 }
