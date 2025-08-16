@@ -41,6 +41,7 @@ var RestHandlersList = []RestHandlers{
 	&FeedDownloadLatestFeedVersionRequest{}, // /feeds/{feed_key}/download_latest_feed_version
 	&FeedVersionDownloadRequest{},           // /feed_versions/{feed_version_key}/download
 	&FeedDownloadRtRequest{},                // /feeds/{feed_key}/download_latest_rt/{rt_type}.{format}
+	&OnestopIdEntityRedirectRequest{},       // /onestop_id/{onestop_id} - redirect to entity by Onestop ID
 }
 
 func GenerateOpenAPI(restPrefix string, opts ...SchemaOption) (*oa.T, error) {
@@ -99,13 +100,17 @@ func GenerateOpenAPI(restPrefix string, opts ...SchemaOption) (*oa.T, error) {
 	var handlers = RestHandlersList
 	for _, handler := range handlers {
 		requestInfo := handler.RequestInfo()
-		oaResponse, err := queryToOAResponses(requestInfo.Get.Query)
-		if err != nil {
-			return outdoc, err
-		}
 		getOp := requestInfo.Get.Operation
-		getOp.Responses = oaResponse
 		getOp.Description = requestInfo.Description
+		if requestInfo.Get.Operation.Responses.Len() > 0 {
+			getOp.Responses = requestInfo.Get.Operation.Responses
+		} else {
+			oaResponse, err := queryToOAResponses(requestInfo.Get.Query)
+			if err != nil {
+				return outdoc, err
+			}
+			getOp.Responses = oaResponse
+		}
 
 		// Apply custom security if provided
 		if config.GlobalSecurity != nil {

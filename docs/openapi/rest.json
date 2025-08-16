@@ -4279,44 +4279,50 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "data"
-                }
-              }
-            },
-            "description": "ok"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
                   "type": "object"
                 }
-              }
-            },
-            "description": "Bad request - invalid parameters"
-          },
-          "500": {
-            "content": {
-              "application/json": {
+              },
+              "application/octet-stream": {
                 "schema": {
-                  "type": "object"
+                  "format": "binary",
+                  "type": "string"
                 }
               }
             },
-            "description": "Internal server error"
+            "description": "Success"
           },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Unexpected error"
+          "401": {
+            "description": "Not authorized - feed redistribution not allowed"
+          },
+          "404": {
+            "description": "Not found - feed or real-time message not found"
           }
         },
         "summary": "Download latest GTFS Realtime feed data"
+      }
+    },
+    "/onestop_id/{onestop_id}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Onestop ID lookup key",
+            "in": "path",
+            "name": "onestop_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to entity by Onestop ID"
+          },
+          "404": {
+            "description": "Onestop ID not found or invalid format"
+          }
+        },
+        "summary": "Onestop ID Entity Redirect"
       }
     },
     "/operators": {
