@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"github.com/interline-io/transitland-lib/tlxy"
-	"github.com/interline-io/transitland-mw/meters"
 	"github.com/interline-io/transitland-server/internal/generated/gqlout"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/meters"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 // DEFAULTLIMIT is the default API limit

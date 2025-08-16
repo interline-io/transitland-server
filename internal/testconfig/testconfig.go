@@ -10,17 +10,17 @@ import (
 	"github.com/interline-io/transitland-lib/rt"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/tldb/querylogger"
-	"github.com/interline-io/transitland-mw/auth/authz"
-	"github.com/interline-io/transitland-mw/jobs"
-	localjobs "github.com/interline-io/transitland-mw/jobs/local"
-	"github.com/interline-io/transitland-mw/testutil"
-	"github.com/interline-io/transitland-server/finders/actions"
-	"github.com/interline-io/transitland-server/finders/azchecker"
-	"github.com/interline-io/transitland-server/finders/dbfinder"
-	"github.com/interline-io/transitland-server/finders/gbfsfinder"
-	"github.com/interline-io/transitland-server/finders/rtfinder"
 	"github.com/interline-io/transitland-server/internal/clock"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/auth/authz"
+	"github.com/interline-io/transitland-server/server/auth/azchecker"
+	"github.com/interline-io/transitland-server/server/finders/actions"
+	"github.com/interline-io/transitland-server/server/finders/dbfinder"
+	"github.com/interline-io/transitland-server/server/finders/gbfsfinder"
+	"github.com/interline-io/transitland-server/server/finders/rtfinder"
+	"github.com/interline-io/transitland-server/server/jobs"
+	localjobs "github.com/interline-io/transitland-server/server/jobs/local"
+	"github.com/interline-io/transitland-server/server/model"
+	"github.com/interline-io/transitland-server/server/testutil"
 	"github.com/interline-io/transitland-server/testdata"
 	"google.golang.org/protobuf/proto"
 )
@@ -116,7 +116,7 @@ func newTestConfig(t testing.TB, ctx context.Context, db tldb.Ext, opts Options)
 	rtf := rtfinder.NewFinder(rtfinder.NewLocalCache(), db)
 	rtf.Clock = cl
 	for _, rtj := range opts.RTJsons {
-		fn := testdata.Path("rt", rtj.Fname)
+		fn := testdata.Path("server", "rt", rtj.Fname)
 		msg, err := rt.ReadFile(fn)
 		if err != nil {
 			t.Fatal(err)

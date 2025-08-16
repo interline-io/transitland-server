@@ -4,7 +4,7 @@ import (
 	"context"
 
 	dataloader "github.com/graph-gophers/dataloader/v7"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 type placeResolver struct{ *Resolver }

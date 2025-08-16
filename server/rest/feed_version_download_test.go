@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/interline-io/transitland-lib/rt/pb"
-	"github.com/interline-io/transitland-mw/auth/authn"
-	"github.com/interline-io/transitland-mw/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/internal/testconfig"
+	"github.com/interline-io/transitland-server/server/auth/authn"
+	"github.com/interline-io/transitland-server/server/auth/mw/usercheck"
 	"github.com/interline-io/transitland-server/testdata"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
@@ -18,7 +18,7 @@ import (
 
 func TestFeedVersionDownloadRequest(t *testing.T) {
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: testdata.Path("tmp"),
+		Storage: testdata.Path("server", "tmp"),
 	})
 
 	t.Run("ok", func(t *testing.T) {
@@ -111,7 +111,7 @@ func TestFeedVersionDownloadRequest(t *testing.T) {
 
 func TestFeedDownloadLatestRequest(t *testing.T) {
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: testdata.Path("tmp"),
+		Storage: testdata.Path("server", "tmp"),
 	})
 
 	t.Run("ok", func(t *testing.T) {
@@ -185,7 +185,7 @@ func TestFeedDownloadLatestRequest(t *testing.T) {
 
 func TestFeedDownloadRtLatestRequest(t *testing.T) {
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: testdata.Path("tmp"),
+		Storage: testdata.Path("server", "tmp"),
 		RTJsons: []testconfig.RTJsonFile{
 			{Feed: "BA~rt", Ftype: "realtime_alerts", Fname: "BA-alerts.json"},
 			{Feed: "BA~rt", Ftype: "realtime_trip_updates", Fname: "BA.json"},
@@ -297,7 +297,7 @@ func TestFeedDownloadRtLatestRequest(t *testing.T) {
 
 func TestFeedDownloadRtVehiclePositions(t *testing.T) {
 	_, restSrv, _ := testHandlersWithOptions(t, testconfig.Options{
-		Storage: testdata.Path("tmp"),
+		Storage: testdata.Path("server", "tmp"),
 		RTJsons: []testconfig.RTJsonFile{
 			{Feed: "CT~rt", Ftype: "realtime_vehicle_positions", Fname: "ct-vehicle-positions.pb.json"},
 		},

@@ -3,7 +3,7 @@ package gql
 import (
 	"context"
 
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 type levelResolver struct {

@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/interline-io/transitland-mw/jobs"
 	"github.com/interline-io/transitland-server/internal/util"
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/jobs"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 // NewServer creates a simple api for submitting and running jobs.

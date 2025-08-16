@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/interline-io/transitland-server/model"
+	"github.com/interline-io/transitland-server/server/model"
 )
 
 ////////////////////////// CENSUS RESOLVERS

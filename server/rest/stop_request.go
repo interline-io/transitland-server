@@ -8,7 +8,7 @@ import (
 
 	oa "github.com/getkin/kin-openapi/openapi3"
 	"github.com/interline-io/log"
-	"github.com/interline-io/transitland-mw/auth/authn"
+	"github.com/interline-io/transitland-server/server/auth/authn"
 )
 
 //go:embed stop_request.gql
