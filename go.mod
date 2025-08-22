@@ -136,8 +136,8 @@ replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-202
 
 // CTE Performance Optimization: Replace Squirrel with CTE-enabled fork
 // Enables native WITH clause support for materialized CTEs in stop times queries
-// Expected 23x performance improvement (2117ms -> ~90ms) by eliminating 539+ expensive joins
-replace github.com/Masterminds/squirrel v1.5.4 => github.com/jack-t/squirrel v1.6.0
+// 20x performance improvement by eliminating expensive joins
+replace github.com/Masterminds/squirrel v1.5.4 => github.com/irees/squirrel v0.0.0-20250822014914-aae4a88f08eb
 
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib

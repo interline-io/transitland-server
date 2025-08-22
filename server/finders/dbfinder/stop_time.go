@@ -130,12 +130,9 @@ func stopTimeSelect(tpairs []model.FVPair, spairs []model.FVPair, where *model.T
 }
 
 func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
-	// PERFORMANCE OPTIMIZATION: Using materialized CTEs to optimize expensive query
-	// Original query had 539+ expensive lateral join executions taking 2117ms
-	// CTE approach should reduce to ~90ms (23x performance improvement)
 	//
-	// Key optimization: Replace expensive inline subquery with materialized CTE
-	// for active service calculation that was being executed repeatedly
+	// Key optimization: Replace expensive inline subquery with CTE
+	// for active service calculation that was being executed repeatedly.
 
 	// Where must already be set for local service date and timezone
 	serviceDate := time.Now()
@@ -147,7 +144,10 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 	// Define CTE for active services (materialized once)
 	// This replaces the expensive JoinClause that was executing 539+ times
 	// Build the complete CTE as a raw expression since Squirrel doesn't handle UNION with WHERE properly
-	activeServicesCTE := sq.Expr(`
+	activeServicesCTE := sq.CTE{
+		Alias:        "active_services",
+		Materialized: true,
+		Expression: sq.Expr(`
 		SELECT id
 		FROM gtfs_calendars
 		WHERE start_date <= ?
@@ -170,7 +170,8 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 		SELECT service_id as id 
 		FROM gtfs_calendar_dates
 		WHERE date = ? AND exception_type = 2 AND feed_version_id = ANY(?)`,
-		serviceDate, serviceDate, serviceDate, fvids, serviceDate, fvids, serviceDate, fvids)
+			serviceDate, serviceDate, serviceDate, fvids, serviceDate, fvids, serviceDate, fvids),
+	}
 
 	// Build main query with CTEs
 	q := sq.StatementBuilder.Select(
@@ -191,7 +192,7 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 		"sts.continuous_pickup",
 		"sts.continuous_drop_off",
 	).
-		With("active_services", activeServicesCTE).
+		WithCTE(activeServicesCTE).
 		From("gtfs_trips").
 		Join("active_services gc on gc.id = gtfs_trips.service_id").
 		Join("gtfs_trips base_trip ON base_trip.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = base_trip.feed_version_id").
@@ -241,16 +242,19 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 		if len(where.RouteOnestopIds) > 0 {
 			if where.AllowPreviousRouteOnestopIds != nil && *where.AllowPreviousRouteOnestopIds {
 				// Use CTE for route lookup optimization
-				routeLookupCTE := sq.StatementBuilder.
-					Select("feed_version_route_onestop_ids.entity_id", "feed_versions.feed_id").
-					Distinct().Options("on (feed_version_route_onestop_ids.entity_id, feed_versions.feed_id)").
-					From("feed_version_route_onestop_ids").
-					Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
-					Where(In("feed_version_route_onestop_ids.onestop_id", where.RouteOnestopIds)).
-					OrderBy("feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC")
-
+				routeLookupCTE := sq.CTE{
+					Materialized: true,
+					Alias:        "route_lookup",
+					Expression: sq.StatementBuilder.
+						Select("feed_version_route_onestop_ids.entity_id", "feed_versions.feed_id").
+						Distinct().Options("on (feed_version_route_onestop_ids.entity_id, feed_versions.feed_id)").
+						From("feed_version_route_onestop_ids").
+						Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
+						Where(In("feed_version_route_onestop_ids.onestop_id", where.RouteOnestopIds)).
+						OrderBy("feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC"),
+				}
 				q = q.
-					With("route_lookup", routeLookupCTE).
+					WithCTE(routeLookupCTE).
 					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id and gtfs_routes.feed_version_id = gtfs_trips.feed_version_id").
 					Join("route_lookup tlros on tlros.entity_id = gtfs_routes.route_id and tlros.feed_id = feed_versions.feed_id")
 			} else {
