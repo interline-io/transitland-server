@@ -3,10 +3,10 @@ package dbfinder
 import (
 	"context"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/server/dbutil"
 	"github.com/interline-io/transitland-server/server/model"
+	sq "github.com/irees/squirrel"
 )
 
 func (f *Finder) FindTrips(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.TripFilter) ([]*model.Trip, error) {

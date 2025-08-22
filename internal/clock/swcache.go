@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/server/caches/tzcache"
 	"github.com/interline-io/transitland-server/server/dbutil"
+	sq "github.com/irees/squirrel"
 	"github.com/jmoiron/sqlx"
 )
 

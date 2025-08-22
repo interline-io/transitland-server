@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/irees/squirrel"
 
 	"github.com/interline-io/log"
 	"github.com/jackc/pgx/v5/pgxpool"

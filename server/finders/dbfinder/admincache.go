@@ -3,7 +3,7 @@ package dbfinder
 import (
 	"context"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/irees/squirrel"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/geojson"
 
