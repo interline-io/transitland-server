@@ -130,7 +130,6 @@ func stopTimeSelect(tpairs []model.FVPair, spairs []model.FVPair, where *model.T
 }
 
 func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
-	//
 	// Key optimization: Replace expensive inline subquery with CTE
 	// for active service calculation that was being executed repeatedly.
 
@@ -142,7 +141,6 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 	sids, fvids := pairKeys(spairs)
 
 	// Define CTE for active services (materialized once)
-	// This replaces the expensive JoinClause that was executing 539+ times
 	// Build the complete CTE as a raw expression since Squirrel doesn't handle UNION with WHERE properly
 	activeServicesCTE := sq.CTE{
 		Alias:        "active_services",
@@ -242,16 +240,17 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 		if len(where.RouteOnestopIds) > 0 {
 			if where.AllowPreviousRouteOnestopIds != nil && *where.AllowPreviousRouteOnestopIds {
 				// Use CTE for route lookup optimization
+				sub := sq.StatementBuilder.
+					Select("feed_version_route_onestop_ids.entity_id", "feed_versions.feed_id").
+					Distinct().Options("on (feed_version_route_onestop_ids.entity_id, feed_versions.feed_id)").
+					From("feed_version_route_onestop_ids").
+					Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
+					Where(In("feed_version_route_onestop_ids.onestop_id", where.RouteOnestopIds)).
+					OrderBy("feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC")
 				routeLookupCTE := sq.CTE{
 					Materialized: true,
 					Alias:        "route_lookup",
-					Expression: sq.StatementBuilder.
-						Select("feed_version_route_onestop_ids.entity_id", "feed_versions.feed_id").
-						Distinct().Options("on (feed_version_route_onestop_ids.entity_id, feed_versions.feed_id)").
-						From("feed_version_route_onestop_ids").
-						Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
-						Where(In("feed_version_route_onestop_ids.onestop_id", where.RouteOnestopIds)).
-						OrderBy("feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC"),
+					Expression:   sub,
 				}
 				q = q.
 					WithCTE(routeLookupCTE).
