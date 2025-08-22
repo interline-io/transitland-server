@@ -4,7 +4,6 @@ go 1.24.2
 
 require (
 	github.com/99designs/gqlgen v0.17.72
-	github.com/Masterminds/squirrel v1.5.4
 	github.com/auth0/go-auth0 v0.17.2
 	github.com/aws/aws-sdk-go v1.49.6
 	github.com/aws/aws-sdk-go-v2 v1.36.3
@@ -22,6 +21,7 @@ require (
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1
 	github.com/interline-io/transitland-lib v1.2.6-0.20250806234055-14690d88685e
+	github.com/irees/squirrel v0.0.0-20250822021440-28034b47d2f4
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/jmoiron/sqlx v1.4.0
@@ -46,6 +46,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.8.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
+	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/PuerkitoBio/rehttp v1.3.0 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
@@ -133,11 +134,6 @@ require (
 
 // Fork to allow exporting x- extensions
 replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17
-
-// CTE Performance Optimization: Replace Squirrel with CTE-enabled fork
-// Enables native WITH clause support for materialized CTEs in stop times queries
-// 20x performance improvement by eliminating expensive joins
-replace github.com/Masterminds/squirrel v1.5.4 => github.com/irees/squirrel v0.0.0-20250822014914-aae4a88f08eb
 
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib

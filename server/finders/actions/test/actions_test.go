@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/dmfr"
 	"github.com/interline-io/transitland-server/internal/gbfs"
 	"github.com/interline-io/transitland-server/internal/testconfig"
@@ -20,6 +19,7 @@ import (
 	"github.com/interline-io/transitland-server/server/model"
 	"github.com/interline-io/transitland-server/server/testutil"
 	"github.com/interline-io/transitland-server/testdata"
+	sq "github.com/irees/squirrel"
 	"github.com/stretchr/testify/assert"
 	"github.com/twpayne/go-geom"
 )

@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/tlxy"
 	"github.com/interline-io/transitland-server/server/dbutil"
 	"github.com/interline-io/transitland-server/server/testutil"
+	sq "github.com/irees/squirrel"
 	"github.com/stretchr/testify/assert"
 )
 

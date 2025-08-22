@@ -1,8 +1,8 @@
 package dbfinder
 
 import (
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/server/model"
+	sq "github.com/irees/squirrel"
 )
 
 func licenseFilter(license *model.LicenseFilter, q sq.SelectBuilder) sq.SelectBuilder {

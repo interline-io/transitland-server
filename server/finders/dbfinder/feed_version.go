@@ -5,11 +5,11 @@ import (
 	"errors"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/server/dbutil"
 	"github.com/interline-io/transitland-server/server/model"
+	sq "github.com/irees/squirrel"
 )
 
 func (f *Finder) FindFeedVersions(ctx context.Context, limit *int, after *model.Cursor, ids []int, where *model.FeedVersionFilter) ([]*model.FeedVersion, error) {

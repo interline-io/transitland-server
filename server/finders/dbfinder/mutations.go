@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-lib/gtfs"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/tldb/postgres"
@@ -13,6 +12,7 @@ import (
 	"github.com/interline-io/transitland-server/server/auth/authz"
 	"github.com/interline-io/transitland-server/server/dbutil"
 	"github.com/interline-io/transitland-server/server/model"
+	sq "github.com/irees/squirrel"
 	"github.com/jmoiron/sqlx"
 )
 

@@ -9,12 +9,12 @@ import (
 	"time"
 	"unicode"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/log"
 	"github.com/interline-io/transitland-lib/tldb"
 	"github.com/interline-io/transitland-lib/tt"
 	"github.com/interline-io/transitland-server/internal/clock"
 	"github.com/interline-io/transitland-server/server/model"
+	sq "github.com/irees/squirrel"
 )
 
 // Maximum query result limit

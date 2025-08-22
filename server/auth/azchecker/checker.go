@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/irees/squirrel"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/interline-io/log"

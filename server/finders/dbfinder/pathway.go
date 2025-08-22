@@ -3,9 +3,9 @@ package dbfinder
 import (
 	"context"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/interline-io/transitland-server/server/dbutil"
 	"github.com/interline-io/transitland-server/server/model"
+	sq "github.com/irees/squirrel"
 )
 
 func (f *Finder) LevelsByIDs(ctx context.Context, ids []int) ([]*model.Level, []error) {
