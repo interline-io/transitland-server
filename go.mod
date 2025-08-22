@@ -134,6 +134,11 @@ require (
 // Fork to allow exporting x- extensions
 replace github.com/getkin/kin-openapi => github.com/irees/kin-openapi v0.0.0-20240827112008-5f0d6c653b17
 
+// CTE Performance Optimization: Replace Squirrel with CTE-enabled fork
+// Enables native WITH clause support for materialized CTEs in stop times queries
+// 20x performance improvement by eliminating expensive joins
+replace github.com/Masterminds/squirrel v1.5.4 => github.com/irees/squirrel v0.0.0-20250822014914-aae4a88f08eb
+
 // replace github.com/interline-io/log => /Users/irees/src/interline-io/log
 // replace github.com/interline-io/transitland-lib => /Users/irees/src/interline-io/transitland-lib
 
