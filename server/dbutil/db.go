@@ -74,18 +74,10 @@ func OpenDB(url string) (*sqlx.DB, error) {
 
 // Select runs a query and reads results into dest.
 func Select(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) error {
-	useStatement := false
 	q = q.PlaceholderFormat(sq.Dollar)
 	qstr, qargs, err := q.ToSql()
 	if err == nil {
-		if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
-			stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
-			if prepareErr != nil {
-				err = prepareErr
-			} else {
-				err = stmt.SelectContext(ctx, dest, qargs...)
-			}
-		} else if a, ok := db.(sqlx.QueryerContext); ok {
+		if a, ok := db.(sqlx.QueryerContext); ok {
 			err = sqlx.SelectContext(ctx, a, dest, qstr, qargs...)
 		} else {
 			err = sqlx.Select(db, dest, qstr, qargs...)
@@ -99,20 +91,12 @@ func Select(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface
 	return err
 }
 
-// Select runs a query and reads results into dest.
+// Get runs a query and reads results into dest.
 func Get(ctx context.Context, db sqlx.Ext, q sq.SelectBuilder, dest interface{}) error {
-	useStatement := false
 	q = q.PlaceholderFormat(sq.Dollar)
 	qstr, qargs, err := q.ToSql()
 	if err == nil {
-		if a, ok := db.(sqlx.PreparerContext); ok && useStatement {
-			stmt, prepareErr := sqlx.PreparexContext(ctx, a, qstr)
-			if prepareErr != nil {
-				err = prepareErr
-			} else {
-				err = stmt.GetContext(ctx, dest, qargs...)
-			}
-		} else if a, ok := db.(sqlx.QueryerContext); ok {
+		if a, ok := db.(sqlx.QueryerContext); ok {
 			err = sqlx.GetContext(ctx, a, dest, qstr, qargs...)
 		} else {
 			err = sqlx.Get(db, dest, qstr, qargs...)
