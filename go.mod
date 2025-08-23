@@ -20,7 +20,7 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/hypirion/go-filecache v0.0.0-20160810125507-e3e6ef6981f0
 	github.com/interline-io/log v0.0.0-20250611220650-b7683730abe1
-	github.com/interline-io/transitland-lib v1.2.15-0.20250823003042-55fc28d3fe81
+	github.com/interline-io/transitland-lib v1.2.15-0.20250823043935-ab6a705a6e1c
 	github.com/irees/squirrel v0.0.0-20250822021440-28034b47d2f4
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/jellydator/ttlcache/v2 v2.11.1

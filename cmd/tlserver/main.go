@@ -154,7 +154,7 @@ func (cmd *ServerCommand) Run(ctx context.Context) error {
 	}
 	db = dbx
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
-		db = &querylogger.QueryLogger{Ext: dbx}
+		db = &querylogger.QueryLogger{Ext: dbx, LongQueryDuration: time.Duration(cmd.LongQueryDuration) * time.Millisecond}
 	}
 
 	// Open redis
