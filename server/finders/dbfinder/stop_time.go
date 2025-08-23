@@ -30,7 +30,7 @@ func (f *Finder) StopTimesByStopIDs(ctx context.Context, limit *int, where *mode
 		pairGroups[v.FeedVersionID] = append(pairGroups[v.FeedVersionID], v)
 	}
 	var ents []*model.StopTime
-	for fvid, stopKeys := range pairGroups {
+	for fvid, stopPairs := range pairGroups {
 		fvsw, err := f.FindFeedVersionServiceWindow(ctx, fvid)
 		if err != nil {
 			return nil, err
@@ -45,10 +45,14 @@ func (f *Finder) StopTimesByStopIDs(ctx context.Context, limit *int, where *mode
 			var q sq.SelectBuilder
 			if serviceDate != nil {
 				// Get stops on a specified day
-				q = stopDeparturesSelect(stopKeys, w)
+				var stopKeys []int
+				for _, k := range stopPairs {
+					stopKeys = append(stopKeys, k.EntityID)
+				}
+				q = stopDeparturesSelect(fvid, stopKeys, w)
 			} else {
 				// Otherwise get all stop_times for stop
-				q = stopTimeSelect(nil, stopKeys, nil)
+				q = stopTimeSelect(nil, stopPairs, nil)
 			}
 			// Run query
 			if err := dbutil.Select(ctx,
@@ -129,7 +133,8 @@ func stopTimeSelect(tpairs []model.FVPair, spairs []model.FVPair, where *model.T
 	return q
 }
 
-func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq.SelectBuilder {
+// this now operates on a single feed version at a time...
+func stopDeparturesSelect(fvid int, sids []int, where *model.StopTimeFilter) sq.SelectBuilder {
 	// Key optimization: Replace expensive inline subquery with CTE
 	// for active service calculation that was being executed repeatedly.
 
@@ -138,7 +143,6 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 	if where != nil && where.ServiceDate != nil {
 		serviceDate = where.ServiceDate.Val
 	}
-	sids, fvids := pairKeys(spairs)
 
 	// Define CTE for active services (materialized once)
 	// Build the complete CTE as a raw expression since Squirrel doesn't handle UNION with WHERE properly
@@ -159,16 +163,16 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 				WHEN 6 THEN saturday = 1
 				WHEN 7 THEN sunday = 1
 			END)
-			AND feed_version_id = ANY(?)
+			AND feed_version_id = ?
 		UNION
 		SELECT service_id as id
 		FROM gtfs_calendar_dates
-		WHERE date = ? AND exception_type = 1 AND feed_version_id = ANY(?)
+		WHERE date = ? AND exception_type = 1 AND feed_version_id = ?
 		EXCEPT
 		SELECT service_id as id 
 		FROM gtfs_calendar_dates
-		WHERE date = ? AND exception_type = 2 AND feed_version_id = ANY(?)`,
-			serviceDate, serviceDate, serviceDate, fvids, serviceDate, fvids, serviceDate, fvids),
+		WHERE date = ? AND exception_type = 2 AND feed_version_id = ?`,
+			serviceDate, serviceDate, serviceDate, fvid, serviceDate, fvid, serviceDate, fvid),
 	}
 
 	// Build main query with CTEs
@@ -226,7 +230,7 @@ func stopDeparturesSelect(spairs []model.FVPair, where *model.StopTimeFilter) sq
 			) sts on true`).
 		Where(
 			In("sts.stop_id", sids),
-			In("sts.feed_version_id", fvids),
+			sq.Eq{"sts.feed_version_id": fvid},
 		).
 		OrderBy("sts.departure_time_freq", "sts.trip_id") // base + offset
 
