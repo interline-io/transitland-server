@@ -268,9 +268,7 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 		if where.OnestopID != nil {
 			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
 		}
-		if len(where.OnestopIds) == 0 {
-			// Nothing
-		} else if where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
+		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
 			// Use CTE for stop lookup optimization
 			sub := sq.StatementBuilder.
 				Select("feed_version_stop_onestop_ids.onestop_id", "feed_version_stop_onestop_ids.entity_id", "feed_versions.feed_id").
@@ -288,9 +286,10 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 				WithCTE(stopLookupCte).
 				Join("feed_version_stop_onestop_ids on feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_id = feed_versions.feed_id")
 		} else {
-			q = q.
-				JoinClause(`LEFT JOIN feed_version_stop_onestop_ids ON feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`).
-				Where(In("feed_version_stop_onestop_ids.onestop_id", where.OnestopIds))
+			q = q.JoinClause(`LEFT JOIN feed_version_stop_onestop_ids ON feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)
+			if len(where.OnestopIds) > 0 {
+				q = q.Where(In("feed_version_stop_onestop_ids.onestop_id", where.OnestopIds))
+			}
 		}
 	} else {
 		q = q.JoinClause(`LEFT JOIN feed_version_stop_onestop_ids ON feed_version_stop_onestop_ids.entity_id = gtfs_stops.stop_id and feed_version_stop_onestop_ids.feed_version_id = gtfs_stops.feed_version_id`)

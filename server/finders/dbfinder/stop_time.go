@@ -251,13 +251,13 @@ func stopDeparturesSelect(fvid int, sids []int, where *model.StopTimeFilter) sq.
 					Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
 					Where(In("feed_version_route_onestop_ids.onestop_id", where.RouteOnestopIds)).
 					OrderBy("feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC")
-				routeLookupCTE := sq.CTE{
+				routeLookupCte := sq.CTE{
 					Materialized: true,
 					Alias:        "route_lookup",
 					Expression:   sub,
 				}
 				q = q.
-					WithCTE(routeLookupCTE).
+					WithCTE(routeLookupCte).
 					Join("gtfs_routes on gtfs_routes.id = gtfs_trips.route_id and gtfs_routes.feed_version_id = gtfs_trips.feed_version_id").
 					Join("route_lookup tlros on tlros.entity_id = gtfs_routes.route_id and tlros.feed_id = feed_versions.feed_id")
 			} else {
