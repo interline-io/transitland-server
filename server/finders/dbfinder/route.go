@@ -213,9 +213,6 @@ func routeSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 		if where.OnestopID != nil {
 			where.OnestopIds = append(where.OnestopIds, *where.OnestopID)
 		}
-		if len(where.OnestopIds) > 0 {
-			q = q.Where(In("feed_version_route_onestop_ids.onestop_id", where.OnestopIds))
-		}
 		if len(where.OnestopIds) > 0 && where.AllowPreviousOnestopIds != nil && *where.AllowPreviousOnestopIds {
 			sub := sq.StatementBuilder.
 				Select("feed_version_route_onestop_ids.onestop_id", "feed_version_route_onestop_ids.entity_id", "feed_versions.feed_id").
@@ -224,12 +221,19 @@ func routeSelect(limit *int, after *model.Cursor, ids []int, active bool, permFi
 				Join("feed_versions on feed_versions.id = feed_version_route_onestop_ids.feed_version_id").
 				Where(In("feed_version_route_onestop_ids.onestop_id", where.OnestopIds)).
 				OrderBy("feed_version_route_onestop_ids.onestop_id, feed_version_route_onestop_ids.entity_id, feed_versions.feed_id, feed_versions.id DESC")
-			subClause := sub.
-				Prefix("LEFT JOIN (").
-				Suffix(") feed_version_route_onestop_ids on feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_id = feed_versions.feed_id")
-			q = q.JoinClause(subClause)
+			routeLookupCte := sq.CTE{
+				Materialized: true,
+				Alias:        "feed_version_route_onestop_ids",
+				Expression:   sub,
+			}
+			q = q.
+				WithCTE(routeLookupCte).
+				Join("feed_version_route_onestop_ids on feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_id = feed_versions.feed_id")
 		} else {
 			q = q.JoinClause(`LEFT JOIN feed_version_route_onestop_ids ON feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_version_id = gtfs_routes.feed_version_id`)
+			if len(where.OnestopIds) > 0 {
+				q = q.Where(In("feed_version_route_onestop_ids.onestop_id", where.OnestopIds))
+			}
 		}
 	} else {
 		q = q.JoinClause(`LEFT JOIN feed_version_route_onestop_ids ON feed_version_route_onestop_ids.entity_id = gtfs_routes.route_id and feed_version_route_onestop_ids.feed_version_id = gtfs_routes.feed_version_id`)
