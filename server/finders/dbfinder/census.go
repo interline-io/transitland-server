@@ -364,11 +364,19 @@ func censusDatasetGeographySelect(limit *int, where *model.CensusDatasetGeograph
 			radius := checkFloat(&loc.Near.Radius, 0, 1_000_000)
 			qJoin = sq.StatementBuilder.Select().Column("ST_Buffer(ST_MakePoint(?,?)::geography, ?) as buffer", loc.Near.Lon, loc.Near.Lat, radius)
 		} else if loc.StopBuffer != nil && len(loc.StopBuffer.StopIds) > 0 {
-			radius := checkFloat(loc.StopBuffer.Radius, 1, 1_000)
-			qJoin = sq.StatementBuilder.Select().
-				Column("ST_Buffer(ST_Collect(ST_Buffer(gtfs_stops.geometry::geography, ?)::geometry), 0) as buffer", radius).
-				From("gtfs_stops").
-				Where(In("gtfs_stops.id", loc.StopBuffer.StopIds))
+			radius := checkFloat(loc.StopBuffer.Radius, 0, 1_000)
+			if radius == 0 {
+				qJoin = sq.StatementBuilder.Select().
+					Column("gtfs_stops.geometry as buffer").
+					From("gtfs_stops").
+					Where(In("gtfs_stops.id", loc.StopBuffer.StopIds))
+
+			} else {
+				qJoin = sq.StatementBuilder.Select().
+					Column("ST_Buffer(ST_Collect(ST_Buffer(gtfs_stops.geometry::geography, ?)::geometry), 0) as buffer", radius).
+					From("gtfs_stops").
+					Where(In("gtfs_stops.id", loc.StopBuffer.StopIds))
+			}
 		} else {
 			found = false
 		}
