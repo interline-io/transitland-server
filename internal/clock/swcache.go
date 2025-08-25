@@ -217,11 +217,16 @@ func (f *ServiceWindowCache) queryFvsl(ctx context.Context, fvid int) (ServiceWi
 	bestService := fvslEnts[0].TotalService.Val
 	hasFullServiceWeek := false
 
-	// First pass: look for weeks with service on all days
-	for _, ent := range fvslEnts {
+	// Helper function to check if a week falls within the service window
+	isWeekInWindow := func(ent fvslEnt) bool {
 		sd := ent.StartDate.Val
 		ed := ent.EndDate.Val
-		if (sd.Before(endDate) || sd.Equal(endDate)) && (ed.After(startDate) || ed.Equal(startDate)) {
+		return (sd.Before(endDate) || sd.Equal(endDate)) && (ed.After(startDate) || ed.Equal(startDate))
+	}
+
+	// First pass: look for weeks with service on all days
+	for _, ent := range fvslEnts {
+		if isWeekInWindow(ent) {
 			// Check if this week has service on all days
 			hasFullService := ent.Monday.Val > 0 && ent.Tuesday.Val > 0 && ent.Wednesday.Val > 0 &&
 				ent.Thursday.Val > 0 && ent.Friday.Val > 0 && ent.Saturday.Val > 0 && ent.Sunday.Val > 0
@@ -237,9 +242,7 @@ func (f *ServiceWindowCache) queryFvsl(ctx context.Context, fvid int) (ServiceWi
 	// Second pass: if no full-service week found, fall back to any week with highest service
 	if !hasFullServiceWeek {
 		for _, ent := range fvslEnts {
-			sd := ent.StartDate.Val
-			ed := ent.EndDate.Val
-			if (sd.Before(endDate) || sd.Equal(endDate)) && (ed.After(startDate) || ed.Equal(startDate)) {
+			if isWeekInWindow(ent) {
 				if ent.TotalService.Val > bestService {
 					bestService = ent.TotalService.Val
 					bestWeek = ent.StartDate.Val
