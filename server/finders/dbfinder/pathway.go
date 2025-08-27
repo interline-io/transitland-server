@@ -114,6 +114,9 @@ func pathwaySelect(limit *int, after *model.Cursor, ids []int, permFilter *model
 			q = q.Where(sq.Eq{"pathway_mode": where.PathwayMode})
 		}
 	}
+	// Only return pathways from successfully imported feed versions
+	q = q.Join("feed_version_gtfs_imports fvgi on fvgi.feed_version_id = gtfs_pathways.feed_version_id").
+		Where(sq.Eq{"fvgi.success": true})
 	if len(ids) > 0 {
 		q = q.Where(In("gtfs_pathways.id", ids))
 	}

@@ -196,6 +196,9 @@ func agencySelect(limit *int, after *model.Cursor, ids []int, active bool, permF
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_agencies.feed_version_id")
 	}
+	// Only return agencies from successfully imported feed versions
+	q = q.Join("feed_version_gtfs_imports fvgi on fvgi.feed_version_id = gtfs_agencies.feed_version_id").
+		Where(sq.Eq{"fvgi.success": true})
 
 	// Handle cursor
 	if after != nil && after.Valid && after.ID > 0 {
