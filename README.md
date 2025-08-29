@@ -2,6 +2,8 @@
 
 [![GoDoc](https://godoc.org/github.com/interline-io/transitland-server?status.svg)](https://godoc.org/github.com/interline-io/transitland-server) ![Go Report Card](https://goreportcard.com/badge/github.com/interline-io/transitland-server)
 
+**NOTE** This package was merged into the main [transitland-lib](https://github.com/interline-io/transitland-lib) repo, under github.com/interline-io/transitland-lib/server.
+
 ## Table of Contents <!-- omit in toc -->
 <!-- to update use https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one -->
 - [Installation](#installation)
