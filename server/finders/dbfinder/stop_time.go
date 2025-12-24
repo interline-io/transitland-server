@@ -102,7 +102,6 @@ func stopTimeSelect(tpairs []model.FVPair, spairs []model.FVPair, where *model.T
 	).
 		From("gtfs_trips").
 		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
-		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
 		Join("gtfs_trips t2 ON t2.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = t2.feed_version_id").
 		Join("gtfs_stop_times sts ON sts.trip_id = t2.id AND sts.feed_version_id = t2.feed_version_id").
 		OrderBy("sts.stop_sequence, sts.arrival_time")
@@ -199,7 +198,6 @@ func stopDeparturesSelect(fvid int, sids []int, where *model.StopTimeFilter) sq.
 		Join("active_services gc on gc.id = gtfs_trips.service_id").
 		Join("gtfs_trips base_trip ON base_trip.trip_id::text = gtfs_trips.journey_pattern_id AND gtfs_trips.feed_version_id = base_trip.feed_version_id").
 		Join("feed_versions on feed_versions.id = gtfs_trips.feed_version_id").
-		Join("current_feeds on current_feeds.id = feed_versions.feed_id").
 		JoinClause(`left join lateral (
 			select
 				generate_series(start_time, end_time, headway_secs) freq_start
