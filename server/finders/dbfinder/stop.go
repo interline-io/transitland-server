@@ -476,6 +476,9 @@ func stopSelect(limit *int, after *model.Cursor, ids []int, active bool, permFil
 	if active {
 		q = q.Join("feed_states on feed_states.feed_version_id = gtfs_stops.feed_version_id")
 	}
+	// Only return stops from successfully imported feed versions
+	q = q.Join("feed_version_gtfs_imports fvgi on fvgi.feed_version_id = gtfs_stops.feed_version_id").
+		Where(sq.Eq{"fvgi.success": true})
 	if len(ids) > 0 {
 		q = q.Where(In("gtfs_stops.id", ids))
 	}
